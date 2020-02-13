@@ -12,6 +12,7 @@ class StateNotifications extends ChangeNotifier {
   Map<dynamic, dynamic> _notification = {};
   String _uid = "";
   bool _initialized = false;
+  Future<void> Function(Map<dynamic, dynamic> data) _callback;
 
   /// [token] Returns device token
   String get token => _token ?? "";
@@ -53,10 +54,16 @@ class StateNotifications extends ChangeNotifier {
       _updateUserToken();
     }
     pushProvider.initNotifications();
+//    if (token.isNotEmpty && !_initialized) {
     if (token.isNotEmpty && !_initialized) {
-      pushProvider.message.listen((arg) {
+      pushProvider.message.listen((arg) async {
         if (arg.isNotEmpty && arg.containsKey("notification")) {
           _notification = arg["notification"] ?? {};
+          try {
+            await _callback(_notification);
+          } catch (error) {
+            print(error);
+          }
           notifyListeners();
         }
       });
@@ -77,6 +84,10 @@ class StateNotifications extends ChangeNotifier {
     _notification = {};
     _uid = "";
     _initialized = false;
+  }
+
+  set callback(Future<void> Function(Map<dynamic, dynamic> data) callback) {
+    _callback = callback;
   }
 
   /// Clear document data
