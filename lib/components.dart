@@ -9,4 +9,5 @@ export 'components/role-selector.dart';
 export 'components/section-title.dart';
 export 'components/smart-imgix.dart';
 export 'components/status-chip.dart';
+export 'components/top-app.dart';
 export 'components/user-avatar.dart';
