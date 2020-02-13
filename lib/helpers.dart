@@ -5,4 +5,5 @@ export 'helpers/iso-language.dart';
 export 'helpers/jwt.dart';
 export 'helpers/locales.dart';
 export 'helpers/state-document.dart';
+export 'helpers/state-notifications.dart';
 export 'helpers/utils.dart';
