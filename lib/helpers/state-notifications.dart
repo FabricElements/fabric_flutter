@@ -54,17 +54,14 @@ class StateNotifications extends ChangeNotifier {
       _updateUserToken();
     }
     pushProvider.initNotifications();
-//    if (token.isNotEmpty && !_initialized) {
     if (token.isNotEmpty && !_initialized) {
       pushProvider.message.listen((arg) async {
-        if (arg.isNotEmpty && arg.containsKey("notification")) {
-          _notification = arg["notification"] ?? {};
-          try {
-            await _callback(_notification);
-          } catch (error) {
-            print(error);
-          }
-          notifyListeners();
+        _notification = arg;
+        notifyListeners();
+        try {
+          await _callback(arg);
+        } catch (error) {
+          print(error);
         }
       });
     }
