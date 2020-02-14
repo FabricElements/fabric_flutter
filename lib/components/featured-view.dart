@@ -198,89 +198,91 @@ class _FeaturedViewState extends State<FeaturedView> {
         ),
       ]);
     }
-    return SizedBox.expand(
-      child: RawMaterialButton(
-        onPressed: widget.actionLabel != null ? () => onClick() : null,
-        child: Flex(
-          direction: Axis.vertical,
-          children: <Widget>[
-            Expanded(
-              child: Stack(
-                fit: StackFit.expand,
-                children: <Widget>[
-                  SizedBox.expand(
-                    child: SmartImgix(
-                      image: widget.image,
+    return Scaffold(
+      body: SizedBox.expand(
+        child: RawMaterialButton(
+          onPressed: widget.actionLabel != null ? () => onClick() : null,
+          child: Flex(
+            direction: Axis.vertical,
+            children: <Widget>[
+              Expanded(
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: <Widget>[
+                    SizedBox.expand(
+                      child: SmartImgix(
+                        image: widget.image,
+                      ),
                     ),
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    top: 0,
-                    child: AnimatedContainer(
-                      duration: Duration(milliseconds: _animationDuration),
-                      padding: EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          stops: [0.0, 0.5, 1.0],
-                          colors: [
-                            _firstGradientAnimationColor,
-                            _secondGradientAnimationColor,
-                            _thirdGradientAnimationColor,
-                          ],
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      top: 0,
+                      child: AnimatedContainer(
+                        duration: Duration(milliseconds: _animationDuration),
+                        padding: EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            stops: [0.0, 0.5, 1.0],
+                            colors: [
+                              _firstGradientAnimationColor,
+                              _secondGradientAnimationColor,
+                              _thirdGradientAnimationColor,
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: Container(
-                      padding: EdgeInsets.all(16),
-                      child: AnimatedOpacity(
-                        duration: Duration(milliseconds: _animationDuration),
-                        opacity: _headlineOpacityLevel,
-                        child: Padding(
-                          padding: EdgeInsets.only(top: 64),
-                          child: SafeArea(
-                            top: false,
-                            bottom: false,
-                            child: Text(
-                              widget.headline,
-                              style: textTheme.display2.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold),
-                              textAlign: TextAlign.left,
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        padding: EdgeInsets.all(16),
+                        child: AnimatedOpacity(
+                          duration: Duration(milliseconds: _animationDuration),
+                          opacity: _headlineOpacityLevel,
+                          child: Padding(
+                            padding: EdgeInsets.only(top: 64),
+                            child: SafeArea(
+                              top: false,
+                              bottom: false,
+                              child: Text(
+                                widget.headline,
+                                style: textTheme.display2.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold),
+                                textAlign: TextAlign.left,
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.only(
-                top: 16,
-                bottom: widget.child == null ? 16 : 0,
-                left: 16,
-                right: 16,
-              ),
-              child: SafeArea(
-                top: false,
-                bottom: widget.actionLabel != null,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: options,
+                  ],
                 ),
               ),
-            ),
-          ],
+              Padding(
+                padding: EdgeInsets.only(
+                  top: 16,
+                  bottom: widget.child == null ? 16 : 0,
+                  left: 16,
+                  right: 16,
+                ),
+                child: SafeArea(
+                  top: false,
+                  bottom: widget.actionLabel != null,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: options,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
