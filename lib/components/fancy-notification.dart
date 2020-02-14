@@ -11,14 +11,16 @@ class FancyNotification extends StatelessWidget {
     Key key,
     @required this.child,
     this.callback,
-    this.actionLabel = "GO",
+    this.labelAction = "GO",
+    this.labelDismiss = "DISMISS",
     this.duration,
     this.persistent = false,
     this.backgroundColor,
   }) : super(key: key);
   final Widget child;
   final Function callback;
-  final String actionLabel;
+  final String labelAction;
+  final String labelDismiss;
   final Duration duration;
   final bool persistent;
   final Color backgroundColor;
@@ -89,7 +91,7 @@ class FancyNotification extends StatelessWidget {
       }
       List<Widget> _actions = [
         OutlineButton(
-          child: Text("DISMISS"),
+          child: Text(labelDismiss),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -97,7 +99,7 @@ class FancyNotification extends StatelessWidget {
       ];
       if (_path.isNotEmpty) {
         _actions.add(RaisedButton(
-          child: Text(actionLabel),
+          child: Text(labelAction),
           onPressed: () {
             Scaffold.of(context)
                 .removeCurrentSnackBar(reason: SnackBarClosedReason.dismiss);
