@@ -13,7 +13,7 @@ class StateNotifications extends ChangeNotifier {
 
   // ignore: close_sinks
   final _messagesStreamController =
-  StreamController<Map<dynamic, dynamic>>.broadcast();
+      StreamController<Map<dynamic, dynamic>>.broadcast();
 
   Stream<Map<dynamic, dynamic>> get message => _messagesStreamController.stream;
 
@@ -64,8 +64,7 @@ class StateNotifications extends ChangeNotifier {
     }
     Map<String, dynamic> _data = Map<String, dynamic>.from(data);
     // Format the child map
-    Map<String, dynamic> stringMap = _data[key].cast<String,
-        dynamic>();
+    Map<String, dynamic> stringMap = _data[key].cast<String, dynamic>();
     _data.addAll(stringMap);
     _data.remove(key);
     return _data;
@@ -89,6 +88,14 @@ class StateNotifications extends ChangeNotifier {
 
       /// Add origin
       _message.addAll({"origin": origin});
+
+      /// Add valid path by default
+      String path = _message["path"] ?? "";
+      if (path != null && path.isNotEmpty && path.startsWith("/")) {
+        _message["path"] = path;
+      } else {
+        _message["path"] = "";
+      }
 
       /// Add data to stream
       _messagesStreamController.sink.add(_message);
