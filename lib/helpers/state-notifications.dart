@@ -13,7 +13,7 @@ class StateNotifications extends ChangeNotifier {
 
   // ignore: close_sinks
   final _messagesStreamController =
-      StreamController<Map<dynamic, dynamic>>.broadcast();
+  StreamController<Map<dynamic, dynamic>>.broadcast();
 
   Stream<Map<dynamic, dynamic>> get message => _messagesStreamController.stream;
 
@@ -59,38 +59,41 @@ class StateNotifications extends ChangeNotifier {
   }
 
   Map<String, dynamic> _clearObject(Map<String, dynamic> data, String key) {
-    if (data == null || data.isEmpty || !data.containsKey(key)) {
+    if (data == null || data.isEmpty || data[key] == null) {
       return data;
     }
-    Map<String, dynamic> _data = data;
-    _data.addAll(data[key]);
+    Map<String, dynamic> _data = Map<String, dynamic>.from(data);
+    // Format the child map
+    Map<String, dynamic> stringMap = _data[key].cast<String,
+        dynamic>();
+    _data.addAll(stringMap);
     _data.remove(key);
     return _data;
   }
 
   void _notify(Map<String, dynamic> message, String origin) async {
-    Map<String, dynamic> _message = message;
-
-    /// ios
-    _message = _clearObject(_message, "fcm_options");
-    _message = _clearObject(_message, "aps");
-    _message = _clearObject(_message, "alert");
-
-    /// android
-    _message = _clearObject(_message, "data");
-    _message = _clearObject(_message, "notification");
-
-    /// Add OS
-    _message.addAll({"os": Platform.operatingSystem});
-
-    /// Add origin
-    _message.addAll({"origin": origin});
-
-    /// Add data to stream
-    _messagesStreamController.sink.add(_message);
-    _notification = _message;
-    notifyListeners();
     try {
+      Map<String, dynamic> _message = message;
+
+      /// ios
+      _message = _clearObject(_message, "fcm_options");
+      _message = _clearObject(_message, "aps");
+      _message = _clearObject(_message, "alert");
+
+      /// android
+      _message = _clearObject(_message, "data");
+      _message = _clearObject(_message, "notification");
+
+      /// Add OS
+      _message.addAll({"os": Platform.operatingSystem});
+
+      /// Add origin
+      _message.addAll({"origin": origin});
+
+      /// Add data to stream
+      _messagesStreamController.sink.add(_message);
+      _notification = _message;
+      notifyListeners();
       await _callback(_notification);
     } catch (error) {
       print(error);
