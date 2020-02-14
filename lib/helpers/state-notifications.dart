@@ -65,7 +65,7 @@ class StateNotifications extends ChangeNotifier {
     Map<String, dynamic> _data = data;
     _data.addAll(data[key]);
     _data.remove(key);
-    return data;
+    return _data;
   }
 
   void _notify(Map<String, dynamic> message, String origin) async {
