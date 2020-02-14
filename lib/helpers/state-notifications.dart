@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -69,19 +70,23 @@ class StateNotifications extends ChangeNotifier {
 
   void _notify(Map<String, dynamic> message, String origin) async {
     Map<String, dynamic> _message = message;
-    _message.addAll({
-      "origin": origin,
-    });
 
     /// ios
-    message = _clearObject(message, "fcm_options");
-    message = _clearObject(message, "aps");
-    message = _clearObject(message, "alert");
+    _message = _clearObject(_message, "fcm_options");
+    _message = _clearObject(_message, "aps");
+    _message = _clearObject(_message, "alert");
 
     /// android
-    message = _clearObject(message, "data");
-    message = _clearObject(message, "notification");
+    _message = _clearObject(_message, "data");
+    _message = _clearObject(_message, "notification");
 
+    /// Add OS
+    _message.addAll({"os": Platform.operatingSystem});
+
+    /// Add origin
+    _message.addAll({"origin": origin});
+
+    /// Add data to stream
     _messagesStreamController.sink.add(_message);
     _notification = _message;
     notifyListeners();
