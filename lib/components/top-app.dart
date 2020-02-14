@@ -39,11 +39,13 @@ class TopApp extends StatelessWidget with WidgetsBindingObserver {
     } catch (error) {
       print(error);
     }
-    return MediaQuery(
-      data: MediaQueryData.fromWindow(WidgetsBinding.instance.window),
-      child: Directionality(
-        textDirection: TextDirection.ltr,
-        child: Scaffold(primary: true, body: child),
+    return LimitedBox(
+      child: MediaQuery(
+        data: MediaQueryData.fromWindow(WidgetsBinding.instance.window),
+        child: Directionality(
+          textDirection: TextDirection.ltr,
+          child: Scaffold(primary: true, body: child),
+        ),
       ),
     );
   }
