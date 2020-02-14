@@ -59,7 +59,7 @@ class StateNotifications extends ChangeNotifier {
 
   Map<String, dynamic> _clearObject(Map<String, dynamic> data, String key) {
     if (data == null || data.isEmpty || !data.containsKey(key)) {
-      return {};
+      return data;
     }
     Map<String, dynamic> _data = data;
     _data.addAll(data[key]);
