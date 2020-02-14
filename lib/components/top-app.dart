@@ -10,11 +10,9 @@ class TopApp extends StatelessWidget with WidgetsBindingObserver {
     Key key,
     @required this.child,
     this.notifications = false,
-    this.backgroundColor = Colors.white,
   }) : super(key: key);
   final Widget child;
   final bool notifications;
-  final Color backgroundColor;
 
   @override
   Widget build(BuildContext context) {
@@ -41,18 +39,6 @@ class TopApp extends StatelessWidget with WidgetsBindingObserver {
     } catch (error) {
       print(error);
     }
-    return LimitedBox(
-      child: MediaQuery(
-        data: MediaQueryData.fromWindow(WidgetsBinding.instance.window),
-        child: Directionality(
-          textDirection: TextDirection.ltr,
-          child: Scaffold(
-            primary: true,
-            body: child,
-            backgroundColor: backgroundColor,
-          ),
-        ),
-      ),
-    );
+    return child;
   }
 }
