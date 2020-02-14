@@ -57,11 +57,31 @@ class StateNotifications extends ChangeNotifier {
     return token;
   }
 
+  Map<String, dynamic> _clearObject(Map<String, dynamic> data, String key) {
+    if (data == null || data.isEmpty || !data.containsKey(key)) {
+      return {};
+    }
+    Map<String, dynamic> _data = data;
+    _data.addAll(data[key]);
+    _data.remove(key);
+    return data[key];
+  }
+
   void _notify(Map<String, dynamic> message, String origin) async {
     Map<String, dynamic> _message = message;
     _message.addAll({
       "origin": origin,
     });
+
+    /// ios
+    message = _clearObject(message, "fcm_options");
+    message = _clearObject(message, "aps");
+    message = _clearObject(message, "alert");
+
+    /// android
+    message = _clearObject(message, "data");
+    message = _clearObject(message, "notification");
+
     _messagesStreamController.sink.add(_message);
     _notification = _message;
     notifyListeners();
