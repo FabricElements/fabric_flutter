@@ -1,18 +1,26 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
+import 'dart:async';
 
-import 'push-provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/cupertino.dart';
 
 /// This is a change notifier class which keeps track of state within the campaign builder views.
 class StateNotifications extends ChangeNotifier {
   StateNotifications();
 
-  final pushProvider = new PushProvider();
+  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
+
+  // ignore: close_sinks
+  final _messagesStreamController =
+      StreamController<Map<dynamic, dynamic>>.broadcast();
+
+  Stream<Map<dynamic, dynamic>> get message => _messagesStreamController.stream;
+
   String _token;
   Map<dynamic, dynamic> _notification = {};
   String _uid = "";
   bool _initialized = false;
-  Future<void> Function(Map<dynamic, dynamic> data) _callback;
+  Future<void> Function(Map<dynamic, dynamic> message) _callback;
 
   /// [token] Returns device token
   String get token => _token ?? "";
@@ -43,29 +51,53 @@ class StateNotifications extends ChangeNotifier {
     return _toNotify;
   }
 
+  getToken() async {
+    _firebaseMessaging.requestNotificationPermissions();
+    String token = await _firebaseMessaging.getToken();
+    return token;
+  }
+
+  void _notify(Map<String, dynamic> message, String origin) async {
+    Map<String, dynamic> _message = message;
+    _message.addAll({
+      "origin": origin,
+    });
+    _messagesStreamController.sink.add(_message);
+    _notification = _message;
+    notifyListeners();
+    try {
+      await _callback(_notification);
+    } catch (error) {
+      print(error);
+    }
+  }
+
+  initNotifications() async {
+    _firebaseMessaging.configure(
+      onMessage: (Map<String, dynamic> message) async =>
+          _notify(message, "message"),
+      onLaunch: (Map<String, dynamic> message) async =>
+          _notify(message, "launch"),
+      onResume: (Map<String, dynamic> message) async =>
+          _notify(message, "resume"),
+    );
+    if (token.isNotEmpty && !_initialized) {
+      message.listen((arg) async {});
+    }
+    _initialized = true;
+  }
+
   /// Initializes the notifications and starts listening
   Future<void> init() async {
     if (_initialized) {
       return;
     }
     if (token.isEmpty) {
-      dynamic _pushToken = await pushProvider.getToken();
+      dynamic _pushToken = await getToken();
       _token = _pushToken;
       _updateUserToken();
     }
-    pushProvider.initNotifications();
-    if (token.isNotEmpty && !_initialized) {
-      pushProvider.message.listen((arg) async {
-        _notification = arg;
-        notifyListeners();
-        try {
-          await _callback(arg);
-        } catch (error) {
-          print(error);
-        }
-      });
-    }
-    _initialized = true;
+    initNotifications();
   }
 
   /// Define user id
@@ -83,7 +115,7 @@ class StateNotifications extends ChangeNotifier {
     _initialized = false;
   }
 
-  set callback(Future<void> Function(Map<dynamic, dynamic> data) callback) {
+  set callback(Future<void> Function(Map<dynamic, dynamic> message) callback) {
     _callback = callback;
   }
 
