@@ -1,5 +1,6 @@
 export 'components/card-button.dart';
 export 'components/charts.dart';
+export 'components/fancy-notification.dart';
 export 'components/featured-view.dart';
 export 'components/flag-chip.dart';
 export 'components/invitation.dart';
