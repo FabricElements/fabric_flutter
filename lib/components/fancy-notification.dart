@@ -45,7 +45,7 @@ class FancyNotification extends StatelessWidget {
               width: width,
               padding: EdgeInsets.only(bottom: 8, left: 16, right: 16),
               child: Text(
-                message["body"],
+                message["title"],
                 style: textTheme.headline5,
                 maxLines: 3,
               ),
