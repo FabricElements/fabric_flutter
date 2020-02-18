@@ -19,35 +19,32 @@ class TopApp extends StatelessWidget with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     WidgetsBinding.instance.addObserver(this);
-    String uid;
     StateNotifications stateNotifications =
         Provider.of<StateNotifications>(context, listen: false);
     StateDynamicLinks stateDynamicLinks =
         Provider.of<StateDynamicLinks>(context, listen: false);
-    if (links) {
-      Future.delayed(Duration(seconds: 2))
-          .then((value) async => stateDynamicLinks.init());
-      stateDynamicLinks.init();
-    }
-    if (notifications) {
-      try {
-        Future.delayed(Duration(seconds: 2))
-            .then((value) async => stateNotifications.init());
-        FirebaseAuth.instance.onAuthStateChanged.listen(
-          (FirebaseUser userObject) async {
-            uid = userObject?.uid ?? null;
-            if (notifications) {
-              if (uid != null) {
-                stateNotifications.uid = uid;
-              } else {
-                stateNotifications.clear(); // Stop notifications when sign out
-              }
+    String uid;
+
+    try {
+      FirebaseAuth.instance.onAuthStateChanged.listen(
+        (FirebaseUser userObject) async {
+          await Future.delayed(Duration(seconds: 3));
+          uid = userObject?.uid ?? null;
+          if (uid != null) {
+            if (links) {
+              stateDynamicLinks.init();
             }
-          },
-        );
-      } catch (error) {
-        print(error);
-      }
+            if (notifications) {
+              stateNotifications.uid = uid;
+              stateNotifications.init();
+            }
+          } else {
+            stateNotifications.clear(); // Stop notifications when sign out
+          }
+        },
+      );
+    } catch (error) {
+      print(error);
     }
 
     return child;
