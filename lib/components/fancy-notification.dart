@@ -101,9 +101,9 @@ class FancyNotification extends StatelessWidget {
         _actions.add(RaisedButton(
           child: Text(labelAction),
           onPressed: () {
-            Scaffold.of(context)
-                .removeCurrentSnackBar(reason: SnackBarClosedReason.dismiss);
-            Navigator.pop(context);
+//            Scaffold.of(context)
+//                .removeCurrentSnackBar(reason: SnackBarClosedReason.dismiss);
+//            Navigator.pop(context);
             this.callback(message);
           },
         ));
