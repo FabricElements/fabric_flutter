@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../helpers/state-dynamic-links.dart';
 import '../helpers/state-notifications.dart';
 
 /// This widget has to go on the top of your app
@@ -10,9 +11,11 @@ class TopApp extends StatelessWidget with WidgetsBindingObserver {
     Key key,
     @required this.child,
     this.notifications = false,
+    this.links = false,
   }) : super(key: key);
   final Widget child;
   final bool notifications;
+  final bool links;
 
   @override
   Widget build(BuildContext context) {
@@ -20,6 +23,11 @@ class TopApp extends StatelessWidget with WidgetsBindingObserver {
     String uid;
     StateNotifications stateNotifications =
         Provider.of<StateNotifications>(context, listen: false);
+    StateDynamicLinks stateDynamicLinks =
+        Provider.of<StateDynamicLinks>(context, listen: false);
+    if (links) {
+      stateDynamicLinks.init();
+    }
     if (notifications) {
       stateNotifications.init();
     }
