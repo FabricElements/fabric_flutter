@@ -126,7 +126,7 @@ class FancyNotification extends StatelessWidget {
           direction: Axis.vertical,
         ),
       ));
-      if (_origin == "message" || _origin == "launch") {
+      if (_origin == "message") {
         showModalBottomSheet(
           context: context,
           backgroundColor:
