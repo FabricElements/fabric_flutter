@@ -115,8 +115,9 @@ class StateNotifications extends ChangeNotifier {
           _notify(message, "launch"),
       onResume: (Map<String, dynamic> message) async =>
           _notify(message, "resume"),
-      onBackgroundMessage: (Map<String, dynamic> message) async =>
-          _notify(message, "background-message"),
+// Don't use onBackgroundMessage
+//      onBackgroundMessage: (Map<String, dynamic> message) async =>
+//          _notify(message, "background-message"),
     );
     if (token.isNotEmpty && !_initialized) {
       message.listen((arg) async {});
