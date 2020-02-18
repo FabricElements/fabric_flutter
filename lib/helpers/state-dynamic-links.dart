@@ -26,7 +26,9 @@ class StateDynamicLinks extends ChangeNotifier {
         print("Dynamic link error: ${e.message}");
       });
       _initialized = true;
-    } catch (error) {}
+    } catch (error) {
+      print("dynamic link: $error");
+    }
   }
 
   set callback(
