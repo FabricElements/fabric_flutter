@@ -1,9 +1,8 @@
+import 'package:fabric_flutter/helpers/state-dynamic-links.dart';
+import 'package:fabric_flutter/helpers/state-notifications.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import '../helpers/state-dynamic-links.dart';
-import '../helpers/state-notifications.dart';
 
 /// This widget has to go on the top of your app
 class TopApp extends StatelessWidget with WidgetsBindingObserver {
