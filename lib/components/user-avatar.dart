@@ -28,8 +28,13 @@ class UserAvatar extends StatelessWidget {
     }
     int totalMatches = matches.length > 2 ? matches.length : matches.length;
     for (int i = 0; i < totalMatches; i++) {
-      String match = matches[i][0];
-      finalText += match;
+      try {
+        String match = matches[i][0];
+        finalText += match;
+      } catch (error) {}
+    }
+    if (finalText.length == 0) {
+      return "?";
     }
     finalText = finalText.toUpperCase();
     return finalText;
