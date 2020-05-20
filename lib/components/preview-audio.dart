@@ -28,7 +28,7 @@ class AudioPreview extends StatefulWidget {
 }
 
 class _AudioPreviewState extends State<AudioPreview> {
-  FlutterSound flutterSound;
+  FlutterSoundPlayer flutterSoundPlayer;
   IconData icon;
   bool _isPlaying;
   double maxDuration;
@@ -40,7 +40,7 @@ class _AudioPreviewState extends State<AudioPreview> {
   @override
   void initState() {
     super.initState();
-    flutterSound = new FlutterSound();
+    flutterSoundPlayer = new FlutterSoundPlayer();
     icon = Icons.play_arrow;
     _isPlaying = false;
     maxDuration = 1.0;
@@ -52,9 +52,8 @@ class _AudioPreviewState extends State<AudioPreview> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    flutterSound.setSubscriptionDuration(0.01);
-    flutterSound.setDbPeakLevelUpdate(0.8);
-    flutterSound.setDbLevelEnabled(true);
+    flutterSoundPlayer.setSubscriptionDuration(Duration(milliseconds: 10));
+    flutterSoundPlayer.setVolume(0.8);
   }
 
   @override
@@ -70,16 +69,16 @@ class _AudioPreviewState extends State<AudioPreview> {
     if (!mounted) {
       return;
     }
-    await flutterSound.startPlayer(url);
-    await flutterSound.setVolume(1.0);
+    await flutterSoundPlayer.startPlayer(fromURI: url);
+    await flutterSoundPlayer.setVolume(1.0);
     try {
-      _playerSubscription = flutterSound.onPlayerStateChanged.listen((e) {
+      _playerSubscription = flutterSoundPlayer.onProgress.listen((e) {
         if (e != null) {
-          sliderCurrentPosition = e.currentPosition;
-          maxDuration = e.duration;
+          sliderCurrentPosition = e.position.inMilliseconds.toDouble();
+          maxDuration = e.duration.inMilliseconds.toDouble();
           slide = (sliderCurrentPosition * 100 / maxDuration) / 100;
           DateTime date = new DateTime.fromMillisecondsSinceEpoch(
-              e.currentPosition.toInt(),
+              e.position.inMilliseconds.toInt(),
               isUtc: true);
           String txt = DateFormat('mm:ss').format(date);
           _playerTxt = txt;
@@ -104,7 +103,7 @@ class _AudioPreviewState extends State<AudioPreview> {
   /// This method stop audio player
   void stopPlayer() async {
     try {
-      await flutterSound.stopPlayer();
+      await flutterSoundPlayer.stopPlayer();
       if (_playerSubscription != null) {
         _playerSubscription.cancel();
         _playerSubscription = null;
@@ -119,14 +118,14 @@ class _AudioPreviewState extends State<AudioPreview> {
 
   /// This method pause audio player
   void pausePlayer() async {
-    await flutterSound.pausePlayer();
+    await flutterSoundPlayer.pausePlayer();
     icon = Icons.play_arrow;
     _isPlaying = false;
   }
 
   /// This method resume audio player
   void resumePlayer() async {
-    await flutterSound.resumePlayer();
+    await flutterSoundPlayer.resumePlayer();
     icon = Icons.pause;
     _isPlaying = true;
   }
@@ -151,7 +150,7 @@ class _AudioPreviewState extends State<AudioPreview> {
     Widget spacer = Container(
       width: 16,
     );
-    if (widget.url == null || flutterSound == null) {
+    if (widget.url == null || flutterSoundPlayer == null) {
       return Text(widget.loadingText);
     }
 
