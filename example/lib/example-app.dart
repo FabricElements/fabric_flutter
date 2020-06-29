@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:fabric_flutter/helpers.dart';
-import 'package:fabric_flutter_example/navigation.dart';
+import 'package:flutter/material.dart';
+
+import 'navigation.dart';
 
 class ExampleApp extends StatelessWidget {
   @override
