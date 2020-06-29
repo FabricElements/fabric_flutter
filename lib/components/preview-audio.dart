@@ -158,9 +158,12 @@ class _AudioPreviewState extends State<AudioPreview> {
     final TextTheme textTheme = theme.textTheme;
     Color cardColor = Color.fromRGBO(255, 255, 255, 1);
 
-    Widget baseCard = Container(
+    Widget baseCard = Material(
+      clipBehavior: Clip.hardEdge,
+      borderRadius: BorderRadius.circular(25),
+      color: cardColor,
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.symmetric(horizontal: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -173,12 +176,13 @@ class _AudioPreviewState extends State<AudioPreview> {
                       icon,
                       color: theme.accentColor,
                     ),
+                    iconSize: 30,
                     onPressed: () => playPause(widget.url),
                   ),
-                  Flexible(
+                  Expanded(
                     child: RawMaterialButton(
                       child: SizedBox(
-                        height: 24,
+                        height: 50,
                         child: LinearProgressIndicator(
                           value: slide,
                           backgroundColor: Colors.grey.shade300,
@@ -202,12 +206,6 @@ class _AudioPreviewState extends State<AudioPreview> {
         ),
       ),
     );
-    return Padding(
-      padding: EdgeInsets.all(8),
-      child: Container(
-        color: cardColor,
-        child: baseCard,
-      ),
-    );
+    return baseCard;
   }
 }
