@@ -2,14 +2,13 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data' show Uint8List;
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_sound/flutter_sound.dart';
-import 'package:intl/intl.dart' show DateFormat;
+import 'package:http/http.dart' as http;
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart' show DateFormat;
-import 'package:path_provider/path_provider.dart';
 
 enum Media {
   file,
@@ -24,6 +23,10 @@ enum AudioState {
   isStopped,
   isRecording,
   isRecordingPaused,
+}
+
+Future<http.Response> fetchFile(String url) {
+  return http.get(url);
 }
 
 /// This a component to preview audio, it loads a url and you can play it within the app.
@@ -57,31 +60,30 @@ class _AudioPreviewState extends State<AudioPreview> {
   String _playerTxt;
   double slide;
   double sliderCurrentPosition;
-  Media _media = Media.file;
-  Codec _codec = Codec.aacADTS;
-  bool _encoderSupported = true; // Optimist
-  bool _decoderSupported = true; // Optimist
-  FlutterSoundPlayer playerModule = FlutterSoundPlayer();
+  FlutterSoundPlayer playerModule;
+  bool ready;
 
   Future<void> init() async {
     //playerModule = await `FlutterSoundPlayer`().openAudioSession();
-    await _initializeExample();
-
-    if (Platform.isAndroid) {
-//      copyAssets();
+    if (ready) {
+      return;
     }
+    try {
+      await _initializeExample();
+    } catch (error) {}
   }
 
   @override
   void initState() {
-    super.initState();
-//    flutterSoundPlayer = new FlutterSoundPlayer();
-    icon = Icons.play_arrow;
+    playerModule = new FlutterSoundPlayer();
+    icon = Icons.hourglass_full;
     _isPlaying = false;
     maxDuration = 1.0;
     _playerTxt = '00:00';
     slide = 0.0;
     sliderCurrentPosition = 0.0;
+    ready = false;
+    super.initState();
     init();
   }
 
@@ -92,9 +94,9 @@ class _AudioPreviewState extends State<AudioPreview> {
 //    playerModule.setVolume(0.8);
   }
 
-  void cancelPlayerSubscriptions() {
+  cancelPlayerSubscriptions() async {
     if (_playerSubscription != null) {
-      _playerSubscription.cancel();
+      await _playerSubscription.cancel();
       _playerSubscription = null;
     }
   }
@@ -110,146 +112,124 @@ class _AudioPreviewState extends State<AudioPreview> {
 
   @override
   void dispose() {
+    super.dispose();
     try {
       stopPlayer();
       releaseFlauto();
-    } catch (e) {}
-    super.dispose();
+    } catch (error) {
+      print(error);
+    }
   }
 
-
   Future<void> _initializeExample() async {
-    await playerModule.closeAudioSession();
+    await releaseFlauto();
     await playerModule.openAudioSession(
-        focus: AudioFocus.requestFocusTransient,
-        category: SessionCategory.playAndRecord,
+        focus: AudioFocus.requestFocusTransientExclusive,
+        category: SessionCategory.playback,
         mode: SessionMode.modeDefault,
         audioFlags: outputToSpeaker,
         device: AudioDevice.speaker);
-    await playerModule.setSubscriptionDuration(Duration(milliseconds: 10));
+    await playerModule.setSubscriptionDuration(Duration(seconds: 60));
     initializeDateFormatting();
+    ready = true;
+    icon = Icons.play_arrow;
+    if (mounted) setState(() {});
   }
 
   Future<bool> fileExists(String path) async {
     return await File(path).exists();
   }
 
-  // In this simple example, we just load a file in memory.This is stupid but just for demonstration  of startPlayerFromBuffer()
-  Future<Uint8List> makeBuffer(String path) async {
-    try {
-      if (!await fileExists(path)) return null;
-      File file = File(path);
-      file.openRead();
-      var contents = await file.readAsBytes();
-      print('The file is ${contents.length} bytes long.');
-      return contents;
-    } catch (e) {
-      print(e);
-      return null;
-    }
-  }
-
-  void _addListeners() {
-    cancelPlayerSubscriptions();
-    _playerSubscription = playerModule.onProgress.listen((e) {
-      print("event ${e.position}");
-      if (e != null) {
-        maxDuration = e.duration.inMilliseconds.toDouble();
-        if (maxDuration <= 0) maxDuration = 0.0;
-
-        sliderCurrentPosition =
-            min(e.position.inMilliseconds.toDouble(), maxDuration);
-        if (sliderCurrentPosition < 0.0) {
-          sliderCurrentPosition = 0.0;
-        }
-
-        DateTime date = new DateTime.fromMillisecondsSinceEpoch(
-            e.position.inMilliseconds,
-            isUtc: true);
-        String txt = DateFormat('mm:ss:SS', 'en_GB').format(date);
-        this.setState(() {
-          this._playerTxt = txt.substring(0, 8);
-        });
-      }
-    });
-  }
-
-
-  /// This method start audio player with this file [url]
-  void startPlayer(String url) async {
-    if (!mounted) {
+  _addListeners() async {
+    if (_playerSubscription != null) {
       return;
     }
-    //String path;
-    Uint8List dataBuffer;
-    String audioFilePath;
-
     try {
-//      if (!await fileExists(url)) {
+//      await cancelPlayerSubscriptions();
+      _playerSubscription = playerModule.onProgress.listen((e) {
+        print("event ${e.position}");
+        if (e != null) {
+          maxDuration = e.duration.inMilliseconds.toDouble();
+          if (maxDuration <= 0) maxDuration = 0.0;
+
+          sliderCurrentPosition =
+              min(e.position.inMilliseconds.toDouble(), maxDuration);
+          if (sliderCurrentPosition < 0.0) {
+            sliderCurrentPosition = 0.0;
+          }
+
+          DateTime date = new DateTime.fromMillisecondsSinceEpoch(
+              e.position.inMilliseconds,
+              isUtc: true);
+//        this.setState(() {
+//          this._playerTxt = txt.substring(0, 8);
+//        });
+
+          slide = (sliderCurrentPosition * 100 / maxDuration) / 100;
+          String txt = DateFormat('mm:ss').format(date);
+          _playerTxt = txt;
+          if (sliderCurrentPosition == maxDuration) {
+            sliderCurrentPosition = 0.0;
+            slide = 0.0;
+            icon = Icons.play_arrow;
+            _isPlaying = false;
+          }
+          if (mounted) setState(() {});
+        }
+      });
+    } catch (error) {
+      print("subscription error: $error");
+    }
+  }
+
+  /// This method start audio player with this file [url]
+  startPlayer(String url) async {
+    //      if (!await fileExists(url)) {
 //        throw new Exception("File not found on url");
 //      }
-      await playerModule.startPlayer(fromURI: url, whenFinished: () {
+    _isPlaying = true;
+    icon = Icons.hourglass_full;
+    if (mounted) setState(() {});
+    final mediaFile = await fetchFile(url);
+//    Uint8List mediaStream = (mediaFile).buffer.asUint8List();
+//    Uint8List mediaStream = (mediaFile.bodyBytes).buffer.asUint8List();
+    Uint8List dataBuffer = mediaFile.bodyBytes;
+    String contentType = mediaFile.headers["content-type"] ?? null;
+    print("content-type: $contentType");
+    print("loaded file");
+    await playerModule.startPlayer(
+//        fromURI: url,
+//      codec: Codec.defaultCodec,
+      fromDataBuffer: dataBuffer,
+      whenFinished: () {
         print('Play finished');
         setState(() {});
-      });
-      await playerModule.setVolume(1.0);
-
-//      _playerSubscription = playerModule.onProgress.listen((e) {
-//        print(e);
-//        if (e != null) {
-//          sliderCurrentPosition = e.position.inMilliseconds.toDouble();
-//          maxDuration = e.duration.inMilliseconds.toDouble();
-//          slide = (sliderCurrentPosition * 100 / maxDuration) / 100;
-//          DateTime date = new DateTime.fromMillisecondsSinceEpoch(
-//              e.position.inMilliseconds.toInt(),
-//              isUtc: true);
-//          String txt = DateFormat('mm:ss').format(date);
-//          _playerTxt = txt;
-//          if (sliderCurrentPosition == maxDuration) {
-//            sliderCurrentPosition = 0;
-//            slide = 0.0;
-//            icon = Icons.play_arrow;
-//            this._isPlaying = false;
-//          }
-//          if (mounted) {
-//            setState(() {});
-//          }
-//        }
-//      });
-      icon = Icons.pause;
-      _isPlaying = true;
-      _addListeners();
-      print('startPlayer');
-    } catch (err) {
-      print('error: $err');
-    }
+      },
+    );
+    await playerModule.setVolume(1.0);
+    icon = Icons.pause;
+    _isPlaying = true;
+    await _addListeners();
+    print('startPlayer');
   }
 
   /// This method stop audio player
-  void stopPlayer() async {
-    try {
-      await playerModule.stopPlayer();
-      if (_playerSubscription != null) {
-        _playerSubscription.cancel();
-        _playerSubscription = null;
-      }
-      icon = Icons.play_arrow;
-      this._isPlaying = false;
-      if (mounted) {
-        setState(() {});
-      }
-    } catch (error) {}
+  stopPlayer() async {
+    await playerModule.stopPlayer();
+    await cancelPlayerSubscriptions();
+    icon = Icons.play_arrow;
+    _isPlaying = false;
   }
 
   /// This method pause audio player
-  void pausePlayer() async {
+  pausePlayer() async {
     await playerModule.pausePlayer();
     icon = Icons.play_arrow;
     _isPlaying = false;
   }
 
   /// This method resume audio player
-  void resumePlayer() async {
+  resumePlayer() async {
     await playerModule.resumePlayer();
     icon = Icons.pause;
     _isPlaying = true;
@@ -257,22 +237,32 @@ class _AudioPreviewState extends State<AudioPreview> {
 
   /// This method play and resume audio player with this [url] file
   void playPause(String url) async {
+    if (!ready || !mounted) {
+      print("not ready");
+      return;
+    }
     try {
-      if (_isPlaying == false && (sliderCurrentPosition == 0)) {
-        startPlayer(url);
+      if (_isPlaying == false &&
+          (sliderCurrentPosition == 0.0) &&
+          !_isPlaying) {
+        await startPlayer(url);
       } else if (_isPlaying && (sliderCurrentPosition != maxDuration)) {
-        pausePlayer();
-      } else if ((_isPlaying == false) &&
-          (sliderCurrentPosition != maxDuration)) {
-        resumePlayer();
-      }
-      if (mounted) {
-        setState(() {});
+        await pausePlayer();
+      } else if (!_isPlaying && (sliderCurrentPosition != maxDuration)) {
+        await resumePlayer();
       }
     } catch (error) {
       print(error);
+      icon = Icons.play_arrow;
+      _isPlaying = false;
+      try {
+        await stopPlayer();
+        await releaseFlauto();
+      } catch (error) {
+        print(error);
+      }
     }
-
+    if (mounted) setState(() {});
   }
 
   @override
@@ -283,7 +273,6 @@ class _AudioPreviewState extends State<AudioPreview> {
     if (widget.url == null || playerModule == null) {
       return Text(widget.loadingText);
     }
-
     final theme = Theme.of(context);
     final TextTheme textTheme = theme.textTheme;
     Color cardColor = Color.fromRGBO(255, 255, 255, 1);
