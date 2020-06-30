@@ -71,3 +71,15 @@ build/
 !**/ios/**/default.pbxuser
 !**/ios/**/default.perspectivev3
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
+
+# Google services
+**/ios/Runner/GoogleService-Info.plist
+**/android/app/google-services.json
+
+# Web related
+#**/lib/generated_plugin_registrant.dart
+
+## Others
+ignore-*.*
+**/android/app/release/
+**/local.properties

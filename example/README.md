@@ -1,15 +1,16 @@
-# demo_components
+# fabric_flutter_example
 
-A project featuring all the flutter components demo&#x27;s
+Demonstrates how to use the fabric_flutter plugin.
 
 ## Getting Started
 
-When developing a new flutter component, create an example in this project.
+This project is a starting point for a Flutter application.
 
-When creating the project make sure to:
+A few resources to get you started if this is your first Flutter project:
 
-> Create an example version of the component in the lib/components folder
+- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
+- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
 
-> Add the component in navigation.dart - Drawer and router page
-
-> Test the component and make sure it is customizable
+For help getting started with Flutter, view our
+[online documentation](https://flutter.dev/docs), which offers tutorials,
+samples, guidance on mobile development, and a full API reference.
