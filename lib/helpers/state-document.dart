@@ -68,7 +68,7 @@ class StateDocument extends ChangeNotifier {
   /// Stop listening for changes
   void _drain() async {
     try {
-      if (_streamReference != null) {
+      if (id != null && _streamReference != null) {
         await _streamReference.drain();
       }
     } catch (error) {
