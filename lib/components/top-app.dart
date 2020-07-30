@@ -28,7 +28,7 @@ class TopApp extends StatelessWidget with WidgetsBindingObserver {
     try {
       FirebaseAuth.instance.onAuthStateChanged.listen(
         (FirebaseUser userObject) async {
-          await Future.delayed(Duration(seconds: 3));
+//          await Future.delayed(Duration(seconds: 3));
           uid = userObject?.uid ?? null;
           if (uid != null) {
             if (links) {

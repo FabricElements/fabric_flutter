@@ -21,11 +21,9 @@ class StateDocument extends ChangeNotifier {
       _documentReference =
           Firestore.instance.collection(collection).document(id);
       _streamReference = _documentReference.snapshots();
-    }
-    notifyListeners();
-    if (id != null) {
       _listen();
     }
+    notifyListeners();
   }
 
   /// Listen for document changes
@@ -70,7 +68,9 @@ class StateDocument extends ChangeNotifier {
   /// Stop listening for changes
   void _drain() async {
     try {
-      await _streamReference.drain();
+      if (_streamReference != null) {
+        await _streamReference.drain();
+      }
     } catch (error) {
 //      print("snapshot: $error");
     }
