@@ -28,21 +28,26 @@ class StateDocument extends ChangeNotifier {
 
   /// Listen for document changes
   void _listen() {
-    _data = {};
+    bool isValid = false;
     try {
       _streamReference.listen((snapshot) {
-        if (snapshot.exists) {
-          _data = snapshot.data;
-        } else {
-          _data = {};
+        String snapshotID = snapshot.documentID;
+        isValid =
+            snapshot.exists && snapshotID != null && snapshotID == _documentId;
+        if (!isValid) {
+          return;
         }
-        _data["id"] = snapshot.documentID;
+        _data = {};
+        _data = snapshot.data;
+        _data["id"] = snapshotID;
         notifyListeners();
       });
     } catch (error) {
-      _data = {};
-      print(error.message);
-      notifyListeners();
+      if (isValid) {
+        _data = {};
+        print(error.message);
+        notifyListeners();
+      }
     }
   }
 
