@@ -31,14 +31,14 @@ class StateDocument extends ChangeNotifier {
     bool isValid = false;
     try {
       _streamReference.listen((snapshot) {
-        String snapshotID = snapshot.documentID;
+        String snapshotID = snapshot.id;
         isValid =
             snapshot.exists && snapshotID != null && snapshotID == _documentId;
         if (!isValid) {
           return;
         }
         _data = {};
-        _data = snapshot.data;
+        _data = snapshot.data();
         _data["id"] = snapshotID;
         notifyListeners();
       });
@@ -56,7 +56,7 @@ class StateDocument extends ChangeNotifier {
   }
 
   Future<void> set(Map<String, dynamic> newData, {bool merge = false}) {
-    return _documentReference.setData(newData, merge: merge);
+    return _documentReference.set(newData, SetOptions(merge: merge));
   }
 
   /// Get document [id]

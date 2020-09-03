@@ -32,11 +32,11 @@ class StateNotifications extends ChangeNotifier {
       return;
     }
     try {
-      await Firestore.instance.collection("user").document(_uid).setData({
+      await Firestore.instance.collection("user").doc(_uid).set({
         "backup": false,
         "tokens": FieldValue.arrayUnion([token]),
         "updated": FieldValue.serverTimestamp(),
-      }, merge: true);
+      }, SetOptions(merge: true));
     } catch (error) {
       print("error saving user token: ${error.message}");
     }
