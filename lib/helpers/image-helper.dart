@@ -18,7 +18,8 @@ class ImageHelper {
       baseImage = await ImagePicker.pickImage(
           source: ImageSource.camera, maxWidth: 1500);
     } else if (origin == "gallery") {
-      baseImage = await FilePicker.getFile(type: FileType.image);
+      FilePickerResult result = await FilePicker.platform.pickFiles(type: FileType.image);
+      baseImage = File(result.files.single.path);
     }
     return baseImage.path;
   }
