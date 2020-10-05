@@ -1,6 +1,6 @@
 name: fabric_flutter
 description: Native components and helpers
-version: 0.0.19
+version: 0.0.21
 author: The FabricElements Authors
 
 environment:
@@ -11,22 +11,22 @@ dependencies:
     sdk: flutter
   imgix: ^0.2.0
   charts_flutter: ^0.9.0
-  flutter_sound: ^6.0.0
+  flutter_sound: ^6.1.4
   country_code_picker: ^1.5.0
   flutter_cache_manager: ^1.4.2
   image_picker: ^0.6.7+11
-  file_picker: ^2.0.1+2
+  file_picker: ^2.0.6
   provider: ^4.3.2+2
   transparent_image: ^1.0.0
-  image: ^2.1.17
-  cloud_firestore: ^0.14.0+2
-  cloud_functions: ^0.6.0
-  firebase_analytics: ^6.0.0
+  image: ^2.1.18
+  cloud_firestore: ^0.14.1+2
+  cloud_functions: ^0.6.0+1
+  firebase_analytics: ^6.0.1
   firebase_core: ^0.5.0
-  firebase_auth: ^0.18.0+1
-  firebase_dynamic_links: ^0.6.0
-  firebase_messaging: ^7.0.0
-  firebase_storage: ^4.0.0
+  firebase_auth: ^0.18.1+1
+  firebase_dynamic_links: ^0.6.0+1
+  firebase_messaging: ^7.0.2
+  firebase_storage: ^4.0.1
 #  http: ^0.12.1
 
 dev_dependencies:
