@@ -30,7 +30,7 @@ class UserInvite extends StatefulWidget {
     this.showEmail = false,
     this.showPhone = false,
   }) : super(key: key);
-  final FirebaseUser user;
+  final User user;
   final Function alert;
   final Map<String, dynamic> info;
   final bool showEmail;
