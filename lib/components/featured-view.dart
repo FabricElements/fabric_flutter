@@ -162,7 +162,7 @@ class _FeaturedViewState extends State<FeaturedView> {
           padding: EdgeInsets.only(top: 8),
           child: Text(
             widget.description,
-            style: textTheme.headline,
+            style: textTheme.headline5,
             textAlign: TextAlign.left,
           ),
         ),
@@ -191,6 +191,7 @@ class _FeaturedViewState extends State<FeaturedView> {
           child: SizedBox(
             width: double.infinity,
             child: RaisedButton(
+              textColor: Colors.white,
               child: Text(widget.actionLabel.toUpperCase()),
               onPressed: widget.actionLabel != null ? () => onClick() : null,
             ),
@@ -252,7 +253,7 @@ class _FeaturedViewState extends State<FeaturedView> {
                               bottom: false,
                               child: Text(
                                 widget.headline,
-                                style: textTheme.display2.copyWith(
+                                style: textTheme.headline3.copyWith(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold),
                                 textAlign: TextAlign.left,
