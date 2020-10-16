@@ -36,22 +36,22 @@ class _SectionTitleState extends State<SectionTitle> {
       String textFinal = textConvert;
       int initialHelper = 0;
       Iterable matches = regExp.allMatches(textFinal);
-      TextStyle sizeBase = textTheme.headline;
+      TextStyle sizeBase = textTheme.headline5;
       TextStyle titleWhite = sizeBase;
       TextStyle titleColor = sizeBase;
       if (type == "title") {
-        sizeBase = textTheme.display2;
+        sizeBase = textTheme.headline3;
         titleWhite = sizeBase.copyWith(
-          color: Colors.white,
+          // color: Colors.white,
           fontWeight: FontWeight.w600,
         );
         titleColor = sizeBase.copyWith(
-          color: Colors.greenAccent.shade400,
+          color: Colors.green.shade500,
           fontWeight: FontWeight.w600,
         );
       } else {
         if (widget.condensed) {
-          sizeBase = textTheme.title.copyWith(fontWeight: FontWeight.w400);
+          sizeBase = textTheme.headline6.copyWith(fontWeight: FontWeight.w400);
           titleWhite = sizeBase;
           titleColor = sizeBase;
         }

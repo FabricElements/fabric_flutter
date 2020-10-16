@@ -44,15 +44,15 @@ class _RoleSelectorState extends State<RoleSelector> {
       child: DropdownButton(
         hint: Text(
           widget.hintText,
-          style: TextStyle(
-            color: Colors.white,
-          ),
+          // style: TextStyle(
+          //   color: Colors.white,
+          // ),
         ),
         value: roleSelect,
         isExpanded: true,
-        style: TextStyle(
-          color: Colors.white,
-        ),
+        // style: TextStyle(
+        //   color: Colors.white,
+        // ),
         items: rolesDrop,
         onChanged: (dynamic value) {
           roleSelect = value;
