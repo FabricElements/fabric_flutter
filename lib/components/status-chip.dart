@@ -51,8 +51,14 @@ class StatusChip extends StatelessWidget {
         baseStatus = locales.get("status-archived") ?? "Archived";
     }
     return Chip(
-      label: Text(baseStatus,
-          style: TextStyle(fontWeight: FontWeight.w500, letterSpacing: 1.1)),
+      label: Text(
+        baseStatus,
+        style: TextStyle(
+          fontWeight: FontWeight.w500,
+          letterSpacing: 1.1,
+          color: Colors.white,
+        ),
+      ),
       backgroundColor: statusColor,
     );
   }
