@@ -26,7 +26,8 @@ class SectionTitle extends StatefulWidget {
 class _SectionTitleState extends State<SectionTitle> {
   @override
   Widget build(BuildContext context) {
-    final TextTheme textTheme = Theme.of(context).textTheme;
+    final theme = Theme.of(context);
+    final TextTheme textTheme = theme.textTheme;
     RegExp regExp = new RegExp(
       r"{(?:.*?)}",
       multiLine: true,
@@ -37,11 +38,11 @@ class _SectionTitleState extends State<SectionTitle> {
       int initialHelper = 0;
       Iterable matches = regExp.allMatches(textFinal);
       TextStyle sizeBase = textTheme.headline5;
-      TextStyle titleWhite = sizeBase;
+      TextStyle titleDefault = sizeBase;
       TextStyle titleColor = sizeBase;
       if (type == "title") {
         sizeBase = textTheme.headline3;
-        titleWhite = sizeBase.copyWith(
+        titleDefault = sizeBase.copyWith(
           // color: Colors.white,
           fontWeight: FontWeight.w600,
         );
@@ -52,12 +53,12 @@ class _SectionTitleState extends State<SectionTitle> {
       } else {
         if (widget.condensed) {
           sizeBase = textTheme.headline6.copyWith(fontWeight: FontWeight.w400);
-          titleWhite = sizeBase;
+          titleDefault = sizeBase;
           titleColor = sizeBase;
         }
-        titleWhite = titleWhite.copyWith(color: Colors.grey.shade300);
+        titleDefault = titleDefault;
         titleColor = titleColor.copyWith(
-          color: Colors.greenAccent.shade400,
+          color: theme.accentColor,
         );
       }
       if (matches.length > 0) {
@@ -69,7 +70,7 @@ class _SectionTitleState extends State<SectionTitle> {
                     .replaceAll("_", " ")
                     .replaceAll("{", "")
                     .replaceAll("}", ""),
-                style: titleWhite,
+                style: titleDefault,
               ),
             );
             initialHelper = match.end;
@@ -91,13 +92,13 @@ class _SectionTitleState extends State<SectionTitle> {
                 .replaceAll("_", " ")
                 .replaceAll("{", " ")
                 .replaceAll("}", " "),
-            style: titleWhite,
+            style: titleDefault,
           ),
         );
       } else {
         text.add(TextSpan(
           text: textFinal,
-          style: titleWhite,
+          style: titleDefault,
         ));
       }
       return text;
