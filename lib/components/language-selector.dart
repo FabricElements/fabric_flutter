@@ -8,7 +8,6 @@ import '../helpers/iso-language.dart';
 /// [voice] Dictates whether the campaign is using voice calls or text messages.
 /// [language] This is the language of the campaign, it will default to english.
 /// [onChange] This will push selected language iso to parent widget to sync with campaign data.
-/// [pickerTextColor] Customize the picker text color with a Color variable, defaults to white.
 /// ```dart
 /// LanguageSelector(
 ///   voice: false,
@@ -21,17 +20,13 @@ import '../helpers/iso-language.dart';
 class LanguageSelector extends StatelessWidget {
   LanguageSelector({
     Key key,
-    this.backgroundColor = const Color(0xFF161A21),
     this.voice = false,
     this.language = "en",
     this.onChange,
-    this.pickerTextColor = Colors.white,
   }) : super(key: key);
-  final Color backgroundColor;
   final bool voice;
   final String language;
   final Function onChange;
-  final Color pickerTextColor;
 
   @override
   Widget build(BuildContext context) {
@@ -59,20 +54,13 @@ class LanguageSelector extends StatelessWidget {
     String defaultLanguage = language ?? "en";
     index = isoList.indexOf(defaultLanguage.toLowerCase());
     CupertinoThemeData cupertinoTheme = CupertinoTheme.of(context);
-    return CupertinoTheme(
-      data: cupertinoTheme.copyWith(
-          textTheme: cupertinoTheme.textTheme.copyWith(
-              pickerTextStyle: cupertinoTheme.textTheme.pickerTextStyle
-                  .copyWith(color: pickerTextColor))),
-      child: CupertinoPicker(
-        scrollController: FixedExtentScrollController(initialItem: index),
-        backgroundColor: backgroundColor,
-        children: languages,
-        itemExtent: 32,
-        onSelectedItemChanged: (int scrollIndex) {
-          onChange(isoList[scrollIndex] ?? "en");
-        },
-      ),
+    return CupertinoPicker(
+      scrollController: FixedExtentScrollController(initialItem: index),
+      children: languages,
+      itemExtent: 32,
+      onSelectedItemChanged: (int scrollIndex) {
+        onChange(isoList[scrollIndex] ?? "en");
+      },
     );
   }
 }
