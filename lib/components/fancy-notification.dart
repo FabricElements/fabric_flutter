@@ -97,8 +97,9 @@ class FancyNotification extends StatelessWidget {
         )
       ];
       if (_path.isNotEmpty) {
-        _actions.add(RaisedButton(
-          child: Text(labelAction),
+        _actions.add(ElevatedButton.icon(
+          label: Text(labelAction),
+          icon: Icon(Icons.navigate_next),
           onPressed: () {
 //            Scaffold.of(context)
 //                .removeCurrentSnackBar(reason: SnackBarClosedReason.dismiss);

@@ -1,6 +1,6 @@
 name: fabric_flutter
 description: Native components and helpers
-version: 0.0.28
+version: 0.0.29
 author: The FabricElements Authors
 
 environment:
@@ -13,7 +13,7 @@ dependencies:
   charts_flutter: ^0.9.0
   flutter_sound: ^6.2.0+1
   country_code_picker: ^1.6.0
-  flutter_cache_manager: ^1.4.2
+  flutter_cache_manager: ^2.0.0
   image_picker: ^0.6.7+12
   file_picker: ^2.0.7
   provider: ^4.3.2+2
