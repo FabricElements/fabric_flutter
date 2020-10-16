@@ -88,14 +88,7 @@ class FancyNotification extends StatelessWidget {
       if (_body != null) {
         _onColumn.add(_body);
       }
-      List<Widget> _actions = [
-        OutlineButton(
-          child: Text(labelDismiss),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        )
-      ];
+      List<Widget> _actions = [];
       if (_path.isNotEmpty) {
         _actions.add(ElevatedButton.icon(
           label: Text(labelAction),
@@ -108,6 +101,13 @@ class FancyNotification extends StatelessWidget {
           },
         ));
       }
+      _actions.add(OutlinedButton.icon(
+        icon: Icon(Icons.close),
+        label: Text(labelDismiss),
+        onPressed: () {
+          Navigator.pop(context);
+        },
+      ));
       _onColumn.add(Padding(
         padding: EdgeInsets.all(16),
         child: Wrap(
