@@ -50,6 +50,7 @@ class _CardButtonState extends State<CardButton> {
     return Container(
       padding: widget.margin ?? EdgeInsets.symmetric(vertical: 8),
       child: Card(
+        color: Colors.grey.shade900,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(widget.borderRadius),
         ),
