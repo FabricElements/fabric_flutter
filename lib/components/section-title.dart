@@ -47,7 +47,7 @@ class _SectionTitleState extends State<SectionTitle> {
           fontWeight: FontWeight.w600,
         );
         titleColor = sizeBase.copyWith(
-          color: Colors.green.shade500,
+          color: theme.primaryColor,
           fontWeight: FontWeight.w600,
         );
       } else {

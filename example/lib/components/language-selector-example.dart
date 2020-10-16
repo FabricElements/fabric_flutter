@@ -19,7 +19,6 @@ class LanguageSelectorExample extends StatelessWidget {
             ),
             Expanded(
               child: LanguageSelector(
-                backgroundColor: Colors.grey.shade900,
                 language: "en",
                 onChange: (String iso) {
                   print("Selected language: $iso");
