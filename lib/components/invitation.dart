@@ -167,7 +167,7 @@ class _UserInviteState extends State<UserInvite> {
                 },
                 // Initial selection and favorite can be one of code ('IT') OR dial_code('+39')
                 initialSelection: "US",
-                favorite: ["US", "CO", "MX", "SE"],
+                favorite: ["US", "CO"],
                 // optional. Shows only country name and flag
                 showCountryOnly: false,
                 // optional. Shows only country name and flag when popup is closed.
@@ -198,7 +198,7 @@ class _UserInviteState extends State<UserInvite> {
                   },
                   // Disable blank space from input.
                   inputFormatters: [
-                    BlacklistingTextInputFormatter(" ", replacementString: ""),
+                    FilteringTextInputFormatter.deny(" ", replacementString: ""),
                   ],
                 ),
               ),
@@ -215,7 +215,7 @@ class _UserInviteState extends State<UserInvite> {
               child: RaisedButton(
                 color: Colors.indigo.shade600,
                 child: Text(
-                  locales.get("button--send-invitation"),
+                  locales.get("label--send-invitation"),
                   style: TextStyle(color: Colors.white),
                 ),
                 onPressed: flagRol && flagNumber ? validateInvitation : null,
@@ -250,7 +250,7 @@ class _UserInviteState extends State<UserInvite> {
               },
               // Disable blank space from input.
               inputFormatters: [
-                BlacklistingTextInputFormatter(" ", replacementString: ""),
+                FilteringTextInputFormatter.deny(" ", replacementString: ""),
               ],
             ),
           ),
