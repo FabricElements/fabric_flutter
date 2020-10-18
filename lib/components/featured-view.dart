@@ -162,7 +162,7 @@ class _FeaturedViewState extends State<FeaturedView> {
           padding: EdgeInsets.only(top: 8),
           child: Text(
             widget.description,
-            style: textTheme.headline5,
+            style: textTheme.headline6,
             textAlign: TextAlign.left,
           ),
         ),
@@ -188,10 +188,9 @@ class _FeaturedViewState extends State<FeaturedView> {
         AnimatedOpacity(
           opacity: _actionOpacityLevel,
           duration: Duration(milliseconds: _animationDuration),
-          child: SizedBox(
-            width: double.infinity,
-            child: RaisedButton(
-              textColor: Colors.white,
+          child: Center(
+            child: FloatingActionButton(
+              heroTag: "featured-view-action",
               child: Text(widget.actionLabel.toUpperCase()),
               onPressed: widget.actionLabel != null ? () => onClick() : null,
             ),
@@ -200,6 +199,7 @@ class _FeaturedViewState extends State<FeaturedView> {
       ]);
     }
     return Scaffold(
+      primary: false,
       body: SizedBox.expand(
         child: RawMaterialButton(
           onPressed: widget.actionLabel != null ? () => onClick() : null,
@@ -254,8 +254,9 @@ class _FeaturedViewState extends State<FeaturedView> {
                               child: Text(
                                 widget.headline,
                                 style: textTheme.headline3.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold),
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
                                 textAlign: TextAlign.left,
                               ),
                             ),

@@ -37,7 +37,7 @@ class _SectionTitleState extends State<SectionTitle> {
       String textFinal = textConvert;
       int initialHelper = 0;
       Iterable matches = regExp.allMatches(textFinal);
-      TextStyle sizeBase = textTheme.headline5;
+      TextStyle sizeBase = textTheme.headline6;
       TextStyle titleDefault = sizeBase;
       TextStyle titleColor = sizeBase;
       if (type == "title") {
@@ -51,10 +51,10 @@ class _SectionTitleState extends State<SectionTitle> {
           fontWeight: FontWeight.w600,
         );
       } else {
+        titleDefault = sizeBase;
+        titleColor = sizeBase;
         if (widget.condensed) {
-          sizeBase = textTheme.headline6.copyWith(fontWeight: FontWeight.w400);
-          titleDefault = sizeBase;
-          titleColor = sizeBase;
+          sizeBase = textTheme.subtitle1.copyWith(fontWeight: FontWeight.w400);
         }
         titleDefault = titleDefault;
         titleColor = titleColor.copyWith(
