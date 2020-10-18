@@ -189,9 +189,10 @@ class _FeaturedViewState extends State<FeaturedView> {
           opacity: _actionOpacityLevel,
           duration: Duration(milliseconds: _animationDuration),
           child: Center(
-            child: FloatingActionButton(
+            child: FloatingActionButton.extended(
               heroTag: "featured-view-action",
-              child: Text(widget.actionLabel.toUpperCase()),
+              icon: Icon(Icons.navigate_next),
+              label: Text(widget.actionLabel.toUpperCase()),
               onPressed: widget.actionLabel != null ? () => onClick() : null,
             ),
           ),
