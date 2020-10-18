@@ -93,7 +93,7 @@ class _CardButtonState extends State<CardButton> {
                           widget.headline != null
                               ? Text(
                                   widget.headline,
-                                  style: textTheme.headline4
+                                  style: textTheme.headline5
                                       .copyWith(color: Colors.white),
                                   textAlign: TextAlign.left,
                                 )
