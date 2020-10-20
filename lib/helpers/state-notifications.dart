@@ -131,6 +131,7 @@ class StateNotifications extends ChangeNotifier {
     if (_initialized) {
       return;
     }
+    await Future.delayed(Duration(seconds: 4));
     if (token.isEmpty) {
       dynamic _pushToken = await getToken();
       _token = _pushToken;

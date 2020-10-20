@@ -16,11 +16,15 @@ class StateDynamicLinks extends ChangeNotifier {
 
   void init() async {
     try {
+      await Future.delayed(Duration(seconds: 3));
       if (_initialized) {
         return;
       }
       FirebaseDynamicLinks.instance.onLink(
           onSuccess: (PendingDynamicLinkData dynamicLink) async {
+        final Uri deepLink = dynamicLink?.link;
+        String linkString = deepLink.toString();
+        print("onLink: $linkString");
         this._callback(dynamicLink);
       }, onError: (OnLinkErrorException e) async {
         print("Dynamic link error: ${e.message}");
@@ -28,6 +32,9 @@ class StateDynamicLinks extends ChangeNotifier {
       final PendingDynamicLinkData dynamicLink =
           await FirebaseDynamicLinks.instance.getInitialLink();
       if (dynamicLink?.link != null) {
+        final Uri deepLink = dynamicLink?.link;
+        String linkString = deepLink.toString();
+        print("InitialLink: $linkString");
         this._callback(dynamicLink);
       }
       _initialized = true;
