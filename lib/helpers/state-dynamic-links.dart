@@ -9,15 +9,15 @@ class StateDynamicLinks extends ChangeNotifier {
   bool _initialized = false;
   Future<void> Function(PendingDynamicLinkData dynamicLink) _callback;
 
+  set callback(
+      Future<void> Function(PendingDynamicLinkData dynamicLink) callback) {
+    _callback = callback;
+  }
+
   void init() async {
     try {
       if (_initialized) {
         return;
-      }
-      final PendingDynamicLinkData dynamicLink =
-          await FirebaseDynamicLinks.instance.getInitialLink();
-      if (dynamicLink?.link != null) {
-        this._callback(dynamicLink);
       }
       FirebaseDynamicLinks.instance.onLink(
           onSuccess: (PendingDynamicLinkData dynamicLink) async {
@@ -25,14 +25,14 @@ class StateDynamicLinks extends ChangeNotifier {
       }, onError: (OnLinkErrorException e) async {
         print("Dynamic link error: ${e.message}");
       });
+      final PendingDynamicLinkData dynamicLink =
+          await FirebaseDynamicLinks.instance.getInitialLink();
+      if (dynamicLink?.link != null) {
+        this._callback(dynamicLink);
+      }
       _initialized = true;
     } catch (error) {
       print("dynamic link: $error");
     }
-  }
-
-  set callback(
-      Future<void> Function(PendingDynamicLinkData dynamicLink) callback) {
-    _callback = callback;
   }
 }

@@ -24,16 +24,16 @@ class TopApp extends StatelessWidget with WidgetsBindingObserver {
     StateDynamicLinks stateDynamicLinks =
         Provider.of<StateDynamicLinks>(context, listen: false);
     String uid;
+    if (links) {
+      stateDynamicLinks.init();
+    }
 
     try {
       FirebaseAuth.instance.authStateChanges().listen(
         (User userObject) async {
-          await Future.delayed(Duration(seconds: 4));
           uid = userObject?.uid ?? null;
           if (uid != null) {
-            if (links) {
-              stateDynamicLinks.init();
-            }
+            await Future.delayed(Duration(seconds: 4));
             if (notifications) {
               stateNotifications.uid = uid;
               stateNotifications.init();
