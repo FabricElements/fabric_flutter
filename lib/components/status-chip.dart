@@ -24,7 +24,7 @@ class StatusChip extends StatelessWidget {
     switch (status) {
       case "draft":
         statusColor = Colors.indigo.shade500;
-        baseStatus = locales.get("status-draft") ?? "Draft";
+        baseStatus = locales?.get("status-draft") ?? "Draft";
         break;
       case "review":
         statusColor = Colors.amber.shade900;

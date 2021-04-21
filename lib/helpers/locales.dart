@@ -18,6 +18,9 @@ String _mergeLocales(languageCode, keyPath, Map<String, dynamic> keys) {
       }
     }
   } catch (error) {}
+  if (finalResponse == "") {
+    finalResponse = keyPath;
+  }
   return finalResponse;
 }
 

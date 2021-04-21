@@ -48,7 +48,7 @@ class FlagChip extends StatelessWidget {
             padding: EdgeInsets.only(left: 8),
             child: Text(
               "${formatLanguage.getEmoji(language)}",
-              style: textTheme.body1.copyWith(
+              style: textTheme.bodyText2.copyWith(
                 fontSize: 20,
                 color: colorText,
               ),
@@ -66,7 +66,7 @@ class FlagChip extends StatelessWidget {
           child: Container(
             child: Text(
               language.toUpperCase(),
-              style: textTheme.body1.copyWith(
+              style: textTheme.bodyText2.copyWith(
                 color: colorText,
               ),
             ),
@@ -77,12 +77,12 @@ class FlagChip extends StatelessWidget {
     if (total != null) {
       items.add(
         Container(
-          color: Colors.indigo.shade500,
+          color: theme.primaryColor,
           child: Padding(
             padding: EdgeInsets.all(8),
             child: Text(
               "${formatDecimal.format(total)}",
-              style: textTheme.body2.copyWith(color: colorText),
+              style: textTheme.bodyText2.copyWith(color: colorText),
             ),
           ),
         ),

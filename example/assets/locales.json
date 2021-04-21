@@ -6,5 +6,9 @@
   "say-something": {
     "en": "Say something...",
     "es": "Di algo..."
+  },
+  "status-draft": {
+    "en": "Draft",
+    "es": "Borrador"
   }
 }

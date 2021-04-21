@@ -20,8 +20,8 @@ class ExampleApp extends StatelessWidget {
       ],
       theme: ThemeData(
         primarySwatch: Colors.purple,
-        backgroundColor: Colors.grey.shade900,
-        scaffoldBackgroundColor: Colors.grey.shade900,
+        // backgroundColor: Colors.grey.shade900,
+        // scaffoldBackgroundColor: Colors.grey.shade900,
         textTheme: TextTheme(
           headline: TextStyle(
             color: Colors.white,

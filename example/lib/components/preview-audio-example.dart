@@ -17,7 +17,7 @@ class PreviewAudioExample extends StatelessWidget {
             ),
             Center(
               child: AudioPreview(
-                url: "https://links-beta.firebaseapp.com/th5uql7WDjwePDRHRDHS",
+                url: "https://file-examples-com.github.io/uploads/2017/11/file_example_MP3_700KB.mp3",
                 loadingText: "Loading...",
               ),
             ),
