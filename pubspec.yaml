@@ -1,6 +1,6 @@
 name: fabric_flutter
 description: Native components and helpers
-version: 0.0.39
+version: 0.0.40
 author: The FabricElements Authors
 
 environment:
@@ -10,24 +10,23 @@ dependencies:
   flutter:
     sdk: flutter
   imgix: ^0.2.0
-  charts_flutter: ^0.9.0
-  flutter_sound: ^6.3.1+1
-  country_code_picker: ^1.6.2
-  flutter_cache_manager: ^2.0.0
-  image_picker: ^0.6.7+12
-  file_picker: ^2.0.11
-  provider: ^4.3.2+2
-  transparent_image: ^1.0.0
-  image: ^2.1.18
-  cloud_firestore: ^0.14.2
-  cloud_functions: ^0.6.0+1
-  firebase_analytics: ^6.1.0
-  firebase_core: ^0.5.1
-  firebase_auth: ^0.18.2
-  firebase_dynamic_links: ^0.6.1
-  firebase_messaging: ^7.0.3
-  firebase_storage: ^4.0.1
-#  http: ^0.12.1
+  charts_flutter: ^0.10.0
+  flutter_sound: ^8.1.1
+  country_code_picker: ^2.0.1
+  flutter_cache_manager: ^3.0.1
+  image_picker: ^0.7.4
+  file_picker: ^3.0.1
+  provider: ^5.0.0
+  transparent_image: ^2.0.0
+  image: ^3.0.2
+  cloud_firestore: ^1.0.6
+  cloud_functions: ^1.0.4
+  firebase_analytics: ^8.0.1
+  firebase_core: ^1.0.4
+  firebase_auth: ^1.1.1
+  firebase_dynamic_links: ^2.0.1
+  firebase_messaging: ^9.1.2
+  firebase_storage: ^8.0.4
 
 dev_dependencies:
   flutter_test:
@@ -37,7 +36,7 @@ dev_dependencies:
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter.
-flutter:
+#flutter:
 
 # To add assets to your package, add an assets section, like this:
 # assets:

@@ -9,7 +9,7 @@ import 'package:flutter/cupertino.dart';
 class StateNotifications extends ChangeNotifier {
   StateNotifications();
 
-  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
+  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 
   // ignore: close_sinks
   final _messagesStreamController =
@@ -54,7 +54,11 @@ class StateNotifications extends ChangeNotifier {
   }
 
   getToken() async {
-    _firebaseMessaging.requestNotificationPermissions();
+    _firebaseMessaging.requestPermission(
+      announcement: true,
+      carPlay: true,
+      criticalAlert: true,
+    );
     String token = await _firebaseMessaging.getToken();
     return token;
   }
@@ -109,17 +113,35 @@ class StateNotifications extends ChangeNotifier {
   }
 
   initNotifications() async {
-    _firebaseMessaging.configure(
-      onMessage: (Map<String, dynamic> message) async =>
-          _notify(message, "message"),
-      onLaunch: (Map<String, dynamic> message) async =>
-          _notify(message, "launch"),
-      onResume: (Map<String, dynamic> message) async =>
-          _notify(message, "resume"),
-// Don't use onBackgroundMessage
-//      onBackgroundMessage: (Map<String, dynamic> message) async =>
-//          _notify(message, "background-message"),
-    );
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      RemoteNotification notification = message.notification;
+      Map<String, dynamic> data = message.data;
+      if (notification == null) {
+        return;
+      }
+      _notify(data, "message");
+    });
+
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      RemoteNotification notification = message.notification;
+      Map<String, dynamic> data = message.data;
+      if (notification == null) {
+        return;
+      }
+      _notify(data, "resume");
+    });
+
+//     _firebaseMessaging.configure(
+//       onMessage: (Map<String, dynamic> message) async =>
+//           _notify(message, "message"),
+//       onLaunch: (Map<String, dynamic> message) async =>
+//           _notify(message, "launch"),
+//       onResume: (Map<String, dynamic> message) async =>
+//           _notify(message, "resume"),
+// // Don't use onBackgroundMessage
+// //      onBackgroundMessage: (Map<String, dynamic> message) async =>
+// //          _notify(message, "background-message"),
+//     );
     if (token.isNotEmpty && !_initialized) {
       message.listen((arg) async {});
     }

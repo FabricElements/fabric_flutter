@@ -25,8 +25,10 @@ enum AudioState {
   isRecordingPaused,
 }
 
+/// Fetch audio file
 Future<http.Response> fetchFile(String url) {
-  return http.get(url);
+  Uri _url = Uri.parse(url);
+  return http.get(_url);
 }
 
 /// This a component to preview audio, it loads a url and you can play it within the app.

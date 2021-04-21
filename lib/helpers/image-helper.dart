@@ -14,9 +14,10 @@ class ImageHelper {
   /// [origin] either "camera" or "gallery"
   Future<String> getImage({@required String origin}) async {
     File baseImage;
+    final picker = ImagePicker();
     if (origin == "camera") {
-      baseImage = await ImagePicker.pickImage(
-          source: ImageSource.camera, maxWidth: 1500);
+      final pickedFile = await picker.getImage(source: ImageSource.camera, maxWidth: 1500);
+      baseImage = File(pickedFile.path);
     } else if (origin == "gallery") {
       FilePickerResult result = await FilePicker.platform.pickFiles(type: FileType.image);
       baseImage = File(result.files.single.path);

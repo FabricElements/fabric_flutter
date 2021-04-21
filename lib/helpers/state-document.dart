@@ -19,7 +19,7 @@ class StateDocument extends ChangeNotifier {
     _documentId = id;
     if (id != null) {
       _documentReference =
-          Firestore.instance.collection(collection).document(id);
+          FirebaseFirestore.instance.collection(collection).doc(id);
       _streamReference = _documentReference.snapshots();
       _listen();
     }
@@ -52,7 +52,7 @@ class StateDocument extends ChangeNotifier {
   }
 
   Future<void> update(Map<String, dynamic> newData) {
-    return _documentReference.updateData(newData);
+    return _documentReference.update(newData);
   }
 
   Future<void> set(Map<String, dynamic> newData, {bool merge = false}) {

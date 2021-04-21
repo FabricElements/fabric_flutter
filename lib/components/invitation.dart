@@ -93,7 +93,7 @@ class _UserInviteState extends State<UserInvite> {
       "updated": FieldValue.serverTimestamp(),
       "uid": widget.user.uid,
       "name": widget.user.displayName,
-      "avatar": widget.user.photoUrl,
+      "avatar": widget.user.photoURL,
       "role": role,
     };
 
@@ -108,7 +108,7 @@ class _UserInviteState extends State<UserInvite> {
     }
     try {
       // Update firestore with invitation.
-      await Firestore.instance.collection("connection-invite").add(data);
+      await FirebaseFirestore.instance.collection("connection-invite").add(data);
       Navigator.of(context).pop();
     } catch (e) {
       print("Error sending invitation: $e");
@@ -212,9 +212,9 @@ class _UserInviteState extends State<UserInvite> {
                 const EdgeInsets.only(left: 16, right: 16, bottom: 32, top: 32),
             child: SizedBox(
               width: double.infinity,
-              child: RaisedButton(
-                color: Colors.indigo.shade600,
-                child: Text(
+              child: ElevatedButton.icon(
+                icon: Icon(Icons.send),
+                label: Text(
                   locales.get("label--send-invitation"),
                   style: TextStyle(color: Colors.white),
                 ),
