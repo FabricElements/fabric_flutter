@@ -6,7 +6,7 @@ class StateDocument extends ChangeNotifier {
   StateDocument();
 
   String? _documentId;
-  Map<String, dynamic>? _data = {};
+  Map<String, dynamic> _data = {};
   late DocumentReference _documentReference;
   Stream<DocumentSnapshot>? _streamReference;
   String collection = "demo";
@@ -32,14 +32,14 @@ class StateDocument extends ChangeNotifier {
     try {
       _streamReference!.listen((snapshot) {
         String snapshotID = snapshot.id;
-        isValid =
-            snapshot.exists && snapshotID == _documentId;
+        isValid = snapshot.exists && snapshotID == _documentId;
         if (!isValid) {
           return;
         }
+        Map<String, dynamic>? _docData = snapshot.data();
         _data = {};
-        _data = snapshot.data();
-        _data!["id"] = snapshotID;
+        _data = _docData != null ? _docData : {};
+        _data["id"] = snapshotID;
         notifyListeners();
       }).onError((error) {
         print(error);
@@ -68,7 +68,7 @@ class StateDocument extends ChangeNotifier {
 
   /// Return document [data]
   Map<String, dynamic>? get data {
-    if (_documentId != null && _data!.isEmpty) {
+    if (_documentId != null && _data.isEmpty) {
       _listen();
     }
     return _data;
