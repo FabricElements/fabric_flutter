@@ -17,11 +17,11 @@ class StateNotifications extends ChangeNotifier {
 
   Stream<Map<dynamic, dynamic>> get message => _messagesStreamController.stream;
 
-  String _token;
+  String? _token;
   Map<dynamic, dynamic> _notification = {};
   String _uid = "";
   bool _initialized = false;
-  Future<void> Function(Map<dynamic, dynamic> message) _callback;
+  late Future<void> Function(Map<dynamic, dynamic> message) _callback;
 
   /// [token] Returns device token
   String get token => _token ?? "";
@@ -39,7 +39,7 @@ class StateNotifications extends ChangeNotifier {
         "updated": FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } catch (error) {
-      print("error saving user token: ${error.message}");
+      print("error saving user token: ${error.toString()}");
     }
   }
 
@@ -59,12 +59,12 @@ class StateNotifications extends ChangeNotifier {
       carPlay: true,
       criticalAlert: true,
     );
-    String token = await _firebaseMessaging.getToken();
+    String? token = await _firebaseMessaging.getToken();
     return token;
   }
 
   Map<String, dynamic> _clearObject(Map<String, dynamic> data, String key) {
-    if (data == null || data.isEmpty || data[key] == null) {
+    if (data is Object && (data.isEmpty || data[key] == null)) {
       return data;
     }
     Map<String, dynamic> _data = Map<String, dynamic>.from(data);
@@ -96,7 +96,7 @@ class StateNotifications extends ChangeNotifier {
 
       /// Add valid path by default
       String path = _message["path"] ?? "";
-      if (path != null && path.isNotEmpty && path.startsWith("/")) {
+      if (path.isNotEmpty && path.startsWith("/")) {
         _message["path"] = path;
       } else {
         _message["path"] = "";
@@ -114,7 +114,7 @@ class StateNotifications extends ChangeNotifier {
 
   initNotifications() async {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      RemoteNotification notification = message.notification;
+      RemoteNotification? notification = message.notification;
       Map<String, dynamic> data = message.data;
       if (notification == null) {
         return;
@@ -123,7 +123,7 @@ class StateNotifications extends ChangeNotifier {
     });
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      RemoteNotification notification = message.notification;
+      RemoteNotification? notification = message.notification;
       Map<String, dynamic> data = message.data;
       if (notification == null) {
         return;
@@ -163,7 +163,7 @@ class StateNotifications extends ChangeNotifier {
   }
 
   /// Define user id
-  set uid(String id) {
+  set uid(String? id) {
     _uid = id ?? "";
     _updateUserToken();
   }

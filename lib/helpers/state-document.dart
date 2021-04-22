@@ -5,14 +5,14 @@ import 'package:flutter/cupertino.dart';
 class StateDocument extends ChangeNotifier {
   StateDocument();
 
-  String _documentId;
-  Map<String, dynamic> _data = {};
-  DocumentReference _documentReference;
-  Stream<DocumentSnapshot> _streamReference;
+  String? _documentId;
+  Map<String, dynamic>? _data = {};
+  late DocumentReference _documentReference;
+  Stream<DocumentSnapshot>? _streamReference;
   String collection = "demo";
 
   /// Set document [id]
-  set id(String id) {
+  set id(String? id) {
     _drain();
     reset();
     _data = {};
@@ -30,22 +30,26 @@ class StateDocument extends ChangeNotifier {
   void _listen() {
     bool isValid = false;
     try {
-      _streamReference.listen((snapshot) {
+      _streamReference!.listen((snapshot) {
         String snapshotID = snapshot.id;
         isValid =
-            snapshot.exists && snapshotID != null && snapshotID == _documentId;
+            snapshot.exists && snapshotID == _documentId;
         if (!isValid) {
           return;
         }
         _data = {};
         _data = snapshot.data();
-        _data["id"] = snapshotID;
+        _data!["id"] = snapshotID;
+        notifyListeners();
+      }).onError((error) {
+        print(error);
+        isValid = false;
+        _data = {};
         notifyListeners();
       });
     } catch (error) {
       if (isValid) {
         _data = {};
-        print(error.message);
         notifyListeners();
       }
     }
@@ -60,11 +64,11 @@ class StateDocument extends ChangeNotifier {
   }
 
   /// Get document [id]
-  String get id => _documentId;
+  String? get id => _documentId;
 
   /// Return document [data]
-  Map<String, dynamic> get data {
-    if (_documentId != null && _data.isEmpty) {
+  Map<String, dynamic>? get data {
+    if (_documentId != null && _data!.isEmpty) {
       _listen();
     }
     return _data;
@@ -74,7 +78,7 @@ class StateDocument extends ChangeNotifier {
   void _drain() async {
     try {
       if (id != null && _streamReference != null) {
-        await _streamReference.drain();
+        await _streamReference!.drain();
       }
     } catch (error) {
 //      print("snapshot: $error");

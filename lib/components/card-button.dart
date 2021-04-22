@@ -22,22 +22,22 @@ import 'smart-imgix.dart';
 /// ```
 class CardButton extends StatefulWidget {
   CardButton({
-    Key key,
+    Key? key,
     this.borderRadius = 6,
     this.description,
     this.headline,
     this.height = 300,
     this.margin,
-    @required this.image,
-    @required this.onPressed,
+    required this.image,
+    required this.onPressed,
   }) : super(key: key);
   final double borderRadius;
-  final String description;
-  final String headline;
+  final String? description;
+  final String? headline;
   final double height;
   final String image; // Make optional?
   final GestureTapCallback onPressed;
-  final EdgeInsetsGeometry margin;
+  final EdgeInsetsGeometry? margin;
 
   @override
   _CardButtonState createState() => _CardButtonState();
@@ -92,8 +92,8 @@ class _CardButtonState extends State<CardButton> {
                         children: <Widget>[
                           widget.headline != null
                               ? Text(
-                                  widget.headline,
-                                  style: textTheme.headline5
+                                  widget.headline!,
+                                  style: textTheme.headline5!
                                       .copyWith(color: Colors.white),
                                   textAlign: TextAlign.left,
                                 )
@@ -102,8 +102,8 @@ class _CardButtonState extends State<CardButton> {
                               ? Padding(
                                   padding: EdgeInsets.only(top: 8),
                                   child: Text(
-                                    widget.description,
-                                    style: textTheme.bodyText2.copyWith(color: Colors.white),
+                                    widget.description!,
+                                    style: textTheme.bodyText2!.copyWith(color: Colors.white),
                                     textAlign: TextAlign.left,
                                   ),
                                 )

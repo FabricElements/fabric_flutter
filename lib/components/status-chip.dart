@@ -11,14 +11,14 @@ import '../helpers/locales.dart';
 /// );
 class StatusChip extends StatelessWidget {
   StatusChip({
-    Key key,
-    @required this.status,
+    Key? key,
+    required this.status,
   }) : super(key: key);
-  final String status;
+  final String? status;
 
   @override
   Widget build(BuildContext context) {
-    AppLocalizations locales = AppLocalizations.of(context);
+    AppLocalizations? locales = AppLocalizations.of(context);
     Color statusColor = Colors.grey.shade800;
     String baseStatus = status ?? "unknown";
     switch (status) {
@@ -28,27 +28,27 @@ class StatusChip extends StatelessWidget {
         break;
       case "review":
         statusColor = Colors.amber.shade900;
-        baseStatus = locales.get("status-review") ?? "Review";
+        baseStatus = locales!.get("status-review") ?? "Review";
         break;
       case "approved":
         statusColor = Colors.deepPurple.shade500;
-        baseStatus = locales.get("status-approved") ?? "Approved";
+        baseStatus = locales!.get("status-approved") ?? "Approved";
         break;
       case "rejected":
         statusColor = Colors.red.shade500;
-        baseStatus = locales.get("status-rejected") ?? "Rejected";
+        baseStatus = locales!.get("status-rejected") ?? "Rejected";
         break;
       case "inactive":
         statusColor = Colors.deepOrange.shade500;
-        baseStatus = locales.get("status-inactive") ?? "Inactive";
+        baseStatus = locales!.get("status-inactive") ?? "Inactive";
         break;
       case "active":
         statusColor = Colors.green.shade600;
-        baseStatus = locales.get("status-active") ?? "Active";
+        baseStatus = locales!.get("status-active") ?? "Active";
         break;
       case "archived":
         statusColor = Colors.grey.shade700;
-        baseStatus = locales.get("status-archived") ?? "Archived";
+        baseStatus = locales!.get("status-archived") ?? "Archived";
     }
     return Chip(
       label: Text(

@@ -35,7 +35,7 @@ import 'smart-imgix.dart';
 /// ```
 class FeaturedView extends StatefulWidget {
   FeaturedView({
-    Key key,
+    Key? key,
     this.actionLabel,
     this.actionUrl,
     this.arguments,
@@ -46,21 +46,21 @@ class FeaturedView extends StatefulWidget {
     this.secondGradientAnimationColor = Colors.transparent,
     this.thirdGradientAnimationColor = Colors.transparent,
     this.child,
-    @required this.image,
+    required this.image,
     this.onPressed,
   }) : super(key: key);
-  final String actionLabel;
-  final String actionUrl;
-  final Object arguments;
-  final String description;
-  final String headline;
+  final String? actionLabel;
+  final String? actionUrl;
+  final Object? arguments;
+  final String? description;
+  final String? headline;
   final int animationDuration;
   final Color firstGradientAnimationColor;
   final Color secondGradientAnimationColor;
   final Color thirdGradientAnimationColor;
   final String image;
-  final GestureTapCallback onPressed;
-  final Widget child;
+  final GestureTapCallback? onPressed;
+  final Widget? child;
 
   // Make animation optional
 
@@ -69,15 +69,15 @@ class FeaturedView extends StatefulWidget {
 }
 
 class _FeaturedViewState extends State<FeaturedView> {
-  Timer _timer;
+  late Timer _timer;
   double _actionOpacityLevel = 0;
   double _headlineOpacityLevel = 0;
   double _descriptionOpacityLevel = 0;
   double _childOpacityLevel = 0;
-  int _animationDuration;
-  Color _firstGradientAnimationColor;
-  Color _secondGradientAnimationColor;
-  Color _thirdGradientAnimationColor;
+  late int _animationDuration;
+  Color? _firstGradientAnimationColor;
+  Color? _secondGradientAnimationColor;
+  Color? _thirdGradientAnimationColor;
 
   /// Triggers the animation, the speed of the animation can be altered by [_animationDuration]
   void animationTrigger() {
@@ -145,10 +145,10 @@ class _FeaturedViewState extends State<FeaturedView> {
     Object arguments = widget.arguments ?? {};
     onClick() {
       if (widget.actionUrl != null) {
-        Navigator.pushNamed(context, widget.actionUrl, arguments: arguments);
+        Navigator.pushNamed(context, widget.actionUrl!, arguments: arguments);
       }
       if (widget.onPressed != null) {
-        widget.onPressed();
+        widget.onPressed!();
       }
     }
 
@@ -161,7 +161,7 @@ class _FeaturedViewState extends State<FeaturedView> {
         child: Padding(
           padding: EdgeInsets.only(top: 8),
           child: Text(
-            widget.description,
+            widget.description!,
             style: textTheme.headline6,
             textAlign: TextAlign.left,
           ),
@@ -192,7 +192,7 @@ class _FeaturedViewState extends State<FeaturedView> {
             child: FloatingActionButton.extended(
               heroTag: "featured-view-action",
               icon: Icon(Icons.navigate_next),
-              label: Text(widget.actionLabel.toUpperCase()),
+              label: Text(widget.actionLabel!.toUpperCase()),
               onPressed: widget.actionLabel != null ? () => onClick() : null,
             ),
           ),
@@ -230,9 +230,9 @@ class _FeaturedViewState extends State<FeaturedView> {
                             end: Alignment.bottomCenter,
                             stops: [0.0, 0.5, 1.0],
                             colors: [
-                              _firstGradientAnimationColor,
-                              _secondGradientAnimationColor,
-                              _thirdGradientAnimationColor,
+                              _firstGradientAnimationColor!,
+                              _secondGradientAnimationColor!,
+                              _thirdGradientAnimationColor!,
                             ],
                           ),
                         ),
@@ -253,8 +253,8 @@ class _FeaturedViewState extends State<FeaturedView> {
                               top: false,
                               bottom: false,
                               child: Text(
-                                widget.headline,
-                                style: textTheme.headline3.copyWith(
+                                widget.headline!,
+                                style: textTheme.headline3!.copyWith(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
                                 ),

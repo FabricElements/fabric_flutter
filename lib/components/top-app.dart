@@ -7,8 +7,8 @@ import 'package:provider/provider.dart';
 /// This widget has to go on the top of your app
 class TopApp extends StatelessWidget with WidgetsBindingObserver {
   TopApp({
-    Key key,
-    @required this.child,
+    Key? key,
+    required this.child,
     this.notifications = false,
     this.links = false,
   }) : super(key: key);
@@ -18,19 +18,19 @@ class TopApp extends StatelessWidget with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance!.addObserver(this);
     StateNotifications stateNotifications =
         Provider.of<StateNotifications>(context, listen: false);
     StateDynamicLinks stateDynamicLinks =
         Provider.of<StateDynamicLinks>(context, listen: false);
-    String uid;
+    String? uid;
 
     try {
       if (links) {
         stateDynamicLinks.init();
       }
       FirebaseAuth.instance.authStateChanges().listen(
-        (User userObject) async {
+        (User? userObject) async {
           uid = userObject?.uid ?? null;
           if (uid != null) {
             if (notifications) {

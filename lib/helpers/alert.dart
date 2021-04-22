@@ -10,18 +10,18 @@ import 'package:flutter/material.dart';
 /// );
 class Alert {
   const Alert({
-    @required this.context,
-    @required this.mounted,
+    required this.context,
+    required this.mounted,
   });
 
   final BuildContext context;
   final bool mounted;
 
   void show({
-    @required String text,
+    required String text,
     int duration = 3,
-    String type, // null, "error", "success"
-    String widget,
+    String? type, // null, "error", "success"
+    String? widget,
   }) {
     try {
       Color color;
@@ -40,7 +40,7 @@ class Alert {
       final _duration = Duration(seconds: duration);
       switch (widget) {
         default:
-          Scaffold.of(context).showSnackBar(
+          ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
                 text,

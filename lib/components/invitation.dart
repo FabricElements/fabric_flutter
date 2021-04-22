@@ -22,17 +22,17 @@ import 'role-selector.dart';
 /// ```
 class UserInvite extends StatefulWidget {
   UserInvite({
-    Key key,
-    @required this.user,
-    @required this.roles,
+    Key? key,
+    required this.user,
+    required this.roles,
     this.alert,
     this.info,
     this.showEmail = false,
     this.showPhone = false,
   }) : super(key: key);
   final User user;
-  final Function alert;
-  final Map<String, dynamic> info;
+  final Function? alert;
+  final Map<String, dynamic>? info;
   final bool showEmail;
   final bool showPhone;
   final Map<String, String> roles;
@@ -42,23 +42,23 @@ class UserInvite extends StatefulWidget {
 }
 
 class _UserInviteState extends State<UserInvite> {
-  AppLocalizations locales;
-  bool sending;
-  String phoneNumber;
-  String email;
-  String areaCode;
-  String finalPhoneNumber;
-  String roleSelect;
+  AppLocalizations? locales;
+  bool? sending;
+  late String phoneNumber;
+  String? email;
+  late String areaCode;
+  String? finalPhoneNumber;
+  String? roleSelect;
   dynamic resp;
-  TextEditingController _textController;
-  Color backgroundColor;
-  Function onChange;
-  bool flagRol;
-  bool flagNumber;
+  TextEditingController? _textController;
+  Color? backgroundColor;
+  Function? onChange;
+  late bool flagRol;
+  late bool flagNumber;
 
   @override
   void dispose() {
-    _textController.clear();
+    _textController!.clear();
     flagRol = false;
     flagNumber = false;
     roleSelect = null;
@@ -85,7 +85,7 @@ class _UserInviteState extends State<UserInvite> {
   ///
   /// [type] Whether it is an e-mail or phone number.
   /// [contact] The e-mail or phone number.
-  _sendInvitation({String type, String contact, String role}) async {
+  _sendInvitation({String? type, String? contact, String? role}) async {
     sending = true;
 
     Map<String, dynamic> data = {
@@ -98,7 +98,7 @@ class _UserInviteState extends State<UserInvite> {
     };
 
     if (widget.info != null) {
-      data.addAll(widget.info);
+      data.addAll(widget.info!);
     }
     // Update object with email or phone depending on the type.
     if (type == "email") {
@@ -117,19 +117,19 @@ class _UserInviteState extends State<UserInvite> {
 
   @override
   Widget build(BuildContext context) {
-    AppLocalizations locales = AppLocalizations.of(context);
+    AppLocalizations? locales = AppLocalizations.of(context);
     void validateInvitation() async {
       print("$flagRol $flagNumber");
-      String message = "";
+      String? message = "";
       String type = "";
       if (phoneNumber.length < 5) {
-        message = locales.get("alert--invalid-number");
+        message = locales!.get("alert--invalid-number");
         type = "error";
       } else {
         sending = true;
-        message = locales.get("notification--invitation-sent");
+        message = locales!.get("notification--invitation-sent");
         type = "success";
-        _textController.clear();
+        _textController!.clear();
         if (flagRol && flagNumber) {
           await _sendInvitation(
               type: "phoneNumber", contact: finalPhoneNumber, role: roleSelect);
@@ -138,7 +138,7 @@ class _UserInviteState extends State<UserInvite> {
       if (mounted) {
         setState(() {});
       }
-      widget.alert({"text": message, "type": type});
+      widget.alert!({"text": message, "type": type});
     }
 
     /// Invite user using a phone number.
@@ -146,7 +146,7 @@ class _UserInviteState extends State<UserInvite> {
       return Column(
         children: <Widget>[
           RoleSelector(
-            hintText: locales.get("label--choose-role"),
+            hintText: locales!.get("label--choose-role"),
             list: widget.roles,
             onChange: (value) {
               if (value != null) {
@@ -240,7 +240,7 @@ class _UserInviteState extends State<UserInvite> {
               autofocus: true,
               controller: _textController,
               decoration: InputDecoration(
-                hintText: locales.get("actions--enter-an-email"),
+                hintText: locales!.get("actions--enter-an-email"),
               ),
               maxLines: 1,
               maxLength: 100,
@@ -257,12 +257,12 @@ class _UserInviteState extends State<UserInvite> {
           IconButton(
             icon: Icon(Icons.send),
             onPressed: () {
-              String message = "";
+              String? message = "";
               String type = "";
               RegExp emailRegExp = new RegExp(
                   r"\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b");
               // If there is no match, show an error.
-              if (!emailRegExp.hasMatch(email)) {
+              if (!emailRegExp.hasMatch(email!)) {
                 message = locales.get("alert--invalid-email");
                 type = "error";
               } else {
@@ -271,12 +271,12 @@ class _UserInviteState extends State<UserInvite> {
                     sending = true;
                     message = locales.get("notification--invitation-sent");
                     type = "success";
-                    _textController.clear();
+                    _textController!.clear();
                   });
                   _sendInvitation(type: "email", contact: email);
                 }
               }
-              widget.alert({"text": message, "type": type});
+              widget.alert!({"text": message, "type": type});
             },
           ),
         ],
@@ -287,12 +287,12 @@ class _UserInviteState extends State<UserInvite> {
     List<Widget> _tabsBody = [];
 
     if (widget.showPhone) {
-      _tabs.add(Tab(text: locales.get("label--phone-number")));
+      _tabs.add(Tab(text: locales!.get("label--phone-number")));
       _tabsBody.add(_inviteUserPhone());
     }
 
     if (widget.showEmail) {
-      _tabs.add(Tab(text: locales.get("label--email")));
+      _tabs.add(Tab(text: locales!.get("label--email")));
       _tabsBody.add(_inviteUserEmail());
     }
 

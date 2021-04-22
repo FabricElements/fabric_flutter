@@ -8,7 +8,6 @@ class SectionTitleExample extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade900,
       body: SectionTitle(
         headline: "This is the Section Title demo",
         description: "Click the menu icon to view the other demonstrations",

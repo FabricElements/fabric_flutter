@@ -1,11 +1,11 @@
-import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:charts_flutter/flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 /// This is a chart graphics widget, used to represent a data series.
 ///
-/// [animate] If set to true, the charts will animate when opened.
-/// [series] This is the series of data used for rendering the charts.
+/// [animate] If set to true, the will animate when opened.
+/// [series] This is the series of data used for rendering the
 /// [type] What type of chart should be rendered, for example a simple bar chart or pie chart.
 /// Charts(
 ///   type: "pie-chart",
@@ -14,13 +14,13 @@ import 'package:intl/intl.dart';
 /// )
 class Charts extends StatefulWidget {
   Charts({
-    Key key,
+    Key? key,
     this.animate,
-    @required this.series,
-    @required this.type,
+    required this.series,
+    required this.type,
   }) : super(key: key);
-  final bool animate;
-  final List<charts.Series> series;
+  final bool? animate;
+  final List<Series<dynamic, String>> series;
   final String type;
 
   @override
@@ -38,43 +38,44 @@ class _ChartsState extends State<Charts> {
     var chart;
     switch (widget.type) {
       case "bar-simple":
-        chart = charts.BarChart(
-          widget.series, animate: widget.animate,
+        chart = BarChart(
+          widget.series, animate: widget.animate!,
           animationDuration: Duration(milliseconds: 1000),
 
           /// Assign a custom style for the domain axis.
-          domainAxis: charts.OrdinalAxisSpec(
-            renderSpec: charts.SmallTickRendererSpec(
-              labelStyle: charts.TextStyleSpec(
-                  color: charts.MaterialPalette.white.lighter),
-              lineStyle: charts.LineStyleSpec(
-                  color: charts.MaterialPalette.white.darker),
+          domainAxis: OrdinalAxisSpec(
+            renderSpec: SmallTickRendererSpec(
+              labelStyle: TextStyleSpec(
+                  color: MaterialPalette.white.lighter),
+              lineStyle: LineStyleSpec(
+                  color: MaterialPalette.white.darker),
             ),
           ),
 
           /// Assign a custom style for the measure axis.
-          primaryMeasureAxis: charts.NumericAxisSpec(
-            renderSpec: charts.GridlineRendererSpec(
-              labelStyle: charts.TextStyleSpec(
-                  color: charts.MaterialPalette.white.lighter),
-              lineStyle: charts.LineStyleSpec(
-                  color: charts.MaterialPalette.white.darker),
+          primaryMeasureAxis: NumericAxisSpec(
+            renderSpec: GridlineRendererSpec(
+              labelStyle: TextStyleSpec(
+                  color: MaterialPalette.white.lighter),
+              lineStyle: LineStyleSpec(
+                  color: MaterialPalette.white.darker),
             ),
           ),
         );
         break;
       case "group-bar-simple":
-        chart = charts.BarChart(
-          widget.series, animate: widget.animate,
+        chart = BarChart(
+          widget.series, animate: widget.animate!,
           animationDuration: Duration(milliseconds: 1000),
-          barGroupingType: charts.BarGroupingType.stacked,
+          barGroupingType: BarGroupingType.stacked,
           behaviors: [
-            charts.SeriesLegend(
-              position: charts.BehaviorPosition.top,
+            SeriesLegend(
+              position: BehaviorPosition.top,
               horizontalFirst: true,
               cellPadding: EdgeInsets.only(right: 4.0, bottom: 16.0),
               showMeasures: true,
               measureFormatter: (num value) {
+                // ignore: unnecessary_null_comparison
                 return value == null
                     ? ''
                     : '${numberFormatDefault.format(value)}';
@@ -83,76 +84,76 @@ class _ChartsState extends State<Charts> {
           ],
 
           /// Assign a custom style for the domain axis.
-          domainAxis: charts.OrdinalAxisSpec(
-              renderSpec: charts.SmallTickRendererSpec(
-                  labelStyle: charts.TextStyleSpec(
-                      color: charts.MaterialPalette.white.lighter),
-                  lineStyle: charts.LineStyleSpec(
-                      color: charts.MaterialPalette.white.darker))),
+          domainAxis: OrdinalAxisSpec(
+              renderSpec: SmallTickRendererSpec(
+                  labelStyle: TextStyleSpec(
+                      color: MaterialPalette.white.lighter),
+                  lineStyle: LineStyleSpec(
+                      color: MaterialPalette.white.darker))),
 
           /// Assign a custom style for the measure axis.
-          primaryMeasureAxis: charts.NumericAxisSpec(
-              renderSpec: charts.GridlineRendererSpec(
-                  labelStyle: charts.TextStyleSpec(
-                      color: charts.MaterialPalette.white.lighter),
-                  lineStyle: charts.LineStyleSpec(
-                      color: charts.MaterialPalette.white.darker))),
+          primaryMeasureAxis: NumericAxisSpec(
+              renderSpec: GridlineRendererSpec(
+                  labelStyle: TextStyleSpec(
+                      color: MaterialPalette.white.lighter),
+                  lineStyle: LineStyleSpec(
+                      color: MaterialPalette.white.darker))),
         );
         break;
       case "horizontal-bar":
-        chart = charts.BarChart(
-          widget.series, animate: widget.animate,
+        chart = BarChart(
+          widget.series, animate: widget.animate!,
           animationDuration: Duration(milliseconds: 1000),
           vertical: false,
-          barRendererDecorator: charts.BarLabelDecorator<String>(
-            insideLabelStyleSpec: charts.TextStyleSpec(
-              color: charts.MaterialPalette.white.lighter,
+          barRendererDecorator: BarLabelDecorator<String>(
+            insideLabelStyleSpec: TextStyleSpec(
+              color: MaterialPalette.white.lighter,
               fontSize: 16,
             ),
-            outsideLabelStyleSpec: charts.TextStyleSpec(
-              color: charts.MaterialPalette.white.lighter,
+            outsideLabelStyleSpec: TextStyleSpec(
+              color: MaterialPalette.white.lighter,
               fontSize: 16,
             ),
           ),
 
           /// Assign a custom style for the domain axis.
           domainAxis:
-          charts.OrdinalAxisSpec(renderSpec: charts.NoneRenderSpec()),
+          OrdinalAxisSpec(renderSpec: NoneRenderSpec()),
 
           /// Assign a custom style for the measure axis.
           primaryMeasureAxis:
-          charts.NumericAxisSpec(renderSpec: charts.NoneRenderSpec()),
+          NumericAxisSpec(renderSpec: NoneRenderSpec()),
           behaviors: [
-            charts.DatumLegend(
-              position: charts.BehaviorPosition.start,
+            DatumLegend(
+              position: BehaviorPosition.start,
             ),
           ],
         );
         break;
       case "pie-chart":
-        chart = charts.PieChart(
+        chart = PieChart(
           widget.series,
-          animate: widget.animate,
+          animate: widget.animate!,
           animationDuration: Duration(milliseconds: 1000),
-          defaultRenderer: charts.ArcRendererConfig(
+          defaultRenderer: ArcRendererConfig(
             arcWidth: 75,
             arcRendererDecorators: [
-              charts.ArcLabelDecorator(
-                labelPosition: charts.ArcLabelPosition.auto,
-                insideLabelStyleSpec: charts.TextStyleSpec(
-                  color: charts.MaterialPalette.white.lighter,
+              ArcLabelDecorator(
+                labelPosition: ArcLabelPosition.auto,
+                insideLabelStyleSpec: TextStyleSpec(
+                  color: MaterialPalette.white.lighter,
                   fontSize: 16,
                 ),
-                outsideLabelStyleSpec: charts.TextStyleSpec(
-                  color: charts.MaterialPalette.white.lighter,
+                outsideLabelStyleSpec: TextStyleSpec(
+                  color: MaterialPalette.white.lighter,
                   fontSize: 16,
                 ),
               ),
             ],
           ),
           behaviors: [
-            charts.DatumLegend(
-              position: charts.BehaviorPosition.top,
+            DatumLegend(
+              position: BehaviorPosition.top,
             ),
           ],
         );

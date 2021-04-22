@@ -17,14 +17,14 @@ import '../helpers/iso-language.dart';
 /// ```
 class FlagChip extends StatelessWidget {
   FlagChip({
-    Key key,
-    @required this.language,
+    Key? key,
+    required this.language,
     this.total,
     this.color = Colors.black,
     this.colorText = Colors.white,
   }) : super(key: key);
   final String language;
-  final int total;
+  final int? total;
   final Color color;
   final Color colorText;
 
@@ -48,7 +48,7 @@ class FlagChip extends StatelessWidget {
             padding: EdgeInsets.only(left: 8),
             child: Text(
               "${formatLanguage.getEmoji(language)}",
-              style: textTheme.bodyText2.copyWith(
+              style: textTheme.bodyText2!.copyWith(
                 fontSize: 20,
                 color: colorText,
               ),
@@ -66,7 +66,7 @@ class FlagChip extends StatelessWidget {
           child: Container(
             child: Text(
               language.toUpperCase(),
-              style: textTheme.bodyText2.copyWith(
+              style: textTheme.bodyText2!.copyWith(
                 color: colorText,
               ),
             ),
@@ -82,7 +82,7 @@ class FlagChip extends StatelessWidget {
             padding: EdgeInsets.all(8),
             child: Text(
               "${formatDecimal.format(total)}",
-              style: textTheme.bodyText2.copyWith(color: colorText),
+              style: textTheme.bodyText2!.copyWith(color: colorText),
             ),
           ),
         ),

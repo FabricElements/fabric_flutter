@@ -10,12 +10,12 @@ import 'package:flutter/material.dart';
 /// );
 class SectionTitle extends StatefulWidget {
   SectionTitle({
-    Key key,
+    Key? key,
     this.description,
-    @required this.headline,
+    required this.headline,
     this.condensed = false,
   }) : super(key: key);
-  final String description;
+  final String? description;
   final String headline;
   final bool condensed;
 
@@ -35,14 +35,14 @@ class _SectionTitleState extends State<SectionTitle> {
     List<TextSpan> importantData(String textConvert, String type) {
       List<TextSpan> text = [];
       String textFinal = textConvert;
-      int initialHelper = 0;
+      int? initialHelper = 0;
       Iterable matches = regExp.allMatches(textFinal);
-      TextStyle sizeBase = textTheme.headline6;
-      TextStyle titleDefault = sizeBase;
-      TextStyle titleColor = sizeBase;
+      TextStyle? sizeBase = textTheme.headline6;
+      TextStyle? titleDefault = sizeBase;
+      TextStyle? titleColor = sizeBase;
       if (type == "title") {
         sizeBase = textTheme.headline3;
-        titleDefault = sizeBase.copyWith(
+        titleDefault = sizeBase!.copyWith(
           // color: Colors.white,
           fontWeight: FontWeight.w600,
         );
@@ -54,10 +54,10 @@ class _SectionTitleState extends State<SectionTitle> {
         titleDefault = sizeBase;
         titleColor = sizeBase;
         if (widget.condensed) {
-          sizeBase = textTheme.subtitle1.copyWith(fontWeight: FontWeight.w400);
+          sizeBase = textTheme.subtitle1!.copyWith(fontWeight: FontWeight.w400);
         }
         titleDefault = titleDefault;
-        titleColor = titleColor.copyWith(
+        titleColor = titleColor!.copyWith(
           color: theme.accentColor,
         );
       }
@@ -66,7 +66,7 @@ class _SectionTitleState extends State<SectionTitle> {
           if (match.start > initialHelper) {
             text.add(
               TextSpan(
-                text: (textFinal.substring(initialHelper, match.start))
+                text: (textFinal.substring(initialHelper!, match.start))
                     .replaceAll("_", " ")
                     .replaceAll("{", "")
                     .replaceAll("}", ""),
@@ -88,7 +88,7 @@ class _SectionTitleState extends State<SectionTitle> {
         });
         text.add(
           TextSpan(
-            text: (textFinal.substring(initialHelper, textFinal.length))
+            text: (textFinal.substring(initialHelper!, textFinal.length))
                 .replaceAll("_", " ")
                 .replaceAll("{", " ")
                 .replaceAll("}", " "),
@@ -119,7 +119,7 @@ class _SectionTitleState extends State<SectionTitle> {
         padding: EdgeInsets.only(bottom: 4),
         child: Text.rich(
           TextSpan(
-            children: importantData(widget.description, "subtitle"),
+            children: importantData(widget.description!, "subtitle"),
           ),
         ),
       ));
