@@ -67,7 +67,7 @@ class StateDocument extends ChangeNotifier {
   String? get id => _documentId;
 
   /// Return document [data]
-  Map<String, dynamic>? get data {
+  Map<String, dynamic> get data {
     if (_documentId != null && _data.isEmpty) {
       _listen();
     }
