@@ -9,8 +9,8 @@ import 'package:imgix/imgix.dart';
 /// );
 class SmartImgix extends StatelessWidget {
   SmartImgix({
-    Key key,
-    @required this.image,
+    Key? key,
+    required this.image,
   }) : super(key: key);
   final String image;
 

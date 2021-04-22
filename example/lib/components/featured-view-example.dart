@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fabric_flutter/components.dart';
 
 class FeaturedViewExample extends StatelessWidget {
-  FeaturedViewExample({Key key, @required this.scaffoldKey}) : super(key: key);
+  FeaturedViewExample({Key? key, required this.scaffoldKey}) : super(key: key);
   final GlobalKey<ScaffoldState> scaffoldKey;
 
   @override
@@ -15,7 +15,7 @@ class FeaturedViewExample extends StatelessWidget {
             "Click the button, or on the menu icon to view the other demonstrations",
         actionLabel: "CLICK TO OPEN THE COMPONENTS DRAWER",
         onPressed: () {
-          scaffoldKey.currentState.openDrawer();
+          scaffoldKey.currentState!.openDrawer();
         },
         firstGradientAnimationColor: Colors.grey.shade900,
         secondGradientAnimationColor: Colors.grey.shade900,

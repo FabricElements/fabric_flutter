@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
-import 'package:flutter/cupertino.dart';
 
 /// This is a helper which uploads any type of file to the firebase storage path specified.
 /// This helper returns the storage task snapshot for further use.
@@ -13,7 +12,7 @@ import 'package:flutter/cupertino.dart';
 /// ```
 class FirebaseStorageHelper {
   FirebaseStorageHelper({
-    @required this.reference,
+    required this.reference,
   });
 
   final firebase_storage.Reference reference;
@@ -37,13 +36,13 @@ class FirebaseStorageHelper {
   ///    );
   /// ```
   Future<firebase_storage.TaskSnapshot> upload(File file, String path, String name,
-      [String contentType, Map<String, dynamic> metadata]) async {
+      [String? contentType, Map<String, dynamic>? metadata]) async {
     final firebase_storage.Reference ref = reference.child(path).child(name);
     final firebase_storage.UploadTask uploadTask = ref.putFile(
       file,
       firebase_storage.SettableMetadata(
         contentType: contentType,
-        customMetadata: metadata,
+        customMetadata: metadata as Map<String, String>?,
       ),
     );
     firebase_storage.TaskSnapshot storageTaskSnapshot = await uploadTask.then((value) => value);

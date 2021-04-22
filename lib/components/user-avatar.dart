@@ -10,14 +10,14 @@ import 'package:flutter/material.dart';
 /// );
 class UserAvatar extends StatelessWidget {
   const UserAvatar({
-    Key key,
-    @required this.avatar,
-    @required this.name,
+    Key? key,
+    required this.avatar,
+    required this.name,
   }) : super(key: key);
-  final String avatar;
-  final String name;
+  final String? avatar;
+  final String? name;
 
-  String _acronym(String text) {
+  String _acronym(String? text) {
     if (text == null) {
       return "";
     }
@@ -44,7 +44,7 @@ class UserAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     if (avatar != null) {
       return CircleAvatar(
-        backgroundImage: NetworkImage(avatar),
+        backgroundImage: NetworkImage("$avatar"),
         backgroundColor: Colors.grey.shade100,
       );
     }

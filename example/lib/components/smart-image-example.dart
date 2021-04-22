@@ -2,7 +2,7 @@ import 'package:fabric_flutter/components.dart';
 import 'package:flutter/material.dart';
 
 class SmartImageExample extends StatelessWidget {
-  SmartImageExample({Key key, @required this.scaffoldKey}) : super(key: key);
+  SmartImageExample({Key? key, required this.scaffoldKey}) : super(key: key);
   final GlobalKey<ScaffoldState> scaffoldKey;
 
   @override

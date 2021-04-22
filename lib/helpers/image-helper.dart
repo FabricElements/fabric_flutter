@@ -1,8 +1,8 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
@@ -12,15 +12,17 @@ import 'package:path/path.dart' as p;
 class ImageHelper {
   /// Get fileurl
   /// [origin] either "camera" or "gallery"
-  Future<String> getImage({@required String origin}) async {
-    File baseImage;
+  Future<String> getImage({required String origin}) async {
+    late File baseImage;
     final picker = ImagePicker();
     if (origin == "camera") {
-      final pickedFile = await picker.getImage(source: ImageSource.camera, maxWidth: 1500);
+      final pickedFile = await (picker.getImage(
+          source: ImageSource.camera, maxWidth: 1500) as FutureOr<PickedFile>);
       baseImage = File(pickedFile.path);
     } else if (origin == "gallery") {
-      FilePickerResult result = await FilePicker.platform.pickFiles(type: FileType.image);
-      baseImage = File(result.files.single.path);
+      FilePickerResult result = await (FilePicker.platform
+          .pickFiles(type: FileType.image) as FutureOr<FilePickerResult>);
+      baseImage = File(result.files.single.path!);
     }
     return baseImage.path;
   }
@@ -30,8 +32,8 @@ class ImageHelper {
   /// scale the down or up to the specified.
   /// [imageType] Make sure the specify the return image file type, either [jpeg], [png] or [gif].+
   Future<String> resize({
-    @required String imagePath,
-    @required String imageType,
+    required String imagePath,
+    required String imageType,
     double maxHeight = 1000,
     double maxWidth = 1000,
   }) async {
@@ -57,7 +59,7 @@ class ImageHelper {
           throw Exception("Invalid file type for image resize");
       }
       Uint8List _imageByes = await File(imagePath).readAsBytes();
-      img.Image _baseImage = img.decodeImage(_imageByes);
+      img.Image _baseImage = img.decodeImage(_imageByes)!;
       double _height = _baseImage.height.toDouble();
       double _width = _baseImage.width.toDouble();
       // Workout the scaling options, height going first being that height is very often the largest value
@@ -76,16 +78,16 @@ class ImageHelper {
           width: _width.round(),
         );
       }
-      Uint8List _encodedImage;
+      late Uint8List _encodedImage;
       switch (imageType) {
         case "jpeg":
-          _encodedImage = img.encodeJpg(_baseImage);
+          _encodedImage = img.encodeJpg(_baseImage) as Uint8List;
           break;
         case "png":
-          _encodedImage = img.encodePng(_baseImage);
+          _encodedImage = img.encodePng(_baseImage) as Uint8List;
           break;
         case "gif":
-          _encodedImage = img.encodeGif(_baseImage);
+          _encodedImage = img.encodeGif(_baseImage) as Uint8List;
           break;
       }
       // Put the file in the cache and will expire in one minute

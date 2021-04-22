@@ -1,14 +1,12 @@
-import 'package:flutter/material.dart';
 import 'package:fabric_flutter/fabric_flutter.dart';
+import 'package:flutter/material.dart';
 
 class ChipsExample extends StatelessWidget {
-  ChipsExample({Key key, @required this.scaffoldKey}) : super(key: key);
+  ChipsExample({Key? key, required this.scaffoldKey}) : super(key: key);
   final GlobalKey<ScaffoldState> scaffoldKey;
 
   @override
   Widget build(BuildContext context) {
-    AppLocalizations localizations = AppLocalizations.of(context);
-
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),

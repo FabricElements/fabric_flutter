@@ -2,7 +2,7 @@ import 'package:fabric_flutter/components.dart';
 import 'package:flutter/material.dart';
 
 class InvitationExample extends StatelessWidget {
-  InvitationExample({Key key, @required this.scaffoldKey}) : super(key: key);
+  InvitationExample({Key? key, required this.scaffoldKey}) : super(key: key);
   final GlobalKey<ScaffoldState> scaffoldKey;
 
   void _inviteUser(BuildContext context) {

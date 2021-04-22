@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 
 class RoleSelector extends StatefulWidget {
   RoleSelector({
-    Key key,
-    @required this.hintText,
-    @required this.list,
-    @required this.onChange,
+    Key? key,
+    required this.hintText,
+    required this.list,
+    required this.onChange,
   }) : super(key: key);
   final Map<String, dynamic> list;
-  final String hintText;
+  final String? hintText;
   final Function onChange;
 
   @override
@@ -16,7 +16,7 @@ class RoleSelector extends StatefulWidget {
 }
 
 class _RoleSelectorState extends State<RoleSelector> {
-  String roleSelect;
+  String? roleSelect;
 
   @override
   void initState() {
@@ -43,7 +43,7 @@ class _RoleSelectorState extends State<RoleSelector> {
       padding: const EdgeInsets.all(16.0),
       child: DropdownButton(
         hint: Text(
-          widget.hintText,
+          widget.hintText!,
           // style: TextStyle(
           //   color: Colors.white,
           // ),

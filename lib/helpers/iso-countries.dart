@@ -4218,10 +4218,10 @@ class IsoCountries {
     }
   ];
 
-  Map<String, dynamic> map() {
-    Map<String, dynamic> _map = {};
+  Map<String?, dynamic> map() {
+    Map<String?, dynamic> _map = {};
     list.forEach((element) {
-      String id = element["iso_3166_2"];
+      String? id = element["iso_3166_2"];
       _map[id] = element;
     });
     return _map;

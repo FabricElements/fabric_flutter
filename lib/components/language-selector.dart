@@ -19,14 +19,14 @@ import '../helpers/iso-language.dart';
 /// ```
 class LanguageSelector extends StatelessWidget {
   LanguageSelector({
-    Key key,
+    Key? key,
     this.voice = false,
     this.language = "en",
     this.onChange,
   }) : super(key: key);
   final bool voice;
-  final String language;
-  final Function onChange;
+  final String? language;
+  final Function? onChange;
 
   @override
   Widget build(BuildContext context) {
@@ -53,13 +53,12 @@ class LanguageSelector extends StatelessWidget {
     }
     String defaultLanguage = language ?? "en";
     index = isoList.indexOf(defaultLanguage.toLowerCase());
-    CupertinoThemeData cupertinoTheme = CupertinoTheme.of(context);
     return CupertinoPicker(
       scrollController: FixedExtentScrollController(initialItem: index),
       children: languages,
       itemExtent: 32,
       onSelectedItemChanged: (int scrollIndex) {
-        onChange(isoList[scrollIndex] ?? "en");
+        onChange!(isoList[scrollIndex]);
       },
     );
   }

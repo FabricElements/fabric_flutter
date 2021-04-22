@@ -22,12 +22,12 @@ class ExampleApp extends StatelessWidget {
         primarySwatch: Colors.purple,
         // backgroundColor: Colors.grey.shade900,
         // scaffoldBackgroundColor: Colors.grey.shade900,
-        textTheme: TextTheme(
-          headline: TextStyle(
-            color: Colors.white,
-          ),
-        ),
-        secondaryHeaderColor: Colors.grey.shade900,
+        // textTheme: TextTheme(
+        //   headline: TextStyle(
+        //     color: Colors.white,
+        //   ),
+        // ),
+        // secondaryHeaderColor: Colors.grey.shade900,
       ),
       initialRoute: "/",
       onGenerateRoute: routes,

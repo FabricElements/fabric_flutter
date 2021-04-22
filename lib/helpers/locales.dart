@@ -4,9 +4,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
-String _mergeLocales(languageCode, keyPath, Map<String, dynamic> keys) {
+String? _mergeLocales(languageCode, keyPath, Map<String, dynamic> keys) {
   RegExp regExp = new RegExp(r"([a-zA-Z0-9_-]+)");
-  String finalResponse = "";
+  String? finalResponse = "";
   try {
     assert(regExp.hasMatch(keyPath));
     if (keys.containsKey(keyPath)) {
@@ -29,11 +29,11 @@ class AppLocalizations {
 
   final Locale locale;
 
-  static AppLocalizations of(BuildContext context) {
+  static AppLocalizations? of(BuildContext context) {
     return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
-  Map<String, dynamic> keys;
+  Map<String, dynamic>? keys;
 
   Future<bool> load() async {
     String data = await rootBundle.loadString("assets/locales.json");
@@ -42,7 +42,7 @@ class AppLocalizations {
   }
 
   get(String key) {
-    return _mergeLocales(locale.languageCode, key, keys);
+    return _mergeLocales(locale.languageCode, key, keys!);
   }
 }
 

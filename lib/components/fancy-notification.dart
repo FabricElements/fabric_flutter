@@ -7,8 +7,8 @@ import 'package:transparent_image/transparent_image.dart';
 
 class FancyNotification extends StatelessWidget {
   FancyNotification({
-    Key key,
-    @required this.child,
+    Key? key,
+    required this.child,
     this.callback,
     this.labelAction = "GO",
     this.labelDismiss = "DISMISS",
@@ -17,12 +17,12 @@ class FancyNotification extends StatelessWidget {
     this.backgroundColor,
   }) : super(key: key);
   final Widget child;
-  final Function callback;
+  final Function? callback;
   final String labelAction;
   final String labelDismiss;
-  final Duration duration;
+  final Duration? duration;
   final bool persistent;
-  final Color backgroundColor;
+  final Color? backgroundColor;
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +39,7 @@ class FancyNotification extends StatelessWidget {
         Map<dynamic, dynamic> message) async {
       String _path = message["path"] ?? "";
       String _origin = message["origin"] ?? "";
-      Widget _title = message.containsKey("title")
+      Widget? _title = message.containsKey("title")
           ? Container(
               width: width,
               padding: EdgeInsets.only(bottom: 8, left: 16, right: 16),
@@ -50,7 +50,7 @@ class FancyNotification extends StatelessWidget {
               ),
             )
           : null;
-      Widget _body = message.containsKey("body")
+      Widget? _body = message.containsKey("body")
           ? Container(
               width: width,
               padding: EdgeInsets.only(bottom: 8, left: 16, right: 16),
@@ -61,7 +61,7 @@ class FancyNotification extends StatelessWidget {
               ),
             )
           : null;
-      Widget _image = message.containsKey("image")
+      Widget? _image = message.containsKey("image")
           ? Container(
               width: width,
               height: smallerSize * 0.4,
@@ -97,7 +97,7 @@ class FancyNotification extends StatelessWidget {
 //            Scaffold.of(context)
 //                .removeCurrentSnackBar(reason: SnackBarClosedReason.dismiss);
 //            Navigator.pop(context);
-            this.callback(message);
+            this.callback!(message);
           },
         ));
       }
@@ -140,7 +140,7 @@ class FancyNotification extends StatelessWidget {
         );
       } else {
         /// redirect without showing alert when it comes from click
-        this.callback(message);
+        this.callback!(message);
       }
     }
 
