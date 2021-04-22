@@ -2,7 +2,7 @@ import 'package:fabric_flutter/components.dart';
 import 'package:flutter/material.dart';
 
 class PreviewAudioExample extends StatelessWidget {
-  PreviewAudioExample({Key key, @required this.scaffoldKey}) : super(key: key);
+  PreviewAudioExample({Key? key, required this.scaffoldKey}) : super(key: key);
   final GlobalKey<ScaffoldState> scaffoldKey;
 
   @override

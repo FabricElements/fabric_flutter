@@ -2,7 +2,7 @@ import 'package:fabric_flutter/fabric_flutter.dart';
 import 'package:flutter/material.dart';
 
 class ChipsExample extends StatelessWidget {
-  ChipsExample({Key key, @required this.scaffoldKey}) : super(key: key);
+  ChipsExample({Key? key, required this.scaffoldKey}) : super(key: key);
   final GlobalKey<ScaffoldState> scaffoldKey;
 
   @override

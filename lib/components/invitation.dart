@@ -30,7 +30,7 @@ class UserInvite extends StatefulWidget {
     this.showEmail = false,
     this.showPhone = false,
   }) : super(key: key);
-  final User user;
+  final User? user;
   final Function? alert;
   final Map<String, dynamic>? info;
   final bool showEmail;
@@ -91,9 +91,9 @@ class _UserInviteState extends State<UserInvite> {
     Map<String, dynamic> data = {
       "created": FieldValue.serverTimestamp(),
       "updated": FieldValue.serverTimestamp(),
-      "uid": widget.user.uid,
-      "name": widget.user.displayName,
-      "avatar": widget.user.photoURL,
+      "uid": widget.user!.uid,
+      "name": widget.user!.displayName,
+      "avatar": widget.user!.photoURL,
       "role": role,
     };
 

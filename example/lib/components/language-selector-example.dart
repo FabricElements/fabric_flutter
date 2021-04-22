@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fabric_flutter/components.dart';
 
 class LanguageSelectorExample extends StatelessWidget {
-  LanguageSelectorExample({Key key, @required this.scaffoldKey})
+  LanguageSelectorExample({Key? key, required this.scaffoldKey})
       : super(key: key);
   final GlobalKey<ScaffoldState> scaffoldKey;
 

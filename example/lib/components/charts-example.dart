@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 /// This view id for format data for Dashboard
 ///
 /// Format [createSampleData] for chats
-List<charts.Series<FormatData, String>> createSampleData(data, type) {
+List<charts.Series<FormatData, String>>? createSampleData(data, type) {
   final NumberFormat numberFormatDefault = NumberFormat.compact();
   final NumberFormat numberFormatDecimal = NumberFormat.decimalPattern();
 
@@ -85,7 +85,7 @@ class FormatData {
 }
 
 class ChartsExample extends StatelessWidget {
-  ChartsExample({Key key, @required this.scaffoldKey}) : super(key: key);
+  ChartsExample({Key? key, required this.scaffoldKey}) : super(key: key);
   final GlobalKey<ScaffoldState> scaffoldKey;
 
   @override
@@ -110,22 +110,22 @@ class ChartsExample extends StatelessWidget {
             Charts(
               type: "pie-chart",
               animate: true,
-              series: createSampleData(dataIn, "pie-chart"),
+              series: createSampleData(dataIn, "pie-chart")!,
             ),
             Charts(
               type: "horizontal-bar",
               animate: true,
-              series: createSampleData(dataIn, "horizontal-bar"),
+              series: createSampleData(dataIn, "horizontal-bar")!,
             ),
             Charts(
               type: "bar-simple",
               animate: true,
-              series: createSampleData(dataIn, "bar-simple"),
+              series: createSampleData(dataIn, "bar-simple")!,
             ),
             Charts(
               type: "group-bar-simple",
               animate: true,
-              series: createSampleData([dataIn, dataOut], "group-bar-simple"),
+              series: createSampleData([dataIn, dataOut], "group-bar-simple")!,
             )
           ],
         ),

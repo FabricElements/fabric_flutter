@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:fabric_flutter/components.dart';
+import 'package:flutter/material.dart';
 
 class CardButtonExample extends StatelessWidget {
-  CardButtonExample({Key key, @required this.scaffoldKey}) : super(key: key);
+  CardButtonExample({Key? key, required this.scaffoldKey}) : super(key: key);
   final GlobalKey<ScaffoldState> scaffoldKey;
 
   @override
@@ -18,23 +18,22 @@ class CardButtonExample extends StatelessWidget {
               description:
                   "Click me, or on the menu icon to view the other demonstrations",
               onPressed: () {
-                scaffoldKey.currentState.openDrawer();
+                scaffoldKey.currentState!.openDrawer();
               },
             ),
             CardButton(
               image: "https://source.unsplash.com/random",
               headline: "Click me to show an alert",
               onPressed: () {
-                return showDialog<void>(
+                showDialog(
                   context: context,
                   builder: (BuildContext context) {
                     return AlertDialog(
                       contentPadding: EdgeInsets.all(16),
                       title: Text("Informative Alert Dialog"),
                       actions: <Widget>[
-                        MaterialButton(
+                        ElevatedButton(
                           child: Text("DISMISS"),
-                          padding: EdgeInsets.all(16),
                           onPressed: () => Navigator.pop(context),
                         )
                       ],

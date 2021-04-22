@@ -9,8 +9,8 @@ import 'components/preview-audio-example.dart';
 import 'components/section-title-example.dart';
 import 'components/smart-image-example.dart';
 
-Route<dynamic> routes(RouteSettings settings) {
-  MaterialPageRoute<dynamic> _route;
+Route<dynamic>? routes(RouteSettings settings) {
+  MaterialPageRoute<dynamic>? _route;
 //  final GlobalKey<NavigatorState> navigatorKey =
 //      new GlobalKey<NavigatorState>();
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();

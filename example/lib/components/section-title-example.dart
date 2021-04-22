@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fabric_flutter/fabric_flutter.dart';
 
 class SectionTitleExample extends StatelessWidget {
-  SectionTitleExample({Key key, @required this.scaffoldKey}) : super(key: key);
+  SectionTitleExample({Key? key, required this.scaffoldKey}) : super(key: key);
   final GlobalKey<ScaffoldState> scaffoldKey;
 
   @override
