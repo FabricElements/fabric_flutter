@@ -11,7 +11,6 @@ class StateNotifications extends ChangeNotifier {
 
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 
-  // ignore: close_sinks
   final _messagesStreamController =
       StreamController<Map<dynamic, dynamic>>.broadcast();
 
@@ -55,9 +54,13 @@ class StateNotifications extends ChangeNotifier {
 
   getToken() async {
     _firebaseMessaging.requestPermission(
-      announcement: true,
-      carPlay: true,
-      criticalAlert: true,
+      alert: true,
+      announcement: false,
+      badge: true,
+      carPlay: false,
+      criticalAlert: false,
+      provisional: false,
+      sound: true,
     );
     String? token = await _firebaseMessaging.getToken();
     return token;
@@ -114,18 +117,20 @@ class StateNotifications extends ChangeNotifier {
 
   initNotifications() async {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      RemoteNotification? notification = message.notification;
+      // RemoteNotification? notification = message.notification;
       Map<String, dynamic> data = message.data;
-      if (notification == null) {
+      if (message.data.isEmpty) {
+        print("Empty Notification data object");
         return;
       }
       _notify(data, "message");
     });
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      RemoteNotification? notification = message.notification;
+      // RemoteNotification? notification = message.notification;
       Map<String, dynamic> data = message.data;
-      if (notification == null) {
+      if (message.data.isEmpty) {
+        print("Empty Notification data object");
         return;
       }
       _notify(data, "resume");
