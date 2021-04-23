@@ -78,64 +78,53 @@ class StateNotifications extends ChangeNotifier {
     return _data;
   }
 
-  void _notify(Map<String, dynamic> message, String origin) async {
-    try {
-      Map<String, dynamic> _message = message;
+  /// Return notify values
+  _notify({RemoteMessage? message, String origin = "message"}) async {
+    RemoteNotification? notification = message!.notification;
+    Map<String, dynamic>? data = message.data;
+    Map<String, dynamic> _message = data;
+    _message = _clearObject(_message, "fcm_options");
+    _message = _clearObject(_message, "aps");
+    _message = _clearObject(_message, "alert");
 
-      /// ios
-      _message = _clearObject(_message, "fcm_options");
-      _message = _clearObject(_message, "aps");
-      _message = _clearObject(_message, "alert");
+    /// android
+    _message = _clearObject(_message, "data");
+    _message = _clearObject(_message, "notification");
 
-      /// android
-      _message = _clearObject(_message, "data");
-      _message = _clearObject(_message, "notification");
+    /// Add OS
+    _message.addAll({"os": Platform.operatingSystem});
 
-      /// Add OS
-      _message.addAll({"os": Platform.operatingSystem});
+    /// Add origin
+    _message.addAll({"origin": origin});
 
-      /// Add origin
-      _message.addAll({"origin": origin});
-
-      /// Add valid path by default
-      String path = _message["path"] ?? "";
-      if (path.isNotEmpty && path.startsWith("/")) {
-        _message["path"] = path;
-      } else {
-        _message["path"] = "";
-      }
-
-      /// Add data to stream
-      _messagesStreamController.sink.add(_message);
-      _notification = _message;
-      notifyListeners();
-      await _callback(_notification);
-    } catch (error) {
-      print(error);
+    if (notification != null) {
+      _message.putIfAbsent("title", () => notification.title);
+      _message.putIfAbsent("body", () => notification.body);
     }
+
+    /// Add valid path by default
+    String path = _message["path"] ?? "";
+    if (path.isNotEmpty && path.startsWith("/")) {
+      _message["path"] = path;
+    } else {
+      _message["path"] = "";
+    }
+
+    /// Add data to stream
+    _messagesStreamController.sink.add(_message);
+    _notification = _message;
+    notifyListeners();
+    await _callback(_notification);
   }
 
   initNotifications() async {
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      // RemoteNotification? notification = message.notification;
-      Map<String, dynamic> data = message.data;
-      if (message.data.isEmpty) {
-        print("Empty Notification data object");
-        return;
-      }
-      _notify(data, "message");
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+      await _notify(message: message, origin: "message");
     });
 
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      // RemoteNotification? notification = message.notification;
-      Map<String, dynamic> data = message.data;
-      if (message.data.isEmpty) {
-        print("Empty Notification data object");
-        return;
-      }
-      _notify(data, "resume");
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
+      await _notify(message: message, origin: "resume");
     });
-
 //     _firebaseMessaging.configure(
 //       onMessage: (Map<String, dynamic> message) async =>
 //           _notify(message, "message"),
