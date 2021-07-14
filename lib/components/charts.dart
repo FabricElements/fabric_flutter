@@ -45,20 +45,16 @@ class _ChartsState extends State<Charts> {
           /// Assign a custom style for the domain axis.
           domainAxis: OrdinalAxisSpec(
             renderSpec: SmallTickRendererSpec(
-              labelStyle: TextStyleSpec(
-                  color: MaterialPalette.white.lighter),
-              lineStyle: LineStyleSpec(
-                  color: MaterialPalette.white.darker),
+              labelStyle: TextStyleSpec(color: MaterialPalette.white.lighter),
+              lineStyle: LineStyleSpec(color: MaterialPalette.white.darker),
             ),
           ),
 
           /// Assign a custom style for the measure axis.
           primaryMeasureAxis: NumericAxisSpec(
             renderSpec: GridlineRendererSpec(
-              labelStyle: TextStyleSpec(
-                  color: MaterialPalette.white.lighter),
-              lineStyle: LineStyleSpec(
-                  color: MaterialPalette.white.darker),
+              labelStyle: TextStyleSpec(color: MaterialPalette.white.lighter),
+              lineStyle: LineStyleSpec(color: MaterialPalette.white.darker),
             ),
           ),
         );
@@ -74,30 +70,39 @@ class _ChartsState extends State<Charts> {
               horizontalFirst: true,
               cellPadding: EdgeInsets.only(right: 4.0, bottom: 16.0),
               showMeasures: true,
-              measureFormatter: (num value) {
-                // ignore: unnecessary_null_comparison
-                return value == null
-                    ? ''
-                    : '${numberFormatDefault.format(value)}';
-              },
+              // measureFormatter: (num value) => value is num ? numberFormatDefault.format(value) : "" as String,
+              // measureFormatter: (num value) {
+              //   String? response;
+              //   try {
+              //     response = numberFormatDefault.format(value);
+              //   } catch (error) {}
+              //   return response;
+              //   // return value is String
+              //   //     ? numberFormatDefault.format(value).toString()
+              //   //     : '';
+              //   // ignore: unnecessary_null_comparison
+              //   // return value == null
+              //   //     ? ''
+              //   //     : '${numberFormatDefault.format(value)}';
+              // },
             ),
           ],
 
           /// Assign a custom style for the domain axis.
           domainAxis: OrdinalAxisSpec(
               renderSpec: SmallTickRendererSpec(
-                  labelStyle: TextStyleSpec(
-                      color: MaterialPalette.white.lighter),
-                  lineStyle: LineStyleSpec(
-                      color: MaterialPalette.white.darker))),
+                  labelStyle:
+                      TextStyleSpec(color: MaterialPalette.white.lighter),
+                  lineStyle:
+                      LineStyleSpec(color: MaterialPalette.white.darker))),
 
           /// Assign a custom style for the measure axis.
           primaryMeasureAxis: NumericAxisSpec(
               renderSpec: GridlineRendererSpec(
-                  labelStyle: TextStyleSpec(
-                      color: MaterialPalette.white.lighter),
-                  lineStyle: LineStyleSpec(
-                      color: MaterialPalette.white.darker))),
+                  labelStyle:
+                      TextStyleSpec(color: MaterialPalette.white.lighter),
+                  lineStyle:
+                      LineStyleSpec(color: MaterialPalette.white.darker))),
         );
         break;
       case "horizontal-bar":
@@ -117,12 +122,10 @@ class _ChartsState extends State<Charts> {
           ),
 
           /// Assign a custom style for the domain axis.
-          domainAxis:
-          OrdinalAxisSpec(renderSpec: NoneRenderSpec()),
+          domainAxis: OrdinalAxisSpec(renderSpec: NoneRenderSpec()),
 
           /// Assign a custom style for the measure axis.
-          primaryMeasureAxis:
-          NumericAxisSpec(renderSpec: NoneRenderSpec()),
+          primaryMeasureAxis: NumericAxisSpec(renderSpec: NoneRenderSpec()),
           behaviors: [
             DatumLegend(
               position: BehaviorPosition.start,
