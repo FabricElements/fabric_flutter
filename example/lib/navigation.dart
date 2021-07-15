@@ -1,3 +1,4 @@
+import 'package:fabric_flutter_example/helpers/state_document.dart';
 import 'package:flutter/material.dart';
 import 'components/card-button-example.dart';
 import 'components/charts-example.dart';
@@ -24,6 +25,13 @@ Route<dynamic>? routes(RouteSettings settings) {
             title: Text("Featured View"),
             onTap: () {
               Navigator.pushNamed(context, "/");
+            },
+          ),
+          ListTile(
+            contentPadding: EdgeInsets.all(8),
+            title: Text("State Document"),
+            onTap: () {
+              Navigator.pushNamed(context, "/state-document");
             },
           ),
           ListTile(
@@ -192,6 +200,18 @@ Route<dynamic>? routes(RouteSettings settings) {
             appBar: AppBar(),
             drawer: _drawer(context),
             body: InvitationExample(scaffoldKey: _scaffoldKey),
+          );
+        },
+      );
+      break;
+    case "/state-document":
+      _route = MaterialPageRoute<dynamic>(
+        builder: (BuildContext context) {
+          return Scaffold(
+            key: _scaffoldKey,
+            appBar: AppBar(),
+            drawer: _drawer(context),
+            body: StateDocumentDemo(scaffoldKey: _scaffoldKey),
           );
         },
       );

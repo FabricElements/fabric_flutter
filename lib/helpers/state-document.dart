@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -35,13 +33,11 @@ class StateDocument extends ChangeNotifier {
       _streamReference!.listen((snapshot) {
         String snapshotID = snapshot.id;
         isValid = snapshot.exists && snapshotID == _documentId;
+        _data = {};
         if (!isValid) {
           return;
         }
-        Object _docDataBase = snapshot.data()!;
-        Map<String, dynamic>? _docData = jsonDecode(_docDataBase.toString());
-        _data = {};
-        _data = _docData != null ? _docData : {};
+        _data = snapshot.data()! as Map<String, dynamic>;
         _data["id"] = snapshotID;
         notifyListeners();
       }).onError((error) {
