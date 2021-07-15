@@ -6,6 +6,10 @@ Native components and helpers
 
 When adding a new component make sure to include an example in the example project
 
+### Run locally
+```cmd
+flutter run --no-sound-null-safety --hot
+```
 
 ## Contributing
 
