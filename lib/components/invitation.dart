@@ -85,17 +85,28 @@ class _UserInviteState extends State<UserInvite> {
   ///
   /// [type] Whether it is an e-mail or phone number.
   /// [contact] The e-mail or phone number.
-  _sendInvitation({String? type, String? contact, String? role}) async {
+  _sendInvitation({required String type, String? contact, String? role}) async {
+    if (contact == null) {
+      print("Define the contact information before sending");
+      return;
+    }
     sending = true;
-
     Map<String, dynamic> data = {
       "created": FieldValue.serverTimestamp(),
       "updated": FieldValue.serverTimestamp(),
-      "uid": widget.user!.uid,
-      "name": widget.user!.displayName,
-      "avatar": widget.user!.photoURL,
-      "role": role,
     };
+    if (role != null) {
+      data.addAll({
+        "role": role,
+      });
+    }
+    if (widget.user != null) {
+      data.addAll({
+        "uid": widget.user?.uid ?? null,
+        "name": widget.user?.displayName ?? null,
+        "avatar": widget.user?.photoURL ?? null,
+      });
+    }
 
     if (widget.info != null) {
       data.addAll(widget.info!);
@@ -108,7 +119,9 @@ class _UserInviteState extends State<UserInvite> {
     }
     try {
       // Update firestore with invitation.
-      await FirebaseFirestore.instance.collection("connection-invite").add(data);
+      await FirebaseFirestore.instance
+          .collection("connection-invite")
+          .add(data);
       Navigator.of(context).pop();
     } catch (e) {
       print("Error sending invitation: $e");
@@ -119,7 +132,6 @@ class _UserInviteState extends State<UserInvite> {
   Widget build(BuildContext context) {
     AppLocalizations? locales = AppLocalizations.of(context);
     void validateInvitation() async {
-      print("$flagRol $flagNumber");
       String? message = "";
       String type = "";
       if (phoneNumber.length < 5) {
@@ -198,7 +210,8 @@ class _UserInviteState extends State<UserInvite> {
                   },
                   // Disable blank space from input.
                   inputFormatters: [
-                    FilteringTextInputFormatter.deny(" ", replacementString: ""),
+                    FilteringTextInputFormatter.deny(" ",
+                        replacementString: ""),
                   ],
                 ),
               ),

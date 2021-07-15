@@ -16,7 +16,7 @@ class ImageHelper {
     late File baseImage;
     final picker = ImagePicker();
     if (origin == "camera") {
-      final pickedFile = await (picker.getImage(
+      PickedFile pickedFile = await (picker.getImage(
           source: ImageSource.camera, maxWidth: 1500) as FutureOr<PickedFile>);
       baseImage = File(pickedFile.path);
     } else if (origin == "gallery") {

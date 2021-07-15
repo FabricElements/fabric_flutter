@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -7,7 +9,7 @@ class StateDocument extends ChangeNotifier {
 
   String? _documentId;
   Map<String, dynamic> _data = {};
-  late DocumentReference _documentReference;
+  late DocumentReference<Map<String, dynamic>> _documentReference;
   Stream<DocumentSnapshot>? _streamReference;
   String collection = "demo";
 
@@ -36,7 +38,8 @@ class StateDocument extends ChangeNotifier {
         if (!isValid) {
           return;
         }
-        Map<String, dynamic>? _docData = snapshot.data();
+        Object _docDataBase = snapshot.data()!;
+        Map<String, dynamic>? _docData = jsonDecode(_docDataBase.toString());
         _data = {};
         _data = _docData != null ? _docData : {};
         _data["id"] = snapshotID;
