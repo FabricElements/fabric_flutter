@@ -85,14 +85,21 @@ class _UserInviteState extends State<UserInvite> {
   ///
   /// [type] Whether it is an e-mail or phone number.
   /// [contact] The e-mail or phone number.
-  _sendInvitation({String? type, String? contact, String? role}) async {
+  _sendInvitation({required String type, String? contact, String? role}) async {
+    if (contact == null) {
+      print("Define the contact information before sending");
+      return;
+    }
     sending = true;
-
     Map<String, dynamic> data = {
       "created": FieldValue.serverTimestamp(),
       "updated": FieldValue.serverTimestamp(),
-      "role": role,
     };
+    if (role != null) {
+      data.addAll({
+        "role": role,
+      });
+    }
     if (widget.user != null) {
       data.addAll({
         "uid": widget.user?.uid ?? null,
