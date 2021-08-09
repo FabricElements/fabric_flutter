@@ -133,7 +133,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "0.0.52"
+    version: "0.0.54"
   fake_async:
     dependency: transitive
     description:
@@ -365,7 +365,7 @@ packages:
       name: image_picker
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.8.3"
+    version: "0.8.3+1"
   image_picker_for_web:
     dependency: transitive
     description:
