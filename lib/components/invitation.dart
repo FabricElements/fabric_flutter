@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -23,7 +23,7 @@ import 'role-selector.dart';
 class UserInvite extends StatefulWidget {
   UserInvite({
     Key? key,
-    required this.user,
+    this.user,
     required this.roles,
     this.alert,
     this.info,
@@ -81,7 +81,7 @@ class _UserInviteState extends State<UserInvite> {
     roleSelect = null;
   }
 
-  /// Updates firestore with the necessary information when inviting a user.
+  /// Sends user invite to firebase function with the necessary information when inviting a user.
   ///
   /// [type] Whether it is an e-mail or phone number.
   /// [contact] The e-mail or phone number.
@@ -91,10 +91,7 @@ class _UserInviteState extends State<UserInvite> {
       return;
     }
     sending = true;
-    Map<String, dynamic> data = {
-      "created": FieldValue.serverTimestamp(),
-      "updated": FieldValue.serverTimestamp(),
-    };
+    Map<String, dynamic> data = {};
     if (role != null) {
       data.addAll({
         "role": role,
@@ -118,10 +115,9 @@ class _UserInviteState extends State<UserInvite> {
       data.addAll({"phoneNumber": contact});
     }
     try {
-      // Update firestore with invitation.
-      await FirebaseFirestore.instance
-          .collection("connection-invite")
-          .add(data);
+      final HttpsCallable callable =
+          FirebaseFunctions.instance.httpsCallable("user-invite");
+      await callable.call(data);
       Navigator.of(context).pop();
     } catch (e) {
       print("Error sending invitation: $e");

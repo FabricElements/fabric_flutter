@@ -154,7 +154,7 @@ packages:
       name: file_picker
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.0.4"
+    version: "4.0.0"
   firebase:
     dependency: transitive
     description:
@@ -365,7 +365,7 @@ packages:
       name: image_picker
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.8.3+1"
+    version: "0.8.3+2"
   image_picker_for_web:
     dependency: transitive
     description:
