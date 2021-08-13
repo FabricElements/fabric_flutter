@@ -11,7 +11,7 @@ class InvitationExample extends StatelessWidget {
       builder: (BuildContext context) {
         return UserInvite(
           user: null,
-          info: {},
+          data: {},
           roles: {"admin": "admin"},
           showPhone: true,
           alert: (message) {

@@ -56,7 +56,7 @@ class StateUser extends StateDocument {
   /// [role] Returns the authenticated user role
   String get role => id != null && claims.containsKey("role")
       ? claims["role"].toString()
-      : "undefined";
+      : "user";
 
   /// [roleFromData] Return an user role using [uid]
   String roleFromData({
@@ -67,7 +67,7 @@ class StateUser extends StateDocument {
     if (id != null && uid != null && (id == uid) && role == "admin") {
       return role;
     }
-    String _role = "undefined";
+    String _role = "user";
     if (uid == null || compareData == null || level == null) {
       return _role;
     }

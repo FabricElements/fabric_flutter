@@ -11,7 +11,7 @@ import 'role-selector.dart';
 /// Sends invitation to a new user
 ///
 /// [user] Firebase User object with user's information
-/// [info] Object with necessary information such as "organization"
+/// [data] Object with necessary information such as "organization"
 /// ```dart
 /// Invitation(
 ///   "user": user-data-object,
@@ -26,13 +26,13 @@ class UserInvite extends StatefulWidget {
     this.user,
     required this.roles,
     this.alert,
-    this.info,
+    this.data,
     this.showEmail = false,
     this.showPhone = false,
   }) : super(key: key);
   final User? user;
   final Function? alert;
-  final Map<String, dynamic>? info;
+  final Map<String, dynamic>? data;
   final bool showEmail;
   final bool showPhone;
   final Map<String, String> roles;
@@ -105,8 +105,8 @@ class _UserInviteState extends State<UserInvite> {
       });
     }
 
-    if (widget.info != null) {
-      data.addAll(widget.info!);
+    if (widget.data != null) {
+      data.addAll(widget.data!);
     }
     // Update object with email or phone depending on the type.
     if (type == "email") {

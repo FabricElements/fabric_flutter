@@ -3,7 +3,7 @@ export 'component/charts.dart';
 export 'component/fancy-notification.dart';
 export 'component/featured-view.dart';
 export 'component/flag-chip.dart';
-export 'component/invitation.dart';
+export 'component/user-invite.dart';
 export 'component/language-selector.dart';
 export 'component/preview-audio.dart';
 export 'component/role-selector.dart';
