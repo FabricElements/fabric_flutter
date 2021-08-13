@@ -1,9 +1,10 @@
 import 'dart:math' as math;
 
-import 'package:fabric_flutter/helpers/state-notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:transparent_image/transparent_image.dart';
+
+import '../state/state-notifications.dart';
 
 class FancyNotification extends StatelessWidget {
   FancyNotification({

@@ -1,4 +1,4 @@
-import 'package:fabric_flutter/helpers/state-document.dart';
+import 'package:fabric_flutter/state/state-document.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

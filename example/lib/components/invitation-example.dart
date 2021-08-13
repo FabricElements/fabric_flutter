@@ -1,4 +1,4 @@
-import 'package:fabric_flutter/components.dart';
+import 'package:fabric_flutter/component.dart';
 import 'package:flutter/material.dart';
 
 class InvitationExample extends StatelessWidget {

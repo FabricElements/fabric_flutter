@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../helpers/iso-language.dart';
+import '../helper/iso-language.dart';
 
 /// FlagChip is used to represent the language as a flag along with a related number.
 ///

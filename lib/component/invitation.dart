@@ -5,7 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../helpers/locales.dart';
+import '../helper/locales.dart';
 import 'role-selector.dart';
 
 /// Sends invitation to a new user

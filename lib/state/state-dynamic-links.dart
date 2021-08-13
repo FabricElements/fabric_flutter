@@ -1,6 +1,7 @@
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 /// This is a change notifier class which keeps track of state within the dynamic links.
 class StateDynamicLinks extends ChangeNotifier {
@@ -15,6 +16,7 @@ class StateDynamicLinks extends ChangeNotifier {
   }
 
   void init() async {
+    if (kIsWeb) return;
     try {
       await Future.delayed(Duration(seconds: 3));
       if (_initialized) {

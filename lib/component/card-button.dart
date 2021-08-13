@@ -103,7 +103,8 @@ class _CardButtonState extends State<CardButton> {
                                   padding: EdgeInsets.only(top: 8),
                                   child: Text(
                                     widget.description!,
-                                    style: textTheme.bodyText2!.copyWith(color: Colors.white),
+                                    style: textTheme.bodyText2!
+                                        .copyWith(color: Colors.white),
                                     textAlign: TextAlign.left,
                                   ),
                                 )

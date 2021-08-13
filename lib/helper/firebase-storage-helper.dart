@@ -35,7 +35,8 @@ class FirebaseStorageHelper {
   ///      {"name": "testFile"},
   ///    );
   /// ```
-  Future<firebase_storage.TaskSnapshot> upload(File file, String path, String name,
+  Future<firebase_storage.TaskSnapshot> upload(
+      File file, String path, String name,
       [String? contentType, Map<String, dynamic>? metadata]) async {
     final firebase_storage.Reference ref = reference.child(path).child(name);
     final firebase_storage.UploadTask uploadTask = ref.putFile(
@@ -45,7 +46,8 @@ class FirebaseStorageHelper {
         customMetadata: metadata as Map<String, String>?,
       ),
     );
-    firebase_storage.TaskSnapshot storageTaskSnapshot = await uploadTask.then((value) => value);
+    firebase_storage.TaskSnapshot storageTaskSnapshot =
+        await uploadTask.then((value) => value);
     return storageTaskSnapshot;
   }
 }

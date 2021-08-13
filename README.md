@@ -7,8 +7,15 @@ Native components and helpers
 When adding a new component make sure to include an example in the example project
 
 ### Run locally
+
 ```cmd
 flutter run --no-sound-null-safety --hot
+```
+
+## Rebuild Annotations
+
+```cmd
+flutter pub run build_runner build watch --delete-conflicting-outputs
 ```
 
 ## Contributing

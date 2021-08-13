@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../helpers/locales.dart';
+import '../helper/locales.dart';
 
 /// StatusChip is a chip which shows the status of a campaign.
 ///

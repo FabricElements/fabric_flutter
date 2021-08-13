@@ -1,4 +1,6 @@
 library fabric_flutter;
 
-export 'components.dart';
-export 'helpers.dart';
+export 'component.dart';
+export 'helper.dart';
+export 'serialized.dart';
+export 'state.dart';

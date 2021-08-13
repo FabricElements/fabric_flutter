@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:fabric_flutter/components.dart';
+import 'package:fabric_flutter/component.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:intl/intl.dart';
 
