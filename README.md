@@ -15,7 +15,7 @@ flutter run --no-sound-null-safety --hot
 ## Rebuild Annotations
 
 ```cmd
-flutter pub run build_runner build watch --delete-conflicting-outputs
+flutter pub run build_runner build --delete-conflicting-outputs
 ```
 
 ## Contributing
