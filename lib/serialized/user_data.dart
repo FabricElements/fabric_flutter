@@ -32,8 +32,8 @@ class UserData {
           "https://images.unsplash.com/photo-1547679904-ac76451d1594?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=500&h=500&q=80",
       includeIfNull: true)
   final String avatar;
-  @JsonKey(includeIfNull: true)
-  final DateTime? created;
+  // @JsonKey(includeIfNull: true)
+  // final DateTime? created;
   @JsonKey(defaultValue: "", includeIfNull: true)
   final String email;
   @JsonKey(includeIfNull: true, defaultValue: null)
@@ -52,16 +52,18 @@ class UserData {
   final UserDataOnboarding onboarding;
   @JsonKey(defaultValue: "", includeIfNull: true)
   final String phone;
+  @JsonKey(defaultValue: "user", includeIfNull: true)
+  final String role;
   @JsonKey(includeIfNull: true, defaultValue: [])
   final List<String> tokens;
-  @JsonKey(includeIfNull: true)
-  final DateTime? updated;
+  // @JsonKey(includeIfNull: true)
+  // final DateTime? updated;
   @JsonKey(includeIfNull: true)
   final String? username;
 
   UserData(
     this.avatar,
-    this.created,
+    // this.created,
     this.email,
     this.id,
     this.name,
@@ -71,8 +73,9 @@ class UserData {
     this.language,
     this.onboarding,
     this.phone,
+    this.role,
     this.tokens,
-    this.updated,
+    // this.updated,
     this.username,
   );
 

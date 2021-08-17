@@ -11,6 +11,9 @@ When adding a new component make sure to include an example in the example proje
 ```cmd
 flutter run --no-sound-null-safety --hot
 ```
+```cmd
+flutter run --hot web --no-sound-null-safety
+```
 
 ## Rebuild Annotations
 

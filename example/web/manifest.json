@@ -1,11 +1,11 @@
 {
-    "name": "fabric_flutter_example",
-    "short_name": "fabric_flutter_example",
+    "name": "demo",
+    "short_name": "demo",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "Demonstrates how to use the fabric_flutter plugin.",
+    "description": "DEMO app",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -55,7 +55,7 @@ class StateUser extends StateDocument {
 
   /// [role] Returns the authenticated user role
   String get role => id != null && claims.containsKey("role")
-      ? claims["role"].toString()
+      ? claims["role"] as String
       : "user";
 
   /// [roleFromData] Return an user role using [uid]

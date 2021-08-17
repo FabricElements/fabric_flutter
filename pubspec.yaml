@@ -19,14 +19,14 @@ dependencies:
   provider: ^5.0.0
   transparent_image: ^2.0.0
   image: ^3.0.2
-  cloud_firestore: ^2.4.0
-  cloud_functions: ^3.0.0
-  firebase_analytics: ^8.2.0
-  firebase_core: ^1.4.0
-  firebase_auth: ^3.0.1
-  firebase_dynamic_links: ^2.0.7
-  firebase_messaging: ^10.0.4
-  firebase_storage: ^10.0.1
+  cloud_firestore: ^2.5.0
+  cloud_functions: ^3.0.1
+  firebase_analytics: ^8.3.0
+  firebase_core: ^1.5.0
+  firebase_auth: ^3.0.2
+  firebase_dynamic_links: ^2.0.8
+  firebase_messaging: ^10.0.5
+  firebase_storage: ^10.0.2
   json_annotation: ^4.1.0
 
 dev_dependencies:

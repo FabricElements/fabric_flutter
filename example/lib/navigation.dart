@@ -1,16 +1,16 @@
 import 'package:fabric_flutter/component/admin_users.dart';
-import 'package:fabric_flutter_example/helpers/state_document.dart';
 import 'package:flutter/material.dart';
 
-import 'components/card-button-example.dart';
-import 'components/charts-example.dart';
-import 'components/chips-example.dart';
-import 'components/featured-view-example.dart';
-import 'components/invitation-example.dart';
-import 'components/language-selector-example.dart';
-import 'components/preview-audio-example.dart';
-import 'components/section-title-example.dart';
-import 'components/smart-image-example.dart';
+import 'demos/components/card-button-example.dart';
+import 'demos/components/charts-example.dart';
+import 'demos/components/chips-example.dart';
+import 'demos/components/featured-view-example.dart';
+import 'demos/components/invitation-example.dart';
+import 'demos/components/language-selector-example.dart';
+import 'demos/components/preview-audio-example.dart';
+import 'demos/components/section-title-example.dart';
+import 'demos/components/smart-image-example.dart';
+import 'demos/helpers/state_document.dart';
 
 Route<dynamic>? routes(RouteSettings settings) {
   MaterialPageRoute<dynamic>? _route;
