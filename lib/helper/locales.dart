@@ -4,9 +4,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
-String? _mergeLocales(languageCode, keyPath, Map<String, dynamic> keys) {
+import '../placeholder/default_locales.dart';
+
+String _mergeLocales(languageCode, keyPath, Map<String, dynamic> keys) {
   RegExp regExp = new RegExp(r"([a-zA-Z0-9_-]+)");
-  String? finalResponse = "";
+  String finalResponse = "";
   try {
     assert(regExp.hasMatch(keyPath));
     if (keys.containsKey(keyPath)) {
@@ -33,24 +35,30 @@ class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
-  Map<String, dynamic>? keys;
+  Map<String, dynamic> keys = {};
 
   Future<bool> load() async {
-    String data = await rootBundle.loadString("assets/locales.json");
-    keys = json.decode(data);
+    try {
+      String data = await rootBundle.loadString("assets/locales.json");
+      keys = json.decode(data);
+    } catch (e) {
+      print("Unable to load locales file from path assets/locales.json");
+    }
+
+    /// Add missing locales
+    defaultLocales.forEach((key, value) => keys.putIfAbsent(key, () => value));
     return true;
   }
 
-  get(String key) {
-    return _mergeLocales(locale.languageCode, key, keys!);
-  }
+  get(String key) => _mergeLocales(locale.languageCode, key, keys);
 }
 
 class AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   const AppLocalizationsDelegate();
 
   @override
-  bool isSupported(Locale locale) => ['en', 'es'].contains(locale.languageCode);
+  // bool isSupported(Locale locale) => ['en', 'es'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => true; // every language is supported
 
   @override
   Future<AppLocalizations> load(Locale locale) async {
@@ -60,5 +68,6 @@ class AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   }
 
   @override
-  bool shouldReload(AppLocalizationsDelegate old) => false;
+  bool shouldReload(AppLocalizationsDelegate old) =>
+      false; // false to prevent loading every time a widget is build
 }

@@ -1,14 +1,6 @@
 {
-  "hello": {
-    "en": "Hello world!",
-    "es": "Hola mundo!"
-  },
-  "say-something": {
-    "en": "Say something...",
-    "es": "Di algo..."
-  },
-  "status-draft": {
-    "en": "Draft",
-    "es": "Borrador"
+  "label--users": {
+    "en": "User Admin View",
+    "es": "Vista De Usuario"
   }
 }

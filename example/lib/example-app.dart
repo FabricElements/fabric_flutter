@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fabric_flutter/helper.dart';
 import 'package:fabric_flutter/state.dart';
+import 'package:fabric_flutter/state/state-user.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -23,6 +24,7 @@ class ExampleApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => StateDocument()),
+        ChangeNotifierProvider(create: (context) => StateUser()),
       ],
       child: MaterialApp(
         title: 'Fabric Flutter demo',
@@ -47,7 +49,7 @@ class ExampleApp extends StatelessWidget {
           // ),
           // secondaryHeaderColor: Colors.grey.shade900,
         ),
-        initialRoute: "/state-document",
+        initialRoute: "/admin-users",
         onGenerateRoute: routes,
       ),
       // child: TopApp(

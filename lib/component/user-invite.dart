@@ -188,7 +188,7 @@ class _UserInviteState extends State<UserInvite> {
                   autofocus: true,
                   controller: _textController,
                   decoration: InputDecoration(
-                    hintText: locales.get("actions--enter-phone-number"),
+                    hintText: locales.get("label--enter-phone-number"),
                   ),
                   maxLines: 1,
                   keyboardType: TextInputType.number,
@@ -249,7 +249,7 @@ class _UserInviteState extends State<UserInvite> {
               autofocus: true,
               controller: _textController,
               decoration: InputDecoration(
-                hintText: locales!.get("actions--enter-an-email"),
+                hintText: locales!.get("label--enter-an-email"),
               ),
               maxLines: 1,
               maxLength: 100,
@@ -319,29 +319,5 @@ class _UserInviteState extends State<UserInvite> {
         ),
       ),
     );
-
-//    return DefaultTabController(
-//      length: _tabs.length,
-//      child: Scaffold(
-//        body: Column(
-//          children: <Widget>[
-//            TabBar(
-//              tabs: _tabs,
-//              onTap: (index) {
-//                _textController.clear();
-//              },
-//            ),
-//            Divider(
-//              height: 16,
-//            ),
-//            Expanded(
-//              child: TabBarView(
-//                children: _tabsBody,
-//              ),
-//            ),
-//          ],
-//        ),
-//      ),
-//    );
   }
 }

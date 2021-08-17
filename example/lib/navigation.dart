@@ -1,5 +1,7 @@
+import 'package:fabric_flutter/component/admin-users.dart';
 import 'package:fabric_flutter_example/helpers/state_document.dart';
 import 'package:flutter/material.dart';
+
 import 'components/card-button-example.dart';
 import 'components/charts-example.dart';
 import 'components/chips-example.dart';
@@ -25,6 +27,13 @@ Route<dynamic>? routes(RouteSettings settings) {
             title: Text("Featured View"),
             onTap: () {
               Navigator.pushNamed(context, "/");
+            },
+          ),
+          ListTile(
+            contentPadding: EdgeInsets.all(8),
+            title: Text("Admin Users"),
+            onTap: () {
+              Navigator.pushNamed(context, "/admin-users");
             },
           ),
           ListTile(
@@ -213,6 +222,13 @@ Route<dynamic>? routes(RouteSettings settings) {
             drawer: _drawer(context),
             body: StateDocumentDemo(scaffoldKey: _scaffoldKey),
           );
+        },
+      );
+      break;
+    case "/admin-users":
+      _route = MaterialPageRoute<dynamic>(
+        builder: (BuildContext context) {
+          return AdminUsers();
         },
       );
       break;
