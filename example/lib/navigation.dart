@@ -1,4 +1,4 @@
-import 'package:fabric_flutter/component/admin-users.dart';
+import 'package:fabric_flutter/component/admin_users.dart';
 import 'package:fabric_flutter_example/helpers/state_document.dart';
 import 'package:flutter/material.dart';
 

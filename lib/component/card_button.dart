@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'smart-imgix.dart';
+import 'smart_imgix.dart';
 
 /// CardButton is a versatile card style raw material button containing an image and additional customization options.
 ///

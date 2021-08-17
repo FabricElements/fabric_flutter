@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import '../helper/iso-language.dart';
+import '../helper/iso_language.dart';
 
 /// A Picker used to select wanted language for campaign
 ///

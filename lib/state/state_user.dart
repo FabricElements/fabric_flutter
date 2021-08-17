@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../serialized/user_data.dart';
-import 'state-document.dart';
+import 'state_document.dart';
 
 /// This is a change notifier class which keeps track of state within the widgets.
 class StateUser extends StateDocument {

@@ -2,9 +2,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../state/state-dynamic-links.dart';
-import '../state/state-notifications.dart';
-import '../state/state-user.dart';
+import '../state/state_dynamic_links.dart';
+import '../state/state_notifications.dart';
+import '../state/state_user.dart';
 
 /// This widget has to go on the top of your app
 class TopApp extends StatelessWidget with WidgetsBindingObserver {

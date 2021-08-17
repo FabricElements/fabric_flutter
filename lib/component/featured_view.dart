@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import 'smart-imgix.dart';
+import 'smart_imgix.dart';
 
 /// This Widget provides a informative view, consisting of a strong headline, optional description and action button
 ///

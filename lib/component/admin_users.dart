@@ -4,14 +4,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../component/role-selector.dart';
-import '../component/user-avatar.dart';
+import '../component/role_selector.dart';
+import '../component/user_avatar.dart';
 import '../component/user-invite.dart';
 import '../helper/alert.dart';
-import '../helper/locales.dart';
+import '../helper/app_localizations_delegate.dart';
 import '../placeholder/loading_screen.dart';
 import '../serialized/user_data.dart';
-import '../state/state-user.dart';
+import '../state/state_user.dart';
 
 /// Invite and manage Users and their roles
 /// [loader] Widget displayed when a process is in progress
