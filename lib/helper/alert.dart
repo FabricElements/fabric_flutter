@@ -17,12 +17,13 @@ class Alert {
   final BuildContext context;
   final bool mounted;
 
-  void show({
+  Future<void> show({
     required String text,
     int duration = 3,
     String? type, // null, "error", "success"
     String? widget,
-  }) {
+  }) async {
+    await Future.delayed(Duration(microseconds: 200));
     try {
       Color color;
       switch (type) {

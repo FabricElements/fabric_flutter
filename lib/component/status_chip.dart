@@ -18,37 +18,37 @@ class StatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    AppLocalizations? locales = AppLocalizations.of(context);
+    AppLocalizations locales = AppLocalizations.of(context)!;
     Color statusColor = Colors.grey.shade800;
     String baseStatus = status ?? "unknown";
     switch (status) {
       case "draft":
         statusColor = Colors.indigo.shade500;
-        baseStatus = locales?.get("status-draft") ?? "Draft";
+        baseStatus = locales.get("label--status-draft");
         break;
       case "review":
         statusColor = Colors.amber.shade900;
-        baseStatus = locales!.get("status-review") ?? "Review";
+        baseStatus = locales.get("label--status-review");
         break;
       case "approved":
         statusColor = Colors.deepPurple.shade500;
-        baseStatus = locales!.get("status-approved") ?? "Approved";
+        baseStatus = locales.get("label--status-approved");
         break;
       case "rejected":
         statusColor = Colors.red.shade500;
-        baseStatus = locales!.get("status-rejected") ?? "Rejected";
+        baseStatus = locales.get("label--status-rejected");
         break;
       case "inactive":
         statusColor = Colors.deepOrange.shade500;
-        baseStatus = locales!.get("status-inactive") ?? "Inactive";
+        baseStatus = locales.get("label--status-inactive");
         break;
       case "active":
         statusColor = Colors.green.shade600;
-        baseStatus = locales!.get("status-active") ?? "Active";
+        baseStatus = locales.get("label--status-active");
         break;
       case "archived":
         statusColor = Colors.grey.shade700;
-        baseStatus = locales!.get("status-archived") ?? "Archived";
+        baseStatus = locales.get("label--status-archived");
     }
     return Chip(
       label: Text(

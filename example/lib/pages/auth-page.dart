@@ -101,6 +101,7 @@ class _AuthPageState extends State<AuthPage> with WidgetsBindingObserver {
         FocusScope.of(context).requestFocus(FocusNode());
       } catch (error) {}
     }
+
     AppLocalizations locales = AppLocalizations.of(context)!;
     TextTheme textTheme = Theme.of(context).textTheme;
     Alert alert = Alert(
@@ -116,6 +117,7 @@ class _AuthPageState extends State<AuthPage> with WidgetsBindingObserver {
     /// Example code of how to verify phone number
     void _verifyPhoneNumber() async {
       loading = true;
+      bool success = false;
       if (mounted) setState(() {});
       try {
         final PhoneVerificationCompleted verificationCompleted =
@@ -126,7 +128,6 @@ class _AuthPageState extends State<AuthPage> with WidgetsBindingObserver {
             type: "default",
           );
         };
-
         final PhoneVerificationFailed verificationFailed =
             (FirebaseAuthException authException) {
           alert.show(
@@ -144,7 +145,6 @@ class _AuthPageState extends State<AuthPage> with WidgetsBindingObserver {
             type: "success",
           );
         };
-
         final PhoneCodeAutoRetrievalTimeout codeAutoRetrievalTimeout =
             (String verificationId) {
           _verificationId = verificationId;
@@ -152,7 +152,7 @@ class _AuthPageState extends State<AuthPage> with WidgetsBindingObserver {
         String phoneNumber = areaCode + _phoneNumberController.text;
         // Validate if user exists
         final HttpsCallable callable =
-            FirebaseFunctions.instance.httpsCallable("user-exists");
+            FirebaseFunctions.instance.httpsCallable("user-actions-exists");
         await callable.call(<String, dynamic>{"phoneNumber": phoneNumber});
         if (kIsWeb) {
           ConfirmationResult confirmationResult =
@@ -161,25 +161,26 @@ class _AuthPageState extends State<AuthPage> with WidgetsBindingObserver {
           webConfirmationResult = confirmationResult;
         } else {
           await _auth.verifyPhoneNumber(
-              forceResendingToken: 3,
-              phoneNumber: phoneNumber,
-              timeout: Duration(seconds: 20),
-              verificationCompleted: verificationCompleted,
-              verificationFailed: verificationFailed,
-              codeSent: codeSent,
-              codeAutoRetrievalTimeout: codeAutoRetrievalTimeout);
+            forceResendingToken: 3,
+            phoneNumber: phoneNumber,
+            timeout: Duration(seconds: 20),
+            verificationCompleted: verificationCompleted,
+            verificationFailed: verificationFailed,
+            codeSent: codeSent,
+            codeAutoRetrievalTimeout: codeAutoRetrievalTimeout,
+          );
         }
-      } on PlatformException catch (error) {
-        alert.show(text: error.details["message"] ?? error.message!, type: "error");
+        success = true;
+      }  on FirebaseFunctionsException catch (error) {
+        alert.show(
+            text: error.message ?? error.details["message"], type: "error");
       } catch (error) {
         alert.show(text: error.toString(), type: "error");
-        loading = false;
-        if (mounted) setState(() {});
-        return;
       }
-      print(webConfirmationResult?.verificationId);
       loading = false;
-      section = 2;
+      if (success) {
+        section = 2;
+      }
       if (mounted) setState(() {});
     }
 
@@ -302,7 +303,7 @@ class _AuthPageState extends State<AuthPage> with WidgetsBindingObserver {
     }
 
     Widget authButton(provider) {
-      String? text = locales.get("page-auth--actions--sign-in");
+      String text = locales.get("page-auth--actions--sign-in");
       var icon = Icons.email;
       VoidCallback action = () {
         print("clicked: $provider");
@@ -333,7 +334,7 @@ class _AuthPageState extends State<AuthPage> with WidgetsBindingObserver {
           padding: EdgeInsets.only(top: 16),
           child: FloatingActionButton.extended(
             onPressed: action,
-            label: Text(text!.toUpperCase()),
+            label: Text(text.toUpperCase()),
             icon: Icon(icon),
           ),
         ),
@@ -395,8 +396,7 @@ class _AuthPageState extends State<AuthPage> with WidgetsBindingObserver {
                                 Container(
                                   width: double.infinity,
                                   child: Text(
-                                    locales.get(
-                                        "page-auth--title"),
+                                    locales.get("page-auth--title"),
                                     style: textTheme.headline6,
                                     // textAlign: TextAlign.center,
                                   ),
@@ -405,8 +405,7 @@ class _AuthPageState extends State<AuthPage> with WidgetsBindingObserver {
                                 Container(
                                   width: double.infinity,
                                   child: Text(
-                                    locales.get(
-                                        "page-auth--description"),
+                                    locales.get("page-auth--description"),
                                     style: textTheme.subtitle1,
                                     // textAlign: TextAlign.center,
                                   ),

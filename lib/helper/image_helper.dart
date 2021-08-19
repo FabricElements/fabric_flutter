@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:convert';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -12,17 +13,22 @@ import 'package:path/path.dart' as p;
 class ImageHelper {
   /// Get fileurl
   /// [origin] either "camera" or "gallery"
-  Future<String> getImage({required String origin}) async {
+  Future<String> getImage({required String origin, bool base64 = false}) async {
     late File baseImage;
     final picker = ImagePicker();
     if (origin == "camera") {
-      PickedFile pickedFile = await (picker.getImage(
+      PickedFile pickedFile = await (picker.pickImage(
           source: ImageSource.camera, maxWidth: 1500) as FutureOr<PickedFile>);
       baseImage = File(pickedFile.path);
     } else if (origin == "gallery") {
       FilePickerResult result = await (FilePicker.platform
           .pickFiles(type: FileType.image) as FutureOr<FilePickerResult>);
       baseImage = File(result.files.single.path!);
+    }
+    if (base64) {
+      List<int> imageBytes = baseImage.readAsBytesSync();
+      String base64Image = base64Encode(imageBytes);
+      return base64Image;
     }
     return baseImage.path;
   }
