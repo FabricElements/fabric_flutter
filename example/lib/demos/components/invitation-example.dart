@@ -13,11 +13,7 @@ class InvitationExample extends StatelessWidget {
         return UserInvite(
           user: null,
           data: {},
-          roles: {"admin": "admin"},
-          showPhone: true,
-          alert: (message) {
-            print("Invitation message: $message");
-          },
+          showPhone: true
         );
       },
     );

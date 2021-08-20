@@ -25,7 +25,7 @@ class ViewAdminUsers extends StatefulWidget {
   }) : super(key: key);
   final Widget? empty;
   final Widget? loader;
-  final Map<String, String>? roles;
+  final List<String>? roles;
 
   @override
   _ViewAdminUsersState createState() => _ViewAdminUsersState();
@@ -55,14 +55,18 @@ class _ViewAdminUsersState extends State<ViewAdminUsers> {
   Widget build(BuildContext context) {
     ThemeData theme = Theme.of(context);
     TextTheme textTheme = theme.textTheme;
-    AppLocalizations? locales = AppLocalizations.of(context);
+    AppLocalizations locales = AppLocalizations.of(context)!;
     StateUser stateUser = Provider.of<StateUser>(context);
-    final args = Map.from(
-        ModalRoute.of(context)!.settings.arguments as Map<dynamic, dynamic>? ??
-            {});
     Query query = FirebaseFirestore.instance.collection("user");
+
+    /// Get data from navigation arguments
+    Map<String, dynamic> args = Map.from(
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
+            {});
     String? collectionId = args["collectionId"] ?? null;
     String? collection = args["collection"] ?? null;
+    // Get roles from navigation first
+    List<String>? _roles = args["roles"] ?? widget.roles ?? null;
     Map<String, dynamic>? collectionData = args["collectionData"] ?? null;
     bool fromCollection = collectionId != null && collection != null;
     Widget space = Container(width: 16);
@@ -72,11 +76,6 @@ class _ViewAdminUsersState extends State<ViewAdminUsers> {
       context: context,
       mounted: mounted,
     );
-    Map<String, String?> _roles = widget.roles ??
-        {
-          "admin": locales?.get("label--admin") ?? "Admin",
-          "agent": locales?.get("label--agent") ?? "Agent",
-        };
     Map<String?, dynamic> removeOptions = {};
     Map<String?, dynamic> updateOptions = {};
 
@@ -98,13 +97,13 @@ class _ViewAdminUsersState extends State<ViewAdminUsers> {
     /// Deletes the related user listed user, the documentId is the users uid
     _removeUser(String documentId) async {
       HttpsCallable callable =
-          FirebaseFunctions.instance.httpsCallable('user-remove');
+          FirebaseFunctions.instance.httpsCallable('user-actions-remove');
       removeOptions.addAll({
         "uid": documentId,
       });
       // Type indicates the data field to use in the function, admin level or collection.
       await callable.call(removeOptions); // USER DATA
-      alert.show(text: locales!.get("alert--user-removed"), type: "success");
+      alert.show(text: locales.get("alert--user-removed"), type: "success");
     }
 
     DocumentReference? _updateReference = fromCollection
@@ -112,29 +111,32 @@ class _ViewAdminUsersState extends State<ViewAdminUsers> {
         : null;
 
     _changeRole(String uid, String? role) async {
-      if (collectionId == null) {
-        return null;
-      }
-      if (_newRole == null) {
-        Navigator.of(context).pop();
-        return;
-      }
-      await _updateReference?.set({
-        "backup": false,
-        "roles": {
-          uid: role,
-        },
-        "updated": FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+      try {
+        if (_newRole == null) {
+          Navigator.of(context).pop();
+          return;
+        }
+        await _updateReference?.set({
+          "backup": false,
+          "roles": {
+            uid: role,
+          },
+          "updated": FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
 
-      HttpsCallable callable =
-          FirebaseFunctions.instance.httpsCallable('user-updateRole');
-      updateOptions.addAll({
-        "uid": uid,
-      });
-      // Type indicates the data field to use in the function, admin level or collection.
-      await callable.call(updateOptions); // USER DATA
-
+        HttpsCallable callable = FirebaseFunctions.instance
+            .httpsCallable('user-actions--updateRole');
+        updateOptions.addAll({
+          "uid": uid,
+        });
+        // Type indicates the data field to use in the function, admin level or collection.
+        await callable.call(updateOptions); // USER DATA
+      } on FirebaseFunctionsException catch (error) {
+        alert.show(
+            text: error.message ?? error.details["message"], type: "error");
+      } catch (error) {
+        alert.show(text: error.toString(), type: "error");
+      }
       Navigator.of(context).pop();
     }
 
@@ -142,40 +144,43 @@ class _ViewAdminUsersState extends State<ViewAdminUsers> {
       showModalBottomSheet(
         context: context,
         builder: (BuildContext bc) {
+          List<Widget> _options = [
+            RoleSelector(
+              roles: _roles,
+              onChange: (value) {
+                _newRole = value;
+                if (mounted) setState(() {});
+              },
+            ),
+          ];
+          if (_newRole != null) {
+            _options.add(
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    child: Text(
+                      locales.get("label--update"),
+                    ),
+                    onPressed: () async {
+                      await _changeRole(uid, _newRole);
+                    },
+                  ),
+                ),
+              ),
+            );
+          }
           return Scaffold(
             appBar: AppBar(
               automaticallyImplyLeading: false,
               centerTitle: false,
               primary: false,
-              title: Text(locales!.get("label--update-user")),
+              title: Text(locales.get("label--update-user")),
             ),
-            body: Container(
-              child: SafeArea(
-                child: Column(
-                  children: <Widget>[
-                    RoleSelector(
-                      list: _roles,
-                      hintText: "Select you role",
-                      onChange: (value) {
-                        _newRole = value;
-                      },
-                    ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          child: Text(
-                            locales.get("label--update"),
-                          ),
-                          onPressed: () async {
-                            await _changeRole(uid, _newRole);
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+            body: SafeArea(
+              child: Column(
+                children: _options,
               ),
             ),
           );
@@ -189,20 +194,13 @@ class _ViewAdminUsersState extends State<ViewAdminUsers> {
         isScrollControlled: true,
         context: context,
         builder: (BuildContext _context) {
-          Alert _alert = Alert(
-            context: context,
-            mounted: mounted,
-          );
           return FractionallySizedBox(
             heightFactor: 0.7,
             child: UserInvite(
               user: stateUser.object,
               data: inviteMetadata,
               showPhone: true,
-              alert: (message) {
-                _alert.show(text: message["text"], type: message["type"]);
-              },
-              roles: _roles as Map<String, String>,
+              roles: _roles,
             ),
           );
         },
@@ -211,7 +209,7 @@ class _ViewAdminUsersState extends State<ViewAdminUsers> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(locales!.get("label--users")),
+        title: Text(locales.get("label--users")),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: FloatingActionButton.extended(
@@ -241,15 +239,18 @@ class _ViewAdminUsersState extends State<ViewAdminUsers> {
             itemCount: snapshot.data!.docs.length,
             itemBuilder: (BuildContext context, int index) {
               DocumentSnapshot userDocument = snapshot.data!.docs[index];
-              String _uid = userDocument.id;
               Map<String, dynamic> userData =
                   userDocument.data()! as Map<String, dynamic>;
-              UserData serialized = UserData.fromJson(userData);
+              userData.addAll({"id": userDocument.id});
+              UserData _itemData = UserData.fromJson(userData);
               Color statusColor = Colors.grey.shade600;
-              String _role = stateUser.roleFromData(
-                compareData: collectionData,
-                uid: _uid,
-              );
+              String _role = _itemData.role;
+              if (collectionId != null) {
+                _role = stateUser.roleFromData(
+                  compareData: collectionData,
+                  uid: _itemData.id,
+                );
+              }
               List<Widget> trailing = [];
               trailing.add(space);
               trailing.add(
@@ -262,16 +263,18 @@ class _ViewAdminUsersState extends State<ViewAdminUsers> {
                   ),
                 ),
               );
-              String name = locales.get("label--unknown");
-              if (serialized.name.isEmpty) {
-                if (serialized.phone.isNotEmpty) {
-                  name = serialized.phone;
-                } else if (serialized.email.isNotEmpty) {
-                  name = serialized.email;
+              String name = _itemData.name.isNotEmpty
+                  ? _itemData.name
+                  : locales.get("label--unknown");
+              if (_itemData.name.isEmpty) {
+                if (_itemData.phone.isNotEmpty) {
+                  name = _itemData.phone;
+                } else if (_itemData.email.isNotEmpty) {
+                  name = _itemData.email;
                 }
               }
               // Don't allow a user to change anything about itself on the "admin" view
-              bool _canUpdateUser = stateUser.id != _uid;
+              bool _canUpdateUser = stateUser.id != _itemData.id;
               List<Widget> _roleChips = [
                 Chip(
                   backgroundColor: Colors.indigo.shade500,
@@ -290,17 +293,19 @@ class _ViewAdminUsersState extends State<ViewAdminUsers> {
               return Wrap(
                 children: <Widget>[
                   AbsorbPointer(
-                    absorbing: _canUpdateUser,
+                    absorbing: !_canUpdateUser,
                     child: Dismissible(
-                      key: Key(_uid),
+                      key: Key(_itemData.id),
                       child: ListTile(
                         onTap: () async {
-                          _changeUserRole(_uid);
+                          _changeUserRole(_itemData.id);
                         },
                         isThreeLine: true,
                         leading: UserAvatar(
-                          avatar: userData["avatar"],
-                          name: userData["name"] ?? locales.get("unknown"),
+                          avatar: _itemData.avatar,
+                          name: _itemData.name.isNotEmpty
+                              ? _itemData.name
+                              : locales.get("label--unknown"),
                         ),
                         title: Text(
                           name,
@@ -336,6 +341,10 @@ class _ViewAdminUsersState extends State<ViewAdminUsers> {
                             await _removeUser(userDocument.id);
                             response = true;
                           }
+                        } on FirebaseFunctionsException catch (error) {
+                          alert.show(
+                              text: error.message ?? error.details["message"],
+                              type: "error");
                         } catch (error) {
                           alert.show(text: error.toString(), type: "error");
                         }

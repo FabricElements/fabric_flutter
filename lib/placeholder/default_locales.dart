@@ -22,6 +22,10 @@ dynamic defaultLocales = {
     "en": "Agent",
     "es": "Agente",
   },
+  "label--user": {
+    "en": "User",
+    "es": "Usuario",
+  },
   "label--help": {
     "en": "Help",
     "es": "Ayuda",

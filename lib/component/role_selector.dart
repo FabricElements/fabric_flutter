@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
+import '../helper/app_localizations_delegate.dart';
+
 class RoleSelector extends StatefulWidget {
   RoleSelector({
     Key? key,
-    required this.hintText,
-    required this.list,
+    this.roles,
     required this.onChange,
   }) : super(key: key);
-  final Map<String, dynamic> list;
-  final String? hintText;
+  final List<String>? roles;
   final Function onChange;
 
   @override
@@ -26,33 +26,25 @@ class _RoleSelectorState extends State<RoleSelector> {
 
   @override
   Widget build(BuildContext context) {
+    AppLocalizations locales = AppLocalizations.of(context)!;
+    List<String> _roles = widget.roles ?? ["admin", "user"];
     List<DropdownMenuItem> rolesDrop = [];
 
-    if (widget.list.isNotEmpty) {
-      widget.list.forEach(
-        (key, value) => rolesDrop.add(
-          DropdownMenuItem(
-            value: key,
-            child: Text(value),
-          ),
-        ),
-      );
+    /// Create options and locales from roles
+    for (int i = 0; i < _roles.length; i++) {
+      String _role = _roles[i];
+      rolesDrop.add(DropdownMenuItem(
+        value: _role,
+        child: Text(locales.get("label--$_role")),
+      ));
     }
 
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: DropdownButton(
-        hint: Text(
-          widget.hintText!,
-          // style: TextStyle(
-          //   color: Colors.white,
-          // ),
-        ),
+        hint: Text(locales.get("label--choose-role")),
         value: roleSelect,
         isExpanded: true,
-        // style: TextStyle(
-        //   color: Colors.white,
-        // ),
         items: rolesDrop,
         onChanged: (dynamic value) {
           roleSelect = value;

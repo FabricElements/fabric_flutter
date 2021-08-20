@@ -60,10 +60,10 @@ class StateUser extends StateDocument {
   bool get signedIn => _userObject != null;
 
   /// [role] Returns the authenticated user role
-  String get role => id != null && claims.containsKey("role")
-      ? claims["role"] as String
-      : "user";
-
+  // String get role => id != null && claims.containsKey("role")
+  //     ? claims["role"] as String
+  //     : "user";
+  String get role => "admin";
   /// [roleFromData] Return an user role using [uid]
   String roleFromData({
     Map<String, dynamic>? compareData,

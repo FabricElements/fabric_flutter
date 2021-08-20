@@ -13,6 +13,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'pages/home-page.dart';
+import 'splash/loading.dart';
 import 'state/state-global.dart';
 import 'state/state-user-internal.dart';
 import 'theme.dart';
@@ -53,8 +54,8 @@ class _MyAppState extends State<MyApp> {
     StateUserInternal stateUserInternal =
         Provider.of<StateUserInternal>(context);
     StateUser stateUser = Provider.of<StateUser>(context);
-    ThemeData theme = Theme.of(context);
-    TextTheme textTheme = theme.textTheme;
+    ThemeData theme = Theme.of(context).copyWith();
+    MyTheme myTheme = MyTheme(theme, Colors.indigo, "light");
 
     SystemChrome.restoreSystemUIOverlays();
     SystemChrome.setPreferredOrientations([
@@ -87,7 +88,7 @@ class _MyAppState extends State<MyApp> {
         localizationsDelegates: localizationsDelegates,
         supportedLocales: supportedLocales,
         title: 'DEMO',
-        theme: MyTheme().light,
+        theme: myTheme.get,
         home: ViewAuthPage(),
       );
     }
@@ -98,14 +99,14 @@ class _MyAppState extends State<MyApp> {
       localizationsDelegates: localizationsDelegates,
       supportedLocales: supportedLocales,
       title: 'DEMO',
-      theme: MyTheme().light,
+      theme: myTheme.get,
       initialRoute: "/",
       routes: {
         '/': (context) => _home,
         '/home': (context) => _home,
         '/profile': (context) =>
-            Scaffold(primary: false, body: ViewProfileEdit()),
-        '/users': (context) => Scaffold(primary: false, body: ViewAdminUsers()),
+            Scaffold(primary: false, body: ViewProfileEdit(loader: LoadingScreen())),
+        '/users': (context) => Scaffold(primary: false, body: ViewAdminUsers(loader: LoadingScreen())),
       },
     );
   }

@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../helper/alert.dart';
 import '../helper/app_localizations_delegate.dart';
 import 'role_selector.dart';
 
@@ -24,18 +25,16 @@ class UserInvite extends StatefulWidget {
   UserInvite({
     Key? key,
     this.user,
-    required this.roles,
-    this.alert,
+    this.roles,
     this.data,
     this.showEmail = false,
     this.showPhone = false,
   }) : super(key: key);
   final User? user;
-  final Function? alert;
   final Map<String, dynamic>? data;
   final bool showEmail;
   final bool showPhone;
-  final Map<String, String> roles;
+  final List<String>? roles;
 
   @override
   _UserInviteState createState() => _UserInviteState();
@@ -81,72 +80,77 @@ class _UserInviteState extends State<UserInvite> {
     roleSelect = null;
   }
 
-  /// Sends user invite to firebase function with the necessary information when inviting a user.
-  ///
-  /// [type] Whether it is an e-mail or phone number.
-  /// [contact] The e-mail or phone number.
-  _sendInvitation({required String type, String? contact, String? role}) async {
-    if (contact == null) {
-      print("Define the contact information before sending");
-      return;
-    }
-    sending = true;
-    Map<String, dynamic> data = {};
-    if (role != null) {
-      data.addAll({
-        "role": role,
-      });
-    }
-    if (widget.user != null) {
-      data.addAll({
-        "uid": widget.user?.uid ?? null,
-        "name": widget.user?.displayName ?? null,
-        "avatar": widget.user?.photoURL ?? null,
-      });
-    }
-
-    if (widget.data != null) {
-      data.addAll(widget.data!);
-    }
-    // Update object with email or phone depending on the type.
-    if (type == "email") {
-      data.addAll({"email": contact});
-    } else {
-      data.addAll({"phoneNumber": contact});
-    }
-    try {
-      final HttpsCallable callable =
-          FirebaseFunctions.instance.httpsCallable("user-invite");
-      await callable.call(data);
-      Navigator.of(context).pop();
-    } catch (e) {
-      print("Error sending invitation: $e");
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    AppLocalizations? locales = AppLocalizations.of(context);
-    void validateInvitation() async {
-      String? message = "";
-      String type = "";
-      if (phoneNumber.length < 5) {
-        message = locales!.get("alert--invalid-number");
-        type = "error";
+    AppLocalizations locales = AppLocalizations.of(context)!;
+    Alert alert = Alert(
+      context: context,
+      mounted: mounted,
+    );
+
+    /// Sends user invite to firebase function with the necessary information when inviting a user.
+    ///
+    /// [type] Whether it is an e-mail or phone number.
+    /// [contact] The e-mail or phone number.
+    _sendInvitation(
+        {required String type, String? contact, String? role}) async {
+      if (contact == null) {
+        print("Define the contact information before sending");
+        return;
+      }
+      sending = true;
+      if (mounted) setState(() {});
+      Map<String, dynamic> data = {};
+      if (role != null) {
+        data.addAll({
+          "role": role,
+        });
+      }
+      if (widget.user != null) {
+        data.addAll({
+          "uid": widget.user?.uid ?? null,
+          "name": widget.user?.displayName ?? null,
+          "avatar": widget.user?.photoURL ?? null,
+        });
+      }
+
+      if (widget.data != null) {
+        data.addAll(widget.data!);
+      }
+      // Update object with email or phone depending on the type.
+      if (type == "email") {
+        data.addAll({"email": contact});
       } else {
-        sending = true;
-        message = locales!.get("notification--invitation-sent");
-        type = "success";
+        data.addAll({"phoneNumber": contact});
+      }
+      try {
+        final HttpsCallable callable =
+            FirebaseFunctions.instance.httpsCallable("user-actions-invite");
+        await callable.call(data);
+        alert.show(
+            text: locales.get("notification--invitation-sent"),
+            type: "success");
+        Navigator.of(context).pop();
+      } on FirebaseFunctionsException catch (error) {
+        alert.show(
+            text: error.message ?? error.details["message"], type: "error");
+      } catch (error) {
+        alert.show(text: error.toString(), type: "error");
+      }
+      sending = false;
+      if (mounted) setState(() {});
+    }
+
+    void validateInvitation() async {
+      if (phoneNumber.length < 5) {
+        alert.show(text: locales.get("alert--invalid-number"), type: "error");
+      } else {
         _textController!.clear();
         if (flagRol && flagNumber) {
           await _sendInvitation(
               type: "phoneNumber", contact: finalPhoneNumber, role: roleSelect);
         }
       }
-      if (mounted) {
-        setState(() {});
-      }
-      widget.alert!({"text": message, "type": type});
     }
 
     /// Invite user using a phone number.
@@ -154,8 +158,7 @@ class _UserInviteState extends State<UserInvite> {
       return Column(
         children: <Widget>[
           RoleSelector(
-            hintText: locales!.get("label--choose-role"),
-            list: widget.roles,
+            roles: widget.roles,
             onChange: (value) {
               if (value != null) {
                 roleSelect = value;
@@ -249,7 +252,7 @@ class _UserInviteState extends State<UserInvite> {
               autofocus: true,
               controller: _textController,
               decoration: InputDecoration(
-                hintText: locales!.get("label--enter-an-email"),
+                hintText: locales.get("label--enter-an-email"),
               ),
               maxLines: 1,
               maxLength: 100,
@@ -265,27 +268,19 @@ class _UserInviteState extends State<UserInvite> {
           ),
           IconButton(
             icon: Icon(Icons.send),
-            onPressed: () {
-              String? message = "";
-              String type = "";
+            onPressed: () async {
               RegExp emailRegExp = new RegExp(
                   r"\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b");
               // If there is no match, show an error.
               if (!emailRegExp.hasMatch(email!)) {
-                message = locales.get("alert--invalid-email");
-                type = "error";
+                alert.show(
+                    text: locales.get("alert--invalid-email"), type: "error");
               } else {
-                if (mounted) {
-                  setState(() {
-                    sending = true;
-                    message = locales.get("notification--invitation-sent");
-                    type = "success";
-                    _textController!.clear();
-                  });
-                  _sendInvitation(type: "email", contact: email);
-                }
+                sending = true;
+                if (mounted) setState(() {});
+                await _sendInvitation(type: "email", contact: email);
+                _textController!.clear();
               }
-              widget.alert!({"text": message, "type": type});
             },
           ),
         ],
@@ -296,12 +291,12 @@ class _UserInviteState extends State<UserInvite> {
     List<Widget> _tabsBody = [];
 
     if (widget.showPhone) {
-      _tabs.add(Tab(text: locales!.get("label--phone-number")));
+      _tabs.add(Tab(text: locales.get("label--phone-number")));
       _tabsBody.add(_inviteUserPhone());
     }
 
     if (widget.showEmail) {
-      _tabs.add(Tab(text: locales!.get("label--email")));
+      _tabs.add(Tab(text: locales.get("label--email")));
       _tabsBody.add(_inviteUserEmail());
     }
 
