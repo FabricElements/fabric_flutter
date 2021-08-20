@@ -12,9 +12,7 @@ import '../state/state-user-internal.dart';
 class HomePage extends StatefulWidget {
   HomePage({
     Key? key,
-    required this.signOut,
   }) : super(key: key);
-  final GestureTapCallback signOut;
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -326,7 +324,7 @@ class _HomePageState extends State<HomePage> {
                 title: Text(locales.get("label--sign-out"),
                     style: TextStyle(color: Colors.redAccent.shade200)),
                 onTap: () {
-                  widget.signOut();
+                  stateUser.signOut();
                 },
               ),
             ],

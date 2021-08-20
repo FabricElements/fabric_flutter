@@ -64,8 +64,26 @@
 	<false/>
   <key>NSAppTransportSecurity</key>
   <dict>
-    <key>NSAllowsArbitraryLoads</key>
+    <key>NSAllowsLocalNetworking</key>
     <true/>
   </dict>
+  <key>io.flutter.embedded_views_preview</key>
+  <true/>
+  <key>UIBackgroundModes</key>
+  <array>
+    <string>remote-notification</string>
+  </array>
+  <key>NSPhotoLibraryUsageDescription</key>
+  <string>This app access your photo gallery to use your photos for your profile</string>
+  <key>NSMotionUsageDescription</key>
+  <string>This app uses your device accelerometer to undo actions taken by you</string>
+  <key>NSLocationWhenInUseUsageDescription</key>
+  <string>This app uses your location to provide a custom experience</string>
+  <key>NSCameraUsageDescription</key>
+  <string>This app uses your camera to take pictures for your profile</string>
+  <key>NSAppleMusicUsageDescription</key>
+  <string>This app uses your media library to upload files required to process data</string>
+  <key>LSApplicationCategoryType</key>
+  <string>public.app-category.productivity</string>
 </dict>
 </plist>

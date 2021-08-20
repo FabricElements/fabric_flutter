@@ -15,11 +15,12 @@ class ImageHelper {
     Uint8List? _endImage;
     try {
       final picker = ImagePicker();
-      if (origin == "gallery" || kIsWeb) {
-        final result = await FilePicker.platform
-            .pickFiles(type: FileType.image, allowMultiple: false);
+      if (kIsWeb || origin == "gallery") {
+        FilePickerResult? result = await FilePicker.platform
+            .pickFiles(type: FileType.image, withData: true);
         if (result != null) {
-          _endImage = result.files.first.bytes;
+          if (result.files.first.size < 1000) throw ("Image is too small");
+          _endImage = result.files.first.bytes ?? null;
         } else {
           return null;
         }
@@ -39,14 +40,20 @@ class ImageHelper {
       print("Getting the image: $error");
       throw error;
     }
-    if (_endImage != null) {
-      _endImage = await resize(
-        imageByes: _endImage,
-        imageType: "jpeg",
-        maxWidth: 1500,
-        maxHeight: 1500,
-      );
+    try {
+      if (_endImage != null) {
+        _endImage = await resize(
+          imageByes: _endImage,
+          imageType: "jpeg",
+          maxWidth: 1500,
+          maxHeight: 1500,
+        );
+      }
+    } catch (error) {
+      print("Resizing the image: $error");
+      throw error;
     }
+
     return _endImage;
   }
 

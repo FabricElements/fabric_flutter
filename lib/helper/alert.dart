@@ -30,7 +30,9 @@ class Alert {
         case "error":
           color = Colors.red.shade500;
           duration = duration != 3 ? duration : 6;
-          print("Error alert: $text");
+          print("////////// Alert: Error ///////////");
+          print(text);
+          print("///////////////////////////////////");
           break;
         case "success":
           color = Colors.green.shade500;
@@ -53,7 +55,9 @@ class Alert {
           );
       }
     } catch (error) {
+      print("/////////////////////");
       print(error);
+      print("/////////////////////");
     }
   }
 }

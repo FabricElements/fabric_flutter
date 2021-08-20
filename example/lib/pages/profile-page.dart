@@ -11,6 +11,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+
 import '../splash/loading.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -93,8 +94,10 @@ class _ProfilePageState extends State<ProfilePage> {
     void refreshImage() {
       try {
         if (_temporalImageBytes != null) {
-          String base64Image = base64UrlEncode(_temporalImageBytes!);
-          previewImage = NetworkImage(base64Image);
+          // String base64Image = base64UrlEncode(_temporalImageBytes!);
+          // previewImage = NetworkImage(base64Image);
+          // previewImage = FileImage(File(base64Image));
+          previewImage = MemoryImage(_temporalImageBytes!);
           return;
         }
         if (userImage != null) {
@@ -204,14 +207,18 @@ class _ProfilePageState extends State<ProfilePage> {
     Future<void> getImageFromOrigin(String origin) async {
       loading = true;
       if (mounted) setState(() {});
-      _temporalImageBytes = await ImageHelper().getImage(origin: origin);
-      if (_temporalImageBytes != null) {
-        changed = true;
-        if (kIsWeb) {
-          if (mounted) setState(() {});
-          await updateUser();
+      try {
+        _temporalImageBytes = await ImageHelper().getImage(origin: origin);
+        if (_temporalImageBytes != null) {
+          changed = _temporalImageBytes != null;
         }
+      } catch (error) {
+        alert.show(
+          text: error.toString(),
+          type: "error",
+        );
       }
+
       loading = false;
       if (mounted) setState(() {});
     }
@@ -340,7 +347,7 @@ class _ProfilePageState extends State<ProfilePage> {
           ? FloatingActionButton.extended(
               label: Text(locales.get("label--update")),
               onPressed: updateUser,
-              heroTag: "image",
+              heroTag: "update-button",
             )
           : null,
     );

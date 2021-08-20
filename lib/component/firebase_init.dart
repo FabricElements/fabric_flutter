@@ -1,7 +1,8 @@
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:fabric_flutter/placeholder/loading_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart' show kReleaseMode;
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 
 class FirebaseInit extends StatelessWidget {
@@ -15,11 +16,15 @@ class FirebaseInit extends StatelessWidget {
 
   final Future<FirebaseApp> _initialization = Firebase.initializeApp();
 
+  emulators() async {
+    if (kDebugMode) {
+      FirebaseFunctions.instance.useFunctionsEmulator('localhost', 5001);
+      // FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (!kReleaseMode) {
-      FirebaseFunctions.instance.useFunctionsEmulator('localhost', 5001);
-    }
     Widget loadingApp = MaterialApp(
       debugShowCheckedModeBanner: false,
       home: this.loader ?? LoadingScreen(),
@@ -36,6 +41,7 @@ class FirebaseInit extends StatelessWidget {
 
         // Once complete, show your application
         if (snapshot.connectionState == ConnectionState.done) {
+          emulators();
           return child;
         }
 

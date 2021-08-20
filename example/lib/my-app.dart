@@ -4,7 +4,6 @@ import 'package:fabric_flutter/helper/app_localizations_delegate.dart';
 import 'package:fabric_flutter/state/state_user.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_analytics/observer.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -18,7 +17,6 @@ import 'state/state-global.dart';
 import 'state/state-user-internal.dart';
 import 'theme.dart';
 
-final FirebaseAuth _auth = FirebaseAuth.instance;
 
 class MyApp extends StatefulWidget {
   static FirebaseAnalytics analytics = FirebaseAnalytics();
@@ -58,10 +56,6 @@ class _MyAppState extends State<MyApp> {
     StateUser stateUser = Provider.of<StateUser>(context);
     ThemeData theme = Theme.of(context);
     TextTheme textTheme = theme.textTheme;
-    void _signOut() async {
-      stateUser.clear();
-      await _auth.signOut();
-    }
 
     SystemChrome.restoreSystemUIOverlays();
     SystemChrome.setPreferredOrientations([
@@ -74,7 +68,7 @@ class _MyAppState extends State<MyApp> {
       onWillPop: () async => true,
       child: Scaffold(
         primary: false,
-        body: HomePage(signOut: _signOut),
+        body: HomePage(),
       ),
     );
     Iterable<LocalizationsDelegate<dynamic>> localizationsDelegates = [
