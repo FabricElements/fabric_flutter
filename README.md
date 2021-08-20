@@ -11,11 +11,14 @@ When adding a new component make sure to include an example in the example proje
 ```cmd
 flutter run --no-sound-null-safety --hot
 ```
+```cmd
+flutter run --hot web --no-sound-null-safety
+```
 
 ## Rebuild Annotations
 
 ```cmd
-flutter pub run build_runner build watch --delete-conflicting-outputs
+flutter pub run build_runner build --delete-conflicting-outputs
 ```
 
 ## Contributing

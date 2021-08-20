@@ -17,19 +17,22 @@ class Alert {
   final BuildContext context;
   final bool mounted;
 
-  void show({
+  Future<void> show({
     required String text,
     int duration = 3,
     String? type, // null, "error", "success"
     String? widget,
-  }) {
+  }) async {
+    await Future.delayed(Duration(microseconds: 200));
     try {
       Color color;
       switch (type) {
         case "error":
           color = Colors.red.shade500;
           duration = duration != 3 ? duration : 6;
-          print("Error alert: $text");
+          print("////////// Alert: Error ///////////");
+          print(text);
+          print("///////////////////////////////////");
           break;
         case "success":
           color = Colors.green.shade500;
@@ -52,7 +55,9 @@ class Alert {
           );
       }
     } catch (error) {
+      print("/////////////////////");
       print(error);
+      print("/////////////////////");
     }
   }
 }

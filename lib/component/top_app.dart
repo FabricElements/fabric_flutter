@@ -27,12 +27,10 @@ class TopApp extends StatelessWidget with WidgetsBindingObserver {
         Provider.of<StateDynamicLinks>(context, listen: false);
     StateUser stateUser = Provider.of<StateUser>(context, listen: false);
     String? uid;
+    final FirebaseAuth _auth = FirebaseAuth.instance;
 
     try {
-      if (links) {
-        stateDynamicLinks.init();
-      }
-      FirebaseAuth.instance.authStateChanges().listen(
+      _auth.authStateChanges().listen(
         (User? userObject) async {
           uid = userObject?.uid ?? null;
           stateUser.id = uid;
@@ -43,12 +41,21 @@ class TopApp extends StatelessWidget with WidgetsBindingObserver {
               stateNotifications.init();
             }
           } else {
-            stateNotifications.clear(); // Stop notifications when sign out
+            if (notifications) {
+              stateNotifications.clear(); // Stop notifications when sign out
+            }
           }
         },
       );
     } catch (error) {
       print(error);
+    }
+    try {
+      if (links) {
+        stateDynamicLinks.init();
+      }
+    } catch (e) {
+      print(e);
     }
 
     return child;

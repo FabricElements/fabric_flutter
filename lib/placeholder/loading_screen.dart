@@ -10,19 +10,17 @@ class LoadingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: parent ? AppBar() : null,
       body: Container(
-        color: Colors.teal.shade500,
+        color: theme.primaryColor,
         child: Padding(
           padding: EdgeInsets.all(20.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
-              Text(
-                'Linear progress indicator with a fixed color',
-                style: Theme.of(context).textTheme.headline6,
-              ),
               CircularProgressIndicator(
                 semanticsLabel: 'Linear progress indicator',
               ),

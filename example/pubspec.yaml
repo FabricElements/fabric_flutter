@@ -11,13 +11,14 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flare_flutter: ^3.0.2
 
   fabric_flutter:
     # When depending on this package from a real application you should use:
     #   fabric_flutter: ^x.y.z
     # See https://dart.dev/tools/pub/dependencies#version-constraints
     # The example app is bundled with the plugin so we use a path dependency on
-    # the parent directory to use the current plugin's version. 
+    # the parent directory to use the current plugin's version.
     path: ../
 
   # The following adds the Cupertino Icons font to your application.
@@ -30,6 +31,7 @@ dev_dependencies:
 
 dependency_overrides:
   meta: ^1.7.0
+  provider: ^6.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

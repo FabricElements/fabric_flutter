@@ -3,63 +3,92 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
-import 'package:path/path.dart' as p;
 
 /// Image helper class
 class ImageHelper {
   /// Get fileurl
   /// [origin] either "camera" or "gallery"
-  Future<String> getImage({required String origin}) async {
-    late File baseImage;
-    final picker = ImagePicker();
-    if (origin == "camera") {
-      PickedFile pickedFile = await (picker.getImage(
-          source: ImageSource.camera, maxWidth: 1500) as FutureOr<PickedFile>);
-      baseImage = File(pickedFile.path);
-    } else if (origin == "gallery") {
-      FilePickerResult result = await (FilePicker.platform
-          .pickFiles(type: FileType.image) as FutureOr<FilePickerResult>);
-      baseImage = File(result.files.single.path!);
+  Future<Uint8List?> getImage({required String origin}) async {
+    Uint8List? _endImage;
+    try {
+      final picker = ImagePicker();
+      if (kIsWeb || origin == "gallery") {
+        FilePickerResult? result = await FilePicker.platform
+            .pickFiles(type: FileType.image, withData: true);
+        if (result != null) {
+          if (result.files.first.size < 1000) throw ("Image is too small");
+          _endImage = result.files.first.bytes ?? null;
+        } else {
+          return null;
+        }
+      } else if (origin == "camera") {
+        final pickedFile =
+            await picker.pickImage(source: ImageSource.camera, maxWidth: 1500);
+        if (pickedFile == null) {
+          return null;
+        }
+        File baseImage = File(pickedFile.path);
+        _endImage = baseImage.readAsBytesSync();
+      } else {
+        print("$origin not implemented");
+        return null;
+      }
+    } catch (error) {
+      print("Getting the image: $error");
+      throw error;
     }
-    return baseImage.path;
+    try {
+      if (_endImage != null) {
+        _endImage = await resize(
+          imageByes: _endImage,
+          imageType: "jpeg",
+          maxWidth: 1500,
+          maxHeight: 1500,
+        );
+      }
+    } catch (error) {
+      print("Resizing the image: $error");
+      throw error;
+    }
+
+    return _endImage;
   }
 
   /// Scale an image to specified dimensions, pass the [imagePath] to the function
   /// and specify the [maxHeight] and/or [maxWidth] and this function will automatically
   /// scale the down or up to the specified.
   /// [imageType] Make sure the specify the return image file type, either [jpeg], [png] or [gif].+
-  Future<String> resize({
-    required String imagePath,
+  Future<Uint8List> resize({
+    required Uint8List imageByes,
     required String imageType,
     double maxHeight = 1000,
     double maxWidth = 1000,
   }) async {
     try {
-      String fileExt;
-      switch (p.extension(imagePath).toLowerCase()) {
-        case ".jpg":
-        case ".jpeg":
-        case ".jpe":
-        case ".jif":
-        case ".jfif":
-        case ".jfi":
-          fileExt = "jpeg";
-          break;
-        case ".png":
-          fileExt = "png";
-          break;
-        case ".gif":
-          fileExt = "gif";
-          break;
-        default:
-          print("Invalid file type for image resize");
-          throw Exception("Invalid file type for image resize");
-      }
-      Uint8List _imageByes = await File(imagePath).readAsBytes();
-      img.Image _baseImage = img.decodeImage(_imageByes)!;
+      String? fileExt;
+      // switch (p.extension(imagePath).toLowerCase()) {
+      //   case ".jpg":
+      //   case ".jpeg":
+      //   case ".jpe":
+      //   case ".jif":
+      //   case ".jfif":
+      //   case ".jfi":
+      //     fileExt = "jpeg";
+      //     break;
+      //   case ".png":
+      //     fileExt = "png";
+      //     break;
+      //   case ".gif":
+      //     fileExt = "gif";
+      //     break;
+      //   default:
+      //     print("Invalid file type for image resize");
+      //     throw Exception("Invalid file type for image resize");
+      // }
+      img.Image _baseImage = img.decodeImage(imageByes)!;
       double _height = _baseImage.height.toDouble();
       double _width = _baseImage.width.toDouble();
       // Workout the scaling options, height going first being that height is very often the largest value
@@ -91,14 +120,15 @@ class ImageHelper {
           break;
       }
       // Put the file in the cache and will expire in one minute
-      File cachedImageFile = await DefaultCacheManager().putFile(
-        "cachedImage",
-        _encodedImage,
-        maxAge: Duration(minutes: 1),
-        fileExtension: fileExt,
-        eTag: "cachedImage",
-      );
-      return cachedImageFile.path;
+      // File cachedImageFile = await DefaultCacheManager().putFile(
+      //   "cachedImage",
+      //   _encodedImage,
+      //   maxAge: Duration(minutes: 1),
+      //   fileExtension: fileExt,
+      //   eTag: "cachedImage",
+      // );
+      // return cachedImageFile.path;
+      return _encodedImage;
     } catch (error) {
       print(error);
       throw Exception(

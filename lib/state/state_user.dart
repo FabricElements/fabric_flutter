@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../serialized/user_data.dart';
 import 'state_document.dart';
 
+final FirebaseAuth _auth = FirebaseAuth.instance;
+
 /// This is a change notifier class which keeps track of state within the widgets.
 class StateUser extends StateDocument {
   User? _userObject;
@@ -22,13 +24,17 @@ class StateUser extends StateDocument {
 
   /// [_getToken] Gets the authenticated user token and retrieves costume claims
   void _getToken() async {
-    if (signedIn) {
-      final token = await (_userObject!.getIdTokenResult(true));
-      Map<String, dynamic>? _claims = token.claims;
-      // Map<dynamic, dynamic> tokenData = json.decode(token) ?? {};
-      // Map<String, String> claims = tokenData["claims"];
-      // print(tokenData);
-      notifyListeners();
+    try {
+      if (signedIn) {
+        final token = await (_userObject!.getIdTokenResult(true));
+        _claims = token.claims;
+        // Map<dynamic, dynamic> tokenData = json.decode(token) ?? {};
+        // Map<String, String> claims = tokenData["claims"];
+        // print(tokenData);
+        notifyListeners();
+      }
+    } catch (e) {
+      print(e);
     }
   }
 
@@ -54,10 +60,10 @@ class StateUser extends StateDocument {
   bool get signedIn => _userObject != null;
 
   /// [role] Returns the authenticated user role
-  String get role => id != null && claims.containsKey("role")
-      ? claims["role"].toString()
-      : "user";
-
+  // String get role => id != null && claims.containsKey("role")
+  //     ? claims["role"] as String
+  //     : "user";
+  String get role => "admin";
   /// [roleFromData] Return an user role using [uid]
   String roleFromData({
     Map<String, dynamic>? compareData,
@@ -80,5 +86,11 @@ class StateUser extends StateDocument {
       _role = "$level-$_baseRole";
     }
     return _role;
+  }
+
+  /// Sign Out user
+  void signOut() async {
+    await _auth.signOut();
+    this.clear();
   }
 }

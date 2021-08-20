@@ -6,26 +6,6 @@ import 'package:flutter/services.dart' show rootBundle;
 
 import '../placeholder/default_locales.dart';
 
-String _mergeLocales(languageCode, keyPath, Map<String, dynamic> keys) {
-  RegExp regExp = new RegExp(r"([a-zA-Z0-9_-]+)");
-  String finalResponse = "";
-  try {
-    assert(regExp.hasMatch(keyPath));
-    if (keys.containsKey(keyPath)) {
-      if (keys[keyPath].containsKey("en")) {
-        finalResponse = keys[keyPath]["en"];
-      }
-      if (keys[keyPath].containsKey(languageCode)) {
-        finalResponse = keys[keyPath][languageCode];
-      }
-    }
-  } catch (error) {}
-  if (finalResponse == "") {
-    finalResponse = keyPath;
-  }
-  return finalResponse;
-}
-
 class AppLocalizations {
   AppLocalizations(this.locale);
 
@@ -50,7 +30,66 @@ class AppLocalizations {
     return true;
   }
 
-  get(String key) => _mergeLocales(locale.languageCode, key, keys);
+  String _mergeLocales(keyPath) {
+    RegExp regExp = new RegExp(r"([a-zA-Z0-9_-]+)");
+    String finalResponse = "";
+    try {
+      assert(regExp.hasMatch(keyPath));
+      if (keys.containsKey(keyPath)) {
+        if (keys[keyPath].containsKey("en")) {
+          finalResponse = keys[keyPath]["en"];
+        }
+        if (keys[keyPath].containsKey(locale.languageCode)) {
+          finalResponse = keys[keyPath][locale.languageCode];
+        }
+      }
+    } catch (error) {}
+    if (finalResponse == "") {
+      finalResponse = keyPath;
+    }
+    return finalResponse;
+  }
+
+  String _replaceOptions(String text, Map<String, String> options) {
+    String result = text;
+    RegExp regExp = new RegExp(
+      r"{(?:.*?)}",
+      multiLine: true,
+    );
+    RegExp _regexBrackets = new RegExp(
+      r"{}",
+      multiLine: true,
+    );
+
+    Iterable matches = regExp.allMatches(text);
+    if (matches.length > 0) {
+      matches.forEach((match) {
+        try {
+          String tag = text.substring(match.start, match.end);
+          String cleanTag = tag.substring(1, tag.length - 1);
+          RegExp _regExp = new RegExp(
+            r"" + tag + "",
+            multiLine: true,
+          );
+          String? replaceWith = options[cleanTag];
+          if (replaceWith != null) {
+            result = result.replaceAll(_regExp, replaceWith);
+          }
+        } catch (e) {
+          print(e);
+        }
+      });
+    }
+    return result;
+  }
+
+  String get(String key, [Map<String, String>? options]) {
+    String finalLocalization = _mergeLocales(key);
+    if (options != null) {
+      finalLocalization = _replaceOptions(finalLocalization, options);
+    }
+    return finalLocalization;
+  }
 }
 
 class AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
