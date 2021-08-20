@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../component/role_selector.dart';
 import '../component/user_avatar.dart';
-import '../component/user-invite.dart';
+import '../component/user_invite.dart';
 import '../helper/alert.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../placeholder/loading_screen.dart';
@@ -16,8 +16,8 @@ import '../state/state_user.dart';
 /// Invite and manage Users and their roles
 /// [loader] Widget displayed when a process is in progress
 /// [roles] Replaces default roles with your custom roles
-class AdminUsers extends StatefulWidget {
-  AdminUsers({
+class ViewAdminUsers extends StatefulWidget {
+  ViewAdminUsers({
     Key? key,
     this.empty,
     this.loader,
@@ -28,10 +28,10 @@ class AdminUsers extends StatefulWidget {
   final Map<String, String>? roles;
 
   @override
-  _AdminUsersState createState() => _AdminUsersState();
+  _ViewAdminUsersState createState() => _ViewAdminUsersState();
 }
 
-class _AdminUsersState extends State<AdminUsers> {
+class _ViewAdminUsersState extends State<ViewAdminUsers> {
   Stream<QuerySnapshot>? _usersStream;
   List<DocumentSnapshot>? items;
   int? totalItems;

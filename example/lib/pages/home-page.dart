@@ -245,7 +245,7 @@ class _HomePageState extends State<HomePage> {
       );
 
       if (!hasOptions) {
-        _defaultView = FeaturedView(
+        _defaultView = ViewFeatured(
           headline: locales.get("home-page--welcome--hello"),
           description: locales.get("home-page--permissions--description"),
           image: "https://images.unsplash.com/photo-1515825838458-f2a94b20105a",
@@ -354,7 +354,7 @@ class _HomePageState extends State<HomePage> {
         _onboardingUrl = "/profile";
       }
 
-      defaultWidget = FeaturedView(
+      defaultWidget = ViewFeatured(
         arguments: {"onboarding": true},
         headline: _onboardingHeadline,
         description: _onboardingDescription,

@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import 'smart_imgix.dart';
+import '../component/smart_imgix.dart';
 
 /// This Widget provides a informative view, consisting of a strong headline, optional description and action button
 ///
@@ -33,8 +33,8 @@ import 'smart_imgix.dart';
 ///   }
 /// ),
 /// ```
-class FeaturedView extends StatefulWidget {
-  FeaturedView({
+class ViewFeatured extends StatefulWidget {
+  ViewFeatured({
     Key? key,
     this.actionLabel,
     this.actionUrl,
@@ -65,10 +65,10 @@ class FeaturedView extends StatefulWidget {
   // Make animation optional
 
   @override
-  _FeaturedViewState createState() => _FeaturedViewState();
+  _ViewFeaturedState createState() => _ViewFeaturedState();
 }
 
-class _FeaturedViewState extends State<FeaturedView> {
+class _ViewFeaturedState extends State<ViewFeatured> {
   late Timer _timer;
   double _actionOpacityLevel = 0;
   double _headlineOpacityLevel = 0;

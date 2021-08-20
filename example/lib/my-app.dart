@@ -1,7 +1,9 @@
 import 'package:devicelocale/devicelocale.dart';
-import 'package:fabric_flutter/component/admin_users.dart';
 import 'package:fabric_flutter/helper/app_localizations_delegate.dart';
 import 'package:fabric_flutter/state/state_user.dart';
+import 'package:fabric_flutter/view/view_admin_users.dart';
+import 'package:fabric_flutter/view/view_auth_page.dart';
+import 'package:fabric_flutter/view/view_profile_edit.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_analytics/observer.dart';
 import 'package:flutter/cupertino.dart';
@@ -10,13 +12,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
-import 'pages/auth-page.dart';
 import 'pages/home-page.dart';
-import 'pages/profile-page.dart';
 import 'state/state-global.dart';
 import 'state/state-user-internal.dart';
 import 'theme.dart';
-
 
 class MyApp extends StatefulWidget {
   static FirebaseAnalytics analytics = FirebaseAnalytics();
@@ -89,7 +88,7 @@ class _MyAppState extends State<MyApp> {
         supportedLocales: supportedLocales,
         title: 'DEMO',
         theme: MyTheme().light,
-        home: AuthPage(),
+        home: ViewAuthPage(),
       );
     }
     return MaterialApp(
@@ -104,8 +103,9 @@ class _MyAppState extends State<MyApp> {
       routes: {
         '/': (context) => _home,
         '/home': (context) => _home,
-        '/profile': (context) => Scaffold(primary: false, body: ProfilePage()),
-        '/users': (context) => Scaffold(primary: false, body: AdminUsers()),
+        '/profile': (context) =>
+            Scaffold(primary: false, body: ViewProfileEdit()),
+        '/users': (context) => Scaffold(primary: false, body: ViewAdminUsers()),
       },
     );
   }

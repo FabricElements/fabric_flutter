@@ -1,5 +1,5 @@
+import 'package:fabric_flutter/view/view_featured.dart';
 import 'package:flutter/material.dart';
-import 'package:fabric_flutter/component.dart';
 
 class FeaturedViewExample extends StatelessWidget {
   FeaturedViewExample({Key? key, required this.scaffoldKey}) : super(key: key);
@@ -8,7 +8,7 @@ class FeaturedViewExample extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: FeaturedView(
+      body: ViewFeatured(
         image: "https://source.unsplash.com/random",
         headline: "This is the Featured View demonstration",
         description:

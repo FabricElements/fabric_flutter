@@ -6,24 +6,25 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:fabric_flutter/fabric_flutter.dart';
 import 'package:fabric_flutter/state/state_user.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
-import '../splash/loading.dart';
+import '../placeholder/loading_screen.dart';
 
-final FirebaseAuth _auth = FirebaseAuth.instance;
-
-class ProfilePage extends StatefulWidget {
-  ProfilePage({Key? key}) : super(key: key);
+class ViewProfileEdit extends StatefulWidget {
+  ViewProfileEdit({
+    Key? key,
+    this.loader,
+  }) : super(key: key);
+  final Widget? loader;
 
   @override
-  _ProfilePageState createState() => _ProfilePageState();
+  _ViewProfileEditState createState() => _ViewProfileEditState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class _ViewProfileEditState extends State<ViewProfileEdit> {
   late bool changed;
   AssetImage? defaultImage;
   late bool loading;
@@ -226,7 +227,7 @@ class _ProfilePageState extends State<ProfilePage> {
     Widget getBody() {
       AppLocalizations locales = AppLocalizations.of(context)!;
       if (loading) {
-        return LoadingScreen();
+        return widget.loader ?? LoadingScreen();
       }
       double width = MediaQuery.of(context).size.width;
       double height = MediaQuery.of(context).size.height;

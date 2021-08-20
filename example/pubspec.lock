@@ -128,7 +128,7 @@ packages:
     source: hosted
     version: "3.0.1"
   devicelocale:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: devicelocale
       url: "https://pub.dartlang.org"
@@ -308,7 +308,7 @@ packages:
     source: hosted
     version: "3.1.2"
   flutter_localizations:
-    dependency: "direct main"
+    dependency: transitive
     description: flutter
     source: sdk
     version: "0.0.0"
@@ -353,12 +353,12 @@ packages:
     source: sdk
     version: "0.0.0"
   flutter_web_plugins:
-    dependency: "direct main"
+    dependency: transitive
     description: flutter
     source: sdk
     version: "0.0.0"
   google_sign_in:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: google_sign_in
       url: "https://pub.dartlang.org"
@@ -568,12 +568,12 @@ packages:
     source: hosted
     version: "4.2.1"
   provider:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: provider
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "5.0.0"
+    version: "6.0.0"
   quiver:
     dependency: transitive
     description:

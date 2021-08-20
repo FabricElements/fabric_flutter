@@ -1,4 +1,4 @@
-import 'package:fabric_flutter/component/admin_users.dart';
+import 'package:fabric_flutter/view/view_admin_users.dart';
 import 'package:flutter/material.dart';
 
 import 'demos/components/card-button-example.dart';
@@ -228,7 +228,7 @@ Route<dynamic>? routes(RouteSettings settings) {
     case "/admin-users":
       _route = MaterialPageRoute<dynamic>(
         builder: (BuildContext context) {
-          return AdminUsers();
+          return ViewAdminUsers();
         },
       );
       break;

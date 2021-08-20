@@ -1,7 +1,6 @@
 export 'component/card_button.dart';
 export 'component/charts.dart';
 export 'component/fancy_notification.dart';
-export 'component/featured_view.dart';
 export 'component/flag_chip.dart';
 export 'component/global_providers.dart';
 export 'component/language_selector.dart';
@@ -11,5 +10,5 @@ export 'component/section_title.dart';
 export 'component/smart_imgix.dart';
 export 'component/status_chip.dart';
 export 'component/top_app.dart';
-export 'component/user-invite.dart';
+export 'component/user_invite.dart';
 export 'component/user_avatar.dart';

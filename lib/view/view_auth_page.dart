@@ -10,18 +10,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
-
-import '../../splash/loading.dart';
+import '../placeholder/loading_screen.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-class AuthPage extends StatefulWidget {
+class ViewAuthPage extends StatefulWidget {
+  ViewAuthPage({
+    Key? key,
+    this.loader,
+  }) : super(key: key);
+  final Widget? loader;
+
   @override
-  _AuthPageState createState() => _AuthPageState();
+  _ViewAuthPageState createState() => _ViewAuthPageState();
 }
 
-class _AuthPageState extends State<AuthPage> with WidgetsBindingObserver {
+class _ViewAuthPageState extends State<ViewAuthPage>
+    with WidgetsBindingObserver {
   late bool loading;
   int? section;
   final TextEditingController _phoneNumberController = TextEditingController();
@@ -94,7 +100,7 @@ class _AuthPageState extends State<AuthPage> with WidgetsBindingObserver {
     stateAnalytics.screenName = "auth";
 
     if (loading) {
-      return LoadingScreen();
+      return widget.loader ?? LoadingScreen();
     }
     void _closeKeyboard() {
       try {
@@ -171,7 +177,7 @@ class _AuthPageState extends State<AuthPage> with WidgetsBindingObserver {
           );
         }
         success = true;
-      }  on FirebaseFunctionsException catch (error) {
+      } on FirebaseFunctionsException catch (error) {
         alert.show(
             text: error.message ?? error.details["message"], type: "error");
       } catch (error) {

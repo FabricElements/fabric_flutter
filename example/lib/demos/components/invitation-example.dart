@@ -1,4 +1,5 @@
 import 'package:fabric_flutter/component.dart';
+import 'package:fabric_flutter/view/view_featured.dart';
 import 'package:flutter/material.dart';
 
 class InvitationExample extends StatelessWidget {
@@ -25,7 +26,7 @@ class InvitationExample extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: FeaturedView(
+      body: ViewFeatured(
         image: "https://source.unsplash.com/random",
         headline: "Open the Invitation Component from the button below!",
         actionLabel: "OPEN INVITATION",
