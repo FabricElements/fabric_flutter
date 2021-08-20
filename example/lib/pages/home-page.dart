@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fabric_flutter/fabric_flutter.dart';
 import 'package:fabric_flutter/state/state_user.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
@@ -258,6 +259,12 @@ class _HomePageState extends State<HomePage> {
         );
       }
 
+      String userLastUpdate = stateUser.data["updated"] != null
+          ? (stateUser.data["updated"] as Timestamp).seconds.toString()
+          : "";
+      String _avatarURL =
+          stateUser.serialized.avatar + "?size=thumbnail&t=" + userLastUpdate;
+
       return Scaffold(
         backgroundColor: backgroundColor,
         body: _defaultView,
@@ -280,8 +287,7 @@ class _HomePageState extends State<HomePage> {
                         width: 150,
                         height: 160,
                         child: CircleAvatar(
-                          backgroundImage:
-                              NetworkImage(stateUser.serialized.avatar),
+                          backgroundImage: NetworkImage(_avatarURL),
                           backgroundColor: Colors.grey.shade900,
                         ),
                       ),

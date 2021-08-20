@@ -1,14 +1,16 @@
-import 'dart:io';
+import 'dart:convert';
 import 'dart:math' as math;
+import 'dart:typed_data';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:fabric_flutter/fabric_flutter.dart';
 import 'package:fabric_flutter/state/state_user.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-
 import '../splash/loading.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -24,25 +26,13 @@ class _ProfilePageState extends State<ProfilePage> {
   late bool changed;
   AssetImage? defaultImage;
   late bool loading;
-  var previewImage;
-  String? _temporalImagePath;
+  ImageProvider? previewImage;
+  Uint8List? _temporalImageBytes;
   String? userImage;
   String nameFirst = "";
   String nameLast = "";
   TextEditingController nameFirstController = TextEditingController();
   TextEditingController nameLastController = TextEditingController();
-
-  void refreshImage() {
-    if (_temporalImagePath != null) {
-      previewImage = FileImage(File(_temporalImagePath!));
-      return;
-    }
-    if (userImage != null) {
-      previewImage = NetworkImage(userImage!);
-      return;
-    }
-    previewImage = defaultImage;
-  }
 
   @override
   void initState() {
@@ -100,6 +90,31 @@ class _ProfilePageState extends State<ProfilePage> {
       nameLastController.text = nameLast;
       changed = false;
     }
+    void refreshImage() {
+      try {
+        if (_temporalImageBytes != null) {
+          String base64Image = base64UrlEncode(_temporalImageBytes!);
+          previewImage = NetworkImage(base64Image);
+          return;
+        }
+        if (userImage != null) {
+          String userLastUpdate = stateUser.data["updated"] != null
+              ? (stateUser.data["updated"] as Timestamp).seconds.toString()
+              : "";
+          String _avatarURL = stateUser.serialized.avatar +
+              "?size=thumbnail&t=" +
+              userLastUpdate;
+          String _imageUrl = userImage! + "?t=" + _avatarURL;
+          previewImage = NetworkImage(_imageUrl);
+          return;
+        }
+      } catch (error) {
+        print(error);
+      }
+
+      previewImage = defaultImage;
+    }
+
     refreshImage();
     Alert alert = Alert(
       context: context,
@@ -112,6 +127,8 @@ class _ProfilePageState extends State<ProfilePage> {
     }
 
     updateUser() async {
+      loading = false;
+      if (mounted) setState(() {});
       AppLocalizations? locales = AppLocalizations.of(context)!;
       if (!changed) {
         alert.show(text: locales.get("page-profile--alert--nothing-to-update"));
@@ -143,13 +160,15 @@ class _ProfilePageState extends State<ProfilePage> {
       }
       loading = true;
       if (mounted) setState(() {});
-      String? photoURL = _temporalImagePath ?? null;
+
       Map<String, dynamic> newData = {
         "nameFirst": newNameFirst,
         "nameLast": newNameLast,
       };
       try {
-        if (photoURL != null) {
+        if (_temporalImageBytes != null) {
+          String base64Image = base64Encode(_temporalImageBytes!);
+          String photoURL = base64Image;
           newData.addAll({
             "avatar": photoURL,
           });
@@ -157,7 +176,7 @@ class _ProfilePageState extends State<ProfilePage> {
         final HttpsCallable callable =
             FirebaseFunctions.instance.httpsCallable("user-actions-update");
         await callable.call(newData);
-        _temporalImagePath = null;
+        _temporalImageBytes = null;
         changed = false;
         loading = false;
         if (mounted) setState(() {});
@@ -168,14 +187,30 @@ class _ProfilePageState extends State<ProfilePage> {
         if (!stateUser.serialized.onboarding.name) {
           Navigator.of(context).pop();
         }
+        refreshImage();
       } on FirebaseFunctionsException catch (error) {
         alert.show(
             text: error.message ?? error.details["message"], type: "error");
       } catch (error) {
         alert.show(
-          text: locales.get("notifications--try-again"),
+          text: error.toString(),
           type: "error",
         );
+      }
+      loading = false;
+      if (mounted) setState(() {});
+    }
+
+    Future<void> getImageFromOrigin(String origin) async {
+      loading = true;
+      if (mounted) setState(() {});
+      _temporalImageBytes = await ImageHelper().getImage(origin: origin);
+      if (_temporalImageBytes != null) {
+        changed = true;
+        if (kIsWeb) {
+          if (mounted) setState(() {});
+          await updateUser();
+        }
       }
       loading = false;
       if (mounted) setState(() {});
@@ -203,13 +238,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   child: Center(
                     child: RawMaterialButton(
                       onPressed: () async {
-                        String basePath = await ImageHelper()
-                            .getImage(origin: "camera", base64: true);
-                        _temporalImagePath = basePath;
-                        if (_temporalImagePath != null) {
-                          changed = true;
-                        }
-                        if (mounted) setState(() {});
+                        await getImageFromOrigin("camera");
                       },
                       child: Container(
                         height: smallerSize,
@@ -223,23 +252,16 @@ class _ProfilePageState extends State<ProfilePage> {
                                   bottom: 0,
                                   left: 15,
                                   child: FloatingActionButton(
-                                      backgroundColor: Colors.grey.shade50,
-                                      heroTag: "image",
-                                      child: Icon(
-                                        Icons.image,
-                                        color: Theme.of(context).accentColor,
-                                      ),
-                                      onPressed: () async {
-                                        String basePath = await ImageHelper()
-                                            .getImage(
-                                                origin: "gallery",
-                                                base64: true);
-                                        _temporalImagePath = basePath;
-                                        if (_temporalImagePath != null) {
-                                          changed = true;
-                                        }
-                                        if (mounted) setState(() {});
-                                      }),
+                                    backgroundColor: Colors.grey.shade50,
+                                    heroTag: "image",
+                                    child: Icon(
+                                      Icons.image,
+                                      color: Theme.of(context).accentColor,
+                                    ),
+                                    onPressed: () async {
+                                      await getImageFromOrigin("gallery");
+                                    },
+                                  ),
                                 ),
                                 Positioned(
                                   bottom: 0,
@@ -248,14 +270,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                     heroTag: "camera",
                                     child: Icon(Icons.photo_camera),
                                     onPressed: () async {
-                                      String basePath = await ImageHelper()
-                                          .getImage(
-                                              origin: "camera", base64: true);
-                                      _temporalImagePath = basePath;
-                                      if (_temporalImagePath != null) {
-                                        changed = true;
-                                      }
-                                      if (mounted) setState(() {});
+                                      await getImageFromOrigin("camera");
                                     },
                                   ),
                                 ),
@@ -321,7 +336,7 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
       ),
       body: GestureDetector(onTap: _closeKeyboard, child: getBody()),
-      floatingActionButton: changed
+      floatingActionButton: changed && !loading
           ? FloatingActionButton.extended(
               label: Text(locales.get("label--update")),
               onPressed: updateUser,

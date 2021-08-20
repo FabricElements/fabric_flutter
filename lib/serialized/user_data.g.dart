@@ -23,7 +23,7 @@ Map<String, dynamic> _$UserDataOnboardingToJson(UserDataOnboarding instance) =>
 UserData _$UserDataFromJson(Map<String, dynamic> json) => UserData(
       json['avatar'] as String? ??
           'https://images.unsplash.com/photo-1547679904-ac76451d1594?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=500&h=500&q=80',
-      json['email'] as String? ?? '',
+      json['email'] as String,
       json['id'] as String,
       json['name'] as String? ?? '',
       json['nameFirst'] as String? ?? '',

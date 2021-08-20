@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 part 'user_data.g.dart';
 
@@ -33,8 +34,8 @@ class UserData {
       includeIfNull: true)
   final String avatar;
   // @JsonKey(includeIfNull: true)
-  // final DateTime? created;
-  @JsonKey(defaultValue: "", includeIfNull: true)
+  // final Timestamp? created;
+  @JsonKey(includeIfNull: true)
   final String email;
   @JsonKey(includeIfNull: true, defaultValue: null)
   final String id;

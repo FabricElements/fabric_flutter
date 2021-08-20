@@ -13,8 +13,8 @@ import 'state/state-global.dart';
 import 'state/state-user-internal.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
   configureApp();
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(
     FirebaseInit(
       child: GlobalProviders(
