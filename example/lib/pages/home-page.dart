@@ -115,7 +115,7 @@ class _HomePageState extends State<HomePage> {
                   Expanded(
                     flex: 1,
                     child: CardButton(
-                      height: 160,
+                      height: 165,
                       margin: EdgeInsets.only(right: 8, left: 16),
                       headline: locales.get("label--admin"),
                       image:
@@ -185,8 +185,8 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                   ),
-                  SmartImgix(
-                      image:
+                  SmartImage(
+                      url:
                           "https://images.unsplash.com/photo-1557696859-ebd88b12be5e"),
                   // DecoratedBox(
                   //   decoration: BoxDecoration(
@@ -261,7 +261,7 @@ class _HomePageState extends State<HomePage> {
           ? (stateUser.data["updated"] as Timestamp).seconds.toString()
           : "";
       String _avatarURL =
-          stateUser.serialized.avatar + "?size=thumbnail&t=" + userLastUpdate;
+          stateUser.serialized.avatar + "?size=medium&t=" + userLastUpdate;
 
       return Scaffold(
         backgroundColor: backgroundColor,

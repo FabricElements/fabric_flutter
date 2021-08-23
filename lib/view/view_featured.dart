@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import '../component/smart_imgix.dart';
+import '../component/smart_image.dart';
 
 /// This Widget provides a informative view, consisting of a strong headline, optional description and action button
 ///
@@ -212,8 +212,8 @@ class _ViewFeaturedState extends State<ViewFeatured> {
                   fit: StackFit.expand,
                   children: <Widget>[
                     SizedBox.expand(
-                      child: SmartImgix(
-                        image: widget.image,
+                      child: SmartImage(
+                        url: widget.image,
                       ),
                     ),
                     Positioned(

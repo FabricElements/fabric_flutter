@@ -545,7 +545,7 @@ packages:
       name: image_picker
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.8.3+2"
+    version: "0.8.3+3"
   image_picker_for_web:
     dependency: transitive
     description:
@@ -560,13 +560,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.2.0"
-  imgix:
-    dependency: "direct main"
-    description:
-      name: imgix
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.2.0"
   intl:
     dependency: transitive
     description:

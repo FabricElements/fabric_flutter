@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:country_code_picker/country_code_picker.dart';
-import 'package:fabric_flutter/fabric_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -10,7 +9,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
+
+import '../component/smart_image.dart';
+import '../helper/alert.dart';
+import '../helper/app_localizations_delegate.dart';
 import '../placeholder/loading_screen.dart';
+import '../state/state_analytics.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 final GoogleSignIn _googleSignIn = GoogleSignIn();
@@ -368,8 +372,8 @@ class _ViewAuthPageState extends State<ViewAuthPage>
                   child: Container(color: Colors.grey.shade50),
                 ),
                 SizedBox.expand(
-                  child: SmartImgix(
-                    image: backgroundImage,
+                  child: SmartImage(
+                    url: backgroundImage,
                   ),
                 ),
                 Positioned(

@@ -106,7 +106,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
               ? (stateUser.data["updated"] as Timestamp).seconds.toString()
               : "";
           String _avatarURL = stateUser.serialized.avatar +
-              "?size=thumbnail&t=" +
+              "?size=medium&t=" +
               userLastUpdate;
           String _imageUrl = userImage! + "?t=" + _avatarURL;
           previewImage = NetworkImage(_imageUrl);

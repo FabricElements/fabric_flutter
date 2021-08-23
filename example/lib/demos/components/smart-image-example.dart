@@ -16,8 +16,8 @@ class SmartImageExample extends StatelessWidget {
               headline: "This is the Smart Image demo",
             ),
             Expanded(
-              child: SmartImgix(
-                image: "https://source.unsplash.com/random",
+              child: SmartImage(
+                url: "https://source.unsplash.com/random",
               ),
             ),
           ],
