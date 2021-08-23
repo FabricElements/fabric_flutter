@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'smart_imgix.dart';
+import 'smart_image.dart';
 
 /// CardButton is a versatile card style raw material button containing an image and additional customization options.
 ///
@@ -63,9 +63,7 @@ class _CardButtonState extends State<CardButton> {
               fit: StackFit.expand,
               children: <Widget>[
                 SizedBox.expand(
-                  child: SmartImgix(
-                    image: widget.image,
-                  ),
+                  child: SmartImage(url: widget.image),
                 ),
                 Positioned(
                   bottom: 0,
