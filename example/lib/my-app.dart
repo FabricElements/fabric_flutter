@@ -4,6 +4,7 @@ import 'package:fabric_flutter/state/state_user.dart';
 import 'package:fabric_flutter/view/view_admin_users.dart';
 import 'package:fabric_flutter/view/view_auth_page.dart';
 import 'package:fabric_flutter/view/view_profile_edit.dart';
+import 'package:fabric_flutter/view/view_hero.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_analytics/observer.dart';
 import 'package:flutter/cupertino.dart';
@@ -79,7 +80,7 @@ class _MyAppState extends State<MyApp> {
     ];
     Iterable<Locale> supportedLocales = [
       Locale.fromSubtags(languageCode: "en"),
-      // Locale.fromSubtags(languageCode: "es"),
+      Locale.fromSubtags(languageCode: "es"),
     ];
     if (!stateUser.signedIn) {
       return MaterialApp(
@@ -107,6 +108,7 @@ class _MyAppState extends State<MyApp> {
         '/profile': (context) =>
             Scaffold(primary: false, body: ViewProfileEdit(loader: LoadingScreen())),
         '/users': (context) => Scaffold(primary: false, body: ViewAdminUsers(loader: LoadingScreen())),
+        '/hero': (context) => Scaffold(primary: false, body: ViewHero()),
       },
     );
   }
