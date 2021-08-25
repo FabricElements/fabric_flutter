@@ -148,32 +148,32 @@ dynamic defaultLocales = {
     "es": "Idioma",
   },
   "label--continue": {
-    "en": "CONTINUE",
-    "es": "CONTINUAR",
+    "en": "Continue",
+    "es": "Continuar",
   },
   "label--update": {
-    "en": "UPDATE",
-    "es": "ACTUALIZAR",
+    "en": "Update",
+    "es": "Actualizar",
   },
   "label--create": {
-    "en": "CREATE",
-    "es": "CREAR",
+    "en": "Create",
+    "es": "Crear",
   },
   "label--confirm": {
-    "en": "CONFIRM",
-    "es": "CONFIRMAR",
+    "en": "Confirm",
+    "es": "Confirmar",
   },
   "label--verify": {
-    "en": "VERIFY",
-    "es": "VERIFICAR",
+    "en": "Verify",
+    "es": "Verificar",
   },
   "label--reset": {
-    "en": "RESET",
-    "es": "REINICIAR",
+    "en": "Reset",
+    "es": "Reiniciar",
   },
   "label--validate": {
-    "en": "VALIDATE",
-    "es": "VALIDAR",
+    "en": "Validate",
+    "es": "Validar",
   },
   "alert--invalid-number": {
     "en": "Invalid number",
@@ -254,6 +254,42 @@ dynamic defaultLocales = {
   "onboarding--profile--description": {
     "en": "Add your name and profile picture so everyone knows who you are",
     "es": "Agrega tu nombre y foto de perfil para que todos sepan quién eres",
+  },
+  "label--generate": {
+    "en": "Generate",
+    "es": "Generar",
+  },
+  "label--send": {
+    "en": "Send",
+    "es": "Enviar",
+  },
+  "label--accept": {
+    "en": "Accept",
+    "es": "Aceptar",
+  },
+  "label--go": {
+    "en": "Go",
+    "es": "Ir",
+  },
+  "label--open": {
+    "en": "Open",
+    "es": "Abrir",
+  },
+  "label--dismiss": {
+    "en": "Dismiss",
+    "es": "Descartar",
+  },
+  "label--decline": {
+    "en": "Decline",
+    "es": "Rechazar",
+  },
+  "label--upload": {
+    "en": "Upload",
+    "es": "Subir",
+  },
+  "label--delete": {
+    "en": "Delete",
+    "es": "Eliminar",
   },
   "label--name-first": {
     "en": "First Name",
