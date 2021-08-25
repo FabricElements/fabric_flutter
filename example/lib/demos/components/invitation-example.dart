@@ -13,7 +13,6 @@ class InvitationExample extends StatelessWidget {
         return UserInvite(
           user: null,
           data: {},
-          showPhone: true
         );
       },
     );

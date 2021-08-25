@@ -35,7 +35,7 @@ class UserData {
   final String avatar;
   // @JsonKey(includeIfNull: true)
   // final Timestamp? created;
-  @JsonKey(includeIfNull: true)
+  @JsonKey(defaultValue: "", includeIfNull: true)
   final String email;
   @JsonKey(includeIfNull: true, defaultValue: null)
   final String id;
