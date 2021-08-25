@@ -166,5 +166,17 @@ dynamic defaultLocales = {
   "label--name-last": {"en": "Last Name", "es": "Apellidos"},
   "label--name": {"en": "Name", "es": "Nombre"},
   "label--sign-out": {"en": "Sign out", "es": "Cerrar Sesión"},
-  "label--profile": {"en": "Profile", "es": "Perfil"}
+  "label--profile": {"en": "Profile", "es": "Perfil"},
+  "notification--invitation-sent": {
+    "en": "Invitation sent",
+    "es": "Invitación enviada"
+  },
+  "notification--user-role-updated": {
+    "en": "The User Role was successfully updated",
+    "es": "La función de usuario se actualizó correctamente"
+  },
+  "notification--please-wait": {
+    "en": "Processing your request. Please wait...",
+    "es": "Procesando su solicitud. Espere por favor..."
+  },
 };

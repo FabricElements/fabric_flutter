@@ -27,39 +27,39 @@ class UserInvite extends StatefulWidget {
     this.user,
     this.roles,
     this.data,
-    this.showEmail = false,
-    this.showPhone = false,
   }) : super(key: key);
   final User? user;
   final Map<String, dynamic>? data;
-  final bool showEmail;
-  final bool showPhone;
   final List<String>? roles;
 
   @override
   _UserInviteState createState() => _UserInviteState();
 }
 
+enum TypeOptions { phone, email }
+
 class _UserInviteState extends State<UserInvite> {
   AppLocalizations? locales;
   bool? sending;
-  late String phoneNumber;
-  String? email;
+  String phoneNumber = "";
+  String email = "";
   late String areaCode;
   String? finalPhoneNumber;
   String? roleSelect;
   dynamic resp;
-  TextEditingController? _textController;
+  TextEditingController _textControllerPhone = TextEditingController();
+  TextEditingController _textControllerEmail = TextEditingController();
   Color? backgroundColor;
   Function? onChange;
-  late bool flagRol;
-  late bool flagNumber;
+  bool flagRol = false;
+  bool flagNumber = false;
+  bool flagEmail = false;
+  TypeOptions? _typeOption;
 
   @override
   void dispose() {
-    _textController!.clear();
-    flagRol = false;
-    flagNumber = false;
+    _textControllerPhone.clear();
+    _textControllerEmail.clear();
     roleSelect = null;
     super.dispose();
   }
@@ -73,16 +73,22 @@ class _UserInviteState extends State<UserInvite> {
     finalPhoneNumber = "";
     sending = false;
     resp = null;
-    _textController = TextEditingController();
     backgroundColor = const Color(0xFF161A21);
     flagRol = false;
     flagNumber = false;
     roleSelect = null;
+    _typeOption = TypeOptions.phone;
   }
 
   @override
   Widget build(BuildContext context) {
+    bool canInvite = sending == false &&
+        _typeOption != null &&
+        roleSelect != null &&
+        (flagEmail || flagNumber);
+
     AppLocalizations locales = AppLocalizations.of(context)!;
+    ThemeData theme = Theme.of(context);
     Alert alert = Alert(
       context: context,
       mounted: mounted,
@@ -100,6 +106,7 @@ class _UserInviteState extends State<UserInvite> {
       }
       sending = true;
       if (mounted) setState(() {});
+      alert.show(text: locales.get("notification--please-wait"), duration: 5);
       Map<String, dynamic> data = {};
       if (role != null) {
         data.addAll({
@@ -142,97 +149,66 @@ class _UserInviteState extends State<UserInvite> {
     }
 
     void validateInvitation() async {
-      if (phoneNumber.length < 5) {
-        alert.show(text: locales.get("alert--invalid-number"), type: "error");
+      if (!canInvite) {
+        alert.show(text: "incomplete data", type: "error");
+      }
+      if (_typeOption == TypeOptions.phone) {
+        await _sendInvitation(
+            type: "phoneNumber", contact: finalPhoneNumber, role: roleSelect);
       } else {
-        _textController!.clear();
-        if (flagRol && flagNumber) {
-          await _sendInvitation(
-              type: "phoneNumber", contact: finalPhoneNumber, role: roleSelect);
-        }
+        await _sendInvitation(type: "email", contact: email, role: roleSelect);
       }
     }
 
     /// Invite user using a phone number.
     Widget _inviteUserPhone() {
-      return Column(
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          RoleSelector(
-            roles: widget.roles,
-            onChange: (value) {
-              if (value != null) {
-                roleSelect = value;
-                flagRol = true;
-              }
-              if (mounted) {
-                setState(() {});
-              }
+          CountryCodePicker(
+            onChanged: (CountryCode countryCode) {
+              areaCode = countryCode.toString();
             },
+            // Initial selection and favorite can be one of code ('IT') OR dial_code('+39')
+            initialSelection: "US",
+            favorite: ["US"],
+            // optional. Shows only country name and flag
+            showCountryOnly: false,
+            // optional. Shows only country name and flag when popup is closed.
+            showOnlyCountryWhenClosed: false,
+            // optional. aligns the flag and the Text left
+            alignLeft: false,
           ),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              CountryCodePicker(
-                onChanged: (CountryCode countryCode) {
-                  areaCode = countryCode.toString();
-                },
-                // Initial selection and favorite can be one of code ('IT') OR dial_code('+39')
-                initialSelection: "US",
-                favorite: ["US"],
-                // optional. Shows only country name and flag
-                showCountryOnly: false,
-                // optional. Shows only country name and flag when popup is closed.
-                showOnlyCountryWhenClosed: false,
-                // optional. aligns the flag and the Text left
-                alignLeft: false,
+          Expanded(
+            child: TextField(
+              controller: _textControllerPhone,
+              decoration: InputDecoration(
+                hintText: locales.get("label--enter-phone-number"),
               ),
-              Expanded(
-                child: TextField(
-                  autofocus: true,
-                  controller: _textController,
-                  decoration: InputDecoration(
-                    hintText: locales.get("label--enter-phone-number"),
-                  ),
-                  maxLines: 1,
-                  keyboardType: TextInputType.number,
-                  onChanged: (text) {
-                    phoneNumber = text;
-                    finalPhoneNumber = areaCode + phoneNumber;
-                    if (phoneNumber.length > 5) {
-                      flagNumber = true;
-                    } else {
-                      flagNumber = false;
-                    }
-                    if (mounted) {
-                      setState(() {});
-                    }
-                  },
-                  // Disable blank space from input.
-                  inputFormatters: [
-                    FilteringTextInputFormatter.deny(" ",
-                        replacementString: ""),
-                  ],
-                ),
-              ),
-              Container(
-                width: 16,
-              ),
-            ],
-          ),
-          Padding(
-            padding:
-                const EdgeInsets.only(left: 16, right: 16, bottom: 32, top: 32),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                icon: Icon(Icons.send),
-                label: Text(
-                  locales.get("label--send-invitation"),
-                  style: TextStyle(color: Colors.white),
-                ),
-                onPressed: flagRol && flagNumber ? validateInvitation : null,
-              ),
+              maxLines: 1,
+              maxLength: 12,
+              maxLengthEnforcement: MaxLengthEnforcement.enforced,
+              keyboardType: TextInputType.number,
+              enableSuggestions: false,
+              onChanged: (text) {
+                phoneNumber = text;
+                finalPhoneNumber = areaCode + phoneNumber;
+                if (phoneNumber.length > 5) {
+                  flagNumber = true;
+                } else {
+                  flagNumber = false;
+                }
+                if (mounted) setState(() {});
+              },
+              // Disable blank space from input.
+              inputFormatters: [
+                FilteringTextInputFormatter.deny(" ", replacementString: ""),
+                FilteringTextInputFormatter.digitsOnly,
+              ],
             ),
+          ),
+          Container(
+            width: 16,
           ),
         ],
       );
@@ -240,76 +216,96 @@ class _UserInviteState extends State<UserInvite> {
 
     /// Invite user using an e-mail.
     Widget _inviteUserEmail() {
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Padding(
-            padding: EdgeInsets.only(right: 8, left: 8, top: 8),
-            child: Icon(Icons.mail, size: 32.0),
+      return Container(
+        padding: EdgeInsets.symmetric(horizontal: 16),
+        child: TextField(
+          enableSuggestions: false,
+          controller: _textControllerEmail,
+          decoration: InputDecoration(
+            hintText: locales.get("label--enter-an-email"),
+            prefixIcon: Icon(Icons.mail),
           ),
-          Expanded(
-            child: TextField(
-              autofocus: true,
-              controller: _textController,
-              decoration: InputDecoration(
-                hintText: locales.get("label--enter-an-email"),
-              ),
-              maxLines: 1,
-              maxLength: 100,
-              keyboardType: TextInputType.emailAddress,
-              onChanged: (text) {
-                email = text;
-              },
-              // Disable blank space from input.
-              inputFormatters: [
-                FilteringTextInputFormatter.deny(" ", replacementString: ""),
-              ],
-            ),
-          ),
-          IconButton(
-            icon: Icon(Icons.send),
-            onPressed: () async {
-              RegExp emailRegExp = new RegExp(
-                  r"\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b");
-              // If there is no match, show an error.
-              if (!emailRegExp.hasMatch(email!)) {
-                alert.show(
-                    text: locales.get("alert--invalid-email"), type: "error");
-              } else {
-                sending = true;
-                if (mounted) setState(() {});
-                await _sendInvitation(type: "email", contact: email);
-                _textController!.clear();
-              }
-            },
-          ),
-        ],
+          maxLines: 1,
+          maxLengthEnforcement: MaxLengthEnforcement.enforced,
+          maxLength: 100,
+          keyboardType: TextInputType.emailAddress,
+          onChanged: (text) {
+            email = text;
+            flagEmail = email.length > 5;
+            if (mounted) setState(() {});
+          },
+          // Disable blank space from input.
+          inputFormatters: [
+            FilteringTextInputFormatter.deny(" ", replacementString: ""),
+            FilteringTextInputFormatter.deny("+", replacementString: ""),
+            FilteringTextInputFormatter.singleLineFormatter,
+          ],
+        ),
       );
     }
 
-    List<Widget> _tabs = [];
-    List<Widget> _tabsBody = [];
+    Widget selectedTypeWidget = _typeOption == TypeOptions.phone
+        ? _inviteUserPhone()
+        : _inviteUserEmail();
 
-    if (widget.showPhone) {
-      _tabs.add(Tab(text: locales.get("label--phone-number")));
-      _tabsBody.add(_inviteUserPhone());
-    }
+    Widget typeSelector = Row(
+      children: <Widget>[
+        Expanded(
+          child: RadioListTile<TypeOptions>(
+            contentPadding: EdgeInsets.only(left: 8),
+            title: Text(locales.get("label--phone-number")),
+            value: TypeOptions.phone,
+            groupValue: _typeOption,
+            onChanged: (TypeOptions? value) {
+              _typeOption = value;
+              if (mounted) setState(() {});
+            },
+          ),
+        ),
+        Expanded(
+          child: RadioListTile<TypeOptions>(
+            contentPadding: EdgeInsets.only(right: 8),
+            title: Text(locales.get("label--email")),
+            value: TypeOptions.email,
+            groupValue: _typeOption,
+            onChanged: (TypeOptions? value) {
+              _typeOption = value;
+              if (mounted) setState(() {});
+            },
+          ),
+        ),
+      ],
+    );
 
-    if (widget.showEmail) {
-      _tabs.add(Tab(text: locales.get("label--email")));
-      _tabsBody.add(_inviteUserEmail());
-    }
-
-    return DefaultTabController(
-      length: _tabs.length,
-      child: Scaffold(
-        body: Column(
-          children: <Widget>[
-            Expanded(
-              child: TabBarView(
-                children: _tabsBody,
+    return Scaffold(
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: canInvite
+          ? FloatingActionButton.extended(
+              icon: Icon(Icons.send),
+              label: Text(
+                locales.get("label--send-invitation"),
+                style: TextStyle(color: Colors.white),
               ),
+              onPressed: validateInvitation,
+            )
+          : null,
+      body: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            RoleSelector(
+              roles: widget.roles,
+              onChange: (value) {
+                if (value != null) {
+                  roleSelect = value;
+                  flagRol = true;
+                }
+                if (mounted) setState(() {});
+              },
             ),
+            typeSelector,
+            Container(height: 16),
+            selectedTypeWidget,
           ],
         ),
       ),

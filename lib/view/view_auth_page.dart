@@ -560,7 +560,8 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           FilteringTextInputFormatter.digitsOnly
         ],
         decoration: InputDecoration(
-            hintText: locales.get("page-auth--input--verification-code")),
+          hintText: locales.get("page-auth--input--verification-code"),
+        ),
         maxLength: 6,
         onChanged: (value) {
           if (mounted) setState(() {});

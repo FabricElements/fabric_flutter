@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../component/role_selector.dart';
 import '../component/user_avatar.dart';
 import '../component/user_invite.dart';
+import '../component/user_role_update.dart';
 import '../helper/alert.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../placeholder/loading_screen.dart';
@@ -71,7 +72,6 @@ class _ViewAdminUsersState extends State<ViewAdminUsers> {
     bool fromCollection = collectionId != null && collection != null;
     Widget space = Container(width: 16);
     Map<String, dynamic> inviteMetadata = {};
-    String? _newRole;
     Alert alert = Alert(
       context: context,
       mounted: mounted,
@@ -110,67 +110,54 @@ class _ViewAdminUsersState extends State<ViewAdminUsers> {
         ? FirebaseFirestore.instance.collection(collection).doc(collectionId)
         : null;
 
-    _changeRole(String uid, String? role) async {
-      try {
-        if (_newRole == null) {
-          Navigator.of(context).pop();
-          return;
-        }
-        await _updateReference?.set({
-          "backup": false,
-          "roles": {
-            uid: role,
-          },
-          "updated": FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
-
-        HttpsCallable callable = FirebaseFunctions.instance
-            .httpsCallable('user-actions--updateRole');
-        updateOptions.addAll({
-          "uid": uid,
-        });
-        // Type indicates the data field to use in the function, admin level or collection.
-        await callable.call(updateOptions); // USER DATA
-      } on FirebaseFunctionsException catch (error) {
-        alert.show(
-            text: error.message ?? error.details["message"], type: "error");
-      } catch (error) {
-        alert.show(text: error.toString(), type: "error");
-      }
-      Navigator.of(context).pop();
-    }
-
     _changeUserRole(String uid) {
+      return showModalBottomSheet(
+        // isScrollControlled: true,
+        context: context,
+        builder: (BuildContext _context) {
+          return UserRoleUpdate(
+            user: stateUser.object,
+            data: inviteMetadata,
+            roles: _roles,
+            uid: uid
+          );
+        },
+      );
       showModalBottomSheet(
         context: context,
         builder: (BuildContext bc) {
-          List<Widget> _options = [
-            RoleSelector(
-              roles: _roles,
-              onChange: (value) {
-                _newRole = value;
-                if (mounted) setState(() {});
-              },
-            ),
-          ];
-          if (_newRole != null) {
-            _options.add(
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    child: Text(
-                      locales.get("label--update"),
-                    ),
-                    onPressed: () async {
-                      await _changeRole(uid, _newRole);
-                    },
-                  ),
-                ),
-              ),
-            );
+          String? _newRole;
+          _changeRole(String uid, String? role) async {
+            try {
+              if (_newRole == null) {
+                Navigator.of(context).pop();
+                return;
+              }
+              await _updateReference?.set({
+                "backup": false,
+                "roles": {
+                  uid: role,
+                },
+                "updated": FieldValue.serverTimestamp(),
+              }, SetOptions(merge: true));
+
+              HttpsCallable callable = FirebaseFunctions.instance
+                  .httpsCallable('user-actions--updateRole');
+              updateOptions.addAll({
+                "uid": uid,
+              });
+              // Type indicates the data field to use in the function, admin level or collection.
+              await callable.call(updateOptions); // USER DATA
+            } on FirebaseFunctionsException catch (error) {
+              alert.show(
+                  text: error.message ?? error.details["message"],
+                  type: "error");
+            } catch (error) {
+              alert.show(text: error.toString(), type: "error");
+            }
+            Navigator.of(context).pop();
           }
+
           return Scaffold(
             appBar: AppBar(
               automaticallyImplyLeading: false,
@@ -178,9 +165,27 @@ class _ViewAdminUsersState extends State<ViewAdminUsers> {
               primary: false,
               title: Text(locales.get("label--update-user")),
             ),
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.centerFloat,
+            floatingActionButton: _newRole != null
+                ? FloatingActionButton.extended(
+                    icon: Icon(Icons.send),
+                    label: Text(
+                      locales.get("label--update"),
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onPressed: () async {
+                      await _changeRole(uid, _newRole);
+                    },
+                  )
+                : null,
             body: SafeArea(
-              child: Column(
-                children: _options,
+              child: RoleSelector(
+                roles: _roles,
+                onChange: (value) {
+                  _newRole = value;
+                  if (mounted) setState(() {});
+                },
               ),
             ),
           );
@@ -195,11 +200,10 @@ class _ViewAdminUsersState extends State<ViewAdminUsers> {
         context: context,
         builder: (BuildContext _context) {
           return FractionallySizedBox(
-            heightFactor: 0.7,
+            heightFactor: 0.8,
             child: UserInvite(
               user: stateUser.object,
               data: inviteMetadata,
-              showPhone: true,
               roles: _roles,
             ),
           );
