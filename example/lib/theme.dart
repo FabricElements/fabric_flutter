@@ -40,7 +40,7 @@ class MyTheme with Diagnosticable {
           headline6: TextStyle(
             color: Colors.grey.shade800,
             // fontWeight: FontWeight.bold,
-            fontSize: 28.0,
+            fontSize: 16,
           ),
         ),
       ),

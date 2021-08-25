@@ -278,6 +278,12 @@ class _UserInviteState extends State<UserInvite> {
     );
 
     return Scaffold(
+      appBar: AppBar(
+        primary: false,
+        automaticallyImplyLeading: false,
+        title: Text(locales.get("user-invite--title")),
+        leading: Icon(Icons.person),
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: canInvite
           ? FloatingActionButton.extended(

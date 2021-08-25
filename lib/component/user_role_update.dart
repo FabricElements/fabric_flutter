@@ -26,11 +26,13 @@ class UserRoleUpdate extends StatefulWidget {
     this.roles,
     this.data,
     required this.uid,
+    required this.name,
   }) : super(key: key);
   final User? user;
   final Map<String, dynamic>? data;
   final List<String>? roles;
   final String uid;
+  final String name;
 
   @override
   _UserRoleUpdateState createState() => _UserRoleUpdateState();
@@ -110,6 +112,13 @@ class _UserRoleUpdateState extends State<UserRoleUpdate> {
     }
 
     return Scaffold(
+      appBar: AppBar(
+        primary: false,
+        automaticallyImplyLeading: false,
+        title: Text(locales
+            .get("user-role-update--title", {"name": widget.name})),
+        leading: Icon(Icons.person),
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: canInvite
           ? FloatingActionButton.extended(
