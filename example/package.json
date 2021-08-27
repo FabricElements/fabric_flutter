@@ -10,7 +10,13 @@
     "clear": "rm -rf ./functions/lib",
     "build": "npm run clear && npm run lint && tsc -p ./tsconfig.json",
     "tsc": "tsc",
-    "serialize": "flutter pub run build_runner build --delete-conflicting-outputs"
+    "serialize": "flutter pub run build_runner build --delete-conflicting-outputs",
+    "js:init:beta": "yes | cp web/javascript/firebase-init-beta.js web/javascript/firebase-init.js",
+    "js:init:live": "yes | cp web/javascript/firebase-init-live.js web/javascript/firebase-init.js",
+    "env:beta": "flutter pub run environment_config:generate --dev",
+    "env:live": "flutter pub run environment_config:generate",
+    "beta": "npm run env:beta && npm run js:init:beta",
+    "live": "npm run env:live && npm run js:init:live"
   },
   "devDependencies": {
     "eslint": "^7.31.0",

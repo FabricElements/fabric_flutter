@@ -28,6 +28,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  environment_config: ^3.0.0
 
 dependency_overrides:
   meta: ^1.7.0
@@ -47,6 +48,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/
+    - .env
 
 
   # An image asset can refer to one or more resolution-specific "variants", see
@@ -74,3 +76,37 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+
+environment_config:
+  dotenv_path: .env # optional, result file path for .env file against project root folder
+  dev_extension: dev
+  fields:
+    TEST:
+      default: LIVE
+      dotenv: TRUE
+      type: "String"
+    FIREBASE_PROJECT_ID:
+      default: fabricelements
+      dotenv: TRUE
+      type: "String"
+    OS_BUNDLE_ID:
+      default: com.fabricelements.demo
+      dotenv: TRUE
+      type: "String"
+    ANDROID_PACKAGE_NAME:
+      default: com.fabricelements.demo
+      dotenv: TRUE
+      type: "String"
+    WWW:
+      default: https://fabricelements.web.app
+      dotenv: TRUE
+      type: "String"
+
+
+  extensions:
+    dev: # your extension name
+      fields:
+        TEST:
+          default: BETA
+        WWW:
+          default: http://localhost:60655

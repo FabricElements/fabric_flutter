@@ -7,6 +7,7 @@ import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 
@@ -290,10 +291,11 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         await _auth.sendSignInLinkToEmail(
           email: _userEmail,
           actionCodeSettings: ActionCodeSettings(
-            url: 'http://localhost:65205',
+            androidPackageName:
+                dotenv.get("ANDROID_PACKAGE_NAME", fallback: null),
             handleCodeInApp: true,
-            // iOSBundleId: 'io.flutter.plugins.firebaseAuthExample',
-            // androidPackageName: 'io.flutter.plugins.firebaseauthexample',
+            iOSBundleId: dotenv.get("IOS_BUNDLE_ID", fallback: null),
+            url: dotenv.get("WWW", fallback: null),
           ),
         );
 
@@ -432,8 +434,8 @@ class _ViewAuthPageState extends State<ViewAuthPage>
                                   ),
                                 ),
                                 Container(height: 16),
+                                authButton("google"),
                                 authButton("phone"),
-                                // authButton("google"),
                                 authButton("email"),
                               ],
                             ),
