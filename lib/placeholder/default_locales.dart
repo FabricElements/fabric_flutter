@@ -120,8 +120,8 @@ dynamic defaultLocales = {
     "es": "Ingresa un correo electrónico",
   },
   "label--cancel": {
-    "en": "CANCEL",
-    "es": "CANCELAR",
+    "en": "Cancel",
+    "es": "Cancelar",
   },
   "label--phone-number": {
     "en": "Phone Number",

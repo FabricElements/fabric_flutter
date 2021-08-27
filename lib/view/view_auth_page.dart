@@ -19,6 +19,13 @@ import '../state/state_analytics.dart';
 final FirebaseAuth _auth = FirebaseAuth.instance;
 final GoogleSignIn _googleSignIn = GoogleSignIn();
 
+/// Validate if user exists or fail
+Future<void> verifyIfUserExists(Map<String, dynamic> data) async {
+  final HttpsCallable callable =
+      FirebaseFunctions.instance.httpsCallable("user-actions-exists");
+  await callable.call(data);
+}
+
 class ViewAuthPage extends StatefulWidget {
   ViewAuthPage({
     Key? key,
@@ -36,11 +43,16 @@ class _ViewAuthPageState extends State<ViewAuthPage>
   int? section;
   final TextEditingController _phoneNumberController = TextEditingController();
   final TextEditingController _smsController = TextEditingController();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController _emailController = TextEditingController();
+
+  String _userEmail = '';
   ConfirmationResult? webConfirmationResult;
 
   late String areaCode;
   String? _verificationId;
-  late String _userEmail;
+
+  // late String _userEmail;
 
   @override
   void initState() {
@@ -56,6 +68,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
   @override
   void dispose() {
     WidgetsBinding.instance!.removeObserver(this);
+    _emailController.dispose();
     super.dispose();
   }
 
@@ -160,10 +173,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           _verificationId = verificationId;
         };
         String phoneNumber = areaCode + _phoneNumberController.text;
-        // Validate if user exists
-        final HttpsCallable callable =
-            FirebaseFunctions.instance.httpsCallable("user-actions-exists");
-        await callable.call(<String, dynamic>{"phoneNumber": phoneNumber});
+        await verifyIfUserExists({"phoneNumber": phoneNumber});
         if (kIsWeb) {
           ConfirmationResult confirmationResult =
               await _auth.signInWithPhoneNumber(phoneNumber);
@@ -272,30 +282,28 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       if (mounted) setState(() {});
     }
 
+    /// Email Link Sign-in
     Future<void> _signInWithEmailAndLink() async {
-//      _userEmail = _emailController.text;
       try {
+        _userEmail = _emailController.text;
+        await verifyIfUserExists({"email": _userEmail});
         await _auth.sendSignInLinkToEmail(
           email: _userEmail,
           actionCodeSettings: ActionCodeSettings(
-            url: 'PAGEURL',
+            url: 'http://localhost:65205',
             handleCodeInApp: true,
-            iOSBundleId: "iOSBundleId",
-            androidInstallApp: true,
-            androidMinimumVersion: "1",
-            androidPackageName: "ANDROIDBundleId",
+            // iOSBundleId: 'io.flutter.plugins.firebaseAuthExample',
+            // androidPackageName: 'io.flutter.plugins.firebaseauthexample',
           ),
         );
+
         alert.show(
-          text: "Check your email",
-          type: "success",
-        );
+            text: 'An email has been sent to $_userEmail', type: "success");
+      } on FirebaseFunctionsException catch (error) {
+        alert.show(
+            text: error.message ?? error.details["message"], type: "error");
       } catch (error) {
-        print(error);
-        alert.show(
-          text: error.toString(),
-          type: "error",
-        );
+        alert.show(text: error.toString(), type: "error");
       }
     }
 
@@ -336,7 +344,10 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         case "email":
           text = locales.get("page-auth--actions--sign-in-email");
           icon = Icons.email;
-          action = _signInWithEmailAndLink;
+          action = () {
+            section = 3;
+            if (mounted) setState(() {});
+          };
       }
       return Container(
         // width: double.infinity,
@@ -423,7 +434,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
                                 Container(height: 16),
                                 authButton("phone"),
                                 // authButton("google"),
-//                              authButton("email"),
+                                authButton("email"),
                               ],
                             ),
                           ),
@@ -445,19 +456,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           opacity: section == 0 ? 0 : 1,
           duration: Duration(milliseconds: 300),
           child: Container(
-//            color: Colors.red,
-//             decoration: BoxDecoration(
-//               gradient: LinearGradient(
-//                 begin: Alignment.topCenter,
-//                 end: Alignment.bottomCenter,
-//                 stops: [0.0, 0.5, 1.0],
-//                 colors: [
-//                   Color.fromRGBO(0, 0, 0, 0.0),
-//                   Color.fromRGBO(0, 0, 0, 0.2),
-//                   Color.fromRGBO(0, 0, 0, 0.4),
-//                 ],
-//               ),
-//             ),
             child: SafeArea(
               child: Center(
                 child: Padding(
@@ -480,10 +478,11 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         style: ButtonStyle(
             backgroundColor:
                 MaterialStateProperty.all<Color>(Colors.grey.shade800)),
-        label: Text(locales.get("label--cancel")),
+        label: Text(locales.get("label--cancel").toUpperCase()),
         onPressed: () {
           _phoneNumberController.clear();
           _smsController.clear();
+          _emailController.clear();
           _closeKeyboard();
           section = 0;
           if (mounted) setState(() {});
@@ -539,7 +538,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       sectionsPhoneNumber.add(
         actionButton(
           icon: Icons.send_rounded,
-          label: locales.get("label--verify"),
+          label: locales.get("label--verify").toUpperCase(),
           onPressed: () {
             _verifyPhoneNumber();
           },
@@ -550,6 +549,95 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     sectionsPhoneNumber.add(buttonCancel);
 
     Widget sectionPhoneNumber = baseContainer(children: sectionsPhoneNumber);
+
+    List<Widget> sectionsEmailLink = [
+      TextField(
+        enableSuggestions: false,
+        controller: _emailController,
+        decoration: InputDecoration(
+          hintText: locales.get("label--enter-an-email"),
+          prefixIcon: Icon(Icons.mail),
+        ),
+        maxLines: 1,
+        maxLengthEnforcement: MaxLengthEnforcement.enforced,
+        maxLength: 100,
+        keyboardType: TextInputType.emailAddress,
+        onChanged: (text) {
+          // email = text;
+          // flagEmail = email.length > 5;
+          if (mounted) setState(() {});
+        },
+        // Disable blank space from input.
+        inputFormatters: [
+          FilteringTextInputFormatter.deny(" ", replacementString: ""),
+          FilteringTextInputFormatter.deny("+", replacementString: ""),
+          FilteringTextInputFormatter.singleLineFormatter,
+        ],
+      ),
+      // TextFormField(
+      //   controller: _emailController,
+      //   decoration: InputDecoration(labelText: 'Email'),
+      //   validator: (String? value) {
+      //     if (value!.isEmpty) return 'Please enter your email.';
+      //     return null;
+      //   },
+      //   onChanged: (value) {
+      //     if (mounted) setState(() {});
+      //   },
+      // ),
+      // Container(
+      //   child: Form(
+      //     key: _formKey,
+      //     child: Column(
+      //       crossAxisAlignment: CrossAxisAlignment.start,
+      //       children: <Widget>[
+      //         Container(
+      //           alignment: Alignment.center,
+      //           child: const Text(
+      //             'Test sign in with email and link',
+      //             style: TextStyle(fontWeight: FontWeight.bold),
+      //           ),
+      //         ),
+      //         TextFormField(
+      //           controller: _emailController,
+      //           decoration: InputDecoration(labelText: 'Email'),
+      //           validator: (String? value) {
+      //             if (value!.isEmpty) return 'Please enter your email.';
+      //             return null;
+      //           },
+      //         ),
+      //         Container(
+      //           padding: EdgeInsets.only(top: 16),
+      //           alignment: Alignment.center,
+      //           child: SignInButtonBuilder(
+      //             icon: Icons.insert_link,
+      //             text: 'Sign In Email',
+      //             backgroundColor: Colors.blueGrey[700]!,
+      //             onPressed: () async {
+      //               await _signInWithEmailAndLink();
+      //             },
+      //           ),
+      //         ),
+      //       ],
+      //     ),
+      //   ),
+      // ),
+    ];
+    if (_emailController.text.isNotEmpty && _emailController.text.length > 4) {
+      sectionsEmailLink.add(
+        actionButton(
+          icon: Icons.insert_link,
+          label: locales.get("label--verify").toUpperCase(),
+          onPressed: () async {
+            await _signInWithEmailAndLink();
+          },
+        ),
+      );
+    }
+    sectionsEmailLink.add(spacer);
+    sectionsEmailLink.add(buttonCancel);
+
+    Widget sectionEmail = baseContainer(children: sectionsEmailLink);
 
     List<Widget> sectionsPhoneVerification = [
       TextField(
@@ -569,18 +657,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       ),
       spacerLarge,
     ];
-//    if (_smsController.text.isEmpty) {
-//      sectionsPhoneVerification.add(
-//        actionButton(
-////          label: locales.get("label--verify"),
-//          label: "Didn't get the code",
-//          onPressed: () {
-//            // replace this
-//            _verifyPhoneNumber();
-//          },
-//        ),
-//      );
-//    }
     if (_smsController.text.isNotEmpty) {
       sectionsPhoneVerification.add(
         actionButton(
@@ -612,6 +688,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
               home,
               sectionPhoneNumber,
               sectionPhoneVerification,
+              sectionEmail,
             ],
           ),
         ),
