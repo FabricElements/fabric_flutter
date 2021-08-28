@@ -255,31 +255,33 @@ class _ViewAuthPageState extends State<ViewAuthPage>
 
     /// Sign in with google function
     void _signInGoogle() async {
+      loading = true;
+      if (mounted) setState(() {});
       try {
-        loading = true;
-        if (mounted) setState(() {});
-        try {
-          await _googleSignIn.disconnect(); // Disconnect previews account
-        } catch (error) {
-          print(error);
-        }
+        /// Disconnect previews account
+        await _googleSignIn.disconnect();
+      } catch (error) {}
+      try {
         final GoogleSignInAccount googleUser =
             await (_googleSignIn.signIn() as FutureOr<GoogleSignInAccount>);
         final GoogleSignInAuthentication googleAuth =
             await googleUser.authentication;
+        await verifyIfUserExists({"email": googleUser.email});
         final AuthCredential credential = GoogleAuthProvider.credential(
           accessToken: googleAuth.accessToken,
           idToken: googleAuth.idToken,
         );
         final User? user = (await _auth.signInWithCredential(credential)).user;
         if (user != null) {
-          print("Init");
+          throw Exception("Please try again");
         }
-        loading = false;
+      } on FirebaseFunctionsException catch (error) {
+        alert.show(
+            text: error.message ?? error.details["message"], type: "error");
       } catch (error) {
-        print(error);
-        loading = false;
+        alert.show(text: error.toString(), type: "error");
       }
+      loading = false;
       if (mounted) setState(() {});
     }
 
@@ -298,7 +300,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
             url: dotenv.get("WWW", fallback: null),
           ),
         );
-
         alert.show(
             text: 'An email has been sent to $_userEmail', type: "success");
       } on FirebaseFunctionsException catch (error) {
@@ -340,12 +341,12 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           break;
         case "google":
           text = locales.get("page-auth--actions--sign-in-google");
-          icon = Icons.email;
+          icon = Icons.link;
           action = _signInGoogle;
           break;
         case "email":
           text = locales.get("page-auth--actions--sign-in-email");
-          icon = Icons.email;
+          icon = Icons.attach_email;
           action = () {
             section = 3;
             if (mounted) setState(() {});
