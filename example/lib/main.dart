@@ -5,6 +5,7 @@ import 'package:fabric_flutter/component/firebase_init.dart';
 import 'package:fabric_flutter/component/top_app.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 
 import 'configure_nonweb.dart' if (dart.library.html) 'configure_web.dart';
@@ -13,8 +14,9 @@ import 'state/state-global.dart';
 import 'state/state-user-internal.dart';
 
 Future<void> main() async {
-  configureApp();
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
+  configureApp();
   runApp(
     FirebaseInit(
       child: GlobalProviders(

@@ -7,6 +7,7 @@ import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 
@@ -254,31 +255,33 @@ class _ViewAuthPageState extends State<ViewAuthPage>
 
     /// Sign in with google function
     void _signInGoogle() async {
+      loading = true;
+      if (mounted) setState(() {});
       try {
-        loading = true;
-        if (mounted) setState(() {});
-        try {
-          await _googleSignIn.disconnect(); // Disconnect previews account
-        } catch (error) {
-          print(error);
-        }
+        /// Disconnect previews account
+        await _googleSignIn.disconnect();
+      } catch (error) {}
+      try {
         final GoogleSignInAccount googleUser =
             await (_googleSignIn.signIn() as FutureOr<GoogleSignInAccount>);
         final GoogleSignInAuthentication googleAuth =
             await googleUser.authentication;
+        await verifyIfUserExists({"email": googleUser.email});
         final AuthCredential credential = GoogleAuthProvider.credential(
           accessToken: googleAuth.accessToken,
           idToken: googleAuth.idToken,
         );
         final User? user = (await _auth.signInWithCredential(credential)).user;
         if (user != null) {
-          print("Init");
+          throw Exception("Please try again");
         }
-        loading = false;
+      } on FirebaseFunctionsException catch (error) {
+        alert.show(
+            text: error.message ?? error.details["message"], type: "error");
       } catch (error) {
-        print(error);
-        loading = false;
+        alert.show(text: error.toString(), type: "error");
       }
+      loading = false;
       if (mounted) setState(() {});
     }
 
@@ -290,13 +293,13 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         await _auth.sendSignInLinkToEmail(
           email: _userEmail,
           actionCodeSettings: ActionCodeSettings(
-            url: 'http://localhost:65205',
+            androidPackageName:
+                dotenv.get("ANDROID_PACKAGE_NAME", fallback: null),
             handleCodeInApp: true,
-            // iOSBundleId: 'io.flutter.plugins.firebaseAuthExample',
-            // androidPackageName: 'io.flutter.plugins.firebaseauthexample',
+            iOSBundleId: dotenv.get("IOS_BUNDLE_ID", fallback: null),
+            url: dotenv.get("WWW", fallback: null),
           ),
         );
-
         alert.show(
             text: 'An email has been sent to $_userEmail', type: "success");
       } on FirebaseFunctionsException catch (error) {
@@ -338,12 +341,12 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           break;
         case "google":
           text = locales.get("page-auth--actions--sign-in-google");
-          icon = Icons.email;
+          icon = Icons.link;
           action = _signInGoogle;
           break;
         case "email":
           text = locales.get("page-auth--actions--sign-in-email");
-          icon = Icons.email;
+          icon = Icons.attach_email;
           action = () {
             section = 3;
             if (mounted) setState(() {});
@@ -432,8 +435,8 @@ class _ViewAuthPageState extends State<ViewAuthPage>
                                   ),
                                 ),
                                 Container(height: 16),
+                                authButton("google"),
                                 authButton("phone"),
-                                // authButton("google"),
                                 authButton("email"),
                               ],
                             ),

@@ -123,22 +123,6 @@ dynamic defaultLocales = {
     "en": "Cancel",
     "es": "Cancelar",
   },
-  "label--phone-number": {
-    "en": "Phone Number",
-    "es": "Número telefónico",
-  },
-  "label--email": {
-    "en": "Email",
-    "es": "Correo",
-  },
-  "label--first-name": {
-    "en": "First Name",
-    "es": "Nombre",
-  },
-  "label--last-name": {
-    "en": "Last Name",
-    "es": "Apellido",
-  },
   "label--pending": {
     "en": "Pending",
     "es": "Pendiente",
