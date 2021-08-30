@@ -48,7 +48,6 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/
-    - .env
 
 
   # An image asset can refer to one or more resolution-specific "variants", see
@@ -78,7 +77,7 @@ flutter:
   # see https://flutter.dev/custom-fonts/#from-packages
 
 environment_config:
-  dotenv_path: .env # optional, result file path for .env file against project root folder
+  dotenv_path: assets/env # optional, result file path for env file against project root folder
   dev_extension: dev
   fields:
     TEST:
@@ -86,19 +85,23 @@ environment_config:
       dotenv: TRUE
       type: "String"
     FIREBASE_PROJECT_ID:
-      default: fabricelements
+      default: "fabricelements"
       dotenv: TRUE
       type: "String"
     OS_BUNDLE_ID:
-      default: com.fabricelements.demo
+      default: "com.fabricelements.demo"
       dotenv: TRUE
       type: "String"
     ANDROID_PACKAGE_NAME:
-      default: com.fabricelements.demo
+      default: "com.fabricelements.demo"
       dotenv: TRUE
       type: "String"
     WWW:
-      default: https://fabricelements.web.app
+      default: "https://fabricelements.web.app"
+      dotenv: TRUE
+      type: "String"
+    GOOGLE_SIGNIN_CLIENT_ID:
+      default: "908593247251-t75ap0o5r96ctdbh2g2dvt66ntb8mej6.apps.googleusercontent.com"
       dotenv: TRUE
       type: "String"
 
@@ -109,4 +112,4 @@ environment_config:
         TEST:
           default: BETA
         WWW:
-          default: http://localhost:60655
+          default: http://localhost:5500

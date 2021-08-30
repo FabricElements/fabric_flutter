@@ -10,7 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   charts_flutter: ^0.11.0
-  flutter_sound: ^8.3.9
+  flutter_sound: ^8.3.10
   country_code_picker: ^2.0.2
   flutter_cache_manager: ^3.1.2
   image_picker: ^0.8.3+3

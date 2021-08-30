@@ -15,7 +15,7 @@ import 'state/state-user-internal.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
+  await dotenv.load(fileName: "assets/env");
   configureApp();
   runApp(
     FirebaseInit(
