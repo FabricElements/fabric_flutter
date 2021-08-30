@@ -22,7 +22,7 @@ full API reference.
 Default config
 
 ```cmd
-flutter pub run environment_config:generate
+flutter pub run environment_colsnfig:generate
 ```
 
 Custom extension/environment config

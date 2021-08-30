@@ -1,10 +1,11 @@
 import 'package:devicelocale/devicelocale.dart';
 import 'package:fabric_flutter/helper/app_localizations_delegate.dart';
+import 'package:fabric_flutter/helper/route_helper.dart';
 import 'package:fabric_flutter/state/state_user.dart';
 import 'package:fabric_flutter/view/view_admin_users.dart';
 import 'package:fabric_flutter/view/view_auth_page.dart';
-import 'package:fabric_flutter/view/view_profile_edit.dart';
 import 'package:fabric_flutter/view/view_hero.dart';
+import 'package:fabric_flutter/view/view_profile_edit.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_analytics/observer.dart';
 import 'package:flutter/cupertino.dart';
@@ -29,7 +30,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  // final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
   late String language;
 
   void getLanguage() async {
@@ -65,13 +66,6 @@ class _MyAppState extends State<MyApp> {
     ]);
     SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values);
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
-    final _home = WillPopScope(
-      onWillPop: () async => true,
-      child: Scaffold(
-        primary: false,
-        body: HomePage(),
-      ),
-    );
     Iterable<LocalizationsDelegate<dynamic>> localizationsDelegates = [
       AppLocalizationsDelegate(),
       GlobalMaterialLocalizations.delegate,
@@ -82,34 +76,49 @@ class _MyAppState extends State<MyApp> {
       Locale.fromSubtags(languageCode: "en"),
       Locale.fromSubtags(languageCode: "es"),
     ];
-    if (!stateUser.signedIn) {
-      return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        locale: Locale(language, ""),
-        localizationsDelegates: localizationsDelegates,
-        supportedLocales: supportedLocales,
-        title: 'DEMO',
-        theme: myTheme.get,
-        home: ViewAuthPage(),
-      );
-    }
+    RouteHelper routeHelper = RouteHelper(
+      initialRoute: "/",
+      adminRoutes: [
+        '/users',
+      ],
+      authenticatedRoutes: [
+        '/profile',
+      ],
+      authRoute: "/sign-in",
+      isAdmin: stateUser.admin,
+      publicRoutes: [
+        "/hero",
+      ],
+      routeMap: {
+        "/sign-in": ViewAuthPage(),
+        '/': HomePage(),
+        '/profile': ViewProfileEdit(loader: LoadingScreen()),
+        '/users': ViewAdminUsers(loader: LoadingScreen()),
+        '/hero': ViewHero(),
+      },
+      signedIn: stateUser.signedIn,
+      unknownRoute: "/",
+    );
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      navigatorKey: navigatorKey,
+      // navigatorKey: navigatorKey,
       locale: Locale(language, ""),
       localizationsDelegates: localizationsDelegates,
       supportedLocales: supportedLocales,
       title: 'DEMO',
       theme: myTheme.get,
       initialRoute: "/",
-      routes: {
-        '/': (context) => _home,
-        '/home': (context) => _home,
-        '/profile': (context) =>
-            Scaffold(primary: false, body: ViewProfileEdit(loader: LoadingScreen())),
-        '/users': (context) => Scaffold(primary: false, body: ViewAdminUsers(loader: LoadingScreen())),
-        '/hero': (context) => Scaffold(primary: false, body: ViewHero()),
-      },
+      routes: stateUser.signedIn ? routeHelper.routes() : routeHelper.routes(),
+      // onGenerateRoute: (RouteSettings settings) {
+      //   print("generated ${settings.name}");
+      //   return MaterialPageRoute(
+      //       builder: (BuildContext context) => ViewAuthPage());
+      // },
+      // onUnknownRoute: (RouteSettings settings) {
+      //   print("generated ${settings.name}");
+      //   return MaterialPageRoute(
+      //       builder: (BuildContext context) => ViewAuthPage());
+      // },
     );
   }
 }

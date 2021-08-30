@@ -5,4 +5,5 @@ export 'helper/image_helper.dart';
 export 'helper/iso_language.dart';
 export 'helper/jwt.dart';
 export 'helper/redirect_app.dart';
+export 'helper/route_helper.dart';
 export 'helper/utils.dart';

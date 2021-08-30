@@ -18,7 +18,6 @@ import '../placeholder/loading_screen.dart';
 import '../state/state_analytics.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
-final GoogleSignIn _googleSignIn = GoogleSignIn();
 
 /// Validate if user exists or fail
 Future<void> verifyIfUserExists(Map<String, dynamic> data) async {
@@ -257,6 +256,10 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     void _signInGoogle() async {
       loading = true;
       if (mounted) setState(() {});
+      GoogleSignIn _googleSignIn = GoogleSignIn(
+        clientId: dotenv.get("GOOGLE_SIGNIN_CLIENT_ID", fallback: ""),
+        scopes: ["email"],
+      );
       try {
         /// Disconnect previews account
         await _googleSignIn.disconnect();
