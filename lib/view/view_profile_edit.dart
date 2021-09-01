@@ -10,6 +10,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import '../placeholder/loading_screen.dart';
 
@@ -232,63 +233,60 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
       double height = MediaQuery.of(context).size.height;
       double smallerSize =
           math.min(width >= 150 ? width : 150, height >= 150 ? height : 150);
-      return Center(
-        child: Container(
-          constraints:
-          BoxConstraints(maxWidth: 900),
-          child: ListView(
-            children: <Widget>[
-              Container(
-                child: AspectRatio(
-                  aspectRatio: 1 / 1,
-                  child: Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Center(
-                      child: RawMaterialButton(
-                        onPressed: _temporalImageBytes == null
-                            ? () async {
-                                Navigator.pushNamed(context, '/hero',
-                                    arguments: {"url": userImage});
-                              }
-                            : null,
-                        child: Container(
-                          constraints:
-                              BoxConstraints(minWidth: 100, maxWidth: 300),
-                          child: AspectRatio(
-                            aspectRatio: 1 / 1,
-                            child: CircleAvatar(
-                              backgroundImage: previewImage,
-                              child: Stack(
-                                children: <Widget>[
-                                  Positioned(
-                                    bottom: 0,
-                                    left: 15,
-                                    child: FloatingActionButton(
-                                      backgroundColor: Colors.grey.shade50,
-                                      heroTag: "image",
-                                      child: Icon(
-                                        Icons.image,
-                                        color: Theme.of(context).accentColor,
-                                      ),
-                                      onPressed: () async {
-                                        await getImageFromOrigin("gallery");
-                                      },
-                                    ),
+      return ListView(
+        children: <Widget>[
+          Container(
+            constraints: BoxConstraints(maxWidth: 300, maxHeight: 300),
+            child: AspectRatio(
+              aspectRatio: 1 / 1,
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Center(
+                  child: RawMaterialButton(
+                    hoverColor: Colors.transparent,
+                    onPressed: _temporalImageBytes == null
+                        ? () async {
+                            Navigator.pushNamed(context, '/hero',
+                                arguments: {"url": userImage});
+                          }
+                        : null,
+                    child: Container(
+                      constraints: BoxConstraints(minWidth: 100, maxWidth: 300),
+                      child: AspectRatio(
+                        aspectRatio: 1 / 1,
+                        child: CircleAvatar(
+                          backgroundImage: previewImage,
+                          child: Stack(
+                            children: <Widget>[
+                              Positioned(
+                                bottom: 0,
+                                left: 15,
+                                child: FloatingActionButton(
+                                  backgroundColor: Colors.grey.shade50,
+                                  heroTag: "image",
+                                  child: Icon(
+                                    Icons.image,
+                                    color: Theme.of(context).accentColor,
                                   ),
-                                  Positioned(
-                                    bottom: 0,
-                                    right: 15,
-                                    child: FloatingActionButton(
-                                      heroTag: "camera",
-                                      child: Icon(Icons.photo_camera),
-                                      onPressed: () async {
-                                        await getImageFromOrigin("camera");
-                                      },
-                                    ),
-                                  ),
-                                ],
+                                  onPressed: () async {
+                                    await getImageFromOrigin("gallery");
+                                  },
+                                ),
                               ),
-                            ),
+                              !kIsWeb
+                                  ? Positioned(
+                                      bottom: 0,
+                                      right: 15,
+                                      child: FloatingActionButton(
+                                        heroTag: "camera",
+                                        child: Icon(Icons.photo_camera),
+                                        onPressed: () async {
+                                          await getImageFromOrigin("camera");
+                                        },
+                                      ),
+                                    )
+                                  : Container(),
+                            ],
                           ),
                         ),
                       ),
@@ -296,44 +294,44 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
                   ),
                 ),
               ),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: TextField(
-                  controller: nameFirstController,
-                  decoration: InputDecoration(
-                    labelText: locales.get("label--name-first"),
-                    hintText: locales.get("label--name-first"),
-                  ),
-                  maxLines: 1,
-                  keyboardType: TextInputType.text,
-                  maxLength: 15,
-                  inputFormatters: <TextInputFormatter>[
-                    FilteringTextInputFormatter.singleLineFormatter,
-                    FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z ]")),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: TextField(
-                  controller: nameLastController,
-                  decoration: InputDecoration(
-                    labelText: locales.get("label--name-last"),
-                    hintText: locales.get("label--name-last"),
-                  ),
-                  maxLines: 1,
-                  keyboardType: TextInputType.text,
-                  maxLength: 15,
-                  inputFormatters: <TextInputFormatter>[
-                    FilteringTextInputFormatter.singleLineFormatter,
-                    FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z '-]")),
-                  ],
-                ),
-              ),
-              Container(height: 32),
-            ],
+            ),
           ),
-        ),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: TextField(
+              controller: nameFirstController,
+              decoration: InputDecoration(
+                labelText: locales.get("label--name-first"),
+                hintText: locales.get("label--name-first"),
+              ),
+              maxLines: 1,
+              keyboardType: TextInputType.text,
+              maxLength: 15,
+              inputFormatters: <TextInputFormatter>[
+                FilteringTextInputFormatter.singleLineFormatter,
+                FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z ]")),
+              ],
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: TextField(
+              controller: nameLastController,
+              decoration: InputDecoration(
+                labelText: locales.get("label--name-last"),
+                hintText: locales.get("label--name-last"),
+              ),
+              maxLines: 1,
+              keyboardType: TextInputType.text,
+              maxLength: 15,
+              inputFormatters: <TextInputFormatter>[
+                FilteringTextInputFormatter.singleLineFormatter,
+                FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z '-]")),
+              ],
+            ),
+          ),
+          Container(height: 32),
+        ],
       );
     }
 

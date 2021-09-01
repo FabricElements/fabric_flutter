@@ -30,25 +30,21 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  late String language;
+  String language = "en";
   bool loadedRoutes = false;
-  late Map<String, WidgetBuilder>? _routes;
 
   void getLanguage() async {
     List languages = (await Devicelocale.preferredLanguages)!;
     String baseLanguage = languages[0];
     String cleanLanguage = baseLanguage.substring(0, 2);
-    if (cleanLanguage == 'es') {
+    if (cleanLanguage == "es") {
       language = cleanLanguage;
-      if (mounted) setState(() {});
     }
   }
 
   @override
   void initState() {
     super.initState();
-    language = "en";
-    _routes = null;
     getLanguage();
   }
 

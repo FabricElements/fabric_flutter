@@ -38,6 +38,7 @@ class RouteHelper {
       _routesPublic.add(_authRoute);
     }
     if (publicRoutes != null) {
+      _routesSignedIn.addAll(publicRoutes!);
       _routesPublic.addAll(publicRoutes!);
     }
     if (signedIn) {
@@ -90,14 +91,7 @@ class RouteHelper {
       _endPublic.addAll({
         "$key": Scaffold(primary: false, body: _endViewSigned),
       });
-      // _endPublic.addAll({
-      //   "$key": (context) => Scaffold(primary: false, body: _endViewSigned),
-      // });
     });
-    // String random = DateTime.now().millisecond.toString();
-    // _baseRoutes.addAll({
-    //   "/random-$random": (context) => Scaffold(primary: false, body: routeMap[_unknownRoute]),
-    // });
     return signed ? _endSignedIn : _endPublic;
   }
 
