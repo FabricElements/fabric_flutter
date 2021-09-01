@@ -297,10 +297,10 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           email: _userEmail,
           actionCodeSettings: ActionCodeSettings(
             androidPackageName:
-                dotenv.get("ANDROID_PACKAGE_NAME", fallback: null),
+                dotenv.get("ANDROID_PACKAGE_NAME", fallback: ""),
             handleCodeInApp: true,
-            iOSBundleId: dotenv.get("IOS_BUNDLE_ID", fallback: null),
-            url: dotenv.get("WWW", fallback: null),
+            iOSBundleId: dotenv.get("IOS_BUNDLE_ID", fallback: ""),
+            url: dotenv.get("WWW", fallback: ""),
           ),
         );
         alert.show(

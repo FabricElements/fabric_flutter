@@ -1,7 +1,8 @@
-import 'package:fabric_flutter/state/state_analytics.dart';
-import 'package:fabric_flutter/state/state_dynamic_links.dart';
-import 'package:fabric_flutter/state/state_notifications.dart';
-import 'package:fabric_flutter/state/state_user.dart';
+import '../state/state_analytics.dart';
+import '../state/state_dynamic_links.dart';
+import '../state/state_notifications.dart';
+import '../state/state_user.dart';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';

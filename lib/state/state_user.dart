@@ -24,18 +24,16 @@ class StateUser extends StateDocument {
 
   /// [_getToken] Gets the authenticated user token and retrieves costume claims
   void _getToken() async {
+    _claims = null;
     try {
       if (signedIn) {
         final token = await (_userObject!.getIdTokenResult(true));
         _claims = token.claims;
-        // Map<dynamic, dynamic> tokenData = json.decode(token) ?? {};
-        // Map<String, String> claims = tokenData["claims"];
-        // print(tokenData);
-        notifyListeners();
       }
     } catch (e) {
       print(e);
     }
+    notifyListeners();
   }
 
   /// Set [object] with the [User] data
@@ -46,7 +44,7 @@ class StateUser extends StateDocument {
   }
 
   /// [admin] Returns "true" if the authenticated user is an admin
-  bool get admin => role == "admin";
+  bool get admin => serialized.role == "admin";
 
   /// [object] Returns a [User] object
   User? get object => _userObject;
@@ -57,21 +55,19 @@ class StateUser extends StateDocument {
   UserData get serialized => UserData.fromJson(data);
 
   /// [signedIn] Returns "true" when the user is authenticated
-  bool get signedIn => _userObject != null;
+  bool get signedIn => _userObject != null && _userObject?.uid == id;
 
-  /// [role] Returns the authenticated user role
-  // String get role => id != null && claims.containsKey("role")
-  //     ? claims["role"] as String
-  //     : "user";
-  String get role => "admin";
   /// [roleFromData] Return an user role using [uid]
   String roleFromData({
     Map<String, dynamic>? compareData,
     String? level,
     required String? uid,
   }) {
-    if (id != null && uid != null && (id == uid) && role == "admin") {
-      return role;
+    if (id != null &&
+        uid != null &&
+        (id == uid) &&
+        serialized.role == "admin") {
+      return serialized.role;
     }
     String _role = "user";
     if (uid == null || compareData == null || level == null) {

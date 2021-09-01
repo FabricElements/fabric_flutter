@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
+/// [RouteHelper] Enables/Disables routes depending on credentials
 class RouteHelper {
   RouteHelper({
     required this.adminRoutes,
@@ -25,64 +26,101 @@ class RouteHelper {
   final String? unknownRoute;
   final String initialRoute;
 
-  Map<String, WidgetBuilder> routes() {
-    print("routes called");
-    Map<String, WidgetBuilder> _baseRoutes = {};
+  Map<String, Widget> routes(bool signed) {
+    Map<String, Widget> _endSignedIn = {};
+    Map<String, Widget> _endPublic = {};
     String _authRoute = authRoute ?? "/auth";
     String _unknownRoute = unknownRoute ?? "/";
 
-    List<String> _routes = [];
+    List<String> _routesSignedIn = [];
+    List<String> _routesPublic = [];
     if (!signedIn) {
-      _routes.add(_authRoute);
+      _routesPublic.add(_authRoute);
     }
     if (publicRoutes != null) {
-      _routes.addAll(publicRoutes!);
+      _routesPublic.addAll(publicRoutes!);
     }
     if (signedIn) {
       if (authenticatedRoutes != null) {
-        _routes.addAll(authenticatedRoutes!);
+        _routesSignedIn.addAll(authenticatedRoutes!);
       }
       if (isAdmin && adminRoutes != null) {
-        _routes.addAll(adminRoutes!);
+        _routesSignedIn.addAll(adminRoutes!);
       }
     }
 
+    /// Authenticated views
     routeMap.forEach((key, value) {
-      Widget? _endView;
-      if (_routes.contains(key)) {
+      Widget? _endViewSigned;
+      if (_routesSignedIn.contains(key)) {
         if (key == initialRoute) {
-          _endView = WillPopScope(
+          _endViewSigned = WillPopScope(
             onWillPop: () async => true,
             child: value,
           );
         } else {
-          _endView = value;
+          _endViewSigned = value;
         }
       } else {
-        if (!signedIn) {
-          _endView = routeMap[_authRoute];
+        _endViewSigned = routeMap[_unknownRoute];
+      }
+      // _endSignedIn.addAll({
+      //   "$key": (context) => Scaffold(primary: false, body: _endViewSigned),
+      // });
+      _endSignedIn.addAll({
+        "$key": Scaffold(primary: false, body: _endViewSigned),
+      });
+    });
+
+    /// Authenticated views
+    routeMap.forEach((key, value) {
+      Widget? _endViewSigned;
+      if (_routesPublic.contains(key)) {
+        if (key == initialRoute) {
+          _endViewSigned = WillPopScope(
+            onWillPop: () async => true,
+            child: value,
+          );
         } else {
-          _endView = routeMap[_unknownRoute];
+          _endViewSigned = value;
         }
+      } else {
+        _endViewSigned = routeMap[_authRoute];
       }
-      if (_endView != null) {
-        _baseRoutes.addAll({
-          "$key": (context) => Scaffold(primary: false, body: _endView),
-        });
-      }
+      _endPublic.addAll({
+        "$key": Scaffold(primary: false, body: _endViewSigned),
+      });
+      // _endPublic.addAll({
+      //   "$key": (context) => Scaffold(primary: false, body: _endViewSigned),
+      // });
     });
-    // _routes.forEach((key) {
-    //   if (routeMap.containsKey(key)) {
-    //     _baseRoutes.addAll({
-    //       "$key": (context) => Scaffold(primary: false, body: routeMap[key]),
-    //     });
-    //   }
+    // String random = DateTime.now().millisecond.toString();
+    // _baseRoutes.addAll({
+    //   "/random-$random": (context) => Scaffold(primary: false, body: routeMap[_unknownRoute]),
     // });
-    String random = DateTime.now().millisecond.toString();
-    _baseRoutes.addAll({
-      "/random-$random": (context) => Scaffold(primary: false, body: routeMap[_unknownRoute]),
+    return signed ? _endSignedIn : _endPublic;
+  }
+
+  Map<String, Widget> get routesSignedIn => routes(true);
+
+  Map<String, Widget> get routesPublic => routes(false);
+
+  Map<String, WidgetBuilder> endRoutes({
+    // required bool signedIn,
+    required Map<String, Widget> publicRoutes,
+    required Map<String, Widget> routesSignedIn,
+  }) {
+    Map<String, WidgetBuilder> _routes = {};
+    publicRoutes.forEach((key, value) {
+      _routes.putIfAbsent(
+        key,
+        () => (context) {
+          if (signedIn) return routesSignedIn[key]!;
+          return value;
+        },
+      );
     });
-    print(random);
-    return _baseRoutes;
+
+    return _routes;
   }
 }

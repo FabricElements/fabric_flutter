@@ -30,8 +30,9 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  // final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
   late String language;
+  bool loadedRoutes = false;
+  late Map<String, WidgetBuilder>? _routes;
 
   void getLanguage() async {
     List languages = (await Devicelocale.preferredLanguages)!;
@@ -47,6 +48,7 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     language = "en";
+    _routes = null;
     getLanguage();
   }
 
@@ -56,26 +58,11 @@ class _MyAppState extends State<MyApp> {
     StateUserInternal stateUserInternal =
         Provider.of<StateUserInternal>(context);
     StateUser stateUser = Provider.of<StateUser>(context);
-    ThemeData theme = Theme.of(context).copyWith();
-    MyTheme myTheme = MyTheme(theme, Colors.indigo, "light");
+    if (stateUser.signedIn) {
+      language = stateUser.serialized.language;
+    }
 
-    SystemChrome.restoreSystemUIOverlays();
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
-    SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values);
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
-    Iterable<LocalizationsDelegate<dynamic>> localizationsDelegates = [
-      AppLocalizationsDelegate(),
-      GlobalMaterialLocalizations.delegate,
-      GlobalWidgetsLocalizations.delegate,
-      GlobalCupertinoLocalizations.delegate,
-    ];
-    Iterable<Locale> supportedLocales = [
-      Locale.fromSubtags(languageCode: "en"),
-      Locale.fromSubtags(languageCode: "es"),
-    ];
+    /// Enable/Disable routes depending on credentials
     RouteHelper routeHelper = RouteHelper(
       initialRoute: "/",
       adminRoutes: [
@@ -99,26 +86,47 @@ class _MyAppState extends State<MyApp> {
       signedIn: stateUser.signedIn,
       unknownRoute: "/",
     );
+    Map<String, WidgetBuilder> _routes = {};
+    routeHelper.routesPublic.forEach((key, value) {
+      _routes.putIfAbsent(
+        key,
+        () => (context) {
+          if (stateUser.signedIn) return routeHelper.routesSignedIn[key]!;
+          return value;
+        },
+      );
+    });
+
+    /// Theme
+    ThemeData theme = Theme.of(context).copyWith();
+    MyTheme myTheme = MyTheme(theme, Colors.indigo, "light");
+    SystemChrome.restoreSystemUIOverlays();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+    SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values);
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
+    Iterable<LocalizationsDelegate<dynamic>> localizationsDelegates = [
+      AppLocalizationsDelegate(),
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+      GlobalCupertinoLocalizations.delegate,
+    ];
+    Iterable<Locale> supportedLocales = [
+      Locale.fromSubtags(languageCode: "en"),
+      Locale.fromSubtags(languageCode: "es"),
+    ];
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      // navigatorKey: navigatorKey,
       locale: Locale(language, ""),
       localizationsDelegates: localizationsDelegates,
       supportedLocales: supportedLocales,
       title: 'DEMO',
       theme: myTheme.get,
       initialRoute: "/",
-      routes: stateUser.signedIn ? routeHelper.routes() : routeHelper.routes(),
-      // onGenerateRoute: (RouteSettings settings) {
-      //   print("generated ${settings.name}");
-      //   return MaterialPageRoute(
-      //       builder: (BuildContext context) => ViewAuthPage());
-      // },
-      // onUnknownRoute: (RouteSettings settings) {
-      //   print("generated ${settings.name}");
-      //   return MaterialPageRoute(
-      //       builder: (BuildContext context) => ViewAuthPage());
-      // },
+      routes: _routes,
     );
   }
 }

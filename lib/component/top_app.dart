@@ -26,30 +26,26 @@ class TopApp extends StatelessWidget with WidgetsBindingObserver {
     StateDynamicLinks stateDynamicLinks =
         Provider.of<StateDynamicLinks>(context, listen: false);
     StateUser stateUser = Provider.of<StateUser>(context, listen: false);
-    String? uid;
+    // StateRoutes stateRoutes = Provider.of<StateRoutes>(context, listen: false);
     final FirebaseAuth _auth = FirebaseAuth.instance;
 
-    try {
-      _auth.authStateChanges().listen(
-        (User? userObject) async {
-          uid = userObject?.uid ?? null;
-          stateUser.id = uid;
-          if (uid != null) {
-            stateUser.object = userObject;
-            if (notifications) {
-              stateNotifications.uid = uid;
-              stateNotifications.init();
-            }
-          } else {
-            if (notifications) {
-              stateNotifications.clear(); // Stop notifications when sign out
-            }
-          }
-        },
-      );
-    } catch (error) {
-      print(error);
-    }
+    _auth.authStateChanges().listen((User? userObject) async {
+      String? uid = userObject?.uid ?? null;
+      stateUser.id = uid;
+      stateUser.object = userObject ?? null;
+      // stateRoutes.signedIn = uid != null;
+      // stateRoutes.admin = stateUser.admin;
+      if (uid != null) {
+        if (notifications) {
+          stateNotifications.uid = uid;
+          stateNotifications.init();
+        }
+      } else {
+        if (notifications) {
+          stateNotifications.clear(); // Stop notifications when sign out
+        }
+      }
+    });
     try {
       if (links) {
         stateDynamicLinks.init();
@@ -57,6 +53,13 @@ class TopApp extends StatelessWidget with WidgetsBindingObserver {
     } catch (e) {
       print(e);
     }
+
+    // return StreamBuilder(
+    //   stream: _auth.authStateChanges(),
+    //   builder: (context, snapshot) {
+    //     return child;
+    //   },
+    // );
 
     return child;
   }

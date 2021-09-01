@@ -325,7 +325,7 @@ class _HomePageState extends State<HomePage> {
                     style: TextStyle(color: Colors.redAccent.shade200)),
                 onTap: () {
                   stateUser.signOut();
-                  Navigator.popAndPushNamed(context, "/");
+                  // Navigator.popAndPushNamed(context, "/sing-in");
                 },
               ),
             ],
