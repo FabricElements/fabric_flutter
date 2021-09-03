@@ -5,17 +5,28 @@ import 'package:flutter/cupertino.dart';
 class StateDocument extends ChangeNotifier {
   StateDocument();
 
+  /// More at [id]
   String? _documentId;
+
+  /// More at [data]
   Map<String, dynamic> _data = {};
+
+  /// Firestore Document Reference
   late DocumentReference<Map<String, dynamic>> _documentReference;
+
+  /// Firestore Document Stream Reference
   Stream<DocumentSnapshot>? _streamReference;
+
+  /// More at [callback]
+  VoidCallback? _callback;
+
+  /// Collection ID
   String collection = "demo";
 
   /// Set document [id]
   set id(String? id) {
-    _drain();
-    reset();
-    _data = {};
+    if (id != _documentId) clear();
+    if (id == _documentId && _data.isNotEmpty) return;
     _documentId = id;
     if (id != null) {
       _documentReference =
@@ -23,7 +34,6 @@ class StateDocument extends ChangeNotifier {
       _streamReference = _documentReference.snapshots();
       _listen();
     }
-    notifyListeners();
   }
 
   /// Listen for document changes
@@ -40,6 +50,7 @@ class StateDocument extends ChangeNotifier {
         _data = snapshot.data()! as Map<String, dynamic>;
         _data["id"] = snapshotID;
         notifyListeners();
+        if (_callback != null) _callback!();
       }).onError((error) {
         print(error);
         isValid = false;
@@ -54,15 +65,17 @@ class StateDocument extends ChangeNotifier {
     }
   }
 
+  /// Update Firestore Document
   Future<void> update(Map<String, dynamic> newData) {
     return _documentReference.update(newData);
   }
 
+  /// Set Merge Firestore Document
   Future<void> set(Map<String, dynamic> newData, {bool merge = false}) {
     return _documentReference.set(newData, SetOptions(merge: merge));
   }
 
-  /// Get document [id]
+  /// Get Firestore Document [id]
   String? get id => _documentId;
 
   /// Return document [data]
@@ -93,7 +106,11 @@ class StateDocument extends ChangeNotifier {
     _drain();
     _documentId = null;
     _data = {};
+    _callback = null;
     reset();
     notifyListeners();
   }
+
+  /// Callback on successful load
+  set callback(VoidCallback _function) => _callback = _function;
 }

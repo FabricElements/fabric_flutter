@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:fabric_flutter/component.dart';
 import 'package:fabric_flutter/component/firebase_init.dart';
+import 'package:fabric_flutter/component/global_providers.dart';
 import 'package:fabric_flutter/component/top_app.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
