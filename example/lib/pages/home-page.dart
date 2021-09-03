@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fabric_flutter/fabric_flutter.dart';
+import 'package:fabric_flutter/state/state_api.dart';
 import 'package:fabric_flutter/state/state_user.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/cupertino.dart';
@@ -48,6 +49,23 @@ class _HomePageState extends State<HomePage> {
     TextTheme textTheme = theme.textTheme;
     Color backgroundColor = Colors.grey.shade50;
     Widget spacer = Container(height: 16);
+    final StateAPI stateAPI = Provider.of<StateAPI>(context);
+    stateAPI.endpoint =
+        "https://raw.githubusercontent.com/ernysans/laraworld/master/composer.json";
+    final StateDocument stateDocument = Provider.of<StateDocument>(context);
+
+    WidgetsBinding.instance?.addPostFrameCallback((_) {
+      if (stateAPI.data != null) {
+        print("data: ${stateAPI.data}");
+        stateDocument.id = "test";
+        print("firestore: ${stateDocument.data}");
+        if (stateDocument.data.isNotEmpty) {
+          stateDocument.callback = () => stateAPI.get();
+        }
+      } else {
+        print("error ${stateAPI.error}");
+      }
+    });
 
     /// Dynamic links
     Future<void> _dynamicLinksCallback(
