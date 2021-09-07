@@ -35,9 +35,6 @@ class StateNotifications extends ChangeNotifier {
         "backup": false,
         "fcm": token,
         "updated": FieldValue.serverTimestamp(),
-        "onboarding": {
-          "fcm": true,
-        }
       }, SetOptions(merge: true));
     } catch (error) {
       print("error saving user token: ${error.toString()}");

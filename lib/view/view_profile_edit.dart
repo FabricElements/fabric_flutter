@@ -1,18 +1,19 @@
 import 'dart:convert';
 import 'dart:math' as math;
 import 'dart:typed_data';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:fabric_flutter/fabric_flutter.dart';
-import 'package:fabric_flutter/state/state_user.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
+import '../state/state_user.dart';
 import '../placeholder/loading_screen.dart';
+import '../helper/app_localizations_delegate.dart';
+import '../helper/alert.dart';
+import '../helper/image_helper.dart';
 
 class ViewProfileEdit extends StatefulWidget {
   ViewProfileEdit({
@@ -86,6 +87,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
   Widget build(BuildContext context) {
     AppLocalizations locales = AppLocalizations.of(context)!;
     StateUser stateUser = Provider.of<StateUser>(context);
+    stateUser.ping("profile");
     userImage = stateUser.serialized.avatar;
     nameFirst = stateUser.serialized.nameFirst;
     nameLast = stateUser.serialized.nameLast;

@@ -44,6 +44,7 @@ class _HomePageState extends State<HomePage> {
     StateUserInternal stateUserInternal =
         Provider.of<StateUserInternal>(context);
     StateUser stateUser = Provider.of<StateUser>(context);
+    stateUser.ping("home");
     AppLocalizations locales = AppLocalizations.of(context)!;
     ThemeData theme = Theme.of(context);
     TextTheme textTheme = theme.textTheme;
@@ -56,13 +57,14 @@ class _HomePageState extends State<HomePage> {
 
     WidgetsBinding.instance?.addPostFrameCallback((_) {
       if (stateAPI.data != null) {
-        print("data: ${stateAPI.data}");
+        // print("data: ${stateAPI.data}");
         stateDocument.id = "test";
-        print("firestore: ${stateDocument.data}");
+        // print("firestore: ${stateDocument.data}");
         if (stateDocument.data.isNotEmpty) {
           stateDocument.callback = () => stateAPI.get();
         }
-      } else {
+      }
+      if (stateAPI.error != null) {
         print("error ${stateAPI.error}");
       }
     });

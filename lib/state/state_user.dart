@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../serialized/user_data.dart';
 import 'state_document.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -9,6 +10,8 @@ final FirebaseAuth _auth = FirebaseAuth.instance;
 class StateUser extends StateDocument {
   User? _userObject;
   Map<String, dynamic>? _claims;
+  String? _pingReference;
+  DateTime _pingLast = DateTime.now().subtract(Duration(minutes: 10));
 
   StateUser();
 
@@ -29,11 +32,11 @@ class StateUser extends StateDocument {
       if (signedIn) {
         final token = await (_userObject!.getIdTokenResult(true));
         _claims = token.claims;
+        notifyListeners();
       }
     } catch (e) {
       print(e);
     }
-    notifyListeners();
   }
 
   /// Set [object] with the [User] data
@@ -44,7 +47,10 @@ class StateUser extends StateDocument {
   }
 
   /// [admin] Returns "true" if the authenticated user is an admin
-  bool get admin => serialized.role == "admin";
+  bool get admin => role == "admin";
+
+  /// [role] Returns user role
+  String get role => claims["role"] ?? serialized.role;
 
   /// [object] Returns a [User] object
   User? get object => _userObject;
@@ -63,11 +69,8 @@ class StateUser extends StateDocument {
     String? level,
     required String? uid,
   }) {
-    if (id != null &&
-        uid != null &&
-        (id == uid) &&
-        serialized.role == "admin") {
-      return serialized.role;
+    if (id != null && uid != null && (id == uid) && admin) {
+      return role;
     }
     String _role = "user";
     if (uid == null || compareData == null || level == null) {
@@ -82,6 +85,24 @@ class StateUser extends StateDocument {
       _role = "$level-$_baseRole";
     }
     return _role;
+  }
+
+  /// Ping user
+  void ping(String reference) async {
+    if (reference == _pingReference || !signedIn || data.isEmpty) return;
+    _pingLast = serialized.ping ?? _pingLast;
+    DateTime _timeRef = DateTime.now().subtract(Duration(minutes: 1));
+    if (_pingLast.isAfter(_timeRef)) return;
+    _pingLast = DateTime.now(); // Define before saving because it's async
+    try {
+      await FirebaseFirestore.instance
+          .collection("user")
+          .doc(id)
+          .set({"ping": FieldValue.serverTimestamp()}, SetOptions(merge: true));
+      _pingReference = reference;
+    } catch (error) {
+      print("user ping error: ${error.toString()}");
+    }
   }
 
   /// Sign Out user
