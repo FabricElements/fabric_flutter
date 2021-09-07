@@ -177,10 +177,6 @@ class _HomePageState extends State<HomePage> {
               },
             ),
             stretch: false,
-            onStretchTrigger: () {
-              // Function callback for stretch
-              return;
-            } as Future<void> Function()?,
             expandedHeight: 100,
             flexibleSpace: FlexibleSpaceBar(
               stretchModes: <StretchMode>[

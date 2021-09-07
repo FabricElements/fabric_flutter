@@ -14,7 +14,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
-import 'pages/home-page.dart';
+import 'pages/home_page.dart';
 import 'splash/loading.dart';
 import 'state/state_global.dart';
 import 'state/state_user_internal.dart';
