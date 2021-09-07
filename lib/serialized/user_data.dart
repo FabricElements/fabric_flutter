@@ -10,15 +10,12 @@ class UserDataOnboarding {
   @JsonKey(defaultValue: false, includeIfNull: true)
   final bool avatar;
   @JsonKey(defaultValue: false, includeIfNull: true)
-  final bool fcm;
-  @JsonKey(defaultValue: false, includeIfNull: true)
   final bool name;
   @JsonKey(defaultValue: false, includeIfNull: true)
   final bool terms;
 
   UserDataOnboarding(
     this.avatar,
-    this.fcm,
     this.name,
     this.terms,
   );
@@ -38,9 +35,10 @@ class UserData {
       includeIfNull: true)
   final String avatar;
 
+  /// User Creation Time: [created]
   @JsonKey(
-    fromJson: Utils.timestampFromJson,
-    toJson: Utils.timestampToJson,
+    fromJson: Utils.timestampFromJsonDefault,
+    toJson: Utils.timestampToJsonDefault,
     includeIfNull: true,
     defaultValue: null,
   )
@@ -49,6 +47,10 @@ class UserData {
   /// [email] used for authentication
   @JsonKey(defaultValue: "", includeIfNull: true)
   final String email;
+
+  /// Firebase Cloud Messaging [fcm] token https://firebase.google.com/docs/cloud-messaging
+  @JsonKey(includeIfNull: true, defaultValue: null)
+  final String? fcm;
 
   /// User [id]
   @JsonKey(includeIfNull: true, defaultValue: null)
@@ -78,6 +80,15 @@ class UserData {
   @JsonKey(includeIfNull: true, defaultValue: null)
   final UserDataOnboarding onboarding;
 
+  /// Last time the user was ping: [ping]
+  @JsonKey(
+    fromJson: Utils.timestampFromJson,
+    toJson: Utils.timestampToJson,
+    includeIfNull: true,
+    defaultValue: null,
+  )
+  final DateTime? ping;
+
   /// [phone] used for authentication
   @JsonKey(defaultValue: "", includeIfNull: true)
   final String phone;
@@ -86,13 +97,13 @@ class UserData {
   @JsonKey(defaultValue: "user", includeIfNull: true)
   final String role;
 
-  /// Firebase Cloud Messaging [fcm] token https://firebase.google.com/docs/cloud-messaging
-  @JsonKey(includeIfNull: true, defaultValue: null)
-  final String? fcm;
+  /// User [presence] (active, inactive, away)
+  final String presence;
 
+  /// Last time the user was updated: [created]
   @JsonKey(
-    fromJson: Utils.timestampFromJson,
-    toJson: Utils.timestampToJson,
+    fromJson: Utils.timestampFromJsonDefault,
+    toJson: Utils.timestampToJsonDefault,
     includeIfNull: true,
     defaultValue: null,
   )
@@ -106,6 +117,7 @@ class UserData {
     this.avatar,
     this.created,
     this.email,
+    this.fcm,
     this.id,
     this.name,
     this.nameFirst,
@@ -114,11 +126,11 @@ class UserData {
     this.language,
     this.onboarding,
     this.phone,
+    this.ping,
     this.role,
-    this.fcm,
     this.updated,
     this.username,
-  );
+  ) : presence = Utils.getPresence(ping);
 
   factory UserData.fromJson(Map<String, dynamic>? json) =>
       _$UserDataFromJson(json ?? {});

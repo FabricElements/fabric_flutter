@@ -57,6 +57,7 @@ class _ViewAdminUsersState extends State<ViewAdminUsers> {
     TextTheme textTheme = theme.textTheme;
     AppLocalizations locales = AppLocalizations.of(context)!;
     StateUser stateUser = Provider.of<StateUser>(context);
+    stateUser.ping("admin-users");
     Query query = FirebaseFirestore.instance.collection("user");
 
     /// Get data from navigation arguments
@@ -173,7 +174,20 @@ class _ViewAdminUsersState extends State<ViewAdminUsers> {
                   userDocument.data()! as Map<String, dynamic>;
               userData.addAll({"id": userDocument.id});
               UserData _itemData = UserData.fromJson(userData);
+              bool _sameUser = stateUser.id == _itemData.id;
+              // Don't allow a user to change anything about itself on the "admin" view
+              bool _canUpdateUser = !_sameUser;
               Color statusColor = Colors.grey.shade600;
+              switch (_itemData.presence) {
+                case "active":
+                  statusColor = Colors.green;
+                  break;
+                case "inactive":
+                  statusColor = Colors.deepOrange;
+              }
+              if (_sameUser) {
+                statusColor = Colors.green;
+              }
               String _role = _itemData.role;
               if (collectionId != null) {
                 _role = stateUser.roleFromData(
@@ -203,8 +217,6 @@ class _ViewAdminUsersState extends State<ViewAdminUsers> {
                   name = _itemData.email;
                 }
               }
-              // Don't allow a user to change anything about itself on the "admin" view
-              bool _canUpdateUser = stateUser.id != _itemData.id;
               List<Widget> _roleChips = [
                 Chip(
                   padding: EdgeInsets.symmetric(
