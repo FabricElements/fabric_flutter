@@ -10,8 +10,8 @@ import 'package:provider/provider.dart';
 
 import 'configure_nonweb.dart' if (dart.library.html) 'configure_web.dart';
 import 'my-app.dart';
-import 'state/state-global.dart';
-import 'state/state-user-internal.dart';
+import 'state/state_global.dart';
+import 'state/state_user_internal.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

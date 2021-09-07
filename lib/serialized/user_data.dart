@@ -1,5 +1,4 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 part 'user_data.g.dart';
 
@@ -33,12 +32,10 @@ class UserData {
           "https://images.unsplash.com/photo-1547679904-ac76451d1594?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=500&h=500&q=80",
       includeIfNull: true)
   final String avatar;
-  // @JsonKey(includeIfNull: true)
-  // final Timestamp? created;
   @JsonKey(defaultValue: "", includeIfNull: true)
   final String email;
   @JsonKey(includeIfNull: true, defaultValue: null)
-  final String id;
+  final String? id;
   @JsonKey(defaultValue: "", includeIfNull: true)
   final String name;
   @JsonKey(defaultValue: "", includeIfNull: true)
@@ -49,7 +46,7 @@ class UserData {
   final String nameLast;
   @JsonKey(defaultValue: "en", includeIfNull: true)
   final String language;
-  @JsonKey(includeIfNull: true)
+  @JsonKey(includeIfNull: true, defaultValue: null)
   final UserDataOnboarding onboarding;
   @JsonKey(defaultValue: "", includeIfNull: true)
   final String phone;
@@ -57,6 +54,7 @@ class UserData {
   final String role;
   @JsonKey(includeIfNull: true, defaultValue: [])
   final List<String> tokens;
+
   // @JsonKey(includeIfNull: true)
   // final DateTime? updated;
   @JsonKey(includeIfNull: true)
@@ -80,8 +78,8 @@ class UserData {
     this.username,
   );
 
-  factory UserData.fromJson(Map<String, dynamic> json) =>
-      _$UserDataFromJson(json);
+  factory UserData.fromJson(Map<String, dynamic>? json) =>
+      _$UserDataFromJson(json ?? {});
 
   Map<String, dynamic> toJson() => _$UserDataToJson(this);
 }

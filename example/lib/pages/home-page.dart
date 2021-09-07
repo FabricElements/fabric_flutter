@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../splash/loading.dart';
-import '../state/state-user-internal.dart';
+import '../state/state_user_internal.dart';
 
 class HomePage extends StatefulWidget {
   HomePage({

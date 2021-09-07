@@ -29,6 +29,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   environment_config: ^3.0.0
+  build_runner: ^2.1.1
 
 dependency_overrides:
   meta: ^1.7.0

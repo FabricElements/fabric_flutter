@@ -219,10 +219,10 @@ class _ViewAdminUsersState extends State<ViewAdminUsers> {
                   AbsorbPointer(
                     absorbing: !_canUpdateUser,
                     child: Dismissible(
-                      key: Key(_itemData.id),
+                      key: Key(_itemData.id!),
                       child: ListTile(
                         onTap: () async {
-                          _changeUserRole(_itemData.id, name);
+                          _changeUserRole(_itemData.id!, name);
                         },
                         isThreeLine: true,
                         leading: UserAvatar(

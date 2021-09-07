@@ -7,7 +7,7 @@ class LoadingApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'PADS',
+      title: "FabricElements",
       home: LoadingScreen(),
     );
   }
