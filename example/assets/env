@@ -1,6 +1,6 @@
 TEST=BETA
 FIREBASE_PROJECT_ID=fabricelements
-OS_BUNDLE_ID=com.fabricelements.demo
+IOS_BUNDLE_ID=com.fabricelements.demo
 ANDROID_PACKAGE_NAME=com.fabricelements.demo
 WWW=http://localhost:5500
 GOOGLE_SIGNIN_CLIENT_ID=908593247251-t75ap0o5r96ctdbh2g2dvt66ntb8mej6.apps.googleusercontent.com

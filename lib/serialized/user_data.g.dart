@@ -9,6 +9,7 @@ part of 'user_data.dart';
 UserDataOnboarding _$UserDataOnboardingFromJson(Map<String, dynamic> json) =>
     UserDataOnboarding(
       json['avatar'] as bool? ?? false,
+      json['fcm'] as bool? ?? false,
       json['name'] as bool? ?? false,
       json['terms'] as bool? ?? false,
     );
@@ -16,13 +17,15 @@ UserDataOnboarding _$UserDataOnboardingFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$UserDataOnboardingToJson(UserDataOnboarding instance) =>
     <String, dynamic>{
       'avatar': instance.avatar,
+      'fcm': instance.fcm,
       'name': instance.name,
       'terms': instance.terms,
     };
 
 UserData _$UserDataFromJson(Map<String, dynamic> json) => UserData(
       json['avatar'] as String? ??
-          'https://images.unsplash.com/photo-1547679904-ac76451d1594?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=500&h=500&q=80',
+          'https://images.unsplash.com/photo-1547679904-ac76451d1594',
+      Utils.timestampFromJson(json['created'] as Timestamp?),
       json['email'] as String? ?? '',
       json['id'] as String?,
       json['name'] as String? ?? '',
@@ -33,13 +36,14 @@ UserData _$UserDataFromJson(Map<String, dynamic> json) => UserData(
       UserDataOnboarding.fromJson(json['onboarding'] as Map<String, dynamic>?),
       json['phone'] as String? ?? '',
       json['role'] as String? ?? 'user',
-      (json['tokens'] as List<dynamic>?)?.map((e) => e as String).toList() ??
-          [],
+      json['fcm'] as String?,
+      Utils.timestampFromJson(json['updated'] as Timestamp?),
       json['username'] as String?,
     );
 
 Map<String, dynamic> _$UserDataToJson(UserData instance) => <String, dynamic>{
       'avatar': instance.avatar,
+      'created': Utils.timestampToJson(instance.created),
       'email': instance.email,
       'id': instance.id,
       'name': instance.name,
@@ -50,6 +54,7 @@ Map<String, dynamic> _$UserDataToJson(UserData instance) => <String, dynamic>{
       'onboarding': instance.onboarding.toJson(),
       'phone': instance.phone,
       'role': instance.role,
-      'tokens': instance.tokens,
+      'fcm': instance.fcm,
+      'updated': Utils.timestampToJson(instance.updated),
       'username': instance.username,
     };

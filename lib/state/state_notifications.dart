@@ -33,9 +33,11 @@ class StateNotifications extends ChangeNotifier {
     try {
       await FirebaseFirestore.instance.collection("user").doc(_uid).set({
         "backup": false,
-        // "tokens": FieldValue.arrayUnion([token]),
-        "tokens": [token],
+        "fcm": token,
         "updated": FieldValue.serverTimestamp(),
+        "onboarding": {
+          "fcm": true,
+        }
       }, SetOptions(merge: true));
     } catch (error) {
       print("error saving user token: ${error.toString()}");
@@ -179,5 +181,6 @@ class StateNotifications extends ChangeNotifier {
   void clear() {
     reset();
     notifyListeners();
+    _messagesStreamController.close();
   }
 }
