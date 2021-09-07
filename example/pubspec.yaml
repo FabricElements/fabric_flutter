@@ -89,7 +89,7 @@ environment_config:
       default: "fabricelements"
       dotenv: TRUE
       type: "String"
-    OS_BUNDLE_ID:
+    IOS_BUNDLE_ID:
       default: "com.fabricelements.demo"
       dotenv: TRUE
       type: "String"

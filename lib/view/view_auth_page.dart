@@ -30,8 +30,10 @@ class ViewAuthPage extends StatefulWidget {
   ViewAuthPage({
     Key? key,
     this.loader,
+    this.image,
   }) : super(key: key);
   final Widget? loader;
+  final String? image;
 
   @override
   _ViewAuthPageState createState() => _ViewAuthPageState();
@@ -43,7 +45,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
   int? section;
   final TextEditingController _phoneNumberController = TextEditingController();
   final TextEditingController _smsController = TextEditingController();
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
 
   String _userEmail = '';
@@ -80,7 +81,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       print("wait...");
       await Future.delayed(Duration(seconds: 3));
       final Uri? link = await _retrieveDynamicLink();
-      bool _success = false;
       print("link: $link");
       if (link != null) {
         final User? user = (await _auth.signInWithEmailLink(
@@ -90,12 +90,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
             .user;
         if (user != null) {
           print(user.uid);
-          _success = true;
-        } else {
-          _success = false;
         }
-      } else {
-        _success = false;
       }
       setState(() {});
     }
@@ -240,7 +235,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           smsCode: _smsController.text,
         );
         final User user = (await _auth.signInWithCredential(credential)).user!;
-        final User currentUser = await _auth.currentUser!;
+        final User currentUser = _auth.currentUser!;
         assert(user.uid == currentUser.uid);
         _phoneNumberController.clear();
         _smsController.clear();
@@ -296,6 +291,8 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         await _auth.sendSignInLinkToEmail(
           email: _userEmail,
           actionCodeSettings: ActionCodeSettings(
+            androidInstallApp: true,
+            androidMinimumVersion: "12",
             androidPackageName:
                 dotenv.get("ANDROID_PACKAGE_NAME", fallback: ""),
             handleCodeInApp: true,
@@ -369,7 +366,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     }
 
 //    final Widget svgIcon = Container(height: 10, width: 10);
-    String backgroundImage =
+    String backgroundImage = widget.image ??
         "https://images.unsplash.com/photo-1615406020658-6c4b805f1f30";
     Widget spacer = Container(width: 8, height: 8);
     Widget spacerLarge = Container(width: 16, height: 16);
