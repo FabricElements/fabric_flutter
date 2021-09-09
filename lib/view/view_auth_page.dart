@@ -127,11 +127,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       mounted: mounted,
     );
 
-    // void _resendCode() async {
-    //   loading = true;
-    //   if (mounted) setState(() {});
-    // }
-
     /// Example code of how to verify phone number
     void _verifyPhoneNumber() async {
       loading = true;
@@ -142,14 +137,14 @@ class _ViewAuthPageState extends State<ViewAuthPage>
             (AuthCredential phoneAuthCredential) async {
           await _auth.signInWithCredential(phoneAuthCredential);
           alert.show(
-            text: locales.get("alert--received-phone-auth-credential"),
+            title: locales.get("alert--received-phone-auth-credential"),
             type: "default",
           );
         };
         final PhoneVerificationFailed verificationFailed =
             (FirebaseAuthException authException) {
           alert.show(
-            text:
+            title:
                 "${locales.get("alert--phone-number-verification-failed")}. ${authException.message} -- Code: ${authException.code}",
             type: "error",
           );
@@ -159,7 +154,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
             (String verificationId, [int? forceResendingToken]) async {
           _verificationId = verificationId;
           alert.show(
-            text: locales.get("alert--check-phone-verification-code"),
+            title: locales.get("alert--check-phone-verification-code"),
             type: "success",
           );
         };
@@ -188,9 +183,9 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         success = true;
       } on FirebaseFunctionsException catch (error) {
         alert.show(
-            text: error.message ?? error.details["message"], type: "error");
+            title: error.message ?? error.details["message"], type: "error");
       } catch (error) {
-        alert.show(text: error.toString(), type: "error");
+        alert.show(title: error.toString(), type: "error");
       }
       loading = false;
       if (success) {
@@ -217,12 +212,14 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           _closeKeyboard();
           if (mounted) setState(() {});
         } catch (error) {
-          alert.show(text: locales.get("alert--sign-in-failed"), type: "error");
+          alert.show(
+              title: locales.get("alert--sign-in-failed"), type: "error");
         }
       } else {
         // alert.show(text: locales.get("alert--sign-in-failed"), type: "error");
         alert.show(
-            text: "Please input sms code received after verifying phone number",
+            title:
+                "Please input sms code received after verifying phone number",
             type: "error");
       }
     }
@@ -243,7 +240,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         _closeKeyboard();
         if (mounted) setState(() {});
       } catch (error) {
-        alert.show(text: locales.get("alert--sign-in-failed"), type: "error");
+        alert.show(title: locales.get("alert--sign-in-failed"), type: "error");
       }
     }
 
@@ -275,9 +272,9 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         }
       } on FirebaseFunctionsException catch (error) {
         alert.show(
-            text: error.message ?? error.details["message"], type: "error");
+            title: error.message ?? error.details["message"], type: "error");
       } catch (error) {
-        alert.show(text: error.toString(), type: "error");
+        alert.show(title: error.toString(), type: "error");
       }
       loading = false;
       if (mounted) setState(() {});
@@ -301,12 +298,12 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           ),
         );
         alert.show(
-            text: 'An email has been sent to $_userEmail', type: "success");
+            title: 'An email has been sent to $_userEmail', type: "success");
       } on FirebaseFunctionsException catch (error) {
         alert.show(
-            text: error.message ?? error.details["message"], type: "error");
+            title: error.message ?? error.details["message"], type: "error");
       } catch (error) {
-        alert.show(text: error.toString(), type: "error");
+        alert.show(title: error.toString(), type: "error");
       }
     }
 

@@ -1,6 +1,5 @@
 export 'component/card_button.dart';
 export 'component/charts.dart';
-export 'component/fancy_notification.dart';
 export 'component/flag_chip.dart';
 export 'component/global_providers.dart';
 export 'component/language_selector.dart';

@@ -1,19 +1,20 @@
 import 'dart:convert';
 import 'dart:math' as math;
 import 'dart:typed_data';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 
-import '../state/state_user.dart';
-import '../placeholder/loading_screen.dart';
-import '../helper/app_localizations_delegate.dart';
 import '../helper/alert.dart';
+import '../helper/app_localizations_delegate.dart';
 import '../helper/image_helper.dart';
+import '../placeholder/loading_screen.dart';
+import '../state/state_user.dart';
 
 class ViewProfileEdit extends StatefulWidget {
   ViewProfileEdit({
@@ -137,7 +138,8 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
       if (mounted) setState(() {});
       AppLocalizations? locales = AppLocalizations.of(context)!;
       if (!changed) {
-        alert.show(text: locales.get("page-profile--alert--nothing-to-update"));
+        alert.show(
+            title: locales.get("page-profile--alert--nothing-to-update"));
         return;
       }
       String newNameFirst = nameFirstController.text;
@@ -146,7 +148,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
       newNameLast = newNameLast.trim();
       if (newNameFirst.length < 3) {
         alert.show(
-          text: locales.get("label--too-short", {
+          title: locales.get("label--too-short", {
             "label": locales.get("label--name-first"),
             "number": "3",
           }),
@@ -156,7 +158,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
       }
       if (newNameLast.length < 3) {
         alert.show(
-          text: locales.get("label--too-short", {
+          title: locales.get("label--too-short", {
             "label": locales.get("label--name-last"),
             "number": "3",
           }),
@@ -187,7 +189,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
         loading = false;
         if (mounted) setState(() {});
         alert.show(
-          text: locales.get("page-profile--alert--profile-updated"),
+          title: locales.get("page-profile--alert--profile-updated"),
           type: "success",
         );
         if (!stateUser.serialized.onboarding.name) {
@@ -196,10 +198,10 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
         refreshImage();
       } on FirebaseFunctionsException catch (error) {
         alert.show(
-            text: error.message ?? error.details["message"], type: "error");
+            title: error.message ?? error.details["message"], type: "error");
       } catch (error) {
         alert.show(
-          text: error.toString(),
+          title: error.toString(),
           type: "error",
         );
       }
@@ -217,7 +219,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
         }
       } catch (error) {
         alert.show(
-          text: error.toString(),
+          title: error.toString(),
           type: "error",
         );
       }

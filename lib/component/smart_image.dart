@@ -1,4 +1,7 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:transparent_image/transparent_image.dart';
 
 /// SmartImage can be used to display an image for basic Imgix or Internal implementation.
 ///
@@ -12,17 +15,15 @@ import 'package:flutter/material.dart';
 class SmartImage extends StatelessWidget {
   SmartImage({
     Key? key,
-    required this.url,
+    this.placeholder,
     this.size,
+    required this.url,
   }) : super(key: key);
-  final String url;
+  final Uint8List? placeholder;
   final String? size;
+  final String url;
 
-  // FIT
-  // AUTO
   // FORMAT
-  // QUALITY
-  // IMAGE LOCAL OR NETWORK
 
   @override
   Widget build(BuildContext context) {
@@ -33,15 +34,29 @@ class SmartImage extends StatelessWidget {
         int width = constraints.maxWidth.floor();
         int height = constraints.maxHeight.floor();
         double biggest = constraints.biggest.longestSide;
-        String resultUrl = "${this.url}?dpr=$devicePixelRatio&crop=entropy";
+        Uri uri = Uri.parse(this.url); //converts string to a uri
+        Map<String, String> query = {};
+        query.addAll(uri.queryParameters);
+        query.addAll({
+          "dpr": devicePixelRatio.toString(),
+          "crop": "entropy",
+        });
+        // String resultUrl = "${this.url}?dpr=$devicePixelRatio&crop=entropy";
         if (size != null) {
-          resultUrl += "&size=$size";
+          query.addAll({
+            "size": size.toString(),
+          });
         } else {
-          resultUrl += "&width=$width&height=$height";
+          query.addAll({
+            "width": width.toString(),
+            "height": height.toString(),
+          });
         }
-        return Image.network(
-          resultUrl,
+        String url = Uri.https(uri.authority, uri.path, query).toString();
+        return FadeInImage.memoryNetwork(
           fit: BoxFit.cover,
+          image: url,
+          placeholder: placeholder ?? kTransparentImage,
         );
       },
     );

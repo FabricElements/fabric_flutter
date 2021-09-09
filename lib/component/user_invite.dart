@@ -106,7 +106,7 @@ class _UserInviteState extends State<UserInvite> {
       }
       sending = true;
       if (mounted) setState(() {});
-      alert.show(text: locales.get("notification--please-wait"), duration: 5);
+      alert.show(title: locales.get("notification--please-wait"), duration: 5);
       Map<String, dynamic> data = {};
       if (role != null) {
         data.addAll({
@@ -135,14 +135,14 @@ class _UserInviteState extends State<UserInvite> {
             FirebaseFunctions.instance.httpsCallable("user-actions-invite");
         await callable.call(data);
         alert.show(
-            text: locales.get("notification--invitation-sent"),
+            title: locales.get("notification--invitation-sent"),
             type: "success");
         Navigator.of(context).pop();
       } on FirebaseFunctionsException catch (error) {
         alert.show(
-            text: error.message ?? error.details["message"], type: "error");
+            title: error.message ?? error.details["message"], type: "error");
       } catch (error) {
-        alert.show(text: error.toString(), type: "error");
+        alert.show(title: error.toString(), type: "error");
       }
       sending = false;
       if (mounted) setState(() {});
@@ -150,7 +150,7 @@ class _UserInviteState extends State<UserInvite> {
 
     void validateInvitation() async {
       if (!canInvite) {
-        alert.show(text: "incomplete data", type: "error");
+        alert.show(title: "incomplete data", type: "error");
       }
       if (_typeOption == TypeOptions.phone) {
         await _sendInvitation(

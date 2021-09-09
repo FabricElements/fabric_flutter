@@ -1,7 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:fabric_flutter/fabric_flutter.dart';
+import 'package:fabric_flutter/component/card_button.dart';
+import 'package:fabric_flutter/component/smart_image.dart';
+import 'package:fabric_flutter/helper/alert.dart';
+import 'package:fabric_flutter/helper/app_localizations_delegate.dart';
+import 'package:fabric_flutter/helper/redirect_app.dart';
 import 'package:fabric_flutter/state/state_api.dart';
+import 'package:fabric_flutter/state/state_document.dart';
+import 'package:fabric_flutter/state/state_dynamic_links.dart';
+import 'package:fabric_flutter/state/state_global.dart';
+import 'package:fabric_flutter/state/state_notifications.dart';
 import 'package:fabric_flutter/state/state_user.dart';
+import 'package:fabric_flutter/view/view_featured.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -35,27 +44,53 @@ class _HomePageState extends State<HomePage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    // context.dependOnInheritedWidgetOfExactType();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    // context.dependOnInheritedWidgetOfExactType();
   }
 
   @override
   Widget build(BuildContext context) {
     RedirectApp redirectApp =
-        RedirectApp(context: context, protected: ["/protected"]);
+    RedirectApp(context: context, protected: ["/protected"]);
     StateUserInternal stateUserInternal =
-        Provider.of<StateUserInternal>(context);
+    Provider.of<StateUserInternal>(context);
     StateUser stateUser = Provider.of<StateUser>(context);
-    stateUser.ping("home");
+    StateNotifications stateNotifications =
+    Provider.of<StateNotifications>(context, listen: false);
+    StateGlobal stateGlobal = Provider.of<StateGlobal>(context, listen: false);
     AppLocalizations locales = AppLocalizations.of(context)!;
     ThemeData theme = Theme.of(context);
     TextTheme textTheme = theme.textTheme;
     Color backgroundColor = Colors.grey.shade50;
     Widget spacer = Container(height: 16);
+    Alert alert = Alert(
+      context: context,
+      mounted: mounted,
+      globalContext: stateGlobal.context,
+    );
+
+    /// Assign notification callback
+    stateNotifications.callback = (Map<String, dynamic> message) => alert.show(
+      title: message["title"],
+      body: message["body"],
+      path: message["path"],
+      origin: message["origin"],
+      widget: "fancy",
+      image: message["image"],
+      arguments: message,
+    );
     final StateAPI stateAPI = Provider.of<StateAPI>(context);
     stateAPI.endpoint =
-        "https://raw.githubusercontent.com/ernysans/laraworld/master/composer.json";
+    "https://raw.githubusercontent.com/ernysans/laraworld/master/composer.json";
     final StateDocument stateDocument = Provider.of<StateDocument>(context);
 
     WidgetsBinding.instance?.addPostFrameCallback((_) {
+      stateUser.ping("home");
       if (stateAPI.data != null) {
         // print("data: ${stateAPI.data}");
         stateDocument.id = "test";
@@ -77,20 +112,13 @@ class _HomePageState extends State<HomePage> {
     }
 
     StateDynamicLinks stateDynamicLinks =
-        Provider.of<StateDynamicLinks>(context, listen: false);
+    Provider.of<StateDynamicLinks>(context, listen: false);
     stateDynamicLinks.callback = _dynamicLinksCallback;
-    if (stateUser.signedIn) {
-      if (stateUser.data.isNotEmpty) {
-        loading = false;
-      } else {
-        Future.delayed(Duration(seconds: 3)).then((value) {
-          loading = false;
-          if (mounted) setState(() {});
-        });
-      }
-      if (loading) {
-        return LoadingScreen();
-      }
+    if (stateUser.data.isNotEmpty) {
+      loading = false;
+    }
+    if (loading) {
+      return LoadingScreen();
     }
 
     /// Validate onboarding
@@ -139,7 +167,7 @@ class _HomePageState extends State<HomePage> {
                       margin: EdgeInsets.only(right: 8, left: 16),
                       headline: locales.get("label--admin"),
                       image:
-                          "https://images.unsplash.com/photo-1513171920216-2640b288471b",
+                      "https://images.unsplash.com/photo-1513171920216-2640b288471b",
                       onPressed: () {
                         _clearStates();
                         Navigator.pushNamed(
@@ -174,7 +202,7 @@ class _HomePageState extends State<HomePage> {
                     Scaffold.of(context).openDrawer();
                   },
                   tooltip:
-                      MaterialLocalizations.of(context).openAppDrawerTooltip,
+                  MaterialLocalizations.of(context).openAppDrawerTooltip,
                 );
               },
             ),
@@ -203,7 +231,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                   SmartImage(
                       url:
-                          "https://images.unsplash.com/photo-1557696859-ebd88b12be5e"),
+                      "https://images.unsplash.com/photo-1557696859-ebd88b12be5e"),
                   // DecoratedBox(
                   //   decoration: BoxDecoration(
                   //     gradient: LinearGradient(
@@ -366,7 +394,7 @@ class _HomePageState extends State<HomePage> {
         _onboardingDescription =
             locales.get("onboarding--profile--description");
         _onboardingImage =
-            "https://images.unsplash.com/photo-1547679904-ac76451d1594";
+        "https://images.unsplash.com/photo-1547679904-ac76451d1594";
         _onboardingActionLabel = locales.get("label--continue");
         _onboardingUrl = "/profile";
       }
@@ -384,30 +412,11 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
-    /// Assign this view when the user is loading
-    if (stateUser.data.isEmpty) {
-      defaultWidget = LoadingScreen();
-    }
-
     /// Show the home if there are no changes to [defaultWidget]
     if (defaultWidget == null) {
       defaultWidget = homeContent();
     }
 
-    return FancyNotification(
-      child: defaultWidget,
-      labelAction: locales.get("label--open"),
-      labelDismiss: locales.get("label--dismiss"),
-      callback: (message) {
-        if (message["path"] == null || message["path"].toString().isEmpty) {
-          return;
-        }
-        print(message);
-        redirectApp.toView(
-          path: message["path"],
-          params: message,
-        );
-      },
-    );
+    return defaultWidget;
   }
 }

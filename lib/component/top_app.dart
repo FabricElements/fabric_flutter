@@ -1,3 +1,4 @@
+import 'package:fabric_flutter/state/state_global.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -7,7 +8,8 @@ import '../state/state_notifications.dart';
 import '../state/state_user.dart';
 
 /// This widget has to go on the top of your app
-class TopApp extends StatelessWidget with WidgetsBindingObserver {
+// class TopApp extends StatelessWidget with WidgetsBindingObserver {
+class TopApp extends StatelessWidget {
   TopApp({
     Key? key,
     required this.child,
@@ -20,12 +22,14 @@ class TopApp extends StatelessWidget with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    WidgetsBinding.instance!.addObserver(this);
+    // WidgetsBinding.instance!.addObserver(this);
     StateNotifications stateNotifications =
         Provider.of<StateNotifications>(context, listen: false);
     StateDynamicLinks stateDynamicLinks =
         Provider.of<StateDynamicLinks>(context, listen: false);
     StateUser stateUser = Provider.of<StateUser>(context, listen: false);
+    StateGlobal stateGlobal = Provider.of<StateGlobal>(context, listen: false);
+    // stateGlobal.context = context;
     final FirebaseAuth _auth = FirebaseAuth.instance;
 
     /// Refresh auth state
@@ -57,13 +61,6 @@ class TopApp extends StatelessWidget with WidgetsBindingObserver {
         print(e);
       }
     }
-
-    // return StreamBuilder(
-    //   stream: _auth.authStateChanges(),
-    //   builder: (context, snapshot) {
-    //     return child;
-    //   },
-    // );
 
     return child;
   }

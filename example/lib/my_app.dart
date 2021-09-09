@@ -16,7 +16,7 @@ import 'package:provider/provider.dart';
 
 import 'pages/home_page.dart';
 import 'splash/loading.dart';
-import 'state/state_global.dart';
+import 'state/state_global_internal.dart';
 import 'state/state_user_internal.dart';
 import 'theme.dart';
 
@@ -50,7 +50,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    StateGlobal stateGlobal = Provider.of<StateGlobal>(context);
+    // StateGlobal stateGlobal = Provider.of<StateGlobal>(context);
     StateUserInternal stateUserInternal =
         Provider.of<StateUserInternal>(context);
     StateUser stateUser = Provider.of<StateUser>(context);

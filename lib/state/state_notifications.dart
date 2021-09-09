@@ -1,9 +1,10 @@
 import 'dart:async';
-import 'dart:io';
+import 'dart:io' show Platform;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 /// This is a change notifier class which keeps track of state within the campaign builder views.
 class StateNotifications extends ChangeNotifier {
@@ -11,29 +12,24 @@ class StateNotifications extends ChangeNotifier {
 
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 
-  final _messagesStreamController =
-      StreamController<Map<dynamic, dynamic>>.broadcast();
-
-  Stream<Map<dynamic, dynamic>> get message => _messagesStreamController.stream;
-
   String? _token;
-  Map<dynamic, dynamic> _notification = {};
+  Map<String, dynamic> _notification = {};
   String _uid = "";
   bool _initialized = false;
-  late Future<void> Function(Map<dynamic, dynamic> message) _callback;
+  Function(Map<String, dynamic> message)? _callback;
 
   /// [token] Returns device token
   String get token => _token ?? "";
 
   /// Update user token on the firestore user/{uid}
-  void _updateUserToken() async {
-    if (token.isEmpty || _uid.isEmpty) {
+  void _updateUserToken(String? _token) async {
+    if (_token == null || _token.isEmpty || _uid.isEmpty) {
       return;
     }
     try {
       await FirebaseFirestore.instance.collection("user").doc(_uid).set({
         "backup": false,
-        "fcm": token,
+        "fcm": _token,
         "updated": FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } catch (error) {
@@ -51,14 +47,14 @@ class StateNotifications extends ChangeNotifier {
     return _toNotify;
   }
 
-  getToken() async {
+  Future<String?> getToken() async {
     _firebaseMessaging.requestPermission(
       alert: true,
       announcement: false,
       badge: true,
-      carPlay: false,
+      carPlay: true,
       criticalAlert: false,
-      provisional: false,
+      provisional: true,
       sound: true,
     );
     String? token = await _firebaseMessaging.getToken();
@@ -79,26 +75,29 @@ class StateNotifications extends ChangeNotifier {
 
   /// Return notify values
   _notify({RemoteMessage? message, String origin = "message"}) async {
-    RemoteNotification? notification = message!.notification;
-    Map<String, dynamic>? data = message.data;
+    if (message == null) return;
+    RemoteNotification? notification = message.notification;
+    Map<String, dynamic> data = message.data;
     Map<String, dynamic> _message = data;
     _message = _clearObject(_message, "fcm_options");
     _message = _clearObject(_message, "aps");
     _message = _clearObject(_message, "alert");
 
-    /// android
     _message = _clearObject(_message, "data");
     _message = _clearObject(_message, "notification");
-
-    /// Add OS
-    _message.addAll({"os": Platform.operatingSystem});
+    if (!kIsWeb) {
+      /// Add OS
+      _message.addAll({"os": Platform.operatingSystem});
+    }
 
     /// Add origin
     _message.addAll({"origin": origin});
 
-    if (notification != null) {
-      _message.putIfAbsent("title", () => notification.title);
-      _message.putIfAbsent("body", () => notification.body);
+    if (notification?.title != null) {
+      _message.putIfAbsent("title", () => notification?.title);
+    }
+    if (notification?.body != null) {
+      _message.putIfAbsent("body", () => notification?.body);
     }
 
     /// Add valid path by default
@@ -110,10 +109,12 @@ class StateNotifications extends ChangeNotifier {
     }
 
     /// Add data to stream
-    _messagesStreamController.sink.add(_message);
     _notification = _message;
-    notifyListeners();
-    await _callback(_notification);
+    try {
+      if (_callback != null) await _callback!(_notification);
+    } catch (error) {
+      print("Callback Error: $error");
+    }
   }
 
   initNotifications() async {
@@ -124,19 +125,8 @@ class StateNotifications extends ChangeNotifier {
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
       await _notify(message: message, origin: "resume");
     });
-//     _firebaseMessaging.configure(
-//       onMessage: (Map<String, dynamic> message) async =>
-//           _notify(message, "message"),
-//       onLaunch: (Map<String, dynamic> message) async =>
-//           _notify(message, "launch"),
-//       onResume: (Map<String, dynamic> message) async =>
-//           _notify(message, "resume"),
-// // Don't use onBackgroundMessage
-// //      onBackgroundMessage: (Map<String, dynamic> message) async =>
-// //          _notify(message, "background-message"),
-//     );
     if (token.isNotEmpty && !_initialized) {
-      message.listen((arg) async {});
+      // message.listen((arg) async {});
     }
     _initialized = true;
   }
@@ -146,11 +136,12 @@ class StateNotifications extends ChangeNotifier {
     if (_initialized) {
       return;
     }
-    await Future.delayed(Duration(seconds: 4));
     if (token.isEmpty) {
-      dynamic _pushToken = await getToken();
+      String? _pushToken = await getToken();
       _token = _pushToken;
-      _updateUserToken();
+      _updateUserToken(token);
+      // Any time the token refreshes, store this in the database too.
+      FirebaseMessaging.instance.onTokenRefresh.listen(_updateUserToken);
     }
     initNotifications();
   }
@@ -158,7 +149,6 @@ class StateNotifications extends ChangeNotifier {
   /// Define user id
   set uid(String? id) {
     _uid = id ?? "";
-    _updateUserToken();
   }
 
   /// Default function call every time the id changes.
@@ -170,14 +160,12 @@ class StateNotifications extends ChangeNotifier {
     _initialized = false;
   }
 
-  set callback(Future<void> Function(Map<dynamic, dynamic> message) callback) {
-    _callback = callback;
+  set callback(Function(Map<String, dynamic> message) callback) {
+    if (_callback == null) _callback = callback;
   }
 
   /// Clear document data
   void clear() {
     reset();
-    notifyListeners();
-    _messagesStreamController.close();
   }
 }

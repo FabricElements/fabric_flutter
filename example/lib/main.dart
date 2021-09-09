@@ -9,8 +9,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 
 import 'configure_nonweb.dart' if (dart.library.html) 'configure_web.dart';
-import 'my-app.dart';
-import 'state/state_global.dart';
+import 'my_app.dart';
+import 'state/state_global_internal.dart';
 import 'state/state_user_internal.dart';
 
 Future<void> main() async {
@@ -26,7 +26,7 @@ Future<void> main() async {
           links: true,
         ),
         providers: [
-          ChangeNotifierProvider(create: (context) => StateGlobal()),
+          ChangeNotifierProvider(create: (context) => StateGlobalInternal()),
           ChangeNotifierProvider(create: (context) => StateUserInternal()),
         ],
       ),

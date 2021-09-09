@@ -102,7 +102,7 @@ class _ViewAdminUsersState extends State<ViewAdminUsers> {
       });
       // Type indicates the data field to use in the function, admin level or collection.
       await callable.call(removeOptions); // USER DATA
-      alert.show(text: locales.get("alert--user-removed"), type: "success");
+      alert.show(title: locales.get("alert--user-removed"), type: "success");
     }
 
     _changeUserRole(String uid, String name) {
@@ -279,10 +279,10 @@ class _ViewAdminUsersState extends State<ViewAdminUsers> {
                           }
                         } on FirebaseFunctionsException catch (error) {
                           alert.show(
-                              text: error.message ?? error.details["message"],
+                              title: error.message ?? error.details["message"],
                               type: "error");
                         } catch (error) {
-                          alert.show(text: error.toString(), type: "error");
+                          alert.show(title: error.toString(), type: "error");
                         }
                         return response;
                       },
