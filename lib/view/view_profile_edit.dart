@@ -10,7 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
-import '../helper/alert.dart';
+import '../helper/alert_helper.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/image_helper.dart';
 import '../placeholder/loading_screen.dart';
@@ -123,7 +123,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
     }
 
     refreshImage();
-    Alert alert = Alert(
+    AlertHelper alert = AlertHelper(
       context: context,
       mounted: mounted,
     );
@@ -152,7 +152,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
             "label": locales.get("label--name-first"),
             "number": "3",
           }),
-          type: AlertTypes.critical,
+          type: AlertType.critical,
         );
         return;
       }
@@ -162,7 +162,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
             "label": locales.get("label--name-last"),
             "number": "3",
           }),
-          type: AlertTypes.critical,
+          type: AlertType.critical,
         );
         return;
       }
@@ -190,7 +190,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
         if (mounted) setState(() {});
         alert.show(
           title: locales.get("page-profile--alert--profile-updated"),
-          type: AlertTypes.success,
+          type: AlertType.success,
         );
         if (!stateUser.serialized.onboarding.name) {
           Navigator.of(context).pop();
@@ -198,11 +198,11 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
         refreshImage();
       } on FirebaseFunctionsException catch (error) {
         alert.show(
-            title: error.message ?? error.details["message"], type: AlertTypes.critical);
+            title: error.message ?? error.details["message"], type: AlertType.critical);
       } catch (error) {
         alert.show(
           title: error.toString(),
-          type: AlertTypes.critical,
+          type: AlertType.critical,
         );
       }
       loading = false;
@@ -220,7 +220,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
       } catch (error) {
         alert.show(
           title: error.toString(),
-          type: AlertTypes.critical,
+          type: AlertType.critical,
         );
       }
 

@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import '../helper/alert.dart';
+import '../helper/alert_helper.dart';
 import '../helper/app_localizations_delegate.dart';
 import 'role_selector.dart';
 
@@ -69,7 +69,7 @@ class _UserRoleUpdateState extends State<UserRoleUpdate> {
 
     AppLocalizations locales = AppLocalizations.of(context)!;
     ThemeData theme = Theme.of(context);
-    Alert alert = Alert(
+    AlertHelper alert = AlertHelper(
       context: context,
       mounted: mounted,
     );
@@ -80,7 +80,7 @@ class _UserRoleUpdateState extends State<UserRoleUpdate> {
     /// [contact] The e-mail or phone number.
     _sendInvitation() async {
       if (!canInvite) {
-        alert.show(title: "incomplete data", type: AlertTypes.critical);
+        alert.show(title: "incomplete data", type: AlertType.critical);
         return;
       }
       sending = true;
@@ -99,13 +99,13 @@ class _UserRoleUpdateState extends State<UserRoleUpdate> {
         await callable.call(data);
         alert.show(
             title: locales.get("notification--user-role-updated"),
-            type: AlertTypes.success);
+            type: AlertType.success);
         Navigator.of(context).pop();
       } on FirebaseFunctionsException catch (error) {
         alert.show(
-            title: error.message ?? error.details["message"], type: AlertTypes.critical);
+            title: error.message ?? error.details["message"], type: AlertType.critical);
       } catch (error) {
-        alert.show(title: error.toString(), type: AlertTypes.critical);
+        alert.show(title: error.toString(), type: AlertType.critical);
       }
       sending = false;
       if (mounted) setState(() {});

@@ -5,31 +5,31 @@ import '../component/smart_image.dart';
 import 'app_localizations_delegate.dart';
 import 'redirect_app.dart';
 
-/// [AlertTypes] are used to defined behavior and colors for the alerts
-enum AlertTypes {
-  /// [basic] is used for the most basic alert
+/// [AlertType] are used to defined behavior and colors for the alerts
+enum AlertType {
+  /// [basic] is used for simple alerts
   basic,
 
-  /// [critical]
+  /// [critical] used for errors and alerts that require an action
   critical,
 
-  /// [success]
+  /// [success] alerts
   success,
 
-  /// [warning]
+  /// [warning] alerts
   warning,
 }
 
 /// This is an alert class, depending on the type of alert wanted a snackbar will be displayed.
-/// Alert(
+/// AlertHelper(
 ///   context: context,
 ///   mounted: mounted,
 /// ).show(
 ///   text: "Something went wrong...",
 ///   type: AlertTypes.critical,
 /// );
-class Alert {
-  const Alert({
+class AlertHelper {
+  const AlertHelper({
     required this.context,
     required this.mounted,
   });
@@ -37,18 +37,18 @@ class Alert {
   final BuildContext context;
   final bool mounted;
 
-  /// [typeFromString] returns [AlertTypes] from a String
-  AlertTypes typeFromString(String? type) {
-    AlertTypes _type = AlertTypes.basic;
+  /// [typeFromString] returns [AlertType] from a String
+  AlertType typeFromString(String? type) {
+    AlertType _type = AlertType.basic;
     switch (type) {
       case "critical":
-        _type = AlertTypes.critical;
+        _type = AlertType.critical;
         break;
       case "success":
-        _type = AlertTypes.success;
+        _type = AlertType.success;
         break;
       case "warning":
-        _type = AlertTypes.warning;
+        _type = AlertType.warning;
         break;
     }
     return _type;
@@ -66,9 +66,9 @@ class Alert {
     int? duration,
 
     /// [type] used for the Alert
-    AlertTypes? type,
+    AlertType? type,
 
-    /// [typeString] used to return [AlertTypes]
+    /// [typeString] used to return [AlertType]
     String? typeString,
 
     /// [path] to redirect
@@ -127,7 +127,7 @@ class Alert {
     // BuildContext parentContext = globalContext ?? context;
     ScaffoldMessenger.of(context).clearSnackBars();
     Color color = Colors.grey.shade800;
-    AlertTypes _type = type ?? AlertTypes.basic;
+    AlertType _type = type ?? AlertType.basic;
     if (typeString != null) {
       _type = typeFromString(typeString);
     }
@@ -139,15 +139,15 @@ class Alert {
     int durationBaseSeconds = 10;
     int _duration = duration ?? durationBaseSeconds;
     switch (_type) {
-      case AlertTypes.critical:
+      case AlertType.critical:
         color = Colors.red;
         _duration = duration ?? 600;
         break;
-      case AlertTypes.warning:
+      case AlertType.warning:
         color = Colors.orange;
         _duration = duration ?? 60;
         break;
-      case AlertTypes.success:
+      case AlertType.success:
         color = Colors.green;
         _duration = duration ?? 6;
         break;
