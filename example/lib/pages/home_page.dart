@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fabric_flutter/component/card_button.dart';
 import 'package:fabric_flutter/component/smart_image.dart';
-import 'package:fabric_flutter/helper/alert.dart';
+import 'package:fabric_flutter/helper/alert_helper.dart';
 import 'package:fabric_flutter/helper/app_localizations_delegate.dart';
 import 'package:fabric_flutter/helper/redirect_app.dart';
 import 'package:fabric_flutter/state/state_api.dart';
@@ -68,7 +68,7 @@ class _HomePageState extends State<HomePage> {
     TextTheme textTheme = theme.textTheme;
     Color backgroundColor = Colors.grey.shade50;
     Widget spacer = Container(height: 16);
-    Alert alert = Alert(
+    AlertHelper alert = AlertHelper(
       context: context,
       mounted: mounted,
     );

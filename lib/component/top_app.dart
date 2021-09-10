@@ -29,7 +29,6 @@ class TopApp extends StatelessWidget {
         Provider.of<StateDynamicLinks>(context, listen: false);
     StateUser stateUser = Provider.of<StateUser>(context, listen: false);
     StateGlobal stateGlobal = Provider.of<StateGlobal>(context, listen: false);
-    // stateGlobal.context = context;
     final FirebaseAuth _auth = FirebaseAuth.instance;
 
     /// Refresh auth state

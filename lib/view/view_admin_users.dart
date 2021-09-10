@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 import '../component/user_avatar.dart';
 import '../component/user_invite.dart';
 import '../component/user_role_update.dart';
-import '../helper/alert.dart';
+import '../helper/alert_helper.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../placeholder/loading_screen.dart';
 import '../serialized/user_data.dart';
@@ -72,7 +72,7 @@ class _ViewAdminUsersState extends State<ViewAdminUsers> {
     bool fromCollection = collectionId != null && collection != null;
     Widget space = Container(width: 16);
     Map<String, dynamic> inviteMetadata = {};
-    Alert alert = Alert(
+    AlertHelper alert = AlertHelper(
       context: context,
       mounted: mounted,
     );
@@ -102,7 +102,8 @@ class _ViewAdminUsersState extends State<ViewAdminUsers> {
       });
       // Type indicates the data field to use in the function, admin level or collection.
       await callable.call(removeOptions); // USER DATA
-      alert.show(title: locales.get("alert--user-removed"), type: AlertTypes.success);
+      alert.show(
+          title: locales.get("alert--user-removed"), type: AlertType.success);
     }
 
     _changeUserRole(String uid, String name) {
@@ -276,13 +277,16 @@ class _ViewAdminUsersState extends State<ViewAdminUsers> {
                           if (direction == DismissDirection.endToStart) {
                             await _removeUser(userDocument.id);
                             response = true;
+                            if (mounted) setState(() {});
                           }
                         } on FirebaseFunctionsException catch (error) {
                           alert.show(
                               title: error.message ?? error.details["message"],
-                              type: AlertTypes.critical);
+                              type: AlertType.critical);
                         } catch (error) {
-                          alert.show(title: error.toString(), type: AlertTypes.critical);
+                          alert.show(
+                              title: error.toString(),
+                              type: AlertType.critical);
                         }
                         return response;
                       },

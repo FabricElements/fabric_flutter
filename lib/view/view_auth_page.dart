@@ -12,7 +12,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 
 import '../component/smart_image.dart';
-import '../helper/alert.dart';
+import '../helper/alert_helper.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../placeholder/loading_screen.dart';
 import '../state/state_analytics.dart';
@@ -122,7 +122,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
 
     AppLocalizations locales = AppLocalizations.of(context)!;
     TextTheme textTheme = Theme.of(context).textTheme;
-    Alert alert = Alert(
+    AlertHelper alert = AlertHelper(
       context: context,
       mounted: mounted,
     );
@@ -145,7 +145,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           alert.show(
             title:
                 "${locales.get("alert--phone-number-verification-failed")}. ${authException.message} -- Code: ${authException.code}",
-            type: AlertTypes.critical,
+            type: AlertType.critical,
           );
         };
 
@@ -154,7 +154,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           _verificationId = verificationId;
           alert.show(
             title: locales.get("alert--check-phone-verification-code"),
-            type: AlertTypes.success,
+            type: AlertType.success,
           );
         };
         final PhoneCodeAutoRetrievalTimeout codeAutoRetrievalTimeout =
@@ -182,9 +182,9 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         success = true;
       } on FirebaseFunctionsException catch (error) {
         alert.show(
-            title: error.message ?? error.details["message"], type: AlertTypes.critical);
+            title: error.message ?? error.details["message"], type: AlertType.critical);
       } catch (error) {
-        alert.show(title: error.toString(), type: AlertTypes.critical);
+        alert.show(title: error.toString(), type: AlertType.critical);
       }
       loading = false;
       if (success) {
@@ -212,14 +212,14 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           if (mounted) setState(() {});
         } catch (error) {
           alert.show(
-              title: locales.get("alert--sign-in-failed"), type: AlertTypes.critical);
+              title: locales.get("alert--sign-in-failed"), type: AlertType.critical);
         }
       } else {
         // alert.show(text: locales.get("alert--sign-in-failed"), type: AlertTypes.critical);
         alert.show(
             title:
                 "Please input sms code received after verifying phone number",
-            type: AlertTypes.critical);
+            type: AlertType.critical);
       }
     }
 
@@ -239,7 +239,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         _closeKeyboard();
         if (mounted) setState(() {});
       } catch (error) {
-        alert.show(title: locales.get("alert--sign-in-failed"), type: AlertTypes.critical);
+        alert.show(title: locales.get("alert--sign-in-failed"), type: AlertType.critical);
       }
     }
 
@@ -271,9 +271,9 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         }
       } on FirebaseFunctionsException catch (error) {
         alert.show(
-            title: error.message ?? error.details["message"], type: AlertTypes.critical);
+            title: error.message ?? error.details["message"], type: AlertType.critical);
       } catch (error) {
-        alert.show(title: error.toString(), type: AlertTypes.critical);
+        alert.show(title: error.toString(), type: AlertType.critical);
       }
       loading = false;
       if (mounted) setState(() {});
@@ -297,12 +297,12 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           ),
         );
         alert.show(
-            title: 'An email has been sent to $_userEmail', type: AlertTypes.success);
+            title: 'An email has been sent to $_userEmail', type: AlertType.success);
       } on FirebaseFunctionsException catch (error) {
         alert.show(
-            title: error.message ?? error.details["message"], type: AlertTypes.critical);
+            title: error.message ?? error.details["message"], type: AlertType.critical);
       } catch (error) {
-        alert.show(title: error.toString(), type: AlertTypes.critical);
+        alert.show(title: error.toString(), type: AlertType.critical);
       }
     }
 
