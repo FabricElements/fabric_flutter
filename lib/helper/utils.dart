@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Utils for a variety of different utility functions.
@@ -26,6 +27,20 @@ class Utils {
   /// Serialize Timestamp to Json
   static Timestamp? timestampToJson(DateTime? time) =>
       time != null ? Timestamp.fromDate(time) : null;
+
+  /// Serialize DateTime string from JSON
+  static DateTime? dateTimeFromJson(String? time) =>
+      time != null ? DateTime.tryParse(time) : null;
+
+  /// Serialize DateTime to JSON string
+  static String? dateTimeToJson(DateTime? time) =>
+      time != null ? time.toString() : null;
+
+  /// Serialize Date to JSON string (yyyy-MM-dd)
+  static String? dateToJson(DateTime? time) {
+    if (time == null) return null;
+    return "${time.year}-${time.month}-${time.day}";
+  }
 
   /// User Presence
   /// responses: active, inactive, away

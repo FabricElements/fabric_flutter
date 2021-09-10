@@ -1,0 +1,20 @@
+{
+  "name": "fabric_flutter",
+  "version": "0.0.1",
+  "scripts": {
+    "serialize": "flutter pub run build_runner build --delete-conflicting-outputs"
+  },
+  "devDependencies": {},
+  "private": true,
+  "dependencies": {},
+  "description": "A new Flutter project.",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FabricElements/fabric_flutter.git"
+  },
+  "bugs": {
+    "url": "https://github.com/FabricElements/fabric_flutter/issues"
+  },
+  "homepage": "https://github.com/FabricElements/fabric_flutter#readme"
+}
