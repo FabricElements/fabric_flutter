@@ -10,7 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   charts_flutter: ^0.11.0
-  flutter_sound: ^8.3.11
+  flutter_sound: ^8.3.12
   country_code_picker: ^2.0.2
   flutter_cache_manager: ^3.1.2
   image_picker: ^0.8.4
@@ -18,13 +18,13 @@ dependencies:
   provider: ^6.0.0
   transparent_image: ^2.0.0
   image: ^3.0.2
-  cloud_firestore: ^2.5.1
-  cloud_functions: ^3.0.2
-  firebase_analytics: ^8.3.1
-  firebase_auth: ^3.1.0
+  cloud_firestore: ^2.5.2
+  cloud_functions: ^3.0.3
+  firebase_analytics: ^8.3.2
+  firebase_auth: ^3.1.1
   firebase_core: ^1.6.0
   firebase_dynamic_links: ^2.0.9
-  firebase_messaging: ^10.0.6
+  firebase_messaging: ^10.0.7
   firebase_storage: ^10.0.3
   json_annotation: ^4.1.0
   flutter_localizations:
