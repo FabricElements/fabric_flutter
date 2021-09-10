@@ -71,22 +71,22 @@ class _HomePageState extends State<HomePage> {
     Alert alert = Alert(
       context: context,
       mounted: mounted,
-      globalContext: stateGlobal.context,
     );
 
     /// Assign notification callback
-    stateNotifications.callback = (Map<String, dynamic> message) => alert.show(
-      title: message["title"],
-      body: message["body"],
-      path: message["path"],
-      origin: message["origin"],
-      widget: "fancy",
-      image: message["image"],
-      arguments: message,
-    );
+    stateNotifications.callback = (Map<String, dynamic> message) {
+      return alert.show(
+        title: message["title"],
+        body: message["body"],
+        path: message["path"],
+        image: message["image"],
+        arguments: message,
+        typeString: message["type"],
+      );
+    };
     final StateAPI stateAPI = Provider.of<StateAPI>(context);
     stateAPI.endpoint =
-    "https://raw.githubusercontent.com/ernysans/laraworld/master/composer.json";
+        "https://raw.githubusercontent.com/ernysans/laraworld/master/composer.json";
     final StateDocument stateDocument = Provider.of<StateDocument>(context);
 
     WidgetsBinding.instance?.addPostFrameCallback((_) {

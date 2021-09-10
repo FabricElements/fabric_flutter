@@ -136,13 +136,13 @@ class _UserInviteState extends State<UserInvite> {
         await callable.call(data);
         alert.show(
             title: locales.get("notification--invitation-sent"),
-            type: "success");
+            type: AlertTypes.success);
         Navigator.of(context).pop();
       } on FirebaseFunctionsException catch (error) {
         alert.show(
-            title: error.message ?? error.details["message"], type: "error");
+            title: error.message ?? error.details["message"], type: AlertTypes.critical);
       } catch (error) {
-        alert.show(title: error.toString(), type: "error");
+        alert.show(title: error.toString(), type: AlertTypes.critical);
       }
       sending = false;
       if (mounted) setState(() {});
@@ -150,7 +150,7 @@ class _UserInviteState extends State<UserInvite> {
 
     void validateInvitation() async {
       if (!canInvite) {
-        alert.show(title: "incomplete data", type: "error");
+        alert.show(title: "incomplete data", type: AlertTypes.critical);
       }
       if (_typeOption == TypeOptions.phone) {
         await _sendInvitation(

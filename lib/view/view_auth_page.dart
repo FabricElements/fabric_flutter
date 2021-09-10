@@ -138,7 +138,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           await _auth.signInWithCredential(phoneAuthCredential);
           alert.show(
             title: locales.get("alert--received-phone-auth-credential"),
-            type: "default",
           );
         };
         final PhoneVerificationFailed verificationFailed =
@@ -146,7 +145,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           alert.show(
             title:
                 "${locales.get("alert--phone-number-verification-failed")}. ${authException.message} -- Code: ${authException.code}",
-            type: "error",
+            type: AlertTypes.critical,
           );
         };
 
@@ -155,7 +154,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           _verificationId = verificationId;
           alert.show(
             title: locales.get("alert--check-phone-verification-code"),
-            type: "success",
+            type: AlertTypes.success,
           );
         };
         final PhoneCodeAutoRetrievalTimeout codeAutoRetrievalTimeout =
@@ -183,9 +182,9 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         success = true;
       } on FirebaseFunctionsException catch (error) {
         alert.show(
-            title: error.message ?? error.details["message"], type: "error");
+            title: error.message ?? error.details["message"], type: AlertTypes.critical);
       } catch (error) {
-        alert.show(title: error.toString(), type: "error");
+        alert.show(title: error.toString(), type: AlertTypes.critical);
       }
       loading = false;
       if (success) {
@@ -213,14 +212,14 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           if (mounted) setState(() {});
         } catch (error) {
           alert.show(
-              title: locales.get("alert--sign-in-failed"), type: "error");
+              title: locales.get("alert--sign-in-failed"), type: AlertTypes.critical);
         }
       } else {
-        // alert.show(text: locales.get("alert--sign-in-failed"), type: "error");
+        // alert.show(text: locales.get("alert--sign-in-failed"), type: AlertTypes.critical);
         alert.show(
             title:
                 "Please input sms code received after verifying phone number",
-            type: "error");
+            type: AlertTypes.critical);
       }
     }
 
@@ -240,7 +239,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         _closeKeyboard();
         if (mounted) setState(() {});
       } catch (error) {
-        alert.show(title: locales.get("alert--sign-in-failed"), type: "error");
+        alert.show(title: locales.get("alert--sign-in-failed"), type: AlertTypes.critical);
       }
     }
 
@@ -272,9 +271,9 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         }
       } on FirebaseFunctionsException catch (error) {
         alert.show(
-            title: error.message ?? error.details["message"], type: "error");
+            title: error.message ?? error.details["message"], type: AlertTypes.critical);
       } catch (error) {
-        alert.show(title: error.toString(), type: "error");
+        alert.show(title: error.toString(), type: AlertTypes.critical);
       }
       loading = false;
       if (mounted) setState(() {});
@@ -298,12 +297,12 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           ),
         );
         alert.show(
-            title: 'An email has been sent to $_userEmail', type: "success");
+            title: 'An email has been sent to $_userEmail', type: AlertTypes.success);
       } on FirebaseFunctionsException catch (error) {
         alert.show(
-            title: error.message ?? error.details["message"], type: "error");
+            title: error.message ?? error.details["message"], type: AlertTypes.critical);
       } catch (error) {
-        alert.show(title: error.toString(), type: "error");
+        alert.show(title: error.toString(), type: AlertTypes.critical);
       }
     }
 

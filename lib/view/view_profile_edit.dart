@@ -152,7 +152,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
             "label": locales.get("label--name-first"),
             "number": "3",
           }),
-          type: "error",
+          type: AlertTypes.critical,
         );
         return;
       }
@@ -162,7 +162,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
             "label": locales.get("label--name-last"),
             "number": "3",
           }),
-          type: "error",
+          type: AlertTypes.critical,
         );
         return;
       }
@@ -190,7 +190,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
         if (mounted) setState(() {});
         alert.show(
           title: locales.get("page-profile--alert--profile-updated"),
-          type: "success",
+          type: AlertTypes.success,
         );
         if (!stateUser.serialized.onboarding.name) {
           Navigator.of(context).pop();
@@ -198,11 +198,11 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
         refreshImage();
       } on FirebaseFunctionsException catch (error) {
         alert.show(
-            title: error.message ?? error.details["message"], type: "error");
+            title: error.message ?? error.details["message"], type: AlertTypes.critical);
       } catch (error) {
         alert.show(
           title: error.toString(),
-          type: "error",
+          type: AlertTypes.critical,
         );
       }
       loading = false;
@@ -220,7 +220,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
       } catch (error) {
         alert.show(
           title: error.toString(),
-          type: "error",
+          type: AlertTypes.critical,
         );
       }
 
