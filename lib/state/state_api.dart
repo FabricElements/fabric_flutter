@@ -20,6 +20,9 @@ class StateAPI extends ChangeNotifier {
   /// More at [endpoint]
   String? _endpoint;
 
+  /// [token]
+  String? token;
+
   /// Callback on successful load
   set callback(VoidCallback _function) => _callback = _function;
 
@@ -56,7 +59,11 @@ class StateAPI extends ChangeNotifier {
       return;
     }
     Uri url = Uri.parse(_endpoint!);
-    final response = await http.get(url);
+    Map<String, String> headers = {};
+    if (token != null) {
+      headers.addAll({"Authorization": "Bearer $token"});
+    }
+    final response = await http.get(url, headers: headers);
     if (response.statusCode == 200) {
       try {
         _data = jsonDecode(response.body);
