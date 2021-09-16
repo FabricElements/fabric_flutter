@@ -7,31 +7,31 @@ dynamic defaultLocales = {
     "en": "Say something...",
     "es": "Di algo...",
   },
-  "label--status-draft": {
+  "label--draft": {
     "en": "Draft",
     "es": "Borrador",
   },
-  "label--status-review": {
+  "label--review": {
     "en": "Review",
     "es": "Revisión",
   },
-  "label--status-approved": {
+  "label--approved": {
     "en": "Approved",
     "es": "Aprobada",
   },
-  "label--status-rejected": {
+  "label--rejected": {
     "en": "Rejected",
     "es": "Rechazada",
   },
-  "label--status-inactive": {
+  "label--inactive": {
     "en": "Inactive",
     "es": "Inactivo",
   },
-  "label--status-active": {
+  "label--active": {
     "en": "Active",
     "es": "Activo",
   },
-  "label--status-archived": {
+  "label--archived": {
     "en": "Archived",
     "es": "Archivado",
   },
@@ -294,6 +294,18 @@ dynamic defaultLocales = {
   "label--profile": {
     "en": "Profile",
     "es": "Perfil",
+  },
+  "label--notifications": {
+    "en": "Notifications",
+    "es": "Notificaciones",
+  },
+  "label--by": {
+    "en": "By {label}",
+    "es": "Por {label}",
+  },
+  "label--dashboard": {
+    "en": "Dashboard",
+    "es": "Tablero",
   },
   "notification--invitation-sent": {
     "en": "Invitation sent",

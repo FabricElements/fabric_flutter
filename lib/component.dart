@@ -3,6 +3,7 @@ export 'component/charts.dart';
 export 'component/flag_chip.dart';
 export 'component/global_providers.dart';
 export 'component/language_selector.dart';
+export 'component/popup_menu.dart';
 export 'component/preview_audio.dart';
 export 'component/role_selector.dart';
 export 'component/section_title.dart';
