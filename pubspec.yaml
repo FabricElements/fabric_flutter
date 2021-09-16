@@ -12,8 +12,8 @@ dependencies:
   flutter_sound: ^8.3.12
   country_code_picker: ^2.0.2
   flutter_cache_manager: ^3.1.2
-  image_picker: ^0.8.4
-  file_picker: ^4.0.2
+  image_picker: ^0.8.4+1
+  file_picker: ^4.0.3
   provider: ^6.0.0
   transparent_image: ^2.0.0
   image: ^3.0.4
@@ -31,16 +31,16 @@ dependencies:
   flutter_web_plugins:
     sdk: flutter
   google_sign_in: ^5.1.0
-  devicelocale: ^0.4.2
+  devicelocale: ^0.4.3
   flutter_signin_button: ^2.0.0
   flutter_dotenv: ^5.0.2
   http: ^0.13.3
-  vibration: ^1.7.3
+  #vibration: ^1.7.3
   sensors: ^2.0.3
-  url_launcher: ^6.0.3
+  url_launcher: ^6.0.10
   share: ^2.0.4
   flutter_linkify: ^5.0.2
-  flutter_markdown: ^0.6.2
+  flutter_markdown: ^0.6.6
   animations: ^2.0.1
 
 dev_dependencies:
@@ -48,7 +48,7 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^1.0.4
   build_runner: ^2.1.2
-  json_serializable: ^5.0.0
+  json_serializable: ^5.0.1
 
 #dependency_overrides:
 #  meta: ^1.7.0
