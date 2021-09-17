@@ -5,9 +5,9 @@ import 'package:fabric_flutter/helper/options.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
-/// [PopupMenu] allows you to easily create custom Popup Menus
-class PopupMenu extends StatefulWidget {
-  const PopupMenu({
+/// [SmartButton] allows you to easily create buttons or/and custom Popup Menus
+class SmartButton extends StatefulWidget {
+  const SmartButton({
     Key? key,
     required this.button,
     this.children,
@@ -23,10 +23,10 @@ class PopupMenu extends StatefulWidget {
   final Function? redirect;
 
   @override
-  State<PopupMenu> createState() => _PopupMenuState();
+  State<SmartButton> createState() => _SmartButtonState();
 }
 
-class _PopupMenuState extends State<PopupMenu> {
+class _SmartButtonState extends State<SmartButton> {
   final popupButtonKey = GlobalKey<State>();
 
   @override
