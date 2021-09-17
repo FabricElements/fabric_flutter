@@ -35,6 +35,14 @@ dynamic defaultLocales = {
     "en": "Archived",
     "es": "Archivado",
   },
+  "label--all": {
+    "en": "All",
+    "es": "Todo",
+  },
+  "label--status": {
+    "en": "Status",
+    "es": "Estado",
+  },
   "label--admin": {
     "en": "Admin",
     "es": "Admin",

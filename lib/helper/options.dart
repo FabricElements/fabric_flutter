@@ -21,8 +21,12 @@ class ButtonOptions {
   /// set [pop] to `true` to use Navigator.popAndPushNamed
   final bool? pop;
 
+  /// set [important] to `true` to use custom design or functionality
+  final bool? important;
+
   ButtonOptions({
     this.icon,
+    this.important,
     required this.label,
     this.onTap,
     this.path,
