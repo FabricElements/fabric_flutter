@@ -97,10 +97,11 @@ class _SmartButtonState extends State<SmartButton> {
     }
     mainButtonWidgets.addAll([
       Flexible(
-          child: Text(
-        widget.button.label,
-        style: textStyle?.copyWith(color: _colorBase),
-      )),
+        child: Text(
+          widget.button.label,
+          style: textStyle?.copyWith(color: _colorBase),
+        ),
+      ),
     ]);
     if (widget.children != null) {
       mainButtonWidgets.addAll([
@@ -131,6 +132,7 @@ class _SmartButtonState extends State<SmartButton> {
       key: popupButtonKey,
       initialValue: "/",
       onSelected: (value) {
+        print("selected");
         if (value.startsWith("/")) Navigator.pushNamed(context, value);
       },
       child: MouseRegion(

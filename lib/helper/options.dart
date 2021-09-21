@@ -9,8 +9,14 @@ class ButtonOptions {
   /// [icon]
   final IconData? icon;
 
+  /// Define [id]
+  final String? id;
+
   /// Define [label] text for the button
   final String label;
+
+  /// Define [labelAlt] alt text for the button
+  final String? labelAlt;
 
   /// [onTap] button
   final VoidCallback? onTap;
@@ -19,17 +25,23 @@ class ButtonOptions {
   final String? path;
 
   /// set [pop] to `true` to use Navigator.popAndPushNamed
-  final bool? pop;
+  final bool pop;
 
   /// set [important] to `true` to use custom design or functionality
-  final bool? important;
+  final bool important;
+
+  /// set [selected] to `true` to use custom design or functionality
+  bool selected;
 
   ButtonOptions({
     this.icon,
-    this.important,
+    this.id,
+    this.important = false,
     required this.label,
+    this.labelAlt,
     this.onTap,
     this.path,
-    this.pop,
+    this.pop = false,
+    this.selected = false,
   });
 }
