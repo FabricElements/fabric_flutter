@@ -31,9 +31,17 @@ class ButtonOptions {
   final bool important;
 
   /// set [selected] to `true` to use custom design or functionality
+  /// Don't use as final in case you need to update it's value programmatically
   bool selected;
 
+  /// set [value] as dynamic and cast `value as String` or any type required
+  final dynamic value;
+
+  /// Set [children] for submenus
+  final List<ButtonOptions> children;
+
   ButtonOptions({
+    this.children = const [],
     this.icon,
     this.id,
     this.important = false,
@@ -43,5 +51,6 @@ class ButtonOptions {
     this.path,
     this.pop = false,
     this.selected = false,
+    this.value,
   });
 }

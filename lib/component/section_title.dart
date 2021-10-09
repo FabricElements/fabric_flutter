@@ -126,10 +126,13 @@ class _SectionTitleState extends State<SectionTitle> {
     }
     return SafeArea(
       bottom: false,
-      child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 16),
-        child: Wrap(
-          children: items,
+      child: Container(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            children: items,
+            crossAxisAlignment: CrossAxisAlignment.start,
+          ),
         ),
       ),
     );

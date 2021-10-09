@@ -106,11 +106,6 @@ class AlertHelper {
       print("Called Alert when unmounted");
       return;
     }
-    // String actionLabel = actionLabel ?? "label--continue";
-    // IconData actionIcon = actionIcon ?? Icons.navigate_next;
-
-    // String dismissLabel = dismissLabel ?? "label--dismiss";
-    // IconData dismissIcon = dismissIcon ?? Icons.close;
 
     final queryData = MediaQuery.of(context);
     double width = queryData.size.width;
@@ -126,7 +121,7 @@ class AlertHelper {
     // await Future.delayed(Duration(microseconds: 200));
     // BuildContext parentContext = globalContext ?? context;
     ScaffoldMessenger.of(context).clearSnackBars();
-    Color color = Colors.grey.shade800;
+    Color color = Colors.grey.shade900;
     AlertType _type = type ?? AlertType.basic;
     if (typeString != null) {
       _type = typeFromString(typeString);
@@ -144,7 +139,7 @@ class AlertHelper {
         _duration = duration ?? 600;
         break;
       case AlertType.warning:
-        color = Colors.orange;
+        color = Colors.deepOrange;
         _duration = duration ?? 60;
         break;
       case AlertType.success:
@@ -152,7 +147,6 @@ class AlertHelper {
         _duration = duration ?? 6;
         break;
       default:
-        color = Colors.grey.shade800;
     }
     try {
       // image =
@@ -203,6 +197,9 @@ class AlertHelper {
           (path != null && path.isNotEmpty) || actionCallback != null;
       if (hasAction) {
         _actions.add(ElevatedButton.icon(
+          style: ButtonStyle(
+            foregroundColor: MaterialStateProperty.all(color),
+          ),
           label: Text(locales.get(actionLabel).toUpperCase()),
           icon: Icon(actionIcon),
           onPressed: () {
@@ -217,21 +214,28 @@ class AlertHelper {
           },
         ));
       }
-      _actions.add(TextButton.icon(
-        icon: Icon(dismissIcon),
-        label: Text(locales.get(dismissLabel).toUpperCase()),
-        onPressed: () {
-          if (dismissCallback != null) dismissCallback();
-          ScaffoldMessenger.of(context).clearSnackBars();
-        },
-      ));
-      _onColumn.add(Container(
-        margin: EdgeInsets.only(top: 16),
-        child: Wrap(
-          children: _actions,
-          spacing: 16,
-        ),
-      ));
+
+      if (_duration > 3) {
+        _actions.add(TextButton.icon(
+          icon: Icon(dismissIcon),
+          label: Text(locales.get(dismissLabel).toUpperCase()),
+          onPressed: () {
+            if (dismissCallback != null) dismissCallback();
+            ScaffoldMessenger.of(context).clearSnackBars();
+          },
+        ));
+      }
+
+      if (_actions.length > 0) {
+        _onColumn.add(Container(
+          margin: EdgeInsets.only(top: 16),
+          child: Wrap(
+            children: _actions,
+            spacing: 16,
+          ),
+        ));
+      }
+
       _mainItems.add(Column(
         children: _onColumn,
         mainAxisSize: MainAxisSize.min,
@@ -240,15 +244,10 @@ class AlertHelper {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
-          content: SafeArea(
-            top: false,
-            left: false,
-            right: false,
-            child: Wrap(
-              direction: Axis.vertical,
-              children: _mainItems,
-              clipBehavior: Clip.hardEdge,
-            ),
+          content: Wrap(
+            direction: Axis.vertical,
+            children: _mainItems,
+            clipBehavior: Clip.hardEdge,
           ),
           duration: Duration(seconds: _duration),
           backgroundColor: color,

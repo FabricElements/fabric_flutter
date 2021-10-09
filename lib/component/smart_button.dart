@@ -40,6 +40,7 @@ class _SmartButtonState extends State<SmartButton> {
     Color _colorBase = theme.colorScheme.primary;
     Color _colorIcon = theme.colorScheme.secondary;
     Color _colorBaseImportant = theme.colorScheme.secondaryVariant;
+    Color _colorBaseSelected = theme.colorScheme.primary;
     if (isDark) {
       _colorBase = Colors.white;
       // _colorIcon = Colors.white;
@@ -47,8 +48,6 @@ class _SmartButtonState extends State<SmartButton> {
       // _colorBaseImportant = Colors.white;
     }
     TextStyle? textStyle = textTheme.subtitle2;
-    TextStyle? textStyleImportant = textStyle?.copyWith(
-        fontWeight: FontWeight.w700, color: _colorBaseImportant);
     double? _height = kIsWeb ? 34.00 : kMinInteractiveDimension;
 
     if (widget.children != null) {
@@ -56,13 +55,18 @@ class _SmartButtonState extends State<SmartButton> {
         dynamic item = widget.children![i];
         bool enabled = item.onTap != null || item.path != null;
         if (item is ButtonOptions) {
+          TextStyle? _textStyle = textStyle;
+          if (item.selected) {
+            _textStyle = textStyle?.copyWith(color: _colorBaseSelected);
+          }
+          if (item.important) {
+            _textStyle = textStyle?.copyWith(
+                color: _colorBaseImportant, fontWeight: FontWeight.w700);
+          }
           Widget _content = Text(
             item.label,
-            style: textStyle,
+            style: _textStyle,
           );
-          if (item.important == true) {
-            _content = Text(item.label, style: textStyleImportant);
-          }
           buttons.add(PopupMenuItem<String>(
             height: _height,
             enabled: enabled,
@@ -132,7 +136,6 @@ class _SmartButtonState extends State<SmartButton> {
       key: popupButtonKey,
       initialValue: "/",
       onSelected: (value) {
-        print("selected");
         if (value.startsWith("/")) Navigator.pushNamed(context, value);
       },
       child: MouseRegion(

@@ -35,6 +35,22 @@ dynamic defaultLocales = {
     "en": "Archived",
     "es": "Archivado",
   },
+  "label--default": {
+    "en": "Default",
+    "es": "Predeterminado",
+  },
+  "label--order": {
+    "en": "Order",
+    "es": "Orden",
+  },
+  "label--newest": {
+    "en": "Newest",
+    "es": "Más nueva",
+  },
+  "label--oldest": {
+    "en": "Oldest",
+    "es": "Más antiguo",
+  },
   "label--all": {
     "en": "All",
     "es": "Todo",
@@ -191,6 +207,10 @@ dynamic defaultLocales = {
     "en": "Sign in failed",
     "es": "Fallo al iniciar sesión",
   },
+  "alert--copy-clipboard": {
+    "en": "Copied to clipboard",
+    "es": "Popiado al portapapeles"
+  },
   "page-auth--title": {
     "en": "Welcome",
     "es": "Bienvenido",
@@ -307,9 +327,41 @@ dynamic defaultLocales = {
     "en": "Notifications",
     "es": "Notificaciones",
   },
-  "label--by": {
+  "label--by-label": {
     "en": "By {label}",
     "es": "Por {label}",
+  },
+  "label--export": {
+    "en": "Export",
+    "es": "Exportar",
+  },
+  "label--export-label": {
+    "en": "Export {label}",
+    "es": "Exportar {label}",
+  },
+  "label--label-selected": {
+    "en": "{label} Select",
+    "es": "{label} Seleccionados",
+  },
+  "label--select-label": {
+    "en": "Select {label}",
+    "es": "Selecciona {label}",
+  },
+  "label--deselect": {
+    "en": "Deselect",
+    "es": "Deseleccionar",
+  },
+  "label--deselect-all": {
+    "en": "Deselect All",
+    "es": "Deseleccionar Todo",
+  },
+  "label--select": {
+    "en": "Select",
+    "es": "Selecciona",
+  },
+  "label--select-all": {
+    "en": "Select All",
+    "es": "Seleccionar todo",
   },
   "label--dashboard": {
     "en": "Dashboard",
@@ -327,6 +379,10 @@ dynamic defaultLocales = {
     "en": "Processing your request. Please wait...",
     "es": "Procesando su solicitud. Espere por favor...",
   },
+  "notification--updated": {
+    "en": "Successfully updated",
+    "es": "Se actualizó correctamente",
+  },
   "user-role-update--title": {
     "en": "Update role for: {name}",
     "es": "Actualizar rol de {name}",
@@ -334,5 +390,39 @@ dynamic defaultLocales = {
   "user-invite--title": {
     "en": "Add a new User",
     "es": "Agrega un nuevo Usuario",
+  },
+  "label--plus-code": {
+    "en": "Plus Code",
+    "es": "Código Plus",
+  },
+  "label--address": {
+    "en": "Address",
+    "es": "Dirección",
+  },
+  "label--approve": {"en": "Approve", "es": "Aprobar"},
+  "label--reject": {"en": "Reject", "es": "Rechazar"},
+  "label--confirm-are-you-sure-update-label": {
+    "en": "Are you sure you want to update {label}?",
+    "es": "¿Seguro que quieres actualizar {label}?"
+  },
+  "label--confirm-are-you-sure-update-label-to": {
+    "en": "Are you sure you want to update '{label}' to '{to}'?",
+    "es": "¿Seguro que quieres actualizar '{label}' a '{to}'?"
+  },
+  "label--date": {
+    "en": "Date",
+    "es": "Fecha",
+  },
+  "label--date-updated": {
+    "en": "Date Updated",
+    "es": "Fecha Actualización",
+  },
+  "label--date-created": {
+    "en": "Date Created",
+    "es": "Fecha de Creación",
+  },
+  "label--date-label": {
+    "en": "Date {label}",
+    "es": "Fecha {label}",
   },
 };
