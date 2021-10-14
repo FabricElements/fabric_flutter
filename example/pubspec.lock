@@ -84,14 +84,14 @@ packages:
       name: build_runner
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.1.2"
+    version: "2.1.4"
   build_runner_core:
     dependency: transitive
     description:
       name: build_runner_core
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "7.1.0"
+    version: "7.2.2"
   built_collection:
     dependency: transitive
     description:
@@ -294,7 +294,7 @@ packages:
       name: file_picker
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "4.1.3"
+    version: "4.1.4"
   firebase:
     dependency: transitive
     description:
@@ -486,21 +486,21 @@ packages:
       name: flutter_sound
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "8.3.12"
+    version: "8.4.1"
   flutter_sound_platform_interface:
     dependency: transitive
     description:
       name: flutter_sound_platform_interface
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "8.3.12"
+    version: "8.4.1"
   flutter_sound_web:
     dependency: transitive
     description:
       name: flutter_sound_web
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "8.3.12"
+    version: "8.4.1"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -636,7 +636,7 @@ packages:
       name: json_annotation
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "4.1.0"
+    version: "4.2.0"
   linkify:
     dependency: transitive
     description:
