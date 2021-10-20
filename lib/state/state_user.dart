@@ -1,8 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../serialized/user_data.dart';
 import 'state_document.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -12,6 +12,8 @@ class StateUser extends StateDocument {
   Map<String, dynamic>? _claims;
   String? _pingReference;
   DateTime _pingLast = DateTime.now().subtract(Duration(minutes: 10));
+  Map<String, UserData> _usersMap = {};
+  String? _lastUserGet;
 
   StateUser();
 
@@ -58,7 +60,11 @@ class StateUser extends StateDocument {
   Map<String, dynamic> get claims => _claims ?? {};
 
   /// Returns serialized data [UserData]
-  UserData get serialized => UserData.fromJson(data);
+  UserData get serialized {
+    UserData _userData = UserData.fromJson(data);
+    // _usersMap.addAll({"id": _userData});
+    return _userData;
+  }
 
   /// [signedIn] Returns "true" when the user is authenticated
   bool get signedIn => _userObject != null && _userObject?.uid == id;
@@ -103,6 +109,42 @@ class StateUser extends StateDocument {
     } catch (error) {
       print("user ping error: ${error.toString()}");
     }
+  }
+
+  /// Returns list of [users]
+  List<UserData> get users {
+    List<UserData> _endUsers = [];
+    _usersMap.forEach((key, value) {
+      _endUsers.add(value);
+    });
+    return _endUsers;
+  }
+
+  /// [usersMap] Returns a map of [users]
+  Map<String, UserData> get usersMap => _usersMap;
+
+  /// [getUser] returns [UserData] from uid
+  UserData getUser(String uid) {
+    if (_usersMap.containsKey(uid)) {
+      return _usersMap[uid]!;
+    }
+    _usersMap.addAll({
+      "$uid": UserData.fromJson({"id": uid})
+    });
+    if (_lastUserGet != uid) {
+      DocumentReference<Map<String, dynamic>> _documentReferenceUser =
+          FirebaseFirestore.instance.collection("user").doc(uid);
+      _documentReferenceUser.get().then((snapshot) {
+        if (snapshot.exists) {
+          Map<String, dynamic> _itemData =
+              snapshot.data() as Map<String, dynamic>;
+          _itemData.addAll({"id": uid});
+          _usersMap.addAll({"$uid": UserData.fromJson(_itemData)});
+          notifyListeners();
+        }
+      });
+    }
+    return _usersMap[uid]!;
   }
 
   /// Sign Out user

@@ -363,6 +363,10 @@ dynamic defaultLocales = {
     "en": "Select All",
     "es": "Seleccionar todo",
   },
+  "label--choose-option": {
+    "en": "Choose an Option",
+    "es": "Elige una opción",
+  },
   "label--dashboard": {
     "en": "Dashboard",
     "es": "Tablero",
@@ -399,8 +403,22 @@ dynamic defaultLocales = {
     "en": "Address",
     "es": "Dirección",
   },
-  "label--approve": {"en": "Approve", "es": "Aprobar"},
-  "label--reject": {"en": "Reject", "es": "Rechazar"},
+  "label--approve": {
+    "en": "Approve",
+    "es": "Aprobar",
+  },
+  "label--reject": {
+    "en": "Reject",
+    "es": "Rechazar",
+  },
+  "label--confirm-are-you-sure-update": {
+    "en": "Are you sure you want to update?",
+    "es": "¿Seguro que quieres actualizar?"
+  },
+  "label--confirm-are-you-sure-cancel": {
+    "en": "Are you sure you want to cancel?. Your changes won't be saved",
+    "es": "¿Estas seguro que quieres cancelar?. Tus cambios no se guardarán"
+  },
   "label--confirm-are-you-sure-update-label": {
     "en": "Are you sure you want to update {label}?",
     "es": "¿Seguro que quieres actualizar {label}?"
