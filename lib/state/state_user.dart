@@ -62,7 +62,7 @@ class StateUser extends StateDocument {
   /// Returns serialized data [UserData]
   UserData get serialized {
     UserData _userData = UserData.fromJson(data);
-    // _usersMap.addAll({"id": _userData});
+    _usersMap.addAll({"id": _userData});
     return _userData;
   }
 
