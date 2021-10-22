@@ -443,4 +443,8 @@ dynamic defaultLocales = {
     "en": "Date {label}",
     "es": "Fecha {label}",
   },
+  "label--buy": {
+    "en": "Buy",
+    "es": "Comprar",
+  },
 };
