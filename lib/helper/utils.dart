@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 
 /// Utils for a variety of different utility functions.
 class Utils {
@@ -33,13 +34,14 @@ class Utils {
       time != null ? DateTime.tryParse(time) : null;
 
   /// Serialize DateTime to JSON string
-  static String? dateTimeToJson(DateTime? time) =>
-      time != null ? time.toString() : null;
+  static String? dateTimeToJson(DateTime? time) => time != null
+      ? DateFormat("yyyy-MM-dd'T'HH:mm:ss").format(time).toString()
+      : null;
 
   /// Serialize Date to JSON string (yyyy-MM-dd)
   static String? dateToJson(DateTime? time) {
     if (time == null) return null;
-    return "${time.year}-${time.month}-${time.day}";
+    return DateFormat("yyyy-MM-dd").format(time).toString();
   }
 
   /// User Presence

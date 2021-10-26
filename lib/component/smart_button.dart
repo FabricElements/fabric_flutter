@@ -126,6 +126,7 @@ class _SmartButtonState extends State<SmartButton> {
       ),
       onPressed: () {
         if (widget.button.path != null) {
+          if (widget.button.onTap != null) widget.button.onTap!();
           Navigator.pushNamed(context, widget.button.path!);
         }
       },
