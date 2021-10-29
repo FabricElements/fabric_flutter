@@ -47,6 +47,18 @@ dynamic defaultLocales = {
     "en": "Newest",
     "es": "Más nueva",
   },
+  "label--new": {
+    "en": "New",
+    "es": "Nuevo",
+  },
+  "label--new-label": {
+    "en": "New {label}",
+    "es": "Nuevo {label}",
+  },
+  "label--edit-label": {
+    "en": "Edit {label}",
+    "es": "Editar {label}",
+  },
   "label--oldest": {
     "en": "Oldest",
     "es": "Más antiguo",
@@ -90,6 +102,10 @@ dynamic defaultLocales = {
   "label--choose-role": {
     "en": "Please choose a role",
     "es": "Por favor escoge un rol",
+  },
+  "label--add": {
+    "en": "Add",
+    "es": "Agregar",
   },
   "label--remove": {
     "en": "Remove",
@@ -367,6 +383,14 @@ dynamic defaultLocales = {
     "en": "Choose an Option",
     "es": "Elige una opción",
   },
+  "label--filter-by-label": {
+    "en": "Filter by {label}",
+    "es": "Filtrar por {label}",
+  },
+  "label--choose-label": {
+    "en": "Choose {label}",
+    "es": "Elige {label}",
+  },
   "label--dashboard": {
     "en": "Dashboard",
     "es": "Tablero",
@@ -386,6 +410,14 @@ dynamic defaultLocales = {
   "notification--updated": {
     "en": "Successfully updated",
     "es": "Se actualizó correctamente",
+  },
+  "notification--created": {
+    "en": "Successfully created",
+    "es": "Se creó correctamente",
+  },
+  "notification--added": {
+    "en": "Successfully added",
+    "es": "Se agregó correctamente",
   },
   "user-role-update--title": {
     "en": "Update role for: {name}",
@@ -447,4 +479,7 @@ dynamic defaultLocales = {
     "en": "Buy",
     "es": "Comprar",
   },
+  "label--category": {"en": "Category", "es": "Categoría"},
+  "label--type": {"en": "Type", "es": "Tipo"},
+  "label--organization": {"en": "Organization", "es": "Organización"}
 };

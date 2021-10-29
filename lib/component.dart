@@ -4,6 +4,7 @@ export 'component/charts.dart';
 export 'component/edit_save_button.dart';
 export 'component/flag_chip.dart';
 export 'component/global_providers.dart';
+export 'component/input_data.dart';
 export 'component/language_selector.dart';
 export 'component/preview_audio.dart';
 export 'component/role_selector.dart';

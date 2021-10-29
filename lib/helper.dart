@@ -1,5 +1,6 @@
 export 'helper/alert_helper.dart';
 export 'helper/app_localizations_delegate.dart';
+export 'helper/enum_data.dart';
 export 'helper/firebase_storage_helper.dart';
 export 'helper/image_helper.dart';
 export 'helper/iso_language.dart';
