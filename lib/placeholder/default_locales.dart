@@ -115,9 +115,21 @@ dynamic defaultLocales = {
     "en": "User Removed",
     "es": "Usuario Eliminado",
   },
+  "alert--no-choose-files": {
+    "en": "You didn't choose any files",
+    "es": "No elegiste ningún archivo",
+  },
   "label--add-more": {
     "en": "Add More",
     "es": "Agregar Más",
+  },
+  "label--add-label": {
+    "en": "Add {label}",
+    "es": "Agregar {label}",
+  },
+  "label--replace-label": {
+    "en": "Replace {label}",
+    "es": "Replace {label}",
   },
   "label--phone-number": {
     "en": "Phone Number",
@@ -387,6 +399,14 @@ dynamic defaultLocales = {
     "en": "Filter by {label}",
     "es": "Filtrar por {label}",
   },
+  "label--file": {
+    "en": "File",
+    "es": "Archivo",
+  },
+  "label--choose": {
+    "en": "Choose",
+    "es": "Elegir",
+  },
   "label--choose-label": {
     "en": "Choose {label}",
     "es": "Elige {label}",
@@ -479,7 +499,20 @@ dynamic defaultLocales = {
     "en": "Buy",
     "es": "Comprar",
   },
-  "label--category": {"en": "Category", "es": "Categoría"},
-  "label--type": {"en": "Type", "es": "Tipo"},
-  "label--organization": {"en": "Organization", "es": "Organización"}
+  "label--category": {
+    "en": "Category",
+    "es": "Categoría",
+  },
+  "label--type": {
+    "en": "Type",
+    "es": "Tipo",
+  },
+  "label--organization": {
+    "en": "Organization",
+    "es": "Organización",
+  },
+  "label--import": {
+    "en": "Import",
+    "es": "Importar",
+  }
 };

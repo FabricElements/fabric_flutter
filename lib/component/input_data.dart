@@ -163,9 +163,9 @@ class InputData extends StatelessWidget {
               ),
               trailing: Icon(
                 Icons.arrow_drop_down,
-                color: theme.colorScheme.primary,
+                color: disabled ? Colors.grey.shade300 : theme.colorScheme.primary,
               ),
-              mouseCursor: SystemMouseCursors.click,
+              mouseCursor: disabled ? SystemMouseCursors.forbidden : SystemMouseCursors.click,
             ),
             itemBuilder: (BuildContext context) => buttons,
           );
