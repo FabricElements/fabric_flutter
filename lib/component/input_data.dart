@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../helper/app_localizations_delegate.dart';
 import '../helper/enum_data.dart';
+import '../helper/options.dart';
 
 /// [InputDataType] defines the supported types for the [InputData] component
 enum InputDataType {
@@ -12,6 +13,7 @@ enum InputDataType {
   int,
   text,
   enums,
+  dropdown,
   string,
 }
 
@@ -24,16 +26,20 @@ class InputData extends StatelessWidget {
     required this.value,
     required this.type,
     this.enums = const [],
+    this.dropdown = const [],
     required this.onChanged,
     this.disabled = false,
     this.hintText,
     this.maxLength = 255,
+    this.textDefault,
   }) : super(key: key);
   final dynamic value;
   final List<dynamic> enums;
+  final List<ButtonOptions> dropdown;
   final InputDataType type;
   final bool disabled;
   final String? hintText;
+  final String? textDefault;
   final int maxLength;
 
   /// [onChanged]
@@ -47,6 +53,9 @@ class InputData extends StatelessWidget {
     EnumData enumData = EnumData(locales: locales);
     ThemeData theme = Theme.of(context);
     TextTheme textTheme = theme.textTheme;
+    bool _disabled = disabled;
+    String _defaultText = textDefault ?? locales.get("label--choose-option");
+    String textSelected = _defaultText;
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
       double width = constraints.maxWidth.floorToDouble();
@@ -58,7 +67,7 @@ class InputData extends StatelessWidget {
       // if (width > 1500) layoutTo = 7;
       double maxWidth =
           (width / layoutTo) - ((layoutTo) / 2 * 8).floorToDouble();
-      Widget _widget = Text("Type '$type' not implemented",
+          Widget _widget = Text("Type '$type' not implemented",
           style: TextStyle(color: Colors.orange));
       TextInputType keyboardType = TextInputType.text;
       List<TextInputFormatter> inputFormatters = [];
@@ -132,40 +141,64 @@ class InputData extends StatelessWidget {
           );
           break;
         case InputDataType.enums:
-          List<dynamic> _enumValues = enums.map((e) => e.toString()).toList();
+        case InputDataType.dropdown:
+          List<ButtonOptions> _dropdown = [];
           List<PopupMenuEntry<String>> buttons = [
-            // PopupMenuItem<String>(
-            //   value: "",
-            //   child: Text(locales.get("label--unknown")),
-            // ),
+            PopupMenuItem<String>(
+              value: "",
+              child: Text(_defaultText),
+            ),
           ];
-          for (String _option in _enumValues) {
-            String label = enumData.localesFromEnum(_option);
+          if (type == InputDataType.dropdown) {
+            _dropdown = dropdown;
+          }
+          if (type == InputDataType.enums) {
+            _dropdown = enums
+                .map((e) => ButtonOptions(
+                      label: enumData.localesFromEnum(e),
+                      value: e,
+                    ))
+                .toList();
+          }
+          for (ButtonOptions _option in _dropdown) {
             buttons.add(PopupMenuItem<String>(
-              value: _option,
-              child: Text(label),
+              value: _option.value?.toString(),
+              child: Text(_option.label),
             ));
           }
+          if (value != null) {
+            if (type == InputDataType.enums) {
+              textSelected = enumData.localesFromEnum(value);
+            }
+            if (type == InputDataType.dropdown) {
+              textSelected = dropdown
+                  .firstWhere((element) => element.value == value)
+                  .label;
+            }
+          }
+          if (buttons.length == 1) {
+            _disabled = true;
+          }
           _widget = PopupMenuButton<String>(
-            enabled: !disabled,
+            enabled: !_disabled,
             elevation: 1,
             offset: Offset(0, 40),
             key: popupButtonKey,
             initialValue: value?.toString(),
             onSelected: (_value) {
-              onChanged(_value);
+              onChanged(_value == "" ? null : _value);
             },
             child: ListTile(
-              title: Text(
-                value != null
-                    ? enumData.localesFromEnum(value)
-                    : locales.get("label--choose-option"),
-              ),
+              title: Text(textSelected),
               trailing: Icon(
                 Icons.arrow_drop_down,
-                color: disabled ? Colors.grey.shade300 : theme.colorScheme.primary,
+                color: _disabled
+                    ? Colors.grey.shade300
+                    : theme.colorScheme.primary,
               ),
-              mouseCursor: disabled ? SystemMouseCursors.forbidden : SystemMouseCursors.click,
+              mouseCursor: _disabled
+                  ? SystemMouseCursors.forbidden
+                  : SystemMouseCursors.click,
             ),
             itemBuilder: (BuildContext context) => buttons,
           );

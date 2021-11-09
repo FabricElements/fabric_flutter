@@ -1,4 +1,5 @@
 import 'package:fabric_flutter/helper/app_localizations_delegate.dart';
+import 'package:flutter/foundation.dart';
 
 /// [EnumData] provides extended support for enums
 class EnumData {
@@ -13,7 +14,8 @@ class EnumData {
     String _label = debug ? "unknown" : "";
     if (base == null) return _label;
     try {
-      _label = base.toString().split(".").last.replaceAll("_", "-");
+      _label = describeEnum(base);
+      // _label = base.toString().split(".").last;
     } catch (error) {}
     return _label;
   }
@@ -22,7 +24,7 @@ class EnumData {
   String localesFromEnum(dynamic base) {
     if (base == null) return "";
     return locales != null
-        ? locales!.get("label--${stringFromEnum(base).toLowerCase()}")
+        ? locales!.get("label--${stringFromEnum(base).replaceAll("_", "-").toLowerCase()}")
         : "LOCALES NOT INCLUDED";
   }
 }
