@@ -467,6 +467,10 @@ dynamic defaultLocales = {
     "en": "Are you sure you want to update?",
     "es": "¿Seguro que quieres actualizar?"
   },
+  "label--confirm-are-you-sure-add-label": {
+    "en": "Are you sure you want to add a new {label}?",
+    "es": "¿Seguro que quieres agregar un nuevo {label}?"
+  },
   "label--confirm-are-you-sure-cancel": {
     "en": "Are you sure you want to cancel?. Your changes won't be saved",
     "es": "¿Estas seguro que quieres cancelar?. Tus cambios no se guardarán"

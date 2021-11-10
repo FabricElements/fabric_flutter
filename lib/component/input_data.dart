@@ -15,6 +15,7 @@ enum InputDataType {
   enums,
   dropdown,
   string,
+  radio,
 }
 
 /// [InputData] provides an useful way to handle data input
@@ -26,7 +27,7 @@ class InputData extends StatelessWidget {
     required this.value,
     required this.type,
     this.enums = const [],
-    this.dropdown = const [],
+    this.options = const [],
     required this.onChanged,
     this.disabled = false,
     this.hintText,
@@ -35,7 +36,7 @@ class InputData extends StatelessWidget {
   }) : super(key: key);
   final dynamic value;
   final List<dynamic> enums;
-  final List<ButtonOptions> dropdown;
+  final List<ButtonOptions> options;
   final InputDataType type;
   final bool disabled;
   final String? hintText;
@@ -150,7 +151,7 @@ class InputData extends StatelessWidget {
             ),
           ];
           if (type == InputDataType.dropdown) {
-            _dropdown = dropdown;
+            _dropdown = options;
           }
           if (type == InputDataType.enums) {
             _dropdown = enums
@@ -171,9 +172,8 @@ class InputData extends StatelessWidget {
               textSelected = enumData.localesFromEnum(value);
             }
             if (type == InputDataType.dropdown) {
-              textSelected = dropdown
-                  .firstWhere((element) => element.value == value)
-                  .label;
+              textSelected =
+                  options.firstWhere((element) => element.value == value).label;
             }
           }
           if (buttons.length == 1) {
@@ -203,6 +203,28 @@ class InputData extends StatelessWidget {
             itemBuilder: (BuildContext context) => buttons,
           );
 
+          break;
+        case InputDataType.radio:
+          List<Widget> _options = options.map((e) {
+            return ListTile(
+              title: Text(e.label),
+              leading: Radio<String?>(
+                value: e.value?.toString(),
+                groupValue: value?.toString(),
+                onChanged: (String? value) {
+                  onChanged(value == "" ? null : value);
+                },
+              ),
+              onTap: () {
+                onChanged(
+                  e.value?.toString() == "" ? null : e.value?.toString(),
+                );
+              },
+            );
+          }).toList();
+          _widget = Column(
+            children: _options,
+          );
           break;
         default:
       }
