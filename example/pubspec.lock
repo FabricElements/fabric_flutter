@@ -294,7 +294,7 @@ packages:
       name: file_picker
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "4.2.2+1"
+    version: "4.2.3"
   firebase:
     dependency: transitive
     description:
@@ -970,7 +970,7 @@ packages:
       name: url_launcher
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "6.0.12"
+    version: "6.0.13"
   url_launcher_linux:
     dependency: transitive
     description:

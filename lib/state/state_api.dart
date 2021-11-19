@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
 
@@ -50,8 +51,8 @@ class StateAPI extends ChangeNotifier {
   /// when the timestamp is updated it will result in a new call to the API [endpoint].
   /// Don't use a "/" at the beginning of the path
   set endpoint(String? value) {
-    if (value != baseEndpoint) clear();
     if (value == baseEndpoint && baseData != null) return;
+    if (value != baseEndpoint) clear();
     baseEndpoint = value;
     get();
   }
@@ -61,13 +62,14 @@ class StateAPI extends ChangeNotifier {
 
   /// API Call
   void get() async {
-    baseData = null;
     _error = null;
     if (baseEndpoint == null) {
+      baseData = null;
       _error = "endpoint can't be null";
       notifyListeners();
       return;
     }
+    if (kDebugMode) print("Calling endpoint: $baseEndpoint");
     Uri url = Uri.parse(baseEndpoint!);
     Map<String, String> headers = {};
     if (authParameters != null) {
@@ -91,6 +93,7 @@ class StateAPI extends ChangeNotifier {
       }
     }
     if (_error != null) {
+      baseData = null;
       print("------------ ERROR API CALL -------------");
       print(_error);
     }

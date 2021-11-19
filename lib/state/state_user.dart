@@ -18,7 +18,7 @@ class StateUser extends StateDocument {
   StateUser();
 
   @override
-  String collection = "user";
+  String? collection = "user";
 
   @override
   void reset() {

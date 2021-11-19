@@ -5,6 +5,12 @@ import 'package:flutter/cupertino.dart';
 class StateDocument extends ChangeNotifier {
   StateDocument();
 
+  /// [_called] after snapshot is requested the first time
+  bool _called = false;
+
+  /// [_initialized] after data is called the first time
+  bool _initialized = false;
+
   /// More at [id]
   String? _documentId;
 
@@ -12,46 +18,55 @@ class StateDocument extends ChangeNotifier {
   Map<String, dynamic> _data = {};
 
   /// Firestore Document Reference
-  late DocumentReference<Map<String, dynamic>> _documentReference;
+  DocumentReference<Map<String, dynamic>>? get _documentReference {
+    if (id == null || collection == null) return null;
+    return FirebaseFirestore.instance.collection(collection!).doc(id);
+  }
 
   /// Firestore Document Stream Reference
-  Stream<DocumentSnapshot>? _streamReference;
+  Stream<DocumentSnapshot>? get _streamReference {
+    return _documentReference?.snapshots();
+  }
 
   /// More at [callback]
   VoidCallback? _callback;
 
+  /// More at [_onUpdate]
+  VoidCallback? _onUpdate;
+
   /// Collection ID
-  String collection = "demo";
+  String? collection;
 
   /// Set document [id]
   set id(String? id) {
     if (id != _documentId) clear();
-    if (id == _documentId && _data.isNotEmpty) return;
+    if (id == _documentId) return;
     _documentId = id;
     if (id != null) {
-      _documentReference =
-          FirebaseFirestore.instance.collection(collection).doc(id);
-      _streamReference = _documentReference.snapshots();
       _listen();
     }
   }
 
   /// Listen for document changes
   void _listen() {
+    if (_called) return;
+    _called = true;
     bool isValid = false;
     try {
-      _streamReference!.listen((snapshot) {
+      _streamReference?.listen((DocumentSnapshot snapshot) {
         String snapshotID = snapshot.id;
         isValid = snapshot.exists && snapshotID == _documentId;
         _data = {};
         if (!isValid) {
           return;
         }
-        _data = snapshot.data()! as Map<String, dynamic>;
+        _data = snapshot.data() as Map<String, dynamic>;
         _data["id"] = snapshotID;
-        notifyListeners();
+        if (_initialized && _onUpdate != null) _onUpdate!();
+        _initialized = true;
         if (_callback != null) _callback!();
-      }).onError((error) {
+        notifyListeners();
+      }, cancelOnError: true).onError((error) {
         print(error);
         isValid = false;
         _data = {};
@@ -67,12 +82,12 @@ class StateDocument extends ChangeNotifier {
 
   /// Update Firestore Document
   Future<void> update(Map<String, dynamic> newData) {
-    return _documentReference.update(newData);
+    return _documentReference!.update(newData);
   }
 
   /// Set Merge Firestore Document
   Future<void> set(Map<String, dynamic> newData, {bool merge = false}) {
-    return _documentReference.set(newData, SetOptions(merge: merge));
+    return _documentReference!.set(newData, SetOptions(merge: merge));
   }
 
   /// Get Firestore Document [id]
@@ -89,12 +104,8 @@ class StateDocument extends ChangeNotifier {
   /// Stop listening for changes
   void _drain() async {
     try {
-      if (id != null && _streamReference != null) {
-        await _streamReference!.drain();
-      }
-    } catch (error) {
-//      print("snapshot: $error");
-    }
+      await _streamReference?.drain();
+    } catch (error) {}
   }
 
   /// Default function call every time the id changes.
@@ -104,13 +115,19 @@ class StateDocument extends ChangeNotifier {
   /// Clear document data
   void clear() {
     _drain();
+    _initialized = false;
+    _called = false;
     _documentId = null;
     _data = {};
     _callback = null;
+    _onUpdate = null;
     reset();
     notifyListeners();
   }
 
   /// Callback on successful load
   set callback(VoidCallback _function) => _callback = _function;
+
+  /// [onUpdate] is called every time data is updated
+  set onUpdate(VoidCallback? _function) => _onUpdate = _function;
 }
