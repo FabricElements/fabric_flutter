@@ -10,6 +10,9 @@ import 'package:http/http.dart';
 class StateAPI extends ChangeNotifier {
   StateAPI();
 
+  /// [_initialized] after [endpoint] is set the first time
+  bool _initialized = false;
+
   /// More at [callback]
   VoidCallback? _callback;
 
@@ -36,6 +39,7 @@ class StateAPI extends ChangeNotifier {
     _callback = null;
     baseData = null;
     baseEndpoint = null;
+    _initialized = false;
   }
 
   /// API JSON response
@@ -53,6 +57,7 @@ class StateAPI extends ChangeNotifier {
   set endpoint(String? value) {
     if (value == baseEndpoint && baseData != null) return;
     if (value != baseEndpoint) clear();
+    if (_initialized) return;
     baseEndpoint = value;
     get();
   }
@@ -69,6 +74,7 @@ class StateAPI extends ChangeNotifier {
       notifyListeners();
       return;
     }
+    _initialized = true;
     if (kDebugMode) print("Calling endpoint: $baseEndpoint");
     Uri url = Uri.parse(baseEndpoint!);
     Map<String, String> headers = {};
