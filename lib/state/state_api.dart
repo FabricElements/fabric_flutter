@@ -13,6 +13,9 @@ class StateAPI extends ChangeNotifier {
   /// [_initialized] after [endpoint] is set the first time
   bool _initialized = false;
 
+  /// [_errorCount] to prevent infinite loops
+  int _errorCount = 0;
+
   /// More at [callback]
   VoidCallback? _callback;
 
@@ -36,6 +39,7 @@ class StateAPI extends ChangeNotifier {
 
   /// Clear and reset default values
   void clear() {
+    _errorCount = 0;
     _callback = null;
     baseData = null;
     baseEndpoint = null;
@@ -59,6 +63,12 @@ class StateAPI extends ChangeNotifier {
     if (value != baseEndpoint) clear();
     if (_initialized) return;
     baseEndpoint = value;
+    if (_errorCount > 1) {
+      if (kDebugMode) {
+        print("$_errorCount errors calls to endpoint: $baseEndpoint");
+      }
+      return;
+    }
     get();
   }
 
@@ -67,10 +77,17 @@ class StateAPI extends ChangeNotifier {
 
   /// API Call
   void get() async {
+    if (_errorCount > 1) {
+      if (kDebugMode) {
+        print("$_errorCount errors calls to endpoint: $baseEndpoint");
+      }
+      return;
+    }
     _error = null;
     if (baseEndpoint == null) {
       baseData = null;
       _error = "endpoint can't be null";
+      _errorCount++;
       notifyListeners();
       return;
     }
@@ -91,9 +108,9 @@ class StateAPI extends ChangeNotifier {
       }
     } else {
       _error =
-          response.reasonPhrase != null && response.reasonPhrase!.isNotEmpty
-              ? response.reasonPhrase
-              : null;
+      response.reasonPhrase != null && response.reasonPhrase!.isNotEmpty
+          ? response.reasonPhrase
+          : null;
       if (_error == null) {
         _error = "error--${response.statusCode}";
       }
@@ -102,6 +119,7 @@ class StateAPI extends ChangeNotifier {
       baseData = null;
       print("------------ ERROR API CALL -------------");
       print(_error);
+      _errorCount++;
     }
     notifyListeners();
   }

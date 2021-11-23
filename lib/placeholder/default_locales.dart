@@ -371,6 +371,10 @@ dynamic defaultLocales = {
     "en": "{label} Select",
     "es": "{label} Seleccionados",
   },
+  "label--selected": {
+    "en": "Selected",
+    "es": "Seleccionados",
+  },
   "label--select-label": {
     "en": "Select {label}",
     "es": "Selecciona {label}",
