@@ -15,7 +15,6 @@ class EnumData {
     if (base == null) return _label;
     try {
       _label = describeEnum(base);
-      // _label = base.toString().split(".").last;
     } catch (error) {}
     return _label;
   }
@@ -23,8 +22,14 @@ class EnumData {
   /// Get locales from enum
   String localesFromEnum(dynamic base) {
     if (base == null) return "";
+    String text = stringFromEnum(base).replaceAll("_", "-");
+    RegExp exp = RegExp(r'(?<=[a-z])[A-Z]');
+    // Handle camelCase
+    String result = text
+        .replaceAllMapped(exp, (Match m) => ('-' + m.group(0)!))
+        .toLowerCase();
     return locales != null
-        ? locales!.get("label--${stringFromEnum(base).replaceAll("_", "-").toLowerCase()}")
+        ? locales!.get("label--$result")
         : "LOCALES NOT INCLUDED";
   }
 }

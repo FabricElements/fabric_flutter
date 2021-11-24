@@ -31,6 +31,7 @@ class InputData extends StatelessWidget {
     required this.onChanged,
     this.disabled = false,
     this.hintText,
+    this.isDense = false,
     this.maxLength = 255,
     this.textDefault,
   }) : super(key: key);
@@ -42,6 +43,7 @@ class InputData extends StatelessWidget {
   final String? hintText;
   final String? textDefault;
   final int maxLength;
+  final bool isDense;
 
   /// [onChanged]
   /// Never use expression body or value won't be update correctly
@@ -104,6 +106,7 @@ class InputData extends StatelessWidget {
               fillColor: Colors.white,
               filled: true,
               hintText: hintText ?? _value,
+              isDense: isDense,
             ),
             onChanged: (valueLocal) {
               String _value = valueLocal.isNotEmpty ? valueLocal : "0";
@@ -182,6 +185,7 @@ class InputData extends StatelessWidget {
           _widget = PopupMenuButton<String>(
             enabled: !_disabled,
             elevation: 1,
+            // isDense: isDense,
             offset: Offset(0, 40),
             key: popupButtonKey,
             initialValue: value?.toString(),

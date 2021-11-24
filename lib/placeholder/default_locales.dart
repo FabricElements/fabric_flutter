@@ -191,6 +191,10 @@ dynamic defaultLocales = {
     "en": "Update",
     "es": "Actualizar",
   },
+  "label--update-label": {
+    "en": "Update {label}",
+    "es": "Actualizar {label}",
+  },
   "label--create": {
     "en": "Create",
     "es": "Crear",
@@ -522,5 +526,17 @@ dynamic defaultLocales = {
   "label--import": {
     "en": "Import",
     "es": "Importar",
+  },
+  "label--search": {
+    "en": "Search",
+    "es": "Buscar",
+  },
+  "label--search-by": {
+    "en": "Search by",
+    "es": "Buscar por",
+  },
+  "label--search-by-label": {
+    "en": "Search by {label}",
+    "es": "Buscar por {label}",
   }
 };

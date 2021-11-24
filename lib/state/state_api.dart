@@ -25,6 +25,9 @@ class StateAPI extends ChangeNotifier {
   /// More at [error]
   String? _error;
 
+  /// Use [_lastEndpointCalled] to prevent duplicated calls when get() is called
+  String? _lastEndpointCalled;
+
   /// More at [endpoint]
   String? baseEndpoint;
 
@@ -44,6 +47,7 @@ class StateAPI extends ChangeNotifier {
     baseData = null;
     baseEndpoint = null;
     _initialized = false;
+    _lastEndpointCalled = null;
   }
 
   /// API JSON response
@@ -76,7 +80,7 @@ class StateAPI extends ChangeNotifier {
   String? get error => _error;
 
   /// API Call
-  void get() async {
+  void get({bool ignoreDuplicatedCalls = false}) async {
     if (_errorCount > 1) {
       if (kDebugMode) {
         print("$_errorCount errors calls to endpoint: $baseEndpoint");
@@ -91,7 +95,9 @@ class StateAPI extends ChangeNotifier {
       notifyListeners();
       return;
     }
+    if (ignoreDuplicatedCalls && _lastEndpointCalled == baseEndpoint) return;
     _initialized = true;
+    _lastEndpointCalled = baseEndpoint;
     if (kDebugMode) print("Calling endpoint: $baseEndpoint");
     Uri url = Uri.parse(baseEndpoint!);
     Map<String, String> headers = {};
