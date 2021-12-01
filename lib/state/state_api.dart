@@ -73,7 +73,7 @@ class StateAPI extends ChangeNotifier {
       }
       return;
     }
-    get();
+    get(ignoreDuplicatedCalls: true);
   }
 
   /// Error messages related to fetch data

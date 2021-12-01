@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -29,6 +30,7 @@ class InputData extends StatelessWidget {
     this.enums = const [],
     this.options = const [],
     required this.onChanged,
+    this.onSubmit,
     this.disabled = false,
     this.hintText,
     this.isDense = false,
@@ -44,6 +46,10 @@ class InputData extends StatelessWidget {
   final String? textDefault;
   final int maxLength;
   final bool isDense;
+
+  /// [onSubmit]
+  /// Never use expression body or value won't be update correctly
+  final ValueChanged<dynamic>? onSubmit;
 
   /// [onChanged]
   /// Never use expression body or value won't be update correctly
@@ -61,21 +67,21 @@ class InputData extends StatelessWidget {
     String textSelected = _defaultText;
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
-      double width = constraints.maxWidth.floorToDouble();
-      int layoutTo = 2;
-      if (width > 600) layoutTo = 3;
-      if (width > 900) layoutTo = 4;
-      if (width > 1000) layoutTo = 5;
-      // if (width > 1100) layoutTo = 6;
-      // if (width > 1500) layoutTo = 7;
-      double maxWidth =
-          (width / layoutTo) - ((layoutTo) / 2 * 8).floorToDouble();
+          double width = constraints.maxWidth.floorToDouble();
+          int layoutTo = 2;
+          if (width > 600) layoutTo = 3;
+          if (width > 900) layoutTo = 4;
+          if (width > 1000) layoutTo = 5;
+          // if (width > 1100) layoutTo = 6;
+          // if (width > 1500) layoutTo = 7;
+          double maxWidth =
+              (width / layoutTo) - ((layoutTo) / 2 * 8).floorToDouble();
           Widget _widget = Text("Type '$type' not implemented",
           style: TextStyle(color: Colors.orange));
-      TextInputType keyboardType = TextInputType.text;
-      List<TextInputFormatter> inputFormatters = [];
-      switch (type) {
-        case InputDataType.double:
+          TextInputType keyboardType = TextInputType.text;
+          List<TextInputFormatter> inputFormatters = [];
+          switch (type) {
+            case InputDataType.double:
           keyboardType = const TextInputType.numberWithOptions(decimal: true);
           inputFormatters
               .add(FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')));
@@ -86,6 +92,21 @@ class InputData extends StatelessWidget {
           break;
         default:
       }
+
+      /// Format New Value
+      dynamic _valueChanged(String? valueLocal) {
+        String? _value =
+            valueLocal != null && valueLocal.isNotEmpty ? valueLocal : null;
+        switch (type) {
+          case InputDataType.double:
+            return double.parse(_value ?? "0");
+          case InputDataType.int:
+            return int.parse(_value ?? "0");
+          default:
+            return _value;
+        }
+      }
+
       switch (type) {
         case InputDataType.double:
         case InputDataType.int:
@@ -96,8 +117,8 @@ class InputData extends StatelessWidget {
             enableSuggestions: false,
             keyboardType: keyboardType,
             initialValue: _value,
-            inputFormatters: inputFormatters,
-            maxLines: type == InputDataType.text ? 10 : 1,
+                inputFormatters: inputFormatters,
+                maxLines: type == InputDataType.text ? 10 : 1,
             minLines: 1,
             maxLength: maxLength,
             decoration: InputDecoration(
@@ -108,70 +129,68 @@ class InputData extends StatelessWidget {
               hintText: hintText ?? _value,
               isDense: isDense,
             ),
-            onChanged: (valueLocal) {
-              String _value = valueLocal.isNotEmpty ? valueLocal : "0";
-              if (type == InputDataType.double) {
-                onChanged(double.parse(_value));
-              }
-              if (type == InputDataType.int) {
-                onChanged(int.parse(_value));
-              }
+            onChanged: (value) {
+              onChanged(_valueChanged(value));
+            },
+            onFieldSubmitted: (value) {
+              if (onSubmit != null) onSubmit!(_valueChanged(value));
             },
           );
-          break;
-        case InputDataType.date:
-          DateTime? _date = value as DateTime?;
-          DateFormat formatDate = new DateFormat.yMd("en_US");
-          String label = _date != null
-              ? formatDate.format(value)
-              : locales.get("label--choose-date");
-          _widget = Padding(
-            padding: const EdgeInsets.only(top: 16),
-            child: ElevatedButton.icon(
-              onPressed: () async {
-                if (_date == null) _date = DateTime.now();
-                int _year = _date!.year < 2020 ? _date!.year : 2000;
-                final DateTime? picked = await showDatePicker(
-                  context: context,
-                  initialDate: _date!,
-                  firstDate: DateTime(_year),
-                  lastDate: _date!.add(Duration(days: 365)),
-                );
-                if (picked != null && picked != _date) onChanged(picked);
-              },
-              icon: Icon(Icons.date_range),
-              label: Text(label),
-            ),
-          );
-          break;
-        case InputDataType.enums:
-        case InputDataType.dropdown:
-          List<ButtonOptions> _dropdown = [];
-          List<PopupMenuEntry<String>> buttons = [
-            PopupMenuItem<String>(
-              value: "",
-              child: Text(_defaultText),
-            ),
-          ];
-          if (type == InputDataType.dropdown) {
-            _dropdown = options;
-          }
-          if (type == InputDataType.enums) {
-            _dropdown = enums
-                .map((e) => ButtonOptions(
-                      label: enumData.localesFromEnum(e),
-                      value: e,
-                    ))
-                .toList();
-          }
-          for (ButtonOptions _option in _dropdown) {
-            buttons.add(PopupMenuItem<String>(
-              value: _option.value?.toString(),
-              child: Text(_option.label),
-            ));
-          }
-          if (value != null) {
-            if (type == InputDataType.enums) {
+              break;
+            case InputDataType.date:
+              DateTime? _date = value as DateTime?;
+              DateFormat formatDate = new DateFormat.yMd("en_US");
+              String label = _date != null
+                  ? formatDate.format(value)
+                  : locales.get("label--choose-date");
+              _widget = Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    if (_date == null) _date = DateTime.now();
+                    int _year = _date!.year < 2020 ? _date!.year : 2000;
+                    final DateTime? picked = await showDatePicker(
+                      context: context,
+                      initialDate: _date!,
+                      firstDate: DateTime(_year),
+                      lastDate: _date!.add(Duration(days: 365)),
+                    );
+                    if (picked != null && picked != _date) onChanged(picked);
+                  },
+                  icon: Icon(Icons.date_range),
+                  label: Text(label),
+                ),
+              );
+              break;
+            case InputDataType.enums:
+            case InputDataType.dropdown:
+              List<ButtonOptions> _dropdown = [];
+              List<PopupMenuEntry<String>> buttons = [
+                PopupMenuItem<String>(
+                  value: "",
+                  child: Text(_defaultText),
+                ),
+              ];
+              if (type == InputDataType.dropdown) {
+                _dropdown = options;
+              }
+              if (type == InputDataType.enums) {
+                _dropdown = enums
+                    .map((e) => ButtonOptions(
+                  label: enumData.localesFromEnum(e),
+                  value: e,
+                ))
+                    .toList();
+              }
+              for (ButtonOptions _option in _dropdown) {
+                buttons.add(PopupMenuItem<String>(
+                  value: _option.value?.toString(),
+                  child: Text(_option.label),
+                ));
+              }
+              if (value != null) {
+            if (type == InputDataType.enums &&
+                enums.firstWhereOrNull((e) => e == value) != null) {
               textSelected = enumData.localesFromEnum(value);
             }
             if (type == InputDataType.dropdown) {
@@ -180,62 +199,62 @@ class InputData extends StatelessWidget {
             }
           }
           if (buttons.length == 1) {
-            _disabled = true;
-          }
-          _widget = PopupMenuButton<String>(
-            enabled: !_disabled,
-            elevation: 1,
-            // isDense: isDense,
-            offset: Offset(0, 40),
-            key: popupButtonKey,
-            initialValue: value?.toString(),
-            onSelected: (_value) {
-              onChanged(_value == "" ? null : _value);
-            },
-            child: ListTile(
-              title: Text(textSelected),
-              trailing: Icon(
-                Icons.arrow_drop_down,
-                color: _disabled
-                    ? Colors.grey.shade300
-                    : theme.colorScheme.primary,
-              ),
-              mouseCursor: _disabled
-                  ? SystemMouseCursors.forbidden
-                  : SystemMouseCursors.click,
-            ),
-            itemBuilder: (BuildContext context) => buttons,
-          );
-
-          break;
-        case InputDataType.radio:
-          List<Widget> _options = options.map((e) {
-            return ListTile(
-              title: Text(e.label),
-              leading: Radio<String?>(
-                value: e.value?.toString(),
-                groupValue: value?.toString(),
-                onChanged: (String? value) {
-                  onChanged(value == "" ? null : value);
+                _disabled = true;
+              }
+              _widget = PopupMenuButton<String>(
+                enabled: !_disabled,
+                elevation: 1,
+                // isDense: isDense,
+                offset: Offset(0, 40),
+                key: popupButtonKey,
+                initialValue: value?.toString(),
+                onSelected: (_value) {
+                  onChanged(_value == "" ? null : _value);
                 },
-              ),
-              onTap: () {
-                onChanged(
-                  e.value?.toString() == "" ? null : e.value?.toString(),
+                child: ListTile(
+                  title: Text(textSelected),
+                  trailing: Icon(
+                    Icons.arrow_drop_down,
+                    color: _disabled
+                        ? Colors.grey.shade300
+                        : theme.colorScheme.primary,
+                  ),
+                  mouseCursor: _disabled
+                      ? SystemMouseCursors.forbidden
+                      : SystemMouseCursors.click,
+                ),
+                itemBuilder: (BuildContext context) => buttons,
+              );
+
+              break;
+            case InputDataType.radio:
+              List<Widget> _options = options.map((e) {
+                return ListTile(
+                  title: Text(e.label),
+                  leading: Radio<String?>(
+                    value: e.value?.toString(),
+                    groupValue: value?.toString(),
+                    onChanged: (String? value) {
+                      onChanged(value == "" ? null : value);
+                    },
+                  ),
+                  onTap: () {
+                    onChanged(
+                      e.value?.toString() == "" ? null : e.value?.toString(),
+                    );
+                  },
                 );
-              },
-            );
-          }).toList();
-          _widget = Column(
-            children: _options,
+              }).toList();
+              _widget = Column(
+                children: _options,
+              );
+              break;
+            default:
+          }
+          return ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxWidth),
+            child: _widget,
           );
-          break;
-        default:
-      }
-      return ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: maxWidth),
-        child: _widget,
-      );
-    });
+        });
   }
 }

@@ -505,7 +505,11 @@ dynamic defaultLocales = {
   },
   "label--date-label": {
     "en": "Date {label}",
-    "es": "Fecha {label}",
+    "es": "Fecha de {label}",
+  },
+  "label--label-date": {
+    "en": "{label} Date",
+    "es": "Fecha de {label}",
   },
   "label--buy": {
     "en": "Buy",

@@ -83,8 +83,19 @@ class AppLocalizations {
     return result;
   }
 
+  /// Get Locale from key and options
+  /// [key] the locale key. It will be cleaned and fixed as needed
+  /// [options] the locale optional values that will be replaced
   String get(String key, [Map<String, String>? options]) {
-    String finalLocalization = _mergeLocales(key);
+    String _key = key;
+    // Fix dash
+    _key = _key.replaceAll("_", "-");
+    // Handle camelCase
+    RegExp exp = RegExp(r'(?<=[a-z])[A-Z]');
+    String endKey = _key
+        .replaceAllMapped(exp, (Match m) => ('-' + m.group(0)!))
+        .toLowerCase();
+    String finalLocalization = _mergeLocales(endKey);
     if (options != null) {
       finalLocalization = _replaceOptions(finalLocalization, options);
     }

@@ -22,14 +22,9 @@ class EnumData {
   /// Get locales from enum
   String localesFromEnum(dynamic base) {
     if (base == null) return "";
-    String text = stringFromEnum(base).replaceAll("_", "-");
-    RegExp exp = RegExp(r'(?<=[a-z])[A-Z]');
-    // Handle camelCase
-    String result = text
-        .replaceAllMapped(exp, (Match m) => ('-' + m.group(0)!))
-        .toLowerCase();
+    String text = stringFromEnum(base);
     return locales != null
-        ? locales!.get("label--$result")
+        ? locales!.get("label--$text")
         : "LOCALES NOT INCLUDED";
   }
 }

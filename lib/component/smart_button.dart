@@ -13,9 +13,11 @@ class SmartButton extends StatefulWidget {
     this.children,
     this.redirect,
     this.brightness,
+    this.pop = false,
   }) : super(key: key);
   final ButtonOptions button;
   final Brightness? brightness;
+  final bool pop;
 
   /// [children]
   /// [ButtonOptions], [PopupMenuDivider] or [PopupMenuEntry<String>] for custom implementation
@@ -127,7 +129,11 @@ class _SmartButtonState extends State<SmartButton> {
       onPressed: () {
         if (widget.button.path != null) {
           if (widget.button.onTap != null) widget.button.onTap!();
-          Navigator.pushNamed(context, widget.button.path!);
+          if (widget.pop) {
+            Navigator.popAndPushNamed(context, widget.button.path!);
+          } else {
+            Navigator.pushNamed(context, widget.button.path!);
+          }
         }
       },
     );
@@ -137,7 +143,13 @@ class _SmartButtonState extends State<SmartButton> {
       key: popupButtonKey,
       initialValue: "/",
       onSelected: (value) {
-        if (value.startsWith("/")) Navigator.pushNamed(context, value);
+        if (value.startsWith("/")) {
+          if (widget.pop) {
+            Navigator.popAndPushNamed(context, value);
+          } else {
+            Navigator.pushNamed(context, value);
+          }
+        }
       },
       child: MouseRegion(
         child: _mainButton,
