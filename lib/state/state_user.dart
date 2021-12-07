@@ -45,7 +45,7 @@ class StateUser extends StateDocument {
   set object(User? user) {
     _userObject = user;
     notifyListeners();
-    _getToken();
+    // _getToken();
   }
 
   /// [admin] Returns "true" if the authenticated user is an admin

@@ -542,5 +542,13 @@ dynamic defaultLocales = {
   "label--search-by-label": {
     "en": "Search by {label}",
     "es": "Buscar por {label}",
+  },
+  "label--must-start-with-label": {
+    "en": "Must start with '{label}'",
+    "es": "Debe comenzar con '{label}'",
+  },
+  "label--invalid-label": {
+    "en": "Invalid {label}",
+    "es": "{label} Inválido",
   }
 };

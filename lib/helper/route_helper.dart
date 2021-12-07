@@ -13,12 +13,14 @@ class RouteHelper {
     required this.signedIn,
     required this.unknownRoute,
     required this.initialRoute,
+    required this.context,
   });
 
   final List<String>? publicRoutes;
   final List<String>? authenticatedRoutes;
   final List<String>? adminRoutes;
   final Map<String, Widget> routeMap;
+  final BuildContext context;
 
   final bool signedIn;
   final bool isAdmin;
@@ -26,9 +28,9 @@ class RouteHelper {
   final String? unknownRoute;
   final String initialRoute;
 
-  Map<String, Widget> routes(bool signed) {
-    Map<String, Widget> _endSignedIn = {};
-    Map<String, Widget> _endPublic = {};
+  Map<String, WidgetBuilder> routes(bool signed) {
+    Map<String, WidgetBuilder> _endSignedIn = {};
+    Map<String, WidgetBuilder> _endPublic = {};
     String _authRoute = authRoute ?? "/auth";
     String _unknownRoute = unknownRoute ?? "/";
 
@@ -69,7 +71,8 @@ class RouteHelper {
       //   "$key": (context) => Scaffold(primary: false, body: _endViewSigned),
       // });
       _endSignedIn.addAll({
-        "$key": Scaffold(primary: false, body: _endViewSigned),
+        // "$key": Scaffold(primary: false, body: _endViewSigned),
+        "$key": (context) => Scaffold(primary: false, body: _endViewSigned),
       });
     });
 
@@ -89,32 +92,30 @@ class RouteHelper {
         _endViewSigned = routeMap[_authRoute];
       }
       _endPublic.addAll({
-        "$key": Scaffold(primary: false, body: _endViewSigned),
+        "$key": (context) => Scaffold(primary: false, body: _endViewSigned),
       });
     });
     return signed ? _endSignedIn : _endPublic;
   }
 
-  Map<String, Widget> get routesSignedIn => routes(true);
+  Map<String, WidgetBuilder> get routesSignedIn => routes(true);
 
-  Map<String, Widget> get routesPublic => routes(false);
+  Map<String, WidgetBuilder> get routesPublic => routes(false);
 
   Map<String, WidgetBuilder> endRoutes({
-    // required bool signedIn,
-    required Map<String, Widget> publicRoutes,
-    required Map<String, Widget> routesSignedIn,
+    required bool signedIn,
   }) {
-    Map<String, WidgetBuilder> _routes = {};
-    publicRoutes.forEach((key, value) {
-      _routes.putIfAbsent(
-        key,
-        () => (context) {
-          if (signedIn) return routesSignedIn[key]!;
-          return value;
-        },
-      );
-    });
-
-    return _routes;
+    return routesSignedIn;
+    // Map<String, WidgetBuilder> _routes = {};
+    // routesPublic.forEach((key, value) {
+    //   _routes.putIfAbsent(
+    //     key,
+    //     () => (context) {
+    //       if (signedIn) return routesSignedIn[key]!;
+    //       return value;
+    //     },
+    //   );
+    // });
+    // return _routes;
   }
 }
