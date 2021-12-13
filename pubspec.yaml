@@ -3,7 +3,7 @@ description: Native components and helpers
 version: 0.0.67
 
 environment:
-  sdk: ">=2.12.0 <3.0.0"
+  sdk: ">=2.15.0 <3.0.0"
 
 dependencies:
   flutter:
@@ -17,14 +17,14 @@ dependencies:
   provider: ^6.0.1
   transparent_image: ^2.0.0
   image: ^3.1.0
-  cloud_firestore: ^3.1.1
-  cloud_functions: ^3.2.0
-  firebase_analytics: ^8.3.4
-  firebase_auth: ^3.3.0
-  firebase_core: ^1.10.2
-  firebase_dynamic_links: ^3.0.2
-  firebase_messaging: ^11.2.0
-  firebase_storage: ^10.2.0
+  cloud_firestore: ^3.1.4
+  cloud_functions: ^3.2.3
+  firebase_analytics: ^9.0.3
+  firebase_auth: ^3.3.3
+  firebase_core: ^1.10.5
+  firebase_dynamic_links: ^4.0.2
+  firebase_messaging: ^11.2.3
+  firebase_storage: ^10.2.3
   json_annotation: ^4.4.0
   flutter_localizations:
     sdk: flutter

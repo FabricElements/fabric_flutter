@@ -1,20 +1,25 @@
+import 'dart:async';
+
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 
 /// This is a change notifier class which keeps track of state within the dynamic links.
 class StateDynamicLinks extends ChangeNotifier {
   StateDynamicLinks();
 
+  /// The functions was initialized
   bool _initialized = false;
+
+  /// More at [callback]
   late Future<void> Function(PendingDynamicLinkData? dynamicLink) _callback;
 
+  /// Define callback function
   set callback(
       Future<void> Function(PendingDynamicLinkData? dynamicLink) callback) {
     _callback = callback;
   }
 
+  /// Init Dynamic Links
   void init() async {
     if (kIsWeb) return;
     try {
@@ -22,13 +27,13 @@ class StateDynamicLinks extends ChangeNotifier {
       if (_initialized) {
         return;
       }
-      FirebaseDynamicLinks.instance.onLink(
-          onSuccess: (PendingDynamicLinkData? dynamicLink) async {
-        final Uri? deepLink = dynamicLink?.link;
+      FirebaseDynamicLinks dynamicLinks = FirebaseDynamicLinks.instance;
+      dynamicLinks.onLink.listen((dynamicLinkData) async {
+        final Uri? deepLink = dynamicLinkData.link;
         String linkString = deepLink.toString();
         print("onLink: $linkString");
-        this._callback(dynamicLink);
-      }, onError: (OnLinkErrorException e) async {
+        this._callback(dynamicLinkData);
+      }).onError((e) async {
         print("Dynamic link error: ${e.message}");
       });
       final PendingDynamicLinkData? dynamicLink =

@@ -9,7 +9,7 @@ class Breadcrumbs extends StatelessWidget {
     required this.buttons,
     this.buttonStyle,
     this.dividerStyle,
-    this.padding = const EdgeInsets.all(0),
+    this.padding = const EdgeInsets.symmetric(horizontal: 16),
     this.spacing = 8,
     this.textStyle,
   }) : super(key: key);
@@ -33,12 +33,14 @@ class Breadcrumbs extends StatelessWidget {
       bool clickable = button.path != null || button.onTap != null;
       items.add(
         TextButton(
-          onPressed: !clickable ? null : () {
-            if (button.onTap != null) button.onTap!();
-            if (button.path != null) {
-              Navigator.of(context).popAndPushNamed(button.path!);
-            }
-          },
+          onPressed: !clickable
+              ? null
+              : () {
+                  if (button.onTap != null) button.onTap!();
+                  if (button.path != null) {
+                    Navigator.of(context).popAndPushNamed(button.path!);
+                  }
+                },
           child: Text(button.label, style: _textStyle),
           style: buttonStyle,
         ),
@@ -47,11 +49,14 @@ class Breadcrumbs extends StatelessWidget {
         items.add(Text("/", style: _dividerStyle));
       }
     }
-    return Padding(
+    return SingleChildScrollView(
       padding: padding,
+      scrollDirection: Axis.horizontal,
       child: Wrap(
         spacing: spacing,
         runSpacing: spacing,
+        alignment: WrapAlignment.start,
+        runAlignment: WrapAlignment.center,
         children: items,
         crossAxisAlignment: WrapCrossAlignment.center,
       ),

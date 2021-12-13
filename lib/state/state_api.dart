@@ -41,14 +41,20 @@ class StateAPI extends ChangeNotifier {
   set callback(VoidCallback _function) => _callback = _function;
 
   /// Clear and reset default values
-  void clear() {
+  void clear({bool notify = false}) {
     _errorCount = 0;
     _callback = null;
     baseData = null;
     baseEndpoint = null;
     _initialized = false;
     _lastEndpointCalled = null;
+    clearAfter();
+    if (notify) notifyListeners();
   }
+
+  /// Override [clearAfter] for a custom implementation
+  /// It is called on the [clear]
+  void clearAfter() {}
 
   /// API JSON response
   dynamic get data => baseData;

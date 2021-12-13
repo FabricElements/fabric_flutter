@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 class Utils {
   static final Random _random = Random.secure();
 
+  /// Create Random String
   static String createCryptoRandomString([int length = 32]) {
     var values = List<int>.generate(length, (i) => _random.nextInt(256));
     return (base64Url.encode(values)).substring(1, 7);
@@ -56,5 +57,21 @@ class Utils {
     if (time.isBefore(timeInactive)) _presence = "inactive";
     if (time.isBefore(timeAway)) _presence = "away";
     return _presence;
+  }
+
+  /// Get a String path from a provided [uri] and [queryParameters]
+  /// If any key value is empty the key is removed from the response
+  static String uriQueryToStringPath({
+    required Uri uri,
+    required Map<String, String> queryParameters,
+  }) {
+    Map<String, String> _parameters = {...uri.queryParameters};
+    _parameters.addAll(queryParameters);
+    _parameters.removeWhere((key, value) => value.isEmpty);
+    Uri _baseUri = uri;
+    _baseUri = _baseUri.replace(
+      queryParameters: _parameters,
+    );
+    return _baseUri.toString();
   }
 }

@@ -550,5 +550,13 @@ dynamic defaultLocales = {
   "label--invalid-label": {
     "en": "Invalid {label}",
     "es": "{label} Inválido",
+  },
+  "label--label-value1-should-be-value2": {
+    "en": "{label} is '{value1}' but should be '{value2}'",
+    "es": "{label} es '{value1}', pero debe ser '{value2}'",
+  },
+  "error--404": {
+    "en": "Not Found",
+    "es": "No se encuentra",
   }
 };

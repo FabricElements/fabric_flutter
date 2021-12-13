@@ -28,9 +28,9 @@ class RouteHelper {
   final String? unknownRoute;
   final String initialRoute;
 
-  Map<String, WidgetBuilder> routes(bool signed) {
-    Map<String, WidgetBuilder> _endSignedIn = {};
-    Map<String, WidgetBuilder> _endPublic = {};
+  Map<String, Widget> routes(bool signed) {
+    Map<String, Widget> _endSignedIn = {};
+    Map<String, Widget> _endPublic = {};
     String _authRoute = authRoute ?? "/auth";
     String _unknownRoute = unknownRoute ?? "/";
 
@@ -72,7 +72,7 @@ class RouteHelper {
       // });
       _endSignedIn.addAll({
         // "$key": Scaffold(primary: false, body: _endViewSigned),
-        "$key": (context) => Scaffold(primary: false, body: _endViewSigned),
+        "$key": Scaffold(primary: false, body: _endViewSigned),
       });
     });
 
@@ -92,30 +92,19 @@ class RouteHelper {
         _endViewSigned = routeMap[_authRoute];
       }
       _endPublic.addAll({
-        "$key": (context) => Scaffold(primary: false, body: _endViewSigned),
+        "$key": Scaffold(primary: false, body: _endViewSigned),
       });
     });
     return signed ? _endSignedIn : _endPublic;
   }
 
-  Map<String, WidgetBuilder> get routesSignedIn => routes(true);
+  Map<String, Widget> get routesSignedIn => routes(true);
 
-  Map<String, WidgetBuilder> get routesPublic => routes(false);
+  Map<String, Widget> get routesPublic => routes(false);
 
-  Map<String, WidgetBuilder> endRoutes({
+  Map<String, Widget> endRoutes({
     required bool signedIn,
   }) {
     return routesSignedIn;
-    // Map<String, WidgetBuilder> _routes = {};
-    // routesPublic.forEach((key, value) {
-    //   _routes.putIfAbsent(
-    //     key,
-    //     () => (context) {
-    //       if (signedIn) return routesSignedIn[key]!;
-    //       return value;
-    //     },
-    //   );
-    // });
-    // return _routes;
   }
 }

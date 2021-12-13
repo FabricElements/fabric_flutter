@@ -1,6 +1,4 @@
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:fabric_flutter/placeholder/loading_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
@@ -25,10 +23,7 @@ class FirebaseInit extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget loadingApp = MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: this.loader ?? LoadingScreen(),
-    );
+    Widget loadingApp = Container(color: Colors.grey.shade50);
     return FutureBuilder(
       // Initialize FlutterFire:
       future: _initialization,

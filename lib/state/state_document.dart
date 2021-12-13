@@ -108,12 +108,12 @@ class StateDocument extends ChangeNotifier {
     } catch (error) {}
   }
 
-  /// Default function call every time the id changes.
-  /// Override this function to add custom features for your state.
-  void reset() {}
+  /// Override [clearAfter] for a custom implementation
+  /// It is called on the [clear]
+  void clearAfter() {}
 
   /// Clear document data
-  void clear() {
+  void clear({bool notify = false}) {
     _drain();
     _initialized = false;
     _called = false;
@@ -121,8 +121,8 @@ class StateDocument extends ChangeNotifier {
     _data = {};
     _callback = null;
     _onUpdate = null;
-    reset();
-    notifyListeners();
+    clearAfter();
+    if (notify) notifyListeners();
   }
 
   /// Callback on successful load
