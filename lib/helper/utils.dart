@@ -2,10 +2,12 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 /// Utils for a variety of different utility functions.
 class Utils {
+  /// Get Random value
   static final Random _random = Random.secure();
 
   /// Create Random String
@@ -73,5 +75,14 @@ class Utils {
       queryParameters: _parameters,
     );
     return _baseUri.toString();
+  }
+
+  void setPageTitle(String title) {
+    SystemChrome.setApplicationSwitcherDescription(
+        ApplicationSwitcherDescription(
+      label: title,
+      // primaryColor:
+      //     Theme.of(context).primaryColor.value, // This line is required
+    ));
   }
 }

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 /// [RouteHelper] Enables/Disables routes depending on credentials
 class RouteHelper {
@@ -67,11 +66,7 @@ class RouteHelper {
       } else {
         _endViewSigned = routeMap[_unknownRoute];
       }
-      // _endSignedIn.addAll({
-      //   "$key": (context) => Scaffold(primary: false, body: _endViewSigned),
-      // });
       _endSignedIn.addAll({
-        // "$key": Scaffold(primary: false, body: _endViewSigned),
         "$key": Scaffold(primary: false, body: _endViewSigned),
       });
     });
