@@ -2,6 +2,7 @@ export 'component/breadcrumbs.dart';
 export 'component/card_button.dart';
 export 'component/charts.dart';
 export 'component/edit_save_button.dart';
+export 'component/expansion_table.dart';
 export 'component/flag_chip.dart';
 export 'component/global_providers.dart';
 export 'component/input_data.dart';
