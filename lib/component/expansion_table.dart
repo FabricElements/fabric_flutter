@@ -3,6 +3,18 @@ import 'package:flutter/material.dart';
 /// [ExpansionTable]
 /// Example:
 /// -----------------------
+/// final columns = [
+///   ExpansionTableColumnOptions(
+///     label: "header 1",
+///     width: 180,
+///   ),
+///   ExpansionTableColumnOptions(
+///     label: "header 2",
+///   ),
+///   ExpansionTableColumnOptions(
+///     label: "header 3",
+///   ),
+/// ];
 /// ExpansionTable(
 ///   headingRowColor: Colors.grey.shade50,
 ///   headingTextStyle: textTheme.subtitle1,
@@ -21,7 +33,6 @@ import 'package:flutter/material.dart';
 ///           Text("row 1 - 3"),
 ///         ],
 ///         child: ExpansionTableOptions(
-///           columns: columns,
 ///           footer: [
 ///             Text("Total For Group 1"),
 ///             Text("footer"),
@@ -35,7 +46,6 @@ import 'package:flutter/material.dart';
 ///                 Text("row child  1 - 3"),
 ///               ],
 ///               child: ExpansionTableOptions(
-///                 columns: columns,
 ///                 footer: [
 ///                   Text("Total for Child Group 1"),
 ///                   Text("footer"),
@@ -66,7 +76,6 @@ import 'package:flutter/material.dart';
 ///                 Text("row child  2 - 3"),
 ///               ],
 ///               child: ExpansionTableOptions(
-///                 columns: columns,
 ///                 rows: [
 ///                   ExpansionTableRowOptions(
 ///                     cells: [
@@ -105,7 +114,8 @@ class ExpansionTable extends StatelessWidget {
     this.horizontalMargin,
     this.columnSpacing,
     this.dividerThickness,
-  }) : super(key: key);
+  })  : assert(options.columns != null),
+        super(key: key);
 
   final ExpansionTableOptions options;
 
@@ -145,13 +155,19 @@ class ExpansionTable extends StatelessWidget {
   Widget build(BuildContext context) {
     ScrollController _controller = ScrollController();
     ScrollController _controllerHorizontal = ScrollController();
-    List<DataColumn> _columns =
-        options.columns.map((e) => DataColumn(label: e)).toList();
+    List<DataColumn> _columns = _getColumns(columns: options.columns!);
     List<ExpansionTableRowWidget> _rows = options.rows.map((e) {
       ExpansionTableRowOptions row = e;
       row.columns = options.columns;
       row.level = options.level;
-      return ExpansionTableRowWidget(options: row);
+      return ExpansionTableRowWidget(
+        options: row,
+        decoration: decoration,
+        dataRowColor: dataRowColor,
+        dataTextStyle: dataTextStyle,
+        horizontalMargin: horizontalMargin,
+        dividerThickness: dividerThickness,
+      );
     }).toList();
     if (options.footer != null) {
       _rows.add(ExpansionTableRowWidget(
@@ -174,8 +190,16 @@ class ExpansionTable extends StatelessWidget {
         headingRowHeight ?? themeData.dataTableTheme.headingRowHeight ?? 56;
     Widget columns = Material(
       elevation: 1,
-      color: headingRowColor,
+      // color: headingRowColor,
       child: DataTable(
+        headingRowColor: MaterialStateProperty.resolveWith<Color?>(
+            (Set<MaterialState> states) {
+          if (states.contains(MaterialState.hovered)) {
+            return headingRowColor?.withOpacity(0.7);
+          }
+          return headingRowColor;
+        }),
+        // headingRowColor: MaterialStateProperty.all(Colors.transparent),
         headingRowHeight:
             headingRowHeight ?? themeData.dataTableTheme.headingRowHeight,
         columns: _columns,
@@ -189,7 +213,7 @@ class ExpansionTable extends StatelessWidget {
       return rows;
     }
     return ConstrainedBox(
-      constraints: BoxConstraints(maxWidth: width),
+      constraints: BoxConstraints(maxWidth: width, minWidth: width),
       child: Scrollbar(
         isAlwaysShown: true,
         scrollbarOrientation: ScrollbarOrientation.bottom,
@@ -236,7 +260,6 @@ class ExpansionTableRowWidget extends StatefulWidget {
     required this.options,
     this.decoration,
     this.dataRowColor,
-    this.dataRowHeight,
     this.dataTextStyle,
     this.headingRowColor,
     this.horizontalMargin,
@@ -251,9 +274,6 @@ class ExpansionTableRowWidget extends StatefulWidget {
   /// {@macro flutter.material.dataTable.dataRowColor}
   /// {@macro flutter.material.DataTable.dataRowColor}
   final MaterialStateProperty<Color?>? dataRowColor;
-
-  /// {@macro flutter.material.dataTable.dataRowHeight}
-  final double? dataRowHeight;
 
   /// {@macro flutter.material.dataTable.dataTextStyle}
   final TextStyle? dataTextStyle;
@@ -273,20 +293,48 @@ class ExpansionTableRowWidget extends StatefulWidget {
       _ExpansionTableRowWidgetState();
 }
 
+/// Get columns with [_getColumns]
+List<DataColumn> _getColumns({
+  required List<ExpansionTableColumnOptions> columns,
+  bool empty = false,
+}) {
+  return columns.map((e) {
+    double _widthColumn = e.width ?? 100;
+    return DataColumn(
+      label: Container(
+        constraints:
+            BoxConstraints(maxWidth: _widthColumn, minWidth: _widthColumn),
+        child: empty
+            ? null
+            : ClipRect(
+                clipBehavior: Clip.antiAlias,
+                child:
+                    Text(e.label, overflow: TextOverflow.ellipsis, maxLines: 1),
+              ),
+      ),
+    );
+  }).toList();
+}
+
 class _ExpansionTableRowWidgetState extends State<ExpansionTableRowWidget> {
   @override
   Widget build(BuildContext context) {
+    ThemeData theme = Theme.of(context);
+    TextTheme textTheme = theme.textTheme;
     List<DataColumn> _columns =
-        widget.options.columns!.map((e) => DataColumn(label: e)).toList();
+        _getColumns(columns: widget.options.columns!, empty: true);
     List<Widget> _cellsBase = [...widget.options.cells];
     double _childLeftSpace = 0;
     _childLeftSpace = widget.options.level.toDouble() * 16;
     // kMinInteractiveDimension
     double iconContentSize = 40;
     _childLeftSpace += iconContentSize + _childLeftSpace;
-
+    double firstColumnWidth = widget.options.columns?[0].width ?? 100;
+    firstColumnWidth -= _childLeftSpace;
+    if (firstColumnWidth <= 0) firstColumnWidth = 1;
     _cellsBase[0] = Flex(
       direction: Axis.horizontal,
+      clipBehavior: Clip.antiAlias,
       children: [
         SizedBox(
           width: _childLeftSpace,
@@ -296,6 +344,7 @@ class _ExpansionTableRowWidgetState extends State<ExpansionTableRowWidget> {
                     minHeight: iconContentSize,
                     minWidth: iconContentSize,
                   ),
+                  splashRadius: 16,
                   onPressed: () {
                     widget.options.child?.rows
                         .forEach((e) => e.expanded = false);
@@ -310,19 +359,46 @@ class _ExpansionTableRowWidgetState extends State<ExpansionTableRowWidget> {
                 )
               : null,
         ),
-        widget.options.cells[0]
+        ConstrainedBox(
+          constraints: BoxConstraints(
+            minWidth: firstColumnWidth,
+            maxWidth: firstColumnWidth,
+          ),
+          child: ClipRect(
+            clipBehavior: Clip.antiAlias,
+            child: widget.options.cells[0],
+          ),
+        ),
+
+        // widget.options.cells[0]
       ],
     );
 
-    List<DataCell> _cells = _cellsBase.map((e) => DataCell(e)).toList();
+    List<DataCell> _cells = [];
+    for (int i = 0; i < _cellsBase.length; i++) {
+      double _widthColumn = widget.options.columns?[i].width ?? 100;
+      _cells.add(DataCell(
+        ClipRect(
+          clipBehavior: Clip.antiAlias,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: _widthColumn,
+              minWidth: _widthColumn,
+            ),
+            child: _cellsBase[i],
+          ),
+        ),
+      ));
+    }
+
     List<Widget> content = [];
+    TextStyle? _dataTextStyle = widget.dataTextStyle ?? textTheme.bodyText1;
     content.add(DataTable(
       headingRowHeight: 0,
       columns: _columns,
       rows: [DataRow(cells: _cells)],
       dataRowColor: widget.dataRowColor,
-      dataRowHeight: widget.dataRowHeight,
-      dataTextStyle: widget.dataTextStyle,
+      dataTextStyle: _dataTextStyle?.copyWith(overflow: TextOverflow.ellipsis),
       dividerThickness: widget.dividerThickness,
       horizontalMargin: widget.horizontalMargin,
     ));
@@ -330,6 +406,7 @@ class _ExpansionTableRowWidgetState extends State<ExpansionTableRowWidget> {
     if (widget.options.child != null && widget.options.expanded) {
       widget.options.child?.level =
           widget.options.level == 0 ? 1 : widget.options.level + 1;
+      widget.options.child?.columns = widget.options.columns;
       content.add(ExpansionTable(
         options: widget.options.child!,
       ));
@@ -342,9 +419,19 @@ class _ExpansionTableRowWidgetState extends State<ExpansionTableRowWidget> {
   }
 }
 
+class ExpansionTableColumnOptions {
+  final String label;
+  final double? width;
+
+  ExpansionTableColumnOptions({
+    required this.label,
+    this.width,
+  });
+}
+
 /// [ExpansionTableOptions] defines base options for a [ExpansionTable]
 class ExpansionTableOptions {
-  final List<Widget> columns;
+  List<ExpansionTableColumnOptions>? columns;
   int level;
   final List<ExpansionTableRowOptions> rows;
   final List<Widget>? footer;
@@ -373,7 +460,7 @@ class ExpansionTableFooterOptions {
 /// [ExpansionTableRowOptions] Defines base options for a [ExpansionTableRowWidget]
 class ExpansionTableRowOptions {
   final List<Widget> cells;
-  List<Widget>? columns;
+  List<ExpansionTableColumnOptions>? columns;
   final List<Widget>? footer;
   final ExpansionTableOptions? child;
   bool expanded;
