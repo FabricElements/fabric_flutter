@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -103,7 +102,10 @@ class _ViewAdminUsersState extends State<ViewAdminUsers> {
       // Type indicates the data field to use in the function, admin level or collection.
       await callable.call(removeOptions); // USER DATA
       alert.show(
-          title: locales.get("alert--user-removed"), type: AlertType.success);
+        title: locales.get("alert--user-removed"),
+        type: AlertType.success,
+        duration: 3,
+      );
     }
 
     _changeUserRole(String uid, String name) {
@@ -281,12 +283,14 @@ class _ViewAdminUsersState extends State<ViewAdminUsers> {
                           }
                         } on FirebaseFunctionsException catch (error) {
                           alert.show(
-                              title: error.message ?? error.details["message"],
-                              type: AlertType.critical);
+                            title: error.message ?? error.details["message"],
+                            type: AlertType.critical,
+                          );
                         } catch (error) {
                           alert.show(
-                              title: error.toString(),
-                              type: AlertType.critical);
+                            title: error.toString(),
+                            type: AlertType.critical,
+                          );
                         }
                         return response;
                       },

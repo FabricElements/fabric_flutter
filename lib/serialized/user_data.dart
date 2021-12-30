@@ -1,5 +1,6 @@
-import 'package:json_annotation/json_annotation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:json_annotation/json_annotation.dart';
+
 import '../helper/utils.dart';
 
 part 'user_data.g.dart';
@@ -100,7 +101,7 @@ class UserData {
   /// User [presence] (active, inactive, away)
   final String presence;
 
-  /// Last time the user was updated: [created]
+  /// Last time the user was updated: [updated]
   @JsonKey(
     fromJson: Utils.timestampFromJsonDefault,
     toJson: Utils.timestampToJsonDefault,

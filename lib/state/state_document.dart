@@ -15,7 +15,7 @@ class StateDocument extends ChangeNotifier {
   String? _documentId;
 
   /// More at [data]
-  Map<String, dynamic> _data = {};
+  dynamic _data;
 
   /// Firestore Document Reference
   DocumentReference<Map<String, dynamic>>? get _documentReference {
@@ -52,16 +52,19 @@ class StateDocument extends ChangeNotifier {
     if (_called) return;
     _called = true;
     bool isValid = false;
+    notifyListeners();
     try {
       _streamReference?.listen((DocumentSnapshot snapshot) {
         String snapshotID = snapshot.id;
         isValid = snapshot.exists && snapshotID == _documentId;
-        _data = {};
+        _data = null;
         if (!isValid) {
           return;
         }
-        _data = snapshot.data() as Map<String, dynamic>;
-        _data["id"] = snapshotID;
+        Map<String, dynamic> _tempData =
+            snapshot.data() as Map<String, dynamic>;
+        _tempData["id"] = snapshotID;
+        _data = _tempData;
         if (_initialized && _onUpdate != null) _onUpdate!();
         _initialized = true;
         if (_callback != null) _callback!();
@@ -69,12 +72,12 @@ class StateDocument extends ChangeNotifier {
       }, cancelOnError: true).onError((error) {
         print(error);
         isValid = false;
-        _data = {};
+        _data = null;
         notifyListeners();
       });
     } catch (error) {
       if (isValid) {
-        _data = {};
+        _data = null;
         notifyListeners();
       }
     }
@@ -94,8 +97,8 @@ class StateDocument extends ChangeNotifier {
   String? get id => _documentId;
 
   /// Return document [data]
-  Map<String, dynamic> get data {
-    if (_documentId != null && _data.isEmpty) {
+  dynamic get data {
+    if (_documentId != null && _data == null) {
       _listen();
     }
     return _data;
@@ -118,7 +121,7 @@ class StateDocument extends ChangeNotifier {
     _initialized = false;
     _called = false;
     _documentId = null;
-    _data = {};
+    _data = null;
     _callback = null;
     _onUpdate = null;
     clearAfter();

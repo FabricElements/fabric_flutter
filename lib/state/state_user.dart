@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/widgets.dart';
 
 import '../serialized/user_data.dart';
 import 'state_document.dart';
@@ -21,7 +22,7 @@ class StateUser extends StateDocument {
   String? collection = "user";
 
   @override
-  void reset() {
+  void clearAfter() {
     _userObject = null;
     _claims = null;
     notifyListeners();
@@ -151,5 +152,20 @@ class StateUser extends StateDocument {
   void signOut() async {
     await _auth.signOut();
     this.clear();
+  }
+
+  /// [accessByRole] displays content only if the the role matches
+  bool accessByRole({
+    required Map<String, dynamic>? compareData,
+    BuildContext? context,
+    String? level,
+    List<String> roles = const ["admin"],
+  }) {
+    String _role = roleFromData(
+      compareData: compareData,
+      level: level,
+      uid: id,
+    );
+    return roles.contains(_role);
   }
 }

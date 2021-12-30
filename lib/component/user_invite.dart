@@ -135,8 +135,10 @@ class _UserInviteState extends State<UserInvite> {
             FirebaseFunctions.instance.httpsCallable("user-actions-invite");
         await callable.call(data);
         alert.show(
-            title: locales.get("notification--invitation-sent"),
-            type: AlertType.success);
+          title: locales.get("notification--invitation-sent"),
+          type: AlertType.success,
+          duration: 3,
+        );
         Navigator.of(context).pop();
       } on FirebaseFunctionsException catch (error) {
         alert.show(

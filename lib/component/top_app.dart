@@ -7,8 +7,9 @@ import '../state/state_dynamic_links.dart';
 import '../state/state_notifications.dart';
 import '../state/state_user.dart';
 
+final FirebaseAuth _auth = FirebaseAuth.instance;
+
 /// This widget has to go on the top of your app
-// class TopApp extends StatelessWidget with WidgetsBindingObserver {
 class TopApp extends StatelessWidget {
   TopApp({
     Key? key,
@@ -22,14 +23,12 @@ class TopApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // WidgetsBinding.instance!.addObserver(this);
     StateNotifications stateNotifications =
         Provider.of<StateNotifications>(context, listen: false);
     StateDynamicLinks stateDynamicLinks =
         Provider.of<StateDynamicLinks>(context, listen: false);
     StateUser stateUser = Provider.of<StateUser>(context, listen: false);
     StateGlobal stateGlobal = Provider.of<StateGlobal>(context, listen: false);
-    final FirebaseAuth _auth = FirebaseAuth.instance;
 
     /// Refresh auth state
     _refreshAuth(User? userObject) async {
@@ -61,6 +60,19 @@ class TopApp extends StatelessWidget {
       }
     }
 
-    return child;
+    return StreamBuilder(
+      stream: _auth.authStateChanges(),
+      builder: (context, snapshot) {
+        Widget _app = Container(color: Colors.grey.shade50);
+        switch (snapshot.connectionState) {
+          case ConnectionState.active:
+          case ConnectionState.done:
+            _app = child;
+            break;
+          default:
+        }
+        return _app;
+      },
+    );
   }
 }

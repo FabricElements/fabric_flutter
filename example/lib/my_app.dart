@@ -25,7 +25,6 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   String language = "en";
-  bool loadedRoutes = false;
   bool init = false;
 
   void getLanguage() async {
@@ -131,7 +130,14 @@ class _MyAppState extends State<MyApp> {
         if (_routes.containsKey(uri.path)) {
           page = _routes[uri.path]!;
         }
-        return MaterialPageRoute(settings: settings, builder: (_) => page);
+        // return MaterialPageRoute(settings: settings, builder: (_) => page);
+        return PageRouteBuilder(
+          maintainState: false,
+          settings: settings,
+          pageBuilder: (_, __, ___) => page,
+          transitionsBuilder: (_, a, __, c) =>
+              FadeTransition(opacity: a, child: c),
+        );
       },
     );
   }

@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 
 /// Utils for a variety of different utility functions.
@@ -84,5 +85,27 @@ class Utils {
       // primaryColor:
       //     Theme.of(context).primaryColor.value, // This line is required
     ));
+  }
+
+  /// Redirects to [path] when the value is null or empty
+  /// Sample:
+  /// @override
+  /// void initState() {
+  ///   Utils().missingValueRedirect(
+  ///     context: context,
+  ///     value: widget.uri.queryParameters["client"],
+  ///   );
+  ///   super.initState();
+  /// }
+  void missingValueRedirect({
+    required String? value,
+    required BuildContext context,
+    String path = "/",
+  }) {
+    if (value == null || value.isEmpty) {
+      WidgetsBinding.instance?.addPostFrameCallback((_) {
+        Navigator.popAndPushNamed(context, path);
+      });
+    }
   }
 }

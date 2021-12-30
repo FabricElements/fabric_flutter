@@ -351,6 +351,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
         ),
       ),
       body: GestureDetector(onTap: _closeKeyboard, child: getBody()),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: changed && !loading
           ? FloatingActionButton.extended(
               label: Text(locales.get("label--update")),
