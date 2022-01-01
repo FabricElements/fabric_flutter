@@ -119,6 +119,10 @@ dynamic defaultLocales = {
     "en": "You didn't choose any files",
     "es": "No elegiste ningún archivo",
   },
+  "label--save": {
+    "en": "Save",
+    "es": "Guardar",
+  },
   "label--add-more": {
     "en": "Add More",
     "es": "Agregar Más",
@@ -555,8 +559,16 @@ dynamic defaultLocales = {
     "en": "{label} is '{value1}' but should be '{value2}'",
     "es": "{label} es '{value1}', pero debe ser '{value2}'",
   },
+  "label--label-cant-be-changed": {
+    "en": "The '{label}' can't be changed later.",
+    "es": "El '{label}' no se puede cambiar más tarde."
+  },
   "error--404": {
     "en": "Not Found",
     "es": "No se encuentra",
+  },
+  "label--type-here": {
+    "en": "Type here...",
+    "es": "Escribe aquí...",
   }
 };

@@ -5,6 +5,8 @@ export 'component/edit_save_button.dart';
 export 'component/expansion_table.dart';
 export 'component/flag_chip.dart';
 export 'component/global_providers.dart';
+export 'component/google_maps_preview.dart';
+export 'component/google_maps_search.dart';
 export 'component/input_data.dart';
 export 'component/language_selector.dart';
 export 'component/preview_audio.dart';
