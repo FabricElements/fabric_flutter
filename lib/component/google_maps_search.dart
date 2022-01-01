@@ -164,15 +164,25 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
     void selectLocation(int index) {
       _closeKeyboard();
       final item = placesResults[index];
+      Map<String, dynamic> asJson = item.toJson();
       placeName = item.name;
       latitude = item.geometry!.location.lat;
       longitude = item.geometry!.location.lng;
-      totalItems = 0;
-      placesResults = [];
+      Map<String, dynamic> _data = {
+        "placeId": item.placeId,
+        "geometry": {
+          "location": item.geometry!.location.toJson(),
+        },
+        "name": item.name,
+      };
       if (widget.onChange != null && widget.placeId != item.placeId) {
-        PlaceDetails _place = new PlaceDetails.fromJson(item.toJson());
+        PlaceDetails _place = new PlaceDetails.fromJson(_data);
         widget.onChange!(_place);
       }
+
+      /// Reset after
+      totalItems = 0;
+      placesResults = [];
     }
 
     if (totalItems! > 0) {
