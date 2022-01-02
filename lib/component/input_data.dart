@@ -164,7 +164,6 @@ class _InputDataState extends State<InputData> {
               maxLength: widget.maxLength,
               decoration: InputDecoration(
                 border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.all(16),
                 fillColor: Colors.white,
                 filled: true,
                 hintText: widget.hintText ?? value,

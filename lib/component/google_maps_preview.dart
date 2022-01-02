@@ -13,64 +13,93 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 class GoogleMapsPreview extends StatefulWidget {
   const GoogleMapsPreview({
     Key? key,
+    this.mapType = MapType.normal,
     this.latitude,
     this.longitude,
+    this.aspectRatio = 3 / 2,
   }) : super(key: key);
+  final MapType mapType;
   final double? latitude;
   final double? longitude;
+  final double aspectRatio;
 
   @override
   _GoogleMapsPreviewState createState() => _GoogleMapsPreviewState();
 }
 
 class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
-  LatLng? location;
-  double? _latitude;
-  double? _longitude;
+  // double? _latitude;
+  // double? _longitude;
+  double? latitude;
+  double? longitude;
 
-  void getLocation() {
-    _latitude = widget.latitude;
-    _longitude = widget.longitude;
-    location = _latitude != null && _longitude != null
-        ? new LatLng(_latitude!, _longitude!)
-        : null;
+  void reset() {
+    latitude = null;
+    longitude = null;
+  }
+
+  void getLocation({bool notify = false}) {
+    reset();
+    if (mounted && notify) setState(() {});
+    // WidgetsBinding.instance?.addPostFrameCallback((_) {
+    //   latitude = widget.latitude;
+    //   longitude = widget.longitude;
+    //   if (mounted && notify) setState(() {});
+    // });
+    Future.delayed(const Duration(milliseconds: 100), () {
+      latitude = widget.latitude;
+      longitude = widget.longitude;
+      if (mounted && notify) setState(() {});
+    });
   }
 
   @override
   void initState() {
-    getLocation();
+    latitude = widget.latitude;
+    longitude = widget.longitude;
     super.initState();
   }
 
   @override
+  void dispose() {
+    reset();
+    super.dispose();
+  }
+
+  @override
   void didUpdateWidget(covariant GoogleMapsPreview oldWidget) {
-    getLocation();
+    if (widget.latitude != latitude || widget.longitude != longitude) {
+      getLocation(notify: true);
+    }
+    // print("updated");
+    // if (mounted) setState(() {});
     super.didUpdateWidget(oldWidget);
   }
 
   @override
   Widget build(BuildContext context) {
-    if (location == null || _longitude == null || _longitude == null) {
+    if (longitude == null || longitude == null) {
       return AspectRatio(
-        aspectRatio: 16 / 7,
+        aspectRatio: widget.aspectRatio,
         child: SmartImage(
           url: "https://images.unsplash.com/photo-1476973422084-e0fa66ff9456",
         ),
       );
     }
+    LatLng location = new LatLng(latitude!, longitude!);
     Completer<GoogleMapController> _controller = Completer();
     final CameraPosition _kGooglePlex = CameraPosition(
-      target: location!,
+      target: location,
       zoom: 8,
     );
     final Marker marker =
-        Marker(markerId: MarkerId("demo"), position: location!);
+        Marker(markerId: MarkerId("demo"), position: location);
     return AspectRatio(
-      aspectRatio: 16 / 10,
+      aspectRatio: widget.aspectRatio,
       child: GoogleMap(
-        minMaxZoomPreference: MinMaxZoomPreference(8, 25),
+        minMaxZoomPreference: MinMaxZoomPreference(5, 25),
         liteModeEnabled: false,
-        mapType: MapType.hybrid,
+        mapType: widget.mapType,
         initialCameraPosition: _kGooglePlex,
         onMapCreated: (GoogleMapController controller) {
           _controller.complete(controller);
