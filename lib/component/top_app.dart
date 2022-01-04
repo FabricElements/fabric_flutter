@@ -1,9 +1,9 @@
-import 'package:fabric_flutter/state/state_global.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../state/state_dynamic_links.dart';
+import '../state/state_global.dart';
 import '../state/state_notifications.dart';
 import '../state/state_user.dart';
 

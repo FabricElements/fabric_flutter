@@ -6,10 +6,12 @@ import 'package:intl/intl.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/enum_data.dart';
 import '../helper/options.dart';
+import '../helper/utils.dart';
 
 /// [InputDataType] defines the supported types for the [InputData] component
 enum InputDataType {
   date,
+  time,
   double,
   int,
   text,
@@ -17,6 +19,7 @@ enum InputDataType {
   dropdown,
   string,
   radio,
+  phone,
 }
 
 /// [InputData] provides an useful way to handle data input
@@ -38,6 +41,7 @@ class InputData extends StatefulWidget {
     this.textDefault,
     this.expanded = false,
     this.padding = EdgeInsets.zero,
+    this.utcOffset,
   }) : super(key: key);
   final dynamic value;
   final List<dynamic> enums;
@@ -50,6 +54,7 @@ class InputData extends StatefulWidget {
   final bool isDense;
   final bool expanded;
   final EdgeInsets padding;
+  final num? utcOffset;
 
   /// [onSubmit]
   /// Never use expression body or value won't be update correctly
@@ -68,8 +73,29 @@ class _InputDataState extends State<InputData> {
   dynamic value;
 
   void getValue({bool notify = false, required dynamic newValue}) {
-    value = newValue != null ? newValue.toString() : "";
-    textController.text = value;
+    value = newValue;
+    switch (widget.type) {
+      case InputDataType.string:
+      case InputDataType.double:
+      case InputDataType.int:
+      case InputDataType.text:
+      case InputDataType.radio:
+      case InputDataType.phone:
+        value = newValue != null ? newValue.toString() : "";
+        textController.text = value;
+        break;
+      case InputDataType.date:
+        value = Utils.dateTimeOffset(
+          dateTime: newValue as DateTime?,
+          utcOffset: widget.utcOffset,
+          reverse: true,
+        );
+        break;
+      case InputDataType.time:
+        value = newValue as TimeOfDay?;
+        break;
+      default:
+    }
     if (notify && mounted) setState(() {});
   }
 
@@ -97,11 +123,12 @@ class _InputDataState extends State<InputData> {
     final popupButtonKey = GlobalKey<State>();
     EnumData enumData = EnumData(locales: locales);
     ThemeData theme = Theme.of(context);
-    TextTheme textTheme = theme.textTheme;
     bool _disabled = widget.disabled;
     String _defaultText =
         widget.textDefault ?? locales.get("label--choose-option");
     String textSelected = _defaultText;
+    String? hintTextDefault;
+    int? maxLength = widget.maxLength;
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         double width = constraints.maxWidth.floorToDouble();
@@ -123,14 +150,34 @@ class _InputDataState extends State<InputData> {
         TextInputType keyboardType = TextInputType.text;
         List<TextInputFormatter> inputFormatters = [];
         switch (widget.type) {
+          case InputDataType.phone:
+
+            /// https://en.wikipedia.org/wiki/Telephone_numbering_plan
+            maxLength = 16;
+            hintTextDefault = "+1 (222) 333 - 4444";
+            keyboardType = const TextInputType.numberWithOptions(
+                decimal: true, signed: true);
+            inputFormatters.addAll([
+              FilteringTextInputFormatter.deny(RegExp(r'[\s()-]'),
+                  replacementString: ""),
+              FilteringTextInputFormatter.allow(RegExp(r'^\+\d{0,15}'),
+                  replacementString: ""),
+              FilteringTextInputFormatter.singleLineFormatter,
+            ]);
+            break;
           case InputDataType.double:
             keyboardType = const TextInputType.numberWithOptions(decimal: true);
-            inputFormatters
-                .add(FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')));
+            inputFormatters.addAll([
+              FilteringTextInputFormatter.singleLineFormatter,
+              FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+            ]);
             break;
           case InputDataType.int:
             keyboardType = TextInputType.number;
-            inputFormatters.add(FilteringTextInputFormatter.digitsOnly);
+            inputFormatters.addAll([
+              FilteringTextInputFormatter.singleLineFormatter,
+              FilteringTextInputFormatter.digitsOnly,
+            ]);
             break;
           default:
         }
@@ -154,6 +201,7 @@ class _InputDataState extends State<InputData> {
           case InputDataType.int:
           case InputDataType.string:
           case InputDataType.text:
+          case InputDataType.phone:
             _widget = TextFormField(
               controller: textController,
               enableSuggestions: false,
@@ -161,12 +209,12 @@ class _InputDataState extends State<InputData> {
               inputFormatters: inputFormatters,
               maxLines: widget.type == InputDataType.text ? 10 : 1,
               minLines: 1,
-              maxLength: widget.maxLength,
+              maxLength: maxLength,
               decoration: InputDecoration(
                 border: OutlineInputBorder(),
                 fillColor: Colors.white,
                 filled: true,
-                hintText: widget.hintText ?? value,
+                hintText: widget.hintText ?? hintTextDefault ?? value,
                 isDense: widget.isDense,
               ),
               onChanged: (newValue) {
@@ -185,11 +233,17 @@ class _InputDataState extends State<InputData> {
             );
             break;
           case InputDataType.date:
-            DateTime? _date = widget.value as DateTime?;
+            DateTime? _date = value as DateTime?;
             DateFormat formatDate = new DateFormat.yMd("en_US");
+            final _baseDateFormat = Utils.dateTimeOffset(
+              dateTime: _date,
+              utcOffset: widget.utcOffset,
+            );
             String label = _date != null
-                ? formatDate.format(widget.value)
-                : locales.get("label--choose-date");
+                ? formatDate.format(_baseDateFormat!)
+                : locales.get("label--choose-label", {
+                    "label": locales.get("label--date"),
+                  });
             _widget = Padding(
               padding: const EdgeInsets.only(top: 16),
               child: ElevatedButton.icon(
@@ -202,10 +256,41 @@ class _InputDataState extends State<InputData> {
                     firstDate: DateTime(_year),
                     lastDate: _date!.add(Duration(days: 365)),
                   );
-                  if (picked != null && picked != _date) if (widget.onChanged !=
-                      null) widget.onChanged!(picked);
+                  if (picked != null) {
+                    final _newDate = Utils.dateTimeOffset(
+                      dateTime: picked,
+                      utcOffset: widget.utcOffset,
+                    );
+                    if (widget.onChanged != null) widget.onChanged!(_newDate);
+                  }
                 },
                 icon: Icon(Icons.date_range),
+                label: Text(label),
+              ),
+            );
+            break;
+          case InputDataType.time:
+            TimeOfDay? _time = value;
+            DateFormat formatTime = new DateFormat.jm();
+            String label = _time != null
+                ? formatTime.format(DateTime(1, 1, 1, _time.hour, _time.minute))
+                : locales.get("label--choose-label", {
+                    "label": locales.get("label--time"),
+                  });
+            _widget = Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                  if (_time == null) _time = TimeOfDay.now();
+                  final TimeOfDay? picked = await showTimePicker(
+                    context: context,
+                    initialTime: _time!,
+                    initialEntryMode: TimePickerEntryMode.input,
+                  );
+                  if (picked != null && picked != _time) if (widget.onChanged !=
+                      null) widget.onChanged!(picked);
+                },
+                icon: Icon(Icons.access_time),
                 label: Text(label),
               ),
             );
@@ -236,15 +321,14 @@ class _InputDataState extends State<InputData> {
                 child: Text(_option.label),
               ));
             }
-            if (widget.value != null) {
+            if (value != null) {
               if (widget.type == InputDataType.enums &&
-                  widget.enums.firstWhereOrNull((e) => e == widget.value) !=
-                      null) {
-                textSelected = enumData.localesFromEnum(widget.value);
+                  widget.enums.firstWhereOrNull((e) => e == value) != null) {
+                textSelected = enumData.localesFromEnum(value);
               }
               if (widget.type == InputDataType.dropdown) {
                 textSelected = widget.options
-                    .firstWhere((element) => element.value == widget.value)
+                    .firstWhere((element) => element.value == value)
                     .label;
               }
             }
@@ -257,7 +341,7 @@ class _InputDataState extends State<InputData> {
               // isDense: isDense,
               offset: Offset(0, 40),
               key: popupButtonKey,
-              initialValue: widget.value?.toString(),
+              initialValue: value?.toString(),
               onSelected: (_value) {
                 if (widget.onChanged != null)
                   widget.onChanged!(_value == "" ? null : _value);
@@ -284,7 +368,7 @@ class _InputDataState extends State<InputData> {
                 title: Text(e.label),
                 leading: Radio<String?>(
                   value: e.value?.toString(),
-                  groupValue: widget.value?.toString(),
+                  groupValue: value?.toString(),
                   onChanged: (String? value) {
                     if (widget.onChanged != null)
                       widget.onChanged!(value == "" ? null : value);

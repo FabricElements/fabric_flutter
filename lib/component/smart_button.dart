@@ -1,9 +1,10 @@
 import 'dart:math' as math;
 import 'dart:ui';
 
-import 'package:fabric_flutter/helper/options.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+
+import '../helper/options.dart';
 
 /// [SmartButton] allows you to easily create buttons or/and custom Popup Menus
 class SmartButton extends StatefulWidget {

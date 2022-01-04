@@ -19,33 +19,34 @@ class Utils {
 
   /// Serialize Timestamp From Json with default value
   static DateTime timestampFromJsonDefault(Timestamp? timestamp) =>
-      timestamp?.toDate() ?? DateTime.now();
+      (timestamp?.toDate() ?? DateTime.now()).toUtc();
 
   /// Serialize Timestamp From Json
   static DateTime? timestampFromJson(Timestamp? timestamp) =>
-      timestamp?.toDate();
+      timestamp?.toDate().toUtc();
 
   /// Serialize Timestamp to Json with default value
   static Timestamp timestampToJsonDefault(DateTime? time) =>
-      time != null ? Timestamp.fromDate(time) : Timestamp.now();
+      time != null ? Timestamp.fromDate(time.toUtc()) : Timestamp.now();
 
   /// Serialize Timestamp to Json
   static Timestamp? timestampToJson(DateTime? time) =>
-      time != null ? Timestamp.fromDate(time) : null;
+      time != null ? Timestamp.fromDate(time.toUtc()) : null;
 
   /// Serialize DateTime string from JSON
   static DateTime? dateTimeFromJson(String? time) =>
-      time != null ? DateTime.tryParse(time) : null;
+      time != null ? DateTime.tryParse(time)?.toUtc() : null;
 
   /// Serialize DateTime to JSON string
-  static String? dateTimeToJson(DateTime? time) => time != null
-      ? DateFormat("yyyy-MM-dd'T'HH:mm:ss").format(time).toString()
+  static String? dateTimeToJson(DateTime? time) =>
+      time != null
+      ? DateFormat("yyyy-MM-dd'T'HH:mm:ss").format(time.toUtc()).toString()
       : null;
 
   /// Serialize Date to JSON string (yyyy-MM-dd)
   static String? dateToJson(DateTime? time) {
     if (time == null) return null;
-    return DateFormat("yyyy-MM-dd").format(time).toString();
+    return DateFormat("yyyy-MM-dd").format(time.toUtc()).toString();
   }
 
   /// User Presence
@@ -76,6 +77,42 @@ class Utils {
       queryParameters: _parameters,
     );
     return _baseUri.toString();
+  }
+
+  static DateTime? dateTimeOffset({
+    num? utcOffset,
+    DateTime? dateTime,
+    bool reverse = false,
+  }) {
+    if (utcOffset == null || dateTime == null) return dateTime;
+    // DateTime _currentDate = dateTime.isUtc ? dateTime : dateTime.toUtc();
+    DateTime _currentDate = dateTime;
+    bool negativeTime = utcOffset.isNegative;
+    int timeZoneOffset = utcOffset.abs().toInt();
+    Duration timeZoneOffsetDuration = Duration(minutes: timeZoneOffset);
+
+    // num timeZoneOffset = utcOffset;
+    // bool positiveTime = !timeZoneOffset.isNegative;
+    // timeZoneOffset = timeZoneOffset.abs();
+    // Duration timeZoneOffsetDuration = Duration(minutes: timeZoneOffset.floor());
+
+    /// Default date and time
+    if (reverse) negativeTime = !negativeTime;
+    DateTime updatedDate = negativeTime
+        ? _currentDate.subtract(timeZoneOffsetDuration)
+        : _currentDate.add(timeZoneOffsetDuration);
+
+    /// Place time
+    // _currentDate = positiveTime
+    //     ? _currentDate.add(timeZoneOffsetDuration)
+    //     : _currentDate.subtract(timeZoneOffsetDuration);
+    return new DateTime.utc(
+      updatedDate.year,
+      updatedDate.month,
+      updatedDate.day,
+      updatedDate.hour,
+      updatedDate.minute,
+    );
   }
 
   void setPageTitle(String title) {

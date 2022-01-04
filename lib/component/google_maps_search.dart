@@ -121,6 +121,7 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
 
   @override
   void initState() {
+    /// Temporal access at https://cors-anywhere.herokuapp.com/https://maps.googleapis.com/maps/ap
     _places = GoogleMapsPlaces(
         apiKey: widget.apiKey,
         baseUrl: kIsWeb
@@ -169,9 +170,7 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
     totalItems = 0;
     placesResults = [];
     if (mounted) setState(() {});
-    if (widget.onChange != null &&
-        widget.placeId != placeResult.placeId &&
-        placeDetails != null) {
+    if (widget.onChange != null && placeDetails != null) {
       widget.onChange!(placeDetails!);
     }
   }

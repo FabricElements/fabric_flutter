@@ -1,8 +1,9 @@
 import 'dart:async';
 
-import 'package:fabric_flutter/component/smart_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+
+import 'smart_image.dart';
 
 /// [GoogleMapsPreview] component
 /// Displays a google map using [latitude] and [longitude]
@@ -28,8 +29,6 @@ class GoogleMapsPreview extends StatefulWidget {
 }
 
 class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
-  // double? _latitude;
-  // double? _longitude;
   double? latitude;
   double? longitude;
 
@@ -41,11 +40,6 @@ class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
   void getLocation({bool notify = false}) {
     reset();
     if (mounted && notify) setState(() {});
-    // WidgetsBinding.instance?.addPostFrameCallback((_) {
-    //   latitude = widget.latitude;
-    //   longitude = widget.longitude;
-    //   if (mounted && notify) setState(() {});
-    // });
     Future.delayed(const Duration(milliseconds: 100), () {
       latitude = widget.latitude;
       longitude = widget.longitude;
@@ -71,8 +65,6 @@ class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
     if (widget.latitude != latitude || widget.longitude != longitude) {
       getLocation(notify: true);
     }
-    // print("updated");
-    // if (mounted) setState(() {});
     super.didUpdateWidget(oldWidget);
   }
 

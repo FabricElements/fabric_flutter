@@ -570,5 +570,13 @@ dynamic defaultLocales = {
   "label--type-here": {
     "en": "Type here...",
     "es": "Escribe aquí...",
-  }
+  },
+  "label--hour": {
+    "en": "Hora",
+    "es": "Hora",
+  },
+  "label--time": {
+    "en": "Time",
+    "es": "Tiempo",
+  },
 };
