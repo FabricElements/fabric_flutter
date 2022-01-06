@@ -115,7 +115,7 @@ class Utils {
     );
   }
 
-  void setPageTitle(String title) {
+  static void setPageTitle(String title) {
     SystemChrome.setApplicationSwitcherDescription(
         ApplicationSwitcherDescription(
       label: title,

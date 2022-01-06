@@ -73,7 +73,6 @@ class _InputDataState extends State<InputData> {
   dynamic value;
 
   void getValue({bool notify = false, required dynamic newValue}) {
-    value = newValue;
     switch (widget.type) {
       case InputDataType.string:
       case InputDataType.double:
@@ -81,8 +80,11 @@ class _InputDataState extends State<InputData> {
       case InputDataType.text:
       case InputDataType.radio:
       case InputDataType.phone:
-        value = newValue != null ? newValue.toString() : "";
-        textController.text = value;
+        String _tempValue = newValue != null ? newValue.toString() : "";
+        if (_tempValue != value) {
+          value = _tempValue;
+          textController.text = value;
+        }
         break;
       case InputDataType.date:
         value = Utils.dateTimeOffset(
@@ -95,6 +97,7 @@ class _InputDataState extends State<InputData> {
         value = newValue as TimeOfDay?;
         break;
       default:
+        value = newValue;
     }
     if (notify && mounted) setState(() {});
   }

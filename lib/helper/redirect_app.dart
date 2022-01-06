@@ -1,6 +1,7 @@
-import 'package:fabric_flutter/state/state_user.dart';
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
+
+import '../state/state_user.dart';
 
 class RedirectApp {
   RedirectApp({

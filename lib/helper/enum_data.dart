@@ -1,5 +1,6 @@
-import 'package:fabric_flutter/helper/app_localizations_delegate.dart';
 import 'package:flutter/foundation.dart';
+
+import 'app_localizations_delegate.dart';
 
 /// [EnumData] provides extended support for enums
 class EnumData {
