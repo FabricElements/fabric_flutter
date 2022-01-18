@@ -142,9 +142,9 @@ class _SmartButtonState extends State<SmartButton> {
     return PopupMenuButton<String>(
       offset: Offset(0, 40),
       key: popupButtonKey,
-      initialValue: "/",
+      initialValue: '/',
       onSelected: (value) {
-        if (value.startsWith("/")) {
+        if (value.startsWith('/')) {
           if (widget.pop) {
             Navigator.popAndPushNamed(context, value);
           } else {

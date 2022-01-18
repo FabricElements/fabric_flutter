@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 /// [name] This is a parameter of the name in the widget.
 /// UserAvatar(
 ///   avatar: imageUrl,
-///   name: "Jeffery",
+///   name: 'Jeffery',
 /// );
 class UserAvatar extends StatelessWidget {
   const UserAvatar({
@@ -19,12 +19,12 @@ class UserAvatar extends StatelessWidget {
 
   String _acronym(String? text) {
     if (text == null) {
-      return "";
+      return '';
     }
-    String finalText = "";
-    var matches = text.split(" ");
+    String finalText = '';
+    var matches = text.split(' ');
     if (matches.length == 0) {
-      return "?";
+      return '?';
     }
     int totalMatches = matches.length > 2 ? matches.length : matches.length;
     for (int i = 0; i < totalMatches; i++) {
@@ -34,7 +34,7 @@ class UserAvatar extends StatelessWidget {
       } catch (error) {}
     }
     if (finalText.length == 0) {
-      return "?";
+      return '?';
     }
     finalText = finalText.toUpperCase();
     return finalText;
@@ -44,7 +44,7 @@ class UserAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     if (avatar != null) {
       return CircleAvatar(
-        backgroundImage: NetworkImage("$avatar"),
+        backgroundImage: NetworkImage(avatar!),
         backgroundColor: Colors.grey.shade100,
       );
     }

@@ -46,20 +46,20 @@ class Utils {
   /// Serialize Date to JSON string (yyyy-MM-dd)
   static String? dateToJson(DateTime? time) {
     if (time == null) return null;
-    return DateFormat("yyyy-MM-dd").format(time.toUtc()).toString();
+    return DateFormat('yyyy-MM-dd').format(time.toUtc()).toString();
   }
 
   /// User Presence
   /// responses: active, inactive, away
   static String getPresence(DateTime? time) {
-    String _presence = "away";
+    String _presence = 'away';
     if (time == null) return _presence;
     DateTime now = DateTime.now();
     DateTime timeInactive = now.subtract(Duration(minutes: 2));
     DateTime timeAway = now.subtract(Duration(minutes: 3));
-    if (time.isAfter(timeInactive)) _presence = "active";
-    if (time.isBefore(timeInactive)) _presence = "inactive";
-    if (time.isBefore(timeAway)) _presence = "away";
+    if (time.isAfter(timeInactive)) _presence = 'active';
+    if (time.isBefore(timeInactive)) _presence = 'inactive';
+    if (time.isBefore(timeAway)) _presence = 'away';
     return _presence;
   }
 
@@ -130,14 +130,14 @@ class Utils {
   /// void initState() {
   ///   Utils().missingValueRedirect(
   ///     context: context,
-  ///     value: widget.uri.queryParameters["client"],
+  ///     value: widget.uri.queryParameters['client'],
   ///   );
   ///   super.initState();
   /// }
   void missingValueRedirect({
     required String? value,
     required BuildContext context,
-    String path = "/",
+    String path = '/',
   }) {
     if (value == null || value.isEmpty) {
       WidgetsBinding.instance?.addPostFrameCallback((_) {

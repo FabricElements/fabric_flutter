@@ -207,7 +207,7 @@ class IsoLanguage {
       "nativeName": "lietuvių kalba",
       "emoji": "🇱🇹"
     },
-    "lu": {"name": "Luba-Katanga", "nativeName": "", "emoji": "🌐"},
+    "lu": {"name": "Luba-Katanga", "nativeName": '', "emoji": "🌐"},
     "lv": {"name": "Latvian", "nativeName": "latviešu valoda", "emoji": "🇱🇻"},
     "gv": {"name": "Manx", "nativeName": "Gaelg, Gailck", "emoji": "🇮🇲"},
     "mk": {
@@ -422,7 +422,7 @@ class IsoLanguage {
     },
     "zu": {
       "name": "Zulu",
-      "nativeName": "",
+      "nativeName": '',
       "emoji": "🇿🇦",
     },
   };
@@ -452,9 +452,9 @@ class IsoLanguage {
   String getName(key) {
     if (isoLanguages.containsKey(key)) {
       Map<String, String> language = isoLanguages[key];
-      return language["name"] ?? "";
+      return language["name"] ?? '';
     } else {
-      return "";
+      return '';
     }
   }
 

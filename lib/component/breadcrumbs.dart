@@ -46,7 +46,7 @@ class Breadcrumbs extends StatelessWidget {
         ),
       );
       if (i < (buttons.length - 1)) {
-        items.add(Text("/", style: _dividerStyle));
+        items.add(Text('/', style: _dividerStyle));
       }
     }
     return SingleChildScrollView(

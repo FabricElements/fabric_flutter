@@ -23,10 +23,7 @@ class GoogleMapsSearch extends StatefulWidget {
     this.onError,
     this.placeId,
     this.name,
-    this.fields = const [
-      "formatted_address",
-      "utc_offset",
-    ],
+    this.fields = const ['formatted_address', 'utc_offset'],
     this.aspectRatio = 3 / 2,
   }) : super(key: key);
   final String? placeId;
@@ -40,7 +37,7 @@ class GoogleMapsSearch extends StatefulWidget {
   final double aspectRatio;
 
   /// Define Google Places API fields you require on the response
-  /// There is no need to include "name", "place_id", or "geometry/location"
+  /// There is no need to include 'name', 'place_id', or 'geometry/location'
   /// https://developers.google.com/maps/documentation/places/web-service/place-data-fields
   final List<String> fields;
 
@@ -96,11 +93,7 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
     placeId = null;
     if (mounted) setState(() {});
     try {
-      List<String> _requiredFields = [
-        "name",
-        "place_id",
-        "geometry/location",
-      ];
+      List<String> _requiredFields = ['name', 'place_id', 'geometry/location'];
       _requiredFields.addAll(widget.fields);
       final placeDetailsResponse =
           await _places.getDetailsByPlaceId(id, fields: _requiredFields);
@@ -142,7 +135,7 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
 
   @override
   void didUpdateWidget(covariant GoogleMapsSearch oldWidget) {
-    textController.text = "";
+    textController.text = '';
     if (widget.placeId != placeId && widget.placeId != null) {
       getPlaceById(notify: true, id: widget.placeId!);
     } else {
@@ -206,7 +199,7 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
                   ),
                   contentPadding: EdgeInsets.all(16),
                   filled: true,
-                  hintText: name ?? locales.get("label--search"),
+                  hintText: name ?? locales.get('label--search'),
                   suffixIcon: Icon(Icons.search),
                   fillColor: Colors.white,
                 ),
@@ -217,13 +210,12 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
                     if (mounted) setState(() {});
                     return;
                   }
-                  // searchAddr = "$val, USA";
-                  searchAddr = "$val";
+                  searchAddr = '$val';
                   try {
                     PlacesSearchResponse places = await _places.searchByText(
                       searchAddr,
                       type:
-                          "administrative_area_level_1,administrative_area_level_2,locality,postal_codes",
+                          'administrative_area_level_1,administrative_area_level_2,locality,postal_codes',
                     );
                     placesResults = places.results;
                     totalItems = places.results.length;
@@ -231,7 +223,9 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
                   } catch (error) {
                     print(error);
                     alert.show(
-                        title: error.toString(), type: AlertType.warning);
+                      title: error.toString(),
+                      type: AlertType.warning,
+                    );
                   }
                 },
               ),
@@ -258,7 +252,7 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
                       direction: Axis.vertical,
                       children: placesResults.map((e) {
                         final item = e;
-                        String formattedAddress = item.formattedAddress ?? "";
+                        String formattedAddress = item.formattedAddress ?? '';
                         return Container(
                           color: Colors.grey.shade50,
                           child: Wrap(

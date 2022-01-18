@@ -12,12 +12,12 @@ import 'role_selector.dart';
 /// Sends invitation to a new user
 ///
 /// [user] Firebase User object with user's information
-/// [data] Object with necessary information such as "organization"
+/// [data] Object with necessary information such as 'organization' data
 /// ```dart
 /// Invitation(
-///   "user": user-data-object,
-///   "info": {
-///     "organization": "organization-id",
+///   'user': user-data-object,
+///   'info': {
+///     'organization': 'organization-id',
 ///   }
 /// );
 /// ```
@@ -41,8 +41,8 @@ enum TypeOptions { phone, email }
 class _UserInviteState extends State<UserInvite> {
   AppLocalizations? locales;
   bool? sending;
-  String phoneNumber = "";
-  String email = "";
+  String phoneNumber = '';
+  String email = '';
   late String areaCode;
   String? finalPhoneNumber;
   String? roleSelect;
@@ -67,10 +67,10 @@ class _UserInviteState extends State<UserInvite> {
   @override
   void initState() {
     super.initState();
-    phoneNumber = "";
-    email = "";
-    areaCode = "+1";
-    finalPhoneNumber = "";
+    phoneNumber = '';
+    email = '';
+    areaCode = '+1';
+    finalPhoneNumber = '';
     sending = false;
     resp = null;
     backgroundColor = const Color(0xFF161A21);
@@ -101,23 +101,23 @@ class _UserInviteState extends State<UserInvite> {
     _sendInvitation(
         {required String type, String? contact, String? role}) async {
       if (contact == null) {
-        print("Define the contact information before sending");
+        print('Define the contact information before sending');
         return;
       }
       sending = true;
       if (mounted) setState(() {});
-      alert.show(title: locales.get("notification--please-wait"), duration: 5);
+      alert.show(title: locales.get('notification--please-wait'), duration: 5);
       Map<String, dynamic> data = {};
       if (role != null) {
         data.addAll({
-          "role": role,
+          'role': role,
         });
       }
       if (widget.user != null) {
         data.addAll({
-          "uid": widget.user?.uid ?? null,
-          "name": widget.user?.displayName ?? null,
-          "avatar": widget.user?.photoURL ?? null,
+          'uid': widget.user?.uid ?? null,
+          'name': widget.user?.displayName ?? null,
+          'avatar': widget.user?.photoURL ?? null,
         });
       }
 
@@ -125,24 +125,25 @@ class _UserInviteState extends State<UserInvite> {
         data.addAll(widget.data!);
       }
       // Update object with email or phone depending on the type.
-      if (type == "email") {
-        data.addAll({"email": contact});
+      if (type == 'email') {
+        data.addAll({'email': contact});
       } else {
-        data.addAll({"phoneNumber": contact});
+        data.addAll({'phoneNumber': contact});
       }
       try {
         final HttpsCallable callable =
-            FirebaseFunctions.instance.httpsCallable("user-actions-invite");
+            FirebaseFunctions.instance.httpsCallable('user-actions-invite');
         await callable.call(data);
         alert.show(
-          title: locales.get("notification--invitation-sent"),
+          title: locales.get('notification--invitation-sent'),
           type: AlertType.success,
           duration: 3,
         );
         Navigator.of(context).pop();
       } on FirebaseFunctionsException catch (error) {
         alert.show(
-            title: error.message ?? error.details["message"], type: AlertType.critical);
+            title: error.message ?? error.details['message'],
+            type: AlertType.critical);
       } catch (error) {
         alert.show(title: error.toString(), type: AlertType.critical);
       }
@@ -152,13 +153,13 @@ class _UserInviteState extends State<UserInvite> {
 
     void validateInvitation() async {
       if (!canInvite) {
-        alert.show(title: "incomplete data", type: AlertType.critical);
+        alert.show(title: 'incomplete data', type: AlertType.critical);
       }
       if (_typeOption == TypeOptions.phone) {
         await _sendInvitation(
-            type: "phoneNumber", contact: finalPhoneNumber, role: roleSelect);
+            type: 'phoneNumber', contact: finalPhoneNumber, role: roleSelect);
       } else {
-        await _sendInvitation(type: "email", contact: email, role: roleSelect);
+        await _sendInvitation(type: 'email', contact: email, role: roleSelect);
       }
     }
 
@@ -172,8 +173,8 @@ class _UserInviteState extends State<UserInvite> {
               areaCode = countryCode.toString();
             },
             // Initial selection and favorite can be one of code ('IT') OR dial_code('+39')
-            initialSelection: "US",
-            favorite: ["US"],
+            initialSelection: 'US',
+            favorite: ['US'],
             // optional. Shows only country name and flag
             showCountryOnly: false,
             // optional. Shows only country name and flag when popup is closed.
@@ -185,7 +186,7 @@ class _UserInviteState extends State<UserInvite> {
             child: TextField(
               controller: _textControllerPhone,
               decoration: InputDecoration(
-                hintText: locales.get("label--enter-phone-number"),
+                hintText: locales.get('label--enter-phone-number'),
               ),
               maxLines: 1,
               maxLength: 12,
@@ -204,7 +205,7 @@ class _UserInviteState extends State<UserInvite> {
               },
               // Disable blank space from input.
               inputFormatters: [
-                FilteringTextInputFormatter.deny(" ", replacementString: ""),
+                FilteringTextInputFormatter.deny(' ', replacementString: ''),
                 FilteringTextInputFormatter.digitsOnly,
               ],
             ),
@@ -224,7 +225,7 @@ class _UserInviteState extends State<UserInvite> {
           enableSuggestions: false,
           controller: _textControllerEmail,
           decoration: InputDecoration(
-            hintText: locales.get("label--enter-an-email"),
+            hintText: locales.get('label--enter-an-email'),
             prefixIcon: Icon(Icons.mail),
           ),
           maxLines: 1,
@@ -238,8 +239,8 @@ class _UserInviteState extends State<UserInvite> {
           },
           // Disable blank space from input.
           inputFormatters: [
-            FilteringTextInputFormatter.deny(" ", replacementString: ""),
-            FilteringTextInputFormatter.deny("+", replacementString: ""),
+            FilteringTextInputFormatter.deny(' ', replacementString: ''),
+            FilteringTextInputFormatter.deny('+', replacementString: ''),
             FilteringTextInputFormatter.singleLineFormatter,
           ],
         ),
@@ -255,7 +256,7 @@ class _UserInviteState extends State<UserInvite> {
         Expanded(
           child: RadioListTile<TypeOptions>(
             contentPadding: EdgeInsets.only(left: 8),
-            title: Text(locales.get("label--phone-number")),
+            title: Text(locales.get('label--phone-number')),
             value: TypeOptions.phone,
             groupValue: _typeOption,
             onChanged: (TypeOptions? value) {
@@ -267,7 +268,7 @@ class _UserInviteState extends State<UserInvite> {
         Expanded(
           child: RadioListTile<TypeOptions>(
             contentPadding: EdgeInsets.only(right: 8),
-            title: Text(locales.get("label--email")),
+            title: Text(locales.get('label--email')),
             value: TypeOptions.email,
             groupValue: _typeOption,
             onChanged: (TypeOptions? value) {
@@ -283,7 +284,7 @@ class _UserInviteState extends State<UserInvite> {
       appBar: AppBar(
         primary: false,
         automaticallyImplyLeading: false,
-        title: Text(locales.get("user-invite--title")),
+        title: Text(locales.get('user-invite--title')),
         leading: Icon(Icons.person),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
@@ -291,7 +292,7 @@ class _UserInviteState extends State<UserInvite> {
           ? FloatingActionButton.extended(
               icon: Icon(Icons.send),
               label: Text(
-                locales.get("label--send-invitation"),
+                locales.get('label--send-invitation'),
                 style: TextStyle(color: Colors.white),
               ),
               onPressed: validateInvitation,

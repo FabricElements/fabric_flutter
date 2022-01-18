@@ -85,11 +85,11 @@ class _HomePageState extends State<HomePage> {
       );
     };
     final StateAPI stateAPI = Provider.of<StateAPI>(context);
-    stateAPI.endpoint =
-        "https://raw.githubusercontent.com/ernysans/laraworld/master/composer.json";
     final StateDocument stateDocument = Provider.of<StateDocument>(context);
 
     WidgetsBinding.instance?.addPostFrameCallback((_) {
+      stateAPI.endpoint =
+      "https://raw.githubusercontent.com/ernysans/laraworld/master/composer.json";
       stateUser.ping("home");
       if (stateAPI.data != null) {
         // print("data: ${stateAPI.data}");

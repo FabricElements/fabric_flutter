@@ -56,18 +56,18 @@ class _ViewAdminUsersState extends State<ViewAdminUsers> {
     TextTheme textTheme = theme.textTheme;
     AppLocalizations locales = AppLocalizations.of(context)!;
     StateUser stateUser = Provider.of<StateUser>(context);
-    stateUser.ping("admin-users");
-    Query query = FirebaseFirestore.instance.collection("user");
+    stateUser.ping('admin-users');
+    Query query = FirebaseFirestore.instance.collection('user');
 
     /// Get data from navigation arguments
     Map<String, dynamic> args = Map.from(
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
             {});
-    String? collectionId = args["collectionId"] ?? null;
-    String? collection = args["collection"] ?? null;
+    String? collectionId = args['collectionId'] ?? null;
+    String? collection = args['collection'] ?? null;
     // Get roles from navigation first
-    List<String>? _roles = args["roles"] ?? widget.roles ?? null;
-    Map<String, dynamic>? collectionData = args["collectionData"] ?? null;
+    List<String>? _roles = args['roles'] ?? widget.roles ?? null;
+    Map<String, dynamic>? collectionData = args['collectionData'] ?? null;
     bool fromCollection = collectionId != null && collection != null;
     Widget space = Container(width: 16);
     Map<String, dynamic> inviteMetadata = {};
@@ -77,15 +77,15 @@ class _ViewAdminUsersState extends State<ViewAdminUsers> {
     );
     Map<String?, dynamic> removeOptions = {};
 
-    query = query.orderBy("role");
+    query = query.orderBy('role');
     inviteMetadata = {
-      "admin": true,
+      'admin': true,
     };
     if (fromCollection) {
       query = query.where(collection, arrayContains: collectionId);
       inviteMetadata = {
-        "collection": collection,
-        "collectionId": collectionId,
+        'collection': collection,
+        'collectionId': collectionId,
       };
     }
     removeOptions.addAll(inviteMetadata);
@@ -97,12 +97,12 @@ class _ViewAdminUsersState extends State<ViewAdminUsers> {
       HttpsCallable callable =
           FirebaseFunctions.instance.httpsCallable('user-actions-remove');
       removeOptions.addAll({
-        "uid": documentId,
+        'uid': documentId,
       });
       // Type indicates the data field to use in the function, admin level or collection.
       await callable.call(removeOptions); // USER DATA
       alert.show(
-        title: locales.get("alert--user-removed"),
+        title: locales.get('alert--user-removed'),
         type: AlertType.success,
         duration: 3,
       );
@@ -143,13 +143,13 @@ class _ViewAdminUsersState extends State<ViewAdminUsers> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(locales.get("label--users")),
+        title: Text(locales.get('label--users')),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: FloatingActionButton.extended(
-        tooltip: locales.get("label--new-user"),
+        tooltip: locales.get('label--new-user'),
         icon: Icon(Icons.add),
-        label: Text('${locales.get("label--add-more")}'.toUpperCase()),
+        label: Text('${locales.get('label--add-more')}'.toUpperCase()),
         onPressed: () {
           _inviteUser();
         },
@@ -175,17 +175,17 @@ class _ViewAdminUsersState extends State<ViewAdminUsers> {
               DocumentSnapshot userDocument = snapshot.data!.docs[index];
               Map<String, dynamic> userData =
                   userDocument.data()! as Map<String, dynamic>;
-              userData.addAll({"id": userDocument.id});
+              userData.addAll({'id': userDocument.id});
               UserData _itemData = UserData.fromJson(userData);
               bool _sameUser = stateUser.id == _itemData.id;
-              // Don't allow a user to change anything about itself on the "admin" view
+              // Don't allow a user to change anything about itself on the 'admin' view
               bool _canUpdateUser = !_sameUser;
               Color statusColor = Colors.grey.shade600;
               switch (_itemData.presence) {
-                case "active":
+                case 'active':
                   statusColor = Colors.green;
                   break;
-                case "inactive":
+                case 'inactive':
                   statusColor = Colors.deepOrange;
               }
               if (_sameUser) {
@@ -212,7 +212,7 @@ class _ViewAdminUsersState extends State<ViewAdminUsers> {
               );
               String name = _itemData.name.isNotEmpty
                   ? _itemData.name
-                  : locales.get("label--unknown");
+                  : locales.get('label--unknown');
               if (_itemData.name.isEmpty) {
                 if (_itemData.phone.isNotEmpty) {
                   name = _itemData.phone;
@@ -226,7 +226,7 @@ class _ViewAdminUsersState extends State<ViewAdminUsers> {
                     vertical: 0,
                     horizontal: 0,
                   ),
-                  label: Text(locales.get("label--$_role")),
+                  label: Text(locales.get('label--$_role')),
                 ),
               ];
               return Wrap(
@@ -244,7 +244,7 @@ class _ViewAdminUsersState extends State<ViewAdminUsers> {
                           avatar: _itemData.avatar,
                           name: _itemData.name.isNotEmpty
                               ? _itemData.name
-                              : locales.get("label--unknown"),
+                              : locales.get('label--unknown'),
                         ),
                         title: Text(
                           name,
@@ -266,7 +266,7 @@ class _ViewAdminUsersState extends State<ViewAdminUsers> {
                           children: <Widget>[
                             Icon(Icons.delete, color: Colors.white),
                             space,
-                            Text(locales.get("label--remove"),
+                            Text(locales.get('label--remove'),
                                 style: TextStyle(color: Colors.white)),
                             space,
                           ],
@@ -283,7 +283,7 @@ class _ViewAdminUsersState extends State<ViewAdminUsers> {
                           }
                         } on FirebaseFunctionsException catch (error) {
                           alert.show(
-                            title: error.message ?? error.details["message"],
+                            title: error.message ?? error.details['message'],
                             type: AlertType.critical,
                           );
                         } catch (error) {

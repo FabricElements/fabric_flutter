@@ -29,10 +29,10 @@ class FirebaseStorageHelper {
   /// ```dart
   /// FirebaseStorageHelper(reference: FirebaseStorage.instance.ref()).upload(
   ///      file,
-  ///      "path/to/folder",
-  ///      "testFile.pdf",
-  ///      "application/pdf",
-  ///      {"name": "testFile"},
+  ///      'path/to/folder',
+  ///      'testFile.pdf',
+  ///      'application/pdf',
+  ///      {'name': 'testFile'},
   ///    );
   /// ```
   Future<firebase_storage.TaskSnapshot> upload(

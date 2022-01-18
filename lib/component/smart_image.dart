@@ -10,7 +10,7 @@ import 'package:transparent_image/transparent_image.dart';
 /// https://github.com/FabricElements/shared-helpers/blob/master/src/image-helper.ts#L17
 ///
 /// SmartImage(
-///   url: "https://images.unsplash.com/photo-1516571748831-5d81767b788d",
+///   url: 'https://images.unsplash.com/photo-1516571748831-5d81767b788d',
 /// );
 class SmartImage extends StatelessWidget {
   SmartImage({
@@ -38,18 +38,18 @@ class SmartImage extends StatelessWidget {
         Map<String, String> query = {};
         query.addAll(uri.queryParameters);
         query.addAll({
-          "dpr": devicePixelRatio.toString(),
-          "crop": "entropy",
+          'dpr': devicePixelRatio.toString(),
+          'crop': 'entropy',
         });
-        // String resultUrl = "${this.url}?dpr=$devicePixelRatio&crop=entropy";
+        // String resultUrl = '${this.url}?dpr=$devicePixelRatio&crop=entropy';
         if (size != null) {
           query.addAll({
-            "size": size.toString(),
+            'size': size.toString(),
           });
         } else {
           query.addAll({
-            "width": width.toString(),
-            "height": height.toString(),
+            'width': width.toString(),
+            'height': height.toString(),
           });
         }
         String url = Uri.https(uri.authority, uri.path, query).toString();

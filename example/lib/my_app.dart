@@ -8,6 +8,7 @@ import 'package:fabric_flutter/view/view_admin_users.dart';
 import 'package:fabric_flutter/view/view_auth_page.dart';
 import 'package:fabric_flutter/view/view_hero.dart';
 import 'package:fabric_flutter/view/view_profile_edit.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -17,6 +18,8 @@ import 'pages/home_page.dart';
 import 'splash/loading.dart';
 import 'state/state_user_internal.dart';
 import 'theme.dart';
+
+final FirebaseAuth _auth = FirebaseAuth.instance;
 
 class MyApp extends StatefulWidget {
   @override
@@ -34,11 +37,12 @@ class _MyAppState extends State<MyApp> {
     if (cleanLanguage == "es") {
       language = cleanLanguage;
     }
+    if (mounted) setState(() {});
   }
 
   @override
   void initState() {
-    super.initState();
+    init = false;
     getLanguage();
     if (mounted && !init) {
       Timer(Duration(seconds: 2), () {
@@ -48,6 +52,7 @@ class _MyAppState extends State<MyApp> {
         }
       });
     }
+    super.initState();
   }
 
   @override
@@ -80,11 +85,8 @@ class _MyAppState extends State<MyApp> {
       Locale.fromSubtags(languageCode: "en"),
       Locale.fromSubtags(languageCode: "es"),
     ];
-    if (!init) {
-      return Container(color: Colors.deepPurpleAccent);
-    }
 
-    return MaterialApp(
+    final app = MaterialApp(
       debugShowCheckedModeBanner: false,
       locale: Locale(language, ""),
       localizationsDelegates: localizationsDelegates,
@@ -108,6 +110,7 @@ class _MyAppState extends State<MyApp> {
             '/users',
           ],
           authenticatedRoutes: [
+            '/users',
             '/profile',
           ],
           authRoute: "/sign-in",
@@ -126,7 +129,7 @@ class _MyAppState extends State<MyApp> {
           unknownRoute: "/",
         );
         Widget page = LoadingScreen(parent: true);
-        final _routes = routeHelper.routes(stateUser.signedIn);
+        Map<String, Widget> _routes = routeHelper.routes(stateUser.signedIn);
         if (_routes.containsKey(uri.path)) {
           page = _routes[uri.path]!;
         }
@@ -138,6 +141,23 @@ class _MyAppState extends State<MyApp> {
           transitionsBuilder: (_, a, __, c) =>
               FadeTransition(opacity: a, child: c),
         );
+      },
+    );
+    return StreamBuilder(
+      stream: _auth.authStateChanges(),
+      builder: (context, snapshot) {
+        Widget _app =
+            Center(child: CircularProgressIndicator(color: Colors.indigo));
+        if (init) {
+          switch (snapshot.connectionState) {
+            case ConnectionState.active:
+            case ConnectionState.done:
+              _app = app;
+              break;
+            default:
+          }
+        }
+        return _app;
       },
     );
   }

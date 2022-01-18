@@ -5,7 +5,7 @@ import 'package:flutter/cupertino.dart';
 class StateAnalytics extends ChangeNotifier {
   StateAnalytics();
 
-  String? _screenName = "";
+  String? _screenName = '';
 
   /// Analytics
   static FirebaseAnalytics analytics = FirebaseAnalytics.instance;

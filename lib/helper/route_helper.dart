@@ -30,8 +30,8 @@ class RouteHelper {
   Map<String, Widget> routes(bool signed) {
     Map<String, Widget> _endSignedIn = {};
     Map<String, Widget> _endPublic = {};
-    String _authRoute = authRoute ?? "/auth";
-    String _unknownRoute = unknownRoute ?? "/";
+    String _authRoute = authRoute ?? '/auth';
+    String _unknownRoute = unknownRoute ?? '/';
 
     List<String> _routesSignedIn = [];
     List<String> _routesPublic = [];
@@ -87,7 +87,7 @@ class RouteHelper {
         _endViewSigned = routeMap[_authRoute];
       }
       _endPublic.addAll({
-        "$key": Scaffold(primary: false, body: _endViewSigned),
+        '$key': Scaffold(primary: false, body: _endViewSigned),
       });
     });
     return signed ? _endSignedIn : _endPublic;

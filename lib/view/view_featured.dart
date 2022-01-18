@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../component/smart_image.dart';
 import '../state/state_user.dart';
 
@@ -21,16 +22,16 @@ import '../state/state_user.dart';
 /// [onPressed] Optional arguments to be provided to the onPressed action, such as updating a firestore document.
 /// ```dart
 /// FeaturedView(
-///   headline: "This is the Featured View",
+///   headline: 'This is the Featured View',
 ///   description:
-///       "The featured view is useful for describing upcoming actions or giving feedback to the user.",
+///       'The featured view is useful for describing upcoming actions or giving feedback to the user.',
 ///   image:
-///       "https://source.unsplash.com/random",
-///   actionLabel: "GO TO HOME",
-///   actionUrl: "/",
-///   arguments: {"id": "random_user_id"},
+///       'https://source.unsplash.com/random',
+///   actionLabel: 'GO TO HOME',
+///   actionUrl: '/',
+///   arguments: {'id': 'random_user_id'},
 ///   onPressed: () {
-///     Print("You pressed the button! You can perform any action here.");
+///     Print('You pressed the button! You can perform any action here.');
 ///   }
 /// ),
 /// ```
@@ -144,7 +145,7 @@ class _ViewFeaturedState extends State<ViewFeatured> {
   @override
   Widget build(BuildContext context) {
     StateUser stateUser = Provider.of<StateUser>(context);
-    stateUser.ping("view-featured");
+    stateUser.ping('view-featured');
     Object arguments = widget.arguments ?? {};
     onClick() {
       if (widget.actionUrl != null) {
@@ -193,7 +194,7 @@ class _ViewFeaturedState extends State<ViewFeatured> {
           duration: Duration(milliseconds: _animationDuration),
           child: Center(
             child: FloatingActionButton.extended(
-              heroTag: "featured-view-action",
+              heroTag: 'featured-view-action',
               icon: Icon(Icons.navigate_next),
               label: Text(widget.actionLabel!.toUpperCase()),
               onPressed: widget.actionLabel != null ? () => onClick() : null,

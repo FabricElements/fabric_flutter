@@ -29,7 +29,7 @@ class _RoleSelectorState extends State<RoleSelector> {
   @override
   Widget build(BuildContext context) {
     AppLocalizations locales = AppLocalizations.of(context)!;
-    List<String> _roles = widget.roles ?? ["user", "admin"];
+    List<String> _roles = widget.roles ?? ['user', 'admin'];
     // if (roleSelect == null) roleSelect = _roles.first;
     List<DropdownMenuItem> rolesDrop = [];
     List<Widget> rolesList = [];
@@ -39,11 +39,11 @@ class _RoleSelectorState extends State<RoleSelector> {
       String _role = _roles[i];
       rolesDrop.add(DropdownMenuItem(
         value: _role,
-        child: Text(locales.get("label--$_role")),
+        child: Text(locales.get('label--$_role')),
       ));
       rolesList.add(RadioListTile(
         contentPadding: EdgeInsets.only(left: 8),
-        title: Text(locales.get("label--$_role")),
+        title: Text(locales.get('label--$_role')),
         value: _role,
         groupValue: roleSelect,
         onChanged: (String? value) {
@@ -55,7 +55,7 @@ class _RoleSelectorState extends State<RoleSelector> {
     }
 
     Widget dropdownWidget = DropdownButton(
-      hint: Text(locales.get("label--choose-role")),
+      hint: Text(locales.get('label--choose-role')),
       value: roleSelect,
       isExpanded: true,
       items: rolesDrop,

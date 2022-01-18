@@ -48,7 +48,7 @@ TableColumnData _$TableColumnDataFromJson(Map<String, dynamic> json) {
     disallowNullValues: const ['value', 'label'],
   );
   return TableColumnData(
-    value: json['value'] as String? ?? "",
+    value: json['value'] as String? ?? '',
     type: $enumDecodeNullable(_$TableDataTypeEnumMap, json['type']) ??
         TableDataType.string,
     width: (json['width'] as num?)?.toDouble(),

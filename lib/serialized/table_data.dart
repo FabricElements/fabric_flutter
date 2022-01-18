@@ -30,19 +30,19 @@ class TableData {
 }
 
 enum TableDataType {
-  @JsonValue("string")
+  @JsonValue('string')
   string,
-  @JsonValue("number")
+  @JsonValue('number')
   number,
-  @JsonValue("decimal")
+  @JsonValue('decimal')
   decimal,
-  @JsonValue("date")
+  @JsonValue('date')
   date,
-  @JsonValue("currency")
+  @JsonValue('currency')
   currency,
-  @JsonValue("path")
+  @JsonValue('path')
   path,
-  @JsonValue("link")
+  @JsonValue('link')
   link,
 }
 
@@ -57,7 +57,7 @@ class TableColumnData {
   double? width;
 
   TableColumnData({
-    this.value = "",
+    this.value = '',
     this.type = TableDataType.string,
     this.width,
     this.label,

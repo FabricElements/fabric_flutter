@@ -35,7 +35,7 @@ class StateAPI extends ChangeNotifier {
   String? authParameters;
 
   /// [authScheme]
-  String authScheme = "Bearer";
+  String authScheme = 'Bearer';
 
   /// Callback on successful load
   set callback(VoidCallback _function) => _callback = _function;
@@ -67,7 +67,7 @@ class StateAPI extends ChangeNotifier {
 
   /// Define the HTTPS [endpoint] (https://example.com/demo)
   /// when the timestamp is updated it will result in a new call to the API [endpoint].
-  /// Don't use a "/" at the beginning of the path
+  /// Don't use a '/' at the beginning of the path
   set endpoint(String? value) {
     if (value == baseEndpoint && baseData != null) return;
     if (value != baseEndpoint) clear();
@@ -75,7 +75,7 @@ class StateAPI extends ChangeNotifier {
     baseEndpoint = value;
     if (_errorCount > 1) {
       if (kDebugMode) {
-        print("$_errorCount errors calls to endpoint: $baseEndpoint");
+        print('$_errorCount errors calls to endpoint: $baseEndpoint');
       }
       return;
     }
@@ -89,14 +89,14 @@ class StateAPI extends ChangeNotifier {
   void get({bool ignoreDuplicatedCalls = false}) async {
     if (_errorCount > 1) {
       if (kDebugMode) {
-        print("$_errorCount errors calls to endpoint: $baseEndpoint");
+        print('$_errorCount errors calls to endpoint: $baseEndpoint');
       }
       return;
     }
     _error = null;
     if (baseEndpoint == null) {
       baseData = null;
-      _error = "endpoint can't be null";
+      _error = 'endpoint can\'t be null';
       _errorCount++;
       notifyListeners();
       return;
@@ -104,11 +104,11 @@ class StateAPI extends ChangeNotifier {
     if (ignoreDuplicatedCalls && _lastEndpointCalled == baseEndpoint) return;
     _initialized = true;
     _lastEndpointCalled = baseEndpoint;
-    if (kDebugMode) print("Calling endpoint: $baseEndpoint");
+    if (kDebugMode) print('Calling endpoint: $baseEndpoint');
     Uri url = Uri.parse(baseEndpoint!);
     Map<String, String> headers = {};
     if (authParameters != null) {
-      headers.addAll({"Authorization": "$authScheme $authParameters"});
+      headers.addAll({'Authorization': '$authScheme $authParameters'});
     }
     final Response response = await http.get(url, headers: headers);
     if (response.statusCode == 200) {
@@ -124,12 +124,12 @@ class StateAPI extends ChangeNotifier {
           ? response.reasonPhrase
           : null;
       if (_error == null) {
-        _error = "error--${response.statusCode}";
+        _error = 'error--${response.statusCode}';
       }
     }
     if (_error != null) {
       baseData = null;
-      print("------------ ERROR API CALL -------------");
+      print('------------ ERROR API CALL -------------');
       print(_error);
       _errorCount++;
     }

@@ -7,7 +7,7 @@ class UserRoleContent extends StatefulWidget {
   UserRoleContent({
     Key? key,
     required this.compareData,
-    this.roles = const ["admin"],
+    this.roles = const ['admin'],
     this.level,
     required this.child,
     this.placeholder,

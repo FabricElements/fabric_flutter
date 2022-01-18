@@ -12,7 +12,7 @@ class EnumData {
 
   /// Get Value from enum
   String stringFromEnum(dynamic base, {bool debug = false}) {
-    String _label = debug ? "unknown" : "";
+    String _label = debug ? 'unknown' : '';
     if (base == null) return _label;
     try {
       _label = describeEnum(base);
@@ -22,10 +22,10 @@ class EnumData {
 
   /// Get locales from enum
   String localesFromEnum(dynamic base) {
-    if (base == null) return "";
+    if (base == null) return '';
     String text = stringFromEnum(base);
     return locales != null
-        ? locales!.get("label--$text")
-        : "LOCALES NOT INCLUDED";
+        ? locales!.get('label--$text')
+        : 'LOCALES NOT INCLUDED';
   }
 }

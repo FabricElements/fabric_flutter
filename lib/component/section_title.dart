@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 /// [description] Description for the section, displayed in the widget.
 /// [headline] Headline for the section, emphasis text.
 /// SectionTitle(
-///   headline: "This is the headline, emphasised text.",
-///   description: "This is where the description will go.",
+///   headline: 'This is the headline, emphasised text.',
+///   description: 'This is where the description will go.',
 /// );
 class SectionTitle extends StatefulWidget {
   SectionTitle({
@@ -29,7 +29,7 @@ class _SectionTitleState extends State<SectionTitle> {
     final theme = Theme.of(context);
     final TextTheme textTheme = theme.textTheme;
     RegExp regExp = new RegExp(
-      r"{(?:.*?)}",
+      r'{(?:.*?)}',
       multiLine: true,
     );
     List<TextSpan> importantData(String textConvert, String type) {
@@ -40,10 +40,9 @@ class _SectionTitleState extends State<SectionTitle> {
       TextStyle? sizeBase = textTheme.headline6;
       TextStyle? titleDefault = sizeBase;
       TextStyle? titleColor = sizeBase;
-      if (type == "title") {
+      if (type == 'title') {
         sizeBase = textTheme.headline3;
         titleDefault = sizeBase!.copyWith(
-          // color: Colors.white,
           fontWeight: FontWeight.w600,
         );
         titleColor = sizeBase.copyWith(
@@ -67,9 +66,9 @@ class _SectionTitleState extends State<SectionTitle> {
             text.add(
               TextSpan(
                 text: (textFinal.substring(initialHelper!, match.start))
-                    .replaceAll("_", " ")
-                    .replaceAll("{", "")
-                    .replaceAll("}", ""),
+                    .replaceAll('_', ' ')
+                    .replaceAll('{', '')
+                    .replaceAll('}', ''),
                 style: titleDefault,
               ),
             );
@@ -78,9 +77,9 @@ class _SectionTitleState extends State<SectionTitle> {
           text.add(
             TextSpan(
               text: (textFinal.substring(match.start, match.end))
-                  .replaceAll("_", " ")
-                  .replaceAll("{", "")
-                  .replaceAll("}", ""),
+                  .replaceAll('_', ' ')
+                  .replaceAll('{', '')
+                  .replaceAll('}', ''),
               style: titleColor,
             ),
           );
@@ -89,9 +88,9 @@ class _SectionTitleState extends State<SectionTitle> {
         text.add(
           TextSpan(
             text: (textFinal.substring(initialHelper!, textFinal.length))
-                .replaceAll("_", " ")
-                .replaceAll("{", " ")
-                .replaceAll("}", " "),
+                .replaceAll('_', ' ')
+                .replaceAll('{', ' ')
+                .replaceAll('}', ' '),
             style: titleDefault,
           ),
         );
@@ -109,7 +108,7 @@ class _SectionTitleState extends State<SectionTitle> {
         padding: EdgeInsets.only(bottom: 16),
         child: Text.rich(
           TextSpan(
-            children: importantData(widget.headline, "title"),
+            children: importantData(widget.headline, 'title'),
           ),
         ),
       ),
@@ -119,7 +118,7 @@ class _SectionTitleState extends State<SectionTitle> {
         padding: EdgeInsets.only(bottom: 4),
         child: Text.rich(
           TextSpan(
-            children: importantData(widget.description!, "subtitle"),
+            children: importantData(widget.description!, 'subtitle'),
           ),
         ),
       ));

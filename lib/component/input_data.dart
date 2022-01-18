@@ -80,7 +80,7 @@ class _InputDataState extends State<InputData> {
       case InputDataType.text:
       case InputDataType.radio:
       case InputDataType.phone:
-        String _tempValue = newValue != null ? newValue.toString() : "";
+        String _tempValue = newValue != null ? newValue.toString() : '';
         if (_tempValue != value) {
           value = _tempValue;
           textController.text = value;
@@ -128,7 +128,7 @@ class _InputDataState extends State<InputData> {
     ThemeData theme = Theme.of(context);
     bool _disabled = widget.disabled;
     String _defaultText =
-        widget.textDefault ?? locales.get("label--choose-option");
+        widget.textDefault ?? locales.get('label--choose-option');
     String textSelected = _defaultText;
     String? hintTextDefault;
     int? maxLength = widget.maxLength;
@@ -147,7 +147,7 @@ class _InputDataState extends State<InputData> {
           maxWidth = widget.expanded ? double.maxFinite : maxWidth;
         }
         Widget _widget = Text(
-          "Type '${widget.type}' not implemented",
+          'Type "${widget.type}" not implemented',
           style: TextStyle(color: Colors.orange),
         );
         TextInputType keyboardType = TextInputType.text;
@@ -157,14 +157,14 @@ class _InputDataState extends State<InputData> {
 
             /// https://en.wikipedia.org/wiki/Telephone_numbering_plan
             maxLength = 16;
-            hintTextDefault = "+1 (222) 333 - 4444";
+            hintTextDefault = '+1 (222) 333 - 4444';
             keyboardType = const TextInputType.numberWithOptions(
                 decimal: true, signed: true);
             inputFormatters.addAll([
               FilteringTextInputFormatter.deny(RegExp(r'[\s()-]'),
-                  replacementString: ""),
+                  replacementString: ''),
               FilteringTextInputFormatter.allow(RegExp(r'^\+\d{0,15}'),
-                  replacementString: ""),
+                  replacementString: ''),
               FilteringTextInputFormatter.singleLineFormatter,
             ]);
             break;
@@ -191,9 +191,9 @@ class _InputDataState extends State<InputData> {
               valueLocal != null && valueLocal.isNotEmpty ? valueLocal : null;
           switch (widget.type) {
             case InputDataType.double:
-              return double.parse(_value ?? "0");
+              return double.parse(_value ?? '0');
             case InputDataType.int:
-              return int.parse(_value ?? "0");
+              return int.parse(_value ?? '0');
             default:
               return _value;
           }
@@ -237,15 +237,15 @@ class _InputDataState extends State<InputData> {
             break;
           case InputDataType.date:
             DateTime? _date = value as DateTime?;
-            DateFormat formatDate = new DateFormat.yMd("en_US");
+            DateFormat formatDate = new DateFormat.yMd('en_US');
             final _baseDateFormat = Utils.dateTimeOffset(
               dateTime: _date,
               utcOffset: widget.utcOffset,
             );
             String label = _date != null
                 ? formatDate.format(_baseDateFormat!)
-                : locales.get("label--choose-label", {
-                    "label": locales.get("label--date"),
+                : locales.get('label--choose-label', {
+                    'label': locales.get('label--date'),
                   });
             _widget = Padding(
               padding: const EdgeInsets.only(top: 16),
@@ -277,8 +277,8 @@ class _InputDataState extends State<InputData> {
             DateFormat formatTime = new DateFormat.jm();
             String label = _time != null
                 ? formatTime.format(DateTime(1, 1, 1, _time.hour, _time.minute))
-                : locales.get("label--choose-label", {
-                    "label": locales.get("label--time"),
+                : locales.get('label--choose-label', {
+                    'label': locales.get('label--time'),
                   });
             _widget = Padding(
               padding: const EdgeInsets.only(top: 16),
@@ -302,10 +302,7 @@ class _InputDataState extends State<InputData> {
           case InputDataType.dropdown:
             List<ButtonOptions> _dropdown = [];
             List<PopupMenuEntry<String>> buttons = [
-              PopupMenuItem<String>(
-                value: "",
-                child: Text(_defaultText),
-              ),
+              PopupMenuItem<String>(value: '', child: Text(_defaultText)),
             ];
             if (widget.type == InputDataType.dropdown) {
               _dropdown = widget.options;
@@ -347,7 +344,7 @@ class _InputDataState extends State<InputData> {
               initialValue: value?.toString(),
               onSelected: (_value) {
                 if (widget.onChanged != null)
-                  widget.onChanged!(_value == "" ? null : _value);
+                  widget.onChanged!(_value == '' ? null : _value);
               },
               child: ListTile(
                 title: Text(textSelected),
@@ -374,13 +371,13 @@ class _InputDataState extends State<InputData> {
                   groupValue: value?.toString(),
                   onChanged: (String? value) {
                     if (widget.onChanged != null)
-                      widget.onChanged!(value == "" ? null : value);
+                      widget.onChanged!(value == '' ? null : value);
                   },
                 ),
                 onTap: () {
                   if (widget.onChanged != null)
                     widget.onChanged!(
-                      e.value?.toString() == "" ? null : e.value?.toString(),
+                      e.value?.toString() == '' ? null : e.value?.toString(),
                     );
                 },
               );

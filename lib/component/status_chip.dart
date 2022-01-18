@@ -6,8 +6,8 @@ import '../helper/app_localizations_delegate.dart';
 ///
 /// [status] This is the current status of said campaign.
 /// StatusChip(
-///   status: "active",
-///   locale: "Campaign Active",
+///   status: 'active',
+///   locale: 'Active',
 /// );
 class StatusChip extends StatelessWidget {
   StatusChip({
@@ -20,29 +20,29 @@ class StatusChip extends StatelessWidget {
   Widget build(BuildContext context) {
     AppLocalizations locales = AppLocalizations.of(context)!;
     Color statusColor = Colors.grey.shade800;
-    String baseStatus = status ?? "unknown";
-    baseStatus = locales.get("label--$status");
+    String baseStatus = status ?? 'unknown';
+    baseStatus = locales.get('label--$status');
 
     switch (status) {
-      case "draft":
+      case 'draft':
         statusColor = Colors.indigo.shade500;
         break;
-      case "review":
+      case 'review':
         statusColor = Colors.amber.shade900;
         break;
-      case "approved":
+      case 'approved':
         statusColor = Colors.deepPurple.shade500;
         break;
-      case "rejected":
+      case 'rejected':
         statusColor = Colors.red.shade500;
         break;
-      case "inactive":
+      case 'inactive':
         statusColor = Colors.deepOrange.shade500;
         break;
-      case "active":
+      case 'active':
         statusColor = Colors.green.shade600;
         break;
-      case "archived":
+      case 'archived':
         statusColor = Colors.grey.shade700;
     }
     return Chip(

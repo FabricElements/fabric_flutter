@@ -25,7 +25,7 @@ enum AlertType {
 ///   context: context,
 ///   mounted: mounted,
 /// ).show(
-///   text: "Something went wrong...",
+///   text: 'Something went wrong...',
 ///   type: AlertTypes.critical,
 /// );
 class AlertHelper {
@@ -41,13 +41,13 @@ class AlertHelper {
   AlertType typeFromString(String? type) {
     AlertType _type = AlertType.basic;
     switch (type) {
-      case "critical":
+      case 'critical':
         _type = AlertType.critical;
         break;
-      case "success":
+      case 'success':
         _type = AlertType.success;
         break;
-      case "warning":
+      case 'warning':
         _type = AlertType.warning;
         break;
     }
@@ -88,8 +88,8 @@ class AlertHelper {
     IconData actionIcon = Icons.navigate_next,
 
     /// [actionLabel] defines the label used for the action button
-    /// Set a localized label or "label--continue" will be used by default
-    String actionLabel = "label--continue",
+    /// Set a localized label or 'label--continue' will be used by default
+    String actionLabel = 'label--continue',
 
     /// [dismissCallback] defines the callback used for the dismiss button
     VoidCallback? dismissCallback,
@@ -99,11 +99,11 @@ class AlertHelper {
     IconData dismissIcon = Icons.close,
 
     /// [dismissLabel] defines the label used for the dismiss button
-    /// Set a localized label or "label--dismiss" will be used by default
-    String dismissLabel = "label--dismiss",
+    /// Set a localized label or 'label--dismiss' will be used by default
+    String dismissLabel = 'label--dismiss',
   }) async {
     if (!mounted) {
-      print("Called Alert when unmounted");
+      print('Called Alert when unmounted');
       return;
     }
 
@@ -117,7 +117,7 @@ class AlertHelper {
     ThemeData theme = Theme.of(context);
     TextTheme textTheme = theme.textTheme;
     RedirectApp redirectApp =
-        RedirectApp(context: context, protected: ["/protected"]);
+        RedirectApp(context: context, protected: ['/protected']);
     // await Future.delayed(Duration(microseconds: 200));
     // BuildContext parentContext = globalContext ?? context;
     ScaffoldMessenger.of(context).clearSnackBars();
@@ -127,9 +127,9 @@ class AlertHelper {
       _type = typeFromString(typeString);
     }
     if (kDebugMode) {
-      print("////////// Alert: $_type ///////////");
-      print(title ?? body ?? "UNKNOWN");
-      print("////////////////////////////");
+      print('////////// Alert: $_type ///////////');
+      print(title ?? body ?? 'UNKNOWN');
+      print('////////////////////////////');
     }
     int durationBaseSeconds = 10;
     int _duration = duration ?? durationBaseSeconds;
@@ -149,8 +149,6 @@ class AlertHelper {
       default:
     }
     try {
-      // image =
-      //     "https://images.unsplash.com/photo-1504297050568-910d24c426d3?ixid=MnwxMjA3fDF8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=668&q=80";
       List<Widget> _onColumn = [];
       List<Widget> _mainItems = [];
 
@@ -235,7 +233,6 @@ class AlertHelper {
           ),
         ));
       }
-
       _mainItems.add(Column(
         children: _onColumn,
         mainAxisSize: MainAxisSize.min,
@@ -254,9 +251,9 @@ class AlertHelper {
         ),
       );
     } catch (error) {
-      print("/////////////////////");
+      print('/////////////////////');
       print(error);
-      print("/////////////////////");
+      print('/////////////////////');
     }
   }
 }

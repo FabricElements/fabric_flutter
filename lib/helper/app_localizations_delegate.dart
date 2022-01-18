@@ -19,10 +19,10 @@ class AppLocalizations {
 
   Future<bool> load() async {
     try {
-      String data = await rootBundle.loadString("assets/locales.json");
+      String data = await rootBundle.loadString('assets/locales.json');
       keys = json.decode(data);
     } catch (e) {
-      print("Unable to load locales file from path assets/locales.json");
+      print('Unable to load locales file from path assets/locales.json');
     }
 
     /// Add missing locales
@@ -31,20 +31,20 @@ class AppLocalizations {
   }
 
   String _mergeLocales(keyPath) {
-    RegExp regExp = new RegExp(r"([a-zA-Z0-9_-]+)");
-    String finalResponse = "";
+    RegExp regExp = new RegExp(r'([a-zA-Z0-9_-]+)');
+    String finalResponse = '';
     try {
       assert(regExp.hasMatch(keyPath));
       if (keys.containsKey(keyPath)) {
-        if (keys[keyPath].containsKey("en")) {
-          finalResponse = keys[keyPath]["en"];
+        if (keys[keyPath].containsKey('en')) {
+          finalResponse = keys[keyPath]['en'];
         }
         if (keys[keyPath].containsKey(locale.languageCode)) {
           finalResponse = keys[keyPath][locale.languageCode];
         }
       }
     } catch (error) {}
-    if (finalResponse == "") {
+    if (finalResponse == '') {
       finalResponse = keyPath;
     }
     return finalResponse;
@@ -52,14 +52,8 @@ class AppLocalizations {
 
   String _replaceOptions(String text, Map<String, String> options) {
     String result = text;
-    RegExp regExp = new RegExp(
-      r"{(?:.*?)}",
-      multiLine: true,
-    );
-    RegExp _regexBrackets = new RegExp(
-      r"{}",
-      multiLine: true,
-    );
+    RegExp regExp = new RegExp(r'{(?:.*?)}', multiLine: true);
+    RegExp _regexBrackets = new RegExp(r'{}', multiLine: true);
 
     Iterable matches = regExp.allMatches(text);
     if (matches.length > 0) {
@@ -67,10 +61,7 @@ class AppLocalizations {
         try {
           String tag = text.substring(match.start, match.end);
           String cleanTag = tag.substring(1, tag.length - 1);
-          RegExp _regExp = new RegExp(
-            r"" + tag + "",
-            multiLine: true,
-          );
+          RegExp _regExp = new RegExp(r'' + tag + '', multiLine: true);
           String? replaceWith = options[cleanTag];
           if (replaceWith != null) {
             result = result.replaceAll(_regExp, replaceWith);
@@ -89,7 +80,7 @@ class AppLocalizations {
   String get(String key, [Map<String, String>? options]) {
     String _key = key;
     // Fix dash
-    _key = _key.replaceAll("_", "-");
+    _key = _key.replaceAll('_', '-');
     // Handle camelCase
     RegExp exp = RegExp(r'(?<=[a-z])[A-Z]');
     String endKey = _key
@@ -107,7 +98,6 @@ class AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   const AppLocalizationsDelegate();
 
   @override
-  // bool isSupported(Locale locale) => ['en', 'es'].contains(locale.languageCode);
   bool isSupported(Locale locale) => true; // every language is supported
 
   @override

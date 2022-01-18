@@ -158,7 +158,7 @@ class _ExpansionTableState extends State<ExpansionTable> {
           final _columnData = widget.data.header![index];
           Widget _baseCell = Container();
           if (cellValue == null) {
-            _baseCell = Text("-");
+            _baseCell = Text('-');
           } else {
             switch (_columnData.type) {
               case TableDataType.string:
@@ -179,14 +179,14 @@ class _ExpansionTableState extends State<ExpansionTable> {
                     onPressed: () {
                       Navigator.of(context).pushNamed(cellValue);
                     },
-                    child: Text("open"));
+                    child: Text('open'));
                 break;
               case TableDataType.link:
                 _baseCell = TextButton(
                     onPressed: () async {
                       await launch(cellValue);
                     },
-                    child: Text("open"));
+                    child: Text('open'));
                 break;
               default:
                 _baseCell = Text(cellValue.toString());
@@ -292,11 +292,6 @@ class _ExpansionTableState extends State<ExpansionTable> {
           textStyle: widget.dataTextStyle ?? theme.dataTableTheme.dataTextStyle,
           color: rowColor,
           child: Container(
-            // decoration: BoxDecoration(
-            //   border: border,
-            // ),
-            // padding: EdgeInsets.symmetric(horizontal: effectiveHorizontalMargin),
-            // alignment: Alignment.center,
             constraints: BoxConstraints(
               minHeight: widget.dataRowHeight ??
                   theme.dataTableTheme.dataRowHeight ??
@@ -310,11 +305,6 @@ class _ExpansionTableState extends State<ExpansionTable> {
                   children: _cellsBase,
                 )
               ],
-              // dataRowColor: widget.dataRowColor,
-              // dataTextStyle:
-              //     _dataTextStyle?.copyWith(overflow: TextOverflow.ellipsis),
-              // dividerThickness: widget.dividerThickness,
-              // horizontalMargin: widget.horizontalMargin,
             ),
           ),
         );
@@ -330,7 +320,6 @@ class _ExpansionTableState extends State<ExpansionTable> {
           content.add(SizedBox(height: 32));
         }
         return Container(
-          // padding: EdgeInsets.symmetric(horizontal: effectiveHorizontalMargin),
           decoration: BoxDecoration(
             border: border,
           ),

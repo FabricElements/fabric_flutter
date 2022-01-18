@@ -10,12 +10,12 @@ import 'role_selector.dart';
 /// Updates User Role
 ///
 /// [user] Firebase User object with user's information
-/// [data] Object with necessary information such as "organization"
+/// [data] Object with necessary information such as 'organization'
 /// ```dart
 /// UserRoleUpdate(
-///   "user": user-data-object,
-///   "info": {
-///     "organization": "organization-id",
+///   'user': user-data-object,
+///   'info': {
+///     'organization': 'organization-id',
 ///   }
 /// );
 /// ```
@@ -80,30 +80,31 @@ class _UserRoleUpdateState extends State<UserRoleUpdate> {
     /// [contact] The e-mail or phone number.
     _sendInvitation() async {
       if (!canInvite) {
-        alert.show(title: "incomplete data", type: AlertType.critical);
+        alert.show(title: 'incomplete data', type: AlertType.critical);
         return;
       }
       sending = true;
       if (mounted) setState(() {});
-      alert.show(title: locales.get("notification--please-wait"), duration: 5);
+      alert.show(title: locales.get('notification--please-wait'), duration: 5);
       Map<String, dynamic> data = {
-        "role": roleSelect,
-        "uid": widget.uid,
+        'role': roleSelect,
+        'uid': widget.uid,
       };
       if (widget.data != null) {
         data.addAll(widget.data!);
       }
       try {
         final HttpsCallable callable =
-            FirebaseFunctions.instance.httpsCallable("user-actions-updateRole");
+            FirebaseFunctions.instance.httpsCallable('user-actions-updateRole');
         await callable.call(data);
         alert.show(
-            title: locales.get("notification--user-role-updated"),
+            title: locales.get('notification--user-role-updated'),
             type: AlertType.success);
         Navigator.of(context).pop();
       } on FirebaseFunctionsException catch (error) {
         alert.show(
-            title: error.message ?? error.details["message"], type: AlertType.critical);
+            title: error.message ?? error.details['message'],
+            type: AlertType.critical);
       } catch (error) {
         alert.show(title: error.toString(), type: AlertType.critical);
       }
@@ -115,8 +116,8 @@ class _UserRoleUpdateState extends State<UserRoleUpdate> {
       appBar: AppBar(
         primary: false,
         automaticallyImplyLeading: false,
-        title: Text(locales
-            .get("user-role-update--title", {"name": widget.name})),
+        title:
+            Text(locales.get('user-role-update--title', {'name': widget.name})),
         leading: Icon(Icons.person),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
@@ -124,7 +125,7 @@ class _UserRoleUpdateState extends State<UserRoleUpdate> {
           ? FloatingActionButton.extended(
               icon: Icon(Icons.save),
               label: Text(
-                locales.get("label--update"),
+                locales.get('label--update'),
                 style: TextStyle(color: Colors.white),
               ),
               onPressed: _sendInvitation,

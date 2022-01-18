@@ -19,7 +19,7 @@ class StateUser extends StateDocument {
   StateUser();
 
   @override
-  String? collection = "user";
+  String? collection = 'user';
 
   @override
   void clearAfter() {
@@ -49,11 +49,11 @@ class StateUser extends StateDocument {
     // _getToken();
   }
 
-  /// [admin] Returns "true" if the authenticated user is an admin
-  bool get admin => role == "admin";
+  /// [admin] Returns true if the authenticated user is an admin
+  bool get admin => role == 'admin';
 
   /// [role] Returns user role
-  String get role => claims["role"] ?? serialized.role;
+  String get role => claims['role'] ?? serialized.role;
 
   /// [object] Returns a [User] object
   User? get object => _userObject;
@@ -63,11 +63,11 @@ class StateUser extends StateDocument {
   /// Returns serialized data [UserData]
   UserData get serialized {
     UserData _userData = UserData.fromJson(data);
-    _usersMap.addAll({"id": _userData});
+    _usersMap.addAll({'id': _userData});
     return _userData;
   }
 
-  /// [signedIn] Returns "true" when the user is authenticated
+  /// [signedIn] Returns true when the user is authenticated
   bool get signedIn => _userObject != null && _userObject?.uid == id;
 
   /// [roleFromData] Return an user role using [uid]
@@ -79,17 +79,17 @@ class StateUser extends StateDocument {
     if (id != null && uid != null && (id == uid) && admin) {
       return role;
     }
-    String _role = "user";
+    String _role = 'user';
     if (uid == null || compareData == null || level == null) {
       return _role;
     }
 
     /// Get role and access level
-    Map<dynamic, dynamic> _roles = compareData["roles"] ?? {};
-    List<dynamic> _users = compareData["users"] ?? [];
+    Map<dynamic, dynamic> _roles = compareData['roles'] ?? {};
+    List<dynamic> _users = compareData['users'] ?? [];
     if (_roles.containsKey(uid) && _users.contains(uid)) {
       String _baseRole = _roles[uid];
-      _role = "$level-$_baseRole";
+      _role = '$level-$_baseRole';
     }
     return _role;
   }
@@ -103,12 +103,12 @@ class StateUser extends StateDocument {
     _pingLast = DateTime.now(); // Define before saving because it's async
     try {
       await FirebaseFirestore.instance
-          .collection("user")
+          .collection('user')
           .doc(id)
-          .set({"ping": FieldValue.serverTimestamp()}, SetOptions(merge: true));
+          .set({'ping': FieldValue.serverTimestamp()}, SetOptions(merge: true));
       _pingReference = reference;
     } catch (error) {
-      print("user ping error: ${error.toString()}");
+      print('user ping error: ${error.toString()}');
     }
   }
 
@@ -130,17 +130,17 @@ class StateUser extends StateDocument {
       return _usersMap[uid]!;
     }
     _usersMap.addAll({
-      "$uid": UserData.fromJson({"id": uid, "name": "Unknown"})
+      '$uid': UserData.fromJson({'id': uid, 'name': 'Unknown'})
     });
     if (_lastUserGet != uid) {
       DocumentReference<Map<String, dynamic>> _documentReferenceUser =
-      FirebaseFirestore.instance.collection("user").doc(uid);
+          FirebaseFirestore.instance.collection('user').doc(uid);
       _documentReferenceUser.get().then((snapshot) {
         if (snapshot.exists) {
           Map<String, dynamic> _itemData =
-          snapshot.data() as Map<String, dynamic>;
-          _itemData.addAll({"id": uid});
-          _usersMap.addAll({"$uid": UserData.fromJson(_itemData)});
+              snapshot.data() as Map<String, dynamic>;
+          _itemData.addAll({'id': uid});
+          _usersMap.addAll({'$uid': UserData.fromJson(_itemData)});
           notifyListeners();
         }
       });
@@ -159,7 +159,7 @@ class StateUser extends StateDocument {
     required Map<String, dynamic>? compareData,
     BuildContext? context,
     String? level,
-    List<String> roles = const ["admin"],
+    List<String> roles = const ['admin'],
   }) {
     String _role = roleFromData(
       compareData: compareData,

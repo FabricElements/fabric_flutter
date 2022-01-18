@@ -36,10 +36,10 @@ class FlagChip extends StatelessWidget {
     final TextTheme textTheme = theme.textTheme;
 
     List<Widget> items = [];
-    if (language == "total") {
+    if (language == 'total') {
       items.add(Container(width: 16));
     }
-    if (language != "total") {
+    if (language != 'total') {
       items.add(
         Container(
           height: 30,
@@ -47,7 +47,7 @@ class FlagChip extends StatelessWidget {
           child: Padding(
             padding: EdgeInsets.only(left: 8),
             child: Text(
-              "${formatLanguage.getEmoji(language)}",
+              '${formatLanguage.getEmoji(language)}',
               style: textTheme.bodyText2!.copyWith(
                 fontSize: 20,
                 color: colorText,
@@ -81,7 +81,7 @@ class FlagChip extends StatelessWidget {
           child: Padding(
             padding: EdgeInsets.all(8),
             child: Text(
-              "${formatDecimal.format(total)}",
+              '${formatDecimal.format(total)}',
               style: textTheme.bodyText2!.copyWith(color: colorText),
             ),
           ),

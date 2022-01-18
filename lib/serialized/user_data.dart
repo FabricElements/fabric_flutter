@@ -32,8 +32,9 @@ class UserDataOnboarding {
 class UserData {
   /// User [avatar] URL
   @JsonKey(
-      defaultValue: "https://images.unsplash.com/photo-1547679904-ac76451d1594",
-      includeIfNull: true)
+    defaultValue: 'https://images.unsplash.com/photo-1547679904-ac76451d1594',
+    includeIfNull: true,
+  )
   final String avatar;
 
   /// User Creation Time: [created]
@@ -46,7 +47,7 @@ class UserData {
   final DateTime created;
 
   /// [email] used for authentication
-  @JsonKey(defaultValue: "", includeIfNull: true)
+  @JsonKey(defaultValue: '', includeIfNull: true)
   final String email;
 
   /// Firebase Cloud Messaging [fcm] token https://firebase.google.com/docs/cloud-messaging
@@ -58,23 +59,23 @@ class UserData {
   final String? id;
 
   /// User [name] = [nameFirst] + [nameLast]
-  @JsonKey(defaultValue: "", includeIfNull: true)
+  @JsonKey(defaultValue: '', includeIfNull: true)
   final String name;
 
   /// [nameFirst] First Name
-  @JsonKey(defaultValue: "", includeIfNull: true)
+  @JsonKey(defaultValue: '', includeIfNull: true)
   final String nameFirst;
 
   /// [nameInitials] = [nameFirst] + [nameLast] first characters
-  @JsonKey(defaultValue: "", includeIfNull: true)
+  @JsonKey(defaultValue: '', includeIfNull: true)
   final String nameInitials;
 
   /// [nameLast] Last Name
-  @JsonKey(defaultValue: "", includeIfNull: true)
+  @JsonKey(defaultValue: '', includeIfNull: true)
   final String nameLast;
 
   /// [language]
-  @JsonKey(defaultValue: "en", includeIfNull: true)
+  @JsonKey(defaultValue: 'en', includeIfNull: true)
   final String language;
 
   /// User [onboarding] journey
@@ -91,11 +92,11 @@ class UserData {
   final DateTime? ping;
 
   /// [phone] used for authentication
-  @JsonKey(defaultValue: "", includeIfNull: true)
+  @JsonKey(defaultValue: '', includeIfNull: true)
   final String phone;
 
   /// User [role]
-  @JsonKey(defaultValue: "user", includeIfNull: true)
+  @JsonKey(defaultValue: 'user', includeIfNull: true)
   final String role;
 
   /// User [presence] (active, inactive, away)

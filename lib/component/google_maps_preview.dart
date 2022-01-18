@@ -74,7 +74,7 @@ class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
       return AspectRatio(
         aspectRatio: widget.aspectRatio,
         child: SmartImage(
-          url: "https://images.unsplash.com/photo-1476973422084-e0fa66ff9456",
+          url: 'https://images.unsplash.com/photo-1476973422084-e0fa66ff9456',
         ),
       );
     }
@@ -85,7 +85,7 @@ class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
       zoom: 8,
     );
     final Marker marker =
-        Marker(markerId: MarkerId("demo"), position: location);
+        Marker(markerId: MarkerId('map-preview'), position: location);
     return AspectRatio(
       aspectRatio: widget.aspectRatio,
       child: GoogleMap(

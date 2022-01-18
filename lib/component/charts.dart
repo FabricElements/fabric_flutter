@@ -8,8 +8,8 @@ import 'package:intl/intl.dart';
 /// [series] This is the series of data used for rendering the
 /// [type] What type of chart should be rendered, for example a simple bar chart or pie chart.
 /// Charts(
-///   type: "pie-chart",
-///   series: createSampleData(dataTotals, "pie-chart"),
+///   type: 'pie-chart',
+///   series: createSampleData(dataTotals, 'pie-chart'),
 ///   animate: true,
 /// )
 class Charts extends StatefulWidget {
@@ -33,11 +33,11 @@ class _ChartsState extends State<Charts> {
   @override
   Widget build(BuildContext context) {
     if (!mounted) {
-      return Text("...");
+      return Text('...');
     }
     var chart;
     switch (widget.type) {
-      case "bar-simple":
+      case 'bar-simple':
         chart = BarChart(
           widget.series, animate: widget.animate!,
           animationDuration: Duration(milliseconds: 1000),
@@ -59,7 +59,7 @@ class _ChartsState extends State<Charts> {
           ),
         );
         break;
-      case "group-bar-simple":
+      case 'group-bar-simple':
         chart = BarChart(
           widget.series, animate: widget.animate!,
           animationDuration: Duration(milliseconds: 1000),
@@ -70,7 +70,7 @@ class _ChartsState extends State<Charts> {
               horizontalFirst: true,
               cellPadding: EdgeInsets.only(right: 4.0, bottom: 16.0),
               showMeasures: true,
-              // measureFormatter: (num value) => value is num ? numberFormatDefault.format(value) : "" as String,
+              // measureFormatter: (num value) => value is num ? numberFormatDefault.format(value) : '' as String,
               // measureFormatter: (num value) {
               //   String? response;
               //   try {
@@ -105,7 +105,7 @@ class _ChartsState extends State<Charts> {
                       LineStyleSpec(color: MaterialPalette.white.darker))),
         );
         break;
-      case "horizontal-bar":
+      case 'horizontal-bar':
         chart = BarChart(
           widget.series, animate: widget.animate!,
           animationDuration: Duration(milliseconds: 1000),
@@ -133,7 +133,7 @@ class _ChartsState extends State<Charts> {
           ],
         );
         break;
-      case "pie-chart":
+      case 'pie-chart':
         chart = PieChart(
           widget.series,
           animate: widget.animate!,

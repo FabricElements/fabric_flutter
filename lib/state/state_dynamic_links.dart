@@ -31,22 +31,22 @@ class StateDynamicLinks extends ChangeNotifier {
       dynamicLinks.onLink.listen((dynamicLinkData) async {
         final Uri? deepLink = dynamicLinkData.link;
         String linkString = deepLink.toString();
-        print("onLink: $linkString");
+        print('onLink: $linkString');
         this._callback(dynamicLinkData);
       }).onError((e) async {
-        print("Dynamic link error: ${e.message}");
+        print('Dynamic link error: ${e.message}');
       });
       final PendingDynamicLinkData? dynamicLink =
           await FirebaseDynamicLinks.instance.getInitialLink();
       if (dynamicLink?.link != null) {
         final Uri? deepLink = dynamicLink?.link;
         String linkString = deepLink.toString();
-        print("InitialLink: $linkString");
+        print('InitialLink: $linkString');
         this._callback(dynamicLink);
       }
       _initialized = true;
     } catch (error) {
-      print("dynamic link: $error");
+      print('dynamic link: $error');
     }
   }
 }

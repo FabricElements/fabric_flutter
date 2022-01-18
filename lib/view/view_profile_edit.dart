@@ -34,8 +34,8 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
   ImageProvider? previewImage;
   Uint8List? _temporalImageBytes;
   String? userImage;
-  String nameFirst = "";
-  String nameLast = "";
+  String nameFirst = '';
+  String nameLast = '';
   TextEditingController nameFirstController = TextEditingController();
   TextEditingController nameLastController = TextEditingController();
   String? _avatarFinalUrl;
@@ -45,11 +45,11 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
     super.initState();
     loading = false;
     changed = false;
-    defaultImage = AssetImage("assets/placeholder.jpg");
-    nameFirstController.text = "";
-    nameLastController.text = "";
-    nameFirst = "";
-    nameLast = "";
+    defaultImage = AssetImage('assets/placeholder.jpg');
+    nameFirstController.text = '';
+    nameLastController.text = '';
+    nameFirst = '';
+    nameLast = '';
   }
 
   @override
@@ -88,7 +88,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
   Widget build(BuildContext context) {
     AppLocalizations locales = AppLocalizations.of(context)!;
     StateUser stateUser = Provider.of<StateUser>(context);
-    stateUser.ping("profile");
+    stateUser.ping('profile');
     userImage = stateUser.serialized.avatar;
     nameFirst = stateUser.serialized.nameFirst;
     nameLast = stateUser.serialized.nameLast;
@@ -108,10 +108,10 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
           return;
         }
         if (userImage != null) {
-          String userLastUpdate = stateUser.data["updated"] != null
-              ? (stateUser.data["updated"] as Timestamp).seconds.toString()
-              : "";
-          _avatarFinalUrl = "$userImage?size=medium&t=" + userLastUpdate;
+          String userLastUpdate = stateUser.data['updated'] != null
+              ? (stateUser.data['updated'] as Timestamp).seconds.toString()
+              : '';
+          _avatarFinalUrl = '$userImage?size=medium&t=' + userLastUpdate;
           previewImage = NetworkImage(_avatarFinalUrl!);
           return;
         }
@@ -139,7 +139,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
       AppLocalizations? locales = AppLocalizations.of(context)!;
       if (!changed) {
         alert.show(
-            title: locales.get("page-profile--alert--nothing-to-update"));
+            title: locales.get('page-profile--alert--nothing-to-update'));
         return;
       }
       String newNameFirst = nameFirstController.text;
@@ -148,9 +148,9 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
       newNameLast = newNameLast.trim();
       if (newNameFirst.length < 3) {
         alert.show(
-          title: locales.get("label--too-short", {
-            "label": locales.get("label--name-first"),
-            "number": "3",
+          title: locales.get('label--too-short', {
+            'label': locales.get('label--name-first'),
+            'number': '3',
           }),
           type: AlertType.critical,
         );
@@ -158,9 +158,9 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
       }
       if (newNameLast.length < 3) {
         alert.show(
-          title: locales.get("label--too-short", {
-            "label": locales.get("label--name-last"),
-            "number": "3",
+          title: locales.get('label--too-short', {
+            'label': locales.get('label--name-last'),
+            'number': '3',
           }),
           type: AlertType.critical,
         );
@@ -170,26 +170,26 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
       if (mounted) setState(() {});
 
       Map<String, dynamic> newData = {
-        "nameFirst": newNameFirst,
-        "nameLast": newNameLast,
+        'nameFirst': newNameFirst,
+        'nameLast': newNameLast,
       };
       try {
         if (_temporalImageBytes != null) {
           String base64Image = base64Encode(_temporalImageBytes!);
           String photoURL = base64Image;
           newData.addAll({
-            "avatar": photoURL,
+            'avatar': photoURL,
           });
         }
         final HttpsCallable callable =
-            FirebaseFunctions.instance.httpsCallable("user-actions-update");
+            FirebaseFunctions.instance.httpsCallable('user-actions-update');
         await callable.call(newData);
         _temporalImageBytes = null;
         changed = false;
         loading = false;
         if (mounted) setState(() {});
         alert.show(
-          title: locales.get("page-profile--alert--profile-updated"),
+          title: locales.get('page-profile--alert--profile-updated'),
           type: AlertType.success,
         );
         if (!stateUser.serialized.onboarding.name) {
@@ -198,7 +198,8 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
         refreshImage();
       } on FirebaseFunctionsException catch (error) {
         alert.show(
-            title: error.message ?? error.details["message"], type: AlertType.critical);
+            title: error.message ?? error.details['message'],
+            type: AlertType.critical);
       } catch (error) {
         alert.show(
           title: error.toString(),
@@ -251,7 +252,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
                     onPressed: _temporalImageBytes == null
                         ? () async {
                             Navigator.pushNamed(context, '/hero',
-                                arguments: {"url": userImage});
+                                arguments: {'url': userImage});
                           }
                         : null,
                     child: Container(
@@ -267,13 +268,13 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
                                 left: 15,
                                 child: FloatingActionButton(
                                   backgroundColor: Colors.grey.shade50,
-                                  heroTag: "image",
+                                  heroTag: 'image',
                                   child: Icon(
                                     Icons.image,
                                     color: Theme.of(context).accentColor,
                                   ),
                                   onPressed: () async {
-                                    await getImageFromOrigin("gallery");
+                                    await getImageFromOrigin('gallery');
                                   },
                                 ),
                               ),
@@ -282,10 +283,10 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
                                       bottom: 0,
                                       right: 15,
                                       child: FloatingActionButton(
-                                        heroTag: "camera",
+                                        heroTag: 'camera',
                                         child: Icon(Icons.photo_camera),
                                         onPressed: () async {
-                                          await getImageFromOrigin("camera");
+                                          await getImageFromOrigin('camera');
                                         },
                                       ),
                                     )
@@ -305,15 +306,15 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
             child: TextField(
               controller: nameFirstController,
               decoration: InputDecoration(
-                labelText: locales.get("label--name-first"),
-                hintText: locales.get("label--name-first"),
+                labelText: locales.get('label--name-first'),
+                hintText: locales.get('label--name-first'),
               ),
               maxLines: 1,
               keyboardType: TextInputType.text,
               maxLength: 15,
               inputFormatters: <TextInputFormatter>[
                 FilteringTextInputFormatter.singleLineFormatter,
-                FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z ]")),
+                FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]')),
               ],
             ),
           ),
@@ -322,8 +323,8 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
             child: TextField(
               controller: nameLastController,
               decoration: InputDecoration(
-                labelText: locales.get("label--name-last"),
-                hintText: locales.get("label--name-last"),
+                labelText: locales.get('label--name-last'),
+                hintText: locales.get('label--name-last'),
               ),
               maxLines: 1,
               keyboardType: TextInputType.text,
@@ -341,12 +342,12 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(locales.get("page-profile--title")),
+        title: Text(locales.get('page-profile--title')),
         automaticallyImplyLeading: false,
         leading: IconButton(
           icon: Icon(Icons.navigate_before),
           onPressed: () {
-            Navigator.popUntil(context, ModalRoute.withName("/"));
+            Navigator.popUntil(context, ModalRoute.withName('/'));
           },
         ),
       ),
@@ -354,9 +355,9 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: changed && !loading
           ? FloatingActionButton.extended(
-              label: Text(locales.get("label--update")),
+        label: Text(locales.get('label--update')),
               onPressed: updateUser,
-              heroTag: "update-button",
+              heroTag: 'update-button',
             )
           : null,
     );

@@ -41,12 +41,12 @@ Future<http.Response> hedURL(String url) {
 /// [loadingText] Locale text to be displayed when loading.
 /// AudioPreview(
 ///   url: mediaUrl,
-///   loadingText: "loading...",
+///   loadingText: 'loading...',
 /// );
 class AudioPreview extends StatefulWidget {
   AudioPreview({
     required this.url,
-    this.loadingText = "loading",
+    this.loadingText = 'loading',
   });
 
   final String? url;
@@ -66,7 +66,7 @@ class _AudioPreviewState extends State<AudioPreview>
 
   // ignore: cancel_subscriptions
   StreamSubscription? _playerSubscription;
-  String _playerTxt = "00:00";
+  String _playerTxt = '00:00';
   double? slide;
   double? sliderCurrentPosition;
   FlutterSoundPlayer? playerModule = FlutterSoundPlayer();
@@ -96,7 +96,6 @@ class _AudioPreviewState extends State<AudioPreview>
 
   @override
   void didChangeDependencies() {
-    print("============== changed dependencies");
     stopPlayer();
     super.didChangeDependencies();
   }
@@ -104,14 +103,12 @@ class _AudioPreviewState extends State<AudioPreview>
   @override
   void deactivate() {
     //this method not called when user press android back button or quit
-    print("============== deactivate");
     stopPlayer();
     super.deactivate();
   }
 
   @override
   void dispose() {
-    print("============== DISPOSE");
     stopPlayer();
     WidgetsBinding.instance!.removeObserver(this);
     super.dispose();
@@ -153,9 +150,9 @@ class _AudioPreviewState extends State<AudioPreview>
     if (!playerModule!.isOpen()) return;
     // await cancelPlayerSubscriptions();
     _playerSubscription = playerModule!.onProgress!.listen((e) {
-      print("event: ${e.position}");
+      print('event: ${e.position}');
       maxDuration = e.duration.inMilliseconds.toDouble();
-      print("maxDuration: $e");
+      print('maxDuration: $e');
       if (maxDuration! <= 0) maxDuration = 0.0;
       sliderCurrentPosition =
           min(e.position.inMilliseconds.toDouble(), maxDuration!);
@@ -247,7 +244,7 @@ class _AudioPreviewState extends State<AudioPreview>
   /// This method play and resume audio player with this [url] file
   void playPause(String url) async {
     if (!ready || !mounted) {
-      print("not ready");
+      print('not ready');
       return;
     }
     try {
@@ -295,12 +292,12 @@ class _AudioPreviewState extends State<AudioPreview>
                   IconButton(
                     icon: Icon(
                       icon,
-                      color: theme.accentColor,
+                      color: theme.colorScheme.primary,
                     ),
                     iconSize: 30,
                     onPressed: widget.url == null
                         ? null
-                        : () async => playPause("${widget.url}"),
+                        : () async => playPause('${widget.url}'),
                   ),
                   Expanded(
                     child: RawMaterialButton(
@@ -333,7 +330,7 @@ class _AudioPreviewState extends State<AudioPreview>
     return WillPopScope(
         child: baseCard,
         onWillPop: () async {
-          print("is out -----------");
+          print('is out -----------');
           return true;
         });
   }

@@ -14,12 +14,12 @@ class StateNotifications extends ChangeNotifier {
 
   String? _token;
   Map<String, dynamic> _notification = {};
-  String _uid = "";
+  String _uid = '';
   bool _initialized = false;
   Function(Map<String, dynamic> message)? _callback;
 
   /// [token] Returns device token
-  String get token => _token ?? "";
+  String get token => _token ?? '';
 
   /// Update user token on the firestore user/{uid}
   void _updateUserToken(String? _token) async {
@@ -27,13 +27,13 @@ class StateNotifications extends ChangeNotifier {
       return;
     }
     try {
-      await FirebaseFirestore.instance.collection("user").doc(_uid).set({
-        "backup": false,
-        "fcm": _token,
-        "updated": FieldValue.serverTimestamp(),
+      await FirebaseFirestore.instance.collection('user').doc(_uid).set({
+        'backup': false,
+        'fcm': _token,
+        'updated': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } catch (error) {
-      print("error saving user token: ${error.toString()}");
+      print('error saving user token: ${error.toString()}');
     }
   }
 
@@ -74,38 +74,38 @@ class StateNotifications extends ChangeNotifier {
   }
 
   /// Return notify values
-  _notify({RemoteMessage? message, String origin = "message"}) async {
+  _notify({RemoteMessage? message, String origin = 'message'}) async {
     if (message == null) return;
     RemoteNotification? notification = message.notification;
     Map<String, dynamic> data = message.data;
     Map<String, dynamic> _message = data;
-    _message = _clearObject(_message, "fcm_options");
-    _message = _clearObject(_message, "aps");
-    _message = _clearObject(_message, "alert");
+    _message = _clearObject(_message, 'fcm_options');
+    _message = _clearObject(_message, 'aps');
+    _message = _clearObject(_message, 'alert');
 
-    _message = _clearObject(_message, "data");
-    _message = _clearObject(_message, "notification");
+    _message = _clearObject(_message, 'data');
+    _message = _clearObject(_message, 'notification');
     if (!kIsWeb) {
       /// Add OS
-      _message.addAll({"os": Platform.operatingSystem});
+      _message.addAll({'os': Platform.operatingSystem});
     }
 
     /// Add origin
-    _message.addAll({"origin": origin});
+    _message.addAll({'origin': origin});
 
     if (notification?.title != null) {
-      _message.putIfAbsent("title", () => notification?.title);
+      _message.putIfAbsent('title', () => notification?.title);
     }
     if (notification?.body != null) {
-      _message.putIfAbsent("body", () => notification?.body);
+      _message.putIfAbsent('body', () => notification?.body);
     }
 
     /// Add valid path by default
-    String path = _message["path"] ?? "";
-    if (path.isNotEmpty && path.startsWith("/")) {
-      _message["path"] = path;
+    String path = _message['path'] ?? '';
+    if (path.isNotEmpty && path.startsWith('/')) {
+      _message['path'] = path;
     } else {
-      _message["path"] = "";
+      _message['path'] = '';
     }
 
     /// Add data to stream
@@ -113,17 +113,17 @@ class StateNotifications extends ChangeNotifier {
     try {
       if (_callback != null) await _callback!(_notification);
     } catch (error) {
-      print("Callback Error: $error");
+      print('Callback Error: $error');
     }
   }
 
   initNotifications() async {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-      await _notify(message: message, origin: "message");
+      await _notify(message: message, origin: 'message');
     });
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
-      await _notify(message: message, origin: "resume");
+      await _notify(message: message, origin: 'resume');
     });
     if (token.isNotEmpty && !_initialized) {
       // message.listen((arg) async {});
@@ -148,15 +148,15 @@ class StateNotifications extends ChangeNotifier {
 
   /// Define user id
   set uid(String? id) {
-    _uid = id ?? "";
+    _uid = id ?? '';
   }
 
   /// Default function call every time the id changes.
   /// Override this function to add custom features for your state.
   void reset() {
-    _token = "";
+    _token = '';
     _notification = {};
-    _uid = "";
+    _uid = '';
     _initialized = false;
   }
 

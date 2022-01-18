@@ -33,7 +33,6 @@ class _EditSaveButtonState extends State<EditSaveButton> {
   @override
   Widget build(BuildContext context) {
     ThemeData theme = Theme.of(context);
-    TextTheme textTheme = theme.textTheme;
     AlertHelper alert = AlertHelper(
       context: context,
       mounted: mounted,
@@ -45,7 +44,7 @@ class _EditSaveButtonState extends State<EditSaveButton> {
           IconButton(
             onPressed: () {
               alert.show(
-                title: locales.get("label--confirm-are-you-sure-cancel"),
+                title: locales.get('label--confirm-are-you-sure-cancel'),
                 actionCallback: widget.cancelCallback,
                 type: AlertType.warning,
               );
@@ -55,7 +54,7 @@ class _EditSaveButtonState extends State<EditSaveButton> {
           IconButton(
             onPressed: () {
               alert.show(
-                title: locales.get("label--confirm-are-you-sure-update"),
+                title: locales.get('label--confirm-are-you-sure-update'),
                 actionCallback: widget.confirmCallback,
                 type: AlertType.basic,
               );

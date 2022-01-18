@@ -63,7 +63,7 @@ class StateDocument extends ChangeNotifier {
         }
         Map<String, dynamic> _tempData =
             snapshot.data() as Map<String, dynamic>;
-        _tempData["id"] = snapshotID;
+        _tempData['id'] = snapshotID;
         _data = _tempData;
         if (_initialized && _onUpdate != null) _onUpdate!();
         _initialized = true;

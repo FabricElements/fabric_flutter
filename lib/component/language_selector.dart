@@ -11,7 +11,7 @@ import '../helper/iso_language.dart';
 /// ```dart
 /// LanguageSelector(
 ///   voice: false,
-///   language: "es",
+///   language: 'es',
 ///   onChange: (String iso) {
 ///     selectedLanguage = iso;
 ///   }
@@ -21,7 +21,7 @@ class LanguageSelector extends StatelessWidget {
   LanguageSelector({
     Key? key,
     this.voice = false,
-    this.language = "en",
+    this.language = 'en',
     this.onChange,
   }) : super(key: key);
   final bool voice;
@@ -41,17 +41,17 @@ class LanguageSelector extends StatelessWidget {
       List waveNetLanguages = IsoLanguage().waveNetLanguages;
       for (String key in isoLanguages.keys) {
         if (waveNetLanguages.contains(key)) {
-          languages.add(Text(isoLanguages[key]["name"]));
+          languages.add(Text(isoLanguages[key]['name']));
           isoList.add(key);
         }
       }
     } else {
       for (String key in isoLanguages.keys) {
-        languages.add(Text(isoLanguages[key]["name"]));
+        languages.add(Text(isoLanguages[key]['name']));
         isoList.add(key);
       }
     }
-    String defaultLanguage = language ?? "en";
+    String defaultLanguage = language ?? 'en';
     index = isoList.indexOf(defaultLanguage.toLowerCase());
     return CupertinoPicker(
       scrollController: FixedExtentScrollController(initialItem: index),
