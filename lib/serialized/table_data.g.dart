@@ -76,6 +76,7 @@ Map<String, dynamic> _$TableColumnDataToJson(TableColumnData instance) {
 const _$TableDataTypeEnumMap = {
   TableDataType.string: 'string',
   TableDataType.number: 'number',
+  TableDataType.decimal: 'decimal',
   TableDataType.date: 'date',
   TableDataType.currency: 'currency',
   TableDataType.path: 'path',
