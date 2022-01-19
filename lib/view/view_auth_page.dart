@@ -16,6 +16,7 @@ import '../helper/alert_helper.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../placeholder/loading_screen.dart';
 import '../state/state_analytics.dart';
+import '../state/state_global.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -106,6 +107,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
 
   @override
   Widget build(BuildContext context) {
+    StateGlobal stateGlobal = Provider.of<StateGlobal>(context);
     ThemeData theme = Theme.of(context);
     StateAnalytics stateAnalytics =
         Provider.of<StateAnalytics>(context, listen: false);
@@ -441,6 +443,13 @@ class _ViewAuthPageState extends State<ViewAuthPage>
                                 authButton('google'),
                                 authButton('phone'),
                                 authButton('email'),
+                                Padding(
+                                  padding: EdgeInsets.only(top: 16),
+                                  child: Text(
+                                    "${locales.get('label--version')}: ${stateGlobal.packageInfo.version}+${stateGlobal.packageInfo.buildNumber}",
+                                    style: textTheme.caption,
+                                  ),
+                                ),
                               ],
                             ),
                           ),

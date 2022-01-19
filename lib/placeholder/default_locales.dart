@@ -207,6 +207,10 @@ dynamic defaultLocales = {
     "en": "Confirm",
     "es": "Confirmar",
   },
+  "label--version": {
+    "en": "Version",
+    "es": "versión",
+  },
   "label--verify": {
     "en": "Verify",
     "es": "Verificar",
