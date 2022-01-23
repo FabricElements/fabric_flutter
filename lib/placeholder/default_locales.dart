@@ -83,6 +83,10 @@ dynamic defaultLocales = {
     "en": "User",
     "es": "Usuario",
   },
+  "label--viewer": {
+    "en": "Viewer",
+    "es": "Espectador",
+  },
   "label--help": {
     "en": "Help",
     "es": "Ayuda",
@@ -582,5 +586,13 @@ dynamic defaultLocales = {
   "label--time": {
     "en": "Time",
     "es": "Tiempo",
+  },
+  "validation--email-address": {
+    "en": "Enter a valid email address",
+    "es": "Introduzca una dirección de correo electrónico válida"
+  },
+  "validation--phone": {
+    "en": "Enter a valid phone number",
+    "es": "Introduce un número de teléfono válido"
   },
 };

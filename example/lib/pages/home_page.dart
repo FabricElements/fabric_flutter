@@ -87,22 +87,22 @@ class _HomePageState extends State<HomePage> {
     final StateAPI stateAPI = Provider.of<StateAPI>(context);
     final StateDocument stateDocument = Provider.of<StateDocument>(context);
 
-    WidgetsBinding.instance?.addPostFrameCallback((_) {
-      stateAPI.endpoint =
-      "https://raw.githubusercontent.com/ernysans/laraworld/master/composer.json";
-      stateUser.ping("home");
-      if (stateAPI.data != null) {
-        // print("data: ${stateAPI.data}");
-        stateDocument.id = "test";
-        // print("firestore: ${stateDocument.data}");
-        if (stateDocument.data.isNotEmpty) {
-          stateDocument.callback = () => stateAPI.get();
-        }
-      }
-      if (stateAPI.error != null) {
-        print("error ${stateAPI.error}");
-      }
-    });
+    // WidgetsBinding.instance?.addPostFrameCallback((_) {
+    //   stateAPI.endpoint =
+    //   "https://raw.githubusercontent.com/ernysans/laraworld/master/composer.json";
+    //   stateUser.ping("home");
+    //   if (stateAPI.data != null) {
+    //     // print("data: ${stateAPI.data}");
+    //     stateDocument.id = "test";
+    //     // print("firestore: ${stateDocument.data}");
+    //     if (stateDocument.data.isNotEmpty) {
+    //       stateDocument.callback = () => stateAPI.get();
+    //     }
+    //   }
+    //   if (stateAPI.error != null) {
+    //     print("error ${stateAPI.error}");
+    //   }
+    // });
 
     /// Dynamic links
     Future<void> _dynamicLinksCallback(

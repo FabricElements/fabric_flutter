@@ -75,6 +75,9 @@ class StateUser extends StateDocument {
     Map<String, dynamic>? compareData,
     String? level,
     required String? uid,
+
+    /// [clean] returns the role without the [level]
+    bool clean = false,
   }) {
     if (id != null && uid != null && (id == uid) && admin) {
       return role;
@@ -89,6 +92,7 @@ class StateUser extends StateDocument {
     List<dynamic> _users = compareData['users'] ?? [];
     if (_roles.containsKey(uid) && _users.contains(uid)) {
       String _baseRole = _roles[uid];
+      if (clean) return _baseRole;
       _role = '$level-$_baseRole';
     }
     return _role;

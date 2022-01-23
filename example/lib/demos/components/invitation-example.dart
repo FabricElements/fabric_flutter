@@ -10,8 +10,7 @@ class InvitationExample extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
-        return UserInvite(
-          user: null,
+        return UserAdd(
           data: {},
         );
       },

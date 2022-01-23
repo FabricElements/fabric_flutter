@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:devicelocale/devicelocale.dart';
+import 'package:fabric_flutter/component/user_admin.dart';
 import 'package:fabric_flutter/helper/app_localizations_delegate.dart';
 import 'package:fabric_flutter/helper/route_helper.dart';
 import 'package:fabric_flutter/state/state_user.dart';
-import 'package:fabric_flutter/view/view_admin_users.dart';
 import 'package:fabric_flutter/view/view_auth_page.dart';
 import 'package:fabric_flutter/view/view_hero.dart';
 import 'package:fabric_flutter/view/view_profile_edit.dart';
@@ -122,7 +122,7 @@ class _MyAppState extends State<MyApp> {
             "/sign-in": ViewAuthPage(),
             '/': HomePage(),
             '/profile': ViewProfileEdit(loader: LoadingScreen()),
-            '/users': ViewAdminUsers(loader: LoadingScreen()),
+            '/users': UserAdmin(loader: LoadingScreen()),
             '/hero': ViewHero(),
           },
           signedIn: stateUser.signedIn,

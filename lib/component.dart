@@ -16,5 +16,6 @@ export 'component/smart_button.dart';
 export 'component/smart_image.dart';
 export 'component/status_chip.dart';
 export 'component/top_app.dart';
+export 'component/user_admin.dart';
 export 'component/user_avatar.dart';
-export 'component/user_invite.dart';
+export 'component/user_add.dart';

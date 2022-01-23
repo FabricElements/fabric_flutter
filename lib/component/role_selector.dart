@@ -70,6 +70,6 @@ class _RoleSelectorState extends State<RoleSelector> {
 
     Widget options = widget.asList ? listWidget : dropdownWidget;
 
-    return Padding(padding: const EdgeInsets.all(16.0), child: options);
+    return options;
   }
 }

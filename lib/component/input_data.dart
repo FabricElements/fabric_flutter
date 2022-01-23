@@ -5,12 +5,14 @@ import 'package:intl/intl.dart';
 
 import '../helper/app_localizations_delegate.dart';
 import '../helper/enum_data.dart';
+import '../helper/input_validation.dart';
 import '../helper/options.dart';
 import '../helper/utils.dart';
 
 /// [InputDataType] defines the supported types for the [InputData] component
 enum InputDataType {
   date,
+  email,
   time,
   double,
   int,
@@ -42,6 +44,7 @@ class InputData extends StatefulWidget {
     this.expanded = false,
     this.padding = EdgeInsets.zero,
     this.utcOffset,
+    this.validator,
   }) : super(key: key);
   final dynamic value;
   final List<dynamic> enums;
@@ -55,6 +58,7 @@ class InputData extends StatefulWidget {
   final bool expanded;
   final EdgeInsets padding;
   final num? utcOffset;
+  final FormFieldValidator<String>? validator;
 
   /// [onSubmit]
   /// Never use expression body or value won't be update correctly
@@ -72,6 +76,7 @@ class _InputDataState extends State<InputData> {
   TextEditingController textController = TextEditingController();
   dynamic value;
 
+  /// Get Value from parameter
   void getValue({bool notify = false, required dynamic newValue}) {
     switch (widget.type) {
       case InputDataType.string:
@@ -80,10 +85,12 @@ class _InputDataState extends State<InputData> {
       case InputDataType.text:
       case InputDataType.radio:
       case InputDataType.phone:
+      case InputDataType.email:
         String _tempValue = newValue != null ? newValue.toString() : '';
         if (_tempValue != value) {
           value = _tempValue;
           textController.text = value;
+          if (notify && mounted) setState(() {});
         }
         break;
       case InputDataType.date:
@@ -92,14 +99,16 @@ class _InputDataState extends State<InputData> {
           utcOffset: widget.utcOffset,
           reverse: true,
         );
+        if (notify && mounted) setState(() {});
         break;
       case InputDataType.time:
         value = newValue as TimeOfDay?;
+        if (notify && mounted) setState(() {});
         break;
       default:
         value = newValue;
+        if (notify && mounted) setState(() {});
     }
-    if (notify && mounted) setState(() {});
   }
 
   @override
@@ -132,6 +141,7 @@ class _InputDataState extends State<InputData> {
     String textSelected = _defaultText;
     String? hintTextDefault;
     int? maxLength = widget.maxLength;
+    FormFieldValidator<String>? validator = widget.validator;
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         double width = constraints.maxWidth.floorToDouble();
@@ -152,6 +162,7 @@ class _InputDataState extends State<InputData> {
         );
         TextInputType keyboardType = TextInputType.text;
         List<TextInputFormatter> inputFormatters = [];
+        final inputValidation = InputValidation(locales: locales);
         switch (widget.type) {
           case InputDataType.phone:
 
@@ -159,7 +170,9 @@ class _InputDataState extends State<InputData> {
             maxLength = 16;
             hintTextDefault = '+1 (222) 333 - 4444';
             keyboardType = const TextInputType.numberWithOptions(
-                decimal: true, signed: true);
+              decimal: true,
+              signed: true,
+            );
             inputFormatters.addAll([
               FilteringTextInputFormatter.deny(RegExp(r'[\s()-]'),
                   replacementString: ''),
@@ -167,6 +180,16 @@ class _InputDataState extends State<InputData> {
                   replacementString: ''),
               FilteringTextInputFormatter.singleLineFormatter,
             ]);
+            validator = inputValidation.validatePhone;
+            break;
+          case InputDataType.email:
+            maxLength = 100;
+            hintTextDefault = 'example@example.com';
+            keyboardType = TextInputType.emailAddress;
+            inputFormatters.addAll([
+              FilteringTextInputFormatter.singleLineFormatter,
+            ]);
+            validator = inputValidation.validateEmail;
             break;
           case InputDataType.double:
             keyboardType = const TextInputType.numberWithOptions(decimal: true);
@@ -205,11 +228,14 @@ class _InputDataState extends State<InputData> {
           case InputDataType.string:
           case InputDataType.text:
           case InputDataType.phone:
+          case InputDataType.email:
             _widget = TextFormField(
               controller: textController,
               enableSuggestions: false,
               keyboardType: keyboardType,
               inputFormatters: inputFormatters,
+              validator: validator,
+              autovalidateMode: AutovalidateMode.always,
               maxLines: widget.type == InputDataType.text ? 10 : 1,
               minLines: 1,
               maxLength: maxLength,

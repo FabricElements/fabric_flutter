@@ -1,6 +1,4 @@
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../helper/alert_helper.dart';
@@ -13,7 +11,6 @@ import 'role_selector.dart';
 /// [data] Object with necessary information such as 'organization'
 /// ```dart
 /// UserRoleUpdate(
-///   'user': user-data-object,
 ///   'info': {
 ///     'organization': 'organization-id',
 ///   }
@@ -22,17 +19,17 @@ import 'role_selector.dart';
 class UserRoleUpdate extends StatefulWidget {
   UserRoleUpdate({
     Key? key,
-    this.user,
     this.roles,
     this.data,
     required this.uid,
     required this.name,
+    this.selected,
   }) : super(key: key);
-  final User? user;
   final Map<String, dynamic>? data;
   final List<String>? roles;
   final String uid;
   final String name;
+  final String? selected;
 
   @override
   _UserRoleUpdateState createState() => _UserRoleUpdateState();
@@ -60,7 +57,7 @@ class _UserRoleUpdateState extends State<UserRoleUpdate> {
     resp = null;
     backgroundColor = const Color(0xFF161A21);
     flagRol = false;
-    roleSelect = null;
+    roleSelect = widget.selected;
   }
 
   @override
@@ -78,14 +75,18 @@ class _UserRoleUpdateState extends State<UserRoleUpdate> {
     ///
     /// [type] Whether it is an e-mail or phone number.
     /// [contact] The e-mail or phone number.
-    _sendInvitation() async {
+    updateUserRole() async {
       if (!canInvite) {
-        alert.show(title: 'incomplete data', type: AlertType.critical);
+        alert.show(
+          title: 'incomplete data',
+          type: AlertType.critical,
+          duration: 5,
+        );
         return;
       }
       sending = true;
       if (mounted) setState(() {});
-      alert.show(title: locales.get('notification--please-wait'), duration: 5);
+      alert.show(body: locales.get('notification--please-wait'), duration: 5);
       Map<String, dynamic> data = {
         'role': roleSelect,
         'uid': widget.uid,
@@ -98,57 +99,54 @@ class _UserRoleUpdateState extends State<UserRoleUpdate> {
             FirebaseFunctions.instance.httpsCallable('user-actions-updateRole');
         await callable.call(data);
         alert.show(
-            title: locales.get('notification--user-role-updated'),
-            type: AlertType.success);
+          body: locales.get('notification--user-role-updated'),
+          type: AlertType.success,
+          duration: 3,
+        );
         Navigator.of(context).pop();
       } on FirebaseFunctionsException catch (error) {
         alert.show(
-            title: error.message ?? error.details['message'],
-            type: AlertType.critical);
+          body: error.message ?? error.details['message'],
+          type: AlertType.critical,
+          duration: 5,
+        );
       } catch (error) {
-        alert.show(title: error.toString(), type: AlertType.critical);
+        alert.show(
+          body: error.toString(),
+          type: AlertType.critical,
+          duration: 5,
+        );
       }
       sending = false;
       if (mounted) setState(() {});
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        primary: false,
-        automaticallyImplyLeading: false,
-        title:
-            Text(locales.get('user-role-update--title', {'name': widget.name})),
-        leading: Icon(Icons.person),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: canInvite
-          ? FloatingActionButton.extended(
-              icon: Icon(Icons.save),
-              label: Text(
-                locales.get('label--update'),
-                style: TextStyle(color: Colors.white),
-              ),
-              onPressed: _sendInvitation,
-            )
-          : null,
-      body: SafeArea(
-        top: false,
-        child: Column(
-          children: [
-            RoleSelector(
-              asList: true,
-              roles: widget.roles,
-              onChange: (value) {
-                if (value != null) {
-                  roleSelect = value;
-                  flagRol = true;
-                }
-                if (mounted) setState(() {});
-              },
-            ),
-          ],
+    return SimpleDialog(
+      title:
+          Text(locales.get('user-role-update--title', {'name': widget.name})),
+      children: [
+        RoleSelector(
+          asList: true,
+          roles: widget.roles,
+          onChange: (value) {
+            if (value != null) {
+              roleSelect = value;
+              flagRol = true;
+            }
+            if (mounted) setState(() {});
+          },
         ),
-      ),
+        SizedBox(height: 32),
+        ElevatedButton.icon(
+          icon: Icon(Icons.save),
+          label: Text(
+            locales.get('label--update'),
+            style: TextStyle(color: Colors.white),
+          ),
+          onPressed: canInvite ? updateUserRole : null,
+        )
+      ],
+      contentPadding: EdgeInsets.all(20),
     );
   }
 }
