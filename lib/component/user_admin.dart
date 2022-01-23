@@ -123,7 +123,7 @@ class _UserAdminState extends State<UserAdmin> {
       // Type indicates the data field to use in the function, admin level or collection.
       await callable.call(removeOptions); // USER DATA
       alert.show(
-        title: locales.get('alert--user-removed'),
+        body: locales.get('alert--user-removed'),
         type: AlertType.success,
         duration: 3,
       );
@@ -264,12 +264,12 @@ class _UserAdminState extends State<UserAdmin> {
                       }
                     } on FirebaseFunctionsException catch (error) {
                       alert.show(
-                        title: error.message ?? error.details['message'],
+                        body: error.message ?? error.details['message'],
                         type: AlertType.critical,
                       );
                     } catch (error) {
                       alert.show(
-                        title: error.toString(),
+                        body: error.toString(),
                         type: AlertType.critical,
                       );
                     }
