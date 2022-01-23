@@ -117,7 +117,7 @@ class _UserAddState extends State<UserAdd> {
             FirebaseFunctions.instance.httpsCallable('user-actions-invite');
         await callable.call(data);
         alert.show(
-          body: locales.get('notification--invitation-sent'),
+          body: locales.get('notification--added'),
           type: AlertType.success,
           duration: 3,
         );
