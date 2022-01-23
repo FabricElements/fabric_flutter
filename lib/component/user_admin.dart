@@ -73,7 +73,8 @@ class _UserAdminState extends State<UserAdmin> {
     TextTheme textTheme = theme.textTheme;
     AppLocalizations locales = AppLocalizations.of(context)!;
     StateUser stateUser = Provider.of<StateUser>(context);
-    Query query = FirebaseFirestore.instance.collection('user');
+    Query baseQuery = FirebaseFirestore.instance.collection('user');
+    Query query = baseQuery;
 
     /// Get data from navigation arguments
     Map<String, dynamic> args = Map.from(
@@ -96,12 +97,13 @@ class _UserAdminState extends State<UserAdmin> {
     );
     Map<String?, dynamic> removeOptions = {};
 
-    query = query.orderBy('created');
+    /// Order By role for global users, the role key is only available for parent users
+    query = query.orderBy('role');
     inviteMetadata = {
       'admin': true,
     };
     if (fromCollection) {
-      query = query.where(collection, arrayContains: id);
+      query = baseQuery.where(collection, arrayContains: id);
       inviteMetadata = {
         'collection': collection,
         'document': id,
