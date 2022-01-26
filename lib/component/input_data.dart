@@ -327,9 +327,12 @@ class _InputDataState extends State<InputData> {
           case InputDataType.enums:
           case InputDataType.dropdown:
             List<ButtonOptions> _dropdown = [];
-            List<PopupMenuEntry<String>> buttons = [
-              PopupMenuItem<String>(value: '', child: Text(_defaultText)),
-            ];
+            List<PopupMenuEntry<String>> buttons = [];
+            if (!widget.isDense) {
+              buttons.add(
+                PopupMenuItem<String>(value: '', child: Text(_defaultText)),
+              );
+            }
             if (widget.type == InputDataType.dropdown) {
               _dropdown = widget.options;
             }
@@ -345,6 +348,9 @@ class _InputDataState extends State<InputData> {
               buttons.add(PopupMenuItem<String>(
                 value: _option.value?.toString(),
                 child: Text(_option.label),
+                onTap: _option.onTap != null
+                    ? () => _option.onTap!(_option.value)
+                    : null,
               ));
             }
             if (value != null) {
@@ -358,7 +364,7 @@ class _InputDataState extends State<InputData> {
                     .label;
               }
             }
-            if (buttons.length == 1) {
+            if (buttons.length == (widget.isDense ? 0 : 1)) {
               _disabled = true;
             }
             _widget = PopupMenuButton<String>(
@@ -372,18 +378,20 @@ class _InputDataState extends State<InputData> {
                 if (widget.onChanged != null)
                   widget.onChanged!(_value == '' ? null : _value);
               },
-              child: ListTile(
-                title: Text(textSelected),
-                trailing: Icon(
-                  Icons.arrow_drop_down,
-                  color: _disabled
-                      ? Colors.grey.shade300
-                      : theme.colorScheme.primary,
-                ),
-                mouseCursor: _disabled
-                    ? SystemMouseCursors.forbidden
-                    : SystemMouseCursors.click,
-              ),
+              child: widget.isDense
+                  ? null
+                  : ListTile(
+                      title: Text(textSelected),
+                      trailing: Icon(
+                        Icons.arrow_drop_down,
+                        color: _disabled
+                            ? Colors.grey.shade300
+                            : theme.colorScheme.primary,
+                      ),
+                      mouseCursor: _disabled
+                          ? SystemMouseCursors.forbidden
+                          : SystemMouseCursors.click,
+                    ),
               itemBuilder: (BuildContext context) => buttons,
             );
 

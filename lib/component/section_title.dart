@@ -57,7 +57,7 @@ class _SectionTitleState extends State<SectionTitle> {
         }
         titleDefault = titleDefault;
         titleColor = titleColor!.copyWith(
-          color: theme.accentColor,
+          color: theme.colorScheme.primary,
         );
       }
       if (matches.length > 0) {

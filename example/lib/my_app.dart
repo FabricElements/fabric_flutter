@@ -122,7 +122,7 @@ class _MyAppState extends State<MyApp> {
             "/sign-in": ViewAuthPage(),
             '/': HomePage(),
             '/profile': ViewProfileEdit(loader: LoadingScreen()),
-            '/users': UserAdmin(loader: LoadingScreen()),
+            '/users': UserAdmin(loader: LoadingScreen(), primary: true),
             '/hero': ViewHero(),
           },
           signedIn: stateUser.signedIn,

@@ -25,6 +25,7 @@ dependencies:
   firebase_dynamic_links: ^4.0.4
   firebase_messaging: ^11.2.5
   firebase_storage: ^10.2.5
+  firebase_database: ^9.0.5
   json_annotation: ^4.4.0
   flutter_localizations:
     sdk: flutter
