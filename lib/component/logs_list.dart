@@ -12,7 +12,7 @@ import 'user_chip.dart';
 ///   actions: [
 ///     ButtonOptions(
 ///       label: "Load version",
-///       onTap: (String? id) {
+///       onTap: (dynamic id) {
 ///         print("id: $id");
 ///       },
 ///     ),
@@ -126,8 +126,7 @@ class LogsList extends StatelessWidget {
       } else {
         textFormatted.add(TextSpan(text: text));
       }
-      String? id =
-          item.containsKey("id") && item["id"].isNotEmpty ? item["id"] : null;
+      dynamic id = item.containsKey("id") ? item["id"] : null;
       List<PopupMenuEntry<String>> buttons = [];
       Widget? _actions;
       if (actions != null) {

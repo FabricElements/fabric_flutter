@@ -139,7 +139,7 @@ class _HomePageState extends State<HomePage> {
       }
     }
 
-    void actionCall(String? id) {
+    void actionCall(dynamic id) {
       print("id: $id");
     }
 
