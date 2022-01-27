@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fabric_flutter/helper/utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/widgets.dart';
 
@@ -15,6 +18,17 @@ class StateUser extends StateDocument {
   DateTime _pingLast = DateTime.now().subtract(Duration(minutes: 10));
   Map<String, UserData> _usersMap = {};
   String? _lastUserGet;
+  bool _init = false;
+  String _language = "en";
+
+  // ignore: close_sinks
+  final _controllerStreamUser = StreamController<User?>.broadcast();
+
+  // ignore: close_sinks
+  final _controllerStreamSerialized = StreamController<UserData?>.broadcast();
+
+  // ignore: close_sinks
+  final _controllerStreamLanguage = StreamController<String>.broadcast();
 
   StateUser();
 
@@ -138,11 +152,11 @@ class StateUser extends StateDocument {
     });
     if (_lastUserGet != uid) {
       DocumentReference<Map<String, dynamic>> _documentReferenceUser =
-          FirebaseFirestore.instance.collection('user').doc(uid);
+      FirebaseFirestore.instance.collection('user').doc(uid);
       _documentReferenceUser.get().then((snapshot) {
         if (snapshot.exists) {
           Map<String, dynamic> _itemData =
-              snapshot.data() as Map<String, dynamic>;
+          snapshot.data() as Map<String, dynamic>;
           _itemData.addAll({'id': uid});
           _usersMap.addAll({'$uid': UserData.fromJson(_itemData)});
           notifyListeners();
@@ -171,5 +185,38 @@ class StateUser extends StateDocument {
       uid: id,
     );
     return roles.contains(_role);
+  }
+
+  /// Refresh auth state
+  _refreshAuth(User? userObject) async {
+    String? uid = userObject?.uid ?? null;
+    id = uid;
+    object = userObject ?? null;
+    _init = true;
+    // await Future.delayed(Duration(milliseconds: 400));
+    _controllerStreamUser.sink.add(userObject);
+  }
+
+  void init() {
+    if (_init) return;
+    Utils.getLanguage().then((value) {
+      _language = value;
+      _controllerStreamLanguage.sink.add(_language);
+    });
+    _auth.userChanges().listen((User? userObject) => _refreshAuth(userObject));
+  }
+
+  Stream<User?> get streamUser => _controllerStreamUser.stream;
+  Stream<UserData?> get streamSerialized => _controllerStreamSerialized.stream;
+  Stream<String> get streamLanguage => _controllerStreamLanguage.stream;
+
+  String get language => data != null ? serialized.language : _language;
+
+  @override
+  void onDataUpdate(data) {
+    if (_language != serialized.language)
+      _controllerStreamLanguage.sink.add(language);
+    _controllerStreamSerialized.sink.add(data != null ? serialized : null);
+    super.onDataUpdate(data);
   }
 }

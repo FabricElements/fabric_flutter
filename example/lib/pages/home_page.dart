@@ -14,7 +14,6 @@ import 'package:fabric_flutter/state/state_notifications.dart';
 import 'package:fabric_flutter/state/state_user.dart';
 import 'package:fabric_flutter/view/view_featured.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

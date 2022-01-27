@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:devicelocale/devicelocale.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
@@ -144,5 +145,17 @@ class Utils {
         Navigator.popAndPushNamed(context, path);
       });
     }
+  }
+
+  /// Get device language
+  static Future<String> getLanguage() async {
+    String language = "en";
+    List languages = (await Devicelocale.preferredLanguages)!;
+    String baseLanguage = languages[0];
+    String cleanLanguage = baseLanguage.substring(0, 2);
+    if (cleanLanguage == "es") {
+      language = cleanLanguage;
+    }
+    return language;
   }
 }

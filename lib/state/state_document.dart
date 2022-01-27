@@ -1,9 +1,14 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 
 /// This is a change notifier class which keeps track of state within the campaign builder views.
 class StateDocument extends ChangeNotifier {
   StateDocument();
+
+  // ignore: close_sinks
+  final controllerStream = StreamController<dynamic>();
 
   /// [_called] after snapshot is requested the first time
   bool _called = false;
@@ -68,17 +73,23 @@ class StateDocument extends ChangeNotifier {
         if (_initialized && _onUpdate != null) _onUpdate!();
         _initialized = true;
         if (_callback != null) _callback!();
+        controllerStream.sink.add(_data);
         notifyListeners();
+        onDataUpdate(_data);
       }, cancelOnError: true).onError((error) {
         print(error);
         isValid = false;
         _data = null;
+        controllerStream.sink.add(_data);
         notifyListeners();
+        onDataUpdate(_data);
       });
     } catch (error) {
       if (isValid) {
         _data = null;
+        controllerStream.sink.add(_data);
         notifyListeners();
+        onDataUpdate(_data);
       }
     }
   }
@@ -115,6 +126,9 @@ class StateDocument extends ChangeNotifier {
   /// It is called on the [clear]
   void clearAfter() {}
 
+  /// Override [onDataUpdate] for a custom implementation on data update
+  void onDataUpdate(dynamic data) {}
+
   /// Clear document data
   void clear({bool notify = false}) {
     _drain();
@@ -125,7 +139,9 @@ class StateDocument extends ChangeNotifier {
     _callback = null;
     _onUpdate = null;
     clearAfter();
+    controllerStream.sink.add(_data);
     if (notify) notifyListeners();
+    onDataUpdate(_data);
   }
 
   /// Callback on successful load
