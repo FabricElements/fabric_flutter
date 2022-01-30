@@ -7,8 +7,9 @@ import 'package:flutter/cupertino.dart';
 class StateDocument extends ChangeNotifier {
   StateDocument();
 
-  // ignore: close_sinks
-  final controllerStream = StreamController<dynamic>();
+  /// More at [stream]
+  /// ignore: close_sinks
+  final _controllerStream = StreamController<dynamic>.broadcast();
 
   /// [_called] after snapshot is requested the first time
   bool _called = false;
@@ -73,21 +74,21 @@ class StateDocument extends ChangeNotifier {
         if (_initialized && _onUpdate != null) _onUpdate!();
         _initialized = true;
         if (_callback != null) _callback!();
-        controllerStream.sink.add(_data);
+        _controllerStream.sink.add(_data);
         notifyListeners();
         onDataUpdate(_data);
       }, cancelOnError: true).onError((error) {
         print(error);
         isValid = false;
         _data = null;
-        controllerStream.sink.add(_data);
+        _controllerStream.sink.add(_data);
         notifyListeners();
         onDataUpdate(_data);
       });
     } catch (error) {
       if (isValid) {
         _data = null;
-        controllerStream.sink.add(_data);
+        _controllerStream.sink.add(_data);
         notifyListeners();
         onDataUpdate(_data);
       }
@@ -139,7 +140,7 @@ class StateDocument extends ChangeNotifier {
     _callback = null;
     _onUpdate = null;
     clearAfter();
-    controllerStream.sink.add(_data);
+    _controllerStream.sink.add(_data);
     if (notify) notifyListeners();
     onDataUpdate(_data);
   }
@@ -149,4 +150,7 @@ class StateDocument extends ChangeNotifier {
 
   /// [onUpdate] is called every time data is updated
   set onUpdate(VoidCallback? _function) => _onUpdate = _function;
+
+  /// Stream Firestore document data
+  Stream<dynamic> get stream => _controllerStream.stream;
 }

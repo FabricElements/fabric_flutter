@@ -12,6 +12,12 @@ final FirebaseAuth _auth = FirebaseAuth.instance;
 
 /// This is a change notifier class which keeps track of state within the widgets.
 class StateUser extends StateDocument {
+  StateUser();
+
+  @override
+  String? collection = 'user';
+
+  /// State specific functionality
   User? _userObject;
   Map<String, dynamic>? _claims;
   String? _pingReference;
@@ -21,19 +27,17 @@ class StateUser extends StateDocument {
   bool _init = false;
   String _language = "en";
 
-  // ignore: close_sinks
+  /// More at [streamUser]
+  /// ignore: close_sinks
   final _controllerStreamUser = StreamController<User?>.broadcast();
 
-  // ignore: close_sinks
+  /// More at [streamSerialized]
+  /// ignore: close_sinks
   final _controllerStreamSerialized = StreamController<UserData?>.broadcast();
 
-  // ignore: close_sinks
+  /// More at [streamLanguage]
+  /// ignore: close_sinks
   final _controllerStreamLanguage = StreamController<String>.broadcast();
-
-  StateUser();
-
-  @override
-  String? collection = 'user';
 
   @override
   void clearAfter() {
@@ -197,6 +201,7 @@ class StateUser extends StateDocument {
     _controllerStreamUser.sink.add(userObject);
   }
 
+  /// Init app and prevent duplicated calls
   void init() {
     if (_init) return;
     Utils.getLanguage().then((value) {
@@ -206,10 +211,16 @@ class StateUser extends StateDocument {
     _auth.userChanges().listen((User? userObject) => _refreshAuth(userObject));
   }
 
+  /// Stream Firebase [User] data
   Stream<User?> get streamUser => _controllerStreamUser.stream;
+
+  /// Stream serialized [UserData]
   Stream<UserData?> get streamSerialized => _controllerStreamSerialized.stream;
+
+  /// Stream [language]
   Stream<String> get streamLanguage => _controllerStreamLanguage.stream;
 
+  /// Get User or Device [language]
   String get language => data != null ? serialized.language : _language;
 
   @override
