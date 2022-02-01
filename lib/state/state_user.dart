@@ -224,10 +224,12 @@ class StateUser extends StateDocument {
   String get language => data != null ? serialized.language : _language;
 
   @override
-  void onDataUpdate(data) {
-    if (_language != serialized.language)
-      _controllerStreamLanguage.sink.add(language);
-    _controllerStreamSerialized.sink.add(data != null ? serialized : null);
-    super.onDataUpdate(data);
-  }
+  Function(dynamic data) callback = (dynamic data) {
+    if (StateUser()._language != StateUser().serialized.language)
+      StateUser()._controllerStreamLanguage.sink.add(StateUser().language);
+    StateUser()
+        ._controllerStreamSerialized
+        .sink
+        .add(data != null ? StateUser().serialized : null);
+  };
 }

@@ -122,7 +122,7 @@ class _AudioPreviewState extends State<AudioPreview>
   Future<void> releaseFlauto() async {
     if (!playerModule!.isOpen()) return;
     try {
-      if (_playerSubscription != null) await playerModule!.closeAudioSession();
+      if (_playerSubscription != null) await playerModule!.closePlayer();
     } catch (e) {
       print('Released unsuccessful');
       print(e);
@@ -130,7 +130,7 @@ class _AudioPreviewState extends State<AudioPreview>
   }
 
   Future<void> _initializeExample() async {
-    await playerModule!.openAudioSession(
+    await playerModule!.openPlayer(
         // focus: AudioFocus.requestFocusTransientExclusive,
         // category: SessionCategory.playback,
         // audioFlags: outputToSpeaker
