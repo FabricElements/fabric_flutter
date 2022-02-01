@@ -17,7 +17,7 @@ class ButtonOptions {
   final String? labelAlt;
 
   /// [onTap] button
-  final VoidCallback? onTap;
+  final Function? onTap;
 
   /// [path] to redirect
   final String? path;

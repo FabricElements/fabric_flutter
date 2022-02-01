@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fabric_flutter/helper/utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/widgets.dart';
 
@@ -9,17 +12,32 @@ final FirebaseAuth _auth = FirebaseAuth.instance;
 
 /// This is a change notifier class which keeps track of state within the widgets.
 class StateUser extends StateDocument {
+  StateUser();
+
+  @override
+  String? collection = 'user';
+
+  /// State specific functionality
   User? _userObject;
   Map<String, dynamic>? _claims;
   String? _pingReference;
   DateTime _pingLast = DateTime.now().subtract(Duration(minutes: 10));
   Map<String, UserData> _usersMap = {};
   String? _lastUserGet;
+  bool _init = false;
+  String _language = "en";
 
-  StateUser();
+  /// More at [streamUser]
+  /// ignore: close_sinks
+  final _controllerStreamUser = StreamController<User?>.broadcast();
 
-  @override
-  String? collection = 'user';
+  /// More at [streamSerialized]
+  /// ignore: close_sinks
+  final _controllerStreamSerialized = StreamController<UserData?>.broadcast();
+
+  /// More at [streamLanguage]
+  /// ignore: close_sinks
+  final _controllerStreamLanguage = StreamController<String>.broadcast();
 
   @override
   void clearAfter() {
@@ -138,11 +156,11 @@ class StateUser extends StateDocument {
     });
     if (_lastUserGet != uid) {
       DocumentReference<Map<String, dynamic>> _documentReferenceUser =
-          FirebaseFirestore.instance.collection('user').doc(uid);
+      FirebaseFirestore.instance.collection('user').doc(uid);
       _documentReferenceUser.get().then((snapshot) {
         if (snapshot.exists) {
           Map<String, dynamic> _itemData =
-              snapshot.data() as Map<String, dynamic>;
+          snapshot.data() as Map<String, dynamic>;
           _itemData.addAll({'id': uid});
           _usersMap.addAll({'$uid': UserData.fromJson(_itemData)});
           notifyListeners();
@@ -172,4 +190,46 @@ class StateUser extends StateDocument {
     );
     return roles.contains(_role);
   }
+
+  /// Refresh auth state
+  _refreshAuth(User? userObject) async {
+    String? uid = userObject?.uid ?? null;
+    id = uid;
+    object = userObject ?? null;
+    _init = true;
+    // await Future.delayed(Duration(milliseconds: 400));
+    _controllerStreamUser.sink.add(userObject);
+  }
+
+  /// Init app and prevent duplicated calls
+  void init() {
+    if (_init) return;
+    Utils.getLanguage().then((value) {
+      _language = value;
+      _controllerStreamLanguage.sink.add(_language);
+    });
+    _auth.userChanges().listen((User? userObject) => _refreshAuth(userObject));
+  }
+
+  /// Stream Firebase [User] data
+  Stream<User?> get streamUser => _controllerStreamUser.stream;
+
+  /// Stream serialized [UserData]
+  Stream<UserData?> get streamSerialized => _controllerStreamSerialized.stream;
+
+  /// Stream [language]
+  Stream<String> get streamLanguage => _controllerStreamLanguage.stream;
+
+  /// Get User or Device [language]
+  String get language => data != null ? serialized.language : _language;
+
+  @override
+  Function(dynamic data) callback = (dynamic data) {
+    if (StateUser()._language != StateUser().serialized.language)
+      StateUser()._controllerStreamLanguage.sink.add(StateUser().language);
+    StateUser()
+        ._controllerStreamSerialized
+        .sink
+        .add(data != null ? StateUser().serialized : null);
+  };
 }

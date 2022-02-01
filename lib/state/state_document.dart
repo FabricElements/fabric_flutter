@@ -1,21 +1,34 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 
+import 'state_shared.dart';
+
 /// This is a change notifier class which keeps track of state within the campaign builder views.
-class StateDocument extends ChangeNotifier {
+class StateDocument extends ChangeNotifier with StateShared {
   StateDocument();
 
-  /// [_called] after snapshot is requested the first time
-  bool _called = false;
-
-  /// [_initialized] after data is called the first time
-  bool _initialized = false;
+  /// [initialized] after snapshot is requested the first time
 
   /// More at [id]
   String? _documentId;
 
-  /// More at [data]
-  dynamic _data;
+  /// Set document [id]
+  set id(String? id) {
+    if (id != _documentId) clear();
+    if (id == _documentId) return;
+    _documentId = id;
+    if (id != null) {
+      _listen();
+    }
+  }
+
+  /// Get Firestore Document [id]
+  String? get id => _documentId;
+
+  /// Collection ID
+  String? collection;
 
   /// Firestore Document Reference
   DocumentReference<Map<String, dynamic>>? get _documentReference {
@@ -28,58 +41,36 @@ class StateDocument extends ChangeNotifier {
     return _documentReference?.snapshots();
   }
 
-  /// More at [callback]
-  VoidCallback? _callback;
-
-  /// More at [_onUpdate]
-  VoidCallback? _onUpdate;
-
-  /// Collection ID
-  String? collection;
-
-  /// Set document [id]
-  set id(String? id) {
-    if (id != _documentId) clear();
-    if (id == _documentId) return;
-    _documentId = id;
-    if (id != null) {
-      _listen();
-    }
-  }
-
   /// Listen for document changes
   void _listen() {
-    if (_called) return;
-    _called = true;
+    if (initialized) return;
+    initialized = true;
     bool isValid = false;
-    notifyListeners();
     try {
       _streamReference?.listen((DocumentSnapshot snapshot) {
         String snapshotID = snapshot.id;
         isValid = snapshot.exists && snapshotID == _documentId;
-        _data = null;
+        data = null;
         if (!isValid) {
           return;
         }
         Map<String, dynamic> _tempData =
             snapshot.data() as Map<String, dynamic>;
         _tempData['id'] = snapshotID;
-        _data = _tempData;
-        if (_initialized && _onUpdate != null) _onUpdate!();
-        _initialized = true;
-        if (_callback != null) _callback!();
+        data = _tempData;
         notifyListeners();
-      }, cancelOnError: true).onError((error) {
-        print(error);
+      }, cancelOnError: true).onError((e) {
         isValid = false;
-        _data = null;
+        error = e != null ? e.toString() : null;
+        data = null;
         notifyListeners();
       });
-    } catch (error) {
+    } catch (e) {
       if (isValid) {
-        _data = null;
-        notifyListeners();
+        data = null;
       }
+      error = e.toString();
+      notifyListeners();
     }
   }
 
@@ -93,17 +84,6 @@ class StateDocument extends ChangeNotifier {
     return _documentReference!.set(newData, SetOptions(merge: merge));
   }
 
-  /// Get Firestore Document [id]
-  String? get id => _documentId;
-
-  /// Return document [data]
-  dynamic get data {
-    if (_documentId != null && _data == null) {
-      _listen();
-    }
-    return _data;
-  }
-
   /// Stop listening for changes
   void _drain() async {
     try {
@@ -111,26 +91,14 @@ class StateDocument extends ChangeNotifier {
     } catch (error) {}
   }
 
-  /// Override [clearAfter] for a custom implementation
-  /// It is called on the [clear]
-  void clearAfter() {}
-
   /// Clear document data
   void clear({bool notify = false}) {
     _drain();
-    _initialized = false;
-    _called = false;
+    initialized = false;
     _documentId = null;
-    _data = null;
-    _callback = null;
-    _onUpdate = null;
+    data = null;
+    error = null;
     clearAfter();
     if (notify) notifyListeners();
   }
-
-  /// Callback on successful load
-  set callback(VoidCallback _function) => _callback = _function;
-
-  /// [onUpdate] is called every time data is updated
-  set onUpdate(VoidCallback? _function) => _onUpdate = _function;
 }

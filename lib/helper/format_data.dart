@@ -17,7 +17,13 @@ class FormatData {
       NumberFormat.currency(locale: locale, symbol: symbol);
 
   static NumberFormat percentFormat({String locale = 'en_US'}) =>
+      NumberFormat.percentPattern(locale);
+
+  static NumberFormat decimalPercentFormat({String locale = 'en_US'}) =>
       NumberFormat.decimalPercentPattern(decimalDigits: 2, locale: locale);
+
+  // static NumberFormat decimalPercentFormat({String locale = 'en_US'}) =>
+  //     new NumberFormat('#%', locale);
 
   static DateFormat formatDate({String locale = 'en_US'}) =>
       new DateFormat.yMMMMd(locale);

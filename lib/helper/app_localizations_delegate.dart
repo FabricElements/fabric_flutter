@@ -77,8 +77,8 @@ class AppLocalizations {
   /// Get Locale from key and options
   /// [key] the locale key. It will be cleaned and fixed as needed
   /// [options] the locale optional values that will be replaced
-  String get(String key, [Map<String, String>? options]) {
-    String _key = key;
+  String get(String? key, [Map<String, String>? options]) {
+    String _key = key ?? "label--unknown";
     // Fix dash
     _key = _key.replaceAll('_', '-');
     // Handle camelCase

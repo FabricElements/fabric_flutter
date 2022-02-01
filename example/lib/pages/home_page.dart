@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fabric_flutter/component/card_button.dart';
+import 'package:fabric_flutter/component/logs_list.dart';
 import 'package:fabric_flutter/component/smart_image.dart';
 import 'package:fabric_flutter/helper/alert_helper.dart';
 import 'package:fabric_flutter/helper/app_localizations_delegate.dart';
+import 'package:fabric_flutter/helper/options.dart';
 import 'package:fabric_flutter/helper/redirect_app.dart';
 import 'package:fabric_flutter/state/state_api.dart';
 import 'package:fabric_flutter/state/state_document.dart';
@@ -12,7 +14,6 @@ import 'package:fabric_flutter/state/state_notifications.dart';
 import 'package:fabric_flutter/state/state_user.dart';
 import 'package:fabric_flutter/view/view_featured.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -137,9 +138,41 @@ class _HomePageState extends State<HomePage> {
       }
     }
 
+    void actionCall(dynamic id) {
+      print("id: $id");
+    }
+
     /// Returns home view widgets
     homeContent() {
       List<Widget> optionsMenu = [
+        LogsList(
+          minimal: true,
+          actions: [
+            ButtonOptions(label: "Load version", value: 1, onTap: actionCall),
+            ButtonOptions(
+                label: "Rollback changes", value: 1, onTap: actionCall)
+          ],
+          data: [
+            {
+              'text':
+                  '{Donec} nec {justo} eget felis facilisis fermentum. Aliquam porttitor mauris sit amet orci. Aenean dignissim pellentesque felis.',
+              'id': 'hello',
+              'timestamp': "2021-11-09T09:25:27",
+            },
+            {
+              'text':
+                  'Lorem ipsum dolor sit amet, consectetuer adipiscing elit.',
+              'id': 'test',
+              'timestamp': "2021-11-09T21:16:27"
+            },
+            {
+              'text':
+                  '{@Vcr3IZKdvqepEj51vjM8xqLxzfq1} Vestibulum commodo {@VnCYNfYzlVQc3fCAJH2LyNv9vGj2} felis quis tortor. Aliquam {porttitor} mauris sit amet orci. {Aenean dignissim} pellentesque felis.',
+              'id': 'demo',
+              'timestamp': "2021-11-09T20:23:27"
+            },
+          ],
+        ),
         // spacer,
       ];
       hasOptions = true;
