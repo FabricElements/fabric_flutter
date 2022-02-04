@@ -18,15 +18,27 @@ class MyTheme with Diagnosticable {
   ThemeData get get {
     return ThemeData(
         brightness: Brightness.light,
-        backgroundColor: Colors.white,
-        // scaffoldBackgroundColor: Colors.grey.shade50,
-        canvasColor: Colors.white,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-        // colorScheme: ColorScheme.fromSwatch(
-        //   primarySwatch: Colors.indigo,
-        //   brightness:Brightness.light,
-        // ),
-        colorScheme: ColorScheme.light()
+      backgroundColor: Colors.white,
+      // scaffoldBackgroundColor: Colors.grey.shade50,
+      canvasColor: Colors.white,
+      visualDensity: VisualDensity.adaptivePlatformDensity,
+      // colorScheme: ColorScheme.fromSwatch(
+      //   primarySwatch: Colors.indigo,
+      //   brightness:Brightness.light,
+      // ),
+      colorScheme: ColorScheme.light(),
+      inputDecorationTheme: InputDecorationTheme(
+        border: OutlineInputBorder(),
+        fillColor: Colors.white,
+        filled: true,
+      ),
+      buttonTheme: ButtonThemeData(
+        alignedDropdown: true,
+        padding: EdgeInsets.symmetric(horizontal: 16.0),
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: Colors.grey.shade100,
+      ),
       // appBarTheme: AppBarTheme(
       //
       //   centerTitle: false,

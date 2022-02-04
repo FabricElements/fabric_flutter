@@ -45,6 +45,8 @@ class InputData extends StatefulWidget {
     this.padding = EdgeInsets.zero,
     this.utcOffset,
     this.validator,
+    this.backgroundColor,
+    this.icon,
   }) : super(key: key);
   final dynamic value;
   final List<dynamic> enums;
@@ -59,6 +61,8 @@ class InputData extends StatefulWidget {
   final EdgeInsets padding;
   final num? utcOffset;
   final FormFieldValidator<String>? validator;
+  final Color? backgroundColor;
+  final IconData? icon;
 
   /// [onSubmit]
   /// Never use expression body or value won't be update correctly
@@ -142,6 +146,9 @@ class _InputDataState extends State<InputData> {
     String? hintTextDefault;
     int? maxLength = widget.maxLength;
     FormFieldValidator<String>? validator = widget.validator;
+    Widget? icon = widget.icon != null ? Icon(widget.icon) : null;
+    final ButtonThemeData buttonTheme = ButtonTheme.of(context);
+    final PopupMenuThemeData popupMenuTheme = PopupMenuTheme.of(context);
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         double width = constraints.maxWidth.floorToDouble();
@@ -240,9 +247,6 @@ class _InputDataState extends State<InputData> {
               minLines: 1,
               maxLength: maxLength,
               decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                fillColor: Colors.white,
-                filled: true,
                 hintText: widget.hintText ?? hintTextDefault ?? value,
                 isDense: widget.isDense,
               ),
@@ -367,10 +371,11 @@ class _InputDataState extends State<InputData> {
             if (buttons.length == (widget.isDense ? 0 : 1)) {
               _disabled = true;
             }
+
             _widget = PopupMenuButton<String>(
+              icon: icon,
               enabled: !_disabled,
               elevation: 1,
-              // isDense: isDense,
               offset: Offset(0, 40),
               key: popupButtonKey,
               initialValue: value?.toString(),
@@ -381,7 +386,7 @@ class _InputDataState extends State<InputData> {
               child: widget.isDense
                   ? null
                   : ListTile(
-                      title: Text(textSelected),
+                title: Text(textSelected),
                       trailing: Icon(
                         Icons.arrow_drop_down,
                         color: _disabled
@@ -391,10 +396,11 @@ class _InputDataState extends State<InputData> {
                       mouseCursor: _disabled
                           ? SystemMouseCursors.forbidden
                           : SystemMouseCursors.click,
+                      tileColor: widget.backgroundColor ?? popupMenuTheme.color,
+                      shape: buttonTheme.shape,
                     ),
               itemBuilder: (BuildContext context) => buttons,
             );
-
             break;
           case InputDataType.radio:
             List<Widget> _options = widget.options.map((e) {

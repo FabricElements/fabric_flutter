@@ -1,6 +1,6 @@
 name: fabric_flutter
 description: Native components and helpers
-version: 1.0.1
+version: 1.0.2
 
 environment:
   sdk: ">=2.15.0 <3.0.0"
@@ -12,7 +12,7 @@ dependencies:
   flutter_sound: ^9.1.2
   country_code_picker: ^2.0.2
   flutter_cache_manager: ^3.3.0
-  image_picker: ^0.8.4+5
+  image_picker: ^0.8.4+6
   file_picker: ^4.3.3
   provider: ^6.0.2
   transparent_image: ^2.0.0
