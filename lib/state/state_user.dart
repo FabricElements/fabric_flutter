@@ -202,9 +202,10 @@ class StateUser extends StateDocument {
   /// [accessByRole] displays content only if the the role matches for current user
   bool accessByRole({
     String? level,
+    String? levelId,
     List<String> roles = const ['admin'],
   }) {
-    String _role = roleFromData(level: level);
+    String _role = roleFromData(level: level, levelId: levelId);
     return roles.contains(_role);
   }
 
