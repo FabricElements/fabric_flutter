@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fabric_flutter/helper/utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/widgets.dart';
 
 import '../serialized/user_data.dart';
 import 'state_document.dart';
@@ -88,32 +87,56 @@ class StateUser extends StateDocument {
   /// [signedIn] Returns true when the user is authenticated
   bool get signedIn => _userObject != null && _userObject?.uid == id;
 
-  /// [roleFromData] Return an user role using [uid]
-  String roleFromData({
+  /// [roleFromDataAny] Return an user role using [uid]
+  String roleFromDataAny({
     Map<String, dynamic>? compareData,
     String? level,
-    required String? uid,
+    String? levelId,
+    String? role,
 
     /// [clean] returns the role without the [level]
     bool clean = false,
   }) {
-    if (id != null && uid != null && (id == uid) && admin) {
-      return role;
-    }
-    String _role = 'user';
-    if (uid == null || compareData == null || level == null) {
+    String _role = compareData?['role'] ?? role ?? 'user';
+    if (level == null || levelId == null || compareData == null) {
       return _role;
     }
 
     /// Get role and access level
-    Map<dynamic, dynamic> _roles = compareData['roles'] ?? {};
-    List<dynamic> _users = compareData['users'] ?? [];
-    if (_roles.containsKey(uid) && _users.contains(uid)) {
-      String _baseRole = _roles[uid];
+    Map<dynamic, dynamic> _levelRole = compareData[level] ?? {};
+    if (_levelRole.containsKey(levelId)) {
+      String _baseRole = _levelRole[levelId];
       if (clean) return _baseRole;
       _role = '$level-$_baseRole';
     }
     return _role;
+  }
+
+  /// [roleFromData] Return the current user role
+  String roleFromData({
+    String? level,
+    String? levelId,
+
+    /// [clean] returns the role without the [level]
+    bool clean = false,
+  }) {
+    String _role = role;
+    if (id != null && admin) {
+      return _role;
+    }
+    if (level != null || levelId != null)
+      assert(level != null && levelId != null,
+          "level and levelId must be initialized.");
+    if (level == null || levelId == null || data == null) {
+      return _role;
+    }
+    return roleFromDataAny(
+      level: level,
+      levelId: levelId,
+      compareData: data,
+      role: _role,
+      clean: clean,
+    );
   }
 
   /// Ping user
@@ -176,18 +199,12 @@ class StateUser extends StateDocument {
     this.clear();
   }
 
-  /// [accessByRole] displays content only if the the role matches
+  /// [accessByRole] displays content only if the the role matches for current user
   bool accessByRole({
-    required Map<String, dynamic>? compareData,
-    BuildContext? context,
     String? level,
     List<String> roles = const ['admin'],
   }) {
-    String _role = roleFromData(
-      compareData: compareData,
-      level: level,
-      uid: id,
-    );
+    String _role = roleFromData(level: level);
     return roles.contains(_role);
   }
 

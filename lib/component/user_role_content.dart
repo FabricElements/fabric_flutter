@@ -39,7 +39,6 @@ class _UserRoleContentState extends State<UserRoleContent> {
     }
     final stateUser = Provider.of<StateUser>(context);
     final hasAccess = stateUser.accessByRole(
-      compareData: widget.compareData,
       level: widget.level,
       roles: widget.roles,
     );

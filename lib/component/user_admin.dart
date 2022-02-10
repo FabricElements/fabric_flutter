@@ -26,11 +26,13 @@ class UserAdmin extends StatefulWidget {
     this.id,
     this.appBar,
     this.maxWidth = 900,
+    this.disabled = false,
   }) : super(key: key);
   final Widget? empty;
   final Widget? loader;
   final List<String>? roles;
   final bool primary;
+  final bool disabled;
 
   /// Firestore Document [id]
   final String? id;
@@ -103,7 +105,7 @@ class _UserAdminState extends State<UserAdmin> {
       'admin': true,
     };
     if (fromCollection) {
-      query = baseQuery.where(collection, arrayContains: id);
+      query = baseQuery.orderBy('$collection.$id');
       inviteMetadata = {
         'collection': collection,
         'document': id,
@@ -138,6 +140,7 @@ class _UserAdminState extends State<UserAdmin> {
       bool _sameUser = stateUser.id == _itemData.id;
       // Don't allow a user to change anything about itself on the 'admin' view
       bool _canUpdateUser = !_sameUser;
+      if (widget.disabled) _canUpdateUser = false;
       Color statusColor = Colors.grey.shade600;
       switch (_itemData.presence) {
         case 'active':
@@ -151,10 +154,10 @@ class _UserAdminState extends State<UserAdmin> {
       }
       String _role = _itemData.role;
       if (id != null) {
-        _role = stateUser.roleFromData(
-          compareData: documentData,
+        _role = stateUser.roleFromDataAny(
+          compareData: userData,
           level: collection,
-          uid: _itemData.id,
+          levelId: id,
           clean: true, // Use clean: true to reduce the role locales
         );
       }
@@ -325,29 +328,32 @@ class _UserAdminState extends State<UserAdmin> {
                 ? AppBar(title: Text(locales.get('label--users')))
                 : null),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        floatingActionButton: FloatingActionButton.extended(
-          icon: Icon(Icons.person_add),
-          label: Text('${locales.get('label--add-label', {
-                'label': locales.get('label--user'),
-              })}'
-              .toUpperCase()),
-          onPressed: () {
-            showDialog<void>(
-              barrierColor: Colors.black12,
-              context: context,
-              builder: (context) =>
-                  UserAdd(data: inviteMetadata, roles: _roles),
-            );
-          },
-        ),
+        floatingActionButton: widget.disabled
+            ? null
+            : FloatingActionButton.extended(
+                icon: Icon(Icons.person_add),
+                label: Text('${locales.get('label--add-label', {
+                      'label': locales.get('label--user'),
+                    })}'
+                    .toUpperCase()),
+                onPressed: () {
+                  showDialog<void>(
+                    barrierColor: Colors.black12,
+                    context: context,
+                    builder: (context) =>
+                        UserAdd(data: inviteMetadata, roles: _roles),
+                  );
+                },
+              ),
         body: content,
       );
     }
 
-    return Flex(
-      direction: Axis.vertical,
-      children: [
-        content,
+    List<Widget> _content = [
+      content,
+    ];
+    if (!widget.disabled) {
+      _content.addAll([
         SizedBox(height: 32),
         Align(
           alignment: Alignment.center,
@@ -367,7 +373,12 @@ class _UserAdminState extends State<UserAdmin> {
             },
           ),
         ),
-      ],
+      ]);
+    }
+
+    return Flex(
+      direction: Axis.vertical,
+      children: _content,
     );
   }
 }
