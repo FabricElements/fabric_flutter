@@ -12,17 +12,17 @@ dependencies:
   flutter_sound: ^9.1.2
   country_code_picker: ^2.0.2
   flutter_cache_manager: ^3.3.0
-  image_picker: ^0.8.4+7
+  image_picker: ^0.8.4+8
   file_picker: ^4.3.3
   provider: ^6.0.2
   transparent_image: ^2.0.0
   image: ^3.1.1
-  cloud_firestore: ^3.1.7
+  cloud_firestore: ^3.1.8
   cloud_functions: ^3.2.7
   firebase_analytics: ^9.1.0
-  firebase_auth: ^3.3.6
+  firebase_auth: ^3.3.7
   firebase_core: ^1.12.0
-  firebase_dynamic_links: ^4.0.5
+  firebase_dynamic_links: ^4.0.6
   firebase_messaging: ^11.2.6
   firebase_storage: ^10.2.7
   firebase_database: ^9.0.6
@@ -38,7 +38,7 @@ dependencies:
   http: ^0.13.4
   #vibration: ^1.7.3
   sensors: ^2.0.3
-  url_launcher: ^6.0.18
+  url_launcher: ^6.0.19
   share: ^2.0.4
   flutter_linkify: ^5.0.2
   flutter_markdown: ^0.6.9
