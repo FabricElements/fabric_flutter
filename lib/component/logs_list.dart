@@ -39,12 +39,21 @@ class LogsList extends StatelessWidget {
     this.minimal = false,
     this.highlightColor,
     this.scrollable = false,
+    this.padding =
+        const EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 8),
+    this.margin = const EdgeInsets.symmetric(vertical: 8),
   }) : super(key: key);
   final List<Map<String, dynamic>>? data;
   final List<ButtonOptions>? actions;
   final bool minimal;
   final Color? highlightColor;
   final bool scrollable;
+
+  /// The amount of space using for each item.
+  final EdgeInsetsGeometry padding;
+
+  /// Main content margin space
+  final EdgeInsetsGeometry margin;
 
   @override
   Widget build(BuildContext context) {
@@ -162,7 +171,7 @@ class LogsList extends StatelessWidget {
       ];
       if (_actions != null) horizontal.add(_actions);
       return Padding(
-        padding: const EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 8),
+        padding: padding,
         child: Flex(
           direction: Axis.horizontal,
           children: horizontal,
@@ -175,13 +184,13 @@ class LogsList extends StatelessWidget {
       return ListView.builder(
         itemCount: data!.length,
         itemBuilder: (BuildContext context, int index) => getItem(data![index]),
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: margin,
       );
     } else {
       final _cellsBase =
           List.generate(data!.length, (index) => getItem(data![index]));
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: margin,
         child: Flex(direction: Axis.vertical, children: _cellsBase),
       );
     }

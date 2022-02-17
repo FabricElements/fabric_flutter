@@ -595,4 +595,14 @@ dynamic defaultLocales = {
     "en": "Enter a valid phone number",
     "es": "Introduce un número de teléfono válido"
   },
+  "label--activity": {
+    "en": "Activity",
+    "es": "Actividad",
+  },
+  "label--total": {
+    "en": "Total",
+  },
+  "label--total-label": {
+    "en": "Total {label}",
+  },
 };
