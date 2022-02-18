@@ -42,20 +42,29 @@ class StateUser extends StateDocument {
   void clearAfter() {
     _userObject = null;
     _claims = null;
+    _token = null;
     notifyListeners();
   }
 
+  /// More at [token]
+  String? _token;
+
+  /// Get user token
+  String? get token => _token;
+
   /// [_getToken] Gets the authenticated user token and retrieves costume claims
-  void _getToken() async {
+  void _getToken(User? userObject) async {
     _claims = null;
-    try {
-      if (signedIn) {
-        final token = await (_userObject!.getIdTokenResult(true));
-        _claims = token.claims;
+    _token = null;
+    if (userObject != null) {
+      try {
+        final tokenResult = await userObject.getIdTokenResult(true);
+        _token = tokenResult.token;
+        _claims = tokenResult.claims;
         notifyListeners();
+      } catch (e) {
+        print(e);
       }
-    } catch (e) {
-      print(e);
     }
   }
 
@@ -63,7 +72,7 @@ class StateUser extends StateDocument {
   set object(User? user) {
     _userObject = user;
     notifyListeners();
-    // _getToken();
+    _getToken(user);
   }
 
   /// [admin] Returns true if the authenticated user is an admin
@@ -215,7 +224,7 @@ class StateUser extends StateDocument {
     id = uid;
     object = userObject ?? null;
     _init = true;
-    // await Future.delayed(Duration(milliseconds: 400));
+    await Future.delayed(Duration(milliseconds: 300));
     _controllerStreamUser.sink.add(userObject);
   }
 

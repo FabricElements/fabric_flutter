@@ -22,11 +22,14 @@ class StateAPI extends ChangeNotifier with StateShared {
   /// More at [endpoint]
   String? baseEndpoint;
 
-  /// [authParameters]
-  String? authParameters;
+  /// [credentials]
+  /// https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication
+  String? credentials;
 
   /// [authScheme]
-  String authScheme = 'Bearer';
+  /// https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication#authentication_schemes
+  /// Use Bearer for token authentication
+  String? authScheme;
 
   /// Clear and reset default values
   void clear({bool notify = false}) {
@@ -72,14 +75,28 @@ class StateAPI extends ChangeNotifier with StateShared {
       notifyListeners();
       return;
     }
+    bool mustAuthenticate = false;
+    bool canAuthenticate = false;
+    if (authScheme != null || credentials != null) {
+      mustAuthenticate = true;
+      canAuthenticate = authScheme != null && credentials != null;
+    }
+    if (mustAuthenticate && !canAuthenticate) {
+      if (kDebugMode) print('Must Authenticate on call: $baseEndpoint');
+      return;
+    }
+    bool willAuthenticate = mustAuthenticate && canAuthenticate;
     if (ignoreDuplicatedCalls && _lastEndpointCalled == baseEndpoint) return;
     initialized = true;
     _lastEndpointCalled = baseEndpoint;
     if (kDebugMode) print('Calling endpoint: $baseEndpoint');
     Uri url = Uri.parse(baseEndpoint!);
     Map<String, String> headers = {};
-    if (authParameters != null) {
-      headers.addAll({'Authorization': '$authScheme $authParameters'});
+    if (willAuthenticate) {
+      headers.addAll({'Authorization': '$authScheme $credentials'});
+      print('------------------ !!!!!!');
+      print(credentials);
+      print('------------------ !!!!!!');
     }
     final Response response = await http.get(url, headers: headers);
     if (response.statusCode == 200) {
