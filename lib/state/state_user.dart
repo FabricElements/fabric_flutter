@@ -53,7 +53,7 @@ class StateUser extends StateDocument {
   String? get token => _token;
 
   /// [_getToken] Gets the authenticated user token and retrieves costume claims
-  void _getToken(User? userObject) async {
+  _getToken(User? userObject) async {
     _claims = null;
     _token = null;
     if (userObject != null) {
@@ -72,7 +72,6 @@ class StateUser extends StateDocument {
   set object(User? user) {
     _userObject = user;
     notifyListeners();
-    _getToken(user);
   }
 
   /// [admin] Returns true if the authenticated user is an admin
@@ -220,11 +219,12 @@ class StateUser extends StateDocument {
 
   /// Refresh auth state
   _refreshAuth(User? userObject) async {
+    _init = true;
+    await _getToken(userObject); // Call first to prevent unauthenticated calls
     String? uid = userObject?.uid ?? null;
     id = uid;
     object = userObject ?? null;
-    _init = true;
-    await Future.delayed(Duration(milliseconds: 300));
+    await Future.delayed(Duration(milliseconds: 100));
     _controllerStreamUser.sink.add(userObject);
   }
 

@@ -56,7 +56,8 @@ class StateAPI extends ChangeNotifier with StateShared {
       }
       return;
     }
-    get(ignoreDuplicatedCalls: true);
+    Future.delayed(Duration(milliseconds: 200))
+        .then((value) => get(ignoreDuplicatedCalls: true));
   }
 
   /// API Call
@@ -94,9 +95,6 @@ class StateAPI extends ChangeNotifier with StateShared {
     Map<String, String> headers = {};
     if (willAuthenticate) {
       headers.addAll({'Authorization': '$authScheme $credentials'});
-      print('------------------ !!!!!!');
-      print(credentials);
-      print('------------------ !!!!!!');
     }
     final Response response = await http.get(url, headers: headers);
     if (response.statusCode == 200) {
