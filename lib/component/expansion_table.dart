@@ -167,15 +167,16 @@ class _ExpansionTableState extends State<ExpansionTable> {
                   _baseCell = Text(cellValue.toString());
                   break;
                 case TableDataType.currency:
-                  _baseCell =
-                      Text(FormatData.currencyFormat().format(cellValue));
+                  _baseCell = Text(FormatData.currencyFormat()
+                      .format(double.parse(cellValue.toString())));
                   break;
                 case TableDataType.number:
-                  _baseCell =
-                      Text(FormatData.numberClearFormat().format(cellValue));
+                  _baseCell = Text(FormatData.numberClearFormat()
+                      .format(double.parse(cellValue.toString())));
                   break;
                 case TableDataType.decimal:
-                  _baseCell = Text(FormatData.numberFormat().format(cellValue));
+                  _baseCell = Text(FormatData.numberFormat()
+                      .format(double.parse(cellValue.toString())));
                   break;
                 case TableDataType.path:
                   _baseCell = TextButton(
