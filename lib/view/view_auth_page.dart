@@ -157,6 +157,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           alert.show(
             title: locales.get('alert--check-phone-verification-code'),
             type: AlertType.success,
+            duration: 3,
           );
         };
         final PhoneCodeAutoRetrievalTimeout codeAutoRetrievalTimeout =
@@ -166,7 +167,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         String phoneNumber = areaCode + _phoneNumberController.text;
         await verifyIfUserExists({'phoneNumber': phoneNumber});
         if (kIsWeb) {
-          ConfirmationResult confirmationResult =
+          final confirmationResult =
               await _auth.signInWithPhoneNumber(phoneNumber);
           _verificationId = confirmationResult.verificationId;
           webConfirmationResult = confirmationResult;
@@ -271,8 +272,8 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           idToken: googleAuth?.idToken,
         );
         // Once signed in, return the UserCredential and get the User object
-        final User? user = (await _auth.signInWithCredential(credential)).user;
-        if (user != null) {
+        final user = (await _auth.signInWithCredential(credential)).user;
+        if (user == null) {
           throw Exception('Please try again');
         }
       } on FirebaseFunctionsException catch (error) {
@@ -305,11 +306,15 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           ),
         );
         alert.show(
-            title: 'An email has been sent to $_userEmail', type: AlertType.success);
+          title: 'An email has been sent to $_userEmail',
+          type: AlertType.success,
+          duration: 3,
+        );
       } on FirebaseFunctionsException catch (error) {
         alert.show(
-            title: error.message ?? error.details['message'],
-            type: AlertType.critical);
+          title: error.message ?? error.details['message'],
+          type: AlertType.critical,
+        );
       } catch (error) {
         alert.show(title: error.toString(), type: AlertType.critical);
       }
