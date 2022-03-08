@@ -254,7 +254,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     void _signInGoogle() async {
       loading = true;
       if (mounted) setState(() {});
-      GoogleSignIn _googleSignIn = GoogleSignIn(
+      final _googleSignIn = GoogleSignIn(
         clientId: dotenv.get('GOOGLE_SIGNIN_CLIENT_ID', fallback: ''),
         scopes: ['email'],
       );
@@ -263,23 +263,23 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         await _googleSignIn.disconnect();
       } catch (error) {}
       try {
-        final GoogleSignInAccount googleUser =
-            await (_googleSignIn.signIn() as FutureOr<GoogleSignInAccount>);
-        final GoogleSignInAuthentication googleAuth =
-            await googleUser.authentication;
-        await verifyIfUserExists({'email': googleUser.email});
-        final AuthCredential credential = GoogleAuthProvider.credential(
-          accessToken: googleAuth.accessToken,
-          idToken: googleAuth.idToken,
+        final googleUser = await _googleSignIn.signIn();
+        final googleAuth = await googleUser?.authentication;
+        await verifyIfUserExists({'email': googleUser?.email});
+        final credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth?.accessToken,
+          idToken: googleAuth?.idToken,
         );
+        // Once signed in, return the UserCredential and get the User object
         final User? user = (await _auth.signInWithCredential(credential)).user;
         if (user != null) {
           throw Exception('Please try again');
         }
       } on FirebaseFunctionsException catch (error) {
         alert.show(
-            title: error.message ?? error.details['message'],
-            type: AlertType.critical);
+          title: error.message ?? error.details['message'],
+          type: AlertType.critical,
+        );
       } catch (error) {
         alert.show(title: error.toString(), type: AlertType.critical);
       }
