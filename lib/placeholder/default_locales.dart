@@ -575,6 +575,10 @@ dynamic defaultLocales = {
     "en": "Not Found",
     "es": "No se encuentra",
   },
+  "error--403": {
+    "en": "Forbidden",
+    "es": "Prohibido",
+  },
   "label--type-here": {
     "en": "Type here...",
     "es": "Escribe aquí...",

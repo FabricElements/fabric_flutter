@@ -50,7 +50,10 @@ class StateUser extends StateDocument {
   String? _token;
 
   /// Get user token
-  String? get token => _token;
+  String? get token {
+    if (_token == null) _getToken(object);
+    return _token;
+  }
 
   /// [_getToken] Gets the authenticated user token and retrieves costume claims
   _getToken(User? userObject) async {
@@ -222,7 +225,9 @@ class StateUser extends StateDocument {
     _init = true;
     await _getToken(userObject); // Call first to prevent unauthenticated calls
     String? uid = userObject?.uid ?? null;
+    await Future.delayed(Duration(milliseconds: 100));
     id = uid;
+    await Future.delayed(Duration(milliseconds: 100));
     object = userObject ?? null;
     await Future.delayed(Duration(milliseconds: 100));
     _controllerStreamUser.sink.add(userObject);

@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:http/http.dart';
 
 import 'state_shared.dart';
 
@@ -96,7 +95,7 @@ class StateAPI extends ChangeNotifier with StateShared {
     if (willAuthenticate) {
       headers.addAll({'Authorization': '$authScheme $credentials'});
     }
-    final Response response = await http.get(url, headers: headers);
+    final response = await http.get(url, headers: headers);
     if (response.statusCode == 200) {
       try {
         data = jsonDecode(response.body);
