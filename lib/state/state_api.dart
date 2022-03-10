@@ -65,14 +65,15 @@ class StateAPI extends ChangeNotifier with StateShared {
       }
       return;
     }
-    Future.delayed(Duration(milliseconds: 200))
-        .then((value) => get(ignoreDuplicatedCalls: true));
+    get(ignoreDuplicatedCalls: true);
   }
 
   /// API Call
   void get({bool ignoreDuplicatedCalls = false}) async {
     if (loading) return;
     loading = true;
+    // Prevents duplicate calls with a delay
+    await Future.delayed(Duration(milliseconds: 200));
     if (baseEndpoint == null) {
       data = null;
       error = 'endpoint can\'t be null';

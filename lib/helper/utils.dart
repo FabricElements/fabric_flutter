@@ -68,16 +68,28 @@ class Utils {
   /// If any key value is empty the key is removed from the response
   static String uriQueryToStringPath({
     required Uri uri,
-    required Map<String, String> queryParameters,
+    required Map<String, List<String>> queryParameters,
   }) {
-    Map<String, String> _parameters = {...uri.queryParameters};
+    Map<String, Iterable<String>> _parameters = {...uri.queryParametersAll};
     _parameters.addAll(queryParameters);
-    _parameters.removeWhere((key, value) => value.isEmpty);
+    _parameters.removeWhere((key, value) => value.length == 0);
     Uri _baseUri = uri;
     _baseUri = _baseUri.replace(
       queryParameters: _parameters,
     );
     return _baseUri.toString();
+  }
+
+  /// Push Named path from URI query
+  static void pushNamedFromQuery({
+    required BuildContext context,
+    required Map<String, List<String>> queryParameters,
+    required Uri uri,
+  }) {
+    Navigator.of(context).pushNamed(uriQueryToStringPath(
+      uri: uri,
+      queryParameters: queryParameters,
+    ));
   }
 
   static DateTime? dateTimeOffset({
