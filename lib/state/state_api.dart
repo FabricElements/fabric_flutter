@@ -136,9 +136,9 @@ class StateAPI extends ChangeNotifier with StateShared {
       }
     } else {
       _error =
-      response.reasonPhrase != null && response.reasonPhrase!.isNotEmpty
-          ? response.reasonPhrase
-          : null;
+          response.reasonPhrase != null && response.reasonPhrase!.isNotEmpty
+              ? response.reasonPhrase
+              : null;
       if (error == null) {
         _error = 'error--${response.statusCode}';
       }

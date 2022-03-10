@@ -355,7 +355,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: changed && !loading
           ? FloatingActionButton.extended(
-        label: Text(locales.get('label--update')),
+              label: Text(locales.get('label--update')),
               onPressed: updateUser,
               heroTag: 'update-button',
             )

@@ -190,11 +190,11 @@ class StateUser extends StateDocument {
     });
     if (_lastUserGet != uid) {
       DocumentReference<Map<String, dynamic>> _documentReferenceUser =
-      FirebaseFirestore.instance.collection('user').doc(uid);
+          FirebaseFirestore.instance.collection('user').doc(uid);
       _documentReferenceUser.get().then((snapshot) {
         if (snapshot.exists) {
           Map<String, dynamic> _itemData =
-          snapshot.data() as Map<String, dynamic>;
+              snapshot.data() as Map<String, dynamic>;
           _itemData.addAll({'id': uid});
           _usersMap.addAll({'$uid': UserData.fromJson(_itemData)});
           notifyListeners();

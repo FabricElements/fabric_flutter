@@ -386,7 +386,7 @@ class _InputDataState extends State<InputData> {
               child: widget.isDense
                   ? null
                   : ListTile(
-                title: Text(textSelected),
+                      title: Text(textSelected),
                       trailing: Icon(
                         Icons.arrow_drop_down,
                         color: _disabled

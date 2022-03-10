@@ -23,10 +23,12 @@ class HTTPRequest {
   /// Use Bearer for token authentication
   final AuthScheme? authScheme;
 
+  /// Get formatted credentials
   String? get formattedCredentials => credentials != null && authScheme != null
       ? '${authScheme.toString().split('.').last} $credentials'
       : null;
 
+  /// Get headers
   Map<String, String> get headers {
     Map<String, String> _headers = {};
     if (formattedCredentials != null) {
