@@ -65,11 +65,11 @@ class StateAPI extends ChangeNotifier with StateShared {
       }
       return;
     }
-    get(ignoreDuplicatedCalls: true);
+    call(ignoreDuplicatedCalls: true);
   }
 
   /// API Call
-  void get({bool ignoreDuplicatedCalls = false}) async {
+  void call({bool ignoreDuplicatedCalls = false}) async {
     if (loading) return;
     loading = true;
     // Prevents duplicate calls with a delay

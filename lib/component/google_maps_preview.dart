@@ -18,11 +18,15 @@ class GoogleMapsPreview extends StatefulWidget {
     this.latitude,
     this.longitude,
     this.aspectRatio = 3 / 2,
+    this.zoom = 8,
+    this.minMaxZoomPreference = const MinMaxZoomPreference(5, 25),
   }) : super(key: key);
   final MapType mapType;
   final double? latitude;
   final double? longitude;
   final double aspectRatio;
+  final double zoom;
+  final MinMaxZoomPreference minMaxZoomPreference;
 
   @override
   _GoogleMapsPreviewState createState() => _GoogleMapsPreviewState();
@@ -82,14 +86,14 @@ class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
     Completer<GoogleMapController> _controller = Completer();
     final CameraPosition _kGooglePlex = CameraPosition(
       target: location,
-      zoom: 8,
+      zoom: widget.zoom,
     );
     final Marker marker =
         Marker(markerId: MarkerId('map-preview'), position: location);
     return AspectRatio(
       aspectRatio: widget.aspectRatio,
       child: GoogleMap(
-        minMaxZoomPreference: MinMaxZoomPreference(5, 25),
+        minMaxZoomPreference: widget.minMaxZoomPreference,
         liteModeEnabled: false,
         mapType: widget.mapType,
         initialCameraPosition: _kGooglePlex,

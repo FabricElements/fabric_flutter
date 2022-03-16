@@ -9,7 +9,7 @@ dependencies:
   flutter:
     sdk: flutter
   charts_flutter: ^0.12.0
-  flutter_sound: ^9.1.6
+  flutter_sound: ^9.1.7
   country_code_picker: ^2.0.2
   flutter_cache_manager: ^3.3.0
   image_picker: ^0.8.4+11
@@ -20,10 +20,10 @@ dependencies:
   cloud_firestore: ^3.1.10
   cloud_functions: ^3.2.10
   firebase_analytics: ^9.1.2
-  firebase_auth: ^3.3.10
+  firebase_auth: ^3.3.11
   firebase_core: ^1.13.1
-  firebase_dynamic_links: ^4.1.0
-  firebase_messaging: ^11.2.10
+  firebase_dynamic_links: ^4.1.1
+  firebase_messaging: ^11.2.11
   firebase_storage: ^10.2.9
   firebase_database: ^9.0.8
   json_annotation: ^4.4.0
@@ -52,7 +52,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^1.0.4
-  build_runner: ^2.1.7
+  build_runner: ^2.1.8
   json_serializable: ^6.1.5
 
 dependency_overrides:
