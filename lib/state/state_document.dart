@@ -1,12 +1,11 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
 
 import 'state_shared.dart';
 
 /// This is a change notifier class which keeps track of state within the campaign builder views.
-class StateDocument extends ChangeNotifier with StateShared {
+class StateDocument extends StateShared {
   StateDocument();
 
   /// [initialized] after snapshot is requested the first time

@@ -5,13 +5,14 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../helper/http_request.dart';
+import '../helper/utils.dart';
 import 'state_shared.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
 /// Base State for API calls
 /// Use this state to fetch updated data every time an endpoint is updated
-class StateAPI extends ChangeNotifier with StateShared {
+class StateAPI extends StateShared {
   StateAPI();
 
   /// [initialized] after [endpoint] is set the first time
@@ -38,15 +39,15 @@ class StateAPI extends ChangeNotifier with StateShared {
   /// Use [AuthScheme.Bearer] and the current user id token for authentication
   bool token = false;
 
-  bool loading = false;
-
   /// Clear and reset default values
   void clear({bool notify = false}) {
     _errorCount = 0;
-    data = null;
-    // baseEndpoint = null;
     initialized = false;
-    // _lastEndpointCalled = null;
+    pageDefault = 0;
+    limitDefault = 5;
+    selectedItems = [];
+    _lastEndpointCalled = null;
+    data = null;
     clearAfter();
     if (notify) notifyListeners();
   }
@@ -68,39 +69,56 @@ class StateAPI extends ChangeNotifier with StateShared {
     call(ignoreDuplicatedCalls: true);
   }
 
+  String? get endpoint {
+    if (queryParameters == null || baseEndpoint == null) return baseEndpoint;
+    return Utils.uriQueryToStringPath(
+        uri: Uri.parse(baseEndpoint!), queryParameters: queryParameters!);
+  }
+
+  String? urlClear(String? url) {
+    if (url == null) return null;
+    return Utils.uriQueryToStringPath(
+        uri: Uri.parse(url), queryParameters: {'page': []});
+  }
+
   /// API Call
-  void call({bool ignoreDuplicatedCalls = false}) async {
-    if (loading) return;
+  Future<dynamic> call({bool ignoreDuplicatedCalls = false}) async {
+    if (loading) return null;
     loading = true;
     // Prevents duplicate calls with a delay
     await Future.delayed(Duration(milliseconds: 200));
-    if (baseEndpoint == null) {
+    if (endpoint == null) {
       data = null;
       error = 'endpoint can\'t be null';
       _errorCount++;
       loading = false;
       notifyListeners();
-      return;
+      return null;
     }
+    final lastEndpointClear = urlClear(_lastEndpointCalled);
+    final endpointClear = urlClear(endpoint);
+    bool isSameClearPath =
+        lastEndpointClear == endpointClear && incrementalPagination;
     if (ignoreDuplicatedCalls &&
         _lastEndpointCalled != null &&
-        _lastEndpointCalled == baseEndpoint) {
+        _lastEndpointCalled == endpoint) {
       loading = false;
-      return;
+      return null;
     }
-    if (_lastEndpointCalled != baseEndpoint) {
+    if (!isSameClearPath) {
       _errorCount = 0;
       data = null;
       initialized = false;
     }
-    _lastEndpointCalled = baseEndpoint;
+    _lastEndpointCalled = endpoint;
     String? _error;
     if (_errorCount > 1) {
       if (kDebugMode) {
-        print('$_errorCount errors calls to endpoint: $baseEndpoint');
+        print('$_errorCount errors calls to endpoint: $endpoint');
       }
       loading = false;
-      return;
+      if (!isSameClearPath) data = null;
+      return null;
     }
     bool mustAuthenticate = false;
     bool canAuthenticate = false;
@@ -113,23 +131,24 @@ class StateAPI extends ChangeNotifier with StateShared {
       canAuthenticate = authScheme != null && credentials != null;
     }
     if (mustAuthenticate && !canAuthenticate) {
-      if (kDebugMode) print('Must Authenticate on call: $baseEndpoint');
+      if (kDebugMode) print('Must Authenticate on call: $endpoint');
       loading = false;
-      return;
+      return null;
     }
     bool willAuthenticate = mustAuthenticate && canAuthenticate;
-    Uri url = Uri.parse(baseEndpoint!);
+    Uri url = Uri.parse(endpoint!);
     Map<String, String> headers = {};
     if (willAuthenticate) {
       headers.addAll({
         'Authorization': '${describeEnum(authScheme!)} $credentials',
       });
     }
-    if (kDebugMode) print('Calling endpoint: $baseEndpoint');
+    if (kDebugMode) print('Calling endpoint: $endpoint');
     final response = await http.get(url, headers: headers);
+    dynamic _newData;
     if (response.statusCode == 200) {
       try {
-        data = jsonDecode(response.body);
+        _newData = jsonDecode(response.body);
         error = null;
       } catch (e) {
         _error = e.toString();
@@ -147,10 +166,22 @@ class StateAPI extends ChangeNotifier with StateShared {
       print('------------ ERROR API CALL -------------');
       _errorCount++;
       error = _error;
-      data = null;
+      if (!isSameClearPath) data = null;
+      _newData = null;
     }
     initialized = true;
     loading = false;
-    notifyListeners();
+    Future.delayed(Duration(milliseconds: 10))
+        .then((value) => notifyListeners());
+
+    /// pagination
+    if (incrementalPagination && page > 0 && data != null) {
+      if (_newData.runtimeType == List) {
+        data = merge(base: data, toMerge: _newData);
+      }
+    } else {
+      data = _newData;
+    }
+    return _newData;
   }
 }

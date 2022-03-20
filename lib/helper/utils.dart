@@ -79,6 +79,16 @@ class Utils {
     return _baseUri.toString();
   }
 
+  static List<String>? valuesFromQueryKey(
+    Map<String, List<String>>? queryParameters,
+    String key,
+  ) {
+    if (queryParameters == null ||
+        !queryParameters.containsKey(key) ||
+        queryParameters[key]!.length == 0) return null;
+    return queryParameters[key];
+  }
+
   /// Push Named path from URI query
   static void pushNamedFromQuery({
     required BuildContext context,
