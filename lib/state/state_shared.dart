@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../helper/utils.dart';
+
 class StateShared extends ChangeNotifier {
   /// [initialized] after data is called the first time
   bool initialized = false;
@@ -131,6 +133,18 @@ class StateShared extends ChangeNotifier {
     // notifyListeners();
     // call(ignoreDuplicatedCalls: true);
   }
+
+  /// Returns the trade
+  String? get search =>
+      Utils.valuesFromQueryKey(queryParameters, 'search')?.first;
+
+  /// Returns searchBy
+  List<String>? get searchBy =>
+      Utils.valuesFromQueryKey(queryParameters, 'searchBy');
+
+  /// Returns order
+  String? get order =>
+      Utils.valuesFromQueryKey(queryParameters, 'order')?.first;
 
   /// Define if the parameters are passed or ignored
   bool passParameters = false;
