@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../state/state_user.dart';
 
 class UserRoleContent extends StatefulWidget {
-  UserRoleContent({
+  const UserRoleContent({
     Key? key,
     required this.compareData,
     this.roles = const ['admin'],
@@ -30,7 +30,7 @@ class _UserRoleContentState extends State<UserRoleContent> {
   @override
   Widget build(BuildContext context) {
     Widget _placeholder =
-        widget.placeholder ?? Center(child: CircularProgressIndicator());
+        widget.placeholder ?? const Center(child: CircularProgressIndicator());
     if (widget.path != null) {
       WidgetsBinding.instance?.addPostFrameCallback((_) {
         Navigator.popAndPushNamed(context, widget.path!);

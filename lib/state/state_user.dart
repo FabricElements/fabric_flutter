@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fabric_flutter/helper/utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 
 import '../serialized/user_data.dart';
 import 'state_document.dart';
@@ -20,11 +21,11 @@ class StateUser extends StateDocument {
   User? _userObject;
   Map<String, dynamic>? _claims;
   String? _pingReference;
-  DateTime _pingLast = DateTime.now().subtract(Duration(minutes: 10));
+  DateTime _pingLast = DateTime.now().subtract(const Duration(minutes: 10));
   Map<String, UserData> _usersMap = {};
   String? _lastUserGet;
   bool _init = false;
-  String _language = "en";
+  String _language = 'en';
 
   /// More at [streamUser]
   /// ignore: close_sinks
@@ -66,7 +67,7 @@ class StateUser extends StateDocument {
         _claims = tokenResult.claims;
         notifyListeners();
       } catch (e) {
-        print(e);
+        if (kDebugMode) print(e);
       }
     }
   }
@@ -135,9 +136,12 @@ class StateUser extends StateDocument {
     if (id != null && admin) {
       return _role;
     }
-    if (level != null || levelId != null)
-      assert(level != null && levelId != null,
-          "level and levelId must be initialized.");
+    if (level != null || levelId != null) {
+      assert(
+        level != null && levelId != null,
+        'level and levelId must be initialized.',
+      );
+    }
     if (level == null || levelId == null || data == null) {
       return _role;
     }
@@ -154,7 +158,7 @@ class StateUser extends StateDocument {
   void ping(String reference) async {
     if (reference == _pingReference || !signedIn || data.isEmpty) return;
     _pingLast = serialized.ping ?? _pingLast;
-    DateTime _timeRef = DateTime.now().subtract(Duration(minutes: 1));
+    DateTime _timeRef = DateTime.now().subtract(const Duration(minutes: 1));
     if (_pingLast.isAfter(_timeRef)) return;
     _pingLast = DateTime.now(); // Define before saving because it's async
     try {
@@ -164,7 +168,7 @@ class StateUser extends StateDocument {
           .set({'ping': FieldValue.serverTimestamp()}, SetOptions(merge: true));
       _pingReference = reference;
     } catch (error) {
-      print('user ping error: ${error.toString()}');
+      if (kDebugMode) print('user ping error: ${error.toString()}');
     }
   }
 
@@ -186,7 +190,7 @@ class StateUser extends StateDocument {
       return _usersMap[uid]!;
     }
     _usersMap.addAll({
-      '$uid': UserData.fromJson({'id': uid, 'name': 'Unknown'})
+      uid: UserData.fromJson({'id': uid, 'name': 'Unknown'})
     });
     if (_lastUserGet != uid) {
       DocumentReference<Map<String, dynamic>> _documentReferenceUser =
@@ -196,7 +200,7 @@ class StateUser extends StateDocument {
           Map<String, dynamic> _itemData =
               snapshot.data() as Map<String, dynamic>;
           _itemData.addAll({'id': uid});
-          _usersMap.addAll({'$uid': UserData.fromJson(_itemData)});
+          _usersMap.addAll({uid: UserData.fromJson(_itemData)});
           notifyListeners();
         }
       });
@@ -207,7 +211,7 @@ class StateUser extends StateDocument {
   /// Sign Out user
   void signOut() async {
     await _auth.signOut();
-    this.clear();
+    clear();
   }
 
   /// [accessByRole] displays content only if the the role matches for current user
@@ -224,12 +228,12 @@ class StateUser extends StateDocument {
   _refreshAuth(User? userObject) async {
     _init = true;
     await _getToken(userObject); // Call first to prevent unauthenticated calls
-    String? uid = userObject?.uid ?? null;
-    await Future.delayed(Duration(milliseconds: 100));
+    String? uid = userObject?.uid;
+    await Future.delayed(const Duration(milliseconds: 100));
     id = uid;
-    await Future.delayed(Duration(milliseconds: 100));
-    object = userObject ?? null;
-    await Future.delayed(Duration(milliseconds: 100));
+    await Future.delayed(const Duration(milliseconds: 100));
+    object = userObject;
+    await Future.delayed(const Duration(milliseconds: 100));
     _controllerStreamUser.sink.add(userObject);
   }
 
@@ -256,12 +260,13 @@ class StateUser extends StateDocument {
   String get language => data != null ? serialized.language : _language;
 
   @override
-  Function(dynamic data) callback = (dynamic data) {
-    if (StateUser()._language != StateUser().serialized.language)
+  callbackDefault(dynamic data) {
+    if (StateUser()._language != StateUser().serialized.language) {
       StateUser()._controllerStreamLanguage.sink.add(StateUser().language);
-    StateUser()
-        ._controllerStreamSerialized
-        .sink
-        .add(data != null ? StateUser().serialized : null);
-  };
+      StateUser()
+          ._controllerStreamSerialized
+          .sink
+          .add(data != null ? StateUser().serialized : null);
+    }
+  }
 }

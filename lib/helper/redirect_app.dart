@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
@@ -22,11 +23,11 @@ class RedirectApp {
     try {
       if (path != null && path.isNotEmpty && path.startsWith('/')) {
         if (!stateUser.admin && protected.contains(path)) return;
-        await Future.delayed(Duration(milliseconds: 100));
+        await Future.delayed(const Duration(milliseconds: 100));
         Navigator.of(context).popAndPushNamed(path, arguments: arguments);
       }
     } catch (error) {
-      print(error);
+      if (kDebugMode) print(error);
     }
   }
 

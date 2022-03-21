@@ -48,6 +48,7 @@ class StateAPI extends StateShared {
     selectedItems = [];
     _lastEndpointCalled = null;
     data = null;
+    dataOld = null;
     clearAfter();
     if (notify) notifyListeners();
   }
@@ -82,11 +83,12 @@ class StateAPI extends StateShared {
   }
 
   /// API Call
+  @override
   Future<dynamic> call({bool ignoreDuplicatedCalls = false}) async {
     if (loading) return null;
     loading = true;
     // Prevents duplicate calls with a delay
-    await Future.delayed(Duration(milliseconds: 200));
+    await Future.delayed(const Duration(milliseconds: 100));
     if (endpoint == null) {
       data = null;
       error = 'endpoint can\'t be null';
@@ -155,15 +157,15 @@ class StateAPI extends StateShared {
       }
     } else {
       _error =
-          response.reasonPhrase != null && response.reasonPhrase!.isNotEmpty
-              ? response.reasonPhrase
-              : null;
+      response.reasonPhrase != null && response.reasonPhrase!.isNotEmpty
+          ? response.reasonPhrase
+          : null;
       if (error == null) {
         _error = 'error--${response.statusCode}';
       }
     }
     if (_error != null) {
-      print('------------ ERROR API CALL -------------');
+      if (kDebugMode) print('------------ ERROR API CALL -------------');
       _errorCount++;
       error = _error;
       if (!isSameClearPath) data = null;
@@ -171,7 +173,7 @@ class StateAPI extends StateShared {
     }
     initialized = true;
     loading = false;
-    Future.delayed(Duration(milliseconds: 10))
+    Future.delayed(const Duration(milliseconds: 10))
         .then((value) => notifyListeners());
 
     /// pagination

@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 
 import '../helper/iso_language.dart';
 
@@ -18,7 +17,7 @@ import '../helper/iso_language.dart';
 /// );
 /// ```
 class LanguageSelector extends StatelessWidget {
-  LanguageSelector({
+  const LanguageSelector({
     Key? key,
     this.voice = false,
     this.language = 'en',

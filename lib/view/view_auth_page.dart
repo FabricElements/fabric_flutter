@@ -4,7 +4,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -28,7 +28,7 @@ Future<void> verifyIfUserExists(Map<String, dynamic> data) async {
 }
 
 class ViewAuthPage extends StatefulWidget {
-  ViewAuthPage({
+  const ViewAuthPage({
     Key? key,
     this.loader,
     this.image,
@@ -77,12 +77,13 @@ class _ViewAuthPageState extends State<ViewAuthPage>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     super.didChangeAppLifecycleState(state);
-    print('change lifecycle');
+    if (kDebugMode) print('change lifecycle');
+
     if (state == AppLifecycleState.resumed) {
-      print('wait...');
-      await Future.delayed(Duration(seconds: 3));
+      if (kDebugMode) print('wait...');
+      await Future.delayed(const Duration(seconds: 3));
       final Uri? link = await _retrieveDynamicLink();
-      print('link: $link');
+      if (kDebugMode) print('link: $link');
       if (link != null) {
         final User? user = (await _auth.signInWithEmailLink(
           email: _userEmail,
@@ -90,7 +91,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         ))
             .user;
         if (user != null) {
-          print(user.uid);
+          if (kDebugMode) print(user.uid);
         }
       }
       setState(() {});
@@ -101,7 +102,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     final PendingDynamicLinkData? data =
         await FirebaseDynamicLinks.instance.getInitialLink();
     final Uri? deepLink = data?.link;
-    print('deepLink on auth: $deepLink');
+    if (kDebugMode) print('deepLink on auth: $deepLink');
     return deepLink;
   }
 
@@ -114,12 +115,14 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     stateAnalytics.screenName = 'auth';
 
     if (loading) {
-      return widget.loader ?? LoadingScreen();
+      return widget.loader ?? const LoadingScreen();
     }
     void _closeKeyboard() {
       try {
         FocusScope.of(context).requestFocus(FocusNode());
-      } catch (error) {}
+      } catch (error) {
+        //
+      }
     }
 
     AppLocalizations locales = AppLocalizations.of(context)!;
@@ -135,35 +138,34 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       bool success = false;
       if (mounted) setState(() {});
       try {
-        final PhoneVerificationCompleted verificationCompleted =
-            (AuthCredential phoneAuthCredential) async {
+        verificationCompleted(AuthCredential phoneAuthCredential) async {
           await _auth.signInWithCredential(phoneAuthCredential);
           alert.show(
             title: locales.get('alert--received-phone-auth-credential'),
           );
-        };
-        final PhoneVerificationFailed verificationFailed =
-            (FirebaseAuthException authException) {
+        }
+
+        verificationFailed(FirebaseAuthException authException) {
           alert.show(
             title:
                 '${locales.get('alert--phone-number-verification-failed')}. ${authException.message} -- Code: ${authException.code}',
             type: AlertType.critical,
           );
-        };
+        }
 
-        final PhoneCodeSent codeSent =
-            (String verificationId, [int? forceResendingToken]) async {
+        codeSent(String verificationId, [int? forceResendingToken]) async {
           _verificationId = verificationId;
           alert.show(
             title: locales.get('alert--check-phone-verification-code'),
             type: AlertType.success,
             duration: 3,
           );
-        };
-        final PhoneCodeAutoRetrievalTimeout codeAutoRetrievalTimeout =
-            (String verificationId) {
+        }
+
+        codeAutoRetrievalTimeout(String verificationId) {
           _verificationId = verificationId;
-        };
+        }
+
         String phoneNumber = areaCode + _phoneNumberController.text;
         await verifyIfUserExists({'phoneNumber': phoneNumber});
         if (kIsWeb) {
@@ -175,7 +177,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           await _auth.verifyPhoneNumber(
             forceResendingToken: 3,
             phoneNumber: phoneNumber,
-            timeout: Duration(seconds: 20),
+            timeout: const Duration(seconds: 20),
             verificationCompleted: verificationCompleted,
             verificationFailed: verificationFailed,
             codeSent: codeSent,
@@ -199,7 +201,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
 
     Future<void> _confirmCodeWeb() async {
       if (_smsController.text == '') {
-        print('enter confirmation code');
+        if (kDebugMode) print('enter confirmation code');
         return;
       }
       if (webConfirmationResult?.verificationId != null) {
@@ -262,7 +264,9 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       try {
         /// Disconnect previews account
         await _googleSignIn.disconnect();
-      } catch (error) {}
+      } catch (error) {
+        //
+      }
       try {
         final googleUser = await _googleSignIn.signIn();
         final googleAuth = await googleUser?.authentication;
@@ -322,13 +326,15 @@ class _ViewAuthPageState extends State<ViewAuthPage>
 
     /// Acton button for general use
     Widget actionButton(
-        {label: String, onPressed: VoidCallback, icon: Icons.navigate_next}) {
+        {label = String,
+        onPressed = VoidCallback,
+        icon = Icons.navigate_next}) {
       return SizedBox(
         width: double.infinity,
         child: ElevatedButton.icon(
           onPressed: onPressed,
           icon: Icon(icon),
-          label: Text(label, style: TextStyle(color: Colors.white)),
+          label: Text(label, style: const TextStyle(color: Colors.white)),
         ),
       );
     }
@@ -337,7 +343,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       String text = locales.get('page-auth--actions--sign-in');
       var icon = Icons.email;
       VoidCallback action = () {
-        print('clicked: $provider');
+        if (kDebugMode) print('clicked: $provider');
       };
 //      Color _iconColor = Material;
       switch (provider) {
@@ -362,15 +368,12 @@ class _ViewAuthPageState extends State<ViewAuthPage>
             if (mounted) setState(() {});
           };
       }
-      return Container(
-        // width: double.infinity,
-        child: Padding(
-          padding: EdgeInsets.only(top: 16),
-          child: FloatingActionButton.extended(
-            onPressed: action,
-            label: Text(text.toUpperCase()),
-            icon: Icon(icon),
-          ),
+      return Padding(
+        padding: const EdgeInsets.only(top: 16),
+        child: FloatingActionButton.extended(
+          onPressed: action,
+          label: Text(text.toUpperCase()),
+          icon: Icon(icon),
         ),
       );
     }
@@ -378,12 +381,12 @@ class _ViewAuthPageState extends State<ViewAuthPage>
 //    final Widget svgIcon = Container(height: 10, width: 10);
     String backgroundImage = widget.image ??
         'https://images.unsplash.com/photo-1615406020658-6c4b805f1f30';
-    Widget spacer = Container(width: 8, height: 8);
-    Widget spacerLarge = Container(width: 16, height: 16);
+    Widget spacer = const SizedBox(width: 8, height: 8);
+    Widget spacerLarge = const SizedBox(width: 16, height: 16);
 
     Widget home = AnimatedOpacity(
       opacity: section == 0 ? 1 : 0,
-      duration: Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 300),
       child: Flex(
         direction: Axis.vertical,
         children: <Widget>[
@@ -409,7 +412,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
                     child: Column(
                       children: <Widget>[
                         Container(
-                          padding: EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(16),
                           // decoration: BoxDecoration(
                           //   gradient: LinearGradient(
                           //     begin: Alignment.topCenter,
@@ -427,7 +430,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
                                 Container(height: 32),
-                                Container(
+                                SizedBox(
                                   width: double.infinity,
                                   child: Text(
                                     locales.get('page-auth--title'),
@@ -436,7 +439,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
                                   ),
                                 ),
                                 Container(height: 16),
-                                Container(
+                                SizedBox(
                                   width: double.infinity,
                                   child: Text(
                                     locales.get('page-auth--description'),
@@ -449,7 +452,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
                                 authButton('phone'),
                                 authButton('email'),
                                 Padding(
-                                  padding: EdgeInsets.only(top: 16),
+                                  padding: const EdgeInsets.only(top: 16),
                                   child: Text(
                                     "${locales.get('label--version')}: ${stateGlobal.packageInfo.version}+${stateGlobal.packageInfo.buildNumber}",
                                     style: textTheme.caption,
@@ -470,19 +473,17 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       ),
     );
 
-    Widget baseContainer({children: List}) {
+    Widget baseContainer({children = List}) {
       return SizedBox.expand(
         child: AnimatedOpacity(
           opacity: section == 0 ? 0 : 1,
-          duration: Duration(milliseconds: 300),
-          child: Container(
-            child: SafeArea(
-              child: Center(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Wrap(
-                    children: children,
-                  ),
+          duration: const Duration(milliseconds: 300),
+          child: SafeArea(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Wrap(
+                  children: children,
                 ),
               ),
             ),
@@ -494,7 +495,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     Widget buttonCancel = SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
-        icon: Icon(Icons.close),
+        icon: const Icon(Icons.close),
         style: ButtonStyle(
             backgroundColor:
                 MaterialStateProperty.all<Color>(Colors.grey.shade800)),
@@ -520,7 +521,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
             },
             // Initial selection and favorite can be one of code ('IT') OR DIAL_CODE('+39')
             initialSelection: 'US',
-            favorite: ['US'],
+            favorite: const ['US'],
             // optional. Shows only country name and flag
             showCountryOnly: true,
             // optional. Shows only country name and flag when popup is closed.
@@ -576,7 +577,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         controller: _emailController,
         decoration: InputDecoration(
           hintText: locales.get('label--enter-an-email'),
-          prefixIcon: Icon(Icons.mail),
+          prefixIcon: const Icon(Icons.mail),
         ),
         maxLines: 1,
         maxLengthEnforcement: MaxLengthEnforcement.enforced,

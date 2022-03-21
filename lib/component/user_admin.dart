@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -15,7 +16,7 @@ import 'user_role_update.dart';
 /// [loader] Widget displayed when a process is in progress
 /// [roles] Replaces default roles with your custom roles
 class UserAdmin extends StatefulWidget {
-  UserAdmin({
+  const UserAdmin({
     Key? key,
     this.empty,
     this.loader,
@@ -65,7 +66,9 @@ class _UserAdminState extends State<UserAdmin> {
   void dispose() {
     try {
       _usersStream!.drain();
-    } catch (error) {}
+    } catch (error) {
+      //
+    }
     super.dispose();
   }
 
@@ -82,14 +85,14 @@ class _UserAdminState extends State<UserAdmin> {
     Map<String, dynamic> args = Map.from(
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
             {});
-    String? id = widget.id ?? args['document'] ?? null;
-    String? collection = widget.collection ?? null;
-    Map<String, dynamic>? documentData = widget.data ?? args['data'] ?? null;
+    String? id = widget.id ?? args['document'];
+    String? collection = widget.collection;
+    Map<String, dynamic>? documentData = widget.data ?? args['data'];
     if (collection != null || id != null || documentData != null) {
       assert(collection != null && id != null,
           "collection, document and documentData can't be null when including one of them.");
     }
-    List<String>? _roles = widget.roles ?? null;
+    List<String>? _roles = widget.roles;
     bool fromCollection = collection != null && id != null;
     Widget space = Container(width: 16);
     Map<String, dynamic> inviteMetadata = {};
@@ -186,14 +189,14 @@ class _UserAdminState extends State<UserAdmin> {
         _roleChips.add(Chip(
           avatar: Icon(Icons.phone, color: Colors.grey.shade600),
           backgroundColor: Colors.transparent,
-          padding: EdgeInsets.all(0),
+          padding: const EdgeInsets.all(0),
           label: Text(_itemData.phone),
         ));
       } else if (_itemData.email.isNotEmpty) {
         _roleChips.add(Chip(
           avatar: Icon(Icons.email, color: Colors.grey.shade600),
           backgroundColor: Colors.transparent,
-          padding: EdgeInsets.all(0),
+          padding: const EdgeInsets.all(0),
           label: Text(_itemData.email),
         ));
       }
@@ -248,10 +251,12 @@ class _UserAdminState extends State<UserAdmin> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: <Widget>[
-                        Icon(Icons.delete, color: Colors.white),
+                        const Icon(Icons.delete, color: Colors.white),
                         space,
-                        Text(locales.get('label--remove'),
-                            style: TextStyle(color: Colors.white)),
+                        Text(
+                          locales.get('label--remove'),
+                          style: const TextStyle(color: Colors.white),
+                        ),
                         space,
                       ],
                     ),
@@ -280,7 +285,7 @@ class _UserAdminState extends State<UserAdmin> {
                   },
                 ),
               ),
-              Divider(height: 0),
+              const Divider(height: 0),
             ],
           ),
         ),
@@ -291,7 +296,7 @@ class _UserAdminState extends State<UserAdmin> {
       stream: _usersStream,
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (snapshot.hasError) {
-          print(snapshot.error);
+          if (kDebugMode) print(snapshot.error);
           return Text('Error: ${snapshot.error}');
         }
         if (snapshot.connectionState == ConnectionState.none) {
@@ -305,8 +310,8 @@ class _UserAdminState extends State<UserAdmin> {
           return ListView.builder(
             primary: widget.primary,
             padding: widget.primary
-                ? EdgeInsets.only(top: 8, left: 8, right: 8, bottom: 100)
-                : EdgeInsets.only(bottom: 100),
+                ? const EdgeInsets.only(top: 8, left: 8, right: 8, bottom: 100)
+                : const EdgeInsets.only(bottom: 100),
             itemCount: snapshot.data!.docs.length,
             itemBuilder: (BuildContext context, int index) {
               return _buildItem(snapshot.data!.docs[index]);
@@ -331,11 +336,10 @@ class _UserAdminState extends State<UserAdmin> {
         floatingActionButton: widget.disabled
             ? null
             : FloatingActionButton.extended(
-                icon: Icon(Icons.person_add),
-                label: Text('${locales.get('label--add-label', {
-                      'label': locales.get('label--user'),
-                    })}'
-                    .toUpperCase()),
+                icon: const Icon(Icons.person_add),
+                label: Text(locales.get('label--add-label', {
+                  'label': locales.get('label--user'),
+                }).toUpperCase()),
                 onPressed: () {
                   showDialog<void>(
                     barrierColor: Colors.black12,
@@ -354,15 +358,14 @@ class _UserAdminState extends State<UserAdmin> {
     ];
     if (!widget.disabled) {
       _content.addAll([
-        SizedBox(height: 32),
+        const SizedBox(height: 32),
         Align(
           alignment: Alignment.center,
           child: ElevatedButton.icon(
-            icon: Icon(Icons.person_add),
-            label: Text('${locales.get('label--add-label', {
-                  'label': locales.get('label--user'),
-                })}'
-                .toUpperCase()),
+            icon: const Icon(Icons.person_add),
+            label: Text(locales.get('label--add-label', {
+              'label': locales.get('label--user'),
+            }).toUpperCase()),
             onPressed: () {
               showDialog<void>(
                 barrierColor: Colors.black12,

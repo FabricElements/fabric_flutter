@@ -21,7 +21,7 @@ import 'smart_image.dart';
 /// );
 /// ```
 class CardButton extends StatefulWidget {
-  CardButton({
+  const CardButton({
     Key? key,
     this.borderRadius = 6,
     this.description,
@@ -48,7 +48,7 @@ class _CardButtonState extends State<CardButton> {
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
     return Container(
-      padding: widget.margin ?? EdgeInsets.symmetric(vertical: 8),
+      padding: widget.margin ?? const EdgeInsets.symmetric(vertical: 8),
       child: Card(
         color: Colors.grey.shade900,
         shape: RoundedRectangleBorder(
@@ -57,7 +57,7 @@ class _CardButtonState extends State<CardButton> {
         clipBehavior: Clip.hardEdge,
         child: RawMaterialButton(
           onPressed: () => widget.onPressed(),
-          child: Container(
+          child: SizedBox(
             height: widget.height,
             child: Stack(
               fit: StackFit.expand,
@@ -70,8 +70,8 @@ class _CardButtonState extends State<CardButton> {
                   left: 0,
                   right: 0,
                   child: Container(
-                    padding: EdgeInsets.all(16),
-                    decoration: BoxDecoration(
+                    padding: const EdgeInsets.all(16),
+                    decoration: const BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
@@ -84,7 +84,7 @@ class _CardButtonState extends State<CardButton> {
                       ),
                     ),
                     child: Padding(
-                      padding: EdgeInsets.only(top: 64),
+                      padding: const EdgeInsets.only(top: 64),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
@@ -98,7 +98,7 @@ class _CardButtonState extends State<CardButton> {
                               : Container(),
                           widget.description != null
                               ? Padding(
-                                  padding: EdgeInsets.only(top: 8),
+                            padding: const EdgeInsets.only(top: 8),
                                   child: Text(
                                     widget.description!,
                                     style: textTheme.bodyText2!

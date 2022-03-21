@@ -60,7 +60,7 @@ class StateDocument extends StateShared {
         notifyListeners();
       }, cancelOnError: true).onError((e) {
         isValid = false;
-        error = e != null ? e.toString() : null;
+        error = e?.toString();
         data = null;
         notifyListeners();
       });
@@ -87,7 +87,9 @@ class StateDocument extends StateShared {
   void _drain() async {
     try {
       await _streamReference?.drain();
-    } catch (error) {}
+    } catch (error) {
+      //
+    }
   }
 
   /// Clear document data

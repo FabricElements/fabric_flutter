@@ -13,7 +13,7 @@ import 'package:transparent_image/transparent_image.dart';
 ///   url: 'https://images.unsplash.com/photo-1516571748831-5d81767b788d',
 /// );
 class SmartImage extends StatelessWidget {
-  SmartImage({
+  const SmartImage({
     Key? key,
     this.placeholder,
     this.size,
@@ -33,7 +33,7 @@ class SmartImage extends StatelessWidget {
         double devicePixelRatio = queryData.devicePixelRatio;
         int width = constraints.maxWidth.floor();
         int height = constraints.maxHeight.floor();
-        double biggest = constraints.biggest.longestSide;
+        // double biggest = constraints.biggest.longestSide;
         Uri uri = Uri.parse(this.url); //converts string to a uri
         Map<String, String> query = {};
         query.addAll(uri.queryParameters);

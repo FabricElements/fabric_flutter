@@ -23,7 +23,7 @@ class UserAvatar extends StatelessWidget {
     }
     String finalText = '';
     var matches = text.split(' ');
-    if (matches.length == 0) {
+    if (matches.isEmpty) {
       return '?';
     }
     int totalMatches = matches.length > 2 ? matches.length : matches.length;
@@ -31,9 +31,11 @@ class UserAvatar extends StatelessWidget {
       try {
         String match = matches[i][0];
         finalText += match;
-      } catch (error) {}
+      } catch (error) {
+        //
+      }
     }
-    if (finalText.length == 0) {
+    if (finalText.isEmpty) {
       return '?';
     }
     finalText = finalText.toUpperCase();

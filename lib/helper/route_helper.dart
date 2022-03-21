@@ -61,7 +61,7 @@ class RouteHelper {
         _endViewSigned = routeMap[_unknownRoute];
       }
       _endSignedIn.addAll({
-        "$key": Scaffold(primary: false, body: _endViewSigned),
+        key: Scaffold(primary: false, body: _endViewSigned),
       });
     });
 
@@ -81,7 +81,7 @@ class RouteHelper {
         _endViewSigned = routeMap[_authRoute];
       }
       _endPublic.addAll({
-        '$key': Scaffold(primary: false, body: _endViewSigned),
+        key: Scaffold(primary: false, body: _endViewSigned),
       });
     });
     return signed ? _endSignedIn : _endPublic;

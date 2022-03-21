@@ -13,7 +13,7 @@ import 'package:intl/intl.dart';
 ///   animate: true,
 /// )
 class Charts extends StatefulWidget {
-  Charts({
+  const Charts({
     Key? key,
     this.animate,
     required this.series,
@@ -33,14 +33,14 @@ class _ChartsState extends State<Charts> {
   @override
   Widget build(BuildContext context) {
     if (!mounted) {
-      return Text('...');
+      return const Text('...');
     }
-    var chart;
+    Widget chart = const SizedBox();
     switch (widget.type) {
       case 'bar-simple':
         chart = BarChart(
           widget.series, animate: widget.animate!,
-          animationDuration: Duration(milliseconds: 1000),
+          animationDuration: const Duration(milliseconds: 1000),
 
           /// Assign a custom style for the domain axis.
           domainAxis: OrdinalAxisSpec(
@@ -62,13 +62,13 @@ class _ChartsState extends State<Charts> {
       case 'group-bar-simple':
         chart = BarChart(
           widget.series, animate: widget.animate!,
-          animationDuration: Duration(milliseconds: 1000),
+          animationDuration: const Duration(milliseconds: 1000),
           barGroupingType: BarGroupingType.stacked,
           behaviors: [
             SeriesLegend(
               position: BehaviorPosition.top,
               horizontalFirst: true,
-              cellPadding: EdgeInsets.only(right: 4.0, bottom: 16.0),
+              cellPadding: const EdgeInsets.only(right: 4.0, bottom: 16.0),
               showMeasures: true,
               // measureFormatter: (num value) => value is num ? numberFormatDefault.format(value) : '' as String,
               // measureFormatter: (num value) {
@@ -108,7 +108,7 @@ class _ChartsState extends State<Charts> {
       case 'horizontal-bar':
         chart = BarChart(
           widget.series, animate: widget.animate!,
-          animationDuration: Duration(milliseconds: 1000),
+          animationDuration: const Duration(milliseconds: 1000),
           vertical: false,
           barRendererDecorator: BarLabelDecorator<String>(
             insideLabelStyleSpec: TextStyleSpec(
@@ -122,10 +122,11 @@ class _ChartsState extends State<Charts> {
           ),
 
           /// Assign a custom style for the domain axis.
-          domainAxis: OrdinalAxisSpec(renderSpec: NoneRenderSpec()),
+          domainAxis: const OrdinalAxisSpec(renderSpec: NoneRenderSpec()),
 
           /// Assign a custom style for the measure axis.
-          primaryMeasureAxis: NumericAxisSpec(renderSpec: NoneRenderSpec()),
+          primaryMeasureAxis:
+              const NumericAxisSpec(renderSpec: NoneRenderSpec()),
           behaviors: [
             DatumLegend(
               position: BehaviorPosition.start,
@@ -137,7 +138,7 @@ class _ChartsState extends State<Charts> {
         chart = PieChart(
           widget.series,
           animate: widget.animate!,
-          animationDuration: Duration(milliseconds: 1000),
+          animationDuration: const Duration(milliseconds: 1000),
           defaultRenderer: ArcRendererConfig(
             arcWidth: 75,
             arcRendererDecorators: [
@@ -163,12 +164,12 @@ class _ChartsState extends State<Charts> {
         break;
     }
     return Padding(
-      child: Container(
+      child: SizedBox(
         height: 380,
         width: double.infinity,
         child: chart,
       ),
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
     );
   }
 }

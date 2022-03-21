@@ -55,8 +55,8 @@ class Utils {
     String _presence = 'away';
     if (time == null) return _presence;
     DateTime now = DateTime.now();
-    DateTime timeInactive = now.subtract(Duration(minutes: 2));
-    DateTime timeAway = now.subtract(Duration(minutes: 3));
+    DateTime timeInactive = now.subtract(const Duration(minutes: 2));
+    DateTime timeAway = now.subtract(const Duration(minutes: 3));
     if (time.isAfter(timeInactive)) _presence = 'active';
     if (time.isBefore(timeInactive)) _presence = 'inactive';
     if (time.isBefore(timeAway)) _presence = 'away';
@@ -71,7 +71,7 @@ class Utils {
   }) {
     Map<String, Iterable<String>> _parameters = {...uri.queryParametersAll};
     _parameters.addAll(queryParameters);
-    _parameters.removeWhere((key, value) => value.length == 0);
+    _parameters.removeWhere((key, value) => value.isEmpty);
     Uri _baseUri = uri;
     _baseUri = _baseUri.replace(
       queryParameters: _parameters,
@@ -85,7 +85,7 @@ class Utils {
   ) {
     if (queryParameters == null ||
         !queryParameters.containsKey(key) ||
-        queryParameters[key]!.length == 0) return null;
+        queryParameters[key]!.isEmpty) return null;
     return queryParameters[key];
   }
 
@@ -128,7 +128,7 @@ class Utils {
     // _currentDate = positiveTime
     //     ? _currentDate.add(timeZoneOffsetDuration)
     //     : _currentDate.subtract(timeZoneOffsetDuration);
-    return new DateTime.utc(
+    return DateTime.utc(
       updatedDate.year,
       updatedDate.month,
       updatedDate.day,
@@ -170,11 +170,11 @@ class Utils {
 
   /// Get device language
   static Future<String> getLanguage() async {
-    String language = "en";
+    String language = 'en';
     List languages = (await Devicelocale.preferredLanguages)!;
     String baseLanguage = languages[0];
     String cleanLanguage = baseLanguage.substring(0, 2);
-    if (cleanLanguage == "es") {
+    if (cleanLanguage == 'es') {
       language = cleanLanguage;
     }
     return language;

@@ -20,7 +20,7 @@ class ImageHelper {
             .pickFiles(type: FileType.image, withData: true);
         if (result != null) {
           if (result.files.first.size < 1000) throw ('Image is too small');
-          _endImage = result.files.first.bytes ?? null;
+          _endImage = result.files.first.bytes;
         } else {
           return null;
         }
@@ -33,12 +33,12 @@ class ImageHelper {
         File baseImage = File(pickedFile.path);
         _endImage = baseImage.readAsBytesSync();
       } else {
-        print('$origin not implemented');
+        if (kDebugMode) print('$origin not implemented');
         return null;
       }
     } catch (error) {
-      print('Getting the image: $error');
-      throw error;
+      if (kDebugMode) print('Getting the image: $error');
+      rethrow;
     }
     try {
       if (_endImage != null) {
@@ -50,8 +50,8 @@ class ImageHelper {
         );
       }
     } catch (error) {
-      print('Resizing the image: $error');
-      throw error;
+      if (kDebugMode) print('Resizing the image: $error');
+      rethrow;
     }
 
     return _endImage;
@@ -102,7 +102,7 @@ class ImageHelper {
       }
       return _encodedImage;
     } catch (error) {
-      print(error);
+      if (kDebugMode) print(error);
       // Check for specific errors, if not just return error
       throw Exception('There was an issue resizing the image.');
     }

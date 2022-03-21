@@ -1,4 +1,5 @@
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -20,7 +21,7 @@ import 'role_selector.dart';
 /// );
 /// ```
 class UserAdd extends StatefulWidget {
-  UserAdd({
+  const UserAdd({
     Key? key,
     this.roles,
     this.data,
@@ -41,8 +42,8 @@ class _UserAddState extends State<UserAdd> {
   String email = '';
   String? roleSelect;
   dynamic resp;
-  TextEditingController _textControllerPhone = TextEditingController();
-  TextEditingController _textControllerEmail = TextEditingController();
+  final _textControllerPhone = TextEditingController();
+  final _textControllerEmail = TextEditingController();
   Color? backgroundColor;
   Function? onChange;
   late TypeOptions _typeOption;
@@ -75,7 +76,7 @@ class _UserAddState extends State<UserAdd> {
         (email.length > 4 || phoneNumber.length >= 8);
 
     AppLocalizations locales = AppLocalizations.of(context)!;
-    ThemeData theme = Theme.of(context);
+    // ThemeData theme = Theme.of(context);
     AlertHelper alert = AlertHelper(
       context: context,
       mounted: mounted,
@@ -88,7 +89,7 @@ class _UserAddState extends State<UserAdd> {
     _sendInvitation(
         {required String type, String? contact, String? role}) async {
       if (contact == null) {
-        print('Define the contact information before sending');
+        if (kDebugMode) print('Define the contact information before sending');
         return;
       }
       sending = true;
@@ -121,7 +122,7 @@ class _UserAddState extends State<UserAdd> {
           type: AlertType.success,
           duration: 3,
         );
-        Navigator.pop(context, "send-invitation");
+        Navigator.pop(context, 'send-invitation');
       } on FirebaseFunctionsException catch (error) {
         alert.show(
           body: error.message ?? error.details['message'],
@@ -178,28 +179,28 @@ class _UserAddState extends State<UserAdd> {
       children: <Widget>[
         Expanded(
           child: RadioListTile<TypeOptions>(
-            contentPadding: EdgeInsets.only(left: 8),
+            contentPadding: const EdgeInsets.only(left: 8),
             title: Text(locales.get('label--phone-number')),
             value: TypeOptions.phone,
             groupValue: _typeOption,
             onChanged: (TypeOptions? value) {
               _typeOption = value!;
-              email = "";
-              phoneNumber = "";
+              email = '';
+              phoneNumber = '';
               if (mounted) setState(() {});
             },
           ),
         ),
         Expanded(
           child: RadioListTile<TypeOptions>(
-            contentPadding: EdgeInsets.only(right: 8),
+            contentPadding: const EdgeInsets.only(right: 8),
             title: Text(locales.get('label--email')),
             value: TypeOptions.email,
             groupValue: _typeOption,
             onChanged: (TypeOptions? value) {
               _typeOption = value!;
-              email = "";
-              phoneNumber = "";
+              email = '';
+              phoneNumber = '';
               if (mounted) setState(() {});
             },
           ),
@@ -228,18 +229,18 @@ class _UserAddState extends State<UserAdd> {
         child: Row(
           children: [
             TextButton.icon(
-              icon: Icon(Icons.close),
+              icon: const Icon(Icons.close),
               label: Text(
                 locales.get('label--cancel'),
               ),
               onPressed: () {
-                Navigator.pop(context, "cancel");
+                Navigator.pop(context, 'cancel');
               },
               style: TextButton.styleFrom(primary: Colors.deepOrange),
             ),
-            Spacer(),
+            const Spacer(),
             ElevatedButton.icon(
-              icon: Icon(Icons.person_add),
+              icon: const Icon(Icons.person_add),
               label: Text(
                 locales.get('label--add-label', {
                   'label': locales.get('label--user'),
@@ -255,7 +256,7 @@ class _UserAddState extends State<UserAdd> {
     return SimpleDialog(
       title: Text(locales.get('user-invite--title')),
       children: inviteWidgets,
-      contentPadding: EdgeInsets.all(20),
+      contentPadding: const EdgeInsets.all(20),
     );
   }
 }

@@ -16,7 +16,9 @@ class EnumData {
     if (base == null) return _label;
     try {
       _label = describeEnum(base);
-    } catch (error) {}
+    } catch (error) {
+      //
+    }
     return _label;
   }
 

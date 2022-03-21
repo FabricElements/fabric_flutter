@@ -103,7 +103,7 @@ class AlertHelper {
     String dismissLabel = 'label--dismiss',
   }) async {
     if (!mounted) {
-      print('Called Alert when unmounted');
+      if (kDebugMode) print('Called Alert when unmounted');
       return;
     }
 
@@ -154,7 +154,7 @@ class AlertHelper {
 
       if (image != null) {
         _mainItems.add(Container(
-          margin: EdgeInsets.only(bottom: 16),
+          margin: const EdgeInsets.only(bottom: 16),
           constraints: BoxConstraints(
               minHeight: 50, maxHeight: 400, maxWidth: contentWidth),
           color: Colors.grey.shade900,
@@ -167,7 +167,7 @@ class AlertHelper {
       if (title != null) {
         _onColumn.add(Container(
           constraints: BoxConstraints(minWidth: 50, maxWidth: contentWidth),
-          margin: EdgeInsets.only(bottom: 8),
+          margin: const EdgeInsets.only(bottom: 8),
           child: Text(
             title,
             style: textTheme.headline5?.apply(color: Colors.white),
@@ -180,7 +180,7 @@ class AlertHelper {
       if (body != null) {
         _onColumn.add(Container(
           constraints: BoxConstraints(minWidth: 50, maxWidth: contentWidth),
-          margin: EdgeInsets.only(bottom: 8),
+          margin: const EdgeInsets.only(bottom: 8),
           child: Text(
             body,
             style: textTheme.bodyText1?.apply(color: Colors.grey.shade50),
@@ -224,9 +224,9 @@ class AlertHelper {
         ));
       }
 
-      if (_actions.length > 0) {
+      if (_actions.isNotEmpty) {
         _onColumn.add(Container(
-          margin: EdgeInsets.only(top: 16),
+          margin: const EdgeInsets.only(top: 16),
           child: Wrap(
             children: _actions,
             spacing: 16,
@@ -251,9 +251,11 @@ class AlertHelper {
         ),
       );
     } catch (error) {
-      print('/////////////////////');
-      print(error);
-      print('/////////////////////');
+      if (kDebugMode) {
+        print('/////////////////////');
+        print(error);
+        print('/////////////////////');
+      }
     }
   }
 }

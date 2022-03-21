@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 ///   description: 'This is where the description will go.',
 /// );
 class SectionTitle extends StatefulWidget {
-  SectionTitle({
+  const SectionTitle({
     Key? key,
     this.description,
     required this.headline,
@@ -20,7 +20,7 @@ class SectionTitle extends StatefulWidget {
   final bool condensed;
 
   @override
-  _SectionTitleState createState() => new _SectionTitleState();
+  _SectionTitleState createState() => _SectionTitleState();
 }
 
 class _SectionTitleState extends State<SectionTitle> {
@@ -28,7 +28,7 @@ class _SectionTitleState extends State<SectionTitle> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final TextTheme textTheme = theme.textTheme;
-    RegExp regExp = new RegExp(
+    RegExp regExp = RegExp(
       r'{(?:.*?)}',
       multiLine: true,
     );
@@ -60,8 +60,8 @@ class _SectionTitleState extends State<SectionTitle> {
           color: theme.colorScheme.primary,
         );
       }
-      if (matches.length > 0) {
-        matches.forEach((match) {
+      if (matches.isNotEmpty) {
+        for (var match in matches) {
           if (match.start > initialHelper) {
             text.add(
               TextSpan(
@@ -84,7 +84,7 @@ class _SectionTitleState extends State<SectionTitle> {
             ),
           );
           initialHelper = match.end;
-        });
+        }
         text.add(
           TextSpan(
             text: (textFinal.substring(initialHelper!, textFinal.length))
@@ -105,7 +105,7 @@ class _SectionTitleState extends State<SectionTitle> {
 
     List<Widget> items = [
       Padding(
-        padding: EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.only(bottom: 16),
         child: Text.rich(
           TextSpan(
             children: importantData(widget.headline, 'title'),
@@ -115,7 +115,7 @@ class _SectionTitleState extends State<SectionTitle> {
     ];
     if (widget.description != null) {
       items.add(Padding(
-        padding: EdgeInsets.only(bottom: 4),
+        padding: const EdgeInsets.only(bottom: 4),
         child: Text.rich(
           TextSpan(
             children: importantData(widget.description!, 'subtitle'),
@@ -125,13 +125,11 @@ class _SectionTitleState extends State<SectionTitle> {
     }
     return SafeArea(
       bottom: false,
-      child: Container(
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 16),
-          child: Column(
-            children: items,
-            crossAxisAlignment: CrossAxisAlignment.start,
-          ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Column(
+          children: items,
+          crossAxisAlignment: CrossAxisAlignment.start,
         ),
       ),
     );

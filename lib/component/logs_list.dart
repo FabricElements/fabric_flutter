@@ -59,9 +59,9 @@ class LogsList extends StatelessWidget {
   Widget build(BuildContext context) {
     ThemeData theme = Theme.of(context);
     TextTheme textTheme = theme.textTheme;
-    Widget container = SizedBox(height: 0);
+    Widget container = const SizedBox(height: 0);
     if (data == null || data!.isEmpty) return container;
-    RegExp regExp = new RegExp(r'{.*?}', multiLine: true);
+    RegExp regExp = RegExp(r'{.*?}', multiLine: true);
     Widget getItem(Map<String, dynamic> item) {
       DateTime? timestamp =
           item.containsKey('timestamp') && item['timestamp'].isNotEmpty
@@ -88,8 +88,8 @@ class LogsList extends StatelessWidget {
               style: textTheme.caption),
         );
       }
-      if (matches.length > 0) {
-        matches.forEach((match) {
+      if (matches.isNotEmpty) {
+        for (var match in matches) {
           /// First part
           if (match.start > initialPosition) {
             textFormatted.add(TextSpan(
@@ -108,7 +108,7 @@ class LogsList extends StatelessWidget {
               .replaceAll('_', ' ')
               .replaceAll('{', '')
               .replaceAll('}', '');
-          if ((match.group(0)).toString().startsWith("{@")) {
+          if ((match.group(0)).toString().startsWith('{@')) {
             textFormatted.add(WidgetSpan(
               baseline: TextBaseline.alphabetic,
               alignment: PlaceholderAlignment.middle,
@@ -123,7 +123,7 @@ class LogsList extends StatelessWidget {
                 .add(TextSpan(text: cleanMatch, style: textThemeColor));
           }
           initialPosition = match.end;
-        });
+        }
 
         /// Last part
         textFormatted.add(TextSpan(
@@ -135,7 +135,7 @@ class LogsList extends StatelessWidget {
       } else {
         textFormatted.add(TextSpan(text: text));
       }
-      dynamic id = item.containsKey("id") ? item["id"] : null;
+      dynamic id = item.containsKey('id') ? item['id'] : null;
       List<PopupMenuEntry<String>> buttons = [];
       Widget? _actions;
       if (actions != null) {

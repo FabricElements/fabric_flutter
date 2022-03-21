@@ -1,6 +1,8 @@
 /// https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication#authentication_schemes
 enum AuthScheme {
+  // ignore: constant_identifier_names
   Basic,
+  // ignore: constant_identifier_names
   Bearer,
 }
 

@@ -23,7 +23,7 @@ class StateShared extends ChangeNotifier {
   Stream<String?> get streamError => _controllerStreamError.stream;
 
   /// Last data assigned
-  dynamic _lastData;
+  dynamic dataOld;
 
   /// Returns data [data]
   dynamic _data;
@@ -31,13 +31,21 @@ class StateShared extends ChangeNotifier {
   /// Returns [data] object
   dynamic get data => _data;
 
-  /// [callback] is called every time the data is updated
-  Function(dynamic data) callback = (dynamic data) {
-    // if (data != null && kDebugMode) print(data);
-  };
+  /// Default Callback function
+  callbackDefault(dynamic data) {
+    if (kDebugMode) {
+      if (data != null) print(data);
+    }
+  }
 
-  /// [callbackFunction] is called every time data is updated
-  set callbackFunction(Function(dynamic data) _f) => callback = _f;
+  /// Callback function
+  Function(dynamic data)? _callback;
+
+  /// callback is called every time the data is updated
+  Function(dynamic data) get callback => _callback ?? callbackDefault;
+
+  /// callbackFunction is called every time the request is successful
+  set callback(Function(dynamic data) _f) => _callback = _f;
 
   /// Merge List data
   List<dynamic> merge(
@@ -58,19 +66,25 @@ class StateShared extends ChangeNotifier {
   /// Push elements from new requests at the end or updates old ones by id
   bool incrementalPagination = false;
 
+  /// Verify if it's possible to paginate
+  bool get canPaginate => dataOld.runtimeType == List && dataOld.length > 0;
+
+  /// Paginate and call
+  Future<dynamic> paginate() async {
+    if (loading) {
+      await Future.delayed(const Duration(milliseconds: 200));
+      return paginate();
+    }
+    if (!canPaginate) return null;
+    page = (page) + 1;
+    return call(ignoreDuplicatedCalls: true);
+  }
+
   /// Set [data]
   set data(dynamic dataObject) {
-    if (_lastData == dataObject) return;
-    _lastData = dataObject;
-    // if (page != 0) {
-    //   if (dataObject.runtimeType == List) {
-    //     merge(dataObject);
-    //   }
-    // } else {
-    //   _data = dataObject;
-    // }
+    if (dataOld == dataObject) return;
+    dataOld = dataObject;
     _data = dataObject;
-
     callback(data);
     _controllerStream.sink.add(data);
   }
@@ -81,19 +95,29 @@ class StateShared extends ChangeNotifier {
   /// Error messages related to fetch data
   String? get error => _error;
 
-  /// [onError] is called every time there is an error
-  Function(String? error) onError = (String? error) {
-    if (error != null && kDebugMode) print("Error: $error");
-  };
+  /// Default onError function
+  onErrorDefault(String? error) {
+    if (kDebugMode) {
+      if (error != null) print('Error: $error');
+    }
+  }
 
-  /// [errorFunction] overrides [onError]
-  set errorFunction(Function(String? error) _f) => onError = _f;
+  /// onError is called every time the request has an error
+  Function(String? error)? _onError;
+
+  /// onError is called every time the request has an error
+  Function(String? error) get onError => _onError ?? onErrorDefault;
+
+  /// onError is called every time the request has an error
+  set onError(Function(String? error) _f) => _onError = _f;
 
   /// [error] message
   set error(String? errorMessage) {
     _error = errorMessage;
-    onError(errorMessage);
-    _controllerStreamError.sink.add(errorMessage);
+    if (errorMessage != null) {
+      onError(errorMessage);
+      _controllerStreamError.sink.addError(errorMessage);
+    }
   }
 
   /// Override [clearAfter] for a custom implementation
@@ -118,7 +142,9 @@ class StateShared extends ChangeNotifier {
   /// Set the [page] number and trigger filter
   set page(int? value) {
     pageDefault = value ?? 0;
-    if (value != null) print('page: $value');
+    if (kDebugMode) {
+      if (value != null) print('page: $value');
+    }
     // notifyListeners();
     // call(ignoreDuplicatedCalls: true);
   }
@@ -129,7 +155,9 @@ class StateShared extends ChangeNotifier {
   /// Set the [limit] number and trigger filter
   set limit(int? value) {
     limitDefault = value ?? 5;
-    if (value != null) print('limit: $value');
+    if (kDebugMode) {
+      if (value != null) print('limit: $value');
+    }
     // notifyListeners();
     // call(ignoreDuplicatedCalls: true);
   }
@@ -213,7 +241,7 @@ class StateShared extends ChangeNotifier {
 
   /// [isSelected] returns true if the id is selected
   bool isSelected(dynamic id) {
-    return selectedItems.indexOf(id) >= 0;
+    return selectedItems.contains(id);
   }
 
   /// [selected] returns a list of selected id's
@@ -233,5 +261,9 @@ class StateShared extends ChangeNotifier {
       selectedItems.add(item['id']);
     }
     notifyListeners();
+  }
+
+  Future<dynamic> call({bool ignoreDuplicatedCalls = false}) async {
+    return null;
   }
 }

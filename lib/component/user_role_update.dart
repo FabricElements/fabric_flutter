@@ -17,7 +17,7 @@ import 'role_selector.dart';
 /// );
 /// ```
 class UserRoleUpdate extends StatefulWidget {
-  UserRoleUpdate({
+  const UserRoleUpdate({
     Key? key,
     this.roles,
     this.data,
@@ -63,9 +63,7 @@ class _UserRoleUpdateState extends State<UserRoleUpdate> {
   @override
   Widget build(BuildContext context) {
     bool canInvite = sending == false && roleSelect != null;
-
     AppLocalizations locales = AppLocalizations.of(context)!;
-    ThemeData theme = Theme.of(context);
     AlertHelper alert = AlertHelper(
       context: context,
       mounted: mounted,
@@ -136,17 +134,17 @@ class _UserRoleUpdateState extends State<UserRoleUpdate> {
             if (mounted) setState(() {});
           },
         ),
-        SizedBox(height: 32),
+        const SizedBox(height: 32),
         ElevatedButton.icon(
-          icon: Icon(Icons.save),
+          icon: const Icon(Icons.save),
           label: Text(
             locales.get('label--update'),
-            style: TextStyle(color: Colors.white),
+            style: const TextStyle(color: Colors.white),
           ),
           onPressed: canInvite ? updateUserRole : null,
         )
       ],
-      contentPadding: EdgeInsets.all(20),
+      contentPadding: const EdgeInsets.all(20),
     );
   }
 }

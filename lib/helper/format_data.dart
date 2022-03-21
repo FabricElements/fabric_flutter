@@ -5,10 +5,10 @@ class FormatData {
   FormatData();
 
   static NumberFormat numberFormat({String locale = 'en_US'}) =>
-      new NumberFormat('#,###.00', locale);
+      NumberFormat('#,###.00', locale);
 
   static NumberFormat numberClearFormat({String locale = 'en_US'}) =>
-      new NumberFormat('#,###', locale);
+      NumberFormat('#,###', locale);
 
   static NumberFormat currencyFormat({
     String locale = 'en_US',
@@ -26,11 +26,11 @@ class FormatData {
   //     new NumberFormat('#%', locale);
 
   static DateFormat formatDate({String locale = 'en_US'}) =>
-      new DateFormat.yMMMMd(locale);
+      DateFormat.yMMMMd(locale);
 
   static DateFormat formatDateTime({String locale = 'en_US'}) =>
-      new DateFormat.yMMMMd(locale).add_jm();
+      DateFormat.yMMMMd(locale).add_jm();
 
   static DateFormat formatHour({String locale = 'en_US'}) =>
-      new DateFormat.jm(locale);
+      DateFormat.jm(locale);
 }

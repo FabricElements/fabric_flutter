@@ -42,7 +42,7 @@ class _SmartButtonState extends State<SmartButton> {
     List<PopupMenuEntry<String>> buttons = [];
     Color _colorBase = theme.colorScheme.primary;
     Color _colorIcon = theme.colorScheme.secondary;
-    Color _colorBaseImportant = theme.colorScheme.secondaryVariant;
+    Color _colorBaseImportant = theme.colorScheme.secondaryContainer;
     Color _colorBaseSelected = theme.colorScheme.primary;
     if (isDark) {
       _colorBase = Colors.white;
@@ -121,7 +121,7 @@ class _SmartButtonState extends State<SmartButton> {
     }
     Widget _mainButton = TextButton(
       child: Padding(
-        padding: EdgeInsets.all(8),
+        padding: const EdgeInsets.all(8),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: mainButtonWidgets,
@@ -140,7 +140,7 @@ class _SmartButtonState extends State<SmartButton> {
     );
     if (widget.children == null) return _mainButton;
     return PopupMenuButton<String>(
-      offset: Offset(0, 40),
+      offset: const Offset(0, 40),
       key: popupButtonKey,
       initialValue: '/',
       onSelected: (value) {

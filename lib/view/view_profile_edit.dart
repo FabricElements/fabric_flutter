@@ -1,11 +1,9 @@
 import 'dart:convert';
-import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -17,10 +15,7 @@ import '../placeholder/loading_screen.dart';
 import '../state/state_user.dart';
 
 class ViewProfileEdit extends StatefulWidget {
-  ViewProfileEdit({
-    Key? key,
-    this.loader,
-  }) : super(key: key);
+  const ViewProfileEdit({Key? key, this.loader}) : super(key: key);
   final Widget? loader;
 
   @override
@@ -45,7 +40,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
     super.initState();
     loading = false;
     changed = false;
-    defaultImage = AssetImage('assets/placeholder.jpg');
+    defaultImage = const AssetImage('assets/placeholder.jpg');
     nameFirstController.text = '';
     nameLastController.text = '';
     nameFirst = '';
@@ -68,7 +63,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
 
   _nameFirstChanged() {
     var newName = nameFirstController.text;
-    if (newName.length < 1 || newName == nameFirst) {
+    if (newName.isEmpty || newName == nameFirst) {
       return;
     }
     changed = true;
@@ -77,7 +72,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
 
   _nameLastChanged() {
     var newName = nameLastController.text;
-    if (newName.length < 1 || newName == nameLast) {
+    if (newName.isEmpty || newName == nameLast) {
       return;
     }
     changed = true;
@@ -116,7 +111,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
           return;
         }
       } catch (error) {
-        print(error);
+        if (kDebugMode) print(error);
       }
 
       previewImage = defaultImage;
@@ -130,7 +125,9 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
     void _closeKeyboard() {
       try {
         FocusScope.of(context).requestFocus(FocusNode());
-      } catch (error) {}
+      } catch (error) {
+        //
+      }
     }
 
     updateUser() async {
@@ -232,20 +229,20 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
     Widget getBody() {
       AppLocalizations locales = AppLocalizations.of(context)!;
       if (loading) {
-        return widget.loader ?? LoadingScreen();
+        return widget.loader ?? const LoadingScreen();
       }
-      double width = MediaQuery.of(context).size.width;
-      double height = MediaQuery.of(context).size.height;
-      double smallerSize =
-          math.min(width >= 150 ? width : 150, height >= 150 ? height : 150);
+      // double width = MediaQuery.of(context).size.width;
+      // double height = MediaQuery.of(context).size.height;
+      // double smallerSize =
+      //     math.min(width >= 150 ? width : 150, height >= 150 ? height : 150);
       return ListView(
         children: <Widget>[
           Container(
-            constraints: BoxConstraints(maxWidth: 300, maxHeight: 300),
+            constraints: const BoxConstraints(maxWidth: 300, maxHeight: 300),
             child: AspectRatio(
               aspectRatio: 1 / 1,
               child: Padding(
-                padding: EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
                 child: Center(
                   child: RawMaterialButton(
                     hoverColor: Colors.transparent,
@@ -256,7 +253,8 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
                           }
                         : null,
                     child: Container(
-                      constraints: BoxConstraints(minWidth: 100, maxWidth: 300),
+                      constraints:
+                          const BoxConstraints(minWidth: 100, maxWidth: 300),
                       child: AspectRatio(
                         aspectRatio: 1 / 1,
                         child: CircleAvatar(
@@ -271,7 +269,8 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
                                   heroTag: 'image',
                                   child: Icon(
                                     Icons.image,
-                                    color: Theme.of(context).accentColor,
+                                    color:
+                                        Theme.of(context).colorScheme.secondary,
                                   ),
                                   onPressed: () async {
                                     await getImageFromOrigin('gallery');
@@ -284,7 +283,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
                                       right: 15,
                                       child: FloatingActionButton(
                                         heroTag: 'camera',
-                                        child: Icon(Icons.photo_camera),
+                                        child: const Icon(Icons.photo_camera),
                                         onPressed: () async {
                                           await getImageFromOrigin('camera');
                                         },
@@ -302,7 +301,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
             ),
           ),
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: TextField(
               controller: nameFirstController,
               decoration: InputDecoration(
@@ -319,7 +318,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
             ),
           ),
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: TextField(
               controller: nameLastController,
               decoration: InputDecoration(
@@ -345,7 +344,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
         title: Text(locales.get('page-profile--title')),
         automaticallyImplyLeading: false,
         leading: IconButton(
-          icon: Icon(Icons.navigate_before),
+          icon: const Icon(Icons.navigate_before),
           onPressed: () {
             Navigator.popUntil(context, ModalRoute.withName('/'));
           },
