@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:http/http.dart' as http;
@@ -44,10 +45,11 @@ Future<http.Response> hedURL(String url) {
 ///   loadingText: 'loading...',
 /// );
 class AudioPreview extends StatefulWidget {
-  AudioPreview({
+  const AudioPreview({
+    Key? key,
     required this.url,
     this.loadingText = 'loading',
-  });
+  }) : super(key: key);
 
   final String? url;
   final String loadingText;
@@ -78,7 +80,9 @@ class _AudioPreviewState extends State<AudioPreview>
     }
     try {
       await _initializeExample();
-    } catch (error) {}
+    } catch (error) {
+      //
+    }
   }
 
   @override
@@ -91,7 +95,9 @@ class _AudioPreviewState extends State<AudioPreview>
     slide = 0.0;
     sliderCurrentPosition = 0.0;
     ready = false;
-    _initializeExample().catchError((error) => print(error));
+    _initializeExample().catchError((error) {
+      if (kDebugMode) print(error);
+    });
   }
 
   @override
@@ -124,8 +130,7 @@ class _AudioPreviewState extends State<AudioPreview>
     try {
       if (_playerSubscription != null) await playerModule!.closePlayer();
     } catch (e) {
-      print('Released unsuccessful');
-      print(e);
+      if (kDebugMode) print('Released unsuccessful: $e');
     }
   }
 
@@ -150,9 +155,9 @@ class _AudioPreviewState extends State<AudioPreview>
     if (!playerModule!.isOpen()) return;
     // await cancelPlayerSubscriptions();
     _playerSubscription = playerModule!.onProgress!.listen((e) {
-      print('event: ${e.position}');
+      if (kDebugMode) print('event: ${e.position}');
       maxDuration = e.duration.inMilliseconds.toDouble();
-      print('maxDuration: $e');
+      if (kDebugMode) print('maxDuration: $e');
       if (maxDuration! <= 0) maxDuration = 0.0;
       sliderCurrentPosition =
           min(e.position.inMilliseconds.toDouble(), maxDuration!);
@@ -160,7 +165,7 @@ class _AudioPreviewState extends State<AudioPreview>
         sliderCurrentPosition = 0.0;
       }
 
-      DateTime date = new DateTime.fromMillisecondsSinceEpoch(
+      DateTime date = DateTime.fromMillisecondsSinceEpoch(
           e.position.inMilliseconds,
           isUtc: true);
 //        this.setState(() {
@@ -178,7 +183,7 @@ class _AudioPreviewState extends State<AudioPreview>
       }
       if (mounted) setState(() {});
     });
-    print(_playerSubscription.runtimeType);
+    if (kDebugMode) print(_playerSubscription.runtimeType);
   }
 
   /// This method start audio player with this file [url]
@@ -197,7 +202,7 @@ class _AudioPreviewState extends State<AudioPreview>
 //     Uint8List dataBuffer = mediaFile.bodyBytes;
 //     String? contentType = headURL.headers["content-type"] ?? null;
 //     print("loaded file");
-    print('startPlayer');
+    if (kDebugMode) print('startPlayer');
     await playerModule!.startPlayer(
       fromURI: url,
       codec: Codec.defaultCodec,
@@ -212,7 +217,7 @@ class _AudioPreviewState extends State<AudioPreview>
     // await playerModule!.setVolume(1.0);
     icon = Icons.pause;
     _isPlaying = true;
-    playerModule!.setSubscriptionDuration(Duration(minutes: 10));
+    playerModule!.setSubscriptionDuration(const Duration(minutes: 10));
     await _addListeners();
   }
 
@@ -244,7 +249,7 @@ class _AudioPreviewState extends State<AudioPreview>
   /// This method play and resume audio player with this [url] file
   void playPause(String url) async {
     if (!ready || !mounted) {
-      print('not ready');
+      if (kDebugMode) print('not ready');
       return;
     }
     try {
@@ -258,7 +263,7 @@ class _AudioPreviewState extends State<AudioPreview>
         await resumePlayer();
       }
     } catch (error) {
-      print(error);
+      if (kDebugMode) print(error);
       icon = Icons.play_arrow;
       _isPlaying = false;
       await stopPlayer();
@@ -274,54 +279,51 @@ class _AudioPreviewState extends State<AudioPreview>
     }
     final theme = Theme.of(context);
     final TextTheme textTheme = theme.textTheme;
-    Color cardColor = Color.fromRGBO(255, 255, 255, 1);
+    Color cardColor = const Color.fromRGBO(255, 255, 255, 1);
 
     Widget baseCard = Material(
       clipBehavior: Clip.hardEdge,
       borderRadius: BorderRadius.circular(25),
       color: cardColor,
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Container(
-              child: Flex(
-                direction: Axis.horizontal,
-                children: <Widget>[
-                  IconButton(
-                    icon: Icon(
-                      icon,
-                      color: theme.colorScheme.primary,
-                    ),
-                    iconSize: 30,
-                    onPressed: widget.url == null
-                        ? null
-                        : () async => playPause('${widget.url}'),
+            Flex(
+              direction: Axis.horizontal,
+              children: <Widget>[
+                IconButton(
+                  icon: Icon(
+                    icon,
+                    color: theme.colorScheme.primary,
                   ),
-                  Expanded(
-                    child: RawMaterialButton(
-                      child: SizedBox(
-                        height: 50,
-                        child: LinearProgressIndicator(
-                          value: slide,
-                          backgroundColor: Colors.grey.shade300,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            theme.accentColor,
-                          ),
+                  iconSize: 30,
+                  onPressed: widget.url == null
+                      ? null
+                      : () async => playPause('${widget.url}'),
+                ),
+                Expanded(
+                  child: RawMaterialButton(
+                    child: SizedBox(
+                      height: 50,
+                      child: LinearProgressIndicator(
+                        value: slide,
+                        backgroundColor: Colors.grey.shade300,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          theme.primaryColor,
                         ),
                       ),
-                      onPressed: () {},
                     ),
+                    onPressed: () {},
                   ),
-                  spacer,
-                  Text(
-                    _playerTxt,
-                    style:
-                        textTheme.caption!.apply(color: Colors.grey.shade700),
-                  ),
-                ],
-              ),
+                ),
+                spacer,
+                Text(
+                  _playerTxt,
+                  style: textTheme.caption!.apply(color: Colors.grey.shade700),
+                ),
+              ],
             ),
           ],
         ),
@@ -330,7 +332,7 @@ class _AudioPreviewState extends State<AudioPreview>
     return WillPopScope(
         child: baseCard,
         onWillPop: () async {
-          print('is out -----------');
+          if (kDebugMode) print('is out -----------');
           return true;
         });
   }

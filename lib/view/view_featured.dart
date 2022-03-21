@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -36,7 +35,7 @@ import '../state/state_user.dart';
 /// ),
 /// ```
 class ViewFeatured extends StatefulWidget {
-  ViewFeatured({
+  const ViewFeatured({
     Key? key,
     this.actionLabel,
     this.actionUrl,
@@ -163,7 +162,7 @@ class _ViewFeaturedState extends State<ViewFeatured> {
         duration: Duration(milliseconds: _animationDuration),
         opacity: _descriptionOpacityLevel,
         child: Padding(
-          padding: EdgeInsets.only(top: 8),
+          padding: const EdgeInsets.only(top: 8),
           child: Text(
             widget.description!,
             style: textTheme.headline6,
@@ -195,7 +194,7 @@ class _ViewFeaturedState extends State<ViewFeatured> {
           child: Center(
             child: FloatingActionButton.extended(
               heroTag: 'featured-view-action',
-              icon: Icon(Icons.navigate_next),
+              icon: const Icon(Icons.navigate_next),
               label: Text(widget.actionLabel!.toUpperCase()),
               onPressed: widget.actionLabel != null ? () => onClick() : null,
             ),
@@ -227,12 +226,12 @@ class _ViewFeaturedState extends State<ViewFeatured> {
                       top: 0,
                       child: AnimatedContainer(
                         duration: Duration(milliseconds: _animationDuration),
-                        padding: EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
-                            stops: [0.0, 0.5, 1.0],
+                            stops: const [0.0, 0.5, 1.0],
                             colors: [
                               _firstGradientAnimationColor!,
                               _secondGradientAnimationColor!,
@@ -247,12 +246,12 @@ class _ViewFeaturedState extends State<ViewFeatured> {
                       left: 0,
                       right: 0,
                       child: Container(
-                        padding: EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(16),
                         child: AnimatedOpacity(
                           duration: Duration(milliseconds: _animationDuration),
                           opacity: _headlineOpacityLevel,
                           child: Padding(
-                            padding: EdgeInsets.only(top: 64),
+                            padding: const EdgeInsets.only(top: 64),
                             child: SafeArea(
                               top: false,
                               bottom: false,

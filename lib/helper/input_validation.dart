@@ -17,11 +17,12 @@ class InputValidation {
 
   /// Returns null if contains a valid Email
   String? validateEmail(String? email) {
-    if (isEmailValid(email))
+    if (isEmailValid(email)) {
       return null;
-    else
+    } else {
       return locales?.get('validation--email-address') ??
           'Enter a valid email address';
+    }
   }
 
   /// Returns true if contains a valid phone number
@@ -32,9 +33,10 @@ class InputValidation {
 
   /// Returns null if contains a valid phone number
   String? validatePhone(String? phone) {
-    if (isPhoneValid(phone))
+    if (isPhoneValid(phone)) {
       return null;
-    else
+    } else {
       return locales?.get('validation--phone') ?? 'Enter a valid phone number';
+    }
   }
 }

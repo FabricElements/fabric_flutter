@@ -16,7 +16,7 @@ import '../helper/iso_language.dart';
 /// );
 /// ```
 class FlagChip extends StatelessWidget {
-  FlagChip({
+  const FlagChip({
     Key? key,
     required this.language,
     this.total,
@@ -41,13 +41,13 @@ class FlagChip extends StatelessWidget {
     }
     if (language != 'total') {
       items.add(
-        Container(
+        SizedBox(
           height: 30,
           width: 50,
           child: Padding(
-            padding: EdgeInsets.only(left: 8),
+            padding: const EdgeInsets.only(left: 8),
             child: Text(
-              '${formatLanguage.getEmoji(language)}',
+              formatLanguage.getEmoji(language),
               style: textTheme.bodyText2!.copyWith(
                 fontSize: 20,
                 color: colorText,
@@ -59,16 +59,14 @@ class FlagChip extends StatelessWidget {
       );
     }
     items.add(
-      Container(
+      SizedBox(
         height: 30,
         child: Padding(
-          padding: EdgeInsets.only(top: 8, right: 8, bottom: 8),
-          child: Container(
-            child: Text(
-              language.toUpperCase(),
-              style: textTheme.bodyText2!.copyWith(
-                color: colorText,
-              ),
+          padding: const EdgeInsets.only(top: 8, right: 8, bottom: 8),
+          child: Text(
+            language.toUpperCase(),
+            style: textTheme.bodyText2!.copyWith(
+              color: colorText,
             ),
           ),
         ),
@@ -79,9 +77,9 @@ class FlagChip extends StatelessWidget {
         Container(
           color: theme.primaryColor,
           child: Padding(
-            padding: EdgeInsets.all(8),
+            padding: const EdgeInsets.all(8),
             child: Text(
-              '${formatDecimal.format(total)}',
+              formatDecimal.format(total),
               style: textTheme.bodyText2!.copyWith(color: colorText),
             ),
           ),
@@ -90,12 +88,9 @@ class FlagChip extends StatelessWidget {
     }
 
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: ConstrainedBox(
-        constraints: BoxConstraints(
-          minWidth: 10,
-          minHeight: 10,
-        ),
+        constraints: const BoxConstraints(minWidth: 10, minHeight: 10),
         child: Material(
           color: color,
           clipBehavior: Clip.hardEdge,

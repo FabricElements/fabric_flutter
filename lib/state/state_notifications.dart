@@ -4,7 +4,7 @@ import 'dart:io' show Platform;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 
 /// This is a change notifier class which keeps track of state within the campaign builder views.
 class StateNotifications extends ChangeNotifier {
@@ -33,7 +33,7 @@ class StateNotifications extends ChangeNotifier {
         'updated': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } catch (error) {
-      print('error saving user token: ${error.toString()}');
+      if (kDebugMode) print('error saving user token: ${error.toString()}');
     }
   }
 
@@ -62,7 +62,7 @@ class StateNotifications extends ChangeNotifier {
   }
 
   Map<String, dynamic> _clearObject(Map<String, dynamic> data, String key) {
-    if (data is Object && (data.isEmpty || data[key] == null)) {
+    if (data.isEmpty || data[key] == null) {
       return data;
     }
     Map<String, dynamic> _data = Map<String, dynamic>.from(data);
@@ -113,7 +113,7 @@ class StateNotifications extends ChangeNotifier {
     try {
       if (_callback != null) await _callback!(_notification);
     } catch (error) {
-      print('Callback Error: $error');
+      if (kDebugMode) print('Callback Error: $error');
     }
   }
 
@@ -161,7 +161,7 @@ class StateNotifications extends ChangeNotifier {
   }
 
   set callback(Function(Map<String, dynamic> message) callback) {
-    if (_callback == null) _callback = callback;
+    _callback ??= callback;
   }
 
   /// Clear document data

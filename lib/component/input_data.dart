@@ -165,7 +165,7 @@ class _InputDataState extends State<InputData> {
         }
         Widget _widget = Text(
           'Type "${widget.type}" not implemented',
-          style: TextStyle(color: Colors.orange),
+          style: const TextStyle(color: Colors.orange),
         );
         TextInputType keyboardType = TextInputType.text;
         List<TextInputFormatter> inputFormatters = [];
@@ -252,22 +252,25 @@ class _InputDataState extends State<InputData> {
               ),
               onChanged: (newValue) {
                 value = newValue;
-                if (widget.onChanged != null)
+                if (widget.onChanged != null) {
                   widget.onChanged!(_valueChanged(newValue));
+                }
               },
               onFieldSubmitted: (newValue) {
-                if (widget.onSubmit != null)
+                if (widget.onSubmit != null) {
                   widget.onSubmit!(_valueChanged(newValue));
+                }
               },
               onEditingComplete: () {
-                if (widget.onSubmit != null)
+                if (widget.onSubmit != null) {
                   widget.onSubmit!(_valueChanged(value));
+                }
               },
             );
             break;
           case InputDataType.date:
             DateTime? _date = value as DateTime?;
-            DateFormat formatDate = new DateFormat.yMd('en_US');
+            DateFormat formatDate = DateFormat.yMd('en_US');
             final _baseDateFormat = Utils.dateTimeOffset(
               dateTime: _date,
               utcOffset: widget.utcOffset,
@@ -281,13 +284,13 @@ class _InputDataState extends State<InputData> {
               padding: const EdgeInsets.only(top: 16),
               child: ElevatedButton.icon(
                 onPressed: () async {
-                  if (_date == null) _date = DateTime.now();
+                  _date ??= DateTime.now();
                   int _year = _date!.year < 2020 ? _date!.year : 2000;
                   final DateTime? picked = await showDatePicker(
                     context: context,
                     initialDate: _date!,
                     firstDate: DateTime(_year),
-                    lastDate: _date!.add(Duration(days: 365)),
+                    lastDate: _date!.add(const Duration(days: 365)),
                   );
                   if (picked != null) {
                     final _newDate = Utils.dateTimeOffset(
@@ -297,14 +300,14 @@ class _InputDataState extends State<InputData> {
                     if (widget.onChanged != null) widget.onChanged!(_newDate);
                   }
                 },
-                icon: Icon(Icons.date_range),
+                icon: const Icon(Icons.date_range),
                 label: Text(label),
               ),
             );
             break;
           case InputDataType.time:
             TimeOfDay? _time = value;
-            DateFormat formatTime = new DateFormat.jm();
+            DateFormat formatTime = DateFormat.jm();
             String label = _time != null
                 ? formatTime.format(DateTime(1, 1, 1, _time.hour, _time.minute))
                 : locales.get('label--choose-label', {
@@ -314,16 +317,17 @@ class _InputDataState extends State<InputData> {
               padding: const EdgeInsets.only(top: 16),
               child: ElevatedButton.icon(
                 onPressed: () async {
-                  if (_time == null) _time = TimeOfDay.now();
+                  _time ??= TimeOfDay.now();
                   final TimeOfDay? picked = await showTimePicker(
                     context: context,
                     initialTime: _time!,
                     initialEntryMode: TimePickerEntryMode.input,
                   );
-                  if (picked != null && picked != _time) if (widget.onChanged !=
-                      null) widget.onChanged!(picked);
+                  if (picked != null && picked != _time) {
+                    if (widget.onChanged != null) widget.onChanged!(picked);
+                  }
                 },
-                icon: Icon(Icons.access_time),
+                icon: const Icon(Icons.access_time),
                 label: Text(label),
               ),
             );
@@ -376,12 +380,13 @@ class _InputDataState extends State<InputData> {
               icon: icon,
               enabled: !_disabled,
               elevation: 1,
-              offset: Offset(0, 40),
+              offset: const Offset(0, 40),
               key: popupButtonKey,
               initialValue: value?.toString(),
               onSelected: (_value) {
-                if (widget.onChanged != null)
+                if (widget.onChanged != null) {
                   widget.onChanged!(_value == '' ? null : _value);
+                }
               },
               child: widget.isDense
                   ? null
@@ -410,15 +415,16 @@ class _InputDataState extends State<InputData> {
                   value: e.value?.toString(),
                   groupValue: value?.toString(),
                   onChanged: (String? value) {
-                    if (widget.onChanged != null)
+                    if (widget.onChanged != null) {
                       widget.onChanged!(value == '' ? null : value);
+                    }
                   },
                 ),
                 onTap: () {
-                  if (widget.onChanged != null)
+                  if (widget.onChanged != null) {
                     widget.onChanged!(
-                      e.value?.toString() == '' ? null : e.value?.toString(),
-                    );
+                        e.value?.toString() == '' ? null : e.value?.toString());
+                  }
                 },
               );
             }).toList();

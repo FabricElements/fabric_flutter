@@ -22,7 +22,7 @@ class UserChip extends StatefulWidget {
 class _UserChipState extends State<UserChip> {
   @override
   Widget build(BuildContext context) {
-    if (widget.uid == null) return SizedBox(width: 0, height: 0);
+    if (widget.uid == null) return const SizedBox(width: 0, height: 0);
     StateUser stateUser = Provider.of<StateUser>(context);
     final user = stateUser.getUser(widget.uid!);
     String label = user.id!;

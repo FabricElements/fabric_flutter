@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../helper/app_localizations_delegate.dart';
 
 class RoleSelector extends StatefulWidget {
-  RoleSelector({
+  const RoleSelector({
     Key? key,
     this.roles,
     required this.onChange,
@@ -42,7 +42,7 @@ class _RoleSelectorState extends State<RoleSelector> {
         child: Text(locales.get('label--$_role')),
       ));
       rolesList.add(RadioListTile(
-        contentPadding: EdgeInsets.only(left: 8),
+        contentPadding: const EdgeInsets.only(left: 8),
         title: Text(locales.get('label--$_role')),
         value: _role,
         groupValue: roleSelect,

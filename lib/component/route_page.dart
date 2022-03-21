@@ -27,7 +27,6 @@ class RoutePage extends StatelessWidget {
           return page;
         }
         return _routes[routeHelper.unknownRoute]!;
-        return page;
       },
     );
   }

@@ -23,7 +23,7 @@ class ExpansionTable extends StatefulWidget {
     this.columnSpacing,
     this.dividerThickness,
     this.border,
-  })  : assert(data == null || data.header!.length > 0),
+  })  : assert(data == null || data.header!.isNotEmpty),
         super(key: key);
 
   final TableData? data;
@@ -88,10 +88,10 @@ double _widthColumn = 350; // default: 100
 class _ExpansionTableState extends State<ExpansionTable> {
   @override
   Widget build(BuildContext context) {
-    if (widget.data == null) return SizedBox();
+    if (widget.data == null) return const SizedBox();
     TableData data = widget.data!;
     ThemeData theme = Theme.of(context);
-    TextTheme textTheme = theme.textTheme;
+    // TextTheme textTheme = theme.textTheme;
     final BorderSide borderSide = Divider.createBorderSide(
       context,
       width:
@@ -106,7 +106,7 @@ class _ExpansionTableState extends State<ExpansionTable> {
     // List<Widget> _columns = _getColumns(columns: data.header!);
     // final List<TableColumnWidth> tableColumns = List<TableColumnWidth>.filled(data.header!.length + (displayCheckboxColumn ? 1 : 0), const _NullTableColumnWidth());
     final List<TableColumnWidth> tableColumns = List<TableColumnWidth>.filled(
-        data.header!.length, FixedColumnWidth(300.0));
+        data.header!.length, const FixedColumnWidth(300.0));
     final double effectiveHorizontalMargin =
         widget.horizontalMargin ?? theme.dataTableTheme.horizontalMargin ?? 0;
     final double effectiveColumnSpacing =
@@ -160,7 +160,7 @@ class _ExpansionTableState extends State<ExpansionTable> {
             final _columnData = data.header![index];
             Widget _baseCell = Container();
             if (cellValue == null) {
-              _baseCell = Text('-');
+              _baseCell = const Text('-');
             } else {
               switch (_columnData.type) {
                 case TableDataType.string:
@@ -183,14 +183,14 @@ class _ExpansionTableState extends State<ExpansionTable> {
                       onPressed: () {
                         Navigator.of(context).pushNamed(cellValue);
                       },
-                      child: Text('open'));
+                      child: const Text('open'));
                   break;
                 case TableDataType.link:
                   _baseCell = TextButton(
                       onPressed: () async {
                         await launch(cellValue);
                       },
-                      child: Text('open'));
+                      child: const Text('open'));
                   break;
                 default:
                   _baseCell = Text(cellValue.toString());
@@ -291,8 +291,8 @@ class _ExpansionTableState extends State<ExpansionTable> {
               ? dataRowColor
               : widget.dataFooterColor ?? Colors.transparent;
           // DataTable
-          TextStyle? _dataTextStyle =
-              widget.dataTextStyle ?? textTheme.bodyText1;
+          // TextStyle? _dataTextStyle =
+          //     widget.dataTextStyle ?? textTheme.bodyText1;
           Widget rowWidget = Material(
             textStyle:
                 widget.dataTextStyle ?? theme.dataTableTheme.dataTextStyle,
@@ -323,7 +323,7 @@ class _ExpansionTableState extends State<ExpansionTable> {
             content.add(ExpansionTable(
               data: row.child!,
             ));
-            content.add(SizedBox(height: 32));
+            content.add(const SizedBox(height: 32));
           }
           return Container(
             decoration: BoxDecoration(

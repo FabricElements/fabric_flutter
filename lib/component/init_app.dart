@@ -18,7 +18,7 @@ final FirebaseAuth _auth = FirebaseAuth.instance;
 final Future<FirebaseApp> _initialization = Firebase.initializeApp();
 
 class InitApp extends StatelessWidget {
-  InitApp({
+  const InitApp({
     Key? key,
     required this.child,
     required this.providers,
@@ -65,8 +65,9 @@ class InitApp extends StatelessWidget {
         builder: (context, snapshot) {
           // Check for errors
           if (snapshot.hasError) {
-            print(snapshot.error.toString());
-            print("_initialization load error");
+            if (kDebugMode) {
+              print('_initialization load error ${snapshot.error.toString()}');
+            }
             return loadingApp;
           }
 
@@ -82,7 +83,7 @@ class InitApp extends StatelessWidget {
 
           /// Refresh auth state
           _refreshAuth(User? userObject) async {
-            String? uid = userObject?.uid ?? null;
+            String? uid = userObject?.uid;
             if (uid != null) {
               if (notifications) {
                 stateNotifications.uid = uid;
@@ -105,14 +106,14 @@ class InitApp extends StatelessWidget {
             try {
               stateDynamicLinks.init();
             } catch (e) {
-              print(e);
+              if (kDebugMode) print(e);
             }
           }
 
           // Otherwise, show something whilst waiting for initialization to complete
-          if (snapshot.connectionState != ConnectionState.done)
+          if (snapshot.connectionState != ConnectionState.done) {
             return loadingApp;
-
+          }
           return child;
         },
       ),

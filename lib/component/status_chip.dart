@@ -10,7 +10,7 @@ import '../helper/app_localizations_delegate.dart';
 ///   locale: 'Active',
 /// );
 class StatusChip extends StatelessWidget {
-  StatusChip({
+  const StatusChip({
     Key? key,
     required this.status,
   }) : super(key: key);
@@ -48,7 +48,7 @@ class StatusChip extends StatelessWidget {
     return Chip(
       label: Text(
         baseStatus,
-        style: TextStyle(
+        style: const TextStyle(
           fontWeight: FontWeight.w500,
           letterSpacing: 1.1,
           color: Colors.white,

@@ -82,14 +82,14 @@ class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
         ),
       );
     }
-    LatLng location = new LatLng(latitude!, longitude!);
+    LatLng location = LatLng(latitude!, longitude!);
     Completer<GoogleMapController> _controller = Completer();
     final CameraPosition _kGooglePlex = CameraPosition(
       target: location,
       zoom: widget.zoom,
     );
     final Marker marker =
-        Marker(markerId: MarkerId('map-preview'), position: location);
+        Marker(markerId: const MarkerId('map-preview'), position: location);
     return AspectRatio(
       aspectRatio: widget.aspectRatio,
       child: GoogleMap(

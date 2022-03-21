@@ -49,7 +49,7 @@ class _EditSaveButtonState extends State<EditSaveButton> {
                 type: AlertType.warning,
               );
             },
-            icon: Icon(Icons.cancel, color: Colors.deepOrange),
+            icon: const Icon(Icons.cancel, color: Colors.deepOrange),
           ),
           IconButton(
             onPressed: () {

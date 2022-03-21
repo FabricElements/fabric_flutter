@@ -13,7 +13,7 @@ import 'google_maps_preview.dart';
 /// [signedIn] determines if the current user is signed In
 /// [user] returns the user object
 class GoogleMapsSearch extends StatefulWidget {
-  GoogleMapsSearch({
+  const GoogleMapsSearch({
     Key? key,
     required this.apiKey,
     this.mapType = MapType.normal,
@@ -42,7 +42,7 @@ class GoogleMapsSearch extends StatefulWidget {
   final List<String> fields;
 
   @override
-  _GoogleMapsSearchState createState() => new _GoogleMapsSearchState();
+  _GoogleMapsSearchState createState() => _GoogleMapsSearchState();
 }
 
 class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
@@ -106,7 +106,6 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
       return true;
     } catch (error) {
       if (mounted) setState(() {});
-      print(error);
       if (widget.onError != null) widget.onError!(error.toString());
     }
     return false;
@@ -149,7 +148,9 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
   void _closeKeyboard(BuildContext context) {
     try {
       FocusScope.of(context).requestFocus(FocusNode());
-    } catch (error) {}
+    } catch (error) {
+      //
+    }
   }
 
   void selectLocation({
@@ -185,7 +186,7 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
         mapComponents.clear();
         mapComponents.addAll([
           SafeArea(
-            child: Container(
+            child: SizedBox(
               height: 50,
               child: TextField(
                 controller: textController,
@@ -197,10 +198,10 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(32),
                   ),
-                  contentPadding: EdgeInsets.all(16),
+                  contentPadding: const EdgeInsets.all(16),
                   filled: true,
                   hintText: name ?? locales.get('label--search'),
-                  suffixIcon: Icon(Icons.search),
+                  suffixIcon: const Icon(Icons.search),
                   fillColor: Colors.white,
                 ),
                 onChanged: (val) async {
@@ -210,7 +211,7 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
                     if (mounted) setState(() {});
                     return;
                   }
-                  searchAddr = '$val';
+                  searchAddr = val;
                   try {
                     PlacesSearchResponse places = await _places.searchByText(
                       searchAddr,
@@ -221,7 +222,6 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
                     totalItems = places.results.length;
                     if (mounted) setState(() {});
                   } catch (error) {
-                    print(error);
                     alert.show(
                       title: error.toString(),
                       type: AlertType.warning,
@@ -236,7 +236,7 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
         if (totalItems > 0) {
           mapComponents.add(
             Padding(
-              padding: EdgeInsets.symmetric(vertical: 16.0),
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
               child: Material(
                 clipBehavior: Clip.hardEdge,
                 color: Colors.transparent,
@@ -275,7 +275,7 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
                                   );
                                 },
                               ),
-                              Divider(height: 1),
+                              const Divider(height: 1),
                             ],
                           ),
                         );
@@ -303,7 +303,7 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
               left: 0,
               bottom: 0,
               child: Padding(
-                padding: EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(16.0),
                 child: Flex(
                   direction: Axis.vertical,
                   children: mapComponents,
