@@ -59,7 +59,6 @@ class _PaginationContainerState extends State<PaginationContainer> {
       bool isBottom =
           _controller.position.atEdge && _controller.position.pixels != 0;
       if (!isBottom) return;
-      print('At the bottom');
       loading = true;
       if (mounted) setState(() {});
       int nextPage = widget.page + 1;
@@ -84,18 +83,31 @@ class _PaginationContainerState extends State<PaginationContainer> {
   }
 
   @override
+  void didUpdateWidget(covariant PaginationContainer oldWidget) {
+    if (mounted) setState(() {});
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
   Widget build(BuildContext context) {
     if (widget.total == 0) return Scaffold(body: widget.empty, primary: false);
-    return ListView.builder(
-      cacheExtent: widget.cacheExtent,
+    return Scrollbar(
+      isAlwaysShown: true,
+      scrollbarOrientation: ScrollbarOrientation.right,
+      showTrackOnHover: true,
+      interactive: true,
       controller: _controller,
-      itemCount: loading ? (widget.total) + 1 : widget.total,
-      padding: widget.padding,
-      itemBuilder: (BuildContext context, int index) {
-        if (index >= widget.total) return widget.loading;
-        return widget.itemBuilder(context, index);
-      },
-      scrollDirection: widget.scrollDirection,
+      child: ListView.builder(
+        cacheExtent: widget.cacheExtent,
+        controller: _controller,
+        itemCount: loading ? (widget.total) + 1 : widget.total,
+        padding: widget.padding,
+        itemBuilder: (BuildContext context, int index) {
+          if (index >= widget.total) return widget.loading;
+          return widget.itemBuilder(context, index);
+        },
+        scrollDirection: widget.scrollDirection,
+      ),
     );
   }
 }
