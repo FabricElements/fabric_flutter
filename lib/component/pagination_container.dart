@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class PaginationContainer extends StatefulWidget {
@@ -9,11 +10,20 @@ class PaginationContainer extends StatefulWidget {
     this.padding = EdgeInsets.zero,
     this.scrollDirection = Axis.vertical,
     this.cacheExtent = 5,
-    this.empty = const SizedBox(height: 0, width: 0),
-    this.error = const SizedBox(
-      height: 30,
-      width: 100,
-      child: Text('Error Loading Snapshot'),
+    this.empty = const Align(
+      child: Padding(
+        padding: EdgeInsets.all(8.0),
+        child: SizedBox.square(
+          dimension: 32,
+          child: Icon(Icons.check),
+        ),
+      ),
+    ),
+    this.error = const Align(
+      child: Padding(
+        padding: EdgeInsets.all(8.0),
+        child: Text('Error Loading Snapshot'),
+      ),
     ),
     this.loading = const Align(
       child: Padding(
@@ -51,12 +61,13 @@ class _PaginationContainerState extends State<PaginationContainer> {
   late bool end;
   late bool loading;
   final _controller = ScrollController();
+  late String? error;
 
   @override
   void initState() {
     end = false;
     loading = false;
-
+    error = null;
     _controller.addListener(() async {
       if (end) return;
       bool isBottom =
@@ -64,8 +75,14 @@ class _PaginationContainerState extends State<PaginationContainer> {
       if (!isBottom) return;
       loading = true;
       if (mounted) setState(() {});
-      dynamic _data = await widget.paginate();
-      end = _data == null || _data.runtimeType == List && _data.length == 0;
+      try {
+        error = null;
+        final _data = await widget.paginate();
+        end = _data == null || _data.isEmpty;
+      } catch (e) {
+        error = e.toString();
+        if (kDebugMode) print(e);
+      }
       loading = false;
       if (mounted) setState(() {});
     });
@@ -80,6 +97,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
 
   @override
   Widget build(BuildContext context) {
+    if (error != null) return Scaffold(body: widget.error, primary: false);
     return StreamBuilder(
       stream: widget.stream,
       initialData: widget.initialData,
@@ -94,11 +112,11 @@ class _PaginationContainerState extends State<PaginationContainer> {
             break;
           case ConnectionState.active:
           case ConnectionState.done:
-            if (snapshot.data.runtimeType == List) {
-              List<dynamic> data = snapshot.data;
+            if (snapshot.data != null) {
+              List<dynamic> data = snapshot.data as List<dynamic>;
               total = data.length;
               if (total == 0) {
-                content = Scaffold(body: widget.empty, primary: false);
+                content = widget.empty;
                 break;
               }
               content = Scrollbar(
@@ -124,7 +142,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
               );
             }
         }
-        return content;
+        return Scaffold(body: content, primary: false);
       },
     );
   }

@@ -67,7 +67,7 @@ class StateShared extends ChangeNotifier {
   bool incrementalPagination = false;
 
   /// Verify if it's possible to paginate
-  bool get canPaginate => dataOld.runtimeType == List && dataOld.length > 0;
+  bool get canPaginate => dataOld != null && dataOld.isNotEmpty;
 
   /// Paginate and call
   Future<dynamic> paginate() async {

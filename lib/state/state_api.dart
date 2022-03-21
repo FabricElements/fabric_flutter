@@ -177,8 +177,8 @@ class StateAPI extends StateShared {
         .then((value) => notifyListeners());
 
     /// pagination
-    if (incrementalPagination && page > 0 && data != null) {
-      if (_newData.runtimeType == List) {
+    if (incrementalPagination && page > 0) {
+      if (data != null && _newData != null && _newData.isNotEmpty) {
         data = merge(base: data, toMerge: _newData);
       }
     } else {
