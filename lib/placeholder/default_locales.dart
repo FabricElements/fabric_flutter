@@ -609,4 +609,12 @@ dynamic defaultLocales = {
   'label--total-label': {
     'en': 'Total {label}',
   },
+  'label--next': {
+    'en': 'Next',
+    'es': 'Siguiente',
+  },
+  'label--previous': {
+    'en': 'Previous',
+    'es': 'Anterior',
+  },
 };
