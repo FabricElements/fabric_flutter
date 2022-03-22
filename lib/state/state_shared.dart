@@ -70,13 +70,24 @@ class StateShared extends ChangeNotifier {
   bool get canPaginate => dataOld != null && dataOld.isNotEmpty;
 
   /// Paginate and call
-  Future<dynamic> paginate() async {
+  Future<dynamic> next() async {
     if (loading) {
       await Future.delayed(const Duration(milliseconds: 200));
-      return paginate();
+      return next();
     }
     if (!canPaginate) return null;
-    page = (page) + 1;
+    page = page + 1;
+    return call(ignoreDuplicatedCalls: true);
+  }
+
+  /// Paginate and call
+  Future<dynamic> previous() async {
+    if (loading) {
+      await Future.delayed(const Duration(milliseconds: 200));
+      return next();
+    }
+    if (page == 0) return null;
+    page = page - 1;
     return call(ignoreDuplicatedCalls: true);
   }
 
