@@ -96,6 +96,7 @@ class StateShared extends ChangeNotifier {
     if (dataOld == dataObject) return;
     dataOld = dataObject;
     _data = dataObject;
+    notifyListeners();
     callback(data);
     _controllerStream.sink.add(data);
   }
@@ -156,8 +157,6 @@ class StateShared extends ChangeNotifier {
     if (kDebugMode) {
       if (value != null) print('page: $value');
     }
-    // notifyListeners();
-    // call(ignoreDuplicatedCalls: true);
   }
 
   /// Returns the [limit] number
@@ -169,8 +168,6 @@ class StateShared extends ChangeNotifier {
     if (kDebugMode) {
       if (value != null) print('limit: $value');
     }
-    // notifyListeners();
-    // call(ignoreDuplicatedCalls: true);
   }
 
   /// Returns the trade
@@ -193,6 +190,10 @@ class StateShared extends ChangeNotifier {
 
   /// List of query parameters
   Map<String, List<String>>? _queryParameters;
+
+  /// Convert page to new limit
+  /// Use it to get all the previews results for pagination
+  bool queryAllPaginated = false;
 
   /// Return only the parameters when required and only what you need with [parametersList]
   Map<String, List<String>>? get queryParameters {
@@ -222,6 +223,10 @@ class StateShared extends ChangeNotifier {
     }
     if (!_passingQueryParameters.containsKey('limit')) {
       _passingQueryParameters['limit'] = [limit.toString()];
+    }
+    if (queryAllPaginated) {
+      _passingQueryParameters['page'] = ['0'];
+      _passingQueryParameters['limit'] = [(limit * (page + 1)).toString()];
     }
     return _passingQueryParameters;
   }

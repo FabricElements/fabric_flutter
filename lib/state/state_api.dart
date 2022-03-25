@@ -49,6 +49,7 @@ class StateAPI extends StateShared {
     _lastEndpointCalled = null;
     data = null;
     dataOld = null;
+    queryAllPaginated = false;
     clearAfter();
     if (notify) notifyListeners();
   }
@@ -76,10 +77,11 @@ class StateAPI extends StateShared {
         uri: Uri.parse(baseEndpoint!), queryParameters: queryParameters!);
   }
 
+  /// Clear URL from pagination queries
   String? urlClear(String? url) {
     if (url == null) return null;
     return Utils.uriQueryToStringPath(
-        uri: Uri.parse(url), queryParameters: {'page': []});
+        uri: Uri.parse(url), queryParameters: {'page': [], 'limit': []});
   }
 
   /// API Call
@@ -97,21 +99,25 @@ class StateAPI extends StateShared {
       notifyListeners();
       return null;
     }
-    final lastEndpointClear = urlClear(_lastEndpointCalled);
-    final endpointClear = urlClear(endpoint);
-    bool isSameClearPath =
-        lastEndpointClear == endpointClear && incrementalPagination;
     if (ignoreDuplicatedCalls &&
         _lastEndpointCalled != null &&
         _lastEndpointCalled == endpoint) {
       loading = false;
       return null;
     }
-    if (!isSameClearPath) {
-      _errorCount = 0;
-      data = null;
-      initialized = false;
+    bool isSameClearPath = false;
+    if (!queryAllPaginated) {
+      final lastEndpointClear = urlClear(_lastEndpointCalled);
+      final endpointClear = urlClear(endpoint);
+      isSameClearPath =
+          lastEndpointClear == endpointClear && incrementalPagination;
+      if (!isSameClearPath) {
+        _errorCount = 0;
+        data = null;
+        initialized = false;
+      }
     }
+
     _lastEndpointCalled = endpoint;
     String? _error;
     if (_errorCount > 1) {
