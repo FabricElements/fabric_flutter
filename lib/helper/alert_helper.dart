@@ -56,7 +56,7 @@ class AlertHelper {
 
   /// Display Alert with [show] function
   Future<void> show({
-    /// Notification [title]
+    /// Notification [name]
     String? title,
 
     /// Notification [body]

@@ -20,6 +20,8 @@ class GoogleMapsPreview extends StatefulWidget {
     this.aspectRatio = 3 / 2,
     this.zoom = 8,
     this.minMaxZoomPreference = const MinMaxZoomPreference(5, 25),
+    this.name,
+    this.description,
   }) : super(key: key);
   final MapType mapType;
   final double? latitude;
@@ -27,6 +29,8 @@ class GoogleMapsPreview extends StatefulWidget {
   final double aspectRatio;
   final double zoom;
   final MinMaxZoomPreference minMaxZoomPreference;
+  final String? name;
+  final String? description;
 
   @override
   _GoogleMapsPreviewState createState() => _GoogleMapsPreviewState();
@@ -35,10 +39,14 @@ class GoogleMapsPreview extends StatefulWidget {
 class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
   double? latitude;
   double? longitude;
+  String? name;
+  String? description;
 
   void reset() {
     latitude = null;
     longitude = null;
+    name = null;
+    description = null;
   }
 
   void getLocation({bool notify = false}) {
@@ -47,6 +55,8 @@ class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
     Future.delayed(const Duration(milliseconds: 100), () {
       latitude = widget.latitude;
       longitude = widget.longitude;
+      name = widget.name;
+      description = widget.description;
       if (mounted && notify) setState(() {});
     });
   }
@@ -55,6 +65,8 @@ class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
   void initState() {
     latitude = widget.latitude;
     longitude = widget.longitude;
+    name = widget.name;
+    description = widget.description;
     super.initState();
   }
 
@@ -77,7 +89,7 @@ class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
     if (longitude == null || longitude == null) {
       return AspectRatio(
         aspectRatio: widget.aspectRatio,
-        child: SmartImage(
+        child: const SmartImage(
           url: 'https://images.unsplash.com/photo-1476973422084-e0fa66ff9456',
         ),
       );
@@ -88,8 +100,15 @@ class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
       target: location,
       zoom: widget.zoom,
     );
-    final Marker marker =
-        Marker(markerId: const MarkerId('map-preview'), position: location);
+    InfoWindow infoWindow = InfoWindow.noText;
+    if (name != null || description != null) {
+      infoWindow = InfoWindow(title: name, snippet: description);
+    }
+    final Marker marker = Marker(
+      markerId: const MarkerId('map-preview'),
+      position: location,
+      infoWindow: infoWindow,
+    );
     return AspectRatio(
       aspectRatio: widget.aspectRatio,
       child: GoogleMap(

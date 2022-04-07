@@ -25,6 +25,9 @@ class GoogleMapsSearch extends StatefulWidget {
     this.name,
     this.fields = const ['formatted_address', 'utc_offset'],
     this.aspectRatio = 3 / 2,
+    this.zoom = 8,
+    this.minMaxZoomPreference = const MinMaxZoomPreference(5, 25),
+    this.description,
   }) : super(key: key);
   final String? placeId;
   final Function(PlaceDetails)? onChange;
@@ -35,6 +38,9 @@ class GoogleMapsSearch extends StatefulWidget {
   final MapType mapType;
   final String? name;
   final double aspectRatio;
+  final double zoom;
+  final MinMaxZoomPreference minMaxZoomPreference;
+  final String? description;
 
   /// Define Google Places API fields you require on the response
   /// There is no need to include 'name', 'place_id', or 'geometry/location'
@@ -292,6 +298,9 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
           longitude: longitude,
           mapType: widget.mapType,
           aspectRatio: widget.aspectRatio,
+          minMaxZoomPreference: widget.minMaxZoomPreference,
+          zoom: widget.zoom,
+          name: name,
         );
 
         return Stack(
