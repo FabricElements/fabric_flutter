@@ -48,7 +48,7 @@ class PaginationContainer extends StatefulWidget {
   final Widget loading;
   final Widget error;
   final Stream<dynamic> stream;
-  final dynamic initialData;
+  final List<dynamic>? initialData;
 
   /// Returns the page
   final Future<dynamic> Function() paginate;
@@ -104,6 +104,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
       builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
         int total = 0;
         Widget content = widget.loading;
+        List<dynamic>? data = widget.initialData;
         if (snapshot.hasError) return widget.error;
         switch (snapshot.connectionState) {
           case ConnectionState.none:
@@ -113,34 +114,34 @@ class _PaginationContainerState extends State<PaginationContainer> {
           case ConnectionState.active:
           case ConnectionState.done:
             if (snapshot.data != null) {
-              List<dynamic> data = snapshot.data as List<dynamic>;
-              total = data.length;
-              if (total == 0) {
-                content = widget.empty;
-                break;
-              }
-              content = Scrollbar(
-                isAlwaysShown: true,
-                scrollbarOrientation: ScrollbarOrientation.right,
-                showTrackOnHover: true,
-                interactive: true,
-                controller: _controller,
-                child: ListView.builder(
-                  cacheExtent: widget.cacheExtent,
-                  controller: _controller,
-                  itemCount: loading ? (total) + 1 : total,
-                  padding: widget.padding,
-                  itemBuilder: (BuildContext context, int index) {
-                    if (index >= total) {
-                      return widget.loading;
-                    } else {
-                      return widget.itemBuilder(context, index);
-                    }
-                  },
-                  scrollDirection: widget.scrollDirection,
-                ),
-              );
+              data = snapshot.data as List<dynamic>;
             }
+        }
+        total = data?.length ?? 0;
+        if (total == 0) {
+          content = widget.empty;
+        } else {
+          content = Scrollbar(
+            isAlwaysShown: true,
+            scrollbarOrientation: ScrollbarOrientation.right,
+            showTrackOnHover: true,
+            interactive: true,
+            controller: _controller,
+            child: ListView.builder(
+              cacheExtent: widget.cacheExtent,
+              controller: _controller,
+              itemCount: loading ? (total) + 1 : total,
+              padding: widget.padding,
+              itemBuilder: (BuildContext context, int index) {
+                if (index >= total) {
+                  return widget.loading;
+                } else {
+                  return widget.itemBuilder(context, index);
+                }
+              },
+              scrollDirection: widget.scrollDirection,
+            ),
+          );
         }
         return Scaffold(body: content, primary: false);
       },
