@@ -31,20 +31,33 @@ class Breadcrumbs extends StatelessWidget {
     for (int i = 0; i < buttons.length; i++) {
       ButtonOptions button = buttons[i];
       bool clickable = button.path != null || button.onTap != null;
-      items.add(
-        TextButton(
-          onPressed: !clickable
-              ? null
-              : () {
-                  if (button.onTap != null) button.onTap!();
-                  if (button.path != null) {
-                    Navigator.of(context).popAndPushNamed(button.path!);
-                  }
-                },
-          child: Text(button.label, style: _textStyle),
-          style: buttonStyle,
-        ),
-      );
+      VoidCallback? onPressed;
+      if (clickable) {
+        onPressed = () {
+          if (button.onTap != null) button.onTap!();
+          if (button.path != null) {
+            Navigator.of(context).popAndPushNamed(button.path!);
+          }
+        };
+      }
+      if (button.icon != null) {
+        items.add(
+          TextButton.icon(
+            icon: Icon(button.icon),
+            onPressed: onPressed,
+            label: Text(button.label, style: _textStyle),
+            style: buttonStyle,
+          ),
+        );
+      } else {
+        items.add(
+          TextButton(
+            onPressed: onPressed,
+            child: Text(button.label, style: _textStyle),
+            style: buttonStyle,
+          ),
+        );
+      }
       if (i < (buttons.length - 1)) {
         items.add(Text('/', style: _dividerStyle));
       }
