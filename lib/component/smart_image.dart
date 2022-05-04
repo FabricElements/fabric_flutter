@@ -3,6 +3,8 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:transparent_image/transparent_image.dart';
 
+import '../helper/utils.dart';
+
 /// SmartImage can be used to display an image for basic Imgix or Internal implementation.
 ///
 /// [url] This is the image url.
@@ -34,28 +36,29 @@ class SmartImage extends StatelessWidget {
         int width = constraints.maxWidth.floor();
         int height = constraints.maxHeight.floor();
         // double biggest = constraints.biggest.longestSide;
-        Uri uri = Uri.parse(this.url); //converts string to a uri
-        Map<String, String> query = {};
-        query.addAll(uri.queryParameters);
-        query.addAll({
-          'dpr': devicePixelRatio.toString(),
-          'crop': 'entropy',
+        Uri uri = Uri.parse(url); //converts string to a uri
+        Map<String, List<String>> queryParameters = {};
+        queryParameters.addAll({
+          'dpr': [devicePixelRatio.toString()],
+          'crop': ['entropy'],
         });
-        // String resultUrl = '${this.url}?dpr=$devicePixelRatio&crop=entropy';
         if (size != null) {
-          query.addAll({
-            'size': size.toString(),
+          queryParameters.addAll({
+            'size': [size.toString()],
           });
         } else {
-          query.addAll({
-            'width': width.toString(),
-            'height': height.toString(),
+          queryParameters.addAll({
+            'width': [width.toString()],
+            'height': [height.toString()],
           });
         }
-        String url = Uri.https(uri.authority, uri.path, query).toString();
+        String path = Utils.uriQueryToStringPath(
+          uri: uri,
+          queryParameters: queryParameters,
+        );
         return FadeInImage.memoryNetwork(
           fit: BoxFit.cover,
-          image: url,
+          image: path,
           placeholder: placeholder ?? kTransparentImage,
         );
       },
