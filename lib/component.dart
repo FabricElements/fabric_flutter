@@ -6,6 +6,7 @@ export 'component/expansion_table.dart';
 export 'component/flag_chip.dart';
 export 'component/google_maps_preview.dart';
 export 'component/google_maps_search.dart';
+export 'component/google_maps_search_geocode.dart';
 export 'component/init_app.dart';
 export 'component/input_data.dart';
 export 'component/language_selector.dart';
