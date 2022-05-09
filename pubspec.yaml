@@ -9,7 +9,7 @@ dependencies:
   flutter:
     sdk: flutter
   charts_flutter: ^0.12.0
-  flutter_sound: ^9.2.10
+  flutter_sound: ^9.2.12
   country_code_picker: ^2.0.2
   flutter_cache_manager: ^3.3.0
   image_picker: ^0.8.5
@@ -32,7 +32,7 @@ dependencies:
   flutter_web_plugins:
     sdk: flutter
   google_sign_in: ^5.3.0
-  devicelocale: ^0.5.0
+  devicelocale: ^0.5.1
   flutter_signin_button: ^2.0.0
   flutter_dotenv: ^5.0.2
   http: ^0.13.4

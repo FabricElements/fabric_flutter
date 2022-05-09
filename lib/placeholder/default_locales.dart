@@ -67,6 +67,10 @@ dynamic defaultLocales = {
     'en': 'All',
     'es': 'Todo',
   },
+  'label--any': {
+    'en': 'Any',
+    'es': 'Cualquier',
+  },
   'label--status': {
     'en': 'Status',
     'es': 'Estado',

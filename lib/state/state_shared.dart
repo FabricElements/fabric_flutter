@@ -244,6 +244,14 @@ class StateShared extends ChangeNotifier {
     }
   }
 
+  /// Merge list of parameters
+  set mergeQueryParameters(Map<String, List<String>> p) {
+    Map<String, List<String>> qp = {};
+    if (_queryParameters != null) qp.addAll(_queryParameters!);
+    qp.addAll(p);
+    _queryParameters = qp;
+  }
+
   /// [selectId] select item by id
   void selectId(dynamic id, bool value) {
     if (value) {
