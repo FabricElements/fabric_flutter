@@ -7,8 +7,8 @@ part of 'map_data.dart';
 // **************************************************************************
 
 MapLatLng _$MapLatLngFromJson(Map<String, dynamic> json) => MapLatLng(
-      (json['latitude'] as num?)?.toDouble(),
-      (json['longitude'] as num?)?.toDouble(),
+      (json['latitude'] as num?)?.toDouble() ?? 0.0,
+      (json['longitude'] as num?)?.toDouble() ?? 0.0,
     );
 
 Map<String, dynamic> _$MapLatLngToJson(MapLatLng instance) => <String, dynamic>{

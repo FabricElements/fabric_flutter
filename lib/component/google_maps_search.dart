@@ -2,9 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_webservice/places.dart';
+import 'package:provider/provider.dart';
 
-import '../helper/alert_helper.dart';
 import '../helper/app_localizations_delegate.dart';
+import '../state/state_alert.dart';
 import 'google_maps_preview.dart';
 
 /// This view has a map and allow choose a specific location
@@ -119,7 +120,7 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
 
   @override
   void initState() {
-    /// Temporal access at https://cors-anywhere.herokuapp.com/https://maps.googleapis.com/maps/ap
+    /// Temporal access at https://cors-anywhere.herokuapp.com/https://maps.googleapis.com/maps/api
     _places = GoogleMapsPlaces(
         apiKey: widget.apiKey,
         baseUrl: kIsWeb
@@ -131,7 +132,7 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
     if (widget.placeId != null &&
         widget.latitude == null &&
         widget.longitude == null) {
-      WidgetsBinding.instance?.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         getPlaceById(id: widget.placeId!);
       });
     }
@@ -179,10 +180,7 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
   Widget build(BuildContext context) {
     ThemeData theme = Theme.of(context);
     AppLocalizations locales = AppLocalizations.of(context)!;
-    AlertHelper alert = AlertHelper(
-      context: context,
-      mounted: mounted,
-    );
+    final alert = Provider.of<StateAlert>(context, listen: false);
     return AspectRatio(
       aspectRatio: widget.aspectRatio,
       child: LayoutBuilder(
@@ -228,10 +226,10 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
                     totalItems = places.results.length;
                     if (mounted) setState(() {});
                   } catch (error) {
-                    alert.show(
+                    alert.show(AlertData(
                       title: error.toString(),
                       type: AlertType.warning,
-                    );
+                    ));
                   }
                 },
               ),

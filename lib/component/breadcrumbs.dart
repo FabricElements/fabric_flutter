@@ -30,11 +30,12 @@ class Breadcrumbs extends StatelessWidget {
     TextStyle? _dividerStyle = dividerStyle ?? textTheme.caption;
     for (int i = 0; i < buttons.length; i++) {
       ButtonOptions button = buttons[i];
+      button.label ??= '';
       bool clickable = button.path != null || button.onTap != null;
       VoidCallback? onPressed;
       if (clickable) {
         onPressed = () {
-          if (button.onTap != null) button.onTap!();
+          if (button.onTap != null) button.onTap!;
           if (button.path != null) {
             Navigator.of(context).popAndPushNamed(button.path!);
           }
@@ -53,8 +54,8 @@ class Breadcrumbs extends StatelessWidget {
         items.add(
           TextButton(
             onPressed: onPressed,
-            child: Text(button.label, style: _textStyle),
             style: buttonStyle,
+            child: Text(button.label, style: _textStyle),
           ),
         );
       }
@@ -70,8 +71,8 @@ class Breadcrumbs extends StatelessWidget {
         runSpacing: spacing,
         alignment: WrapAlignment.start,
         runAlignment: WrapAlignment.center,
-        children: items,
         crossAxisAlignment: WrapCrossAlignment.center,
+        children: items,
       ),
     );
   }

@@ -352,13 +352,13 @@ class _InputDataState extends State<InputData> {
                       ))
                   .toList();
             }
-            for (ButtonOptions _option in _dropdown) {
+            for (ButtonOptions option in _dropdown) {
               buttons.add(PopupMenuItem<String>(
-                value: _option.value?.toString(),
-                child: Text(_option.label),
-                onTap: _option.onTap != null
-                    ? () => _option.onTap!(_option.value)
+                value: option.value?.toString(),
+                onTap: option.onTap != null
+                    ? () => option.onTap!(option.value)
                     : null,
+                child: Text(option.label),
               ));
             }
             if (value != null) {

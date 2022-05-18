@@ -3,8 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../helper/alert_helper.dart';
 import '../helper/app_localizations_delegate.dart';
+import '../state/state_alert.dart';
 import '../state/state_user.dart';
 import 'input_data.dart';
 import 'role_selector.dart';
@@ -77,10 +77,7 @@ class _UserAddState extends State<UserAdd> {
 
     AppLocalizations locales = AppLocalizations.of(context)!;
     // ThemeData theme = Theme.of(context);
-    AlertHelper alert = AlertHelper(
-      context: context,
-      mounted: mounted,
-    );
+    final alert = Provider.of<StateAlert>(context, listen: false);
 
     /// Sends user invite to firebase function with the necessary information when inviting a user.
     ///
@@ -94,7 +91,10 @@ class _UserAddState extends State<UserAdd> {
       }
       sending = true;
       if (mounted) setState(() {});
-      alert.show(body: locales.get('notification--please-wait'), duration: 5);
+      alert.show(AlertData(
+        body: locales.get('notification--please-wait'),
+        duration: 5,
+      ));
       Map<String, dynamic> data = {};
       if (role != null) {
         data.addAll({
@@ -117,19 +117,19 @@ class _UserAddState extends State<UserAdd> {
         final HttpsCallable callable =
             FirebaseFunctions.instance.httpsCallable('user-actions-invite');
         await callable.call(data);
-        alert.show(
+        alert.show(AlertData(
           body: locales.get('notification--added'),
           type: AlertType.success,
           duration: 3,
-        );
+        ));
         Navigator.pop(context, 'send-invitation');
       } on FirebaseFunctionsException catch (error) {
-        alert.show(
+        alert.show(AlertData(
           body: error.message ?? error.details['message'],
           type: AlertType.critical,
-        );
+        ));
       } catch (error) {
-        alert.show(body: error.toString(), type: AlertType.critical);
+        alert.show(AlertData(body: error.toString(), type: AlertType.critical));
       }
       sending = false;
       if (mounted) setState(() {});
@@ -137,7 +137,10 @@ class _UserAddState extends State<UserAdd> {
 
     void validateInvitation() async {
       if (!canInvite) {
-        alert.show(title: 'incomplete data', type: AlertType.critical);
+        alert.show(AlertData(
+          title: 'incomplete data',
+          type: AlertType.critical,
+        ));
       }
       if (_typeOption == TypeOptions.phone) {
         await _sendInvitation(

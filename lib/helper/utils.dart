@@ -162,7 +162,7 @@ class Utils {
     String path = '/',
   }) {
     if (value == null || value.isEmpty) {
-      WidgetsBinding.instance?.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.popAndPushNamed(context, path);
       });
     }
