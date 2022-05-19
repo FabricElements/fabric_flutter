@@ -83,9 +83,7 @@ class _EditSaveButtonState extends State<EditSaveButton> {
     }
     return IconButton(
       icon: Icon(Icons.edit, color: theme.colorScheme.primary),
-      onPressed: () {
-        widget.edit;
-      },
+      onPressed: widget.edit,
     );
   }
 }

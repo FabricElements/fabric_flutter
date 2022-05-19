@@ -56,6 +56,12 @@ class AlertData {
   Color? color;
   TextStyle? titleStyle;
   TextStyle? bodyStyle;
+  Brightness? brightness;
+
+  /// Clear all other alerts of the same type
+  /// Not recommended for AlertWidget.dialog because it uses Navigator.pop(context!)
+  /// and it can affect the navigation
+  bool clear;
 
   AlertData({
     this.action,
@@ -70,6 +76,8 @@ class AlertData {
     this.color,
     this.titleStyle,
     this.bodyStyle,
+    this.clear = false,
+    this.brightness,
   });
 }
 
@@ -77,7 +85,6 @@ class StateAlert extends ChangeNotifier {
   StateAlert();
 
   BuildContext? context;
-  bool? mounted;
 
   /// typeFromString returns AlertType from a String
   AlertType typeFromString(String? value) {
@@ -101,11 +108,6 @@ class StateAlert extends ChangeNotifier {
   /// Display Alert with [show] function
   Future<void> show(AlertData alertData) async {
     assert(context != null, 'context can\'t be null');
-    assert(mounted != null, 'mounted can\'t be null');
-    if (!mounted!) {
-      if (kDebugMode) print('Called Alert when unmounted');
-      return;
-    }
 
     final queryData = MediaQuery.of(context!);
     double width = queryData.size.width;
@@ -118,9 +120,6 @@ class StateAlert extends ChangeNotifier {
     final textTheme = theme.textTheme;
     final brightness = theme.brightness;
     // await Future.delayed(Duration(microseconds: 200));
-    // BuildContext parentContext = globalContext ?? context;
-    // ScaffoldMessenger.of(context!).clearSnackBars();
-    // ScaffoldMessenger.of(context!).clearMaterialBanners();
     if (alertData.typeString != null) {
       alertData.type = typeFromString(alertData.typeString);
     }
@@ -129,6 +128,19 @@ class StateAlert extends ChangeNotifier {
       print(alertData.title ?? alertData.body ?? 'UNKNOWN');
       print('////////////////////////////');
     }
+    alertData.brightness ??= brightness; // Default
+    alertData.brightness ??= Brightness.light;
+    if (alertData.color != null) {
+      double luminance = alertData.color!.computeLuminance();
+      alertData.brightness =
+          luminance > 0.5 ? Brightness.light : Brightness.dark;
+      print('------------------ LUMINANCE:::: $luminance -------------');
+    }
+    print(
+        '------------------ brightness:::: ${alertData.brightness} -------------');
+    // alertData.color ??= alertData.brightness == Brightness.light
+    //     ? Colors.red.shade200
+    //     : Colors.red;
     switch (alertData.type) {
       case AlertType.critical:
         alertData.color ??= Colors.red;
@@ -147,12 +159,44 @@ class StateAlert extends ChangeNotifier {
 
     /// Set default values for null safety
     alertData.duration ??= 10;
-    alertData.color ??= Colors.grey.shade900;
-
+    alertData.color ??= Colors.grey.shade800;
     // alertData.titleStyle ??= textTheme.headline5?.apply(color: Colors.white);
     alertData.titleStyle ??= textTheme.headline5;
     // alertData.bodyStyle ??= textTheme.bodyText1?.apply(color: Colors.grey.shade50);
     alertData.bodyStyle ??= textTheme.bodyText1;
+
+    alertData.titleStyle!.apply(
+      color: alertData.brightness == Brightness.dark
+          ? Colors.grey.shade900
+          : Colors.white,
+    );
+    alertData.bodyStyle!.apply(
+      color: alertData.brightness == Brightness.dark
+          ? Colors.grey.shade800
+          : Colors.grey.shade50,
+    );
+
+    /// Set global colors
+    Color backgroundColor = alertData.brightness == Brightness.light
+        ? alertData.color!.withOpacity(0.2)
+        : alertData.color!;
+    Color buttonColor = alertData.brightness == Brightness.light
+        ? alertData.color!.withOpacity(0.5)
+        : alertData.color!;
+
+    /// Dismiss
+    alertData.dismiss ??= ButtonOptions();
+    alertData.dismiss!.icon ??= Icons.close;
+    if (alertData.dismiss!.label.isEmpty) {
+      alertData.dismiss!.label = 'label--dismiss';
+    }
+
+    /// Action
+    alertData.action ??= ButtonOptions();
+    alertData.action!.icon ??= Icons.navigate_next;
+    if (alertData.action!.label.isEmpty) {
+      alertData.action!.label = 'label--continue';
+    }
 
     /// Dismiss action
     /// Dismiss current alert or all alerts with the same widget type
@@ -179,22 +223,7 @@ class StateAlert extends ChangeNotifier {
     }
 
     /// Hide all alerts from same type to prevent overlap
-    dismissAlerts(dismissAll: true);
-
-    /// Dismiss
-    alertData.dismiss ??= ButtonOptions();
-    alertData.dismiss!.icon ??= Icons.close;
-    if (alertData.dismiss!.label.isEmpty) {
-      alertData.dismiss!.label = 'label--dismiss';
-    }
-    // alertData.dismiss!.onTap = dismissAlerts;
-
-    /// Action
-    alertData.action ??= ButtonOptions();
-    alertData.action!.icon ??= Icons.navigate_next;
-    if (alertData.action!.label.isEmpty) {
-      alertData.action!.label = 'label--continue';
-    }
+    if (alertData.clear) dismissAlerts(dismissAll: true);
 
     try {
       List<Widget> onColumn = [];
@@ -205,7 +234,7 @@ class StateAlert extends ChangeNotifier {
           margin: const EdgeInsets.only(bottom: 16),
           constraints: BoxConstraints(
               minHeight: 50, maxHeight: 400, maxWidth: contentWidth),
-          color: Colors.grey.shade900,
+          color: alertData.color,
           child: AspectRatio(
             aspectRatio: 16 / 9,
             child: SmartImage(url: alertData.image!),
@@ -242,7 +271,8 @@ class StateAlert extends ChangeNotifier {
       bool hasValidPath =
           alertData.action!.path != null && alertData.action!.path!.isNotEmpty;
       bool hasAction = alertData.action!.onTap != null;
-      if (hasAction) {
+      bool hasDismissAction = alertData.dismiss!.onTap != null;
+      if (hasAction || hasValidPath) {
         actions.add(ElevatedButton.icon(
           // TODO: apply colors depending on style and theme
           // style: ButtonStyle(
@@ -282,7 +312,7 @@ class StateAlert extends ChangeNotifier {
           label: Text(locales.get(alertData.dismiss!.label).toUpperCase()),
           onPressed: () async {
             try {
-              if (hasAction) {
+              if (hasDismissAction) {
                 await alertData.dismiss!.onTap!();
               }
               dismissAlerts();

@@ -17,7 +17,6 @@ class RoutePage extends StatelessWidget {
     final stateUser = Provider.of<StateUser>(context, listen: false);
     final stateAlert = Provider.of<StateAlert>(context, listen: false);
     stateAlert.context = context;
-    stateAlert.mounted = true;
     return StreamBuilder<User?>(
       stream: stateUser.streamUser,
       builder: (context, snapshot) {
