@@ -54,7 +54,8 @@ class AlertData {
   ButtonOptions? action;
   ButtonOptions? dismiss;
   Color? color;
-  final Uri? uri;
+  TextStyle? titleStyle;
+  TextStyle? bodyStyle;
 
   AlertData({
     this.action,
@@ -66,8 +67,9 @@ class AlertData {
     this.widget = AlertWidget.snackBar,
     this.typeString,
     this.image,
-    this.uri,
     this.color,
+    this.titleStyle,
+    this.bodyStyle,
   });
 }
 
@@ -114,10 +116,11 @@ class StateAlert extends ChangeNotifier {
     final locales = AppLocalizations.of(context!)!;
     final theme = Theme.of(context!);
     final textTheme = theme.textTheme;
+    final brightness = theme.brightness;
     // await Future.delayed(Duration(microseconds: 200));
     // BuildContext parentContext = globalContext ?? context;
-    ScaffoldMessenger.of(context!).clearSnackBars();
-    ScaffoldMessenger.of(context!).clearMaterialBanners();
+    // ScaffoldMessenger.of(context!).clearSnackBars();
+    // ScaffoldMessenger.of(context!).clearMaterialBanners();
     if (alertData.typeString != null) {
       alertData.type = typeFromString(alertData.typeString);
     }
@@ -146,14 +149,28 @@ class StateAlert extends ChangeNotifier {
     alertData.duration ??= 10;
     alertData.color ??= Colors.grey.shade900;
 
-    void dismissAlerts() {
-      /// Dismiss action
+    // alertData.titleStyle ??= textTheme.headline5?.apply(color: Colors.white);
+    alertData.titleStyle ??= textTheme.headline5;
+    // alertData.bodyStyle ??= textTheme.bodyText1?.apply(color: Colors.grey.shade50);
+    alertData.bodyStyle ??= textTheme.bodyText1;
+
+    /// Dismiss action
+    /// Dismiss current alert or all alerts with the same widget type
+    void dismissAlerts({bool dismissAll = false}) {
       switch (alertData.widget) {
         case AlertWidget.banner:
-          ScaffoldMessenger.of(context!).clearMaterialBanners();
+          if (dismissAll) {
+            ScaffoldMessenger.of(context!).clearMaterialBanners();
+          } else {
+            ScaffoldMessenger.of(context!).removeCurrentMaterialBanner();
+          }
           break;
         case AlertWidget.snackBar:
-          ScaffoldMessenger.of(context!).clearSnackBars();
+          if (dismissAll) {
+            ScaffoldMessenger.of(context!).clearSnackBars();
+          } else {
+            ScaffoldMessenger.of(context!).removeCurrentSnackBar();
+          }
           break;
         case AlertWidget.dialog:
           Navigator.pop(context!);
@@ -161,13 +178,16 @@ class StateAlert extends ChangeNotifier {
       }
     }
 
+    /// Hide all alerts from same type to prevent overlap
+    dismissAlerts(dismissAll: true);
+
     /// Dismiss
     alertData.dismiss ??= ButtonOptions();
     alertData.dismiss!.icon ??= Icons.close;
     if (alertData.dismiss!.label.isEmpty) {
       alertData.dismiss!.label = 'label--dismiss';
     }
-    alertData.dismiss!.onTap = dismissAlerts;
+    // alertData.dismiss!.onTap = dismissAlerts;
 
     /// Action
     alertData.action ??= ButtonOptions();
@@ -198,7 +218,7 @@ class StateAlert extends ChangeNotifier {
           margin: const EdgeInsets.only(bottom: 8),
           child: Text(
             alertData.title!,
-            style: textTheme.headline5?.apply(color: Colors.white),
+            style: alertData.titleStyle,
             maxLines: 3,
             overflow: TextOverflow.ellipsis,
             softWrap: true,
@@ -211,7 +231,7 @@ class StateAlert extends ChangeNotifier {
           margin: const EdgeInsets.only(bottom: 8),
           child: Text(
             alertData.body!,
-            style: textTheme.bodyText1?.apply(color: Colors.grey.shade50),
+            style: alertData.bodyStyle,
             maxLines: 3,
             overflow: TextOverflow.ellipsis,
             softWrap: true,
@@ -224,28 +244,33 @@ class StateAlert extends ChangeNotifier {
       bool hasAction = alertData.action!.onTap != null;
       if (hasAction) {
         actions.add(ElevatedButton.icon(
-          style: ButtonStyle(
-            foregroundColor: MaterialStateProperty.all(alertData.color),
-          ),
+          // TODO: apply colors depending on style and theme
+          // style: ButtonStyle(
+          //   foregroundColor: MaterialStateProperty.all(alertData.color),
+          // ),
           label: Text(locales.get(alertData.action!.label).toUpperCase()),
           icon: Icon(alertData.action!.icon),
           onPressed: () async {
-            if (hasAction) {
-              alertData.action!.onTap!();
-            }
-            dismissAlerts();
-            if (hasValidPath) {
-              final path = alertData.action!.path!;
-              if (alertData.action!.queryParameters != null) {
-                final uri = Uri(path: path);
-                Utils.pushNamedFromQuery(
-                  context: context!,
-                  uri: uri,
-                  queryParameters: alertData.action!.queryParameters!,
-                );
-              } else {
-                Navigator.of(context!).pushNamed(path);
+            try {
+              if (hasAction) {
+                await alertData.action!.onTap!();
               }
+              dismissAlerts();
+              if (hasValidPath) {
+                final path = alertData.action!.path!;
+                if (alertData.action!.queryParameters != null) {
+                  final uri = Uri(path: path);
+                  Utils.pushNamedFromQuery(
+                    context: context!,
+                    uri: uri,
+                    queryParameters: alertData.action!.queryParameters!,
+                  );
+                } else {
+                  Navigator.of(context!).pushNamed(path);
+                }
+              }
+            } catch (e) {
+              if (kDebugMode) print('Action click: $e');
             }
           },
         ));
@@ -255,13 +280,20 @@ class StateAlert extends ChangeNotifier {
         actions.add(TextButton.icon(
           icon: Icon(alertData.dismiss!.icon!),
           label: Text(locales.get(alertData.dismiss!.label).toUpperCase()),
-          onPressed: () {
-            alertData.dismiss!.onTap!();
+          onPressed: () async {
+            try {
+              if (hasAction) {
+                await alertData.dismiss!.onTap!();
+              }
+              dismissAlerts();
+            } catch (e) {
+              if (kDebugMode) print('Dismiss click: $e');
+            }
           },
         ));
       }
 
-      if (actions.isNotEmpty) {
+      if (actions.isNotEmpty && alertData.widget == AlertWidget.snackBar) {
         onColumn.add(Container(
           margin: const EdgeInsets.only(top: 16),
           child: Wrap(
@@ -270,6 +302,7 @@ class StateAlert extends ChangeNotifier {
           ),
         ));
       }
+
       mainItems.add(Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -284,7 +317,6 @@ class StateAlert extends ChangeNotifier {
                 clipBehavior: Clip.hardEdge,
                 children: mainItems,
               ),
-              // duration: Duration(seconds: duration),
               backgroundColor: alertData.color,
               actions: actions,
             ),
@@ -308,18 +340,13 @@ class StateAlert extends ChangeNotifier {
           showDialog<void>(
             context: context!,
             builder: (BuildContext context) => AlertDialog(
-              title: const Text('AlertDialog Title'),
-              content: const Text('AlertDialog description'),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () => Navigator.pop(context, 'Cancel'),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(context, 'OK'),
-                  child: const Text('OK'),
-                ),
-              ],
+              // title: const Text('AlertDialog Title'),
+              content: Wrap(
+                direction: Axis.vertical,
+                clipBehavior: Clip.hardEdge,
+                children: mainItems,
+              ),
+              actions: actions,
             ),
           );
           break;
