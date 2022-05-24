@@ -53,16 +53,16 @@ class UserAvatar extends StatelessWidget {
     if (name != null) {
       String finalName = _acronym(name);
       return CircleAvatar(
-        child: Text(finalName),
         backgroundColor: Colors.grey.shade100,
+        child: Text(finalName),
       );
     }
     return CircleAvatar(
+      backgroundColor: Colors.grey.shade100,
       child: Icon(
         Icons.person,
         color: Colors.grey.shade500,
       ),
-      backgroundColor: Colors.grey.shade100,
     );
   }
 }

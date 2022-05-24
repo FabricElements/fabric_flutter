@@ -4,9 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../helper/alert_helper.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../serialized/user_data.dart';
+import '../state/state_alert.dart';
 import '../state/state_user.dart';
 import 'user_add.dart';
 import 'user_avatar.dart';
@@ -96,10 +96,7 @@ class _UserAdminState extends State<UserAdmin> {
     bool fromCollection = collection != null && id != null;
     Widget space = Container(width: 16);
     Map<String, dynamic> inviteMetadata = {};
-    AlertHelper alert = AlertHelper(
-      context: context,
-      mounted: mounted,
-    );
+    final alert = Provider.of<StateAlert>(context, listen: false);
     Map<String?, dynamic> removeOptions = {};
 
     /// Order By role for global users, the role key is only available for parent users
@@ -127,11 +124,11 @@ class _UserAdminState extends State<UserAdmin> {
       });
       // Type indicates the data field to use in the function, admin level or collection.
       await callable.call(removeOptions); // USER DATA
-      alert.show(
+      alert.show(AlertData(
         body: locales.get('alert--user-removed'),
         type: AlertType.success,
         duration: 3,
-      );
+      ));
     }
 
     Widget _buildItem(DocumentSnapshot data) {
@@ -211,6 +208,43 @@ class _UserAdminState extends State<UserAdmin> {
                 absorbing: !_canUpdateUser,
                 child: Dismissible(
                   key: Key(_itemData.id!),
+                  background: Container(
+                    color: Colors.deepOrangeAccent,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: <Widget>[
+                        const Icon(Icons.delete, color: Colors.white),
+                        space,
+                        Text(
+                          locales.get('label--remove'),
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        space,
+                      ],
+                    ),
+                  ),
+                  direction: DismissDirection.endToStart,
+                  confirmDismiss: (DismissDirection direction) async {
+                    bool response = false;
+                    try {
+                      if (direction == DismissDirection.endToStart) {
+                        await _removeUser(userDocument.id);
+                        response = true;
+                        if (mounted) setState(() {});
+                      }
+                    } on FirebaseFunctionsException catch (error) {
+                      alert.show(AlertData(
+                        body: error.message ?? error.details['message'],
+                        type: AlertType.critical,
+                      ));
+                    } catch (error) {
+                      alert.show(AlertData(
+                        body: error.toString(),
+                        type: AlertType.critical,
+                      ));
+                    }
+                    return response;
+                  },
                   child: ListTile(
                     onTap: () async {
                       showDialog<void>(
@@ -238,51 +272,14 @@ class _UserAdminState extends State<UserAdmin> {
                     subtitle: Wrap(
                       spacing: 8,
                       runSpacing: 8,
-                      children: _roleChips,
                       crossAxisAlignment: WrapCrossAlignment.center,
+                      children: _roleChips,
                     ),
                     trailing: Wrap(
-                      children: trailing,
                       crossAxisAlignment: WrapCrossAlignment.center,
+                      children: trailing,
                     ),
                   ),
-                  background: Container(
-                    color: Colors.deepOrangeAccent,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: <Widget>[
-                        const Icon(Icons.delete, color: Colors.white),
-                        space,
-                        Text(
-                          locales.get('label--remove'),
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                        space,
-                      ],
-                    ),
-                  ),
-                  direction: DismissDirection.endToStart,
-                  confirmDismiss: (DismissDirection direction) async {
-                    bool response = false;
-                    try {
-                      if (direction == DismissDirection.endToStart) {
-                        await _removeUser(userDocument.id);
-                        response = true;
-                        if (mounted) setState(() {});
-                      }
-                    } on FirebaseFunctionsException catch (error) {
-                      alert.show(
-                        body: error.message ?? error.details['message'],
-                        type: AlertType.critical,
-                      );
-                    } catch (error) {
-                      alert.show(
-                        body: error.toString(),
-                        type: AlertType.critical,
-                      );
-                    }
-                    return response;
-                  },
                 ),
               ),
               const Divider(height: 0),

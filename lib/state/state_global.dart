@@ -13,7 +13,7 @@ class StateGlobal extends ChangeNotifier {
     if (_packageInfo != null) return;
     _packageInfo = await PackageInfo.fromPlatform();
     // await Future.delayed(Duration(seconds: 3));
-    WidgetsBinding.instance?.addPostFrameCallback((_) async {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       notifyListeners();
     });
   }

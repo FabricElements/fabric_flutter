@@ -2,10 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fabric_flutter/component/card_button.dart';
 import 'package:fabric_flutter/component/logs_list.dart';
 import 'package:fabric_flutter/component/smart_image.dart';
-import 'package:fabric_flutter/helper/alert_helper.dart';
 import 'package:fabric_flutter/helper/app_localizations_delegate.dart';
 import 'package:fabric_flutter/helper/options.dart';
 import 'package:fabric_flutter/helper/redirect_app.dart';
+import 'package:fabric_flutter/state/state_alert.dart';
 import 'package:fabric_flutter/state/state_api.dart';
 import 'package:fabric_flutter/state/state_document.dart';
 import 'package:fabric_flutter/state/state_dynamic_links.dart';
@@ -57,38 +57,36 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     RedirectApp redirectApp =
-    RedirectApp(context: context, protected: ["/protected"]);
+        RedirectApp(context: context, protected: ["/protected"]);
     StateUserInternal stateUserInternal =
-    Provider.of<StateUserInternal>(context);
+        Provider.of<StateUserInternal>(context);
     StateUser stateUser = Provider.of<StateUser>(context);
     StateNotifications stateNotifications =
-    Provider.of<StateNotifications>(context, listen: false);
+        Provider.of<StateNotifications>(context, listen: false);
     StateGlobal stateGlobal = Provider.of<StateGlobal>(context, listen: false);
     AppLocalizations locales = AppLocalizations.of(context)!;
     ThemeData theme = Theme.of(context);
     TextTheme textTheme = theme.textTheme;
     Color backgroundColor = Colors.grey.shade50;
     Widget spacer = Container(height: 16);
-    AlertHelper alert = AlertHelper(
-      context: context,
-      mounted: mounted,
-    );
+    final alert = Provider.of<StateAlert>(context, listen: false);
 
     /// Assign notification callback
     stateNotifications.callback = (Map<String, dynamic> message) {
-      return alert.show(
+      /// TODO: format message as queryParameters for redirection
+      return alert.show(AlertData(
         title: message["title"],
         body: message["body"],
-        path: message["path"],
+        // path: message["path"],
         image: message["image"],
-        arguments: message,
+        // arguments: message,
         typeString: message["type"],
-      );
+      ));
     };
     final StateAPI stateAPI = Provider.of<StateAPI>(context);
     final StateDocument stateDocument = Provider.of<StateDocument>(context);
 
-    // WidgetsBinding.instance?.addPostFrameCallback((_) {
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
     //   stateAPI.endpoint =
     //   "https://raw.githubusercontent.com/ernysans/laraworld/master/composer.json";
     //   stateUser.ping("home");

@@ -8,10 +8,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
-import '../helper/alert_helper.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/image_helper.dart';
 import '../placeholder/loading_screen.dart';
+import '../state/state_alert.dart';
 import '../state/state_user.dart';
 
 class ViewProfileEdit extends StatefulWidget {
@@ -81,6 +81,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
 
   @override
   Widget build(BuildContext context) {
+    final alert = Provider.of<StateAlert>(context, listen: false);
     AppLocalizations locales = AppLocalizations.of(context)!;
     StateUser stateUser = Provider.of<StateUser>(context);
     stateUser.ping('profile');
@@ -118,10 +119,6 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
     }
 
     refreshImage();
-    AlertHelper alert = AlertHelper(
-      context: context,
-      mounted: mounted,
-    );
     void _closeKeyboard() {
       try {
         FocusScope.of(context).requestFocus(FocusNode());
@@ -135,8 +132,9 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
       if (mounted) setState(() {});
       AppLocalizations? locales = AppLocalizations.of(context)!;
       if (!changed) {
-        alert.show(
-            title: locales.get('page-profile--alert--nothing-to-update'));
+        alert.show(AlertData(
+          title: locales.get('page-profile--alert--nothing-to-update'),
+        ));
         return;
       }
       String newNameFirst = nameFirstController.text;
@@ -144,23 +142,23 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
       String newNameLast = nameLastController.text;
       newNameLast = newNameLast.trim();
       if (newNameFirst.length < 3) {
-        alert.show(
+        alert.show(AlertData(
           title: locales.get('label--too-short', {
             'label': locales.get('label--name-first'),
             'number': '3',
           }),
           type: AlertType.critical,
-        );
+        ));
         return;
       }
       if (newNameLast.length < 3) {
-        alert.show(
+        alert.show(AlertData(
           title: locales.get('label--too-short', {
             'label': locales.get('label--name-last'),
             'number': '3',
           }),
           type: AlertType.critical,
-        );
+        ));
         return;
       }
       loading = true;
@@ -185,23 +183,24 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
         changed = false;
         loading = false;
         if (mounted) setState(() {});
-        alert.show(
+        alert.show(AlertData(
           title: locales.get('page-profile--alert--profile-updated'),
           type: AlertType.success,
-        );
+        ));
         if (!stateUser.serialized.onboarding.name) {
           Navigator.of(context).pop();
         }
         refreshImage();
       } on FirebaseFunctionsException catch (error) {
-        alert.show(
-            title: error.message ?? error.details['message'],
-            type: AlertType.critical);
+        alert.show(AlertData(
+          title: error.message ?? error.details['message'],
+          type: AlertType.critical,
+        ));
       } catch (error) {
-        alert.show(
+        alert.show(AlertData(
           title: error.toString(),
           type: AlertType.critical,
-        );
+        ));
       }
       loading = false;
       if (mounted) setState(() {});
@@ -216,10 +215,10 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
           changed = _temporalImageBytes != null;
         }
       } catch (error) {
-        alert.show(
+        alert.show(AlertData(
           title: error.toString(),
           type: AlertType.critical,
-        );
+        ));
       }
 
       loading = false;

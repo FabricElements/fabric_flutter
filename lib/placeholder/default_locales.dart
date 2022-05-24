@@ -621,4 +621,56 @@ dynamic defaultLocales = {
     'en': 'Previous',
     'es': 'Anterior',
   },
+  'label--location': {
+    'en': 'Location',
+    'es': 'Ubicación',
+  },
+  'label--area-code': {
+    'en': 'Area Code',
+    'es': 'Código de Area',
+  },
+  'label--area-codes': {
+    'en': 'Area Codes',
+    'es': 'Códigos de Area',
+  },
+  'label--distance': {
+    'en': 'Distance',
+    'es': 'Distancia',
+  },
+  'label--senders': {
+    'en': 'Senders',
+    'es': 'Remitentes',
+  },
+  'label--client': {
+    'en': 'Client',
+    'es': 'Cliente',
+  },
+  'label--internal': {
+    'en': 'Internal',
+    'es': 'Interno',
+  },
+  'label--contact': {
+    'en': 'Contact',
+    'es': 'Contacto',
+  },
+  'label--contacts': {
+    'en': 'Contacts',
+    'es': 'Contactos',
+  },
+  'label--frequency': {
+    'en': 'Frequency',
+    'es': 'Frecuencia',
+  },
+  'label--once': {
+    'en': 'Once',
+    'es': 'Una vez',
+  },
+  'label--daily': {
+    'en': 'Daily',
+    'es': 'Diario',
+  },
+  'label--run-time': {
+    'en': 'Run Time',
+    'es': 'Tiempo de ejecución',
+  },
 };

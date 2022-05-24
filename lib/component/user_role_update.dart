@@ -1,8 +1,9 @@
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import '../helper/alert_helper.dart';
 import '../helper/app_localizations_delegate.dart';
+import '../state/state_alert.dart';
 import 'role_selector.dart';
 
 /// Updates User Role
@@ -64,10 +65,7 @@ class _UserRoleUpdateState extends State<UserRoleUpdate> {
   Widget build(BuildContext context) {
     bool canInvite = sending == false && roleSelect != null;
     AppLocalizations locales = AppLocalizations.of(context)!;
-    AlertHelper alert = AlertHelper(
-      context: context,
-      mounted: mounted,
-    );
+    final alert = Provider.of<StateAlert>(context, listen: false);
 
     /// Sends user invite to firebase function with the necessary information when inviting a user.
     ///
@@ -75,16 +73,19 @@ class _UserRoleUpdateState extends State<UserRoleUpdate> {
     /// [contact] The e-mail or phone number.
     updateUserRole() async {
       if (!canInvite) {
-        alert.show(
+        alert.show(AlertData(
           title: 'incomplete data',
           type: AlertType.critical,
           duration: 5,
-        );
+        ));
         return;
       }
       sending = true;
       if (mounted) setState(() {});
-      alert.show(body: locales.get('notification--please-wait'), duration: 5);
+      alert.show(AlertData(
+        body: locales.get('notification--please-wait'),
+        duration: 5,
+      ));
       Map<String, dynamic> data = {
         'role': roleSelect,
         'uid': widget.uid,
@@ -96,24 +97,24 @@ class _UserRoleUpdateState extends State<UserRoleUpdate> {
         final HttpsCallable callable =
             FirebaseFunctions.instance.httpsCallable('user-actions-updateRole');
         await callable.call(data);
-        alert.show(
+        alert.show(AlertData(
           body: locales.get('notification--user-role-updated'),
           type: AlertType.success,
           duration: 3,
-        );
+        ));
         Navigator.of(context).pop();
       } on FirebaseFunctionsException catch (error) {
-        alert.show(
+        alert.show(AlertData(
           body: error.message ?? error.details['message'],
           type: AlertType.critical,
           duration: 5,
-        );
+        ));
       } catch (error) {
-        alert.show(
+        alert.show(AlertData(
           body: error.toString(),
           type: AlertType.critical,
           duration: 5,
-        );
+        ));
       }
       sending = false;
       if (mounted) setState(() {});

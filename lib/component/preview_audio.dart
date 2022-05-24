@@ -88,7 +88,7 @@ class _AudioPreviewState extends State<AudioPreview>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance!.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
     icon = Icons.hourglass_full;
     _isPlaying = false;
     maxDuration = 1.0;
@@ -116,7 +116,7 @@ class _AudioPreviewState extends State<AudioPreview>
   @override
   void dispose() {
     stopPlayer();
-    WidgetsBinding.instance!.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 

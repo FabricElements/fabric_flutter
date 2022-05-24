@@ -4,6 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../state/state_alert.dart';
+
 class RoutePage extends StatelessWidget {
   const RoutePage({Key? key, required this.routeHelper, required this.uri})
       : super(key: key);
@@ -13,7 +15,8 @@ class RoutePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final stateUser = Provider.of<StateUser>(context, listen: false);
-
+    final stateAlert = Provider.of<StateAlert>(context, listen: false);
+    stateAlert.context = context;
     return StreamBuilder<User?>(
       stream: stateUser.streamUser,
       builder: (context, snapshot) {

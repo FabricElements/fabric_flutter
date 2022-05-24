@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_webservice/geocoding.dart';
 import 'package:google_maps_webservice/places.dart';
+import 'package:provider/provider.dart';
 
-import '../helper/alert_helper.dart';
 import '../helper/app_localizations_delegate.dart';
+import '../state/state_alert.dart';
 import 'google_maps_preview.dart';
 
 /// This view has a map and allow choose a specific location
@@ -139,7 +140,7 @@ class _GoogleMapsSearchGeocodeState extends State<GoogleMapsSearchGeocode> {
     if (widget.placeId != null &&
         widget.latitude == null &&
         widget.longitude == null) {
-      WidgetsBinding.instance?.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         getPlaceById(id: widget.placeId!);
       });
     }
@@ -208,10 +209,7 @@ class _GoogleMapsSearchGeocodeState extends State<GoogleMapsSearchGeocode> {
   Widget build(BuildContext context) {
     ThemeData theme = Theme.of(context);
     AppLocalizations locales = AppLocalizations.of(context)!;
-    AlertHelper alert = AlertHelper(
-      context: context,
-      mounted: mounted,
-    );
+    final alert = Provider.of<StateAlert>(context, listen: false);
     return AspectRatio(
       aspectRatio: widget.aspectRatio,
       child: LayoutBuilder(
@@ -258,10 +256,10 @@ class _GoogleMapsSearchGeocodeState extends State<GoogleMapsSearchGeocode> {
                     totalItems = search.results.length;
                     if (mounted) setState(() {});
                   } catch (error) {
-                    alert.show(
+                    alert.show(AlertData(
                       title: error.toString(),
                       type: AlertType.warning,
-                    );
+                    ));
                   }
                 },
               ),

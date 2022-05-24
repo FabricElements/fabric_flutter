@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
+import '../state/state_alert.dart';
 import '../state/state_analytics.dart';
 import '../state/state_api.dart';
 import '../state/state_document.dart';
@@ -54,6 +55,7 @@ class InitApp extends StatelessWidget {
       ChangeNotifierProvider(create: (context) => StateGlobal()),
       ChangeNotifierProvider(create: (context) => StateNotifications()),
       ChangeNotifierProvider(create: (context) => StateUser()),
+      ChangeNotifierProvider(create: (context) => StateAlert()),
     ]);
     Widget loadingApp = Container(color: Colors.grey.shade500);
 

@@ -32,7 +32,7 @@ class _UserRoleContentState extends State<UserRoleContent> {
     Widget _placeholder =
         widget.placeholder ?? const Center(child: CircularProgressIndicator());
     if (widget.path != null) {
-      WidgetsBinding.instance?.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.popAndPushNamed(context, widget.path!);
       });
       return _placeholder;
