@@ -57,6 +57,7 @@ class AlertData {
   TextStyle? titleStyle;
   TextStyle? bodyStyle;
   Brightness? brightness;
+  Widget? child;
 
   /// Clear all other alerts of the same type
   /// Not recommended for AlertWidget.dialog because it uses Navigator.pop(context!)
@@ -78,6 +79,7 @@ class AlertData {
     this.bodyStyle,
     this.clear = false,
     this.brightness,
+    this.child,
   });
 }
 
@@ -105,6 +107,33 @@ class StateAlert extends ChangeNotifier {
     return type;
   }
 
+  /// Dismiss action
+  /// Dismiss current alert or all alerts with the same widget type
+  void dismissAlerts({
+    bool dismissAll = false,
+    required AlertWidget widget,
+  }) {
+    switch (widget) {
+      case AlertWidget.banner:
+        if (dismissAll) {
+          ScaffoldMessenger.of(context!).clearMaterialBanners();
+        } else {
+          ScaffoldMessenger.of(context!).removeCurrentMaterialBanner();
+        }
+        break;
+      case AlertWidget.snackBar:
+        if (dismissAll) {
+          ScaffoldMessenger.of(context!).clearSnackBars();
+        } else {
+          ScaffoldMessenger.of(context!).removeCurrentSnackBar();
+        }
+        break;
+      case AlertWidget.dialog:
+        Navigator.pop(context!);
+        break;
+    }
+  }
+
   /// Display Alert with [show] function
   Future<void> show(AlertData alertData) async {
     assert(context != null, 'context can\'t be null');
@@ -130,14 +159,14 @@ class StateAlert extends ChangeNotifier {
     }
     alertData.brightness ??= brightness; // Default
     alertData.brightness ??= Brightness.light;
-    if (alertData.color != null) {
-      double luminance = alertData.color!.computeLuminance();
-      alertData.brightness =
-          luminance > 0.5 ? Brightness.light : Brightness.dark;
-      print('------------------ LUMINANCE:::: $luminance -------------');
-    }
-    print(
-        '------------------ brightness:::: ${alertData.brightness} -------------');
+    // if (alertData.color != null) {
+    //   double luminance = alertData.color!.computeLuminance();
+    //   alertData.brightness =
+    //       luminance > 0.5 ? Brightness.light : Brightness.dark;
+    //   // print('------------------ LUMINANCE:::: $luminance -------------');
+    // }
+    // print(
+    //     '------------------ brightness:::: ${alertData.brightness} -------------');
     // alertData.color ??= alertData.brightness == Brightness.light
     //     ? Colors.red.shade200
     //     : Colors.red;
@@ -159,30 +188,37 @@ class StateAlert extends ChangeNotifier {
 
     /// Set default values for null safety
     alertData.duration ??= 10;
-    alertData.color ??= Colors.grey.shade800;
+    // alertData.color ??= Colors.grey.shade800;
+    alertData.color ??= theme.colorScheme.primary;
     // alertData.titleStyle ??= textTheme.headline5?.apply(color: Colors.white);
     alertData.titleStyle ??= textTheme.headline5;
     // alertData.bodyStyle ??= textTheme.bodyText1?.apply(color: Colors.grey.shade50);
     alertData.bodyStyle ??= textTheme.bodyText1;
 
-    alertData.titleStyle!.apply(
-      color: alertData.brightness == Brightness.dark
+    alertData.titleStyle = alertData.titleStyle!.apply(
+      color: alertData.brightness == Brightness.light
           ? Colors.grey.shade900
           : Colors.white,
     );
-    alertData.bodyStyle!.apply(
-      color: alertData.brightness == Brightness.dark
+    alertData.bodyStyle = alertData.bodyStyle!.apply(
+      color: alertData.brightness == Brightness.light
           ? Colors.grey.shade800
           : Colors.grey.shade50,
     );
 
     /// Set global colors
     Color backgroundColor = alertData.brightness == Brightness.light
-        ? alertData.color!.withOpacity(0.2)
+        ? Colors.white
         : alertData.color!;
     Color buttonColor = alertData.brightness == Brightness.light
-        ? alertData.color!.withOpacity(0.5)
+        ? alertData.color!
+        : Colors.white;
+    Color buttonColorText = alertData.brightness == Brightness.light
+        ? Colors.white
         : alertData.color!;
+    Color dismissButtonColor = alertData.brightness == Brightness.light
+        ? theme.textTheme.button?.color ?? Colors.grey.shade800
+        : Colors.white;
 
     /// Dismiss
     alertData.dismiss ??= ButtonOptions();
@@ -198,49 +234,17 @@ class StateAlert extends ChangeNotifier {
       alertData.action!.label = 'label--continue';
     }
 
-    /// Dismiss action
-    /// Dismiss current alert or all alerts with the same widget type
-    void dismissAlerts({bool dismissAll = false}) {
-      switch (alertData.widget) {
-        case AlertWidget.banner:
-          if (dismissAll) {
-            ScaffoldMessenger.of(context!).clearMaterialBanners();
-          } else {
-            ScaffoldMessenger.of(context!).removeCurrentMaterialBanner();
-          }
-          break;
-        case AlertWidget.snackBar:
-          if (dismissAll) {
-            ScaffoldMessenger.of(context!).clearSnackBars();
-          } else {
-            ScaffoldMessenger.of(context!).removeCurrentSnackBar();
-          }
-          break;
-        case AlertWidget.dialog:
-          Navigator.pop(context!);
-          break;
-      }
-    }
-
     /// Hide all alerts from same type to prevent overlap
-    if (alertData.clear) dismissAlerts(dismissAll: true);
+    if (alertData.clear) {
+      await Future.delayed(const Duration(milliseconds: 500));
+      dismissAlerts(dismissAll: true, widget: alertData.widget);
+    }
 
     try {
       List<Widget> onColumn = [];
       List<Widget> mainItems = [];
 
-      if (alertData.image != null) {
-        mainItems.add(Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          constraints: BoxConstraints(
-              minHeight: 50, maxHeight: 400, maxWidth: contentWidth),
-          color: alertData.color,
-          child: AspectRatio(
-            aspectRatio: 16 / 9,
-            child: SmartImage(url: alertData.image!),
-          ),
-        ));
-      }
+      /// Title
       if (alertData.title != null) {
         onColumn.add(Container(
           constraints: BoxConstraints(minWidth: 50, maxWidth: contentWidth),
@@ -267,6 +271,41 @@ class StateAlert extends ChangeNotifier {
           ),
         ));
       }
+
+      /// Image
+      if (alertData.image != null) {
+        mainItems.add(Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          width: double.maxFinite,
+          height: 200,
+          constraints: const BoxConstraints(
+            minHeight: 50,
+            minWidth: 50,
+            maxHeight: 300,
+            maxWidth: double.maxFinite,
+          ),
+          color: alertData.color,
+          child: AspectRatio(
+            aspectRatio: 3 / 1,
+            child: SmartImage(url: alertData.image!),
+          ),
+        ));
+      }
+
+      /// Add child widget before actions
+      if (alertData.child != null) {
+        onColumn.add(Container(
+          margin: const EdgeInsets.only(bottom: 16, top: 16),
+          constraints: BoxConstraints(
+            minHeight: 50,
+            maxHeight: 400,
+            maxWidth: contentWidth,
+          ),
+          child: alertData.child!,
+        ));
+      }
+
+      /// Actions
       List<Widget> actions = [];
       bool hasValidPath =
           alertData.action!.path != null && alertData.action!.path!.isNotEmpty;
@@ -274,10 +313,10 @@ class StateAlert extends ChangeNotifier {
       bool hasDismissAction = alertData.dismiss!.onTap != null;
       if (hasAction || hasValidPath) {
         actions.add(ElevatedButton.icon(
-          // TODO: apply colors depending on style and theme
-          // style: ButtonStyle(
-          //   foregroundColor: MaterialStateProperty.all(alertData.color),
-          // ),
+          style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.all(buttonColor),
+            foregroundColor: MaterialStateProperty.all(buttonColorText),
+          ),
           label: Text(locales.get(alertData.action!.label).toUpperCase()),
           icon: Icon(alertData.action!.icon),
           onPressed: () async {
@@ -285,7 +324,7 @@ class StateAlert extends ChangeNotifier {
               if (hasAction) {
                 await alertData.action!.onTap!();
               }
-              dismissAlerts();
+              dismissAlerts(widget: alertData.widget);
               if (hasValidPath) {
                 final path = alertData.action!.path!;
                 if (alertData.action!.queryParameters != null) {
@@ -306,22 +345,23 @@ class StateAlert extends ChangeNotifier {
         ));
       }
 
-      if (alertData.duration! > 3) {
-        actions.add(TextButton.icon(
-          icon: Icon(alertData.dismiss!.icon!),
-          label: Text(locales.get(alertData.dismiss!.label).toUpperCase()),
-          onPressed: () async {
-            try {
-              if (hasDismissAction) {
-                await alertData.dismiss!.onTap!();
-              }
-              dismissAlerts();
-            } catch (e) {
-              if (kDebugMode) print('Dismiss click: $e');
+      actions.add(TextButton.icon(
+        style: ButtonStyle(
+          foregroundColor: MaterialStateProperty.all(dismissButtonColor),
+        ),
+        icon: Icon(alertData.dismiss!.icon!),
+        label: Text(locales.get(alertData.dismiss!.label).toUpperCase()),
+        onPressed: () async {
+          try {
+            if (hasDismissAction) {
+              await alertData.dismiss!.onTap!();
             }
-          },
-        ));
-      }
+            dismissAlerts(widget: alertData.widget);
+          } catch (e) {
+            if (kDebugMode) print('Dismiss click: $e');
+          }
+        },
+      ));
 
       if (actions.isNotEmpty && alertData.widget == AlertWidget.snackBar) {
         onColumn.add(Container(
@@ -333,22 +373,34 @@ class StateAlert extends ChangeNotifier {
         ));
       }
 
-      mainItems.add(Column(
+      mainItems.add(Flex(
+        direction: Axis.vertical,
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: onColumn,
       ));
+      Widget content = Container(
+        color: Colors.white,
+        child: Container(
+          padding: EdgeInsets.all(basePadding),
+          color: backgroundColor,
+          child: Flex(
+            direction: Axis.vertical,
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: mainItems,
+          ),
+        ),
+      );
       switch (alertData.widget) {
         case AlertWidget.banner:
           ScaffoldMessenger.of(context!).showMaterialBanner(
             MaterialBanner(
-              content: Wrap(
-                direction: Axis.vertical,
-                clipBehavior: Clip.hardEdge,
-                children: mainItems,
-              ),
-              backgroundColor: alertData.color,
               actions: actions,
+              content: content,
+              backgroundColor: backgroundColor,
+              forceActionsBelow: true,
+              padding: EdgeInsets.zero,
             ),
           );
           break;
@@ -356,13 +408,10 @@ class StateAlert extends ChangeNotifier {
           ScaffoldMessenger.of(context!).showSnackBar(
             SnackBar(
               behavior: SnackBarBehavior.floating,
-              content: Wrap(
-                direction: Axis.vertical,
-                clipBehavior: Clip.hardEdge,
-                children: mainItems,
-              ),
+              content: content,
               duration: Duration(seconds: alertData.duration!),
-              backgroundColor: alertData.color,
+              backgroundColor: backgroundColor,
+              padding: EdgeInsets.zero,
             ),
           );
           break;
@@ -370,13 +419,13 @@ class StateAlert extends ChangeNotifier {
           showDialog<void>(
             context: context!,
             builder: (BuildContext context) => AlertDialog(
-              // title: const Text('AlertDialog Title'),
-              content: Wrap(
-                direction: Axis.vertical,
-                clipBehavior: Clip.hardEdge,
-                children: mainItems,
-              ),
+              scrollable: true,
               actions: actions,
+              content: content,
+              backgroundColor: backgroundColor,
+              contentPadding: EdgeInsets.zero,
+              clipBehavior: Clip.hardEdge,
+              buttonPadding: const EdgeInsets.all(16),
             ),
           );
           break;

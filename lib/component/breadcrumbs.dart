@@ -30,7 +30,6 @@ class Breadcrumbs extends StatelessWidget {
     TextStyle? _dividerStyle = dividerStyle ?? textTheme.caption;
     for (int i = 0; i < buttons.length; i++) {
       ButtonOptions button = buttons[i];
-      button.label ??= '';
       bool clickable = button.path != null || button.onTap != null;
       VoidCallback? onPressed;
       if (clickable) {
