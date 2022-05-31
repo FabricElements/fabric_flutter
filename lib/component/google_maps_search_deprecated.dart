@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:google_maps_webservice/geocoding.dart';
 import 'package:google_maps_webservice/places.dart';
 import 'package:provider/provider.dart';
 
@@ -14,8 +13,8 @@ import 'google_maps_preview.dart';
 /// [admin] determines if the current user is an admin
 /// [signedIn] determines if the current user is signed In
 /// [user] returns the user object
-class GoogleMapsSearchGeocode extends StatefulWidget {
-  const GoogleMapsSearchGeocode({
+class GoogleMapsSearchDeprecated extends StatefulWidget {
+  const GoogleMapsSearchDeprecated({
     Key? key,
     required this.apiKey,
     this.mapType = MapType.normal,
@@ -32,7 +31,7 @@ class GoogleMapsSearchGeocode extends StatefulWidget {
     this.description,
   }) : super(key: key);
   final String? placeId;
-  final Function(GeocodingResult)? onChange;
+  final Function(PlaceDetails)? onChange;
   final Function(String)? onError;
   final String apiKey;
   final double? latitude;
@@ -50,19 +49,17 @@ class GoogleMapsSearchGeocode extends StatefulWidget {
   final List<String> fields;
 
   @override
-  _GoogleMapsSearchGeocodeState createState() =>
-      _GoogleMapsSearchGeocodeState();
+  _GoogleMapsSearchDeprecatedState createState() => _GoogleMapsSearchDeprecatedState();
 }
 
-class _GoogleMapsSearchGeocodeState extends State<GoogleMapsSearchGeocode> {
+class _GoogleMapsSearchDeprecatedState extends State<GoogleMapsSearchDeprecated> {
   TextEditingController textController = TextEditingController();
   late GoogleMapsPlaces _places;
-  late GoogleMapsGeocoding _geocoding;
 
   int totalItems = 0;
   List<LatLng>? points;
   List<Widget>? listPlaces;
-  late List<GeocodingResult> results;
+  late List<PlacesSearchResult> placesResults;
   late List<Widget> mapComponents;
   String? placeId;
   String? name;
@@ -123,13 +120,8 @@ class _GoogleMapsSearchGeocodeState extends State<GoogleMapsSearchGeocode> {
 
   @override
   void initState() {
-    /// Temporal access at https://cors-anywhere.herokuapp.com/https://maps.googleapis.com/maps/ap
+    /// Temporal access at https://cors-anywhere.herokuapp.com/https://maps.googleapis.com/maps/api
     _places = GoogleMapsPlaces(
-        apiKey: widget.apiKey,
-        baseUrl: kIsWeb
-            ? 'https://cors-anywhere.herokuapp.com/https://maps.googleapis.com/maps/api'
-            : null);
-    _geocoding = GoogleMapsGeocoding(
         apiKey: widget.apiKey,
         baseUrl: kIsWeb
             ? 'https://cors-anywhere.herokuapp.com/https://maps.googleapis.com/maps/api'
@@ -148,7 +140,7 @@ class _GoogleMapsSearchGeocodeState extends State<GoogleMapsSearchGeocode> {
   }
 
   @override
-  void didUpdateWidget(covariant GoogleMapsSearchGeocode oldWidget) {
+  void didUpdateWidget(covariant GoogleMapsSearchDeprecated oldWidget) {
     textController.text = '';
     if (widget.placeId != placeId && widget.placeId != null) {
       getPlaceById(notify: true, id: widget.placeId!);
@@ -169,39 +161,18 @@ class _GoogleMapsSearchGeocodeState extends State<GoogleMapsSearchGeocode> {
   }
 
   void selectLocation({
-    required GeocodingResult result,
+    required PlacesSearchResult placeResult,
     required BuildContext context,
   }) async {
-    // await getPlaceById(notify: true, id: placeResult.placeId);
-
-    placeDetails = null;
-    latitude = null;
-    longitude = null;
-    listPlaces = [];
-    name = null;
-    placeId = null;
-    if (mounted) setState(() {});
-    try {
-      latitude = result.geometry.location.lat;
-      longitude = result.geometry.location.lng;
-      name = result.formattedAddress;
-      placeId = result.placeId;
-      if (mounted) setState(() {});
-    } catch (error) {
-      if (mounted) setState(() {});
-      if (widget.onError != null) widget.onError!(error.toString());
-    }
-
-    // === other
-
+    await getPlaceById(notify: true, id: placeResult.placeId);
     _closeKeyboard(context);
 
     /// Reset after
     totalItems = 0;
-    results = [];
+    placesResults = [];
     if (mounted) setState(() {});
-    if (widget.onChange != null && latitude != null && longitude != null) {
-      widget.onChange!(result);
+    if (widget.onChange != null && placeDetails != null) {
+      widget.onChange!(placeDetails!);
     }
   }
 
@@ -239,21 +210,20 @@ class _GoogleMapsSearchGeocodeState extends State<GoogleMapsSearchGeocode> {
                 ),
                 onChanged: (val) async {
                   if (val.length < 2) {
-                    results = [];
+                    placesResults = [];
                     totalItems = 0;
                     if (mounted) setState(() {});
                     return;
                   }
                   searchAddr = val;
                   try {
-                    final search = await _geocoding.searchByAddress(searchAddr);
-                    // PlacesSearchResponse places = await _places.searchByText(
-                    //   searchAddr,
-                    //   type:
-                    //       'administrative_area_level_1,administrative_area_level_2,locality,postal_codes',
-                    // );
-                    results = search.results;
-                    totalItems = search.results.length;
+                    PlacesSearchResponse places = await _places.searchByText(
+                      searchAddr,
+                      type:
+                          'administrative_area_level_1,administrative_area_level_2,locality,postal_codes',
+                    );
+                    placesResults = places.results;
+                    totalItems = places.results.length;
                     if (mounted) setState(() {});
                   } catch (error) {
                     alert.show(AlertData(
@@ -284,7 +254,7 @@ class _GoogleMapsSearchGeocodeState extends State<GoogleMapsSearchGeocode> {
                   child: SingleChildScrollView(
                     child: Flex(
                       direction: Axis.vertical,
-                      children: results.map((e) {
+                      children: placesResults.map((e) {
                         final item = e;
                         String formattedAddress = item.formattedAddress ?? '';
                         return Container(
@@ -304,7 +274,7 @@ class _GoogleMapsSearchGeocodeState extends State<GoogleMapsSearchGeocode> {
                                 ),
                                 onTap: () {
                                   selectLocation(
-                                    result: item,
+                                    placeResult: item,
                                     context: context,
                                   );
                                 },
