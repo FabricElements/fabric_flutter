@@ -49,6 +49,18 @@ class Utils {
     return DateFormat('yyyy-MM-dd').format(time.toUtc()).toString();
   }
 
+  /// Serialize string to double
+  static double? stringToDouble(dynamic value) {
+    if (value == null) return null;
+    return double.tryParse(value.toString());
+  }
+
+  /// Serialize string to int
+  static int? stringToInt(dynamic value) {
+    if (value == null) return null;
+    return int.tryParse(value.toString());
+  }
+
   /// User Presence
   /// responses: active, inactive, away
   static String getPresence(DateTime? time) {
