@@ -35,6 +35,9 @@ class GoogleMapsSearch extends StatefulWidget {
     this.zoom = 8,
     this.minMaxZoomPreference = const MinMaxZoomPreference(5, 25),
     this.description,
+    this.baseUrl = kIsWeb
+        ? 'https://cors-anywhere.herokuapp.com/https://maps.googleapis.com/maps/api'
+        : null,
   }) : super(key: key);
   final String? placeId;
   final Function(Place)? onChange;
@@ -48,6 +51,7 @@ class GoogleMapsSearch extends StatefulWidget {
   final double zoom;
   final MinMaxZoomPreference minMaxZoomPreference;
   final String? description;
+  final String? baseUrl;
 
   /// Recommended 'administrative_area_level_1,administrative_area_level_2,locality,postal_codes'
   final List<String> types;
@@ -77,8 +81,6 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
   double? latitude;
   double? longitude;
   PlaceDetails? placeDetails;
-  final String webBaseUrl =
-      'https://cors-anywhere.herokuapp.com/https://maps.googleapis.com/maps/api';
 
   void resetDefaultValues() {
     listPlaces = [];
@@ -143,7 +145,7 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
       if (kIsWeb) {
         print('''
           --------------------- <o> <o> ---------------------
-          Call baseUrl to call Google API locally: $webBaseUrl
+          Call baseUrl to call Google API locally: ${widget.baseUrl}
           ---------------------------------------------------
         ''');
       }
@@ -152,7 +154,11 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
     /// Temporal access at
     _places = GoogleMapsPlaces(
       apiKey: widget.apiKey,
-      baseUrl: kIsWeb ? webBaseUrl : null,
+      baseUrl: widget.baseUrl,
+
+      // apiHeaders: {
+      //   'Access-Control-Allow-Origin': '*',
+      // },
     );
     resetDefaultValues();
     getParentValues();
