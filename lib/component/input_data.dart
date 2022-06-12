@@ -1,4 +1,4 @@
-import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -41,12 +41,13 @@ class InputData extends StatefulWidget {
     this.isDense = false,
     this.maxLength = 255,
     this.textDefault,
-    this.expanded = false,
+    this.isExpanded = false,
     this.padding = EdgeInsets.zero,
     this.utcOffset,
     this.validator,
     this.backgroundColor,
     this.icon,
+    this.error,
   }) : super(key: key);
   final dynamic value;
   final List<dynamic> enums;
@@ -57,12 +58,13 @@ class InputData extends StatefulWidget {
   final String? textDefault;
   final int maxLength;
   final bool isDense;
-  final bool expanded;
+  final bool isExpanded;
   final EdgeInsets padding;
   final num? utcOffset;
   final FormFieldValidator<String>? validator;
   final Color? backgroundColor;
   final IconData? icon;
+  final String? error;
 
   /// [onSubmit]
   /// Never use expression body or value won't be update correctly
@@ -78,40 +80,58 @@ class InputData extends StatefulWidget {
 
 class _InputDataState extends State<InputData> {
   TextEditingController textController = TextEditingController();
+  DateFormat formatDate = DateFormat.yMd('en_US');
   dynamic value;
 
   /// Get Value from parameter
   void getValue({bool notify = false, required dynamic newValue}) {
-    switch (widget.type) {
-      case InputDataType.string:
-      case InputDataType.double:
-      case InputDataType.int:
-      case InputDataType.text:
-      case InputDataType.radio:
-      case InputDataType.phone:
-      case InputDataType.email:
-        String _tempValue = newValue != null ? newValue.toString() : '';
-        if (_tempValue != value) {
-          value = _tempValue;
-          textController.text = value;
+    try {
+      switch (widget.type) {
+        case InputDataType.string:
+        case InputDataType.double:
+        case InputDataType.int:
+        case InputDataType.text:
+        case InputDataType.radio:
+        case InputDataType.phone:
+        case InputDataType.email:
+          String tempValue = newValue?.toString() ?? '';
+          if (tempValue != value) {
+            value = tempValue;
+            textController.text = value;
+            if (notify && mounted) setState(() {});
+          }
+          break;
+        case InputDataType.date:
+          value = newValue as DateTime?;
+          if (value != null) {
+            value = Utils.dateTimeOffset(
+              dateTime: value,
+              utcOffset: widget.utcOffset,
+              reverse: true,
+            );
+            textController.text = formatDate.format(value);
+          } else {
+            textController.text = '';
+          }
           if (notify && mounted) setState(() {});
-        }
-        break;
-      case InputDataType.date:
-        value = Utils.dateTimeOffset(
-          dateTime: newValue as DateTime?,
-          utcOffset: widget.utcOffset,
-          reverse: true,
-        );
-        if (notify && mounted) setState(() {});
-        break;
-      case InputDataType.time:
-        value = newValue as TimeOfDay?;
-        if (notify && mounted) setState(() {});
-        break;
-      default:
-        value = newValue;
-        if (notify && mounted) setState(() {});
+          break;
+        case InputDataType.time:
+          value = newValue as TimeOfDay?;
+          if (notify && mounted) setState(() {});
+          break;
+        default:
+          value = newValue;
+          if (notify && mounted) setState(() {});
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('''
+----------------------------------------------
+getValue -------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+''');
+      }
+      rethrow;
     }
   }
 
@@ -139,16 +159,42 @@ class _InputDataState extends State<InputData> {
     final popupButtonKey = GlobalKey<State>();
     EnumData enumData = EnumData(locales: locales);
     ThemeData theme = Theme.of(context);
-    bool _disabled = widget.disabled;
-    String _defaultText =
+    bool isDisabled = widget.disabled;
+    String defaultText =
         widget.textDefault ?? locales.get('label--choose-option');
-    String textSelected = _defaultText;
+    String textSelected = defaultText;
     String? hintTextDefault;
     int? maxLength = widget.maxLength;
     FormFieldValidator<String>? validator = widget.validator;
     Widget? icon = widget.icon != null ? Icon(widget.icon) : null;
     final ButtonThemeData buttonTheme = ButtonTheme.of(context);
     final PopupMenuThemeData popupMenuTheme = PopupMenuTheme.of(context);
+
+    /// Text styles
+    String? errorText;
+    TextStyle? labelStyle;
+    InputBorder? border;
+    InputBorder? focusedBorder;
+    if (widget.error != null) {
+      labelStyle = theme.inputDecorationTheme.errorStyle;
+      errorText = widget.error;
+      border = theme.inputDecorationTheme.errorBorder;
+      focusedBorder = theme.inputDecorationTheme.focusedErrorBorder;
+    }
+
+    InputDecoration inputDecoration = InputDecoration(
+      hintText: value?.toString() ??
+          widget.hintText ??
+          hintTextDefault ??
+          defaultText,
+      isDense: widget.isDense,
+      errorText: errorText,
+      enabled: !widget.disabled,
+      prefixIcon: widget.icon != null ? Icon(widget.icon) : null,
+      // helperText: defaultText,
+    );
+
+    /// Base
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         double width = constraints.maxWidth.floorToDouble();
@@ -160,10 +206,10 @@ class _InputDataState extends State<InputData> {
         // if (width > 1500) layoutTo = 7;
         double maxWidth =
             (width / layoutTo) - ((layoutTo) / 2 * 8).floorToDouble();
-        if (widget.expanded) {
-          maxWidth = widget.expanded ? double.maxFinite : maxWidth;
+        if (widget.isExpanded) {
+          maxWidth = widget.isExpanded ? double.maxFinite : maxWidth;
         }
-        Widget _widget = Text(
+        Widget endWidget = Text(
           'Type "${widget.type}" not implemented',
           style: const TextStyle(color: Colors.orange),
         );
@@ -202,7 +248,7 @@ class _InputDataState extends State<InputData> {
             keyboardType = const TextInputType.numberWithOptions(decimal: true);
             inputFormatters.addAll([
               FilteringTextInputFormatter.singleLineFormatter,
-              FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+              FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
             ]);
             break;
           case InputDataType.int:
@@ -212,20 +258,26 @@ class _InputDataState extends State<InputData> {
               FilteringTextInputFormatter.digitsOnly,
             ]);
             break;
+          case InputDataType.date:
+            keyboardType = TextInputType.datetime;
+            inputFormatters.addAll([
+              FilteringTextInputFormatter.singleLineFormatter,
+            ]);
+            break;
           default:
         }
 
         /// Format New Value
-        dynamic _valueChanged(String? valueLocal) {
-          String? _value =
-              valueLocal != null && valueLocal.isNotEmpty ? valueLocal : null;
+        dynamic _valueChanged(dynamic valueLocal) {
+          // dynamic _value =
+          //     valueLocal != null && valueLocal.isNotEmpty ? valueLocal : null;
           switch (widget.type) {
             case InputDataType.double:
-              return double.parse(_value ?? '0');
+              return double.parse(valueLocal?.toString() ?? '0');
             case InputDataType.int:
-              return int.parse(_value ?? '0');
+              return int.parse(valueLocal?.toString() ?? '0');
             default:
-              return _value;
+              return valueLocal;
           }
         }
 
@@ -236,7 +288,7 @@ class _InputDataState extends State<InputData> {
           case InputDataType.text:
           case InputDataType.phone:
           case InputDataType.email:
-            _widget = TextFormField(
+            endWidget = TextFormField(
               controller: textController,
               enableSuggestions: false,
               keyboardType: keyboardType,
@@ -246,10 +298,7 @@ class _InputDataState extends State<InputData> {
               maxLines: widget.type == InputDataType.text ? 10 : 1,
               minLines: 1,
               maxLength: maxLength,
-              decoration: InputDecoration(
-                hintText: widget.hintText ?? hintTextDefault ?? value,
-                isDense: widget.isDense,
-              ),
+              decoration: inputDecoration,
               onChanged: (newValue) {
                 value = newValue;
                 if (widget.onChanged != null) {
@@ -269,61 +318,58 @@ class _InputDataState extends State<InputData> {
             );
             break;
           case InputDataType.date:
-            DateTime? _date = value as DateTime?;
-            DateFormat formatDate = DateFormat.yMd('en_US');
-            final _baseDateFormat = Utils.dateTimeOffset(
-              dateTime: _date,
-              utcOffset: widget.utcOffset,
-            );
-            String label = _date != null
-                ? formatDate.format(_baseDateFormat!)
-                : locales.get('label--choose-label', {
-                    'label': locales.get('label--date'),
-                  });
-            _widget = Padding(
-              padding: const EdgeInsets.only(top: 16),
-              child: ElevatedButton.icon(
-                onPressed: () async {
-                  _date ??= DateTime.now();
-                  int _year = _date!.year < 2020 ? _date!.year : 2000;
-                  final DateTime? picked = await showDatePicker(
-                    context: context,
-                    initialDate: _date!,
-                    firstDate: DateTime(_year),
-                    lastDate: _date!.add(const Duration(days: 365)),
-                  );
-                  if (picked != null) {
-                    final _newDate = Utils.dateTimeOffset(
-                      dateTime: picked,
-                      utcOffset: widget.utcOffset,
-                    );
-                    if (widget.onChanged != null) widget.onChanged!(_newDate);
-                  }
-                },
-                icon: const Icon(Icons.date_range),
-                label: Text(label),
+            endWidget = TextFormField(
+              enableSuggestions: false,
+              keyboardType: keyboardType,
+              controller: textController,
+              readOnly: true,
+              decoration: inputDecoration.copyWith(
+                hintText: locales.get('label--choose-label', {
+                  'label': locales.get('label--date'),
+                }),
+                prefixIcon:
+                    inputDecoration.prefixIcon ?? const Icon(Icons.date_range),
               ),
+              onTap: () async {
+                DateTime? date = value ?? DateTime.now();
+                int year = date!.year < 2020 ? date.year : 2000;
+                final DateTime? picked = await showDatePicker(
+                  context: context,
+                  initialDate: date,
+                  firstDate: DateTime(year),
+                  lastDate: date.add(const Duration(days: 365)),
+                );
+                if (picked != null) {
+                  final newDate = Utils.dateTimeOffset(
+                    dateTime: picked,
+                    utcOffset: widget.utcOffset,
+                  );
+                  if (widget.onChanged != null) widget.onChanged!(newDate);
+                }
+              },
             );
             break;
           case InputDataType.time:
-            TimeOfDay? _time = value;
+            TimeOfDay? time = value;
             DateFormat formatTime = DateFormat.jm();
-            String label = _time != null
-                ? formatTime.format(DateTime(1, 1, 1, _time.hour, _time.minute))
-                : locales.get('label--choose-label', {
-                    'label': locales.get('label--time'),
-                  });
-            _widget = Padding(
+            String? dateString = time != null
+                ? formatTime.format(DateTime(1, 1, 1, time.hour, time.minute))
+                : null;
+            String label = dateString ??
+                locales.get('label--choose-label', {
+                  'label': locales.get('label--time'),
+                });
+            endWidget = Padding(
               padding: const EdgeInsets.only(top: 16),
               child: ElevatedButton.icon(
                 onPressed: () async {
-                  _time ??= TimeOfDay.now();
+                  time ??= TimeOfDay.now();
                   final TimeOfDay? picked = await showTimePicker(
                     context: context,
-                    initialTime: _time!,
+                    initialTime: time!,
                     initialEntryMode: TimePickerEntryMode.input,
                   );
-                  if (picked != null && picked != _time) {
+                  if (picked != null && picked != time) {
                     if (widget.onChanged != null) widget.onChanged!(picked);
                   }
                 },
@@ -334,38 +380,51 @@ class _InputDataState extends State<InputData> {
             break;
           case InputDataType.enums:
           case InputDataType.dropdown:
-            List<ButtonOptions> _dropdown = [];
-            List<PopupMenuEntry<String>> buttons = [];
-            if (!widget.isDense) {
-              buttons.add(
-                PopupMenuItem<String>(value: '', child: Text(_defaultText)),
-              );
-            }
+            List<ButtonOptions> dropdownOptions = [];
             if (widget.type == InputDataType.dropdown) {
-              _dropdown = widget.options;
+              dropdownOptions = widget.options;
             }
             if (widget.type == InputDataType.enums) {
-              _dropdown = widget.enums
-                  .map((e) => ButtonOptions(
-                        label: enumData.localesFromEnum(e),
-                        value: e,
-                      ))
-                  .toList();
+              dropdownOptions = List.generate(widget.enums.length, (index) {
+                final e = widget.enums[index];
+                return ButtonOptions(
+                  label: enumData.localesFromEnum(e),
+                  value: e,
+                );
+              });
             }
-            for (ButtonOptions option in _dropdown) {
-              buttons.add(PopupMenuItem<String>(
-                value: option.value?.toString(),
+            List<DropdownMenuItem<dynamic>> buttons =
+                List.generate(dropdownOptions.length, (index) {
+              final option = dropdownOptions[index];
+              return DropdownMenuItem(
+                value: option.value,
                 onTap: option.onTap != null
                     ? () => option.onTap!(option.value)
                     : null,
-                child: Text(option.label),
-              ));
-            }
+                child: Text(
+                  option.label,
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: false,
+                  maxLines: 1,
+                ),
+              );
+            });
+            buttons.insert(
+              0,
+              DropdownMenuItem(
+                  value: null,
+                  child: Text(
+                    defaultText,
+                    overflow: TextOverflow.ellipsis,
+                    softWrap: false,
+                    maxLines: 1,
+                  )),
+            );
             if (value != null) {
-              if (widget.type == InputDataType.enums &&
-                  widget.enums.firstWhereOrNull((e) => e == value) != null) {
-                textSelected = enumData.localesFromEnum(value);
-              }
+              // if (widget.type == InputDataType.enums &&
+              //     widget.enums.firstWhereOrNull((e) => e == value) != null) {
+              //   textSelected = enumData.localesFromEnum(value);
+              // }
               if (widget.type == InputDataType.dropdown) {
                 textSelected = widget.options
                     .firstWhere((element) => element.value == value)
@@ -373,42 +432,31 @@ class _InputDataState extends State<InputData> {
               }
             }
             if (buttons.length == (widget.isDense ? 0 : 1)) {
-              _disabled = true;
+              isDisabled = true;
             }
 
-            _widget = PopupMenuButton<String>(
+            endWidget = DropdownButtonFormField<dynamic>(
+              isExpanded: true,
+              isDense: widget.isDense,
               icon: icon,
-              enabled: !_disabled,
               elevation: 1,
-              offset: const Offset(0, 40),
               key: popupButtonKey,
-              initialValue: value?.toString(),
-              onSelected: (_value) {
-                if (widget.onChanged != null) {
-                  widget.onChanged!(_value == '' ? null : _value);
-                }
-              },
-              child: widget.isDense
+              value: value,
+              onChanged: isDisabled
                   ? null
-                  : ListTile(
-                      title: Text(textSelected),
-                      trailing: Icon(
-                        Icons.arrow_drop_down,
-                        color: _disabled
-                            ? Colors.grey.shade300
-                            : theme.colorScheme.primary,
-                      ),
-                      mouseCursor: _disabled
-                          ? SystemMouseCursors.forbidden
-                          : SystemMouseCursors.click,
-                      tileColor: widget.backgroundColor ?? popupMenuTheme.color,
-                      shape: buttonTheme.shape,
-                    ),
-              itemBuilder: (BuildContext context) => buttons,
+                  : (dynamic newValue) {
+                      if (widget.onChanged != null) {
+                        widget.onChanged!(newValue == '' ? null : newValue);
+                      }
+                    },
+              items: buttons,
+              decoration: inputDecoration,
             );
             break;
           case InputDataType.radio:
-            List<Widget> _options = widget.options.map((e) {
+            List<Widget> radioOptions =
+                List.generate(widget.options.length, (index) {
+              final e = widget.options[index];
               return ListTile(
                 title: Text(e.label),
                 leading: Radio<String?>(
@@ -427,9 +475,9 @@ class _InputDataState extends State<InputData> {
                   }
                 },
               );
-            }).toList();
-            _widget = Column(
-              children: _options,
+            });
+            endWidget = Column(
+              children: radioOptions,
             );
             break;
           default:
@@ -438,7 +486,7 @@ class _InputDataState extends State<InputData> {
           constraints: BoxConstraints(maxWidth: maxWidth),
           child: Padding(
             padding: widget.padding,
-            child: _widget,
+            child: endWidget,
           ),
         );
       },

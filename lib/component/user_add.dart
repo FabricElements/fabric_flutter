@@ -160,7 +160,7 @@ class _UserAddState extends State<UserAdd> {
     /// Invite user using a phone number or email
     Widget selectedTypeWidget = _typeOption == TypeOptions.phone
         ? InputData(
-            expanded: true,
+            isExpanded: true,
             value: phoneNumber,
             type: InputDataType.phone,
             onChanged: (value) {
@@ -169,7 +169,7 @@ class _UserAddState extends State<UserAdd> {
             },
           )
         : InputData(
-            expanded: true,
+            isExpanded: true,
             value: email,
             type: InputDataType.email,
             onChanged: (value) {
