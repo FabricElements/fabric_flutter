@@ -1,4 +1,5 @@
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 
 /// This is a change notifier class which keeps track of state within the campaign builder views.
@@ -7,13 +8,17 @@ class StateAnalytics extends ChangeNotifier {
 
   String? _screenName = '';
 
+  bool initialized = Firebase.apps.isNotEmpty;
+
   /// Analytics
-  static FirebaseAnalytics analytics = FirebaseAnalytics.instance;
-  static FirebaseAnalyticsObserver observer =
-      FirebaseAnalyticsObserver(analytics: analytics);
+  FirebaseAnalytics? get analytics =>
+      initialized ? FirebaseAnalytics.instance : null;
+
+  FirebaseAnalyticsObserver? get observer =>
+      initialized ? FirebaseAnalyticsObserver(analytics: analytics!) : null;
 
   void _sendCurrentTabToAnalytics(String screenName) {
-    observer.analytics.setCurrentScreen(
+    observer?.analytics.setCurrentScreen(
       screenName: screenName,
     );
   }

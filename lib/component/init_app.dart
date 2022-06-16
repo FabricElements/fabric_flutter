@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
 import '../state/state_alert.dart';
+// import '../state/state_analytics.dart';
 import '../state/state_analytics.dart';
 import '../state/state_api.dart';
 import '../state/state_document.dart';
@@ -14,9 +15,6 @@ import '../state/state_dynamic_links.dart';
 import '../state/state_global.dart';
 import '../state/state_notifications.dart';
 import '../state/state_user.dart';
-
-final FirebaseAuth _auth = FirebaseAuth.instance;
-final Future<FirebaseApp> _initialization = Firebase.initializeApp();
 
 class InitApp extends StatelessWidget {
   const InitApp({
@@ -26,6 +24,7 @@ class InitApp extends StatelessWidget {
     this.loader,
     this.notifications = false,
     this.links = false,
+    this.firebaseOptions,
   }) : super(key: key);
 
   final Widget child;
@@ -33,44 +32,34 @@ class InitApp extends StatelessWidget {
   final Widget? loader;
   final bool notifications;
   final bool links;
-
-  emulators() async {
-    if (kDebugMode) {
-      FirebaseFunctions.instance.useFunctionsEmulator('localhost', 5001);
-      // FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
-    }
-  }
+  final FirebaseOptions? firebaseOptions;
 
   @override
   Widget build(BuildContext context) {
-    emulators();
-
     /// Init Providers
-    List<SingleChildWidget> _providers = providers ?? [];
-    _providers.addAll([
+    List<SingleChildWidget> allProviders = providers ?? [];
+    allProviders.addAll([
+      // You need to add the next commented lines on 'main.dart' file
       ChangeNotifierProvider(create: (context) => StateAnalytics()),
+      ChangeNotifierProvider(create: (context) => StateDynamicLinks()),
+      ChangeNotifierProvider(create: (context) => StateNotifications()),
       ChangeNotifierProvider(create: (context) => StateAPI()),
       ChangeNotifierProvider(create: (context) => StateDocument()),
-      ChangeNotifierProvider(create: (context) => StateDynamicLinks()),
       ChangeNotifierProvider(create: (context) => StateGlobal()),
-      ChangeNotifierProvider(create: (context) => StateNotifications()),
       ChangeNotifierProvider(create: (context) => StateUser()),
       ChangeNotifierProvider(create: (context) => StateAlert()),
     ]);
-    Widget loadingApp = Container(color: Colors.grey.shade500);
 
     return MultiProvider(
-      providers: _providers,
-      child: FutureBuilder(
-        // Initialize FlutterFire:
-        future: _initialization,
-        builder: (context, snapshot) {
-          // Check for errors
-          if (snapshot.hasError) {
-            if (kDebugMode) {
-              print('_initialization load error ${snapshot.error.toString()}');
-            }
-            return loadingApp;
+      providers: allProviders,
+      child: Builder(
+        builder: (context) {
+          final FirebaseAuth auth = FirebaseAuth.instance;
+
+          /// Run on emulators
+          if (kDebugMode) {
+            FirebaseFunctions.instance.useFunctionsEmulator('localhost', 5001);
+            // FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
           }
 
           /// Call App States after MultiProvider is called
@@ -79,8 +68,8 @@ class InitApp extends StatelessWidget {
           final stateDynamicLinks =
               Provider.of<StateDynamicLinks>(context, listen: false);
           final stateUser = Provider.of<StateUser>(context, listen: false);
-          StateGlobal stateGlobal =
-              Provider.of<StateGlobal>(context, listen: false);
+          // StateGlobal stateGlobal =
+          //     Provider.of<StateGlobal>(context, listen: false);
           stateUser.init();
 
           /// Refresh auth state
@@ -99,7 +88,7 @@ class InitApp extends StatelessWidget {
             return null;
           }
 
-          _auth
+          auth
               .userChanges()
               .listen((User? userObject) => _refreshAuth(userObject));
 
@@ -110,11 +99,6 @@ class InitApp extends StatelessWidget {
             } catch (e) {
               if (kDebugMode) print(e);
             }
-          }
-
-          // Otherwise, show something whilst waiting for initialization to complete
-          if (snapshot.connectionState != ConnectionState.done) {
-            return loadingApp;
           }
           return child;
         },

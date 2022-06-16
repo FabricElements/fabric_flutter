@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io' show Platform;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
@@ -10,7 +11,10 @@ import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 class StateNotifications extends ChangeNotifier {
   StateNotifications();
 
-  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+  bool initialized = Firebase.apps.isNotEmpty;
+
+  FirebaseMessaging? get _firebaseMessaging =>
+      initialized ? FirebaseMessaging.instance : null;
 
   String? _token;
   Map<String, dynamic> _notification = {};
@@ -48,7 +52,8 @@ class StateNotifications extends ChangeNotifier {
   }
 
   Future<String?> getToken() async {
-    _firebaseMessaging.requestPermission(
+    if (!initialized) throw 'Initialize Firebase app first';
+    _firebaseMessaging!.requestPermission(
       alert: true,
       announcement: false,
       badge: true,
@@ -57,7 +62,7 @@ class StateNotifications extends ChangeNotifier {
       provisional: true,
       sound: true,
     );
-    String? token = await _firebaseMessaging.getToken();
+    String? token = await _firebaseMessaging!.getToken();
     return token;
   }
 

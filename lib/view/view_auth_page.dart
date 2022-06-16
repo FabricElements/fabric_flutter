@@ -147,6 +147,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
             title:
                 '${locales.get('alert--phone-number-verification-failed')}. ${authException.message} -- Code: ${authException.code}',
             type: AlertType.critical,
+            brightness: Brightness.dark,
           ));
         }
 
@@ -184,11 +185,16 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         success = true;
       } on FirebaseFunctionsException catch (error) {
         alert.show(AlertData(
-            title: error.message ?? error.details['message'],
-            type: AlertType.critical));
+          title: error.message ?? error.details['message'],
+          type: AlertType.critical,
+          brightness: Brightness.dark,
+        ));
       } catch (error) {
-        alert
-            .show(AlertData(title: error.toString(), type: AlertType.critical));
+        alert.show(AlertData(
+          title: error.toString(),
+          type: AlertType.critical,
+          brightness: Brightness.dark,
+        ));
       }
       loading = false;
       if (success) {
@@ -218,12 +224,14 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           alert.show(AlertData(
             title: locales.get('alert--sign-in-failed'),
             type: AlertType.critical,
+            brightness: Brightness.dark,
           ));
         }
       } else {
         alert.show(AlertData(
           title: 'Please input sms code received after verifying phone number',
           type: AlertType.critical,
+          brightness: Brightness.dark,
         ));
       }
     }
@@ -247,6 +255,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         alert.show(AlertData(
           title: locales.get('alert--sign-in-failed'),
           type: AlertType.critical,
+          brightness: Brightness.dark,
         ));
       }
     }
@@ -282,10 +291,14 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         alert.show(AlertData(
           title: error.message ?? error.details['message'],
           type: AlertType.critical,
+          brightness: Brightness.dark,
         ));
       } catch (error) {
-        alert
-            .show(AlertData(title: error.toString(), type: AlertType.critical));
+        alert.show(AlertData(
+          title: error.toString(),
+          type: AlertType.critical,
+          brightness: Brightness.dark,
+        ));
       }
       loading = false;
       if (mounted) setState(() {});
@@ -317,10 +330,14 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         alert.show(AlertData(
           title: error.message ?? error.details['message'],
           type: AlertType.critical,
+          brightness: Brightness.dark,
         ));
       } catch (error) {
-        alert
-            .show(AlertData(title: error.toString(), type: AlertType.critical));
+        alert.show(AlertData(
+          title: error.toString(),
+          type: AlertType.critical,
+          brightness: Brightness.dark,
+        ));
       }
     }
 

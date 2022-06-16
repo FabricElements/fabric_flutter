@@ -248,7 +248,7 @@ getValue -------------------------------------
             keyboardType = const TextInputType.numberWithOptions(decimal: true);
             inputFormatters.addAll([
               FilteringTextInputFormatter.singleLineFormatter,
-              FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
+              FilteringTextInputFormatter.allow(RegExp(r'[\d.-]')),
             ]);
             break;
           case InputDataType.int:

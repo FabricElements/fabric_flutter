@@ -1,7 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:transparent_image/transparent_image.dart';
+
+// import 'package:transparent_image/transparent_image.dart';
 
 import '../helper/utils.dart';
 
@@ -20,23 +21,37 @@ class SmartImage extends StatelessWidget {
     this.placeholder,
     this.size,
     required this.url,
+    this.color = Colors.transparent,
   }) : super(key: key);
   final Uint8List? placeholder;
   final String? size;
-  final String url;
+  final String? url;
+  final Color color;
 
   // FORMAT
 
   @override
   Widget build(BuildContext context) {
+    final placeholderWidget = Container(color: color);
+
+    /// Return placeholder image if path is not valid
+    if (url == null || url!.isEmpty) {
+      return placeholderWidget;
+    }
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         final queryData = MediaQuery.of(context);
         double devicePixelRatio = queryData.devicePixelRatio;
-        int width = constraints.maxWidth.floor();
-        int height = constraints.maxHeight.floor();
+        int divisor = 100;
+
+        /// Get dimensions in multiples of [divisor]
+        int width = (constraints.maxWidth.floor() / divisor).floor() * divisor;
+        int height =
+            (constraints.maxHeight.floor() / divisor).floor() * divisor;
+        if (width < divisor) width = divisor;
+        if (height < divisor) height = divisor;
         // double biggest = constraints.biggest.longestSide;
-        Uri uri = Uri.parse(url); //converts string to a uri
+        Uri uri = Uri.parse(url!); //converts string to a uri
         Map<String, List<String>> queryParameters = {};
         queryParameters.addAll({
           'dpr': [devicePixelRatio.toString()],
@@ -56,10 +71,14 @@ class SmartImage extends StatelessWidget {
           uri: uri,
           queryParameters: queryParameters,
         );
-        return FadeInImage.memoryNetwork(
-          fit: BoxFit.cover,
-          image: path,
-          placeholder: placeholder ?? kTransparentImage,
+        return Container(
+          color: color,
+          child: Image.network(
+            path,
+            fit: BoxFit.cover,
+            // colorBlendMode: BlendMode.srcATop,
+            // color: color,
+          ),
         );
       },
     );
