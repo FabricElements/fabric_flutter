@@ -269,13 +269,14 @@ getValue -------------------------------------
 
         /// Format New Value
         dynamic _valueChanged(dynamic valueLocal) {
-          // dynamic _value =
-          //     valueLocal != null && valueLocal.isNotEmpty ? valueLocal : null;
+          if (valueLocal == null) return null;
+          String valueLocalString = valueLocal!.toString();
+          if (valueLocalString.isEmpty) return null;
           switch (widget.type) {
             case InputDataType.double:
-              return double.parse(valueLocal?.toString() ?? '0');
+              return double.tryParse(valueLocalString);
             case InputDataType.int:
-              return int.parse(valueLocal?.toString() ?? '0');
+              return int.tryParse(valueLocalString);
             default:
               return valueLocal;
           }
@@ -302,12 +303,13 @@ getValue -------------------------------------
               onChanged: (newValue) {
                 value = newValue;
                 if (widget.onChanged != null) {
-                  widget.onChanged!(_valueChanged(newValue));
+                  widget.onChanged!(_valueChanged(value));
                 }
               },
               onFieldSubmitted: (newValue) {
+                value = newValue;
                 if (widget.onSubmit != null) {
-                  widget.onSubmit!(_valueChanged(newValue));
+                  widget.onSubmit!(_valueChanged(value));
                 }
               },
               onEditingComplete: () {
