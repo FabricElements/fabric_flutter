@@ -85,5 +85,7 @@
   <string>This app uses your media library to upload files required to process data</string>
   <key>LSApplicationCategoryType</key>
   <string>public.app-category.productivity</string>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
 </dict>
 </plist>

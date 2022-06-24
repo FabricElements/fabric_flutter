@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../helper/options.dart';
 
-/// Navigation [Breadcrumbs] provides a useful way to display navigation routes
+/// Navigation Breadcrumbs provides a useful way to display navigation routes
 class Breadcrumbs extends StatelessWidget {
   const Breadcrumbs({
     Key? key,
