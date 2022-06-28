@@ -17,7 +17,7 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  dotenv.load(fileName: 'assets/env');
+  await dotenv.load(fileName: 'assets/env');
   configureApp();
   SystemChrome.restoreSystemUIOverlays();
   SystemChrome.setPreferredOrientations([

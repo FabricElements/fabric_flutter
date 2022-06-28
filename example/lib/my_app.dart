@@ -76,8 +76,12 @@ class MyApp extends StatelessWidget {
         return PageRouteBuilder(
           maintainState: false,
           settings: settings,
-          pageBuilder: (_, __, ___) =>
-              RoutePage(uri: uri, routeHelper: routeHelper),
+          pageBuilder: (_, __, ___) => RoutePage(
+            uri: uri,
+            routeHelper: routeHelper,
+            stream: stateUser.streamStatus,
+            status: stateUser.userStatus,
+          ),
           transitionsBuilder: (_, a, __, c) =>
               FadeTransition(opacity: a, child: c),
         );

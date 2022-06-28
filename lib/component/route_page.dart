@@ -1,35 +1,46 @@
 import 'package:fabric_flutter/helper/route_helper.dart';
-import 'package:fabric_flutter/state/state_user.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../serialized/user_data.dart';
 import '../state/state_alert.dart';
 
 class RoutePage extends StatelessWidget {
-  const RoutePage({Key? key, required this.routeHelper, required this.uri})
-      : super(key: key);
+  const RoutePage({
+    Key? key,
+    required this.routeHelper,
+    required this.uri,
+    required this.stream,
+    required this.status,
+  }) : super(key: key);
   final RouteHelper routeHelper;
   final Uri uri;
+  final Stream<UserStatus?> stream;
+  final UserStatus status;
 
   @override
   Widget build(BuildContext context) {
-    final stateUser = Provider.of<StateUser>(context, listen: false);
     final stateAlert = Provider.of<StateAlert>(context, listen: false);
     stateAlert.context = context;
-    return StreamBuilder<User?>(
-      stream: stateUser.streamUser,
+    return StreamBuilder<dynamic>(
+      initialData: status,
+      stream: stream,
       builder: (context, snapshot) {
-        Widget page = Container(color: Colors.green.shade500);
-        Map<String, Widget> _routes = routeHelper.routes(
-          signed: stateUser.signedIn,
-          isAdmin: stateUser.admin,
+        Widget page = const SizedBox();
+        // Return blank page if connection is not established
+        if (snapshot.connectionState == ConnectionState.none) return page;
+        UserStatus? userStatus = snapshot.data as UserStatus?;
+        bool signedIn = userStatus?.signedIn ?? false;
+        bool admin = userStatus?.admin ?? false;
+        Map<String, Widget> routes = routeHelper.routes(
+          signed: signedIn,
+          isAdmin: admin,
         );
-        if (_routes.containsKey(uri.path)) {
-          page = _routes[uri.path]!;
+        if (routes.containsKey(uri.path)) {
+          page = routes[uri.path]!;
           return page;
         }
-        return _routes[routeHelper.unknownRoute]!;
+        return routes[routeHelper.unknownRoute]!;
       },
     );
   }

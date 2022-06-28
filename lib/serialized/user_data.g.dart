@@ -58,3 +58,16 @@ Map<String, dynamic> _$UserDataToJson(UserData instance) => <String, dynamic>{
       'updated': Utils.timestampToJsonDefault(instance.updated),
       'username': instance.username,
     };
+
+UserStatus _$UserStatusFromJson(Map<String, dynamic> json) => UserStatus(
+      signedIn: json['signedIn'] as bool? ?? false,
+      admin: json['admin'] as bool? ?? false,
+      role: json['role'] as String? ?? 'user',
+    );
+
+Map<String, dynamic> _$UserStatusToJson(UserStatus instance) =>
+    <String, dynamic>{
+      'signedIn': instance.signedIn,
+      'admin': instance.admin,
+      'role': instance.role,
+    };
