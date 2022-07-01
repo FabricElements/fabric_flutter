@@ -160,6 +160,7 @@ class StateUser extends StateDocument {
 
   /// Ping user
   void ping(String reference) async {
+    if (!kReleaseMode) return;
     if (reference == _pingReference || !signedIn || data.isEmpty) return;
     _pingLast = serialized.ping ?? _pingLast;
     DateTime _timeRef = DateTime.now().subtract(const Duration(minutes: 1));

@@ -48,6 +48,7 @@ class InputData extends StatefulWidget {
     this.backgroundColor,
     this.icon,
     this.error,
+    this.textStyle,
   }) : super(key: key);
   final dynamic value;
   final List<dynamic> enums;
@@ -65,6 +66,7 @@ class InputData extends StatefulWidget {
   final Color? backgroundColor;
   final IconData? icon;
   final String? error;
+  final TextStyle? textStyle;
 
   /// [onSubmit]
   /// Never use expression body or value won't be update correctly
@@ -182,6 +184,19 @@ getValue -------------------------------------
       focusedBorder = theme.inputDecorationTheme.focusedErrorBorder;
     }
 
+    Widget? inputIcon;
+    switch (widget.type) {
+      case InputDataType.double:
+      case InputDataType.int:
+      case InputDataType.string:
+      case InputDataType.text:
+      case InputDataType.phone:
+      case InputDataType.email:
+        inputIcon = widget.icon != null ? Icon(widget.icon) : null;
+        break;
+      default:
+    }
+
     InputDecoration inputDecoration = InputDecoration(
       hintText: value?.toString() ??
           widget.hintText ??
@@ -190,308 +205,596 @@ getValue -------------------------------------
       isDense: widget.isDense,
       errorText: errorText,
       enabled: !widget.disabled,
-      prefixIcon: widget.icon != null ? Icon(widget.icon) : null,
+      prefixIcon: inputIcon,
       // helperText: defaultText,
+      // constraints: const BoxConstraints(maxWidth: double.maxFinite, maxHeight: double.maxFinite),
     );
 
-    /// Base
-    return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints constraints) {
-        double width = constraints.maxWidth.floorToDouble();
-        int layoutTo = 2;
-        if (width > 600) layoutTo = 3;
-        if (width > 900) layoutTo = 4;
-        if (width > 1000) layoutTo = 5;
-        // if (width > 1100) layoutTo = 6;
-        // if (width > 1500) layoutTo = 7;
-        double maxWidth =
-            (width / layoutTo) - ((layoutTo) / 2 * 8).floorToDouble();
-        if (widget.isExpanded) {
-          maxWidth = widget.isExpanded ? double.maxFinite : maxWidth;
-        }
-        Widget endWidget = Text(
-          'Type "${widget.type}" not implemented',
-          style: const TextStyle(color: Colors.orange),
+    Widget endWidget = Text(
+      'Type "${widget.type}" not implemented',
+      style: const TextStyle(color: Colors.orange),
+    );
+    TextInputType keyboardType = TextInputType.text;
+    List<TextInputFormatter> inputFormatters = [];
+    final inputValidation = InputValidation(locales: locales);
+    switch (widget.type) {
+      case InputDataType.phone:
+
+        /// https://en.wikipedia.org/wiki/Telephone_numbering_plan
+        maxLength = 16;
+        hintTextDefault = '+1 (222) 333 - 4444';
+        keyboardType = const TextInputType.numberWithOptions(
+          decimal: true,
+          signed: true,
         );
-        TextInputType keyboardType = TextInputType.text;
-        List<TextInputFormatter> inputFormatters = [];
-        final inputValidation = InputValidation(locales: locales);
-        switch (widget.type) {
-          case InputDataType.phone:
+        inputFormatters.addAll([
+          FilteringTextInputFormatter.deny(RegExp(r'[\s()-]'),
+              replacementString: ''),
+          FilteringTextInputFormatter.allow(RegExp(r'^\+\d{0,15}'),
+              replacementString: ''),
+          FilteringTextInputFormatter.singleLineFormatter,
+        ]);
+        validator = inputValidation.validatePhone;
+        break;
+      case InputDataType.email:
+        maxLength = 100;
+        hintTextDefault = 'example@example.com';
+        keyboardType = TextInputType.emailAddress;
+        inputFormatters.addAll([
+          FilteringTextInputFormatter.singleLineFormatter,
+        ]);
+        validator = inputValidation.validateEmail;
+        break;
+      case InputDataType.double:
+        keyboardType = const TextInputType.numberWithOptions(decimal: true);
+        inputFormatters.addAll([
+          FilteringTextInputFormatter.singleLineFormatter,
+          FilteringTextInputFormatter.allow(RegExp(r'[\d.-]')),
+        ]);
+        break;
+      case InputDataType.int:
+        keyboardType = TextInputType.number;
+        inputFormatters.addAll([
+          FilteringTextInputFormatter.singleLineFormatter,
+          FilteringTextInputFormatter.digitsOnly,
+        ]);
+        break;
+      case InputDataType.date:
+        keyboardType = TextInputType.datetime;
+        inputFormatters.addAll([
+          FilteringTextInputFormatter.singleLineFormatter,
+        ]);
+        break;
+      default:
+    }
 
-            /// https://en.wikipedia.org/wiki/Telephone_numbering_plan
-            maxLength = 16;
-            hintTextDefault = '+1 (222) 333 - 4444';
-            keyboardType = const TextInputType.numberWithOptions(
-              decimal: true,
-              signed: true,
-            );
-            inputFormatters.addAll([
-              FilteringTextInputFormatter.deny(RegExp(r'[\s()-]'),
-                  replacementString: ''),
-              FilteringTextInputFormatter.allow(RegExp(r'^\+\d{0,15}'),
-                  replacementString: ''),
-              FilteringTextInputFormatter.singleLineFormatter,
-            ]);
-            validator = inputValidation.validatePhone;
-            break;
-          case InputDataType.email:
-            maxLength = 100;
-            hintTextDefault = 'example@example.com';
-            keyboardType = TextInputType.emailAddress;
-            inputFormatters.addAll([
-              FilteringTextInputFormatter.singleLineFormatter,
-            ]);
-            validator = inputValidation.validateEmail;
-            break;
-          case InputDataType.double:
-            keyboardType = const TextInputType.numberWithOptions(decimal: true);
-            inputFormatters.addAll([
-              FilteringTextInputFormatter.singleLineFormatter,
-              FilteringTextInputFormatter.allow(RegExp(r'[\d.-]')),
-            ]);
-            break;
-          case InputDataType.int:
-            keyboardType = TextInputType.number;
-            inputFormatters.addAll([
-              FilteringTextInputFormatter.singleLineFormatter,
-              FilteringTextInputFormatter.digitsOnly,
-            ]);
-            break;
-          case InputDataType.date:
-            keyboardType = TextInputType.datetime;
-            inputFormatters.addAll([
-              FilteringTextInputFormatter.singleLineFormatter,
-            ]);
-            break;
-          default:
-        }
+    /// Format New Value
+    dynamic _valueChanged(dynamic valueLocal) {
+      if (valueLocal == null) return null;
+      String valueLocalString = valueLocal!.toString();
+      if (valueLocalString.isEmpty) return null;
+      switch (widget.type) {
+        case InputDataType.double:
+          return double.tryParse(valueLocalString);
+        case InputDataType.int:
+          return int.tryParse(valueLocalString);
+        default:
+          return valueLocal;
+      }
+    }
 
-        /// Format New Value
-        dynamic _valueChanged(dynamic valueLocal) {
-          if (valueLocal == null) return null;
-          String valueLocalString = valueLocal!.toString();
-          if (valueLocalString.isEmpty) return null;
-          switch (widget.type) {
-            case InputDataType.double:
-              return double.tryParse(valueLocalString);
-            case InputDataType.int:
-              return int.tryParse(valueLocalString);
-            default:
-              return valueLocal;
-          }
-        }
-
-        switch (widget.type) {
-          case InputDataType.double:
-          case InputDataType.int:
-          case InputDataType.string:
-          case InputDataType.text:
-          case InputDataType.phone:
-          case InputDataType.email:
-            endWidget = TextFormField(
-              controller: textController,
-              enableSuggestions: false,
-              keyboardType: keyboardType,
-              inputFormatters: inputFormatters,
-              validator: validator,
-              autovalidateMode: AutovalidateMode.always,
-              maxLines: widget.type == InputDataType.text ? 10 : 1,
-              minLines: 1,
-              maxLength: maxLength,
-              decoration: inputDecoration,
-              onChanged: (newValue) {
-                value = newValue;
-                if (widget.onChanged != null) {
-                  widget.onChanged!(_valueChanged(value));
-                }
-              },
-              onFieldSubmitted: (newValue) {
-                value = newValue;
-                if (widget.onSubmit != null) {
-                  widget.onSubmit!(_valueChanged(value));
-                }
-              },
-              onEditingComplete: () {
-                if (widget.onSubmit != null) {
-                  widget.onSubmit!(_valueChanged(value));
-                }
-              },
-            );
-            break;
-          case InputDataType.date:
-            endWidget = TextFormField(
-              enableSuggestions: false,
-              keyboardType: keyboardType,
-              controller: textController,
-              readOnly: true,
-              decoration: inputDecoration.copyWith(
-                hintText: locales.get('label--choose-label', {
-                  'label': locales.get('label--date'),
-                }),
-                prefixIcon:
-                    inputDecoration.prefixIcon ?? const Icon(Icons.date_range),
-              ),
-              onTap: () async {
-                DateTime? date = value ?? DateTime.now();
-                int year = date!.year < 2020 ? date.year : 2000;
-                final DateTime? picked = await showDatePicker(
-                  context: context,
-                  initialDate: date,
-                  firstDate: DateTime(year),
-                  lastDate: date.add(const Duration(days: 365)),
-                );
-                if (picked != null) {
-                  final newDate = Utils.dateTimeOffset(
-                    dateTime: picked,
-                    utcOffset: widget.utcOffset,
-                  );
-                  if (widget.onChanged != null) widget.onChanged!(newDate);
-                }
-              },
-            );
-            break;
-          case InputDataType.time:
-            TimeOfDay? time = value;
-            DateFormat formatTime = DateFormat.jm();
-            String? dateString = time != null
-                ? formatTime.format(DateTime(1, 1, 1, time.hour, time.minute))
-                : null;
-            String label = dateString ??
-                locales.get('label--choose-label', {
-                  'label': locales.get('label--time'),
-                });
-            endWidget = Padding(
-              padding: const EdgeInsets.only(top: 16),
-              child: ElevatedButton.icon(
-                onPressed: () async {
-                  time ??= TimeOfDay.now();
-                  final TimeOfDay? picked = await showTimePicker(
-                    context: context,
-                    initialTime: time!,
-                    initialEntryMode: TimePickerEntryMode.input,
-                  );
-                  if (picked != null && picked != time) {
-                    if (widget.onChanged != null) widget.onChanged!(picked);
-                  }
-                },
-                icon: const Icon(Icons.access_time),
-                label: Text(label),
-              ),
-            );
-            break;
-          case InputDataType.enums:
-          case InputDataType.dropdown:
-            List<ButtonOptions> dropdownOptions = [];
-            if (widget.type == InputDataType.dropdown) {
-              dropdownOptions = widget.options;
+    switch (widget.type) {
+      case InputDataType.double:
+      case InputDataType.int:
+      case InputDataType.string:
+      case InputDataType.text:
+      case InputDataType.phone:
+      case InputDataType.email:
+        endWidget = TextFormField(
+          controller: textController,
+          enableSuggestions: false,
+          keyboardType: keyboardType,
+          inputFormatters: inputFormatters,
+          validator: validator,
+          autovalidateMode: AutovalidateMode.always,
+          maxLines: widget.type == InputDataType.text ? 10 : 1,
+          minLines: 1,
+          maxLength: maxLength,
+          decoration: inputDecoration,
+          onChanged: (newValue) {
+            value = newValue;
+            if (widget.onChanged != null) {
+              widget.onChanged!(_valueChanged(value));
             }
-            if (widget.type == InputDataType.enums) {
-              dropdownOptions = List.generate(widget.enums.length, (index) {
-                final e = widget.enums[index];
-                return ButtonOptions(
-                  label: enumData.localesFromEnum(e),
-                  value: e,
-                );
-              });
+          },
+          onFieldSubmitted: (newValue) {
+            value = newValue;
+            if (widget.onSubmit != null) {
+              widget.onSubmit!(_valueChanged(value));
             }
-            List<DropdownMenuItem<dynamic>> buttons =
-                List.generate(dropdownOptions.length, (index) {
-              final option = dropdownOptions[index];
-              return DropdownMenuItem(
-                value: option.value,
-                onTap: option.onTap != null
-                    ? () => option.onTap!(option.value)
-                    : null,
-                child: Text(
-                  option.label,
-                  overflow: TextOverflow.ellipsis,
-                  softWrap: false,
-                  maxLines: 1,
-                ),
+          },
+          onEditingComplete: () {
+            if (widget.onSubmit != null) {
+              widget.onSubmit!(_valueChanged(value));
+            }
+          },
+        );
+        break;
+      case InputDataType.date:
+        endWidget = TextFormField(
+          enableSuggestions: false,
+          keyboardType: keyboardType,
+          controller: textController,
+          readOnly: true,
+          decoration: inputDecoration.copyWith(
+            hintText: locales.get('label--choose-label', {
+              'label': locales.get('label--date'),
+            }),
+            prefixIcon:
+                inputDecoration.prefixIcon ?? const Icon(Icons.date_range),
+          ),
+          onTap: () async {
+            DateTime? date = value ?? DateTime.now();
+            int year = date!.year < 2020 ? date.year : 2000;
+            final DateTime? picked = await showDatePicker(
+              context: context,
+              initialDate: date,
+              firstDate: DateTime(year),
+              lastDate: date.add(const Duration(days: 365)),
+            );
+            if (picked != null) {
+              final newDate = Utils.dateTimeOffset(
+                dateTime: picked,
+                utcOffset: widget.utcOffset,
               );
+              if (widget.onChanged != null) widget.onChanged!(newDate);
+            }
+          },
+        );
+        break;
+      case InputDataType.time:
+        TimeOfDay? time = value;
+        DateFormat formatTime = DateFormat.jm();
+        String? dateString = time != null
+            ? formatTime.format(DateTime(1, 1, 1, time.hour, time.minute))
+            : null;
+        String label = dateString ??
+            locales.get('label--choose-label', {
+              'label': locales.get('label--time'),
             });
-            buttons.insert(
-              0,
-              DropdownMenuItem(
-                  value: null,
-                  child: Text(
-                    defaultText,
-                    overflow: TextOverflow.ellipsis,
-                    softWrap: false,
-                    maxLines: 1,
-                  )),
-            );
-            if (value != null) {
-              // if (widget.type == InputDataType.enums &&
-              //     widget.enums.firstWhereOrNull((e) => e == value) != null) {
-              //   textSelected = enumData.localesFromEnum(value);
-              // }
-              if (widget.type == InputDataType.dropdown) {
-                textSelected = widget.options
-                    .firstWhere((element) => element.value == value)
-                    .label;
+        endWidget = Padding(
+          padding: const EdgeInsets.only(top: 16),
+          child: ElevatedButton.icon(
+            onPressed: () async {
+              time ??= TimeOfDay.now();
+              final TimeOfDay? picked = await showTimePicker(
+                context: context,
+                initialTime: time!,
+                initialEntryMode: TimePickerEntryMode.input,
+              );
+              if (picked != null && picked != time) {
+                if (widget.onChanged != null) widget.onChanged!(picked);
               }
-            }
-            if (buttons.length == (widget.isDense ? 0 : 1)) {
-              isDisabled = true;
-            }
-
-            endWidget = DropdownButtonFormField<dynamic>(
-              isExpanded: true,
-              isDense: widget.isDense,
-              icon: icon,
-              elevation: 1,
-              key: popupButtonKey,
-              value: value,
-              onChanged: isDisabled
-                  ? null
-                  : (dynamic newValue) {
-                      if (widget.onChanged != null) {
-                        widget.onChanged!(newValue == '' ? null : newValue);
-                      }
-                    },
-              items: buttons,
-              decoration: inputDecoration,
-            );
-            break;
-          case InputDataType.radio:
-            List<Widget> radioOptions =
-                List.generate(widget.options.length, (index) {
-              final e = widget.options[index];
-              return ListTile(
-                title: Text(e.label),
-                leading: Radio<String?>(
-                  value: e.value?.toString(),
-                  groupValue: value?.toString(),
-                  onChanged: (String? value) {
-                    if (widget.onChanged != null) {
-                      widget.onChanged!(value == '' ? null : value);
-                    }
-                  },
-                ),
-                onTap: () {
-                  if (widget.onChanged != null) {
-                    widget.onChanged!(
-                        e.value?.toString() == '' ? null : e.value?.toString());
-                  }
-                },
-              );
-            });
-            endWidget = Column(
-              children: radioOptions,
-            );
-            break;
-          default:
-        }
-        return ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: maxWidth),
-          child: Padding(
-            padding: widget.padding,
-            child: endWidget,
+            },
+            icon: const Icon(Icons.access_time),
+            label: Text(label),
           ),
         );
-      },
+        break;
+      case InputDataType.enums:
+      case InputDataType.dropdown:
+        List<ButtonOptions> dropdownOptions = [];
+        if (widget.type == InputDataType.dropdown) {
+          dropdownOptions = widget.options;
+        }
+        if (widget.type == InputDataType.enums) {
+          dropdownOptions = List.generate(widget.enums.length, (index) {
+            final e = widget.enums[index];
+            return ButtonOptions(
+              label: enumData.localesFromEnum(e),
+              value: e,
+            );
+          });
+        }
+        List<DropdownMenuItem<dynamic>> buttons = [
+          DropdownMenuItem(
+            value: '',
+            child: Text(
+              defaultText,
+              overflow: TextOverflow.ellipsis,
+              softWrap: false,
+              maxLines: 1,
+            ),
+          ),
+        ];
+        buttons.addAll(List.generate(dropdownOptions.length, (index) {
+          final option = dropdownOptions[index];
+          return DropdownMenuItem(
+            value: option.value,
+            onTap:
+                option.onTap != null ? () => option.onTap!(option.value) : null,
+            child: Text(
+              option.label,
+              overflow: TextOverflow.ellipsis,
+              softWrap: false,
+              maxLines: 1,
+            ),
+          );
+        }));
+        if (value != null) {
+          if (widget.type == InputDataType.dropdown) {
+            textSelected = widget.options
+                .firstWhere((element) => element.value == value)
+                .label;
+          }
+        }
+        if (buttons.length == (widget.isDense ? 0 : 1)) {
+          isDisabled = true;
+        }
+        endWidget = DropdownButtonFormField<dynamic>(
+          hint: widget.hintText != null ? Text(widget.hintText!) : null,
+          isExpanded: widget.isExpanded,
+          isDense: widget.isDense,
+          icon: icon,
+          elevation: 1,
+          key: popupButtonKey,
+          value: value,
+          onChanged: isDisabled
+              ? null
+              : (dynamic newValue) {
+                  if (widget.onChanged != null) {
+                    widget.onChanged!(newValue == '' ? null : newValue);
+                  }
+                },
+          items: buttons,
+          decoration: inputDecoration,
+          style: widget.textStyle,
+        );
+        break;
+      case InputDataType.radio:
+        List<Widget> radioOptions =
+            List.generate(widget.options.length, (index) {
+          final e = widget.options[index];
+          return ListTile(
+            title: Text(e.label),
+            leading: Radio<String?>(
+              value: e.value?.toString(),
+              groupValue: value?.toString(),
+              onChanged: (String? value) {
+                if (widget.onChanged != null) {
+                  widget.onChanged!(value == '' ? null : value);
+                }
+              },
+            ),
+            onTap: () {
+              if (widget.onChanged != null) {
+                widget.onChanged!(
+                    e.value?.toString() == '' ? null : e.value?.toString());
+              }
+            },
+          );
+        });
+        endWidget = Column(
+          children: radioOptions,
+        );
+        break;
+      default:
+    }
+    return Padding(
+      padding: widget.padding,
+      child: endWidget,
     );
+    // final queryData = MediaQuery.of(context);
+    // double width = queryData.size.width;
+    // return ConstrainedBox(
+    //   constraints: BoxConstraints(maxWidth: width),
+    //   child: Padding(
+    //     padding: widget.padding,
+    //     child: endWidget,
+    //   ),
+    // );
+    // return endWidget;
+
+    /// Base
+    // return LayoutBuilder(
+    //   builder: (BuildContext context, BoxConstraints constraints) {
+    //     // double width = constraints.maxWidth.floorToDouble();
+    //     // int layoutTo = 2;
+    //     // if (width > 600) layoutTo = 3;
+    //     // if (width > 900) layoutTo = 4;
+    //     // if (width > 1000) layoutTo = 5;
+    //     // // if (width > 1100) layoutTo = 6;
+    //     // // if (width > 1500) layoutTo = 7;
+    //     // double maxWidth =
+    //     //     (width / layoutTo) - ((layoutTo) / 2 * 8).floorToDouble();
+    //     // width = widget.isExpanded ? double.maxFinite : width;
+    //     // if (widget.isExpanded) {
+    //     //   maxWidth = widget.isExpanded ? double.maxFinite : width;
+    //     // }
+    //     Widget endWidget = Text(
+    //       'Type "${widget.type}" not implemented',
+    //       style: const TextStyle(color: Colors.orange),
+    //     );
+    //     TextInputType keyboardType = TextInputType.text;
+    //     List<TextInputFormatter> inputFormatters = [];
+    //     final inputValidation = InputValidation(locales: locales);
+    //     switch (widget.type) {
+    //       case InputDataType.phone:
+    //
+    //         /// https://en.wikipedia.org/wiki/Telephone_numbering_plan
+    //         maxLength = 16;
+    //         hintTextDefault = '+1 (222) 333 - 4444';
+    //         keyboardType = const TextInputType.numberWithOptions(
+    //           decimal: true,
+    //           signed: true,
+    //         );
+    //         inputFormatters.addAll([
+    //           FilteringTextInputFormatter.deny(RegExp(r'[\s()-]'),
+    //               replacementString: ''),
+    //           FilteringTextInputFormatter.allow(RegExp(r'^\+\d{0,15}'),
+    //               replacementString: ''),
+    //           FilteringTextInputFormatter.singleLineFormatter,
+    //         ]);
+    //         validator = inputValidation.validatePhone;
+    //         break;
+    //       case InputDataType.email:
+    //         maxLength = 100;
+    //         hintTextDefault = 'example@example.com';
+    //         keyboardType = TextInputType.emailAddress;
+    //         inputFormatters.addAll([
+    //           FilteringTextInputFormatter.singleLineFormatter,
+    //         ]);
+    //         validator = inputValidation.validateEmail;
+    //         break;
+    //       case InputDataType.double:
+    //         keyboardType = const TextInputType.numberWithOptions(decimal: true);
+    //         inputFormatters.addAll([
+    //           FilteringTextInputFormatter.singleLineFormatter,
+    //           FilteringTextInputFormatter.allow(RegExp(r'[\d.-]')),
+    //         ]);
+    //         break;
+    //       case InputDataType.int:
+    //         keyboardType = TextInputType.number;
+    //         inputFormatters.addAll([
+    //           FilteringTextInputFormatter.singleLineFormatter,
+    //           FilteringTextInputFormatter.digitsOnly,
+    //         ]);
+    //         break;
+    //       case InputDataType.date:
+    //         keyboardType = TextInputType.datetime;
+    //         inputFormatters.addAll([
+    //           FilteringTextInputFormatter.singleLineFormatter,
+    //         ]);
+    //         break;
+    //       default:
+    //     }
+    //
+    //     /// Format New Value
+    //     dynamic _valueChanged(dynamic valueLocal) {
+    //       if (valueLocal == null) return null;
+    //       String valueLocalString = valueLocal!.toString();
+    //       if (valueLocalString.isEmpty) return null;
+    //       switch (widget.type) {
+    //         case InputDataType.double:
+    //           return double.tryParse(valueLocalString);
+    //         case InputDataType.int:
+    //           return int.tryParse(valueLocalString);
+    //         default:
+    //           return valueLocal;
+    //       }
+    //     }
+    //
+    //     switch (widget.type) {
+    //       case InputDataType.double:
+    //       case InputDataType.int:
+    //       case InputDataType.string:
+    //       case InputDataType.text:
+    //       case InputDataType.phone:
+    //       case InputDataType.email:
+    //         endWidget = TextFormField(
+    //           controller: textController,
+    //           enableSuggestions: false,
+    //           keyboardType: keyboardType,
+    //           inputFormatters: inputFormatters,
+    //           validator: validator,
+    //           autovalidateMode: AutovalidateMode.always,
+    //           maxLines: widget.type == InputDataType.text ? 10 : 1,
+    //           minLines: 1,
+    //           maxLength: maxLength,
+    //           decoration: inputDecoration,
+    //           onChanged: (newValue) {
+    //             value = newValue;
+    //             if (widget.onChanged != null) {
+    //               widget.onChanged!(_valueChanged(value));
+    //             }
+    //           },
+    //           onFieldSubmitted: (newValue) {
+    //             value = newValue;
+    //             if (widget.onSubmit != null) {
+    //               widget.onSubmit!(_valueChanged(value));
+    //             }
+    //           },
+    //           onEditingComplete: () {
+    //             if (widget.onSubmit != null) {
+    //               widget.onSubmit!(_valueChanged(value));
+    //             }
+    //           },
+    //         );
+    //         break;
+    //       case InputDataType.date:
+    //         endWidget = TextFormField(
+    //           enableSuggestions: false,
+    //           keyboardType: keyboardType,
+    //           controller: textController,
+    //           readOnly: true,
+    //           decoration: inputDecoration.copyWith(
+    //             hintText: locales.get('label--choose-label', {
+    //               'label': locales.get('label--date'),
+    //             }),
+    //             prefixIcon:
+    //                 inputDecoration.prefixIcon ?? const Icon(Icons.date_range),
+    //           ),
+    //           onTap: () async {
+    //             DateTime? date = value ?? DateTime.now();
+    //             int year = date!.year < 2020 ? date.year : 2000;
+    //             final DateTime? picked = await showDatePicker(
+    //               context: context,
+    //               initialDate: date,
+    //               firstDate: DateTime(year),
+    //               lastDate: date.add(const Duration(days: 365)),
+    //             );
+    //             if (picked != null) {
+    //               final newDate = Utils.dateTimeOffset(
+    //                 dateTime: picked,
+    //                 utcOffset: widget.utcOffset,
+    //               );
+    //               if (widget.onChanged != null) widget.onChanged!(newDate);
+    //             }
+    //           },
+    //         );
+    //         break;
+    //       case InputDataType.time:
+    //         TimeOfDay? time = value;
+    //         DateFormat formatTime = DateFormat.jm();
+    //         String? dateString = time != null
+    //             ? formatTime.format(DateTime(1, 1, 1, time.hour, time.minute))
+    //             : null;
+    //         String label = dateString ??
+    //             locales.get('label--choose-label', {
+    //               'label': locales.get('label--time'),
+    //             });
+    //         endWidget = Padding(
+    //           padding: const EdgeInsets.only(top: 16),
+    //           child: ElevatedButton.icon(
+    //             onPressed: () async {
+    //               time ??= TimeOfDay.now();
+    //               final TimeOfDay? picked = await showTimePicker(
+    //                 context: context,
+    //                 initialTime: time!,
+    //                 initialEntryMode: TimePickerEntryMode.input,
+    //               );
+    //               if (picked != null && picked != time) {
+    //                 if (widget.onChanged != null) widget.onChanged!(picked);
+    //               }
+    //             },
+    //             icon: const Icon(Icons.access_time),
+    //             label: Text(label),
+    //           ),
+    //         );
+    //         break;
+    //       case InputDataType.enums:
+    //       case InputDataType.dropdown:
+    //         List<ButtonOptions> dropdownOptions = [];
+    //         if (widget.type == InputDataType.dropdown) {
+    //           dropdownOptions = widget.options;
+    //         }
+    //         if (widget.type == InputDataType.enums) {
+    //           dropdownOptions = List.generate(widget.enums.length, (index) {
+    //             final e = widget.enums[index];
+    //             return ButtonOptions(
+    //               label: enumData.localesFromEnum(e),
+    //               value: e,
+    //             );
+    //           });
+    //         }
+    //         List<DropdownMenuItem<dynamic>> buttons =
+    //             List.generate(dropdownOptions.length, (index) {
+    //           final option = dropdownOptions[index];
+    //           return DropdownMenuItem(
+    //             value: option.value,
+    //             onTap: option.onTap != null
+    //                 ? () => option.onTap!(option.value)
+    //                 : null,
+    //             child: Text(
+    //               option.label,
+    //               overflow: TextOverflow.ellipsis,
+    //               softWrap: false,
+    //               maxLines: 1,
+    //             ),
+    //           );
+    //         });
+    //         buttons.insert(
+    //           0,
+    //           DropdownMenuItem(
+    //               value: null,
+    //               child: Text(
+    //                 defaultText,
+    //                 overflow: TextOverflow.ellipsis,
+    //                 softWrap: false,
+    //                 maxLines: 1,
+    //               )),
+    //         );
+    //         if (value != null) {
+    //           // if (widget.type == InputDataType.enums &&
+    //           //     widget.enums.firstWhereOrNull((e) => e == value) != null) {
+    //           //   textSelected = enumData.localesFromEnum(value);
+    //           // }
+    //           if (widget.type == InputDataType.dropdown) {
+    //             textSelected = widget.options
+    //                 .firstWhere((element) => element.value == value)
+    //                 .label;
+    //           }
+    //         }
+    //         if (buttons.length == (widget.isDense ? 0 : 1)) {
+    //           isDisabled = true;
+    //         }
+    //
+    //         endWidget = DropdownButtonFormField<dynamic>(
+    //           isExpanded: widget.isExpanded,
+    //           isDense: widget.isDense,
+    //           icon: icon,
+    //           elevation: 1,
+    //           key: popupButtonKey,
+    //           value: value,
+    //           onChanged: isDisabled
+    //               ? null
+    //               : (dynamic newValue) {
+    //                   if (widget.onChanged != null) {
+    //                     widget.onChanged!(newValue == '' ? null : newValue);
+    //                   }
+    //                 },
+    //           items: buttons,
+    //           decoration: inputDecoration,
+    //         );
+    //         break;
+    //       case InputDataType.radio:
+    //         List<Widget> radioOptions =
+    //             List.generate(widget.options.length, (index) {
+    //           final e = widget.options[index];
+    //           return ListTile(
+    //             title: Text(e.label),
+    //             leading: Radio<String?>(
+    //               value: e.value?.toString(),
+    //               groupValue: value?.toString(),
+    //               onChanged: (String? value) {
+    //                 if (widget.onChanged != null) {
+    //                   widget.onChanged!(value == '' ? null : value);
+    //                 }
+    //               },
+    //             ),
+    //             onTap: () {
+    //               if (widget.onChanged != null) {
+    //                 widget.onChanged!(
+    //                     e.value?.toString() == '' ? null : e.value?.toString());
+    //               }
+    //             },
+    //           );
+    //         });
+    //         endWidget = Column(
+    //           children: radioOptions,
+    //         );
+    //         break;
+    //       default:
+    //     }
+    //     return endWidget;
+    //     // return ConstrainedBox(
+    //     //   constraints: BoxConstraints(maxWidth: width),
+    //     //   child: Padding(
+    //     //     padding: widget.padding,
+    //     //     child: endWidget,
+    //     //   ),
+    //     // );
+    //   },
+    // );
   }
 }

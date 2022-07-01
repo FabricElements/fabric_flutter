@@ -43,6 +43,18 @@ dynamic defaultLocales = {
     'en': 'Order',
     'es': 'Orden',
   },
+  'label--sort': {
+    'en': 'Sort',
+    'es': 'Ordenar',
+  },
+  'label--sort-by': {
+    'en': 'Sort By',
+    'es': 'Ordenar por',
+  },
+  'label--sort-by-label': {
+    'en': 'Sort By {label}',
+    'es': 'Ordenar por {label}',
+  },
   'label--newest': {
     'en': 'Newest',
     'es': 'Más nueva',
