@@ -33,9 +33,9 @@ class StateShared extends ChangeNotifier {
 
   /// Default Callback function
   callbackDefault(dynamic data) {
-    if (kDebugMode) {
-      if (data != null) print(data);
-    }
+    // if (kDebugMode) {
+    //   if (data != null) print(data);
+    // }
   }
 
   /// Callback function
