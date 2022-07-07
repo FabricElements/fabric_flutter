@@ -57,8 +57,8 @@ class InitApp extends StatelessWidget {
           final FirebaseAuth auth = FirebaseAuth.instance;
 
           /// Run on emulators
-          FirebaseFunctions.instance.useFunctionsEmulator('localhost', 5001);
           if (kDebugMode) {
+            FirebaseFunctions.instance.useFunctionsEmulator('localhost', 5001);
             // FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
           }
 
