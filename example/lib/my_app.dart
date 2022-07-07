@@ -16,6 +16,7 @@ import 'splash/loading.dart';
 import 'theme.dart';
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -75,8 +76,12 @@ class MyApp extends StatelessWidget {
         return PageRouteBuilder(
           maintainState: false,
           settings: settings,
-          pageBuilder: (_, __, ___) =>
-              RoutePage(uri: uri, routeHelper: routeHelper),
+          pageBuilder: (_, __, ___) => RoutePage(
+            uri: uri,
+            routeHelper: routeHelper,
+            stream: stateUser.streamStatus,
+            status: stateUser.userStatus,
+          ),
           transitionsBuilder: (_, a, __, c) =>
               FadeTransition(opacity: a, child: c),
         );

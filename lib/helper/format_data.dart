@@ -28,6 +28,9 @@ class FormatData {
   static DateFormat formatDate({String locale = 'en_US'}) =>
       DateFormat.yMMMMd(locale);
 
+  static DateFormat formatDateShort({String locale = 'en_US'}) =>
+      DateFormat('MM/dd/yyyy');
+
   static DateFormat formatDateTime({String locale = 'en_US'}) =>
       DateFormat.yMMMMd(locale).add_jm();
 

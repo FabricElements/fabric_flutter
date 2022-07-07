@@ -8,10 +8,13 @@
     The path provided below has to start and end with a slash "/" in order for
     it to work correctly.
 
-    Fore more details:
+    For more details:
     * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
   -->
-  <base href="/">
+  <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
@@ -20,151 +23,82 @@
   <!-- iOS meta tags & icons -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="demo">
+  <meta name="apple-mobile-web-app-title" content="DEMO">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
   <title>DEMO</title>
   <link rel="manifest" href="manifest.json">
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDCjYjVd2xE4Agnp9DnWxIe_slf_CqL-7M"></script>
+  <!-- Other libraries -->
+  <!--  <script async src="https://maps.googleapis.com/maps/api/js?key=$GOOGLE_WEB_KEY&libraries=places"></script>-->
+
+  <script>
+    // The value below is injected by flutter build, do not touch.
+    var serviceWorkerVersion = null;
+  </script>
+  <!-- This script adds the flutter initialization JS code -->
+  <script src="flutter.js" defer></script>
   <style>
     .grecaptcha-badge {
       display: none !important;
     }
   </style>
+
+  <!--<script>
+    window.onload = () => {
+      // [START email_link_complete]
+// Confirm the link is a sign-in with email link.
+      if (firebase.auth().isSignInWithEmailLink(window.location.href)) {
+        // Additional state parameters can also be passed via URL.
+        // This can be used to continue the user's intended action before triggering
+        // the sign-in operation.
+        // Get the email if available. This should be available if the user completes
+        // the flow on the same device where they started it.
+        var email = window.localStorage.getItem('emailForSignIn');
+        if (!email) {
+          // User opened the link on a different device. To prevent session fixation
+          // attacks, ask the user to provide the associated email again. For example:
+          email = window.prompt('Please provide your email for confirmation');
+        }
+        // The client SDK will parse the code from the link for you.
+        firebase.auth().signInWithEmailLink(email, window.location.href)
+          .then((result) => {
+            console.log('&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;');
+            console.log(result);
+            // Clear email from storage.
+            window.localStorage.removeItem('emailForSignIn');
+            // You can access the new user via result.user
+            // Additional user info profile not available via:
+            // result.additionalUserInfo.profile == null
+            // You can check if the user is new or existing:
+            // result.additionalUserInfo.isNewUser
+          })
+          .catch((error) => {
+            console.error(error);
+            // Some error occurred, you can inspect the code: error.code
+            // Common errors could be invalid email and invalid or expired OTPs.
+          });
+      }
+      // [END email_link_complete]
+    }
+  </script>-->
 </head>
 <body>
-<!-- The core Firebase JS SDK is always required and must be listed first -->
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<!-- Add SDKs for Firebase products that you want to use
-     https://firebase.google.com/docs/web/setup#available-libraries -->
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-analytics.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-messaging.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-functions.js"></script>
-<script src="/javascript/firebase-init.js"></script>
 <script>
-  window.onload = () => {
-    // [START email_link_complete]
-// Confirm the link is a sign-in with email link.
-    if (firebase.auth().isSignInWithEmailLink(window.location.href)) {
-      // Additional state parameters can also be passed via URL.
-      // This can be used to continue the user's intended action before triggering
-      // the sign-in operation.
-      // Get the email if available. This should be available if the user completes
-      // the flow on the same device where they started it.
-      var email = window.localStorage.getItem('emailForSignIn');
-      if (!email) {
-        // User opened the link on a different device. To prevent session fixation
-        // attacks, ask the user to provide the associated email again. For example:
-        email = window.prompt('Please provide your email for confirmation');
+  window.addEventListener('load', function (ev) {
+    // Download main.dart.js
+    _flutter.loader.loadEntrypoint({
+      serviceWorker: {
+        serviceWorkerVersion: serviceWorkerVersion,
       }
-      // The client SDK will parse the code from the link for you.
-      firebase.auth().signInWithEmailLink(email, window.location.href)
-        .then((result) => {
-          console.log('--------------------');
-          console.log(result);
-          // Clear email from storage.
-          window.localStorage.removeItem('emailForSignIn');
-          // You can access the new user via result.user
-          // Additional user info profile not available via:
-          // result.additionalUserInfo.profile == null
-          // You can check if the user is new or existing:
-          // result.additionalUserInfo.isNewUser
-        })
-        .catch((error) => {
-          console.error(error);
-          // Some error occurred, you can inspect the code: error.code
-          // Common errors could be invalid email and invalid or expired OTPs.
-        });
-    }
-// [END email_link_complete]
-
-  }
-</script>
-<!-- This script installs service_worker.js to provide PWA functionality to
-     application. For more information, see:
-     https://developers.google.com/web/fundamentals/primers/service-workers -->
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('flutter-first-frame', function () {
-      navigator.serviceWorker.register('flutter_service_worker.js');
+    }).then(function (engineInitializer) {
+      return engineInitializer.initializeEngine();
+    }).then(function (appRunner) {
+      return appRunner.runApp();
     });
-  }
-</script>
-<script src="main.dart.js" type="application/javascript"></script>
-<script>
-  var serviceWorkerVersion = null;
-  var scriptLoaded = false;
-
-  function loadMainDartJs() {
-    if (scriptLoaded) {
-      return;
-    }
-    scriptLoaded = true;
-    var scriptTag = document.createElement('script');
-    scriptTag.src = 'main.dart.js';
-    scriptTag.type = 'application/javascript';
-    document.body.append(scriptTag);
-  }
-
-  if ('serviceWorker' in navigator) {
-    // Service workers are supported. Use them.
-    window.addEventListener('load', function () {
-      //register firebase-messaging service worker
-      navigator.serviceWorker.register("/firebase-messaging-sw.js");
-      // Wait for registration to finish before dropping the <script> tag.
-      // Otherwise, the browser will load the script multiple times,
-      // potentially different versions.
-      var serviceWorkerUrl = 'flutter_service_worker.js?v=' + serviceWorkerVersion;
-
-      navigator.serviceWorker.register(serviceWorkerUrl)
-        .then((reg) => {
-          function waitForActivation(serviceWorker) {
-            serviceWorker.addEventListener('statechange', () => {
-              if (serviceWorker.state == 'activated') {
-                console.log('Installed new service worker.');
-                loadMainDartJs();
-              }
-            });
-          }
-
-          if (!reg.active && (reg.installing || reg.waiting)) {
-            // No active web worker and we have installed or are installing
-            // one for the first time. Simply wait for it to activate.
-            waitForActivation(reg.installing ?? reg.waiting);
-          } else if (!reg.active.scriptURL.endsWith(serviceWorkerVersion)) {
-            // When the app updates the serviceWorkerVersion changes, so we
-            // need to ask the service worker to update.
-            console.log('New service worker available.');
-            reg.update();
-            waitForActivation(reg.installing);
-          } else {
-            // Existing service worker is still good.
-            console.log('Loading app from service worker.');
-            loadMainDartJs();
-          }
-        });
-
-      // If service worker doesn't succeed in a reasonable amount of time,
-      // fallback to plaint <script> tag.
-      setTimeout(() => {
-        if (!scriptLoaded) {
-          console.warn(
-            'Failed to load app from service worker. Falling back to plain <script> tag.',
-          );
-          loadMainDartJs();
-        }
-      }, 4000);
-    });
-  } else {
-    // Service workers not supported. Just drop the <script> tag.
-    loadMainDartJs();
-  }
+  });
 </script>
 </body>
 </html>

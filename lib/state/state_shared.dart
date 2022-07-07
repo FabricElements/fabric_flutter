@@ -33,9 +33,9 @@ class StateShared extends ChangeNotifier {
 
   /// Default Callback function
   callbackDefault(dynamic data) {
-    if (kDebugMode) {
-      if (data != null) print(data);
-    }
+    // if (kDebugMode) {
+    //   if (data != null) print(data);
+    // }
   }
 
   /// Callback function
@@ -182,6 +182,10 @@ class StateShared extends ChangeNotifier {
   String? get order =>
       Utils.valuesFromQueryKey(queryParameters, 'order')?.first;
 
+  /// Returns sort
+  String? get sort =>
+      Utils.valuesFromQueryKey(queryParameters, 'sort')?.first;
+
   /// Define if the parameters are passed or ignored
   bool passParameters = false;
 
@@ -206,6 +210,7 @@ class StateShared extends ChangeNotifier {
       'searchBy',
       'status',
       'order',
+      'sort',
       'page',
       'limit'
     ];

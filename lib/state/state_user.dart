@@ -27,6 +27,10 @@ class StateUser extends StateDocument {
   bool _init = false;
   String _language = 'en';
 
+  /// More at [streamStatus]
+  /// ignore: close_sinks
+  final _controllerStreamStatus = StreamController<UserStatus?>.broadcast();
+
   /// More at [streamUser]
   /// ignore: close_sinks
   final _controllerStreamUser = StreamController<User?>.broadcast();
@@ -156,6 +160,7 @@ class StateUser extends StateDocument {
 
   /// Ping user
   void ping(String reference) async {
+    if (!kReleaseMode) return;
     if (reference == _pingReference || !signedIn || data.isEmpty) return;
     _pingLast = serialized.ping ?? _pingLast;
     DateTime _timeRef = DateTime.now().subtract(const Duration(minutes: 1));
@@ -224,17 +229,21 @@ class StateUser extends StateDocument {
     return roles.contains(_role);
   }
 
+  UserStatus get userStatus =>
+      UserStatus(role: role, admin: admin, signedIn: signedIn);
+
   /// Refresh auth state
   _refreshAuth(User? userObject) async {
     _init = true;
     await _getToken(userObject); // Call first to prevent unauthenticated calls
     String? uid = userObject?.uid;
-    await Future.delayed(const Duration(milliseconds: 100));
+    // await Future.delayed(const Duration(milliseconds: 100));
     id = uid;
-    await Future.delayed(const Duration(milliseconds: 100));
+    // await Future.delayed(const Duration(milliseconds: 100));
     object = userObject;
-    await Future.delayed(const Duration(milliseconds: 100));
+    // await Future.delayed(const Duration(milliseconds: 100));
     _controllerStreamUser.sink.add(userObject);
+    _controllerStreamStatus.sink.add(userStatus);
   }
 
   /// Init app and prevent duplicated calls
@@ -249,6 +258,9 @@ class StateUser extends StateDocument {
 
   /// Stream Firebase [User] data
   Stream<User?> get streamUser => _controllerStreamUser.stream;
+
+  /// Stream UserState
+  Stream<UserStatus?> get streamStatus => _controllerStreamStatus.stream;
 
   /// Stream serialized [UserData]
   Stream<UserData?> get streamSerialized => _controllerStreamSerialized.stream;

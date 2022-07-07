@@ -139,3 +139,24 @@ class UserData {
 
   Map<String, dynamic> toJson() => _$UserDataToJson(this);
 }
+
+@JsonSerializable(explicitToJson: true)
+class UserStatus {
+  @JsonKey(includeIfNull: false)
+  bool signedIn;
+  @JsonKey(includeIfNull: false)
+  bool admin;
+  @JsonKey(includeIfNull: true)
+  String role;
+
+  UserStatus({
+    this.signedIn = false,
+    this.admin = false,
+    this.role = 'user',
+  });
+
+  factory UserStatus.fromJson(Map<String, dynamic>? json) =>
+      _$UserStatusFromJson(json ?? {});
+
+  Map<String, dynamic> toJson() => _$UserStatusToJson(this);
+}

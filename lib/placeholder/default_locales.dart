@@ -43,6 +43,18 @@ dynamic defaultLocales = {
     'en': 'Order',
     'es': 'Orden',
   },
+  'label--sort': {
+    'en': 'Sort',
+    'es': 'Ordenar',
+  },
+  'label--sort-by': {
+    'en': 'Sort By',
+    'es': 'Ordenar por',
+  },
+  'label--sort-by-label': {
+    'en': 'Sort By {label}',
+    'es': 'Ordenar por {label}',
+  },
   'label--newest': {
     'en': 'Newest',
     'es': 'Más nueva',
@@ -673,4 +685,16 @@ dynamic defaultLocales = {
     'en': 'Run Time',
     'es': 'Tiempo de ejecución',
   },
+  'label--show-label': {
+    'en': 'Show {label}',
+    'es': 'Mostrar {label}',
+  },
+  'label--hide-label': {
+    'en': 'Hide {label}',
+    'es': 'Ocultar {label}',
+  },
+  'label--filters': {
+    'en': 'Filters',
+    'es': 'Filtros',
+  }
 };

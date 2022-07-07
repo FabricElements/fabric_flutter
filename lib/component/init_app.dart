@@ -24,7 +24,6 @@ class InitApp extends StatelessWidget {
     this.loader,
     this.notifications = false,
     this.links = false,
-    this.firebaseOptions,
   }) : super(key: key);
 
   final Widget child;
@@ -32,7 +31,6 @@ class InitApp extends StatelessWidget {
   final Widget? loader;
   final bool notifications;
   final bool links;
-  final FirebaseOptions? firebaseOptions;
 
   @override
   Widget build(BuildContext context) {
@@ -54,11 +52,13 @@ class InitApp extends StatelessWidget {
       providers: allProviders,
       child: Builder(
         builder: (context) {
+          WidgetsFlutterBinding.ensureInitialized();
+
           final FirebaseAuth auth = FirebaseAuth.instance;
 
           /// Run on emulators
+          FirebaseFunctions.instance.useFunctionsEmulator('localhost', 5001);
           if (kDebugMode) {
-            FirebaseFunctions.instance.useFunctionsEmulator('localhost', 5001);
             // FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
           }
 
