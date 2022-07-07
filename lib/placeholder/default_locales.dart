@@ -685,4 +685,16 @@ dynamic defaultLocales = {
     'en': 'Run Time',
     'es': 'Tiempo de ejecución',
   },
+  'label--show-label': {
+    'en': 'Show {label}',
+    'es': 'Mostrar {label}',
+  },
+  'label--hide-label': {
+    'en': 'Hide {label}',
+    'es': 'Ocultar {label}',
+  },
+  'label--filters': {
+    'en': 'Filters',
+    'es': 'Filtros',
+  }
 };

@@ -39,7 +39,7 @@ class PaginationContainer extends StatefulWidget {
     required this.stream,
     this.initialData,
   }) : super(key: key);
-  final IndexedWidgetBuilder itemBuilder;
+  final Widget Function(BuildContext context, dynamic data) itemBuilder;
   final bool primary;
   final EdgeInsetsGeometry? padding;
   final Axis scrollDirection;
@@ -118,13 +118,13 @@ class _PaginationContainerState extends State<PaginationContainer> {
             }
         }
         total = data?.length ?? 0;
-        if (total == 0) {
+        if (total == 0 || data == null) {
           content = widget.empty;
         } else {
           content = Scrollbar(
-            isAlwaysShown: true,
+            thumbVisibility: true,
             scrollbarOrientation: ScrollbarOrientation.right,
-            showTrackOnHover: true,
+            trackVisibility: true,
             interactive: true,
             controller: _controller,
             child: ListView.builder(
@@ -136,7 +136,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
                 if (index >= total) {
                   return widget.loading;
                 } else {
-                  return widget.itemBuilder(context, index);
+                  return widget.itemBuilder(context, data![index]);
                 }
               },
               scrollDirection: widget.scrollDirection,
