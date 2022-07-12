@@ -1,7 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io' show Platform;
+import 'dart:math';
 
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:country_code_picker/country_code_picker.dart';
+import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
@@ -10,6 +14,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import '../component/smart_image.dart';
 import '../helper/app_localizations_delegate.dart';
@@ -20,21 +25,26 @@ import '../state/state_global.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
-/// Validate if user exists or fail
-Future<void> verifyIfUserExists(Map<String, dynamic> data) async {
-  final HttpsCallable callable =
-      FirebaseFunctions.instance.httpsCallable('user-actions-exists');
-  await callable.call(data);
-}
-
 class ViewAuthPage extends StatefulWidget {
   const ViewAuthPage({
     Key? key,
     this.loader,
     this.image,
+    this.verify = false,
+    this.phone = false,
+    this.email = false,
+    this.google = false,
+    this.apple = false,
+    this.anonymous = false,
   }) : super(key: key);
   final Widget? loader;
   final String? image;
+  final bool verify;
+  final bool phone;
+  final bool email;
+  final bool google;
+  final bool apple;
+  final bool anonymous;
 
   @override
   _ViewAuthPageState createState() => _ViewAuthPageState();
@@ -98,6 +108,15 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     }
   }
 
+  /// Validate if user exists or fail
+  Future<void> verifyIfUserExists(Map<String, dynamic> data) async {
+    if (widget.verify) {
+      final HttpsCallable callable =
+          FirebaseFunctions.instance.httpsCallable('user-actions-exists');
+      await callable.call(data);
+    }
+  }
+
   Future<Uri?> _retrieveDynamicLink() async {
     final PendingDynamicLinkData? data =
         await FirebaseDynamicLinks.instance.getInitialLink();
@@ -125,7 +144,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       }
     }
 
-    AppLocalizations locales = AppLocalizations.of(context)!;
+    final locales = AppLocalizations.of(context)!;
     TextTheme textTheme = Theme.of(context).textTheme;
     final alert = Provider.of<StateAlert>(context, listen: false);
 
@@ -264,20 +283,25 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     void _signInGoogle() async {
       loading = true;
       if (mounted) setState(() {});
-      final _googleSignIn = GoogleSignIn(
-        clientId: dotenv.get('GOOGLE_SIGNIN_CLIENT_ID', fallback: ''),
+      // Trigger the authentication flow
+      final googleSignInAccount = GoogleSignIn(
         scopes: ['email'],
       );
+      final googleUser = await googleSignInAccount.signIn();
+
       try {
         /// Disconnect previews account
-        await _googleSignIn.disconnect();
+        await googleSignInAccount.disconnect();
       } catch (error) {
         //
       }
+      // Obtain the auth details from the request
+      final GoogleSignInAuthentication? googleAuth =
+          await googleUser?.authentication;
+
       try {
-        final googleUser = await _googleSignIn.signIn();
-        final googleAuth = await googleUser?.authentication;
         await verifyIfUserExists({'email': googleUser?.email});
+        // Create a new credential
         final credential = GoogleAuthProvider.credential(
           accessToken: googleAuth?.accessToken,
           idToken: googleAuth?.idToken,
@@ -341,6 +365,94 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       }
     }
 
+    /// Sign in with Apple
+    /// Generates a cryptographically secure random nonce, to be included in a
+    /// credential request.
+    String generateNonce([int length = 32]) {
+      const charset =
+          '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+      final random = Random.secure();
+      return List.generate(
+          length, (_) => charset[random.nextInt(charset.length)]).join();
+    }
+
+    /// Returns the sha256 hash of [input] in hex notation.
+    String sha256ofString(String input) {
+      final bytes = utf8.encode(input);
+      final digest = sha256.convert(bytes);
+      return digest.toString();
+    }
+
+    signInAnonymously() async {
+      try {
+        final userCredential = await _auth.signInAnonymously();
+        final User user = userCredential.user!;
+        final User currentUser = _auth.currentUser!;
+        assert(user.uid == currentUser.uid);
+        alert.show(AlertData(
+          title: 'Signed in with temporary account.',
+          type: AlertType.success,
+        ));
+      } on FirebaseAuthException catch (e) {
+        if (kDebugMode) print(e);
+        String errorMessage = locales.get('alert--sign-in-failed');
+        switch (e.code) {
+          case 'operation-not-allowed':
+            errorMessage =
+                'Anonymous auth hasn\'t been enabled for this project.';
+            break;
+        }
+        alert.show(AlertData(
+          title: errorMessage,
+          type: AlertType.critical,
+          brightness: Brightness.dark,
+        ));
+      }
+    }
+
+    signInWithApple() async {
+      try {
+        // To prevent replay attacks with the credential returned from Apple, we
+        // include a nonce in the credential request. When signing in with
+        // Firebase, the nonce in the id token returned by Apple, is expected to
+        // match the sha256 hash of `rawNonce`.
+        final rawNonce = generateNonce();
+        final nonce = sha256ofString(rawNonce);
+
+        // Request credential for the currently signed in Apple account.
+        final appleCredential = await SignInWithApple.getAppleIDCredential(
+          scopes: [
+            AppleIDAuthorizationScopes.email,
+            AppleIDAuthorizationScopes.fullName,
+          ],
+          nonce: nonce,
+        );
+
+        // Create an `OAuthCredential` from the credential returned by Apple.
+        final oauthCredential = OAuthProvider('apple.com').credential(
+          idToken: appleCredential.identityToken,
+          rawNonce: rawNonce,
+        );
+
+        // Sign in the user with Firebase. If the nonce we generated earlier does
+        // not match the nonce in `appleCredential.identityToken`, sign in will fail.
+        final User user =
+            (await _auth.signInWithCredential(oauthCredential)).user!;
+        final User currentUser = _auth.currentUser!;
+        assert(user.uid == currentUser.uid);
+        section = 0;
+        _closeKeyboard();
+        if (mounted) setState(() {});
+      } catch (error) {
+        if (kDebugMode) print(error);
+        alert.show(AlertData(
+          title: locales.get('alert--sign-in-failed'),
+          type: AlertType.critical,
+          brightness: Brightness.dark,
+        ));
+      }
+    }
+
     /// Acton button for general use
     Widget actionButton(
         {label = String,
@@ -357,16 +469,27 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     }
 
     Widget authButton(provider) {
-      String text = locales.get('page-auth--actions--sign-in');
+      String text = locales.get('label--sign-in');
       var icon = Icons.email;
       VoidCallback action = () {
         if (kDebugMode) print('clicked: $provider');
       };
 //      Color _iconColor = Material;
       switch (provider) {
+        case 'anonymous':
+          text = locales.get('page-auth--actions--sign-in-anonymously');
+          icon = Icons.shield;
+          action = signInAnonymously;
+          break;
+        case 'apple':
+          text = locales.get('page-auth--actions--sign-in-apple');
+          icon = Icons.apple;
+          action = signInWithApple;
+          break;
         case 'phone':
-          text = locales.get('page-auth--actions--sign-in-mobile');
           icon = Icons.phone;
+          text = locales.get('label--not-supported');
+          text = locales.get('page-auth--actions--sign-in-mobile');
           action = () {
             section = 1;
             if (mounted) setState(() {});
@@ -400,7 +523,16 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         'https://images.unsplash.com/photo-1615406020658-6c4b805f1f30';
     Widget spacer = const SizedBox(width: 8, height: 8);
     Widget spacerLarge = const SizedBox(width: 16, height: 16);
-
+    List<Widget> homeButtonOptions = [];
+    if (widget.apple && (Platform.isIOS || Platform.isMacOS)) {
+      homeButtonOptions.add(authButton('apple'));
+    }
+    if (widget.google) homeButtonOptions.add(authButton('google'));
+    if (widget.phone && (kIsWeb || Platform.isIOS || Platform.isAndroid)) {
+      homeButtonOptions.add(authButton('phone'));
+    }
+    if (widget.email) homeButtonOptions.add(authButton('email'));
+    if (widget.anonymous) homeButtonOptions.add(authButton('anonymous'));
     Widget home = AnimatedOpacity(
       opacity: section == 0 ? 1 : 0,
       duration: const Duration(milliseconds: 300),
@@ -465,9 +597,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
                                   ),
                                 ),
                                 Container(height: 16),
-                                authButton('google'),
-                                authButton('phone'),
-                                authButton('email'),
+                                ...homeButtonOptions,
                                 Padding(
                                   padding: const EdgeInsets.only(top: 16),
                                   child: Text(

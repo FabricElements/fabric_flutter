@@ -183,12 +183,17 @@ class Utils {
   /// Get device language
   static Future<String> getLanguage() async {
     String language = 'en';
-    List languages = (await Devicelocale.preferredLanguages)!;
-    String baseLanguage = languages[0];
-    String cleanLanguage = baseLanguage.substring(0, 2);
-    if (cleanLanguage == 'es') {
-      language = cleanLanguage;
+    try {
+      List languages = (await Devicelocale.preferredLanguages)!;
+      String baseLanguage = languages[0];
+      String cleanLanguage = baseLanguage.substring(0, 2);
+      if (cleanLanguage == 'es') {
+        language = cleanLanguage;
+      }
+    } catch (e) {
+      /// Only works when method si supported
     }
+
     return language;
   }
 }

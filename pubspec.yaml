@@ -26,12 +26,12 @@ dependencies:
   firebase_messaging: ^11.4.4
   firebase_storage: ^10.3.1
   firebase_database: ^9.0.18
-  json_annotation: ^4.5.0
+  json_annotation: ^4.6.0
   flutter_localizations:
     sdk: flutter
   flutter_web_plugins:
     sdk: flutter
-  google_sign_in: ^5.3.3
+  google_sign_in: ^5.4.0
   devicelocale: ^0.5.4
   flutter_dotenv: ^5.0.2
   http: ^0.13.4
@@ -44,15 +44,17 @@ dependencies:
   animations: ^2.0.3
   google_maps_flutter: ^2.1.8
   google_maps_flutter_web: ^0.4.0
-  google_maps_webservice: ^0.0.20-nullsafety.5
+  google_maps_webservice: ^0.0.19
   package_info_plus: ^1.4.2
+  sign_in_with_apple: ^3.0.0
+  crypto: ^3.0.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.1
   build_runner: ^2.1.11
-  json_serializable: ^6.2.0
+  json_serializable: ^6.3.1
 
 #dependency_overrides:
 #  json_annotation: ^4.5.0

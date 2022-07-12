@@ -99,6 +99,14 @@ dynamic defaultLocales = {
     'en': 'User',
     'es': 'Usuario',
   },
+  'label--username': {
+    'en': 'Username',
+    'es': 'Nombre de Usuario',
+  },
+  'label--password': {
+    'en': 'Password',
+    'es': 'Contraseña',
+  },
   'label--viewer': {
     'en': 'Viewer',
     'es': 'Espectador',
@@ -275,7 +283,7 @@ dynamic defaultLocales = {
     'en': 'Welcome',
     'es': 'Bienvenido',
   },
-  'page-auth--actions--sign-in': {
+  'label--sign-in': {
     'en': 'Sign In',
     'es': 'Iniciar Sesión',
   },
@@ -696,5 +704,9 @@ dynamic defaultLocales = {
   'label--filters': {
     'en': 'Filters',
     'es': 'Filtros',
+  },
+  'label--not-supported': {
+    'en': 'Not Supported',
+    'es': 'No soportado',
   }
 };

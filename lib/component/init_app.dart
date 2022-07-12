@@ -1,7 +1,6 @@
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flutter/foundation.dart' show kDebugMode, kReleaseMode;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
@@ -76,12 +75,12 @@ class InitApp extends StatelessWidget {
           _refreshAuth(User? userObject) async {
             String? uid = userObject?.uid;
             if (uid != null) {
-              if (notifications) {
+              if (notifications && kReleaseMode) {
                 stateNotifications.uid = uid;
                 stateNotifications.init();
               }
             } else {
-              if (notifications) {
+              if (notifications && kReleaseMode) {
                 stateNotifications.clear(); // Stop notifications when sign out
               }
             }

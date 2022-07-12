@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    StateUser stateUser = Provider.of<StateUser>(context, listen: false);
+    final stateUser = Provider.of<StateUser>(context, listen: false);
 
     // stateUser.streamSerialized.asBroadcastStream()
 
@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
     ThemeData theme = Theme.of(context).copyWith();
     MyTheme myTheme = MyTheme(theme, Colors.indigo, "light");
     Iterable<LocalizationsDelegate<dynamic>> localizationsDelegates = [
-      AppLocalizationsDelegate(),
+      const AppLocalizationsDelegate(),
       GlobalMaterialLocalizations.delegate,
       GlobalWidgetsLocalizations.delegate,
       GlobalCupertinoLocalizations.delegate,
@@ -37,7 +37,7 @@ class MyApp extends StatelessWidget {
       Locale.fromSubtags(languageCode: "en"),
       Locale.fromSubtags(languageCode: "es"),
     ];
-    return new MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
       locale: Locale(stateUser.language, ""),
       localizationsDelegates: localizationsDelegates,

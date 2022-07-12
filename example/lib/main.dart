@@ -28,7 +28,7 @@ Future<void> main() async {
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
 
   /// Init App
-  return runApp(InitApp(
+  runApp(InitApp(
     notifications: true,
     links: true,
     child: const MyApp(),
