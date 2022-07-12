@@ -43,7 +43,8 @@ class InputData extends StatefulWidget {
     this.maxLength,
     this.textDefault,
     this.isExpanded = false,
-    this.padding = EdgeInsets.zero,
+    this.padding = const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    this.margin = EdgeInsets.zero,
     this.utcOffset,
     this.validator,
     this.backgroundColor,
@@ -64,6 +65,7 @@ class InputData extends StatefulWidget {
   final bool isDense;
   final bool isExpanded;
   final EdgeInsets padding;
+  final EdgeInsets margin;
   final num? utcOffset;
   final FormFieldValidator<String>? validator;
   final Color? backgroundColor;
@@ -167,6 +169,7 @@ getValue -------------------------------------
     final popupButtonKey = GlobalKey<State>();
     EnumData enumData = EnumData(locales: locales);
     ThemeData theme = Theme.of(context);
+    bool isDense = widget.isDense || theme.inputDecorationTheme.isDense;
     bool isDisabled = widget.disabled;
     String defaultText =
         widget.textDefault ?? locales.get('label--choose-option');
@@ -270,17 +273,22 @@ getValue -------------------------------------
 
     String? hintText = widget.hintText ?? hintTextDefault;
     final inputDecoration = InputDecoration(
-      hintText: (value?.toString() ?? '').isNotEmpty
-          ? value?.toString()
-          : hintText,
-      isDense: widget.isDense,
+      hintText:
+          (value?.toString() ?? '').isNotEmpty ? value?.toString() : hintText,
+      isDense: isDense,
       errorText: errorText,
       enabled: !widget.disabled,
       prefixIcon: inputIcon,
       labelText: widget.label,
+      labelStyle: theme.textTheme.bodyMedium,
       // floatingLabelBehavior: FloatingLabelBehavior.always,
       // helperText: defaultText,
       // constraints: const BoxConstraints(maxWidth: double.maxFinite, maxHeight: double.maxFinite),
+      // constraints: isDense ? const BoxConstraints(minHeight: 30) : null,
+      contentPadding: isDense
+          ? const EdgeInsets.symmetric(horizontal: 4, vertical: 4)
+          : widget.padding,
+      // constraints: BoxConstraints(minHeight: minHeight),
     );
 
     /// Format New Value
@@ -447,13 +455,13 @@ getValue -------------------------------------
                 .label;
           }
         }
-        if (buttons.length == (widget.isDense ? 0 : 1)) {
+        if (buttons.length == (isDense ? 0 : 1)) {
           isDisabled = true;
         }
         endWidget = DropdownButtonFormField<dynamic>(
           hint: widget.hintText != null ? Text(widget.hintText!) : null,
           isExpanded: widget.isExpanded,
-          isDense: widget.isDense,
+          isDense: true,
           icon: icon,
           elevation: 1,
           key: popupButtonKey,
@@ -499,8 +507,8 @@ getValue -------------------------------------
         break;
       default:
     }
-    return Padding(
-      padding: widget.padding,
+    return Container(
+      margin: widget.margin,
       child: endWidget,
     );
   }
