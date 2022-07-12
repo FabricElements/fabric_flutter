@@ -36,6 +36,7 @@ class ViewAuthPage extends StatefulWidget {
     this.google = false,
     this.apple = false,
     this.anonymous = false,
+    this.googleClientId,
   }) : super(key: key);
   final Widget? loader;
   final String? image;
@@ -45,9 +46,10 @@ class ViewAuthPage extends StatefulWidget {
   final bool google;
   final bool apple;
   final bool anonymous;
+  final String? googleClientId;
 
   @override
-  _ViewAuthPageState createState() => _ViewAuthPageState();
+  State<ViewAuthPage> createState() => _ViewAuthPageState();
 }
 
 class _ViewAuthPageState extends State<ViewAuthPage>
@@ -281,20 +283,22 @@ class _ViewAuthPageState extends State<ViewAuthPage>
 
     /// Sign in with google function
     void _signInGoogle() async {
+      String? googleClientId =
+          widget.googleClientId != null && widget.googleClientId!.isNotEmpty
+              ? widget.googleClientId
+              : null;
       loading = true;
       if (mounted) setState(() {});
-      // Trigger the authentication flow
       final googleSignInAccount = GoogleSignIn(
+        clientId: googleClientId,
         scopes: ['email'],
       );
-      final googleUser = await googleSignInAccount.signIn();
-
-      try {
+      if (await googleSignInAccount.isSignedIn()) {
         /// Disconnect previews account
         await googleSignInAccount.disconnect();
-      } catch (error) {
-        //
       }
+      // Trigger the authentication flow
+      final googleUser = await googleSignInAccount.signIn();
       // Obtain the auth details from the request
       final GoogleSignInAuthentication? googleAuth =
           await googleUser?.authentication;
