@@ -196,7 +196,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           await _auth.verifyPhoneNumber(
             forceResendingToken: 3,
             phoneNumber: phoneNumber,
-            timeout: const Duration(seconds: 20),
+            timeout: const Duration(minutes: 2),
             verificationCompleted: verificationCompleted,
             verificationFailed: verificationFailed,
             codeSent: codeSent,

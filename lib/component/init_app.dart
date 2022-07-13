@@ -46,21 +46,18 @@ class InitApp extends StatelessWidget {
       ChangeNotifierProvider(create: (context) => StateUser()),
       ChangeNotifierProvider(create: (context) => StateAlert()),
     ]);
+    WidgetsFlutterBinding.ensureInitialized();
+    final FirebaseAuth auth = FirebaseAuth.instance;
 
+    /// Run on emulators
+    if (kDebugMode) {
+      FirebaseFunctions.instance.useFunctionsEmulator('localhost', 5001);
+      // FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
+    }
     return MultiProvider(
       providers: allProviders,
       child: Builder(
         builder: (context) {
-          WidgetsFlutterBinding.ensureInitialized();
-
-          final FirebaseAuth auth = FirebaseAuth.instance;
-
-          /// Run on emulators
-          if (kDebugMode) {
-            FirebaseFunctions.instance.useFunctionsEmulator('localhost', 5001);
-            // FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
-          }
-
           /// Call App States after MultiProvider is called
           final stateNotifications =
               Provider.of<StateNotifications>(context, listen: false);

@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -22,6 +24,8 @@ class GoogleMapsPreview extends StatefulWidget {
     this.minMaxZoomPreference = const MinMaxZoomPreference(5, 25),
     this.name,
     this.description,
+    this.apiKey,
+    this.asImage = false,
   }) : super(key: key);
   final MapType mapType;
   final double? latitude;
@@ -31,9 +35,11 @@ class GoogleMapsPreview extends StatefulWidget {
   final MinMaxZoomPreference minMaxZoomPreference;
   final String? name;
   final String? description;
+  final String? apiKey;
+  final bool asImage;
 
   @override
-  _GoogleMapsPreviewState createState() => _GoogleMapsPreviewState();
+  State<GoogleMapsPreview> createState() => _GoogleMapsPreviewState();
 }
 
 class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
@@ -86,7 +92,10 @@ class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
 
   @override
   Widget build(BuildContext context) {
-    if (longitude == null || longitude == null) {
+    bool supported = Platform.isIOS || Platform.isAndroid || kIsWeb;
+    if (longitude == null ||
+        longitude == null ||
+        (!supported && widget.apiKey == null)) {
       return AspectRatio(
         aspectRatio: widget.aspectRatio,
         child: const SmartImage(
@@ -94,6 +103,24 @@ class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
         ),
       );
     }
+    if (!supported || widget.asImage) {
+      String imageUrl =
+          'https://maps.googleapis.com/maps/api/staticmap?zoom=13&maptype=roadmap&key=${widget.apiKey}';
+      imageUrl += '&markers=color:red%7C${widget.latitude},${widget.longitude}';
+      return AspectRatio(
+        aspectRatio: widget.aspectRatio,
+        child: LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints constraints) {
+          final widthBox = constraints.maxWidth.toInt();
+          final heightBox = constraints.maxHeight.toInt();
+          return SmartImage(
+            url: imageUrl,
+            size: '$widthBox' 'x' '$heightBox',
+          );
+        }),
+      );
+    }
+
     LatLng location = LatLng(latitude!, longitude!);
     Completer<GoogleMapController> _controller = Completer();
     final CameraPosition _kGooglePlex = CameraPosition(

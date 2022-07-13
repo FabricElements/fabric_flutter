@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:fabric_flutter/serialized/place_data.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -9,6 +8,7 @@ import 'package:google_maps_webservice/places.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
+import '../../serialized/place_data.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../state/state_alert.dart';
 import 'google_maps_preview.dart';
@@ -62,7 +62,7 @@ class GoogleMapsSearch extends StatefulWidget {
   final List<String> fields;
 
   @override
-  _GoogleMapsSearchState createState() => _GoogleMapsSearchState();
+  State<GoogleMapsSearch> createState() => _GoogleMapsSearchState();
 }
 
 class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
@@ -362,6 +362,7 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
           minMaxZoomPreference: widget.minMaxZoomPreference,
           zoom: widget.zoom,
           name: name,
+          apiKey: widget.apiKey,
         );
 
         return Stack(

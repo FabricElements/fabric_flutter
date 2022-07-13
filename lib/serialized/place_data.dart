@@ -88,6 +88,9 @@ class Place {
   @JsonKey(name: 'permanently_closed', defaultValue: false)
   final bool permanentlyClosed;
 
+  @JsonKey(name: 'utc_offset')
+  final num? utcOffset;
+
   final String? id;
 
   final String reference;
@@ -107,6 +110,7 @@ class Place {
     this.permanentlyClosed = false,
     this.id,
     this.plusCode,
+    this.utcOffset,
     required this.name,
     required this.placeId,
     required this.reference,

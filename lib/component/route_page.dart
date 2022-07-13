@@ -28,7 +28,13 @@ class RoutePage extends StatelessWidget {
       builder: (context, snapshot) {
         Widget page = const SizedBox();
         // Return blank page if connection is not established
-        if (snapshot.connectionState == ConnectionState.none) return page;
+        switch (snapshot.connectionState) {
+          case ConnectionState.none:
+          case ConnectionState.waiting:
+            return page;
+          default:
+        }
+        if (snapshot.data == null) return page;
         UserStatus? userStatus = snapshot.data as UserStatus?;
         bool signedIn = userStatus?.signedIn ?? false;
         bool admin = userStatus?.admin ?? false;

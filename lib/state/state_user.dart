@@ -8,8 +8,6 @@ import 'package:flutter/foundation.dart';
 import '../serialized/user_data.dart';
 import 'state_document.dart';
 
-final FirebaseAuth _auth = FirebaseAuth.instance;
-
 /// This is a change notifier class which keeps track of state within the widgets.
 class StateUser extends StateDocument {
   StateUser();
@@ -60,7 +58,7 @@ class StateUser extends StateDocument {
     return _token;
   }
 
-  /// [_getToken] Gets the authenticated user token and retrieves costume claims
+  /// Gets the authenticated user token and retrieves costume claims
   _getToken(User? userObject) async {
     _claims = null;
     _token = null;
@@ -215,7 +213,7 @@ class StateUser extends StateDocument {
 
   /// Sign Out user
   void signOut() async {
-    await _auth.signOut();
+    await FirebaseAuth.instance.signOut();
     clear();
   }
 
@@ -253,7 +251,9 @@ class StateUser extends StateDocument {
       _language = value;
       _controllerStreamLanguage.sink.add(_language);
     });
-    _auth.userChanges().listen((User? userObject) => _refreshAuth(userObject));
+    FirebaseAuth.instance
+        .userChanges()
+        .listen((User? userObject) => _refreshAuth(userObject));
   }
 
   /// Stream Firebase [User] data
