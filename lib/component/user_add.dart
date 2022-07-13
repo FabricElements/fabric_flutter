@@ -9,6 +9,8 @@ import '../state/state_user.dart';
 import 'input_data.dart';
 import 'role_selector.dart';
 
+enum TypeOptions { phone, email }
+
 /// Sends invitation to a new user
 ///
 /// [roles] Optional array of roles
@@ -30,10 +32,8 @@ class UserAdd extends StatefulWidget {
   final List<String>? roles;
 
   @override
-  _UserAddState createState() => _UserAddState();
+  State<UserAdd> createState() => _UserAddState();
 }
-
-enum TypeOptions { phone, email }
 
 class _UserAddState extends State<UserAdd> {
   AppLocalizations? locales;

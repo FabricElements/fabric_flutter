@@ -167,7 +167,7 @@ getValue -------------------------------------
   Widget build(BuildContext context) {
     AppLocalizations locales = AppLocalizations.of(context)!;
     final popupButtonKey = GlobalKey<State>();
-    EnumData enumData = EnumData(locales: locales);
+    final enumData = EnumData(locales: locales);
     ThemeData theme = Theme.of(context);
     bool isDense = widget.isDense || theme.inputDecorationTheme.isDense;
     bool isDisabled = widget.disabled;

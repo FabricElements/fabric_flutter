@@ -16,6 +16,7 @@ enum Media {
   stream,
   remoteExampleFile,
 }
+
 enum AudioState {
   isPlaying,
   isPaused,
@@ -54,10 +55,8 @@ class AudioPreview extends StatefulWidget {
   final String? url;
   final String loadingText;
 
-  // TODO: Background color
-
   @override
-  _AudioPreviewState createState() => _AudioPreviewState();
+  State<AudioPreview> createState() => _AudioPreviewState();
 }
 
 class _AudioPreviewState extends State<AudioPreview>

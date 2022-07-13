@@ -20,7 +20,7 @@ class SectionTitle extends StatefulWidget {
   final bool condensed;
 
   @override
-  _SectionTitleState createState() => _SectionTitleState();
+  State<SectionTitle> createState() => _SectionTitleState();
 }
 
 class _SectionTitleState extends State<SectionTitle> {

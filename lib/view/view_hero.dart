@@ -7,7 +7,7 @@ class ViewHero extends StatefulWidget {
   const ViewHero({Key? key}) : super(key: key);
 
   @override
-  _ViewHeroState createState() => _ViewHeroState();
+  State<ViewHero> createState() => _ViewHeroState();
 }
 
 class _ViewHeroState extends State<ViewHero> {

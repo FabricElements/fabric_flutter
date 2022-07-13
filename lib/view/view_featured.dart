@@ -66,7 +66,7 @@ class ViewFeatured extends StatefulWidget {
   // Make animation optional
 
   @override
-  _ViewFeaturedState createState() => _ViewFeaturedState();
+  State<ViewFeatured> createState() => _ViewFeaturedState();
 }
 
 class _ViewFeaturedState extends State<ViewFeatured> {

@@ -24,7 +24,7 @@ class Charts extends StatefulWidget {
   final String type;
 
   @override
-  _ChartsState createState() => _ChartsState();
+  State<Charts> createState() => _ChartsState();
 }
 
 class _ChartsState extends State<Charts> {

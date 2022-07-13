@@ -19,7 +19,7 @@ class ViewProfileEdit extends StatefulWidget {
   final Widget? loader;
 
   @override
-  _ViewProfileEditState createState() => _ViewProfileEditState();
+  State<ViewProfileEdit> createState() => _ViewProfileEditState();
 }
 
 class _ViewProfileEditState extends State<ViewProfileEdit> {

@@ -23,7 +23,7 @@ class UserRoleContent extends StatefulWidget {
   final Widget? placeholder;
 
   @override
-  _UserRoleContentState createState() => _UserRoleContentState();
+  State<UserRoleContent> createState() => _UserRoleContentState();
 }
 
 class _UserRoleContentState extends State<UserRoleContent> {

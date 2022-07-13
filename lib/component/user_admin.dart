@@ -47,7 +47,7 @@ class UserAdmin extends StatefulWidget {
   final double maxWidth;
 
   @override
-  _UserAdminState createState() => _UserAdminState();
+  State<UserAdmin> createState() => _UserAdminState();
 }
 
 class _UserAdminState extends State<UserAdmin> {
@@ -90,7 +90,7 @@ class _UserAdminState extends State<UserAdmin> {
     Map<String, dynamic>? documentData = widget.data ?? args['data'];
     if (collection != null || id != null || documentData != null) {
       assert(collection != null && id != null,
-          "collection, document and documentData can't be null when including one of them.");
+          'collection, document and documentData can\'t be null when including one of them.');
     }
     List<String>? _roles = widget.roles;
     bool fromCollection = collection != null && id != null;

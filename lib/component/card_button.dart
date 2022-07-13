@@ -40,7 +40,7 @@ class CardButton extends StatefulWidget {
   final EdgeInsetsGeometry? margin;
 
   @override
-  _CardButtonState createState() => _CardButtonState();
+  State<CardButton> createState() => _CardButtonState();
 }
 
 class _CardButtonState extends State<CardButton> {
@@ -98,7 +98,7 @@ class _CardButtonState extends State<CardButton> {
                               : Container(),
                           widget.description != null
                               ? Padding(
-                            padding: const EdgeInsets.only(top: 8),
+                                  padding: const EdgeInsets.only(top: 8),
                                   child: Text(
                                     widget.description!,
                                     style: textTheme.bodyText2!

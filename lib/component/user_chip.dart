@@ -16,7 +16,7 @@ class UserChip extends StatefulWidget {
   final TextStyle? labelStyle;
 
   @override
-  _UserChipState createState() => _UserChipState();
+  State<UserChip> createState() => _UserChipState();
 }
 
 class _UserChipState extends State<UserChip> {

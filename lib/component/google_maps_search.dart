@@ -113,16 +113,15 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
     placeId = null;
     if (mounted) setState(() {});
     try {
-      print('--------------------- ************* --------------');
-      List<String> _requiredFields = ['name', 'place_id', 'geometry/location'];
-      _requiredFields.addAll(widget.fields);
-      print(_requiredFields);
+      List<String> requiredFields = ['name', 'place_id', 'geometry/location'];
+      requiredFields.addAll(widget.fields);
+      if (kDebugMode) (requiredFields);
       final placeDetailsResponse = await _places.getDetailsByPlaceId(
         id,
-        fields: _requiredFields,
+        fields: requiredFields,
       );
-      print(placeDetailsResponse.status);
-      print(placeDetailsResponse.result);
+      if (kDebugMode) print(placeDetailsResponse.status);
+      if (kDebugMode) print(placeDetailsResponse.result);
       // placeDetails = placeDetailsResponse.result;
       // latitude = placeDetails!.geometry?.location.lat;
       // longitude = placeDetails!.geometry?.location.lng;
@@ -131,11 +130,9 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
       if (mounted) setState(() {});
       return true;
     } catch (error) {
-      print(error);
       if (mounted) setState(() {});
       if (widget.onError != null) widget.onError!(error.toString());
     }
-    print('--------------------- ////////// ************* --------------');
     return false;
   }
 
@@ -275,13 +272,12 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
                       type:
                           widget.types.isEmpty ? null : widget.types.join(','),
                     );
-                    print('***************************');
-                    print(searchUrl);
+                    if (kDebugMode) print(searchUrl);
                     Uri url = Uri.parse(searchUrl);
                     final response = await http.get(url);
                     PlacesResponse? search;
-                    dynamic _newData = json.decode(response.body);
-                    search = PlacesResponse.fromJson(_newData);
+                    dynamic newData = json.decode(response.body);
+                    search = PlacesResponse.fromJson(newData);
                     results = search.results;
                     totalItems = results.length;
                     if (mounted) setState(() {});

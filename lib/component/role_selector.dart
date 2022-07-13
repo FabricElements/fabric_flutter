@@ -14,7 +14,7 @@ class RoleSelector extends StatefulWidget {
   final bool asList;
 
   @override
-  _RoleSelectorState createState() => _RoleSelectorState();
+  State<RoleSelector> createState() => _RoleSelectorState();
 }
 
 class _RoleSelectorState extends State<RoleSelector> {
