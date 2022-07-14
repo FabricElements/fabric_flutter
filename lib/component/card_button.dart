@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'package:flutter/material.dart';
 
 import 'smart_image.dart';

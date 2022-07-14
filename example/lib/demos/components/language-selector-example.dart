@@ -1,5 +1,6 @@
+import 'package:fabric_flutter/component/language_selector.dart';
+import 'package:fabric_flutter/component/section_title.dart';
 import 'package:flutter/material.dart';
-import 'package:fabric_flutter/component.dart';
 
 class LanguageSelectorExample extends StatelessWidget {
   LanguageSelectorExample({Key? key, required this.scaffoldKey})

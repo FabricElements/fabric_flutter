@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'package:flutter/foundation.dart';
 
 import 'app_localizations_delegate.dart';

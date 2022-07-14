@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'package:flutter/material.dart';
 
 /// SectionTitle is a widget used for emphasis and a screen which can show the start of a section.
@@ -29,7 +31,7 @@ class _SectionTitleState extends State<SectionTitle> {
     final theme = Theme.of(context);
     final TextTheme textTheme = theme.textTheme;
     RegExp regExp = RegExp(
-      r'{(?:.*?)}',
+      r'{.*?}',
       multiLine: true,
     );
     List<TextSpan> importantData(String textConvert, String type) {

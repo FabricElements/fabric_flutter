@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';

@@ -1,10 +1,12 @@
+library fabric_flutter;
+
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:fabric_flutter/helper/utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 
+import '../helper/utils.dart';
 import '../serialized/user_data.dart';
 import 'state_document.dart';
 
@@ -27,7 +29,7 @@ class StateUser extends StateDocument {
 
   /// More at [streamStatus]
   /// ignore: close_sinks
-  final _controllerStreamStatus = StreamController<UserStatus?>.broadcast();
+  final _controllerStreamStatus = StreamController<UserStatus>.broadcast();
 
   /// More at [streamUser]
   /// ignore: close_sinks
@@ -52,12 +54,6 @@ class StateUser extends StateDocument {
   /// More at [token]
   String? _token;
 
-  /// Get user token
-  String? get token {
-    if (_token == null) _getToken(object);
-    return _token;
-  }
-
   /// Gets the authenticated user token and retrieves costume claims
   _getToken(User? userObject) async {
     _claims = null;
@@ -72,6 +68,12 @@ class StateUser extends StateDocument {
         if (kDebugMode) print(e);
       }
     }
+  }
+
+  /// Get user token
+  String? get token {
+    if (_token == null) _getToken(object);
+    return _token;
   }
 
   /// Set [object] with the [User] data
@@ -93,9 +95,11 @@ class StateUser extends StateDocument {
 
   /// Returns serialized data [UserData]
   UserData get serialized {
-    UserData _userData = UserData.fromJson(data);
-    _usersMap.addAll({'id': _userData});
-    return _userData;
+    UserData userDataSerialized = UserData.fromJson(data ?? {});
+    if (data != null) {
+      _usersMap.addAll({'id': userDataSerialized});
+    }
+    return userDataSerialized;
   }
 
   /// [signedIn] Returns true when the user is authenticated
@@ -227,40 +231,55 @@ class StateUser extends StateDocument {
     return roles.contains(_role);
   }
 
-  UserStatus get userStatus =>
-      UserStatus(role: role, admin: admin, signedIn: signedIn);
+  UserStatus get userStatus {
+    return UserStatus(
+      role: role,
+      admin: admin,
+      signedIn: signedIn,
+    );
+  }
 
   /// Refresh auth state
   _refreshAuth(User? userObject) async {
+    print('call to refresh user');
     _init = true;
-    await _getToken(userObject); // Call first to prevent unauthenticated calls
-    String? uid = userObject?.uid;
-    // await Future.delayed(const Duration(milliseconds: 100));
-    id = uid;
-    // await Future.delayed(const Duration(milliseconds: 100));
-    object = userObject;
-    // await Future.delayed(const Duration(milliseconds: 100));
-    _controllerStreamUser.sink.add(userObject);
+    if (id != userObject?.uid) id = userObject?.uid;
+    if (_userObject != userObject) {
+      object = userObject;
+      _controllerStreamUser.sink.add(userObject);
+      try {
+        // Call before _controllerStreamStatus to prevent unauthenticated calls
+        await _getToken(userObject);
+      } catch (e) {
+        print('-------- Token issues ---------------');
+        print(e);
+      }
+    }
     _controllerStreamStatus.sink.add(userStatus);
+    print('call to refresh user --- end');
   }
 
   /// Init app and prevent duplicated calls
   void init() {
     if (_init) return;
+    _init = true;
     Utils.getLanguage().then((value) {
       _language = value;
       _controllerStreamLanguage.sink.add(_language);
-    });
+    }).catchError(print);
     FirebaseAuth.instance
         .userChanges()
-        .listen((User? userObject) => _refreshAuth(userObject));
+        .listen((User? userObject) => _refreshAuth)
+        .onError((error) {
+      print('ERROR userChanges: $error');
+    });
   }
 
   /// Stream Firebase [User] data
   Stream<User?> get streamUser => _controllerStreamUser.stream;
 
   /// Stream UserState
-  Stream<UserStatus?> get streamStatus => _controllerStreamStatus.stream;
+  Stream<UserStatus> get streamStatus => _controllerStreamStatus.stream;
 
   /// Stream serialized [UserData]
   Stream<UserData?> get streamSerialized => _controllerStreamSerialized.stream;

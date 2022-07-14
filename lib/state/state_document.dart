@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';

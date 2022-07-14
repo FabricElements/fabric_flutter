@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -13,7 +15,7 @@ class ViewHero extends StatefulWidget {
 class _ViewHeroState extends State<ViewHero> {
   @override
   Widget build(BuildContext context) {
-    StateUser stateUser = Provider.of<StateUser>(context);
+    final stateUser = Provider.of<StateUser>(context);
     stateUser.ping('view-hero');
     final args = Map.from(
         ModalRoute.of(context)!.settings.arguments as Map<dynamic, dynamic>? ??

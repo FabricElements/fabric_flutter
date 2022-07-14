@@ -1,7 +1,9 @@
-import 'package:fabric_flutter/helper/route_helper.dart';
+library fabric_flutter;
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../helper/route_helper.dart';
 import '../serialized/user_data.dart';
 import '../state/state_alert.dart';
 
@@ -15,7 +17,7 @@ class RoutePage extends StatelessWidget {
   }) : super(key: key);
   final RouteHelper routeHelper;
   final Uri uri;
-  final Stream<UserStatus?> stream;
+  final Stream<UserStatus> stream;
   final UserStatus status;
 
   @override
@@ -26,25 +28,13 @@ class RoutePage extends StatelessWidget {
       initialData: status,
       stream: stream,
       builder: (context, snapshot) {
-        Widget page = const SizedBox();
-        // Return blank page if connection is not established
-        switch (snapshot.connectionState) {
-          case ConnectionState.none:
-          case ConnectionState.waiting:
-            return page;
-          default:
-        }
-        if (snapshot.data == null) return page;
-        UserStatus? userStatus = snapshot.data as UserStatus?;
-        bool signedIn = userStatus?.signedIn ?? false;
-        bool admin = userStatus?.admin ?? false;
+        UserStatus userStatus = snapshot.data as UserStatus;
         Map<String, Widget> routes = routeHelper.routes(
-          signed: signedIn,
-          isAdmin: admin,
+          signed: userStatus.signedIn,
+          isAdmin: userStatus.admin,
         );
         if (routes.containsKey(uri.path)) {
-          page = routes[uri.path]!;
-          return page;
+          return routes[uri.path]!;
         }
         return routes[routeHelper.unknownRoute]!;
       },

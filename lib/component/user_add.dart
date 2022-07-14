@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -70,7 +72,7 @@ class _UserAddState extends State<UserAdd> {
 
   @override
   Widget build(BuildContext context) {
-    StateUser stateUser = Provider.of<StateUser>(context);
+    final stateUser = Provider.of<StateUser>(context);
     bool canInvite = sending == false &&
         roleSelect != null &&
         (email.length > 4 || phoneNumber.length >= 8);

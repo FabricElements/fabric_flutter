@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'package:charts_flutter/flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -164,12 +166,12 @@ class _ChartsState extends State<Charts> {
         break;
     }
     return Padding(
+      padding: const EdgeInsets.all(16),
       child: SizedBox(
         height: 380,
         width: double.infinity,
         child: chart,
       ),
-      padding: const EdgeInsets.all(16),
     );
   }
 }

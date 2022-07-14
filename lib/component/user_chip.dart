@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -23,7 +25,7 @@ class _UserChipState extends State<UserChip> {
   @override
   Widget build(BuildContext context) {
     if (widget.uid == null) return const SizedBox(width: 0, height: 0);
-    StateUser stateUser = Provider.of<StateUser>(context);
+    final stateUser = Provider.of<StateUser>(context);
     final user = stateUser.getUser(widget.uid!);
     String label = user.id!;
     if (user.username != null) label = user.username!;

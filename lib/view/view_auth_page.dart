@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show Platform;
@@ -6,8 +8,9 @@ import 'dart:math';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:crypto/crypto.dart';
+import 'package:fabric_flutter/component/input_data.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
+// import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -24,6 +27,28 @@ import '../state/state_analytics.dart';
 import '../state/state_global.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
+
+class ViewAuthValues {
+  String email = '';
+  String emailPassword = '';
+  String phone = '';
+  String phoneCountry;
+  int? phoneVerificationCode;
+  String? verificationId;
+
+  /// Complete phone number +12233334
+  String? phoneNumber;
+
+  ViewAuthValues({
+    this.email = '',
+    this.emailPassword = '',
+    this.phone = '',
+    this.phoneCountry = '+1',
+    this.phoneVerificationCode,
+    this.phoneNumber,
+    this.verificationId,
+  });
+}
 
 class ViewAuthPage extends StatefulWidget {
   const ViewAuthPage({
@@ -52,63 +77,43 @@ class ViewAuthPage extends StatefulWidget {
   State<ViewAuthPage> createState() => _ViewAuthPageState();
 }
 
-class _ViewAuthPageState extends State<ViewAuthPage>
-    with WidgetsBindingObserver {
+class _ViewAuthPageState extends State<ViewAuthPage> {
   late bool loading;
   int? section;
-  final TextEditingController _phoneNumberController = TextEditingController();
-  final TextEditingController _smsController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-
-  String _userEmail = '';
+  late ViewAuthValues dataAuth;
   ConfirmationResult? webConfirmationResult;
-
-  late String areaCode;
-  String? _verificationId;
-
-  // late String _userEmail;
 
   @override
   void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
     loading = false;
     section = 0;
-    areaCode = '+1';
-    _verificationId = null;
-    _userEmail = '';
+    dataAuth = ViewAuthValues();
+    super.initState();
   }
 
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    _emailController.dispose();
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) async {
-    super.didChangeAppLifecycleState(state);
-    if (kDebugMode) print('change lifecycle');
-
-    if (state == AppLifecycleState.resumed) {
-      if (kDebugMode) print('wait...');
-      await Future.delayed(const Duration(seconds: 3));
-      final Uri? link = await _retrieveDynamicLink();
-      if (kDebugMode) print('link: $link');
-      if (link != null) {
-        final User? user = (await _auth.signInWithEmailLink(
-          email: _userEmail,
-          emailLink: link.toString(),
-        ))
-            .user;
-        if (user != null) {
-          if (kDebugMode) print(user.uid);
-        }
-      }
-      setState(() {});
-    }
-  }
+  // @override
+  // void didChangeAppLifecycleState(AppLifecycleState state) async {
+  //   super.didChangeAppLifecycleState(state);
+  //   if (kDebugMode) print('change lifecycle');
+  //
+  //   if (state == AppLifecycleState.resumed) {
+  //     if (kDebugMode) print('wait...');
+  //     await Future.delayed(const Duration(seconds: 3));
+  //     final Uri? link = await _retrieveDynamicLink();
+  //     if (kDebugMode) print('link: $link');
+  //     if (link != null) {
+  //       final User? user = (await _auth.signInWithEmailLink(
+  //         email: dataAuth.email,
+  //         emailLink: link.toString(),
+  //       ))
+  //           .user;
+  //       if (user != null) {
+  //         if (kDebugMode) print(user.uid);
+  //       }
+  //     }
+  //     setState(() {});
+  //   }
+  // }
 
   /// Validate if user exists or fail
   Future<void> verifyIfUserExists(Map<String, dynamic> data) async {
@@ -119,31 +124,49 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     }
   }
 
-  Future<Uri?> _retrieveDynamicLink() async {
-    final PendingDynamicLinkData? data =
-        await FirebaseDynamicLinks.instance.getInitialLink();
-    final Uri? deepLink = data?.link;
-    if (kDebugMode) print('deepLink on auth: $deepLink');
-    return deepLink;
-  }
+  // Future<Uri?> _retrieveDynamicLink() async {
+  //   final PendingDynamicLinkData? data =
+  //       await FirebaseDynamicLinks.instance.getInitialLink();
+  //   final Uri? deepLink = data?.link;
+  //   if (kDebugMode) print('deepLink on auth: $deepLink');
+  //   return deepLink;
+  // }
 
   @override
   Widget build(BuildContext context) {
+    void _closeKeyboard() {
+      if (kIsWeb) return;
+      if (Platform.isAndroid || Platform.isIOS) {
+        try {
+          FocusScope.of(context).requestFocus(FocusNode());
+        } catch (error) {
+          //
+        }
+      }
+    }
+
+    void resetView() {
+      _closeKeyboard();
+      section = 0;
+      dataAuth = ViewAuthValues();
+      if (mounted) setState(() {});
+    }
+
     StateGlobal stateGlobal = Provider.of<StateGlobal>(context);
     ThemeData theme = Theme.of(context);
     StateAnalytics stateAnalytics =
         Provider.of<StateAnalytics>(context, listen: false);
     stateAnalytics.screenName = 'auth';
 
+    /// Get phone number
+    dataAuth.phoneNumber = dataAuth.phoneCountry.isNotEmpty &&
+            dataAuth.phone.isNotEmpty &&
+            dataAuth.phone.length > 4
+        ? '${dataAuth.phoneCountry}${dataAuth.phoneCountry}'
+        : null;
+
     if (loading) {
       return widget.loader ?? const LoadingScreen();
-    }
-    void _closeKeyboard() {
-      try {
-        FocusScope.of(context).requestFocus(FocusNode());
-      } catch (error) {
-        //
-      }
     }
 
     final locales = AppLocalizations.of(context)!;
@@ -152,6 +175,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
 
     /// Example code of how to verify phone number
     void _verifyPhoneNumber() async {
+      assert(dataAuth.phoneNumber != null, 'Phone number can\'t be null');
       loading = true;
       bool success = false;
       if (mounted) setState(() {});
@@ -173,7 +197,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         }
 
         codeSent(String verificationId, [int? forceResendingToken]) async {
-          _verificationId = verificationId;
+          dataAuth.verificationId = verificationId;
           alert.show(AlertData(
             title: locales.get('alert--check-phone-verification-code'),
             type: AlertType.success,
@@ -182,20 +206,20 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         }
 
         codeAutoRetrievalTimeout(String verificationId) {
-          _verificationId = verificationId;
+          dataAuth.verificationId = verificationId;
         }
 
-        String phoneNumber = areaCode + _phoneNumberController.text;
-        await verifyIfUserExists({'phoneNumber': phoneNumber});
+        await verifyIfUserExists({'phoneNumber': dataAuth.phoneNumber});
         if (kIsWeb) {
-          final confirmationResult =
-              await _auth.signInWithPhoneNumber(phoneNumber);
-          _verificationId = confirmationResult.verificationId;
+          print(' will verify confirmationResult ----------');
+          final confirmationResult = await FirebaseAuth.instance
+              .signInWithPhoneNumber(dataAuth.phoneNumber!);
+          dataAuth.verificationId = confirmationResult.verificationId;
           webConfirmationResult = confirmationResult;
         } else {
           await _auth.verifyPhoneNumber(
             forceResendingToken: 3,
-            phoneNumber: phoneNumber,
+            phoneNumber: dataAuth.phoneNumber!,
             timeout: const Duration(minutes: 2),
             verificationCompleted: verificationCompleted,
             verificationFailed: verificationFailed,
@@ -225,32 +249,23 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     }
 
     Future<void> _confirmCodeWeb() async {
-      if (_smsController.text == '') {
-        if (kDebugMode) print('enter confirmation code');
-        return;
-      }
-      if (webConfirmationResult?.verificationId != null) {
-        try {
-          final UserCredential credential =
-              await webConfirmationResult!.confirm(_smsController.text);
-          final User user = credential.user!;
-          final User currentUser = _auth.currentUser!;
-          assert(user.uid == currentUser.uid);
-          _phoneNumberController.clear();
-          _smsController.clear();
-          section = 0;
-          _closeKeyboard();
-          if (mounted) setState(() {});
-        } catch (error) {
-          alert.show(AlertData(
-            title: locales.get('alert--sign-in-failed'),
-            type: AlertType.critical,
-            brightness: Brightness.dark,
-          ));
-        }
-      } else {
+      try {
+        assert(
+            dataAuth.phoneVerificationCode != null &&
+                dataAuth.phoneVerificationCode.toString().length != 6,
+            'Enter valid confirmation code');
+        assert(webConfirmationResult?.verificationId != null,
+            'Please input sms code received after verifying phone number');
+        final UserCredential credential = await webConfirmationResult!
+            .confirm(dataAuth.phoneVerificationCode.toString());
+        final User user = credential.user!;
+        final User currentUser = _auth.currentUser!;
+        assert(user.uid == currentUser.uid);
+        resetView();
+      } catch (error) {
         alert.show(AlertData(
-          title: 'Please input sms code received after verifying phone number',
+          title: locales.get('alert--sign-in-failed'),
+          body: error.toString(),
           type: AlertType.critical,
           brightness: Brightness.dark,
         ));
@@ -260,18 +275,19 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     /// Example code of how to sign in with phone.
     void _signInWithPhoneNumber() async {
       try {
+        assert(dataAuth.verificationId != null, 'VerificationId missing');
+        assert(
+            dataAuth.phoneVerificationCode != null &&
+                dataAuth.phoneVerificationCode.toString().length != 6,
+            'Enter valid confirmation code');
         final AuthCredential credential = PhoneAuthProvider.credential(
-          verificationId: _verificationId!,
-          smsCode: _smsController.text,
+          verificationId: dataAuth.verificationId!,
+          smsCode: dataAuth.phoneVerificationCode.toString(),
         );
         final User user = (await _auth.signInWithCredential(credential)).user!;
         final User currentUser = _auth.currentUser!;
         assert(user.uid == currentUser.uid);
-        _phoneNumberController.clear();
-        _smsController.clear();
-        section = 0;
-        _closeKeyboard();
-        if (mounted) setState(() {});
+        resetView();
       } catch (error) {
         alert.show(AlertData(
           title: locales.get('alert--sign-in-failed'),
@@ -335,10 +351,9 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     /// Email Link Sign-in
     Future<void> _signInWithEmailAndLink() async {
       try {
-        _userEmail = _emailController.text;
-        await verifyIfUserExists({'email': _userEmail});
+        await verifyIfUserExists({'email': dataAuth.email});
         await _auth.sendSignInLinkToEmail(
-          email: _userEmail,
+          email: dataAuth.email,
           actionCodeSettings: ActionCodeSettings(
             androidInstallApp: true,
             androidMinimumVersion: '12',
@@ -350,7 +365,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           ),
         );
         alert.show(AlertData(
-          title: 'An email has been sent to $_userEmail',
+          title: 'An email has been sent to ${dataAuth.email}',
           type: AlertType.success,
           duration: 3,
         ));
@@ -444,9 +459,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
             (await _auth.signInWithCredential(oauthCredential)).user!;
         final User currentUser = _auth.currentUser!;
         assert(user.uid == currentUser.uid);
-        section = 0;
-        _closeKeyboard();
-        if (mounted) setState(() {});
+        resetView();
       } catch (error) {
         if (kDebugMode) print(error);
         alert.show(AlertData(
@@ -528,7 +541,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     Widget spacer = const SizedBox(width: 8, height: 8);
     Widget spacerLarge = const SizedBox(width: 16, height: 16);
     List<Widget> homeButtonOptions = [];
-    if (widget.apple && (Platform.isIOS || Platform.isMacOS)) {
+    if (widget.apple && !kIsWeb && (Platform.isIOS || Platform.isMacOS)) {
       homeButtonOptions.add(authButton('apple'));
     }
     if (widget.google) homeButtonOptions.add(authButton('google'));
@@ -625,17 +638,18 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     );
 
     Widget baseContainer({children = List}) {
-      return SizedBox.expand(
-        child: AnimatedOpacity(
-          opacity: section == 0 ? 0 : 1,
-          duration: const Duration(milliseconds: 300),
-          child: SafeArea(
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Wrap(
-                  children: children,
-                ),
+      return AnimatedOpacity(
+        opacity: section == 0 ? 0 : 1,
+        duration: const Duration(milliseconds: 300),
+        child: Center(
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: SafeArea(
+              child: Flex(
+                mainAxisAlignment: MainAxisAlignment.center,
+                direction: Axis.vertical,
+                children: children,
               ),
             ),
           ),
@@ -651,24 +665,20 @@ class _ViewAuthPageState extends State<ViewAuthPage>
             backgroundColor:
                 MaterialStateProperty.all<Color>(Colors.grey.shade800)),
         label: Text(locales.get('label--cancel').toUpperCase()),
-        onPressed: () {
-          _phoneNumberController.clear();
-          _smsController.clear();
-          _emailController.clear();
-          _closeKeyboard();
-          section = 0;
-          if (mounted) setState(() {});
-        },
+        onPressed: resetView,
       ),
     );
 
     List<Widget> sectionsPhoneNumber = [
       Flex(
         direction: Axis.horizontal,
+        // mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           CountryCodePicker(
             onChanged: (CountryCode countryCode) {
-              areaCode = countryCode.toString();
+              dataAuth.phoneCountry = countryCode.toString();
+              if (mounted) setState(() {});
             },
             // Initial selection and favorite can be one of code ('IT') OR DIAL_CODE('+39')
             initialSelection: 'US',
@@ -682,22 +692,21 @@ class _ViewAuthPageState extends State<ViewAuthPage>
             // dialogTextStyle: TextStyle(color: Colors.black),
             // hideSearch: true,
             // dialogTextStyle: TextStyle(color: Colors.black),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
           ),
           spacer,
           Expanded(
-            child: TextFormField(
-              controller: _phoneNumberController,
-              decoration: InputDecoration(
-//                labelText: 'Phone number',
-                hintText: locales.get('label--phone-number'),
-              ),
-              keyboardType: TextInputType.number,
-              // keyboardAppearance: Brightness.dark,
-              inputFormatters: <TextInputFormatter>[
-                FilteringTextInputFormatter.digitsOnly
-              ],
+            child: InputData(
+              value: int.tryParse(dataAuth.phone),
+              type: InputDataType.int,
+              hintText: locales.get('label--phone-number'),
+              maxLength: 14,
               onChanged: (value) {
-                if (mounted) setState(() {});
+                if (mounted) {
+                  setState(() {
+                    dataAuth.phone = (value ?? '').toString();
+                  });
+                }
               },
             ),
           ),
@@ -706,14 +715,12 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       spacerLarge,
     ];
 
-    if (_phoneNumberController.text.isNotEmpty) {
+    if (dataAuth.phoneNumber != null) {
       sectionsPhoneNumber.add(
         actionButton(
           icon: Icons.send_rounded,
           label: locales.get('label--verify').toUpperCase(),
-          onPressed: () {
-            _verifyPhoneNumber();
-          },
+          onPressed: _verifyPhoneNumber,
         ),
       );
     }
@@ -723,79 +730,21 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     Widget sectionPhoneNumber = baseContainer(children: sectionsPhoneNumber);
 
     List<Widget> sectionsEmailLink = [
-      TextField(
-        enableSuggestions: false,
-        controller: _emailController,
-        decoration: InputDecoration(
-          hintText: locales.get('label--enter-an-email'),
-          prefixIcon: const Icon(Icons.mail),
-        ),
-        maxLines: 1,
-        maxLengthEnforcement: MaxLengthEnforcement.enforced,
-        maxLength: 100,
-        keyboardType: TextInputType.emailAddress,
-        onChanged: (text) {
-          // email = text;
-          // flagEmail = email.length > 5;
-          if (mounted) setState(() {});
+      InputData(
+        value: dataAuth.email,
+        type: InputDataType.email,
+        hintText: locales.get('label--enter-an-email'),
+        onChanged: (value) {
+          if (mounted) {
+            setState(() {
+              dataAuth.email = value ?? '';
+            });
+          }
         },
-        // Disable blank space from input.
-        inputFormatters: [
-          FilteringTextInputFormatter.deny(' ', replacementString: ''),
-          FilteringTextInputFormatter.deny('+', replacementString: ''),
-          FilteringTextInputFormatter.singleLineFormatter,
-        ],
       ),
-      // TextFormField(
-      //   controller: _emailController,
-      //   decoration: InputDecoration(labelText: 'Email'),
-      //   validator: (String? value) {
-      //     if (value!.isEmpty) return 'Please enter your email.';
-      //     return null;
-      //   },
-      //   onChanged: (value) {
-      //     if (mounted) setState(() {});
-      //   },
-      // ),
-      // Container(
-      //   child: Form(
-      //     key: _formKey,
-      //     child: Column(
-      //       crossAxisAlignment: CrossAxisAlignment.start,
-      //       children: <Widget>[
-      //         Container(
-      //           alignment: Alignment.center,
-      //           child: const Text(
-      //             'Test sign in with email and link',
-      //             style: TextStyle(fontWeight: FontWeight.bold),
-      //           ),
-      //         ),
-      //         TextFormField(
-      //           controller: _emailController,
-      //           decoration: InputDecoration(labelText: 'Email'),
-      //           validator: (String? value) {
-      //             if (value!.isEmpty) return 'Please enter your email.';
-      //             return null;
-      //           },
-      //         ),
-      //         Container(
-      //           padding: EdgeInsets.only(top: 16),
-      //           alignment: Alignment.center,
-      //           child: SignInButtonBuilder(
-      //             icon: Icons.insert_link,
-      //             text: 'Sign In Email',
-      //             backgroundColor: Colors.blueGrey[700]!,
-      //             onPressed: () async {
-      //               await _signInWithEmailAndLink();
-      //             },
-      //           ),
-      //         ),
-      //       ],
-      //     ),
-      //   ),
-      // ),
+      spacerLarge,
     ];
-    if (_emailController.text.isNotEmpty && _emailController.text.length > 4) {
+    if (dataAuth.email.length > 4) {
       sectionsEmailLink.add(
         actionButton(
           icon: Icons.insert_link,
@@ -812,27 +761,29 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     Widget sectionEmail = baseContainer(children: sectionsEmailLink);
 
     List<Widget> sectionsPhoneVerification = [
-      TextField(
-        controller: _smsController,
-        keyboardType: TextInputType.number,
-        keyboardAppearance: Brightness.light,
-        inputFormatters: <TextInputFormatter>[
-          FilteringTextInputFormatter.digitsOnly
-        ],
-        decoration: InputDecoration(
+      SizedBox(
+        width: 250,
+        child: InputData(
+          value: dataAuth.phoneVerificationCode,
+          type: InputDataType.int,
           hintText: locales.get('page-auth--input--verification-code'),
+          maxLength: 6,
+          onChanged: (value) {
+            if (mounted) {
+              setState(() {
+                dataAuth.phoneVerificationCode = value;
+              });
+            }
+          },
         ),
-        maxLength: 6,
-        onChanged: (value) {
-          if (mounted) setState(() {});
-        },
       ),
       spacerLarge,
     ];
-    if (_smsController.text.isNotEmpty) {
+    if (dataAuth.phoneVerificationCode != null &&
+        dataAuth.phoneVerificationCode.toString().length == 6) {
       sectionsPhoneVerification.add(
         actionButton(
-          label: locales.get('page-auth--actions--sign-in-with-phone-number'),
+          label: locales.get('label--sign-in-with-phone'),
           onPressed: () {
             if (kIsWeb) {
               _confirmCodeWeb();
@@ -850,7 +801,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     );
 
     return Scaffold(
-      // backgroundColor: theme.backgroundColor,
       body: SizedBox.expand(
         child: Container(
           color: theme.backgroundColor,

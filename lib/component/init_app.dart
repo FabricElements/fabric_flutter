@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, kReleaseMode;
@@ -6,10 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
 import '../state/state_alert.dart';
-// import '../state/state_analytics.dart';
 import '../state/state_analytics.dart';
-import '../state/state_api.dart';
-import '../state/state_document.dart';
 import '../state/state_dynamic_links.dart';
 import '../state/state_global.dart';
 import '../state/state_notifications.dart';
@@ -36,18 +35,13 @@ class InitApp extends StatelessWidget {
     /// Init Providers
     List<SingleChildWidget> allProviders = providers ?? [];
     allProviders.addAll([
-      // You need to add the next commented lines on 'main.dart' file
+      ChangeNotifierProvider(create: (context) => StateUser()),
       ChangeNotifierProvider(create: (context) => StateAnalytics()),
       ChangeNotifierProvider(create: (context) => StateDynamicLinks()),
       ChangeNotifierProvider(create: (context) => StateNotifications()),
-      ChangeNotifierProvider(create: (context) => StateAPI()),
-      ChangeNotifierProvider(create: (context) => StateDocument()),
       ChangeNotifierProvider(create: (context) => StateGlobal()),
-      ChangeNotifierProvider(create: (context) => StateUser()),
       ChangeNotifierProvider(create: (context) => StateAlert()),
     ]);
-    WidgetsFlutterBinding.ensureInitialized();
-    final FirebaseAuth auth = FirebaseAuth.instance;
 
     /// Run on emulators
     if (kDebugMode) {
@@ -58,15 +52,17 @@ class InitApp extends StatelessWidget {
       providers: allProviders,
       child: Builder(
         builder: (context) {
+          // WidgetsFlutterBinding.ensureInitialized();
+
           /// Call App States after MultiProvider is called
+          final stateUser = Provider.of<StateUser>(context, listen: false);
+
+          /// Init User
+          stateUser.init();
           final stateNotifications =
               Provider.of<StateNotifications>(context, listen: false);
           final stateDynamicLinks =
               Provider.of<StateDynamicLinks>(context, listen: false);
-          final stateUser = Provider.of<StateUser>(context, listen: false);
-          // StateGlobal stateGlobal =
-          //     Provider.of<StateGlobal>(context, listen: false);
-          stateUser.init();
 
           /// Refresh auth state
           _refreshAuth(User? userObject) async {
@@ -84,8 +80,7 @@ class InitApp extends StatelessWidget {
             return null;
           }
 
-          auth
-              .userChanges()
+          stateUser.streamUser
               .listen((User? userObject) => _refreshAuth(userObject));
 
           /// Dynamic Links
@@ -96,6 +91,7 @@ class InitApp extends StatelessWidget {
               if (kDebugMode) print(e);
             }
           }
+
           return child;
         },
       ),

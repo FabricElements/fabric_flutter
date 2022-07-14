@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'dart:convert';
 import 'dart:math';
 

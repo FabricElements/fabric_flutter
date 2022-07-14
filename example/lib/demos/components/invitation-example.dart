@@ -1,4 +1,4 @@
-import 'package:fabric_flutter/component.dart';
+import 'package:fabric_flutter/component/user_add.dart';
 import 'package:fabric_flutter/view/view_featured.dart';
 import 'package:flutter/material.dart';
 

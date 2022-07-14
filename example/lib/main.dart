@@ -14,9 +14,7 @@ import 'state/state_user_internal.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await dotenv.load(fileName: 'assets/env');
   configureApp();
   SystemChrome.restoreSystemUIOverlays();
@@ -31,10 +29,10 @@ Future<void> main() async {
   runApp(InitApp(
     notifications: true,
     links: true,
-    child: const MyApp(),
     providers: [
       ChangeNotifierProvider(create: (context) => StateGlobalInternal()),
       ChangeNotifierProvider(create: (context) => StateUserInternal()),
     ],
+    child: const MyApp(),
   ));
 }

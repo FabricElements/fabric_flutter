@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -83,7 +85,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
   Widget build(BuildContext context) {
     final alert = Provider.of<StateAlert>(context, listen: false);
     AppLocalizations locales = AppLocalizations.of(context)!;
-    StateUser stateUser = Provider.of<StateUser>(context);
+    final stateUser = Provider.of<StateUser>(context);
     stateUser.ping('profile');
     userImage = stateUser.serialized.avatar;
     nameFirst = stateUser.serialized.nameFirst;

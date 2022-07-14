@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -188,7 +190,7 @@ class _ExpansionTableState extends State<ExpansionTable> {
                 case TableDataType.link:
                   _baseCell = TextButton(
                       onPressed: () async {
-                        await launch(cellValue);
+                        await launchUrl(Uri.parse(cellValue));
                       },
                       child: const Text('open'));
                   break;
@@ -204,14 +206,14 @@ class _ExpansionTableState extends State<ExpansionTable> {
             //     ? effectiveColumnSpacing / 2
             //     : 0;
             if (index == 0) {
-              double _childLeftSpace = 0;
-              _childLeftSpace = (data.level.toDouble()) * 16;
+              double childLeftSpace = 0;
+              childLeftSpace = (data.level.toDouble()) * 16;
               double iconContentSize = 40;
-              _childLeftSpace += iconContentSize;
+              childLeftSpace += iconContentSize;
               _baseCell = Row(
                 children: [
                   SizedBox(
-                    width: _childLeftSpace,
+                    width: childLeftSpace,
                     child: row.child != null
                         ? IconButton(
                             constraints: BoxConstraints(
@@ -279,7 +281,7 @@ class _ExpansionTableState extends State<ExpansionTable> {
               ),
             );
           });
-          final Border? border = Border(top: borderSide);
+          final Border border = Border(top: borderSide);
           List<Widget> content = [];
           bool _rowDarker = rowIndex.isEven;
           if (data.level.isEven) _rowDarker = !_rowDarker;
@@ -385,9 +387,8 @@ class _ExpansionTableState extends State<ExpansionTable> {
               maxHeight: height,
               maxWidth: width),
           child: Scrollbar(
-            isAlwaysShown: true,
+            thumbVisibility: true,
             scrollbarOrientation: ScrollbarOrientation.bottom,
-            showTrackOnHover: true,
             interactive: true,
             controller: _controllerHorizontal,
             child: SingleChildScrollView(
@@ -412,9 +413,8 @@ class _ExpansionTableState extends State<ExpansionTable> {
                         minWidth: totalWidth,
                       ),
                       child: Scrollbar(
-                        isAlwaysShown: true,
+                        thumbVisibility: true,
                         scrollbarOrientation: ScrollbarOrientation.right,
-                        showTrackOnHover: true,
                         interactive: true,
                         controller: _controllerVertical,
                         child: ListView(
@@ -424,7 +424,7 @@ class _ExpansionTableState extends State<ExpansionTable> {
                         ),
                       ),
                     ),
-                    Positioned(child: columns, top: 0, left: 0, right: 0),
+                    Positioned(top: 0, left: 0, right: 0, child: columns),
                   ],
                 ),
               ),

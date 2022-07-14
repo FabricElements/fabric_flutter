@@ -1,25 +1,16 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:fabric_flutter/helper.dart';
-import 'package:fabric_flutter/state.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'package:fabric_flutter/helper/app_localizations_delegate.dart';
+import 'package:fabric_flutter/state/state_document.dart';
+import 'package:fabric_flutter/state/state_user.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'navigation.dart';
 
-Future<void> initializeDefault() async {
-  late FirebaseApp? app = null;
-  if (app != null) return;
-  app = await Firebase.initializeApp();
-  FirebaseFirestore.instance.settings = Settings(persistenceEnabled: false);
-  assert(app != null);
-}
-
 class ExampleApp extends StatelessWidget {
+  const ExampleApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    initializeDefault();
-
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => StateDocument()),

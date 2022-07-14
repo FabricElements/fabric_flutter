@@ -1,4 +1,5 @@
-import 'package:fabric_flutter/component.dart';
+import 'package:fabric_flutter/component/preview_audio.dart';
+import 'package:fabric_flutter/component/section_title.dart';
 import 'package:flutter/material.dart';
 
 class PreviewAudioExample extends StatelessWidget {

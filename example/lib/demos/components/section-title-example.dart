@@ -1,5 +1,5 @@
+import 'package:fabric_flutter/component/section_title.dart';
 import 'package:flutter/material.dart';
-import 'package:fabric_flutter/fabric_flutter.dart';
 
 class SectionTitleExample extends StatelessWidget {
   SectionTitleExample({Key? key, required this.scaffoldKey}) : super(key: key);

@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'dart:async';
 
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';

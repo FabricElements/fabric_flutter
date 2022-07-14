@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'dart:async';
 import 'dart:convert';
 
@@ -34,7 +36,7 @@ class AppLocalizations {
   }
 
   String _mergeLocales(keyPath) {
-    RegExp regExp = RegExp(r'([a-zA-Z0-9_-]+)');
+    RegExp regExp = RegExp(r'([a-zA-Z\d_-]+)');
     String finalResponse = '';
     try {
       assert(regExp.hasMatch(keyPath));
@@ -55,7 +57,7 @@ class AppLocalizations {
 
   String _replaceOptions(String text, Map<String, String> options) {
     String result = text;
-    RegExp regExp = RegExp(r'{(?:.*?)}', multiLine: true);
+    RegExp regExp = RegExp(r'{.*?}', multiLine: true);
     // RegExp _regexBrackets = RegExp(r'{}', multiLine: true);
 
     Iterable matches = regExp.allMatches(text);

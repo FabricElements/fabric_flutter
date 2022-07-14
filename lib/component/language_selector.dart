@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'package:flutter/cupertino.dart';
 
 import '../helper/iso_language.dart';

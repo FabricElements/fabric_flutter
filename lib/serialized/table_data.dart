@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'package:json_annotation/json_annotation.dart';
 
 part 'table_data.g.dart';
@@ -52,7 +54,7 @@ class TableColumnData {
   String value;
   @JsonKey(disallowNullValue: true)
   String? label;
-  @JsonKey(includeIfNull: true, defaultValue: TableDataType.string)
+  @JsonKey(includeIfNull: true)
   TableDataType type;
   double? width;
 
@@ -71,7 +73,7 @@ class TableColumnData {
 
 @JsonSerializable(explicitToJson: true)
 class TableRowData {
-  @JsonKey(disallowNullValue: true, defaultValue: [])
+  @JsonKey(disallowNullValue: true)
   final List<dynamic> cells;
   @JsonKey(disallowNullValue: true)
   final TableData? child;

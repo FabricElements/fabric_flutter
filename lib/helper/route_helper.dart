@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'package:flutter/material.dart';
 
 /// [RouteHelper] Enables/Disables routes depending on credentials

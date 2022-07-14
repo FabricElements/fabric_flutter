@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'package:flutter/material.dart';
 
 /// LoadingScreen is a preview screen when is loading any content.

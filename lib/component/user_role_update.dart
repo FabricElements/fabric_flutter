@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'app_localizations_delegate.dart';
 import 'regex_helper.dart';
 

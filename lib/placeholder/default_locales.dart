@@ -303,7 +303,7 @@ dynamic defaultLocales = {
     'en': 'Placeholder',
     'es': 'Temporal',
   },
-  'page-auth--actions--sign-in-with-phone-number': {
+  'label--sign-in-with-phone': {
     'en': 'SIGN IN WITH PHONE',
     'es': 'INICIAR CON CELULAR',
   },

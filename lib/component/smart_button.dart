@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'dart:math' as math;
 import 'dart:ui';
 
