@@ -13,8 +13,8 @@ class StateGlobal extends ChangeNotifier {
   /// Gets [PackageInfo] data
   Future<void> _getPackageInfo() async {
     if (_packageInfo != null) return;
+    await Future.delayed(const Duration(seconds: 1));
     _packageInfo = await PackageInfo.fromPlatform();
-    // await Future.delayed(Duration(seconds: 3));
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       notifyListeners();
     });

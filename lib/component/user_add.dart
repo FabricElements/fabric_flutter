@@ -60,7 +60,6 @@ class _UserAddState extends State<UserAdd> {
 
   @override
   void initState() {
-    super.initState();
     phoneNumber = '';
     email = '';
     sending = false;
@@ -68,6 +67,7 @@ class _UserAddState extends State<UserAdd> {
     backgroundColor = const Color(0xFF161A21);
     roleSelect = null;
     _typeOption = TypeOptions.phone;
+    super.initState();
   }
 
   @override

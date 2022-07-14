@@ -23,29 +23,27 @@ class StateDynamicLinks extends ChangeNotifier {
 
   /// Init Dynamic Links
   void init() async {
-    if (kIsWeb) return;
     try {
       await Future.delayed(const Duration(seconds: 3));
       if (_initialized) {
         return;
       }
-      FirebaseDynamicLinks dynamicLinks = FirebaseDynamicLinks.instance;
-      dynamicLinks.onLink.listen((dynamicLinkData) async {
-        final Uri? deepLink = dynamicLinkData.link;
-        String linkString = deepLink.toString();
-        if (kDebugMode) print('onLink: $linkString');
-        _callback(dynamicLinkData);
-      }).onError((e) async {
-        if (kDebugMode) print('Dynamic link error: ${e.message}');
-      });
-      final PendingDynamicLinkData? dynamicLink =
-          await FirebaseDynamicLinks.instance.getInitialLink();
+      final dynamicLinks = FirebaseDynamicLinks.instance;
+      final dynamicLink = await dynamicLinks.getInitialLink();
       if (dynamicLink?.link != null) {
         final Uri? deepLink = dynamicLink?.link;
         String linkString = deepLink.toString();
         if (kDebugMode) print('InitialLink: $linkString');
         _callback(dynamicLink);
       }
+      dynamicLinks.onLink.listen((dynamicLinkData) async {
+        final deepLink = dynamicLinkData.link;
+        final linkString = deepLink.toString();
+        if (kDebugMode) print('onLink: $linkString');
+        _callback(dynamicLinkData);
+      }).onError((e) async {
+        if (kDebugMode) print('Dynamic link error: ${e.message}');
+      });
       _initialized = true;
     } catch (error) {
       if (kDebugMode) print('dynamic link: $error');

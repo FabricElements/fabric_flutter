@@ -130,11 +130,11 @@ class _ViewFeaturedState extends State<ViewFeatured> {
 
   @override
   void initState() {
-    super.initState();
     _firstGradientAnimationColor = widget.firstGradientAnimationColor;
     _secondGradientAnimationColor = widget.secondGradientAnimationColor;
     _thirdGradientAnimationColor = widget.thirdGradientAnimationColor;
     _animationDuration = widget.animationDuration;
+    super.initState();
   }
 
   @override

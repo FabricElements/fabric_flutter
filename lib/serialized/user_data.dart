@@ -150,11 +150,14 @@ class UserStatus {
   bool admin;
   @JsonKey(includeIfNull: true)
   String role;
+  @JsonKey(includeIfNull: false)
+  String? uid;
 
   UserStatus({
     this.signedIn = false,
     this.admin = false,
     this.role = 'user',
+    this.uid,
   });
 
   factory UserStatus.fromJson(Map<String, dynamic>? json) =>

@@ -55,12 +55,12 @@ class _UserRoleUpdateState extends State<UserRoleUpdate> {
 
   @override
   void initState() {
-    super.initState();
     sending = false;
     resp = null;
     backgroundColor = const Color(0xFF161A21);
     flagRol = false;
     roleSelect = widget.selected;
+    super.initState();
   }
 
   @override

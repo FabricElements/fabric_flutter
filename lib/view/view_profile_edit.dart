@@ -39,7 +39,6 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
 
   @override
   void initState() {
-    super.initState();
     loading = false;
     changed = false;
     defaultImage = const AssetImage('assets/placeholder.jpg');
@@ -47,6 +46,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
     nameLastController.text = '';
     nameFirst = '';
     nameLast = '';
+    super.initState();
   }
 
   @override
