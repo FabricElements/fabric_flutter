@@ -10,20 +10,14 @@ class StateGlobal extends ChangeNotifier {
   /// More at [packageInfo]
   PackageInfo? _packageInfo;
 
-  /// Gets [PackageInfo] data
-  Future<void> _getPackageInfo() async {
-    if (_packageInfo != null) return;
-    await Future.delayed(const Duration(seconds: 1));
-    _packageInfo = await PackageInfo.fromPlatform();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      notifyListeners();
-    });
-  }
-
   /// [packageInfo] returns [PackageInfo] temporal or final data
   PackageInfo get packageInfo {
     if (_packageInfo == null) {
-      _getPackageInfo();
+      PackageInfo.fromPlatform().then((value) {
+        _packageInfo = value;
+        Future.delayed(const Duration(seconds: 1))
+            .then((value) => notifyListeners());
+      });
       return PackageInfo(
         appName: 'Unknown',
         packageName: 'Unknown',

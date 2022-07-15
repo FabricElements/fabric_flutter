@@ -155,6 +155,10 @@ class _ViewAuthPageState extends State<ViewAuthPage>
 
   @override
   Widget build(BuildContext context) {
+    final stateGlobal = Provider.of<StateGlobal>(context);
+    final theme = Theme.of(context);
+    final stateAnalytics = Provider.of<StateAnalytics>(context, listen: false);
+    stateAnalytics.screenName = 'auth';
     void _closeKeyboard() {
       if (kIsWeb) return;
       if (Platform.isAndroid || Platform.isIOS) {
@@ -172,12 +176,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       dataAuth = ViewAuthValues();
       if (mounted) setState(() {});
     }
-
-    StateGlobal stateGlobal = Provider.of<StateGlobal>(context);
-    ThemeData theme = Theme.of(context);
-    StateAnalytics stateAnalytics =
-        Provider.of<StateAnalytics>(context, listen: false);
-    stateAnalytics.screenName = 'auth';
 
     /// Get phone number
     dataAuth.phoneValid = dataAuth.phoneCountry.isNotEmpty &&
@@ -199,6 +197,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       await _auth.signInWithCredential(phoneAuthCredential);
       alert.show(AlertData(
         title: locales.get('alert--received-phone-auth-credential'),
+        clear: true,
       ));
     }
 
@@ -209,6 +208,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
             '${locales.get('alert--phone-number-verification-failed')}. ${authException.message} -- Code: ${authException.code}',
         type: AlertType.critical,
         brightness: Brightness.dark,
+        clear: true,
       ));
     }
 
@@ -219,6 +219,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         title: locales.get('alert--check-phone-verification-code'),
         type: AlertType.success,
         duration: 3,
+        clear: true,
       ));
     }
 
@@ -236,12 +237,10 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       try {
         await verifyIfUserExists({'phoneNumber': dataAuth.phoneValid});
         if (kIsWeb) {
-          print(' will verify confirmationResult ----------');
           final confirmationResult =
               await _auth.signInWithPhoneNumber(dataAuth.phoneValid!);
           dataAuth.verificationId = confirmationResult.verificationId;
           webConfirmationResult = confirmationResult;
-          print('confirmationResult success ----------');
         } else {
           await _auth.verifyPhoneNumber(
             forceResendingToken: 3,
@@ -259,6 +258,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           title: error.message ?? error.details['message'],
           type: AlertType.critical,
           brightness: Brightness.dark,
+          clear: true,
         ));
       } catch (error) {
         print('confirmationResult failed ----------');
@@ -266,6 +266,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           title: error.toString(),
           type: AlertType.critical,
           brightness: Brightness.dark,
+          clear: true,
         ));
       }
       loading = false;
@@ -295,6 +296,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           body: error.toString(),
           type: AlertType.critical,
           brightness: Brightness.dark,
+          clear: true,
         ));
       }
     }
@@ -320,21 +322,25 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           title: locales.get('alert--sign-in-failed'),
           type: AlertType.critical,
           brightness: Brightness.dark,
+          clear: true,
         ));
       }
     }
 
     /// Sign in with google function
     void _signInGoogle() async {
-      String? googleClientId =
-          widget.googleClientId != null && widget.googleClientId!.isNotEmpty
-              ? widget.googleClientId
-              : null;
       loading = true;
       if (mounted) setState(() {});
       try {
+        if (kIsWeb) {
+          assert(
+              widget.googleClientId != null &&
+                  widget.googleClientId!.isNotEmpty,
+              'googleClientId missing');
+        }
+
         final googleSignInAccount = GoogleSignIn(
-          clientId: googleClientId,
+          clientId: widget.googleClientId,
           scopes: ['email'],
         );
         if (await googleSignInAccount.isSignedIn()) {
@@ -363,12 +369,14 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           title: error.message ?? error.details['message'],
           type: AlertType.critical,
           brightness: Brightness.dark,
+          clear: true,
         ));
       } catch (error) {
         alert.show(AlertData(
           title: error.toString(),
           type: AlertType.critical,
           brightness: Brightness.dark,
+          clear: true,
         ));
       }
       loading = false;
@@ -394,18 +402,21 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           title: 'An email has been sent to ${dataAuth.email}',
           type: AlertType.success,
           duration: 3,
+          clear: true,
         ));
       } on FirebaseFunctionsException catch (error) {
         alert.show(AlertData(
           title: error.message ?? error.details['message'],
           type: AlertType.critical,
           brightness: Brightness.dark,
+          clear: true,
         ));
       } catch (error) {
         alert.show(AlertData(
           title: error.toString(),
           type: AlertType.critical,
           brightness: Brightness.dark,
+          clear: true,
         ));
       }
     }
@@ -427,12 +438,14 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           title: error.message ?? error.details['message'],
           type: AlertType.critical,
           brightness: Brightness.dark,
+          clear: true,
         ));
       } catch (error) {
         alert.show(AlertData(
           title: error.toString(),
           type: AlertType.critical,
           brightness: Brightness.dark,
+          clear: true,
         ));
       }
     }
@@ -464,6 +477,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         alert.show(AlertData(
           title: 'Signed in with temporary account.',
           type: AlertType.success,
+          clear: true,
         ));
       } on FirebaseAuthException catch (e) {
         if (kDebugMode) print(e);
@@ -478,6 +492,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           title: errorMessage,
           type: AlertType.critical,
           brightness: Brightness.dark,
+          clear: true,
         ));
       }
     }
@@ -519,6 +534,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           title: locales.get('alert--sign-in-failed'),
           type: AlertType.critical,
           brightness: Brightness.dark,
+          clear: true,
         ));
       }
     }
@@ -547,31 +563,31 @@ class _ViewAuthPageState extends State<ViewAuthPage>
 //      Color _iconColor = Material;
       switch (provider) {
         case 'anonymous':
-          text = locales.get('page-auth--actions--sign-in-anonymously');
+          text = locales.get('label--sign-in-anonymously');
           icon = Icons.shield;
           action = signInAnonymously;
           break;
         case 'apple':
-          text = locales.get('page-auth--actions--sign-in-apple');
+          text = locales.get('label--sign-in-apple');
           icon = Icons.apple;
           action = signInWithApple;
           break;
         case 'phone':
           icon = Icons.phone;
           text = locales.get('label--not-supported');
-          text = locales.get('page-auth--actions--sign-in-mobile');
+          text = locales.get('label--sign-in-mobile');
           action = () {
             section = 1;
             if (mounted) setState(() {});
           };
           break;
         case 'google':
-          text = locales.get('page-auth--actions--sign-in-google');
+          text = locales.get('label--sign-in-google');
           icon = Icons.link;
           action = _signInGoogle;
           break;
         case 'email':
-          text = locales.get('page-auth--actions--sign-in-email');
+          text = locales.get('label--sign-in-email');
           icon = Icons.attach_email;
           action = () {
             section = 3;

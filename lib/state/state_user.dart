@@ -261,10 +261,8 @@ class StateUser extends StateDocument {
   void init() {
     if (_init) return;
     _init = true;
-    _auth.userChanges().listen(
-          (value) => _refreshAuth(value),
-          onError: (e) => error = e.toString(),
-        );
+    _auth.userChanges().listen((value) => _refreshAuth(value),
+        onError: (e) => error = e.toString());
     Utils.getLanguage().then((value) {
       _language = value;
       _controllerStreamLanguage.sink.add(_language);

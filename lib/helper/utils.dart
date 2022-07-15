@@ -83,14 +83,14 @@ class Utils {
     required Uri uri,
     required Map<String, List<String>> queryParameters,
   }) {
-    Map<String, Iterable<String>> _parameters = {...uri.queryParametersAll};
-    _parameters.addAll(queryParameters);
-    _parameters.removeWhere((key, value) => value.isEmpty);
-    Uri _baseUri = uri;
-    _baseUri = _baseUri.replace(
-      queryParameters: _parameters,
+    Map<String, Iterable<String>> groupParameters = {...uri.queryParametersAll};
+    groupParameters.addAll(queryParameters);
+    groupParameters.removeWhere((key, value) => value.isEmpty);
+    Uri baseUri = uri;
+    baseUri = baseUri.replace(
+      queryParameters: groupParameters,
     );
-    return _baseUri.toString();
+    return baseUri.toString();
   }
 
   static List<String>? valuesFromQueryKey(
@@ -122,7 +122,7 @@ class Utils {
   }) {
     if (utcOffset == null || dateTime == null) return dateTime;
     // DateTime _currentDate = dateTime.isUtc ? dateTime : dateTime.toUtc();
-    DateTime _currentDate = dateTime;
+    DateTime currentDate = dateTime;
     bool negativeTime = utcOffset.isNegative;
     int timeZoneOffset = utcOffset.abs().toInt();
     Duration timeZoneOffsetDuration = Duration(minutes: timeZoneOffset);
@@ -135,8 +135,8 @@ class Utils {
     /// Default date and time
     if (reverse) negativeTime = !negativeTime;
     DateTime updatedDate = negativeTime
-        ? _currentDate.subtract(timeZoneOffsetDuration)
-        : _currentDate.add(timeZoneOffsetDuration);
+        ? currentDate.subtract(timeZoneOffsetDuration)
+        : currentDate.add(timeZoneOffsetDuration);
 
     /// Place time
     // _currentDate = positiveTime
