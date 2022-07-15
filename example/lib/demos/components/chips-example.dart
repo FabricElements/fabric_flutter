@@ -1,4 +1,7 @@
-import 'package:fabric_flutter/fabric_flutter.dart';
+import 'package:fabric_flutter/component/flag_chip.dart';
+import 'package:fabric_flutter/component/section_title.dart';
+import 'package:fabric_flutter/component/status_chip.dart';
+import 'package:fabric_flutter/component/user_avatar.dart';
 import 'package:flutter/material.dart';
 
 class ChipsExample extends StatelessWidget {

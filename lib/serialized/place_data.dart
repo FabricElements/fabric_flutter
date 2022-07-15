@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'package:google_maps_webservice/places.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -5,10 +7,9 @@ part 'place_data.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class PlacesResponse extends GoogleResponseStatus {
-  @JsonKey(defaultValue: [])
   final List<Place> results;
 
-  @JsonKey(name: 'html_attributions', defaultValue: [])
+  @JsonKey(name: 'html_attributions')
   final List<String> htmlAttributions;
 
   @JsonKey(name: 'next_page_token')
@@ -64,12 +65,11 @@ class Place {
   @JsonKey(name: 'opening_hours')
   final OpeningHoursDetail? openingHours;
 
-  @JsonKey(defaultValue: [])
   final List<Photo> photos;
 
   final String? scope;
 
-  @JsonKey(name: 'alt_ids', defaultValue: [])
+  @JsonKey(name: 'alt_ids')
   final List<AlternativeId> altIds;
 
   @JsonKey(name: 'price_level')
@@ -77,7 +77,6 @@ class Place {
 
   final num? rating;
 
-  @JsonKey(defaultValue: [])
   final List<String> types;
 
   final String? vicinity;
@@ -85,7 +84,7 @@ class Place {
   @JsonKey(name: 'formatted_address')
   final String? formattedAddress;
 
-  @JsonKey(name: 'permanently_closed', defaultValue: false)
+  @JsonKey(name: 'permanently_closed')
   final bool permanentlyClosed;
 
   @JsonKey(name: 'utc_offset')

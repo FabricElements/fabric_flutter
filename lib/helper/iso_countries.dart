@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 /// All the language locales with name, native name and emoji if exists.
 class IsoCountries {
   List<Map<String, dynamic>> list = [

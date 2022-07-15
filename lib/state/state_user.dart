@@ -1,12 +1,16 @@
+library fabric_flutter;
+
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:fabric_flutter/helper/utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 
+import '../helper/utils.dart';
 import '../serialized/user_data.dart';
 import 'state_document.dart';
+
+final _auth = FirebaseAuth.instance;
 
 /// This is a change notifier class which keeps track of state within the widgets.
 class StateUser extends StateDocument {
@@ -27,7 +31,7 @@ class StateUser extends StateDocument {
 
   /// More at [streamStatus]
   /// ignore: close_sinks
-  final _controllerStreamStatus = StreamController<UserStatus?>.broadcast();
+  final _controllerStreamStatus = StreamController<UserStatus>.broadcast();
 
   /// More at [streamUser]
   /// ignore: close_sinks
@@ -52,12 +56,6 @@ class StateUser extends StateDocument {
   /// More at [token]
   String? _token;
 
-  /// Get user token
-  String? get token {
-    if (_token == null) _getToken(object);
-    return _token;
-  }
-
   /// Gets the authenticated user token and retrieves costume claims
   _getToken(User? userObject) async {
     _claims = null;
@@ -72,6 +70,12 @@ class StateUser extends StateDocument {
         if (kDebugMode) print(e);
       }
     }
+  }
+
+  /// Get user token
+  String? get token {
+    if (_token == null) _getToken(object);
+    return _token;
   }
 
   /// Set [object] with the [User] data
@@ -93,9 +97,11 @@ class StateUser extends StateDocument {
 
   /// Returns serialized data [UserData]
   UserData get serialized {
-    UserData _userData = UserData.fromJson(data);
-    _usersMap.addAll({'id': _userData});
-    return _userData;
+    UserData userDataSerialized = UserData.fromJson(data ?? {});
+    if (data != null) {
+      _usersMap.addAll({'id': userDataSerialized});
+    }
+    return userDataSerialized;
   }
 
   /// [signedIn] Returns true when the user is authenticated
@@ -111,19 +117,19 @@ class StateUser extends StateDocument {
     /// [clean] returns the role without the [level]
     bool clean = false,
   }) {
-    String _role = compareData?['role'] ?? role ?? 'user';
+    String roleDefault = compareData?['role'] ?? role ?? 'user';
     if (level == null || levelId == null || compareData == null) {
-      return _role;
+      return roleDefault;
     }
 
     /// Get role and access level
-    Map<dynamic, dynamic> _levelRole = compareData[level] ?? {};
-    if (_levelRole.containsKey(levelId)) {
-      String _baseRole = _levelRole[levelId];
-      if (clean) return _baseRole;
-      _role = '$level-$_baseRole';
+    Map<dynamic, dynamic> levelRole = compareData[level] ?? {};
+    if (levelRole.containsKey(levelId)) {
+      String baseRole = levelRole[levelId];
+      if (clean) return baseRole;
+      roleDefault = '$level-$baseRole';
     }
-    return _role;
+    return roleDefault;
   }
 
   /// [roleFromData] Return the current user role
@@ -134,9 +140,8 @@ class StateUser extends StateDocument {
     /// [clean] returns the role without the [level]
     bool clean = false,
   }) {
-    String _role = role;
     if (id != null && admin) {
-      return _role;
+      return role;
     }
     if (level != null || levelId != null) {
       assert(
@@ -145,13 +150,13 @@ class StateUser extends StateDocument {
       );
     }
     if (level == null || levelId == null || data == null) {
-      return _role;
+      return role;
     }
     return roleFromDataAny(
       level: level,
       levelId: levelId,
       compareData: data,
-      role: _role,
+      role: role,
       clean: clean,
     );
   }
@@ -161,8 +166,8 @@ class StateUser extends StateDocument {
     if (!kReleaseMode) return;
     if (reference == _pingReference || !signedIn || data.isEmpty) return;
     _pingLast = serialized.ping ?? _pingLast;
-    DateTime _timeRef = DateTime.now().subtract(const Duration(minutes: 1));
-    if (_pingLast.isAfter(_timeRef)) return;
+    DateTime timeRef = DateTime.now().subtract(const Duration(minutes: 1));
+    if (_pingLast.isAfter(timeRef)) return;
     _pingLast = DateTime.now(); // Define before saving because it's async
     try {
       await FirebaseFirestore.instance
@@ -171,17 +176,17 @@ class StateUser extends StateDocument {
           .set({'ping': FieldValue.serverTimestamp()}, SetOptions(merge: true));
       _pingReference = reference;
     } catch (error) {
-      if (kDebugMode) print('user ping error: ${error.toString()}');
+      if (kDebugMode) print('User ping error: ${error.toString()}');
     }
   }
 
   /// Returns list of [users]
   List<UserData> get users {
-    List<UserData> _endUsers = [];
+    List<UserData> usersList = [];
     _usersMap.forEach((key, value) {
-      _endUsers.add(value);
+      usersList.add(value);
     });
-    return _endUsers;
+    return usersList;
   }
 
   /// [usersMap] Returns a map of [users]
@@ -196,14 +201,14 @@ class StateUser extends StateDocument {
       uid: UserData.fromJson({'id': uid, 'name': 'Unknown'})
     });
     if (_lastUserGet != uid) {
-      DocumentReference<Map<String, dynamic>> _documentReferenceUser =
+      DocumentReference<Map<String, dynamic>> documentReferenceUser =
           FirebaseFirestore.instance.collection('user').doc(uid);
-      _documentReferenceUser.get().then((snapshot) {
+      documentReferenceUser.get().then((snapshot) {
         if (snapshot.exists) {
-          Map<String, dynamic> _itemData =
+          Map<String, dynamic> itemData =
               snapshot.data() as Map<String, dynamic>;
-          _itemData.addAll({'id': uid});
-          _usersMap.addAll({uid: UserData.fromJson(_itemData)});
+          itemData.addAll({'id': uid});
+          _usersMap.addAll({uid: UserData.fromJson(itemData)});
           notifyListeners();
         }
       });
@@ -213,7 +218,7 @@ class StateUser extends StateDocument {
 
   /// Sign Out user
   void signOut() async {
-    await FirebaseAuth.instance.signOut();
+    await _auth.signOut();
     clear();
   }
 
@@ -223,44 +228,54 @@ class StateUser extends StateDocument {
     String? levelId,
     List<String> roles = const ['admin'],
   }) {
-    String _role = roleFromData(level: level, levelId: levelId);
-    return roles.contains(_role);
+    return roles.contains(roleFromData(level: level, levelId: levelId));
   }
 
-  UserStatus get userStatus =>
-      UserStatus(role: role, admin: admin, signedIn: signedIn);
+  UserStatus get userStatus {
+    return UserStatus(
+      role: role,
+      admin: admin,
+      signedIn: signedIn,
+      uid: _userObject?.uid,
+    );
+  }
 
   /// Refresh auth state
   _refreshAuth(User? userObject) async {
     _init = true;
-    await _getToken(userObject); // Call first to prevent unauthenticated calls
-    String? uid = userObject?.uid;
-    // await Future.delayed(const Duration(milliseconds: 100));
-    id = uid;
-    // await Future.delayed(const Duration(milliseconds: 100));
+    if (id != userObject?.uid) id = userObject?.uid;
     object = userObject;
-    // await Future.delayed(const Duration(milliseconds: 100));
     _controllerStreamUser.sink.add(userObject);
+    if (_userObject != userObject) {
+      try {
+        // Call before _controllerStreamStatus to prevent unauthenticated calls
+        await _getToken(userObject);
+      } catch (e) {
+        //-
+      }
+    }
     _controllerStreamStatus.sink.add(userStatus);
   }
 
   /// Init app and prevent duplicated calls
   void init() {
     if (_init) return;
+    _init = true;
+    _auth.userChanges().listen((value) => _refreshAuth(value),
+        onError: (e) => error = e.toString());
     Utils.getLanguage().then((value) {
       _language = value;
       _controllerStreamLanguage.sink.add(_language);
+    }).catchError((error) {
+      if (kDebugMode) print(error);
     });
-    FirebaseAuth.instance
-        .userChanges()
-        .listen((User? userObject) => _refreshAuth(userObject));
   }
 
   /// Stream Firebase [User] data
   Stream<User?> get streamUser => _controllerStreamUser.stream;
 
   /// Stream UserState
-  Stream<UserStatus?> get streamStatus => _controllerStreamStatus.stream;
+  Stream<UserStatus> get streamStatus => _controllerStreamStatus.stream;
 
   /// Stream serialized [UserData]
   Stream<UserData?> get streamSerialized => _controllerStreamSerialized.stream;

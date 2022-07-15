@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -183,8 +185,7 @@ class StateShared extends ChangeNotifier {
       Utils.valuesFromQueryKey(queryParameters, 'order')?.first;
 
   /// Returns sort
-  String? get sort =>
-      Utils.valuesFromQueryKey(queryParameters, 'sort')?.first;
+  String? get sort => Utils.valuesFromQueryKey(queryParameters, 'sort')?.first;
 
   /// Define if the parameters are passed or ignored
   bool passParameters = false;

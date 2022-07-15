@@ -8,6 +8,16 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  devicelocale: ^0.5.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.1
+  build_runner: ^2.2.0
+  flutter_web_plugins:
+    sdk: flutter
+  json_serializable: ^6.3.1
   charts_flutter: ^0.12.0
   flutter_sound: ^9.2.13
   country_code_picker: ^2.0.2
@@ -15,29 +25,23 @@ dependencies:
   image_picker: ^0.8.5+3
   file_picker: ^4.6.1
   provider: ^6.0.3
-  transparent_image: ^2.0.0
   image: ^3.2.0
-  cloud_firestore: ^3.2.1
-  cloud_functions: ^3.3.1
-  firebase_analytics: ^9.1.12
-  firebase_auth: ^3.4.1
-  firebase_core: ^1.19.1
-  firebase_dynamic_links: ^4.3.1
-  firebase_messaging: ^11.4.4
-  firebase_storage: ^10.3.1
-  firebase_database: ^9.0.18
+  cloud_firestore: ^3.3.0
+  cloud_functions: ^3.3.2
+  firebase_analytics: ^9.2.0
+  firebase_auth: ^3.4.2
+  firebase_core: ^1.19.2
+  firebase_dynamic_links: ^4.3.2
+  firebase_messaging: ^12.0.0
+  firebase_storage: ^10.3.2
+  firebase_database: ^9.0.19
   json_annotation: ^4.6.0
-  flutter_localizations:
-    sdk: flutter
-  flutter_web_plugins:
-    sdk: flutter
   google_sign_in: ^5.4.0
-  devicelocale: ^0.5.4
   flutter_dotenv: ^5.0.2
   http: ^0.13.4
   #vibration: ^1.7.3
   sensors: ^2.0.3
-  url_launcher: ^6.1.4
+  url_launcher: ^6.1.5
   share: ^2.0.4
   flutter_linkify: ^5.0.2
   flutter_markdown: ^0.6.10+2
@@ -48,13 +52,8 @@ dependencies:
   package_info_plus: ^1.4.2
   sign_in_with_apple: ^4.0.0
   crypto: ^3.0.1
-
-dev_dependencies:
-  flutter_test:
+  flutter_localizations:
     sdk: flutter
-  flutter_lints: ^2.0.1
-  build_runner: ^2.1.11
-  json_serializable: ^6.3.1
 
 #dependency_overrides:
 #  crypto: ^3.0.2

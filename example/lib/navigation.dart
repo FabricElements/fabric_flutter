@@ -1,4 +1,4 @@
-import 'package:fabric_flutter/component.dart';
+import 'package:fabric_flutter/component/user_admin.dart';
 import 'package:flutter/material.dart';
 
 import 'demos/components/card-button-example.dart';

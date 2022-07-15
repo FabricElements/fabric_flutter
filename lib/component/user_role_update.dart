@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -53,12 +55,12 @@ class _UserRoleUpdateState extends State<UserRoleUpdate> {
 
   @override
   void initState() {
-    super.initState();
     sending = false;
     resp = null;
     backgroundColor = const Color(0xFF161A21);
     flagRol = false;
     roleSelect = widget.selected;
+    super.initState();
   }
 
   @override

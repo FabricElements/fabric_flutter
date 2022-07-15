@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
@@ -18,12 +20,11 @@ class RedirectApp {
   void toView({
     String? path,
     Map<String, dynamic>? arguments,
-  }) async {
-    StateUser stateUser = Provider.of<StateUser>(context, listen: false);
+  }) {
+    final stateUser = Provider.of<StateUser>(context, listen: false);
     try {
       if (path != null && path.isNotEmpty && path.startsWith('/')) {
         if (!stateUser.admin && protected.contains(path)) return;
-        await Future.delayed(const Duration(milliseconds: 100));
         Navigator.of(context).popAndPushNamed(path, arguments: arguments);
       }
     } catch (error) {

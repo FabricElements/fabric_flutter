@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:fabric_flutter/component.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:fabric_flutter/component/charts.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 /// This view id for format data for Dashboard

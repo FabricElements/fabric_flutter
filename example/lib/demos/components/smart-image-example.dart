@@ -1,4 +1,5 @@
-import 'package:fabric_flutter/component.dart';
+import 'package:fabric_flutter/component/section_title.dart';
+import 'package:fabric_flutter/component/smart_image.dart';
 import 'package:flutter/material.dart';
 
 class SmartImageExample extends StatelessWidget {

@@ -6,10 +6,7 @@ import 'package:fabric_flutter/helper/app_localizations_delegate.dart';
 import 'package:fabric_flutter/helper/options.dart';
 import 'package:fabric_flutter/helper/redirect_app.dart';
 import 'package:fabric_flutter/state/state_alert.dart';
-import 'package:fabric_flutter/state/state_api.dart';
-import 'package:fabric_flutter/state/state_document.dart';
 import 'package:fabric_flutter/state/state_dynamic_links.dart';
-import 'package:fabric_flutter/state/state_global.dart';
 import 'package:fabric_flutter/state/state_notifications.dart';
 import 'package:fabric_flutter/state/state_user.dart';
 import 'package:fabric_flutter/view/view_featured.dart';
@@ -18,15 +15,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../splash/loading.dart';
-import '../state/state_user_internal.dart';
 
 class HomePage extends StatefulWidget {
-  HomePage({
-    Key? key,
-  }) : super(key: key);
+  const HomePage({Key? key}) : super(key: key);
 
   @override
-  _HomePageState createState() => _HomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
@@ -58,12 +52,9 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     RedirectApp redirectApp =
         RedirectApp(context: context, protected: ["/protected"]);
-    StateUserInternal stateUserInternal =
-        Provider.of<StateUserInternal>(context);
-    StateUser stateUser = Provider.of<StateUser>(context);
+    final stateUser = Provider.of<StateUser>(context);
     StateNotifications stateNotifications =
         Provider.of<StateNotifications>(context, listen: false);
-    StateGlobal stateGlobal = Provider.of<StateGlobal>(context, listen: false);
     AppLocalizations locales = AppLocalizations.of(context)!;
     ThemeData theme = Theme.of(context);
     TextTheme textTheme = theme.textTheme;
@@ -83,25 +74,6 @@ class _HomePageState extends State<HomePage> {
         typeString: message["type"],
       ));
     };
-    final StateAPI stateAPI = Provider.of<StateAPI>(context);
-    final StateDocument stateDocument = Provider.of<StateDocument>(context);
-
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   stateAPI.endpoint =
-    //   "https://raw.githubusercontent.com/ernysans/laraworld/master/composer.json";
-    //   stateUser.ping("home");
-    //   if (stateAPI.data != null) {
-    //     // print("data: ${stateAPI.data}");
-    //     stateDocument.id = "test";
-    //     // print("firestore: ${stateDocument.data}");
-    //     if (stateDocument.data.isNotEmpty) {
-    //       stateDocument.callback = () => stateAPI.get();
-    //     }
-    //   }
-    //   if (stateAPI.error != null) {
-    //     print("error ${stateAPI.error}");
-    //   }
-    // });
 
     /// Dynamic links
     Future<void> _dynamicLinksCallback(
@@ -111,7 +83,7 @@ class _HomePageState extends State<HomePage> {
     }
 
     StateDynamicLinks stateDynamicLinks =
-    Provider.of<StateDynamicLinks>(context, listen: false);
+        Provider.of<StateDynamicLinks>(context, listen: false);
     stateDynamicLinks.callback = _dynamicLinksCallback;
     if (stateUser.data.isNotEmpty) {
       loading = false;
@@ -150,7 +122,7 @@ class _HomePageState extends State<HomePage> {
             ButtonOptions(
                 label: "Rollback changes", value: 1, onTap: actionCall)
           ],
-          data: [
+          data: const [
             {
               'text':
                   '{Donec} nec {justo} eget felis facilisis fermentum. Aliquam porttitor mauris sit amet orci. Aenean dignissim pellentesque felis.',
@@ -180,10 +152,10 @@ class _HomePageState extends State<HomePage> {
         optionsMenu.addAll([
           Container(
             color: Colors.teal.shade50,
-            padding: EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+            padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
             child: Column(children: [
               ListTile(
-                contentPadding: EdgeInsets.all(16),
+                contentPadding: const EdgeInsets.all(16),
                 title: Text(
                   locales.get("users"),
                   style: textTheme.headline4!.copyWith(color: Colors.teal),
@@ -195,10 +167,10 @@ class _HomePageState extends State<HomePage> {
                     flex: 1,
                     child: CardButton(
                       height: 165,
-                      margin: EdgeInsets.only(right: 8, left: 16),
+                      margin: const EdgeInsets.only(right: 8, left: 16),
                       headline: locales.get("label--admin"),
                       image:
-                      "https://images.unsplash.com/photo-1513171920216-2640b288471b",
+                          "https://images.unsplash.com/photo-1513171920216-2640b288471b",
                       onPressed: () {
                         _clearStates();
                         Navigator.pushNamed(
@@ -219,7 +191,7 @@ class _HomePageState extends State<HomePage> {
 
       /// Add space at the end of the widgets
       optionsMenu.add(spacer);
-      Widget _defaultView = CustomScrollView(
+      Widget defaultView = CustomScrollView(
         slivers: <Widget>[
           SliverAppBar(
             automaticallyImplyLeading: false,
@@ -228,31 +200,32 @@ class _HomePageState extends State<HomePage> {
               builder: (BuildContext context) {
                 return IconButton(
                   color: Colors.black,
-                  icon: Icon(Icons.menu_rounded),
+                  icon: const Icon(Icons.menu_rounded),
                   onPressed: () {
                     Scaffold.of(context).openDrawer();
                   },
                   tooltip:
-                  MaterialLocalizations.of(context).openAppDrawerTooltip,
+                      MaterialLocalizations.of(context).openAppDrawerTooltip,
                 );
               },
             ),
             stretch: false,
             expandedHeight: 100,
             flexibleSpace: FlexibleSpaceBar(
-              stretchModes: <StretchMode>[
+              stretchModes: const <StretchMode>[
                 StretchMode.zoomBackground,
                 StretchMode.blurBackground,
               ],
-              titlePadding: EdgeInsetsDirectional.only(start: 72, bottom: 16),
+              titlePadding:
+                  const EdgeInsetsDirectional.only(start: 72, bottom: 16),
               background: Stack(
                 fit: StackFit.expand,
                 children: [
                   DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        begin: Alignment(0, 0),
-                        end: Alignment(0, 1),
+                        begin: const Alignment(0, 0),
+                        end: const Alignment(0, 1),
                         colors: <Color>[
                           Colors.teal.shade400,
                           Colors.teal.shade600,
@@ -260,9 +233,9 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                   ),
-                  SmartImage(
+                  const SmartImage(
                       url:
-                      "https://images.unsplash.com/photo-1557696859-ebd88b12be5e"),
+                          "https://images.unsplash.com/photo-1557696859-ebd88b12be5e"),
                   // DecoratedBox(
                   //   decoration: BoxDecoration(
                   //     gradient: LinearGradient(
@@ -320,59 +293,59 @@ class _HomePageState extends State<HomePage> {
       );
 
       if (!hasOptions) {
-        _defaultView = ViewFeatured(
+        defaultView = ViewFeatured(
           headline: locales.get("home-page--welcome--hello"),
           description: locales.get("home-page--permissions--description"),
           image: "https://images.unsplash.com/photo-1515825838458-f2a94b20105a",
 //          actionLabel: locales.get("label--choose-location"),
 //          actionUrl: "/campaign/builder-choose-location",
-          firstGradientAnimationColor: Color(0xFF161A21),
-          secondGradientAnimationColor: Color(0xFF161A21),
-          thirdGradientAnimationColor: Color(0xFF161A21),
+          firstGradientAnimationColor: const Color(0xFF161A21),
+          secondGradientAnimationColor: const Color(0xFF161A21),
+          thirdGradientAnimationColor: const Color(0xFF161A21),
         );
       }
 
       String userLastUpdate = stateUser.data["updated"] != null
           ? (stateUser.data["updated"] as Timestamp).seconds.toString()
           : "";
-      String _avatarURL =
-          stateUser.serialized.avatar + "?size=medium&t=" + userLastUpdate;
+      String avatarURL =
+          "${stateUser.serialized.avatar}?size=medium&t=$userLastUpdate";
 
       return Scaffold(
         backgroundColor: backgroundColor,
-        body: _defaultView,
+        body: defaultView,
         drawer: Drawer(
           child: ListView(
             padding: EdgeInsets.zero,
             children: <Widget>[
               RawMaterialButton(
-                fillColor: theme.accentColor,
+                fillColor: theme.colorScheme.secondary,
                 onPressed: () {
                   _clearStates();
                   Navigator.pushNamed(context, "/profile");
                 },
-                child: Container(
+                child: SizedBox(
                   height: 300,
                   child: DrawerHeader(
-                    padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+                    padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                    decoration: const BoxDecoration(
+                        color: Color.fromRGBO(0, 0, 0, 0.1),
+                        backgroundBlendMode: BlendMode.darken),
                     child: Center(
-                      child: Container(
+                      child: SizedBox(
                         width: 150,
                         height: 160,
                         child: CircleAvatar(
-                          backgroundImage: NetworkImage(_avatarURL),
+                          backgroundImage: NetworkImage(avatarURL),
                           backgroundColor: Colors.grey.shade900,
                         ),
                       ),
                     ),
-                    decoration: BoxDecoration(
-                        color: Color.fromRGBO(0, 0, 0, 0.1),
-                        backgroundBlendMode: BlendMode.darken),
                   ),
                 ),
               ),
               ListTile(
-                leading: Icon(
+                leading: const Icon(
                   Icons.person,
                 ),
                 title: Text(locales.get("label--profile")),
@@ -380,9 +353,9 @@ class _HomePageState extends State<HomePage> {
                   Navigator.of(context).pushNamed("/profile");
                 },
               ),
-              Divider(),
+              const Divider(),
               ListTile(
-                leading: Icon(
+                leading: const Icon(
                   Icons.help,
                 ),
                 title: Text(locales.get('label--help')),
@@ -390,7 +363,7 @@ class _HomePageState extends State<HomePage> {
                   Navigator.of(context).pushNamed("/help");
                 },
               ),
-              Divider(),
+              const Divider(),
               ListTile(
                 leading: Icon(
                   Icons.exit_to_app,
@@ -415,38 +388,35 @@ class _HomePageState extends State<HomePage> {
         stateUser.id != null &&
         stateUser.data.isNotEmpty &&
         pendingOnboarding) {
-      String? _onboardingHeadline = "";
-      String? _onboardingDescription = "";
-      String _onboardingImage = "";
-      String? _onboardingActionLabel = "";
-      String _onboardingUrl = "";
+      String? onboardingHeadline = "";
+      String? onboardingDescription = "";
+      String onboardingImage = "";
+      String? onboardingActionLabel = "";
+      String onboardingUrl = "";
       if (!stateUser.serialized.onboarding.name) {
-        _onboardingHeadline = locales.get("onboarding--profile--title");
-        _onboardingDescription =
-            locales.get("onboarding--profile--description");
-        _onboardingImage =
-        "https://images.unsplash.com/photo-1547679904-ac76451d1594";
-        _onboardingActionLabel = locales.get("label--continue");
-        _onboardingUrl = "/profile";
+        onboardingHeadline = locales.get("onboarding--profile--title");
+        onboardingDescription = locales.get("onboarding--profile--description");
+        onboardingImage =
+            "https://images.unsplash.com/photo-1547679904-ac76451d1594";
+        onboardingActionLabel = locales.get("label--continue");
+        onboardingUrl = "/profile";
       }
 
       defaultWidget = ViewFeatured(
-        arguments: {"onboarding": true},
-        headline: _onboardingHeadline,
-        description: _onboardingDescription,
-        image: _onboardingImage,
-        actionLabel: _onboardingActionLabel,
-        actionUrl: _onboardingUrl,
-        firstGradientAnimationColor: Color(0xFF161A21),
-        secondGradientAnimationColor: Color(0xFF161A21),
-        thirdGradientAnimationColor: Color(0xFF161A21),
+        arguments: const {"onboarding": true},
+        headline: onboardingHeadline,
+        description: onboardingDescription,
+        image: onboardingImage,
+        actionLabel: onboardingActionLabel,
+        actionUrl: onboardingUrl,
+        firstGradientAnimationColor: const Color(0xFF161A21),
+        secondGradientAnimationColor: const Color(0xFF161A21),
+        thirdGradientAnimationColor: const Color(0xFF161A21),
       );
     }
 
     /// Show the home if there are no changes to [defaultWidget]
-    if (defaultWidget == null) {
-      defaultWidget = homeContent();
-    }
+    defaultWidget ??= homeContent();
 
     return defaultWidget;
   }

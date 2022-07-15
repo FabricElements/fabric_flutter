@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'map_data.dart';
+part of fabric_flutter;
 
 // **************************************************************************
 // JsonSerializableGenerator
@@ -84,7 +84,7 @@ MapPatternItem _$MapPatternItemFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$MapPatternItemToJson(MapPatternItem instance) =>
     <String, dynamic>{
-      'pattern': _$MapPatternEnumMap[instance.pattern],
+      'pattern': _$MapPatternEnumMap[instance.pattern]!,
       'length': instance.length,
     };
 

@@ -1,4 +1,4 @@
-import 'package:fabric_flutter/component.dart';
+import 'package:fabric_flutter/component/card_button.dart';
 import 'package:flutter/material.dart';
 
 class CardButtonExample extends StatelessWidget {

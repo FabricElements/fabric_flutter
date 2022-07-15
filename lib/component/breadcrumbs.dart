@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'package:flutter/material.dart';
 
 import '../helper/options.dart';
@@ -26,8 +28,8 @@ class Breadcrumbs extends StatelessWidget {
     ThemeData theme = Theme.of(context);
     TextTheme textTheme = theme.textTheme;
     List<Widget> items = [];
-    TextStyle? _textStyle = textStyle ?? textTheme.caption;
-    TextStyle? _dividerStyle = dividerStyle ?? textTheme.caption;
+    TextStyle? textStyleDefault = textStyle ?? textTheme.caption;
+    TextStyle? dividerStyleDefault = dividerStyle ?? textTheme.caption;
     for (int i = 0; i < buttons.length; i++) {
       ButtonOptions button = buttons[i];
       bool clickable = button.path != null || button.onTap != null;
@@ -45,7 +47,7 @@ class Breadcrumbs extends StatelessWidget {
           TextButton.icon(
             icon: Icon(button.icon),
             onPressed: onPressed,
-            label: Text(button.label, style: _textStyle),
+            label: Text(button.label, style: textStyleDefault),
             style: buttonStyle,
           ),
         );
@@ -54,12 +56,12 @@ class Breadcrumbs extends StatelessWidget {
           TextButton(
             onPressed: onPressed,
             style: buttonStyle,
-            child: Text(button.label, style: _textStyle),
+            child: Text(button.label, style: textStyleDefault),
           ),
         );
       }
       if (i < (buttons.length - 1)) {
-        items.add(Text('/', style: _dividerStyle));
+        items.add(Text('/', style: dividerStyleDefault));
       }
     }
     return SingleChildScrollView(

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'place_data.dart';
+part of fabric_flutter;
 
 // **************************************************************************
 // JsonSerializableGenerator
@@ -13,11 +13,11 @@ PlacesResponse _$PlacesResponseFromJson(Map<String, dynamic> json) =>
       results: (json['results'] as List<dynamic>?)
               ?.map((e) => Place.fromJson(e as Map<String, dynamic>?))
               .toList() ??
-          [],
+          const [],
       htmlAttributions: (json['html_attributions'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
-          [],
+          const [],
       nextPageToken: json['next_page_token'] as String?,
     );
 
@@ -52,17 +52,17 @@ Place _$PlaceFromJson(Map<String, dynamic> json) => Place(
       photos: (json['photos'] as List<dynamic>?)
               ?.map((e) => Photo.fromJson(e as Map<String, dynamic>))
               .toList() ??
-          [],
+          const [],
       scope: json['scope'] as String?,
       altIds: (json['alt_ids'] as List<dynamic>?)
               ?.map((e) => AlternativeId.fromJson(e as Map<String, dynamic>))
               .toList() ??
-          [],
+          const [],
       priceLevel: json['price_level'] as int?,
       rating: json['rating'] as num?,
       types:
           (json['types'] as List<dynamic>?)?.map((e) => e as String).toList() ??
-              [],
+              const [],
       vicinity: json['vicinity'] as String?,
       formattedAddress: json['formatted_address'] as String?,
       permanentlyClosed: json['permanently_closed'] as bool? ?? false,
@@ -70,6 +70,7 @@ Place _$PlaceFromJson(Map<String, dynamic> json) => Place(
       plusCode: json['plus_code'] == null
           ? null
           : PlusCode.fromJson(json['plus_code'] as Map<String, dynamic>?),
+      utcOffset: json['utc_offset'] as num?,
       name: json['name'] as String,
       placeId: json['place_id'] as String,
       reference: json['reference'] as String,
@@ -91,6 +92,7 @@ Map<String, dynamic> _$PlaceToJson(Place instance) => <String, dynamic>{
       'vicinity': instance.vicinity,
       'formatted_address': instance.formattedAddress,
       'permanently_closed': instance.permanentlyClosed,
+      'utc_offset': instance.utcOffset,
       'id': instance.id,
       'reference': instance.reference,
     };

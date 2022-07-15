@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'table_data.dart';
+part of fabric_flutter;
 
 // **************************************************************************
 // JsonSerializableGenerator
@@ -68,7 +68,7 @@ Map<String, dynamic> _$TableColumnDataToJson(TableColumnData instance) {
   }
 
   writeNotNull('label', instance.label);
-  val['type'] = _$TableDataTypeEnumMap[instance.type];
+  val['type'] = _$TableDataTypeEnumMap[instance.type]!;
   val['width'] = instance.width;
   return val;
 }
@@ -89,7 +89,7 @@ TableRowData _$TableRowDataFromJson(Map<String, dynamic> json) {
     disallowNullValues: const ['cells', 'child'],
   );
   return TableRowData(
-    cells: json['cells'] as List<dynamic>? ?? [],
+    cells: json['cells'] as List<dynamic>? ?? const [],
     child: json['child'] == null
         ? null
         : TableData.fromJson(json['child'] as Map<String, dynamic>?),

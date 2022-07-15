@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'package:flutter/material.dart';
 
 import '../helper/app_localizations_delegate.dart';
@@ -18,12 +20,12 @@ class RoleSelector extends StatefulWidget {
 }
 
 class _RoleSelectorState extends State<RoleSelector> {
-  String? roleSelect;
+  late String? roleSelect;
 
   @override
   void initState() {
-    super.initState();
     roleSelect = null;
+    super.initState();
   }
 
   @override

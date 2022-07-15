@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'package:flutter/widgets.dart';
 
 /// Predefined options for internal components

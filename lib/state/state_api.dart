@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'dart:convert';
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -7,8 +9,6 @@ import 'package:http/http.dart' as http;
 import '../helper/http_request.dart';
 import '../helper/utils.dart';
 import 'state_shared.dart';
-
-final FirebaseAuth _auth = FirebaseAuth.instance;
 
 /// Base State for API calls
 /// Use this state to fetch updated data every time an endpoint is updated
@@ -119,7 +119,7 @@ class StateAPI extends StateShared {
     }
 
     _lastEndpointCalled = endpoint;
-    String? _error;
+    String? errorMessage;
     if (_errorCount > 1) {
       if (kDebugMode) {
         print('$_errorCount errors calls to endpoint: $endpoint');
@@ -132,7 +132,7 @@ class StateAPI extends StateShared {
     bool canAuthenticate = false;
     if (token) {
       authScheme = AuthScheme.Bearer;
-      credentials = await _auth.currentUser?.getIdToken();
+      credentials = await FirebaseAuth.instance.currentUser?.getIdToken();
     }
     if (authScheme != null || credentials != null) {
       mustAuthenticate = true;
@@ -153,29 +153,29 @@ class StateAPI extends StateShared {
     }
     if (kDebugMode) print('Calling endpoint: $endpoint');
     final response = await http.get(url, headers: headers);
-    dynamic _newData;
+    dynamic newData;
     if (response.statusCode == 200) {
       try {
-        _newData = jsonDecode(response.body);
+        newData = jsonDecode(response.body);
         error = null;
       } catch (e) {
-        _error = e.toString();
+        errorMessage = e.toString();
       }
     } else {
-      _error =
-      response.reasonPhrase != null && response.reasonPhrase!.isNotEmpty
-          ? response.reasonPhrase
-          : null;
+      errorMessage =
+          response.reasonPhrase != null && response.reasonPhrase!.isNotEmpty
+              ? response.reasonPhrase
+              : null;
       if (error == null) {
-        _error = 'error--${response.statusCode}';
+        errorMessage = 'error--${response.statusCode}';
       }
     }
-    if (_error != null) {
+    if (errorMessage != null) {
       if (kDebugMode) print('------------ ERROR API CALL -------------');
       _errorCount++;
-      error = _error;
+      error = errorMessage;
       if (!isSameClearPath) data = null;
-      _newData = null;
+      newData = null;
     }
     initialized = true;
     loading = false;
@@ -184,12 +184,12 @@ class StateAPI extends StateShared {
 
     /// pagination
     if (incrementalPagination && page > 0) {
-      if (data != null && _newData != null && _newData.isNotEmpty) {
-        data = merge(base: data, toMerge: _newData);
+      if (data != null && newData != null && newData.isNotEmpty) {
+        data = merge(base: data, toMerge: newData);
       }
     } else {
-      data = _newData;
+      data = newData;
     }
-    return _newData;
+    return newData;
   }
 }

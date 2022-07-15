@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'package:flutter/cupertino.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -8,20 +10,14 @@ class StateGlobal extends ChangeNotifier {
   /// More at [packageInfo]
   PackageInfo? _packageInfo;
 
-  /// Gets [PackageInfo] data
-  Future<void> _getPackageInfo() async {
-    if (_packageInfo != null) return;
-    _packageInfo = await PackageInfo.fromPlatform();
-    // await Future.delayed(Duration(seconds: 3));
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      notifyListeners();
-    });
-  }
-
   /// [packageInfo] returns [PackageInfo] temporal or final data
   PackageInfo get packageInfo {
     if (_packageInfo == null) {
-      _getPackageInfo();
+      PackageInfo.fromPlatform().then((value) {
+        _packageInfo = value;
+        Future.delayed(const Duration(seconds: 1))
+            .then((value) => notifyListeners());
+      });
       return PackageInfo(
         appName: 'Unknown',
         packageName: 'Unknown',

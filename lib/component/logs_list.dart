@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -80,9 +82,9 @@ class LogsList extends StatelessWidget {
         fontWeight: FontWeight.w600,
       );
       Iterable matches = regExp.allMatches(text);
-      Widget? _timestamp;
+      Widget? timestampWidget;
       if (timestamp != null) {
-        _timestamp = Padding(
+        timestampWidget = Padding(
           padding: const EdgeInsets.only(bottom: 4.0),
           child: Text(DateFormat.yMd().add_jm().format(timestamp),
               style: textTheme.caption),
@@ -137,15 +139,15 @@ class LogsList extends StatelessWidget {
       }
       dynamic id = item.containsKey('id') ? item['id'] : null;
       List<PopupMenuEntry<String>> buttons = [];
-      Widget? _actions;
+      Widget? actionsWidgets;
       if (actions != null) {
-        for (ButtonOptions _option in actions!) {
+        for (ButtonOptions option in actions!) {
           buttons.add(PopupMenuItem<String>(
-            child: Text(_option.label),
-            onTap: _option.onTap != null ? () => _option.onTap!(id) : null,
+            onTap: option.onTap != null ? () => option.onTap!(id) : null,
+            child: Text(option.label),
           ));
         }
-        _actions = Padding(
+        actionsWidgets = Padding(
           padding: const EdgeInsets.only(left: 8.0),
           child: PopupMenuButton<String>(
             padding: EdgeInsets.zero,
@@ -154,7 +156,7 @@ class LogsList extends StatelessWidget {
         );
       }
       List<Widget> vertical = [];
-      if (_timestamp != null) vertical.add(_timestamp);
+      if (timestampWidget != null) vertical.add(timestampWidget);
       vertical.add(Text.rich(
         TextSpan(children: textFormatted),
         style: textThemeBase,
@@ -169,13 +171,13 @@ class LogsList extends StatelessWidget {
           ),
         ),
       ];
-      if (_actions != null) horizontal.add(_actions);
+      if (actionsWidgets != null) horizontal.add(actionsWidgets);
       return Padding(
         padding: padding,
         child: Flex(
           direction: Axis.horizontal,
-          children: horizontal,
           crossAxisAlignment: CrossAxisAlignment.center,
+          children: horizontal,
         ),
       );
     }
@@ -187,11 +189,11 @@ class LogsList extends StatelessWidget {
         padding: margin,
       );
     } else {
-      final _cellsBase =
+      final cellsBase =
           List.generate(data!.length, (index) => getItem(data![index]));
       return Padding(
         padding: margin,
-        child: Flex(direction: Axis.vertical, children: _cellsBase),
+        child: Flex(direction: Axis.vertical, children: cellsBase),
       );
     }
   }

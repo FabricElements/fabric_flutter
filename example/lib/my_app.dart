@@ -1,4 +1,3 @@
-
 import 'package:fabric_flutter/component/route_page.dart';
 import 'package:fabric_flutter/component/user_admin.dart';
 import 'package:fabric_flutter/helper/app_localizations_delegate.dart';
@@ -8,6 +7,7 @@ import 'package:fabric_flutter/view/view_auth_page.dart';
 import 'package:fabric_flutter/view/view_hero.dart';
 import 'package:fabric_flutter/view/view_profile_edit.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
@@ -65,7 +65,12 @@ class MyApp extends StatelessWidget {
             "/hero",
           ],
           routeMap: {
-            "/sign-in": ViewAuthPage(),
+            "/sign-in": ViewAuthPage(
+              androidPackageName:
+                  dotenv.get('ANDROID_PACKAGE_NAME', fallback: ''),
+              iOSBundleId: dotenv.get('IOS_BUNDLE_ID', fallback: ''),
+              url: dotenv.get('WWW', fallback: ''),
+            ),
             '/': HomePage(),
             '/profile': ViewProfileEdit(loader: LoadingScreen()),
             '/users': UserAdmin(loader: LoadingScreen(), primary: true),

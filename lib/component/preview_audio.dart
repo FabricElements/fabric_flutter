@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
@@ -86,7 +88,6 @@ class _AudioPreviewState extends State<AudioPreview>
 
   @override
   void initState() {
-    super.initState();
     WidgetsBinding.instance.addObserver(this);
     icon = Icons.hourglass_full;
     _isPlaying = false;
@@ -97,6 +98,7 @@ class _AudioPreviewState extends State<AudioPreview>
     _initializeExample().catchError((error) {
       if (kDebugMode) print(error);
     });
+    super.initState();
   }
 
   @override

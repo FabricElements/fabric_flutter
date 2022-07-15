@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -173,24 +175,22 @@ getValue -------------------------------------
     bool isDisabled = widget.disabled;
     String defaultText =
         widget.textDefault ?? locales.get('label--choose-option');
-    String textSelected = defaultText;
+    // String textSelected = defaultText;
     String? hintTextDefault;
     int? maxLength = widget.maxLength;
     FormFieldValidator<String>? validator = widget.validator;
     Widget? icon = widget.icon != null ? Icon(widget.icon) : null;
-    final ButtonThemeData buttonTheme = ButtonTheme.of(context);
-    final PopupMenuThemeData popupMenuTheme = PopupMenuTheme.of(context);
 
     /// Text styles
     String? errorText;
-    TextStyle? labelStyle;
-    InputBorder? border;
-    InputBorder? focusedBorder;
+    // TextStyle? labelStyle;
+    // InputBorder? border;
+    // InputBorder? focusedBorder;
     if (widget.error != null) {
-      labelStyle = theme.inputDecorationTheme.errorStyle;
       errorText = widget.error;
-      border = theme.inputDecorationTheme.errorBorder;
-      focusedBorder = theme.inputDecorationTheme.focusedErrorBorder;
+      // labelStyle = theme.inputDecorationTheme.errorStyle;
+      // border = theme.inputDecorationTheme.errorBorder;
+      // focusedBorder = theme.inputDecorationTheme.focusedErrorBorder;
     }
 
     Widget? inputIcon;
@@ -450,9 +450,9 @@ getValue -------------------------------------
         }));
         if (value != null) {
           if (widget.type == InputDataType.dropdown) {
-            textSelected = widget.options
-                .firstWhere((element) => element.value == value)
-                .label;
+            // textSelected = widget.options
+            //     .firstWhere((element) => element.value == value)
+            //     .label;
           }
         }
         if (buttons.length == (isDense ? 0 : 1)) {

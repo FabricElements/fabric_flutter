@@ -287,23 +287,31 @@ dynamic defaultLocales = {
     'en': 'Sign In',
     'es': 'Iniciar Sesión',
   },
-  'page-auth--actions--sign-in-mobile': {
+  'label--sign-in-mobile': {
     'en': 'Sign in with mobile',
     'es': 'Iniciar sesión celular',
   },
-  'page-auth--actions--sign-in-google': {
+  'label--sign-in-google': {
     'en': 'Sign in with google',
     'es': 'Iniciar sesión con google',
   },
-  'page-auth--actions--sign-in-email': {
+  'label--sign-in-email': {
     'en': 'Sign in with email',
     'es': 'Iniciar sesión con email',
+  },
+  'label--sign-in-anonymously': {
+    'en': 'Sign in Anonymously',
+    'es': 'Iniciar en forma anónima',
+  },
+  'label--sign-in-apple': {
+    'en': 'Sign in with Apple',
+    'es': 'Iniciar sesión con Apple',
   },
   'page-auth--description': {
     'en': 'Placeholder',
     'es': 'Temporal',
   },
-  'page-auth--actions--sign-in-with-phone-number': {
+  'label--sign-in-with-phone': {
     'en': 'SIGN IN WITH PHONE',
     'es': 'INICIAR CON CELULAR',
   },
@@ -708,5 +716,5 @@ dynamic defaultLocales = {
   'label--not-supported': {
     'en': 'Not Supported',
     'es': 'No soportado',
-  }
+  },
 };

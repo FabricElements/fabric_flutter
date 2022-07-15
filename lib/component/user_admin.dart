@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/foundation.dart';
@@ -77,7 +79,7 @@ class _UserAdminState extends State<UserAdmin> {
     ThemeData theme = Theme.of(context);
     TextTheme textTheme = theme.textTheme;
     AppLocalizations locales = AppLocalizations.of(context)!;
-    StateUser stateUser = Provider.of<StateUser>(context);
+    final stateUser = Provider.of<StateUser>(context);
     Query baseQuery = FirebaseFirestore.instance.collection('user');
     Query query = baseQuery;
 

@@ -1,3 +1,5 @@
+library fabric_flutter;
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -128,11 +130,11 @@ class _ViewFeaturedState extends State<ViewFeatured> {
 
   @override
   void initState() {
-    super.initState();
     _firstGradientAnimationColor = widget.firstGradientAnimationColor;
     _secondGradientAnimationColor = widget.secondGradientAnimationColor;
     _thirdGradientAnimationColor = widget.thirdGradientAnimationColor;
     _animationDuration = widget.animationDuration;
+    super.initState();
   }
 
   @override
@@ -143,7 +145,7 @@ class _ViewFeaturedState extends State<ViewFeatured> {
 
   @override
   Widget build(BuildContext context) {
-    StateUser stateUser = Provider.of<StateUser>(context);
+    final stateUser = Provider.of<StateUser>(context);
     stateUser.ping('view-featured');
     Object arguments = widget.arguments ?? {};
     onClick() {
