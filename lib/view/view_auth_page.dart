@@ -280,7 +280,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       try {
         assert(
             dataAuth.phoneVerificationCode != null &&
-                dataAuth.phoneVerificationCode.toString().length != 6,
+                dataAuth.phoneVerificationCode.toString().length == 6,
             'Enter valid confirmation code');
         assert(webConfirmationResult?.verificationId != null,
             'Please input sms code received after verifying phone number');
@@ -841,8 +841,9 @@ class _ViewAuthPageState extends State<ViewAuthPage>
 
     List<Widget> sectionsPhoneVerification = [
       SizedBox(
-        width: 250,
+        width: double.maxFinite,
         child: InputData(
+          isExpanded: true,
           value: dataAuth.phoneVerificationCode,
           type: InputDataType.int,
           hintText: locales.get('page-auth--input--verification-code'),

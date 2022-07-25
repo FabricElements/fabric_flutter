@@ -142,6 +142,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
                 }
               },
               scrollDirection: widget.scrollDirection,
+              shrinkWrap: true,
             ),
           );
         }

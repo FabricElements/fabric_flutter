@@ -43,7 +43,6 @@ class InputData extends StatefulWidget {
     this.hintText,
     this.isDense = false,
     this.maxLength,
-    this.textDefault,
     this.isExpanded = false,
     this.padding = const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
     this.margin = EdgeInsets.zero,
@@ -62,7 +61,6 @@ class InputData extends StatefulWidget {
   final InputDataType type;
   final bool disabled;
   final String? hintText;
-  final String? textDefault;
   final int? maxLength;
   final bool isDense;
   final bool isExpanded;
@@ -173,8 +171,7 @@ getValue -------------------------------------
     ThemeData theme = Theme.of(context);
     bool isDense = widget.isDense || theme.inputDecorationTheme.isDense;
     bool isDisabled = widget.disabled;
-    String defaultText =
-        widget.textDefault ?? locales.get('label--choose-option');
+    String defaultTextOptions = locales.get('label--choose-option');
     // String textSelected = defaultText;
     String? hintTextDefault;
     int? maxLength = widget.maxLength;
@@ -267,6 +264,10 @@ getValue -------------------------------------
         inputFormatters.addAll([
           FilteringTextInputFormatter.singleLineFormatter,
         ]);
+        break;
+      case InputDataType.enums:
+      case InputDataType.dropdown:
+        hintTextDefault = defaultTextOptions;
         break;
       default:
     }
@@ -427,7 +428,7 @@ getValue -------------------------------------
           DropdownMenuItem(
             value: '',
             child: Text(
-              defaultText,
+              hintText ?? defaultTextOptions,
               overflow: TextOverflow.ellipsis,
               softWrap: false,
               maxLines: 1,
