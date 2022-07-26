@@ -189,7 +189,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
           title: locales.get('page-profile--alert--profile-updated'),
           type: AlertType.success,
         ));
-        if (!stateUser.serialized.onboarding.name) {
+        if (stateUser.serialized.onboarding != null && !stateUser.serialized.onboarding!.name) {
           Navigator.of(context).pop();
         }
         refreshImage();

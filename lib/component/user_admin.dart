@@ -94,7 +94,6 @@ class _UserAdminState extends State<UserAdmin> {
       assert(collection != null && id != null,
           'collection, document and documentData can\'t be null when including one of them.');
     }
-    List<String>? _roles = widget.roles;
     bool fromCollection = collection != null && id != null;
     Widget space = Container(width: 16);
     Map<String, dynamic> inviteMetadata = {};
@@ -138,25 +137,25 @@ class _UserAdminState extends State<UserAdmin> {
       Map<String, dynamic> userData =
           userDocument.data()! as Map<String, dynamic>;
       userData.addAll({'id': userDocument.id});
-      UserData _itemData = UserData.fromJson(userData);
-      bool _sameUser = stateUser.id == _itemData.id;
+      UserData itemData = UserData.fromJson(userData);
+      bool sameUser = stateUser.id == itemData.id;
       // Don't allow a user to change anything about itself on the 'admin' view
-      bool _canUpdateUser = !_sameUser;
-      if (widget.disabled) _canUpdateUser = false;
+      bool canUpdateUser = !sameUser;
+      if (widget.disabled) canUpdateUser = false;
       Color statusColor = Colors.grey.shade600;
-      switch (_itemData.presence) {
+      switch (itemData.presence) {
         case 'active':
           statusColor = Colors.green;
           break;
         case 'inactive':
           statusColor = Colors.deepOrange;
       }
-      if (_sameUser) {
+      if (sameUser) {
         statusColor = Colors.green;
       }
-      String _role = _itemData.role;
+      String roleFinal = itemData.role;
       if (id != null) {
-        _role = stateUser.roleFromDataAny(
+        roleFinal = stateUser.roleFromDataAny(
           compareData: userData,
           level: collection,
           levelId: id,
@@ -175,28 +174,28 @@ class _UserAdminState extends State<UserAdmin> {
           ),
         ),
       );
-      List<Widget> _roleChips = [
+      List<Widget> roleChips = [
         Chip(
           padding: EdgeInsets.zero,
-          label: Text(locales.get('label--$_role')),
+          label: Text(locales.get('label--$roleFinal')),
         ),
       ];
-      String name = _itemData.name.isNotEmpty
-          ? _itemData.name
+      String name = itemData.name.isNotEmpty
+          ? itemData.name
           : locales.get('label--unknown');
-      if (_itemData.phone.isNotEmpty) {
-        _roleChips.add(Chip(
+      if (itemData.phone.isNotEmpty) {
+        roleChips.add(Chip(
           avatar: Icon(Icons.phone, color: Colors.grey.shade600),
           backgroundColor: Colors.transparent,
           padding: const EdgeInsets.all(0),
-          label: Text(_itemData.phone),
+          label: Text(itemData.phone),
         ));
-      } else if (_itemData.email.isNotEmpty) {
-        _roleChips.add(Chip(
+      } else if (itemData.email.isNotEmpty) {
+        roleChips.add(Chip(
           avatar: Icon(Icons.email, color: Colors.grey.shade600),
           backgroundColor: Colors.transparent,
           padding: const EdgeInsets.all(0),
-          label: Text(_itemData.email),
+          label: Text(itemData.email),
         ));
       }
 
@@ -207,9 +206,9 @@ class _UserAdminState extends State<UserAdmin> {
           child: Wrap(
             children: <Widget>[
               AbsorbPointer(
-                absorbing: !_canUpdateUser,
+                absorbing: !canUpdateUser,
                 child: Dismissible(
-                  key: Key(_itemData.id!),
+                  key: Key(itemData.id!),
                   background: Container(
                     color: Colors.deepOrangeAccent,
                     child: Row(
@@ -254,17 +253,17 @@ class _UserAdminState extends State<UserAdmin> {
                         context: context,
                         builder: (context) => UserRoleUpdate(
                           data: inviteMetadata,
-                          roles: _roles,
-                          uid: _itemData.id!,
+                          roles: widget.roles,
+                          uid: itemData.id!,
                           name: name,
                         ),
                       );
                     },
                     isThreeLine: true,
                     leading: UserAvatar(
-                      avatar: _itemData.avatar,
-                      name: _itemData.name.isNotEmpty
-                          ? _itemData.name
+                      avatar: itemData.avatar,
+                      name: itemData.name.isNotEmpty
+                          ? itemData.name
                           : locales.get('label--unknown'),
                     ),
                     title: Padding(
@@ -275,7 +274,7 @@ class _UserAdminState extends State<UserAdmin> {
                       spacing: 8,
                       runSpacing: 8,
                       crossAxisAlignment: WrapCrossAlignment.center,
-                      children: _roleChips,
+                      children: roleChips,
                     ),
                     trailing: Wrap(
                       crossAxisAlignment: WrapCrossAlignment.center,
@@ -344,7 +343,7 @@ class _UserAdminState extends State<UserAdmin> {
                     barrierColor: Colors.black12,
                     context: context,
                     builder: (context) =>
-                        UserAdd(data: inviteMetadata, roles: _roles),
+                        UserAdd(data: inviteMetadata, roles: widget.roles),
                   );
                 },
               ),
@@ -352,11 +351,11 @@ class _UserAdminState extends State<UserAdmin> {
       );
     }
 
-    List<Widget> _content = [
+    List<Widget> items = [
       content,
     ];
     if (!widget.disabled) {
-      _content.addAll([
+      items.addAll([
         const SizedBox(height: 32),
         Align(
           alignment: Alignment.center,
@@ -370,7 +369,7 @@ class _UserAdminState extends State<UserAdmin> {
                 barrierColor: Colors.black12,
                 context: context,
                 builder: (context) =>
-                    UserAdd(data: inviteMetadata, roles: _roles),
+                    UserAdd(data: inviteMetadata, roles: widget.roles),
               );
             },
           ),
@@ -380,7 +379,7 @@ class _UserAdminState extends State<UserAdmin> {
 
     return Flex(
       direction: Axis.vertical,
-      children: _content,
+      children: items,
     );
   }
 }

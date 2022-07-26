@@ -164,13 +164,13 @@ class Utils {
   /// Sample:
   /// @override
   /// void initState() {
-  ///   Utils().missingValueRedirect(
+  ///   Utils.missingValueRedirect(
   ///     context: context,
   ///     value: widget.uri.queryParameters['client'],
   ///   );
   ///   super.initState();
   /// }
-  void missingValueRedirect({
+  static void missingValueRedirect({
     required String? value,
     required BuildContext context,
     String path = '/',

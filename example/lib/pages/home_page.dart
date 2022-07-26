@@ -93,7 +93,8 @@ class _HomePageState extends State<HomePage> {
     }
 
     /// Validate onboarding
-    if (!stateUser.serialized.onboarding.name) {
+    if (stateUser.serialized.onboarding != null &&
+        !stateUser.serialized.onboarding!.name) {
       pendingOnboarding = true;
     } else {
       pendingOnboarding = false;
@@ -393,7 +394,7 @@ class _HomePageState extends State<HomePage> {
       String onboardingImage = "";
       String? onboardingActionLabel = "";
       String onboardingUrl = "";
-      if (!stateUser.serialized.onboarding.name) {
+      if (stateUser.serialized.onboarding != null && !stateUser.serialized.onboarding!.name) {
         onboardingHeadline = locales.get("onboarding--profile--title");
         onboardingDescription = locales.get("onboarding--profile--description");
         onboardingImage =

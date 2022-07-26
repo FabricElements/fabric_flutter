@@ -143,12 +143,6 @@ class StateUser extends StateDocument {
     if (id != null && admin) {
       return role;
     }
-    if (level != null || levelId != null) {
-      assert(
-        level != null && levelId != null,
-        'level and levelId must be initialized.',
-      );
-    }
     if (level == null || levelId == null || data == null) {
       return role;
     }

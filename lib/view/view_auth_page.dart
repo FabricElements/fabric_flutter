@@ -307,7 +307,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         assert(dataAuth.verificationId != null, 'VerificationId missing');
         assert(
             dataAuth.phoneVerificationCode != null &&
-                dataAuth.phoneVerificationCode.toString().length != 6,
+                dataAuth.phoneVerificationCode.toString().length == 6,
             'Enter valid confirmation code');
         final AuthCredential credential = PhoneAuthProvider.credential(
           verificationId: dataAuth.verificationId!,
@@ -320,6 +320,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       } catch (error) {
         alert.show(AlertData(
           title: locales.get('alert--sign-in-failed'),
+          body: error.toString(),
           type: AlertType.critical,
           brightness: Brightness.dark,
           clear: true,

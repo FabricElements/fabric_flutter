@@ -94,7 +94,10 @@ class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
 
   @override
   Widget build(BuildContext context) {
-    bool supported = Platform.isIOS || Platform.isAndroid || kIsWeb;
+    bool supported = kIsWeb;
+    if (!kIsWeb) {
+      supported = Platform.isIOS || Platform.isAndroid || kIsWeb;
+    }
     if (longitude == null ||
         longitude == null ||
         (!supported && widget.apiKey == null)) {

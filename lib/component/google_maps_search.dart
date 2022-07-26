@@ -153,8 +153,7 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
     /// Temporal access at
     _places = GoogleMapsPlaces(
       apiKey: widget.apiKey,
-      baseUrl: widget.baseUrl,
-
+      baseUrl: kIsWeb ? widget.baseUrl : null,
       // apiHeaders: {
       //   'Access-Control-Allow-Origin': '*',
       // },
