@@ -86,7 +86,7 @@ const _$TableDataTypeEnumMap = {
 TableRowData _$TableRowDataFromJson(Map<String, dynamic> json) {
   $checkKeys(
     json,
-    disallowNullValues: const ['cells', 'child'],
+    disallowNullValues: const ['cells'],
   );
   return TableRowData(
     cells: json['cells'] as List<dynamic>? ?? const [],

@@ -365,7 +365,7 @@ class StateAlert extends ChangeNotifier {
         },
       ));
 
-      if (actions.isNotEmpty && alertData.widget == AlertWidget.snackBar) {
+      if (hasAction && alertData.widget == AlertWidget.snackBar) {
         onColumn.add(Container(
           margin: const EdgeInsets.only(top: 16),
           child: Wrap(

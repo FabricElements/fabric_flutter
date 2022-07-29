@@ -75,7 +75,7 @@ class TableColumnData {
 class TableRowData {
   @JsonKey(disallowNullValue: true)
   final List<dynamic> cells;
-  @JsonKey(disallowNullValue: true)
+  @JsonKey(includeIfNull: false)
   final TableData? child;
   bool active;
 

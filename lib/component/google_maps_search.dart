@@ -40,6 +40,7 @@ class GoogleMapsSearch extends StatefulWidget {
     this.baseUrl = kIsWeb
         ? 'https://cors-anywhere.herokuapp.com/https://maps.googleapis.com/maps/api'
         : null,
+    this.autofocus = false,
   }) : super(key: key);
   final String? placeId;
   final Function(Place)? onChange;
@@ -54,6 +55,7 @@ class GoogleMapsSearch extends StatefulWidget {
   final MinMaxZoomPreference minMaxZoomPreference;
   final String? description;
   final String? baseUrl;
+  final bool autofocus;
 
   /// Recommended 'administrative_area_level_1,administrative_area_level_2,locality,postal_codes'
   final List<String> types;
@@ -245,7 +247,7 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
               height: 50,
               child: TextField(
                 controller: textController,
-                autofocus: true,
+                autofocus: widget.autofocus,
                 keyboardType: TextInputType.text,
                 keyboardAppearance: Brightness.light,
                 textInputAction: TextInputAction.search,

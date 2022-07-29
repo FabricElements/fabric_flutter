@@ -36,6 +36,12 @@ class Utils {
   static Timestamp? timestampToJson(DateTime? time) =>
       time != null ? Timestamp.fromDate(time.toUtc()) : null;
 
+  /// Serialize Timestamp to Json: Used to apply the latest time on every update
+  static Timestamp? timestampUpdate(DateTime? time) => Timestamp.now();
+
+  /// Serialize Timestamp to Json: Used to apply the latest time on every update
+  static bool boolFalse(dynamic value) => false;
+
   /// Serialize DateTime string from JSON
   static DateTime? dateTimeFromJson(String? time) =>
       time != null ? DateTime.tryParse(time)?.toUtc() : null;

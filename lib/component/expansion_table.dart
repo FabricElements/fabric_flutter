@@ -102,8 +102,8 @@ class _ExpansionTableState extends State<ExpansionTable> {
     // final Border? border = widget.showBottomBorder
     //     ? Border(bottom: borderSide)
     //     : index == 0 ? null : Border(top: borderSide);
-    ScrollController _controllerHorizontal = ScrollController();
-    ScrollController _controllerVertical = ScrollController();
+    ScrollController controllerHorizontal = ScrollController();
+    ScrollController controllerVertical = ScrollController();
 
     // List<Widget> _columns = _getColumns(columns: data.header!);
     // final List<TableColumnWidth> tableColumns = List<TableColumnWidth>.filled(data.header!.length + (displayCheckboxColumn ? 1 : 0), const _NullTableColumnWidth());
@@ -115,8 +115,8 @@ class _ExpansionTableState extends State<ExpansionTable> {
         widget.columnSpacing ?? theme.dataTableTheme.columnSpacing ?? 56;
     final double cellHorizontalPadding = effectiveColumnSpacing / 2;
 
-    List<Widget> _columns = List.generate(data.header!.length, (index) {
-      final _column = data.header![index];
+    List<Widget> columnsList = List.generate(data.header!.length, (index) {
+      final column = data.header![index];
       // double _paddingLeft = index > 0 ? effectiveColumnSpacing / 2 : effectiveColumnSpacing;
       // double _paddingRight =
       //     index < data.header!.length ? effectiveColumnSpacing / 2 : effectiveColumnSpacing;
@@ -137,7 +137,7 @@ class _ExpansionTableState extends State<ExpansionTable> {
                 right: cellHorizontalPadding,
               ),
               child: Text(
-                _column.value,
+                column.value,
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
               ),
@@ -157,45 +157,45 @@ class _ExpansionTableState extends State<ExpansionTable> {
             {required TableRowData row,
             int rowIndex = 0,
             bool isFooter = false}) {
-          List<Widget> _cellsBase = List.generate(row.cells.length, (index) {
-            final cellValue = row.cells[index];
-            final _columnData = data.header![index];
-            Widget _baseCell = Container();
+          List<Widget> cellsBase = List.generate(row.cells.length, (index) {
+            dynamic cellValue = row.cells[index];
+            final columnData = data.header![index];
+            Widget baseCell = Container();
             if (cellValue == null) {
-              _baseCell = const Text('-');
+              baseCell = const Text('-');
             } else {
-              switch (_columnData.type) {
+              switch (columnData.type) {
                 case TableDataType.string:
-                  _baseCell = Text(cellValue.toString());
+                  baseCell = Text(cellValue.toString());
                   break;
                 case TableDataType.currency:
-                  _baseCell = Text(FormatData.currencyFormat()
-                      .format(double.parse(cellValue.toString())));
+                  baseCell = Text(FormatData.currencyFormat()
+                      .format(num.parse(cellValue.toString())));
                   break;
                 case TableDataType.number:
-                  _baseCell = Text(FormatData.numberClearFormat()
-                      .format(double.parse(cellValue.toString())));
+                  baseCell = Text(FormatData.numberClearFormat()
+                      .format(num.parse(cellValue.toString())));
                   break;
                 case TableDataType.decimal:
-                  _baseCell = Text(FormatData.numberFormat()
-                      .format(double.parse(cellValue.toString())));
+                  baseCell = Text(FormatData.numberFormat()
+                      .format(num.parse(cellValue.toString())));
                   break;
                 case TableDataType.path:
-                  _baseCell = TextButton(
+                  baseCell = TextButton(
                       onPressed: () {
                         Navigator.of(context).pushNamed(cellValue);
                       },
                       child: const Text('open'));
                   break;
                 case TableDataType.link:
-                  _baseCell = TextButton(
+                  baseCell = TextButton(
                       onPressed: () async {
                         await launchUrl(Uri.parse(cellValue));
                       },
                       child: const Text('open'));
                   break;
                 default:
-                  _baseCell = Text(cellValue.toString());
+                  baseCell = Text(cellValue.toString());
               }
 
               /// Format correct cell value
@@ -210,7 +210,7 @@ class _ExpansionTableState extends State<ExpansionTable> {
               childLeftSpace = (data.level.toDouble()) * 16;
               double iconContentSize = 40;
               childLeftSpace += iconContentSize;
-              _baseCell = Row(
+              baseCell = Row(
                 children: [
                   SizedBox(
                     width: childLeftSpace,
@@ -241,7 +241,7 @@ class _ExpansionTableState extends State<ExpansionTable> {
                   Expanded(
                     child: ClipRect(
                       clipBehavior: Clip.antiAlias,
-                      child: _baseCell,
+                      child: baseCell,
                     ),
                   ),
                 ],
@@ -274,7 +274,7 @@ class _ExpansionTableState extends State<ExpansionTable> {
                         left: cellHorizontalPadding,
                         right: cellHorizontalPadding,
                       ),
-                      child: _baseCell,
+                      child: baseCell,
                     ),
                   ),
                 ),
@@ -283,12 +283,12 @@ class _ExpansionTableState extends State<ExpansionTable> {
           });
           final Border border = Border(top: borderSide);
           List<Widget> content = [];
-          bool _rowDarker = rowIndex.isEven;
-          if (data.level.isEven) _rowDarker = !_rowDarker;
-          double _rowOpacity = 0;
-          _rowOpacity = _rowDarker ? 0.5 : 0;
+          bool rowDarker = rowIndex.isEven;
+          if (data.level.isEven) rowDarker = !rowDarker;
+          double rowOpacity = 0;
+          rowOpacity = rowDarker ? 0.5 : 0;
           Color dataRowColor = widget.dataRowColor ?? Colors.grey.shade50;
-          dataRowColor = dataRowColor.withOpacity(_rowOpacity);
+          dataRowColor = dataRowColor.withOpacity(rowOpacity);
           Color rowColor = !isFooter
               ? dataRowColor
               : widget.dataFooterColor ?? Colors.transparent;
@@ -310,7 +310,7 @@ class _ExpansionTableState extends State<ExpansionTable> {
                 columnWidths: tableColumns.asMap(),
                 children: [
                   TableRow(
-                    children: _cellsBase,
+                    children: cellsBase,
                   )
                 ],
               ),
@@ -338,7 +338,7 @@ class _ExpansionTableState extends State<ExpansionTable> {
           );
         }
 
-        List<Widget> _rows = List.generate(
+        List<Widget> rowsList = List.generate(
           data.rows.length,
           (index) => getRows(row: data.rows[index], rowIndex: index),
         );
@@ -347,15 +347,15 @@ class _ExpansionTableState extends State<ExpansionTable> {
           TableRowData footer = TableRowData(
             cells: data.footer!,
           );
-          _rows.add(getRows(row: footer, isFooter: true));
+          rowsList.add(getRows(row: footer, isFooter: true));
         }
 
         Widget rows = Flex(
           direction: Axis.vertical,
-          children: _rows,
+          children: rowsList,
         );
 
-        double _headingRowHeight = widget.headingRowHeight ??
+        double headingRowHeight = widget.headingRowHeight ??
             theme.dataTableTheme.headingRowHeight ??
             56;
         double totalWidth =
@@ -369,11 +369,11 @@ class _ExpansionTableState extends State<ExpansionTable> {
             padding:
                 EdgeInsets.symmetric(horizontal: effectiveHorizontalMargin),
             alignment: Alignment.center,
-            height: _headingRowHeight,
+            height: headingRowHeight,
             child: Table(
               defaultVerticalAlignment: TableCellVerticalAlignment.middle,
               columnWidths: tableColumns.asMap(),
-              children: [TableRow(children: _columns)],
+              children: [TableRow(children: columnsList)],
             ),
           ),
         );
@@ -390,9 +390,9 @@ class _ExpansionTableState extends State<ExpansionTable> {
             thumbVisibility: true,
             scrollbarOrientation: ScrollbarOrientation.bottom,
             interactive: true,
-            controller: _controllerHorizontal,
+            controller: controllerHorizontal,
             child: SingleChildScrollView(
-              controller: _controllerHorizontal,
+              controller: controllerHorizontal,
               scrollDirection: Axis.horizontal,
               primary: false,
               child: ConstrainedBox(
@@ -408,7 +408,7 @@ class _ExpansionTableState extends State<ExpansionTable> {
                   children: [
                     ConstrainedBox(
                       constraints: BoxConstraints(
-                        maxHeight: height - _headingRowHeight,
+                        maxHeight: height - headingRowHeight,
                         maxWidth: totalWidth,
                         minWidth: totalWidth,
                       ),
@@ -416,11 +416,11 @@ class _ExpansionTableState extends State<ExpansionTable> {
                         thumbVisibility: true,
                         scrollbarOrientation: ScrollbarOrientation.right,
                         interactive: true,
-                        controller: _controllerVertical,
+                        controller: controllerVertical,
                         child: ListView(
-                          controller: _controllerVertical,
+                          controller: controllerVertical,
                           primary: false,
-                          children: _rows,
+                          children: rowsList,
                         ),
                       ),
                     ),

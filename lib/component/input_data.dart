@@ -390,23 +390,21 @@ getValue -------------------------------------
             locales.get('label--choose-label', {
               'label': locales.get('label--time'),
             });
-        endWidget = Padding(
-          padding: const EdgeInsets.only(top: 16),
-          child: ElevatedButton.icon(
-            onPressed: () async {
-              time ??= TimeOfDay.now();
-              final TimeOfDay? picked = await showTimePicker(
-                context: context,
-                initialTime: time!,
-                initialEntryMode: TimePickerEntryMode.input,
-              );
-              if (picked != null && picked != time) {
-                if (widget.onChanged != null) widget.onChanged!(picked);
-              }
-            },
-            icon: const Icon(Icons.access_time),
-            label: Text(label),
-          ),
+        endWidget = ElevatedButton.icon(
+          onPressed: isDisabled
+              ? null
+              : () async {
+                  time ??= TimeOfDay.now();
+                  final TimeOfDay? picked = await showTimePicker(
+                    context: context,
+                    initialTime: time!,
+                  );
+                  if (picked != null && picked != time) {
+                    if (widget.onChanged != null) widget.onChanged!(picked);
+                  }
+                },
+          icon: const Icon(Icons.access_time),
+          label: Text(label),
         );
         break;
       case InputDataType.enums:
