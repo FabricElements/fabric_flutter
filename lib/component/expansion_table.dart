@@ -343,7 +343,7 @@ class _ExpansionTableState extends State<ExpansionTable> {
           (index) => getRows(row: data.rows[index], rowIndex: index),
         );
 
-        if (data.footer != null) {
+        if (data.footer != null && data.footer!.isNotEmpty) {
           TableRowData footer = TableRowData(
             cells: data.footer!,
           );
