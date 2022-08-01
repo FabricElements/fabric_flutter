@@ -7,7 +7,7 @@ part 'place_data.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class PlacesResponse extends GoogleResponseStatus {
-  final List<Place> results;
+  final List<Place> candidates;
 
   @JsonKey(name: 'html_attributions')
   final List<String> htmlAttributions;
@@ -22,7 +22,7 @@ class PlacesResponse extends GoogleResponseStatus {
   PlacesResponse({
     required String status,
     this.errorMessage,
-    this.results = const [],
+    this.candidates = const [],
     this.htmlAttributions = const [],
     this.nextPageToken,
   }) : super(status: status, errorMessage: errorMessage);
@@ -31,6 +31,29 @@ class PlacesResponse extends GoogleResponseStatus {
       _$PlacesResponseFromJson(json ?? {});
 
   Map<String, dynamic> toJson() => _$PlacesResponseToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class PlaceResponse {
+  final Place? result;
+
+  @JsonKey(name: 'html_attributions')
+  final List<String> htmlAttributions;
+
+  @override
+  @JsonKey(name: 'error_message')
+  final String? errorMessage;
+
+  PlaceResponse({
+    this.errorMessage,
+    this.result,
+    this.htmlAttributions = const [],
+  }) : super();
+
+  factory PlaceResponse.fromJson(Map<String, dynamic>? json) =>
+      _$PlaceResponseFromJson(json ?? {});
+
+  Map<String, dynamic> toJson() => _$PlaceResponseToJson(this);
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -82,19 +105,17 @@ class Place {
   final String? vicinity;
 
   @JsonKey(name: 'formatted_address')
-  final String? formattedAddress;
-
-  @JsonKey(name: 'permanently_closed')
-  final bool permanentlyClosed;
+  final String formattedAddress;
 
   @JsonKey(name: 'utc_offset')
   final num? utcOffset;
 
-  final String? id;
-
-  final String reference;
+  /// JSON address_components
+  @JsonKey(name: 'address_components', includeIfNull: false)
+  List<AddressComponent>? addressComponents;
 
   Place({
+    this.addressComponents,
     this.icon,
     this.geometry,
     this.openingHours,
@@ -105,14 +126,11 @@ class Place {
     this.rating,
     this.types = const [],
     this.vicinity,
-    this.formattedAddress,
-    this.permanentlyClosed = false,
-    this.id,
+    required this.formattedAddress,
     this.plusCode,
     this.utcOffset,
     required this.name,
     required this.placeId,
-    required this.reference,
   });
 
   factory Place.fromJson(Map<String, dynamic>? json) =>

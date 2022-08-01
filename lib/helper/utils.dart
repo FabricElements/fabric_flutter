@@ -127,34 +127,18 @@ class Utils {
     bool reverse = false,
   }) {
     if (utcOffset == null || dateTime == null) return dateTime;
-    // DateTime _currentDate = dateTime.isUtc ? dateTime : dateTime.toUtc();
-    DateTime currentDate = dateTime;
+    DateTime currentDate = dateTime.toUtc();
     bool negativeTime = utcOffset.isNegative;
     int timeZoneOffset = utcOffset.abs().toInt();
     Duration timeZoneOffsetDuration = Duration(minutes: timeZoneOffset);
-
-    // num timeZoneOffset = utcOffset;
-    // bool positiveTime = !timeZoneOffset.isNegative;
-    // timeZoneOffset = timeZoneOffset.abs();
-    // Duration timeZoneOffsetDuration = Duration(minutes: timeZoneOffset.floor());
+    if (reverse) negativeTime = !negativeTime;
 
     /// Default date and time
-    if (reverse) negativeTime = !negativeTime;
     DateTime updatedDate = negativeTime
         ? currentDate.subtract(timeZoneOffsetDuration)
         : currentDate.add(timeZoneOffsetDuration);
 
-    /// Place time
-    // _currentDate = positiveTime
-    //     ? _currentDate.add(timeZoneOffsetDuration)
-    //     : _currentDate.subtract(timeZoneOffsetDuration);
-    return DateTime.utc(
-      updatedDate.year,
-      updatedDate.month,
-      updatedDate.day,
-      updatedDate.hour,
-      updatedDate.minute,
-    );
+    return updatedDate;
   }
 
   static void setPageTitle(String title) {

@@ -117,7 +117,6 @@ class _InputDataState extends State<InputData> {
             value = Utils.dateTimeOffset(
               dateTime: value,
               utcOffset: widget.utcOffset,
-              reverse: true,
             );
             textController.text = formatDate.format(value);
           } else {
@@ -374,6 +373,7 @@ getValue -------------------------------------
               final newDate = Utils.dateTimeOffset(
                 dateTime: picked,
                 utcOffset: widget.utcOffset,
+                reverse: true,
               );
               if (widget.onChanged != null) widget.onChanged!(newDate);
             }

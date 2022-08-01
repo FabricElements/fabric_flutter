@@ -1,12 +1,10 @@
 library fabric_flutter;
 
-import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:google_maps_webservice/places.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
@@ -29,9 +27,8 @@ class GoogleMapsSearch extends StatefulWidget {
     this.longitude,
     this.onChange,
     this.onError,
-    this.placeId,
     this.name,
-    this.fields = const ['formatted_address', 'utc_offset'],
+    this.fields = const [],
     this.types = const [],
     this.aspectRatio = 3 / 2,
     this.zoom = 8,
@@ -42,7 +39,6 @@ class GoogleMapsSearch extends StatefulWidget {
         : null,
     this.autofocus = false,
   }) : super(key: key);
-  final String? placeId;
   final Function(Place)? onChange;
   final Function(String)? onError;
   final String apiKey;
@@ -71,74 +67,39 @@ class GoogleMapsSearch extends StatefulWidget {
 
 class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
   TextEditingController textController = TextEditingController();
-  late GoogleMapsPlaces _places;
-
   int totalItems = 0;
   List<LatLng>? points;
-  List<Widget>? listPlaces;
   late List<Place> results;
   late List<Widget> mapComponents;
-  String? placeId;
   String? name;
-  late String searchAddr;
   late bool loading;
   double? latitude;
   double? longitude;
-  PlaceDetails? placeDetails;
+  List<String> searchFields = [
+    'formatted_address',
+    'name',
+    'place_id',
+  ];
+  late List<String> requiredFields;
 
   void resetDefaultValues() {
-    listPlaces = [];
+    results = [];
     mapComponents = [];
     totalItems = 0;
     points = [];
     latitude = null;
     longitude = null;
     name = null;
-    placeId = null;
-    placeDetails = null;
   }
 
   void getParentValues() {
     latitude = widget.latitude;
     longitude = widget.longitude;
     name = widget.name;
-    placeId = widget.placeId;
   }
 
   /// Google Maps controller definition
   late GoogleMapController mapController;
-
-  Future<bool> getPlaceById({bool notify = false, required String id}) async {
-    placeDetails = null;
-    latitude = null;
-    longitude = null;
-    listPlaces = [];
-    name = null;
-    placeId = null;
-    if (mounted) setState(() {});
-    try {
-      List<String> requiredFields = ['name', 'place_id', 'geometry/location'];
-      requiredFields.addAll(widget.fields);
-      if (kDebugMode) (requiredFields);
-      final placeDetailsResponse = await _places.getDetailsByPlaceId(
-        id,
-        fields: requiredFields,
-      );
-      if (kDebugMode) print(placeDetailsResponse.status);
-      if (kDebugMode) print(placeDetailsResponse.result);
-      // placeDetails = placeDetailsResponse.result;
-      // latitude = placeDetails!.geometry?.location.lat;
-      // longitude = placeDetails!.geometry?.location.lng;
-      // name = placeDetails!.formattedAddress ?? placeDetails!.name;
-      // placeId = placeDetails!.placeId;
-      if (mounted) setState(() {});
-      return true;
-    } catch (error) {
-      if (mounted) setState(() {});
-      if (widget.onError != null) widget.onError!(error.toString());
-    }
-    return false;
-  }
 
   @override
   void initState() {
@@ -151,82 +112,19 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
         ''');
       }
     }
-
-    /// Temporal access at
-    _places = GoogleMapsPlaces(
-      apiKey: widget.apiKey,
-      baseUrl: kIsWeb ? widget.baseUrl : null,
-      // apiHeaders: {
-      //   'Access-Control-Allow-Origin': '*',
-      // },
-    );
     resetDefaultValues();
     getParentValues();
     loading = false;
-    if (widget.placeId != null &&
-        widget.latitude == null &&
-        widget.longitude == null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        getPlaceById(id: widget.placeId!);
-      });
-    }
+    requiredFields = [...searchFields, 'geometry/location', ...widget.fields];
     super.initState();
   }
 
   @override
   void didUpdateWidget(covariant GoogleMapsSearch oldWidget) {
     textController.text = '';
-    if (widget.placeId != placeId && widget.placeId != null) {
-      getPlaceById(notify: true, id: widget.placeId!);
-    } else {
-      getParentValues();
-    }
+    getParentValues();
     if (mounted) setState(() {});
     super.didUpdateWidget(oldWidget);
-  }
-
-  /// Close keyboard
-  void _closeKeyboard(BuildContext context) {
-    try {
-      FocusScope.of(context).requestFocus(FocusNode());
-    } catch (error) {
-      //
-    }
-  }
-
-  void selectLocation({
-    required Place result,
-    required BuildContext context,
-  }) async {
-    placeDetails = null;
-    latitude = null;
-    longitude = null;
-    listPlaces = [];
-    name = null;
-    placeId = null;
-    if (mounted) setState(() {});
-    try {
-      latitude = result.geometry?.location.lat;
-      longitude = result.geometry?.location.lng;
-      name = result.formattedAddress ?? result.name;
-      placeId = result.placeId;
-      if (mounted) setState(() {});
-    } catch (error) {
-      if (mounted) setState(() {});
-      if (widget.onError != null) widget.onError!(error.toString());
-    }
-
-    // === other
-
-    _closeKeyboard(context);
-
-    /// Reset after
-    totalItems = 0;
-    results = [];
-    if (mounted) setState(() {});
-    if (widget.onChange != null && latitude != null && longitude != null) {
-      widget.onChange!(result);
-    }
   }
 
   @override
@@ -234,6 +132,55 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
     ThemeData theme = Theme.of(context);
     AppLocalizations locales = AppLocalizations.of(context)!;
     final alert = Provider.of<StateAlert>(context, listen: false);
+
+    /// Get place object by id
+    getPlaceById(String placeId) async {
+      Map<String, dynamic>? queryParameters = {
+        'key': widget.apiKey,
+        'type': widget.types.isEmpty ? null : widget.types.join(','),
+        'fields': requiredFields.join(','),
+        'place_id': placeId,
+      };
+      Uri url = Uri.https(
+        'maps.googleapis.com',
+        '/maps/api/place/details/json',
+        queryParameters,
+      );
+      final response = await http.get(url);
+      dynamic newData = json.decode(response.body);
+      final placeResponse = PlaceResponse.fromJson(newData);
+      if (placeResponse.errorMessage != null) {
+        throw placeResponse.errorMessage!;
+      }
+      latitude = placeResponse.result!.geometry?.location.lat;
+      longitude = placeResponse.result!.geometry?.location.lng;
+      if (mounted) setState(() {});
+      if (widget.onChange != null && latitude != null && longitude != null) {
+        widget.onChange!(placeResponse.result!);
+      }
+    }
+
+    /// Select location
+    void selectLocation(Place result) async {
+      latitude = null;
+      longitude = null;
+      name = null;
+      totalItems = 0;
+      results = [];
+      if (mounted) setState(() {});
+      try {
+        await getPlaceById(result.placeId);
+      } catch (error) {
+        alert.show(AlertData(
+          title: error.toString(),
+          type: AlertType.warning,
+          duration: 5,
+          clear: true,
+        ));
+        if (widget.onError != null) widget.onError!(error.toString());
+      }
+    }
+
     return AspectRatio(
       aspectRatio: widget.aspectRatio,
       child: LayoutBuilder(
@@ -268,20 +215,27 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
                     if (mounted) setState(() {});
                     return;
                   }
-                  searchAddr = val;
                   try {
-                    String searchUrl = _places.buildTextSearchUrl(
-                      query: searchAddr,
-                      type:
+                    Map<String, dynamic>? queryParameters = {
+                      'key': widget.apiKey,
+                      'input': val,
+                      'inputtype': 'textquery',
+                      'type':
                           widget.types.isEmpty ? null : widget.types.join(','),
+                      'fields': searchFields.join(',')
+                    };
+                    Uri url = Uri.https(
+                      'maps.googleapis.com',
+                      '/maps/api/place/findplacefromtext/json',
+                      queryParameters,
                     );
-                    if (kDebugMode) print(searchUrl);
-                    Uri url = Uri.parse(searchUrl);
                     final response = await http.get(url);
-                    PlacesResponse? search;
                     dynamic newData = json.decode(response.body);
-                    search = PlacesResponse.fromJson(newData);
-                    results = search.results;
+                    final search = PlacesResponse.fromJson(newData);
+                    if (search.errorMessage != null) {
+                      throw search.errorMessage!;
+                    }
+                    results = search.candidates;
                     totalItems = results.length;
                     if (mounted) setState(() {});
                   } catch (error) {
@@ -317,8 +271,7 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
                       direction: Axis.vertical,
                       children: results.map((e) {
                         final item = e;
-                        String formattedAddress =
-                            item.formattedAddress ?? item.name;
+                        String formattedAddress = item.formattedAddress;
                         return Container(
                           color: Colors.grey.shade50,
                           child: Wrap(
@@ -335,10 +288,11 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
                                   color: theme.colorScheme.primary,
                                 ),
                                 onTap: () {
-                                  selectLocation(
-                                    result: item,
-                                    context: context,
-                                  );
+                                  selectLocation(item);
+
+                                  /// Close keyboard
+                                  FocusScope.of(context)
+                                      .requestFocus(FocusNode());
                                 },
                               ),
                               const Divider(height: 1),
