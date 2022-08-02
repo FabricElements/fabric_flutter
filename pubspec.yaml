@@ -23,18 +23,18 @@ dev_dependencies:
   country_code_picker: ^2.0.2
   flutter_cache_manager: ^3.3.0
   image_picker: ^0.8.5+3
-  file_picker: ^5.0.0
+  file_picker: ^5.0.1
   provider: ^6.0.3
   image: ^3.2.0
-  cloud_firestore: ^3.4.2
+  cloud_firestore: ^3.4.3
   cloud_functions: ^3.3.3
   firebase_analytics: ^9.3.0
-  firebase_auth: ^3.6.1
+  firebase_auth: ^3.6.2
   firebase_core: ^1.20.0
   firebase_dynamic_links: ^4.3.3
   firebase_messaging: ^12.0.1
   firebase_storage: ^10.3.4
-  firebase_database: ^9.0.20
+  firebase_database: ^9.1.0
   json_annotation: ^4.6.0
   google_sign_in: ^5.4.0
   flutter_dotenv: ^5.0.2
@@ -48,7 +48,7 @@ dev_dependencies:
   animations: ^2.0.3
   google_maps_flutter: ^2.1.10
   google_maps_flutter_web: ^0.4.0+1
-  google_maps_webservice: ^0.0.19
+  google_maps_webservice: ^0.0.20-nullsafety.5
   package_info_plus: ^1.4.3
   sign_in_with_apple: ^4.1.0
   flutter_localizations:
