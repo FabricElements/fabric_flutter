@@ -162,13 +162,26 @@ class StateAPI extends StateShared {
         errorMessage = e.toString();
       }
     } else {
+      /// Catch Reason Phrase
       errorMessage =
           response.reasonPhrase != null && response.reasonPhrase!.isNotEmpty
               ? response.reasonPhrase
               : null;
-      if (error == null) {
-        errorMessage = 'error--${response.statusCode}';
+
+      /// Catch Error Message from JSON response
+      try {
+        Map<String, dynamic> errorResponse = jsonDecode(response.body);
+        print(errorResponse);
+        if (errorResponse.containsKey('message') &&
+            (errorResponse['message'] as String).isNotEmpty) {
+          errorMessage = errorResponse['message'];
+        }
+      } catch (e) {
+        //--
       }
+
+      /// Use status code if error is null
+      errorMessage ??= 'error--${response.statusCode}';
     }
     if (errorMessage != null) {
       if (kDebugMode) print('------------ ERROR API CALL -------------');
