@@ -15,7 +15,7 @@ class StateDocument extends StateShared {
   /// More at [id]
   String? _documentId;
 
-  /// Set document [id]
+  /// Set document id
   set id(String? id) {
     if (id != _documentId) clear();
     if (id == _documentId) return;
