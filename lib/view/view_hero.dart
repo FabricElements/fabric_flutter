@@ -37,7 +37,9 @@ class _ViewHeroState extends State<ViewHero> {
       );
     }
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        leading: const CloseButton(),
+      ),
       body: _content,
     );
   }

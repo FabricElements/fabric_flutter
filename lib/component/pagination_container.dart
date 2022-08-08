@@ -8,7 +8,8 @@ class PaginationContainer extends StatefulWidget {
     Key? key,
     required this.paginate,
     required this.itemBuilder,
-    this.primary = true,
+    this.primary = false,
+    this.reverse = false,
     this.padding = EdgeInsets.zero,
     this.scrollDirection = Axis.vertical,
     this.cacheExtent = 5,
@@ -40,9 +41,12 @@ class PaginationContainer extends StatefulWidget {
     ),
     required this.stream,
     this.initialData,
+    this.clipBehavior = Clip.hardEdge,
+    this.shrinkWrap = false,
   }) : super(key: key);
   final Widget Function(BuildContext context, dynamic data) itemBuilder;
   final bool primary;
+  final bool reverse;
   final EdgeInsetsGeometry? padding;
   final Axis scrollDirection;
   final double cacheExtent;
@@ -51,6 +55,8 @@ class PaginationContainer extends StatefulWidget {
   final Widget error;
   final Stream<dynamic> stream;
   final List<dynamic>? initialData;
+  final Clip clipBehavior;
+  final bool shrinkWrap;
 
   /// Returns the page
   final Future<dynamic> Function() paginate;
@@ -123,17 +129,41 @@ class _PaginationContainerState extends State<PaginationContainer> {
         if (total == 0 || data == null) {
           content = widget.empty;
         } else {
+          // content = Scrollbar(
+          //     thumbVisibility: true,
+          //     trackVisibility: true,
+          //     interactive: true,
+          //     controller: _controller,
+          //   child: ListView(
+          //     clipBehavior: widget.clipBehavior,
+          //     primary: widget.primary,
+          //     cacheExtent: widget.cacheExtent,
+          //     controller: _controller,
+          //     shrinkWrap: widget.shrinkWrap,
+          //     reverse: widget.reverse,
+          //     scrollDirection: widget.scrollDirection,
+          //     children: List.generate(
+          //         5,
+          //         (index) => Container(
+          //               height: 200,
+          //               color: Colors.orange,
+          //               margin: EdgeInsets.all(8),
+          //             )),
+          //   ),
+          // );
           content = Scrollbar(
             thumbVisibility: true,
-            scrollbarOrientation: ScrollbarOrientation.right,
             trackVisibility: true,
             interactive: true,
             controller: _controller,
             child: ListView.builder(
+              clipBehavior: widget.clipBehavior,
+              primary: widget.primary,
               cacheExtent: widget.cacheExtent,
               controller: _controller,
               itemCount: loading ? (total) + 1 : total,
               padding: widget.padding,
+              shrinkWrap: widget.shrinkWrap,
               itemBuilder: (BuildContext context, int index) {
                 if (index >= total) {
                   return widget.loading;
@@ -141,12 +171,12 @@ class _PaginationContainerState extends State<PaginationContainer> {
                   return widget.itemBuilder(context, data![index]);
                 }
               },
+              reverse: widget.reverse,
               scrollDirection: widget.scrollDirection,
-              shrinkWrap: true,
             ),
           );
         }
-        return Scaffold(body: content, primary: false);
+        return content;
       },
     );
   }
