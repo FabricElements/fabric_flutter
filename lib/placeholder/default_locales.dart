@@ -147,6 +147,22 @@ dynamic defaultLocales = {
     'en': "You didn't choose any files",
     'es': 'No elegiste ningún archivo',
   },
+  'alert--file-is-too-small': {
+    'en': 'File is too small',
+    'es': 'El archivo es muy pequeño',
+  },
+  'alert--no-photo-was-taken': {
+    'en': 'No photo was taken',
+    'es': 'No se tomó una foto'
+  },
+  'alert--not-implemented': {
+    'en': 'Not Implemented',
+    'es': 'No implementada',
+  },
+  'alert--issue-resizing-image': {
+    'en': 'There was an issue resizing the image',
+    'es': 'Hubo un problema al cambiar el tamaño de la imagen',
+  },
   'label--save': {
     'en': 'Save',
     'es': 'Guardar',
@@ -716,5 +732,13 @@ dynamic defaultLocales = {
   'label--not-supported': {
     'en': 'Not Supported',
     'es': 'No soportado',
+  },
+  'label--template': {
+    'en': 'Template',
+    'es': 'Plantilla',
+  },
+  'label--templates': {
+    'en': 'Templates',
+    'es': 'Plantillas',
   },
 };

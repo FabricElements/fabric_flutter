@@ -36,7 +36,7 @@ dev_dependencies:
   firebase_storage: ^10.3.4
   firebase_database: ^9.1.0
   json_annotation: ^4.6.0
-  google_sign_in: ^5.4.0
+  google_sign_in: ^5.4.1
   flutter_dotenv: ^5.0.2
   http: ^0.13.5
   #vibration: ^1.7.3
@@ -51,6 +51,7 @@ dev_dependencies:
   google_maps_webservice: ^0.0.20-nullsafety.5
   package_info_plus: ^1.4.3
   sign_in_with_apple: ^4.1.0
+  mime: ^1.0.2
   flutter_localizations:
     sdk: flutter
 

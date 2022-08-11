@@ -13,29 +13,27 @@ class PaginationContainer extends StatefulWidget {
     this.padding = EdgeInsets.zero,
     this.scrollDirection = Axis.vertical,
     this.cacheExtent = 5,
-    this.empty = const Align(
+    this.empty = const Center(
       child: Padding(
         padding: EdgeInsets.all(8.0),
         child: SizedBox.square(
           dimension: 32,
-          child: Icon(Icons.check),
+          child: Icon(Icons.remove),
         ),
       ),
     ),
-    this.error = const Align(
+    this.error = const Center(
       child: Padding(
         padding: EdgeInsets.all(8.0),
-        child: Text('Error Loading Snapshot'),
+        child: Text('Error Loading!'),
       ),
     ),
-    this.loading = const Align(
+    this.loading = const Center(
       child: Padding(
         padding: EdgeInsets.all(8.0),
         child: SizedBox.square(
           dimension: 32,
-          child: CircularProgressIndicator(
-            semanticsLabel: 'Loading...',
-          ),
+          child: Icon(Icons.hourglass_bottom),
         ),
       ),
     ),
@@ -110,73 +108,51 @@ class _PaginationContainerState extends State<PaginationContainer> {
       stream: widget.stream,
       initialData: widget.initialData,
       builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-        int total = 0;
-        Widget content = widget.loading;
         List<dynamic>? data = widget.initialData;
         if (snapshot.hasError) return widget.error;
+        bool connected = false;
         switch (snapshot.connectionState) {
           case ConnectionState.none:
           case ConnectionState.waiting:
-            content = content = widget.loading;
             break;
           case ConnectionState.active:
           case ConnectionState.done:
+            connected = true;
             if (snapshot.data != null) {
               data = snapshot.data as List<dynamic>;
             }
         }
-        total = data?.length ?? 0;
-        if (total == 0 || data == null) {
-          content = widget.empty;
-        } else {
-          // content = Scrollbar(
-          //     thumbVisibility: true,
-          //     trackVisibility: true,
-          //     interactive: true,
-          //     controller: _controller,
-          //   child: ListView(
-          //     clipBehavior: widget.clipBehavior,
-          //     primary: widget.primary,
-          //     cacheExtent: widget.cacheExtent,
-          //     controller: _controller,
-          //     shrinkWrap: widget.shrinkWrap,
-          //     reverse: widget.reverse,
-          //     scrollDirection: widget.scrollDirection,
-          //     children: List.generate(
-          //         5,
-          //         (index) => Container(
-          //               height: 200,
-          //               color: Colors.orange,
-          //               margin: EdgeInsets.all(8),
-          //             )),
-          //   ),
-          // );
-          content = Scrollbar(
-            thumbVisibility: true,
-            trackVisibility: true,
-            interactive: true,
-            controller: _controller,
-            child: ListView.builder(
-              clipBehavior: widget.clipBehavior,
-              primary: widget.primary,
-              cacheExtent: widget.cacheExtent,
-              controller: _controller,
-              itemCount: loading ? (total) + 1 : total,
-              padding: widget.padding,
-              shrinkWrap: widget.shrinkWrap,
-              itemBuilder: (BuildContext context, int index) {
-                if (index >= total) {
-                  return widget.loading;
-                } else {
-                  return widget.itemBuilder(context, data![index]);
-                }
-              },
-              reverse: widget.reverse,
-              scrollDirection: widget.scrollDirection,
-            ),
-          );
+        int total = data?.length ?? 0;
+        if (total == 0) {
+          return widget.empty;
         }
-        return content;
+        if (data == null && !connected) {
+          return widget.loading;
+        }
+        return Scrollbar(
+          thumbVisibility: true,
+          trackVisibility: true,
+          interactive: true,
+          controller: _controller,
+          child: ListView.builder(
+            clipBehavior: widget.clipBehavior,
+            primary: widget.primary,
+            cacheExtent: widget.cacheExtent,
+            controller: _controller,
+            itemCount: loading ? (total) + 1 : total,
+            padding: widget.padding,
+            shrinkWrap: widget.shrinkWrap,
+            itemBuilder: (BuildContext context, int index) {
+              if (index < total) {
+                return widget.itemBuilder(context, data![index]);
+              } else {
+                return widget.loading;
+              }
+            },
+            reverse: widget.reverse,
+            scrollDirection: widget.scrollDirection,
+          ),
+        );
       },
     );
   }

@@ -54,6 +54,7 @@ class InputData extends StatefulWidget {
     this.textStyle,
     this.obscureText,
     this.label,
+    this.textInputAction,
   }) : super(key: key);
   final dynamic value;
   final List<dynamic> enums;
@@ -74,6 +75,7 @@ class InputData extends StatefulWidget {
   final TextStyle? textStyle;
   final bool? obscureText;
   final String? label;
+  final TextInputAction? textInputAction;
 
   /// [onSubmit]
   /// Never use expression body or value won't be update correctly
@@ -208,9 +210,15 @@ getValue -------------------------------------
       style: const TextStyle(color: Colors.orange),
     );
     TextInputType keyboardType = TextInputType.text;
+    TextInputAction? textInputAction = widget.textInputAction;
     List<TextInputFormatter> inputFormatters = [];
     final inputValidation = InputValidation(locales: locales);
     switch (widget.type) {
+      case InputDataType.text:
+        keyboardType = TextInputType.multiline;
+        textInputAction = widget.textInputAction ?? TextInputAction.newline;
+        break;
+
       case InputDataType.phone:
 
         /// https://en.wikipedia.org/wiki/Telephone_numbering_plan
@@ -351,6 +359,7 @@ getValue -------------------------------------
         endWidget = TextFormField(
           enableSuggestions: false,
           keyboardType: keyboardType,
+          textInputAction: textInputAction,
           controller: textController,
           readOnly: true,
           decoration: inputDecoration.copyWith(

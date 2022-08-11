@@ -7,6 +7,7 @@ part of fabric_flutter;
 // **************************************************************************
 
 GSMData _$GSMDataFromJson(Map<String, dynamic> json) => GSMData(
+      text: json['text'] as String,
       segments: json['segments'] as int,
       charsLeft: json['charsLeft'] as int,
       charSet: $enumDecode(_$CharSetEnumMap, json['charSet']),
@@ -14,6 +15,7 @@ GSMData _$GSMDataFromJson(Map<String, dynamic> json) => GSMData(
     );
 
 Map<String, dynamic> _$GSMDataToJson(GSMData instance) => <String, dynamic>{
+      'text': instance.text,
       'segments': instance.segments,
       'charsLeft': instance.charsLeft,
       'charSet': _$CharSetEnumMap[instance.charSet]!,
