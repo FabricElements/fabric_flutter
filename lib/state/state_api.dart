@@ -1,7 +1,5 @@
 library fabric_flutter;
 
-import 'dart:convert';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -119,7 +117,6 @@ class StateAPI extends StateShared {
     }
 
     _lastEndpointCalled = endpoint;
-    String? errorMessage;
     if (_errorCount > 1) {
       if (kDebugMode) {
         print('$_errorCount errors calls to endpoint: $endpoint');
@@ -152,41 +149,15 @@ class StateAPI extends StateShared {
       });
     }
     if (kDebugMode) print('Calling endpoint: $endpoint');
-    final response = await http.get(url, headers: headers);
     dynamic newData;
-    if (response.statusCode == 200) {
-      try {
-        newData = jsonDecode(response.body);
-        error = null;
-      } catch (e) {
-        errorMessage = e.toString();
-      }
-    } else {
-      /// Catch Reason Phrase
-      errorMessage =
-          response.reasonPhrase != null && response.reasonPhrase!.isNotEmpty
-              ? response.reasonPhrase
-              : null;
-
-      /// Catch Error Message from JSON response
-      try {
-        Map<String, dynamic> errorResponse = jsonDecode(response.body);
-        print(errorResponse);
-        if (errorResponse.containsKey('message') &&
-            (errorResponse['message'] as String).isNotEmpty) {
-          errorMessage = errorResponse['message'];
-        }
-      } catch (e) {
-        //--
-      }
-
-      /// Use status code if error is null
-      errorMessage ??= 'error--${response.statusCode}';
-    }
-    if (errorMessage != null) {
+    try {
+      final response = await http.get(url, headers: headers);
+      newData = HTTPRequest.response(response);
+      error = null;
+    } catch (e) {
       if (kDebugMode) print('------------ ERROR API CALL -------------');
       _errorCount++;
-      error = errorMessage;
+      error = e.toString();
       if (!isSameClearPath) data = null;
       newData = null;
     }

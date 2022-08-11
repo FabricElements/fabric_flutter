@@ -1,5 +1,9 @@
 library fabric_flutter;
 
+import 'dart:convert';
+
+import 'package:http/http.dart';
+
 /// https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication#authentication_schemes
 enum AuthScheme {
   // ignore: constant_identifier_names
@@ -39,5 +43,44 @@ class HTTPRequest {
       _headers.addAll({'Authorization': formattedCredentials!});
     }
     return _headers;
+  }
+
+  /// Throw an error if it's found or null if it's ok
+  static error(Response r) {
+    if (r.statusCode == 200) {
+      return;
+    }
+
+    /// Catch Reason Phrase
+    String? errorResponse = r.reasonPhrase != null && r.reasonPhrase!.isNotEmpty
+        ? r.reasonPhrase
+        : null;
+
+    /// Catch Error Message from JSON response
+    try {
+      Map<String, dynamic> responseObject = jsonDecode(r.body);
+      print(responseObject);
+      if (responseObject.containsKey('message') &&
+          (responseObject['message'] as String).isNotEmpty) {
+        errorResponse = responseObject['message'];
+      }
+    } catch (e) {
+      //--
+    }
+
+    /// Use status code if error is null
+    errorResponse ??= 'error--${r.statusCode}';
+
+    /// Throw error
+    throw errorResponse;
+  }
+
+  /// Return decoded request response
+  static dynamic response(Response r) {
+    /// Check for errors
+    error(r);
+
+    /// Get response
+    return jsonDecode(r.body);
   }
 }

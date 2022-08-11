@@ -6,7 +6,6 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
@@ -180,9 +179,6 @@ class MediaHelper {
     extension = file.extension;
     fileName = file.name;
     contentType = lookupMimeType(fileName);
-    // assert(fileData != null, 'alert--missing-file-bytes');
-    // assert(contentType != null, 'alert--missing-content-type');
-    // assert(extension != null, 'alert--missing-file-extension');
     final encodeData = base64Encode(fileData!);
     return MediaData(
       data: encodeData,
@@ -190,23 +186,5 @@ class MediaHelper {
       contentType: contentType!,
       fileName: fileName,
     );
-  }
-
-  /// Save file
-  static Future<String> save({
-    required String data,
-    required String path,
-    bool autoId = false,
-    SettableMetadata? metadata,
-    PutStringFormat format = PutStringFormat.raw,
-  }) async {
-    final storageRef = FirebaseStorage.instance.ref();
-    String finalPath = path;
-    if (autoId) {
-      finalPath += '/${DateTime.now().millisecondsSinceEpoch.toString()}';
-    }
-    final imagesRef = storageRef.child(finalPath);
-    await imagesRef.putString(data, format: format, metadata: metadata);
-    return finalPath;
   }
 }
