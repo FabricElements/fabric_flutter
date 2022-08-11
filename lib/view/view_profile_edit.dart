@@ -213,7 +213,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
       if (mounted) setState(() {});
       try {
         final imageSelected = await MediaHelper.getImage(origin: origin);
-        _temporalImageBytes = imageSelected?.data;
+        _temporalImageBytes = base64Decode(imageSelected.data);
         if (_temporalImageBytes != null) {
           changed = _temporalImageBytes != null;
         }

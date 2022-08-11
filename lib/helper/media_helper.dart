@@ -1,6 +1,7 @@
 library fabric_flutter;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -11,38 +12,26 @@ import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
 
+import '../serialized/media_data.dart';
+
 enum MediaOrigin {
   camera,
   gallery,
   files,
 }
 
-class MediaObject {
-  Uint8List data;
-  String? contentType;
-  String? extension;
-  String? fileName;
-
-  MediaObject({
-    required this.data,
-    this.contentType,
-    this.extension,
-    this.fileName,
-  });
-}
-
 /// Image helper class
 class MediaHelper {
   /// Get fileurl
   /// [origin] either 'camera' or 'gallery'
-  static Future<MediaObject> getImage({
+  static Future<MediaData> getImage({
     required MediaOrigin origin,
-    double? maxSize,
+    int? maxSize,
   }) async {
     Uint8List? fileData;
     String? extension;
     String? contentType;
-    String? fileName;
+    String fileName = 'unknown';
     try {
       switch (origin) {
         case MediaOrigin.gallery:
@@ -64,7 +53,10 @@ class MediaHelper {
           if (kIsWeb) throw 'alert--not-implemented';
           final picker = ImagePicker();
           final pickedFile = await picker.pickImage(
-              source: ImageSource.camera, maxWidth: 1500);
+            source: ImageSource.camera,
+            maxWidth: maxSize?.toDouble() ?? 1500,
+            maxHeight: maxSize?.toDouble() ?? 1500,
+          );
           if (pickedFile == null) {
             throw 'alert--no-photo-was-taken';
           }
@@ -76,9 +68,13 @@ class MediaHelper {
           contentType = 'image/jpeg';
           break;
         case MediaOrigin.files:
-          return await getFile(
+          final dataFromFiles = await getFile(
             allowedExtensions: ['png', 'jpg', 'jpeg', 'gif'],
           );
+          fileData = base64Decode(dataFromFiles.data);
+          extension = dataFromFiles.extension;
+          contentType = dataFromFiles.contentType;
+          fileName = dataFromFiles.fileName;
       }
     } catch (error) {
       if (kDebugMode) print('Getting the image: $error');
@@ -98,12 +94,15 @@ class MediaHelper {
       rethrow;
     }
 
-    if (fileData == null) throw 'alert--no-choose-files';
-
-    return MediaObject(
-      data: fileData,
-      extension: extension,
-      contentType: contentType,
+    // assert(fileData != null, 'alert--missing-file-bytes');
+    // assert(contentType != null, 'alert--missing-content-type');
+    // assert(extension != null, 'alert--missing-file-extension');
+    // assert(fileName != null, 'alert--missing-file-name');
+    final encodeData = base64Encode(fileData!);
+    return MediaData(
+      data: encodeData,
+      extension: extension!,
+      contentType: contentType!,
       fileName: fileName,
     );
   }
@@ -115,28 +114,28 @@ class MediaHelper {
   static Future<Uint8List> resize({
     required Uint8List imageByes,
     String? imageType,
-    double maxHeight = 1000,
-    double maxWidth = 1000,
+    int maxHeight = 1000,
+    int maxWidth = 1000,
   }) async {
     try {
       img.Image baseImage = img.decodeImage(imageByes)!;
-      double height = baseImage.height.toDouble();
-      double width = baseImage.width.toDouble();
+      int height = baseImage.height;
+      int width = baseImage.width;
       // Workout the scaling options, height going first being that height
       // is very often the largest value
       if (height > maxHeight || width > maxWidth) {
         if (height > maxHeight) {
-          width = width / (height / maxHeight);
+          width = (width / (height / maxHeight)).round();
           height = maxHeight;
         }
         if (width > maxWidth) {
-          height = height / (width / maxWidth);
+          height = (height / (width / maxWidth)).round();
           width = maxWidth;
         }
         baseImage = img.copyResize(
           baseImage,
-          height: height.round(),
-          width: width.round(),
+          height: height,
+          width: width,
         );
       }
       late Uint8List encodedImage;
@@ -162,7 +161,7 @@ class MediaHelper {
   }
 
   /// Basic file selection
-  static Future<MediaObject> getFile({
+  static Future<MediaData> getFile({
     List<String>? allowedExtensions,
   }) async {
     Uint8List? fileData;
@@ -180,21 +179,26 @@ class MediaHelper {
     fileData = file.bytes;
     extension = file.extension;
     fileName = file.name;
-    contentType = lookupMimeType(file.name);
-    return MediaObject(
-      data: fileData!,
-      extension: extension,
-      contentType: contentType,
+    contentType = lookupMimeType(fileName);
+    // assert(fileData != null, 'alert--missing-file-bytes');
+    // assert(contentType != null, 'alert--missing-content-type');
+    // assert(extension != null, 'alert--missing-file-extension');
+    final encodeData = base64Encode(fileData!);
+    return MediaData(
+      data: encodeData,
+      extension: extension!,
+      contentType: contentType!,
       fileName: fileName,
     );
   }
 
   /// Save file
   static Future<String> save({
-    required Uint8List data,
+    required String data,
     required String path,
     bool autoId = false,
     SettableMetadata? metadata,
+    PutStringFormat format = PutStringFormat.raw,
   }) async {
     final storageRef = FirebaseStorage.instance.ref();
     String finalPath = path;
@@ -202,7 +206,7 @@ class MediaHelper {
       finalPath += '/${DateTime.now().millisecondsSinceEpoch.toString()}';
     }
     final imagesRef = storageRef.child(finalPath);
-    await imagesRef.putData(data, metadata);
+    await imagesRef.putString(data, format: format, metadata: metadata);
     return finalPath;
   }
 }
