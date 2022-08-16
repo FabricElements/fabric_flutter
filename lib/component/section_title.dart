@@ -39,11 +39,11 @@ class _SectionTitleState extends State<SectionTitle> {
       String textFinal = textConvert;
       int? initialHelper = 0;
       Iterable matches = regExp.allMatches(textFinal);
-      TextStyle? sizeBase = textTheme.headline6;
+      TextStyle? sizeBase = textTheme.bodyLarge;
       TextStyle? titleDefault = sizeBase;
       TextStyle? titleColor = sizeBase;
       if (type == 'title') {
-        sizeBase = textTheme.headline3;
+        sizeBase = textTheme.headline4;
         titleDefault = sizeBase!.copyWith(
           fontWeight: FontWeight.w600,
         );
@@ -130,8 +130,8 @@ class _SectionTitleState extends State<SectionTitle> {
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 16),
         child: Column(
-          children: items,
           crossAxisAlignment: CrossAxisAlignment.start,
+          children: items,
         ),
       ),
     );
