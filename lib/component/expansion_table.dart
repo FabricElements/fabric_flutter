@@ -103,7 +103,6 @@ class _ExpansionTableState extends State<ExpansionTable> {
     //     ? Border(bottom: borderSide)
     //     : index == 0 ? null : Border(top: borderSide);
     ScrollController controllerHorizontal = ScrollController();
-    ScrollController controllerVertical = ScrollController();
 
     // List<Widget> _columns = _getColumns(columns: data.header!);
     // final List<TableColumnWidth> tableColumns = List<TableColumnWidth>.filled(data.header!.length + (displayCheckboxColumn ? 1 : 0), const _NullTableColumnWidth());
@@ -380,54 +379,21 @@ class _ExpansionTableState extends State<ExpansionTable> {
         if (data.level > 0) {
           return rows;
         }
-        return ConstrainedBox(
-          constraints: BoxConstraints(
-              minHeight: height,
-              minWidth: width,
-              maxHeight: height,
-              maxWidth: width),
-          child: Scrollbar(
-            thumbVisibility: true,
-            scrollbarOrientation: ScrollbarOrientation.bottom,
-            interactive: true,
+        return Scrollbar(
+          thumbVisibility: true,
+          interactive: true,
+          trackVisibility: true,
+          controller: controllerHorizontal,
+          child: SingleChildScrollView(
             controller: controllerHorizontal,
-            child: SingleChildScrollView(
-              controller: controllerHorizontal,
-              scrollDirection: Axis.horizontal,
-              primary: false,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxWidth: totalWidth,
-                  minWidth: width,
-                  minHeight: height,
-                  maxHeight: height,
-                ),
-                child: Stack(
-                  alignment: Alignment.bottomCenter,
-                  // direction: Axis.vertical,
-                  children: [
-                    ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxHeight: height - headingRowHeight,
-                        maxWidth: totalWidth,
-                        minWidth: totalWidth,
-                      ),
-                      child: Scrollbar(
-                        thumbVisibility: true,
-                        scrollbarOrientation: ScrollbarOrientation.right,
-                        interactive: true,
-                        controller: controllerVertical,
-                        child: ListView(
-                          controller: controllerVertical,
-                          primary: false,
-                          children: rowsList,
-                        ),
-                      ),
-                    ),
-                    Positioned(top: 0, left: 0, right: 0, child: columns),
-                  ],
-                ),
-              ),
+            scrollDirection: Axis.horizontal,
+            primary: false,
+            child: Flex(
+              direction: Axis.vertical,
+              children: [
+                columns,
+                ...rowsList,
+              ],
             ),
           ),
         );
