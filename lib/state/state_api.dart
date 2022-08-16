@@ -41,13 +41,12 @@ class StateAPI extends StateShared {
   void clear({bool notify = false}) {
     _errorCount = 0;
     initialized = false;
-    pageDefault = 0;
+    pageDefault = initialPage;
     limitDefault = 5;
     selectedItems = [];
     _lastEndpointCalled = null;
     data = null;
     dataOld = null;
-    queryAllPaginated = false;
     clearAfter();
     if (notify) notifyListeners();
   }
@@ -84,96 +83,107 @@ class StateAPI extends StateShared {
 
   /// API Call
   @override
-  Future<dynamic> call({bool ignoreDuplicatedCalls = false}) async {
-    if (loading) return null;
+  Future<dynamic> call({
+    bool ignoreDuplicatedCalls = false,
+    bool notify = false,
+  }) async {
+    /// Prevents duplicate calls with a delay and check for loading call again
+    if (loading) return;
     loading = true;
-    // Prevents duplicate calls with a delay
     await Future.delayed(const Duration(milliseconds: 100));
-    if (endpoint == null) {
-      data = null;
-      error = 'endpoint can\'t be null';
-      _errorCount++;
-      loading = false;
-      notifyListeners();
-      return null;
-    }
-    if (ignoreDuplicatedCalls &&
-        _lastEndpointCalled != null &&
-        _lastEndpointCalled == endpoint) {
-      loading = false;
-      return null;
-    }
-    bool isSameClearPath = false;
-    if (!queryAllPaginated) {
+    try {
+      if (endpoint == null) {
+        data = null;
+        error = 'endpoint can\'t be null';
+        _errorCount++;
+        loading = false;
+        if (notify) notifyListeners();
+        return;
+      }
+      if (ignoreDuplicatedCalls &&
+          _lastEndpointCalled != null &&
+          _lastEndpointCalled == endpoint) {
+        loading = false;
+        return data;
+      }
+      bool isSameClearPath = false;
       final lastEndpointClear = urlClear(_lastEndpointCalled);
       final endpointClear = urlClear(endpoint);
-      isSameClearPath =
-          lastEndpointClear == endpointClear && incrementalPagination;
+      isSameClearPath = lastEndpointClear == endpointClear && paginate;
       if (!isSameClearPath) {
         _errorCount = 0;
         data = null;
         initialized = false;
       }
-    }
-
-    _lastEndpointCalled = endpoint;
-    if (_errorCount > 1) {
-      if (kDebugMode) {
-        print('$_errorCount errors calls to endpoint: $endpoint');
+      _lastEndpointCalled = endpoint;
+      if (_errorCount > 1) {
+        if (kDebugMode) {
+          print('$_errorCount errors calls to endpoint: $endpoint');
+        }
+        loading = false;
+        if (!isSameClearPath) data = null;
+        return data;
       }
+      bool mustAuthenticate = false;
+      bool canAuthenticate = false;
+      if (token) {
+        authScheme = AuthScheme.Bearer;
+        credentials = await FirebaseAuth.instance.currentUser?.getIdToken();
+      }
+      if (authScheme != null || credentials != null) {
+        mustAuthenticate = true;
+        canAuthenticate = authScheme != null && credentials != null;
+      }
+      if (mustAuthenticate && !canAuthenticate) {
+        if (kDebugMode) print('Must Authenticate on call: $endpoint');
+        loading = false;
+        return;
+      }
+      bool willAuthenticate = mustAuthenticate && canAuthenticate;
+      Uri url = Uri.parse(endpoint!);
+      Map<String, String> headers = {};
+      if (willAuthenticate) {
+        headers.addAll({
+          'Authorization': '${describeEnum(authScheme!)} $credentials',
+        });
+      }
+      if (kDebugMode) print('Calling endpoint: $endpoint');
+      dynamic newData;
+      try {
+        final response = await http.get(url, headers: headers);
+        newData = HTTPRequest.response(response);
+        error = null;
+      } catch (e) {
+        if (kDebugMode) print('------------ ERROR API CALL -------------');
+        _errorCount++;
+        error = e.toString();
+        if (!isSameClearPath) data = null;
+        newData = null;
+      }
+      initialized = true;
       loading = false;
-      if (!isSameClearPath) data = null;
-      return null;
-    }
-    bool mustAuthenticate = false;
-    bool canAuthenticate = false;
-    if (token) {
-      authScheme = AuthScheme.Bearer;
-      credentials = await FirebaseAuth.instance.currentUser?.getIdToken();
-    }
-    if (authScheme != null || credentials != null) {
-      mustAuthenticate = true;
-      canAuthenticate = authScheme != null && credentials != null;
-    }
-    if (mustAuthenticate && !canAuthenticate) {
-      if (kDebugMode) print('Must Authenticate on call: $endpoint');
-      loading = false;
-      return null;
-    }
-    bool willAuthenticate = mustAuthenticate && canAuthenticate;
-    Uri url = Uri.parse(endpoint!);
-    Map<String, String> headers = {};
-    if (willAuthenticate) {
-      headers.addAll({
-        'Authorization': '${describeEnum(authScheme!)} $credentials',
-      });
-    }
-    if (kDebugMode) print('Calling endpoint: $endpoint');
-    dynamic newData;
-    try {
-      final response = await http.get(url, headers: headers);
-      newData = HTTPRequest.response(response);
-      error = null;
+
+      /// pagination
+      if (incrementalPagination && page > 0) {
+        if (data != null && newData != null && newData.isNotEmpty) {
+          data = merge(base: data, toMerge: newData);
+        }
+      } else {
+        data = newData;
+      }
     } catch (e) {
-      if (kDebugMode) print('------------ ERROR API CALL -------------');
+      if (kDebugMode) print('------ ERROR API CALL : Parent catch ------');
+      initialized = false;
+      loading = false;
       _errorCount++;
       error = e.toString();
-      if (!isSameClearPath) data = null;
-      newData = null;
     }
-    initialized = true;
-    loading = false;
-    Future.delayed(const Duration(milliseconds: 10))
-        .then((value) => notifyListeners());
-
-    /// pagination
-    if (incrementalPagination && page > 0) {
-      if (data != null && newData != null && newData.isNotEmpty) {
-        data = merge(base: data, toMerge: newData);
-      }
-    } else {
-      data = newData;
+    if (notify) {
+      /// Notify with delay in case widgets using the state need paint
+      Future.delayed(const Duration(milliseconds: 100)).then((value) {
+        notifyListeners();
+      });
     }
-    return newData;
+    return data;
   }
 }
