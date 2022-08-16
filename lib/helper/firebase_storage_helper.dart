@@ -57,7 +57,7 @@ class FirebaseStorageHelper {
     final storageRef = FirebaseStorage.instance.ref();
     String finalPath = path;
     if (autoId) {
-      finalPath += '/${DateTime.now().millisecondsSinceEpoch.toString()}';
+      finalPath += DateTime.now().millisecondsSinceEpoch.toString();
     }
     final imagesRef = storageRef.child(finalPath);
     return imagesRef.putString(data, format: format, metadata: metadata);

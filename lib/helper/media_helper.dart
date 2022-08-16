@@ -25,7 +25,7 @@ class MediaHelper {
   /// [origin] either 'camera' or 'gallery'
   static Future<MediaData> getImage({
     required MediaOrigin origin,
-    int? maxSize,
+    int? maxDimensions,
   }) async {
     Uint8List? fileData;
     String? extension;
@@ -53,8 +53,8 @@ class MediaHelper {
           final picker = ImagePicker();
           final pickedFile = await picker.pickImage(
             source: ImageSource.camera,
-            maxWidth: maxSize?.toDouble() ?? 1500,
-            maxHeight: maxSize?.toDouble() ?? 1500,
+            maxWidth: maxDimensions?.toDouble() ?? 1500,
+            maxHeight: maxDimensions?.toDouble() ?? 1500,
           );
           if (pickedFile == null) {
             throw 'alert--no-photo-was-taken';
@@ -80,12 +80,12 @@ class MediaHelper {
       rethrow;
     }
     try {
-      if (fileData != null && maxSize != null) {
+      if (fileData != null && maxDimensions != null) {
         fileData = await resize(
           imageByes: fileData,
           imageType: extension?.toString(),
-          maxWidth: maxSize,
-          maxHeight: maxSize,
+          maxWidth: maxDimensions,
+          maxHeight: maxDimensions,
         );
       }
     } catch (error) {
@@ -122,6 +122,7 @@ class MediaHelper {
       int width = baseImage.width;
       // Workout the scaling options, height going first being that height
       // is very often the largest value
+      bool needsResize = height > maxHeight || width > maxWidth;
       if (height > maxHeight || width > maxWidth) {
         if (height > maxHeight) {
           width = (width / (height / maxHeight)).round();
@@ -131,23 +132,39 @@ class MediaHelper {
           height = (height / (width / maxWidth)).round();
           width = maxWidth;
         }
-        baseImage = img.copyResize(
-          baseImage,
+      }
+
+      /// Return same data if doesn't require resize
+      if (!needsResize) return imageByes;
+
+      img.Image _resize(img.Image src) {
+        /// Ignore if it doesn't need to resize
+        if (!needsResize) return src;
+        return img.copyResize(
+          src,
           height: height,
           width: width,
         );
       }
+
       late Uint8List encodedImage;
       switch (imageType) {
-        case 'png':
-          encodedImage = img.encodePng(baseImage) as Uint8List;
-          break;
         case 'gif':
-          encodedImage = img.encodeGif(baseImage) as Uint8List;
+          img.Animation? gifAnimation = img.decodeGifAnimation(imageByes);
+          img.Animation copyGif = img.Animation();
+          for (var element in gifAnimation!.frames) {
+            copyGif.addFrame(_resize(element));
+          }
+          encodedImage = img.encodeGifAnimation(copyGif) as Uint8List;
+          break;
+        case 'png':
+          baseImage = _resize(baseImage);
+          encodedImage = img.encodePng(baseImage) as Uint8List;
           break;
         case 'jpeg':
         case 'jpg':
         default:
+          baseImage = _resize(baseImage);
           encodedImage = img.encodeJpg(baseImage) as Uint8List;
           break;
       }
