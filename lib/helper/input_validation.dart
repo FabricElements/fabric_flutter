@@ -41,4 +41,19 @@ class InputValidation {
       return locales?.get('validation--phone') ?? 'Enter a valid phone number';
     }
   }
+
+  /// Returns true if contains a valid url
+  static bool isUrlValid(String? url) {
+    if (url == null || url.isEmpty) return false;
+    return RegexHelper.url.hasMatch(url);
+  }
+
+  /// Returns null if contains a valid url
+  String? validateUrl(String? url) {
+    if (isUrlValid(url)) {
+      return null;
+    } else {
+      return locales?.get('validation--url') ?? 'Enter a valid URL';
+    }
+  }
 }

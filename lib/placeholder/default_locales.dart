@@ -139,6 +139,10 @@ dynamic defaultLocales = {
     'en': 'Remove',
     'es': 'Eliminar',
   },
+  'label--remove-label': {
+    'en': 'Remove {label}',
+    'es': 'Eliminar {label}',
+  },
   'alert--user-removed': {
     'en': 'User Removed',
     'es': 'Usuario Eliminado',
@@ -162,6 +166,10 @@ dynamic defaultLocales = {
   'alert--issue-resizing-image': {
     'en': 'There was an issue resizing the image',
     'es': 'Hubo un problema al cambiar el tamaño de la imagen',
+  },
+  'alert--action-permanent': {
+    'en': 'This action can\'t be undone',
+    'es': 'Esta acción no se puede deshacer',
   },
   'label--save': {
     'en': 'Save',
@@ -394,6 +402,10 @@ dynamic defaultLocales = {
   'label--delete': {
     'en': 'Delete',
     'es': 'Eliminar',
+  },
+  'label--delete-label': {
+    'en': 'Delete {label}',
+    'es': 'Eliminar {label}',
   },
   'label--name-first': {
     'en': 'First Name',

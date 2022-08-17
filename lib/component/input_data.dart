@@ -25,6 +25,7 @@ enum InputDataType {
   radio,
   phone,
   secret,
+  url,
 }
 
 /// [InputData] provides an useful way to handle data input
@@ -55,6 +56,7 @@ class InputData extends StatefulWidget {
     this.obscureText,
     this.label,
     this.textInputAction,
+    this.autocorrect = false,
   }) : super(key: key);
   final dynamic value;
   final List<dynamic> enums;
@@ -76,6 +78,7 @@ class InputData extends StatefulWidget {
   final bool? obscureText;
   final String? label;
   final TextInputAction? textInputAction;
+  final bool autocorrect;
 
   /// [onSubmit]
   /// Never use expression body or value won't be update correctly
@@ -106,6 +109,7 @@ class _InputDataState extends State<InputData> {
         case InputDataType.phone:
         case InputDataType.email:
         case InputDataType.secret:
+        case InputDataType.url:
           String tempValue = newValue?.toString() ?? '';
           if (tempValue != value) {
             value = tempValue;
@@ -200,6 +204,7 @@ getValue -------------------------------------
       case InputDataType.phone:
       case InputDataType.email:
       case InputDataType.secret:
+      case InputDataType.url:
         inputIcon = widget.icon != null ? Icon(widget.icon) : null;
         break;
       default:
@@ -245,6 +250,14 @@ getValue -------------------------------------
           FilteringTextInputFormatter.singleLineFormatter,
         ]);
         validator = inputValidation.validateEmail;
+        break;
+      case InputDataType.url:
+        hintTextDefault = 'https://example.com';
+        keyboardType = TextInputType.url;
+        inputFormatters.addAll([
+          FilteringTextInputFormatter.singleLineFormatter,
+        ]);
+        validator = inputValidation.validateUrl;
         break;
       case InputDataType.double:
         keyboardType = const TextInputType.numberWithOptions(decimal: true);
@@ -324,7 +337,9 @@ getValue -------------------------------------
       case InputDataType.phone:
       case InputDataType.email:
       case InputDataType.secret:
+      case InputDataType.url:
         endWidget = TextFormField(
+          autocorrect: widget.autocorrect,
           controller: textController,
           enableSuggestions: false,
           keyboardType: keyboardType,
