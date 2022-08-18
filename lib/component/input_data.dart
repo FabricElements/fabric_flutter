@@ -118,12 +118,14 @@ class _InputDataState extends State<InputData> {
           }
           break;
         case InputDataType.date:
-          value = newValue as DateTime?;
-          if (value != null) {
+          value = newValue != null ? newValue as DateTime : null;
+          if (value != null && widget.utcOffset != null) {
             value = Utils.dateTimeOffset(
               dateTime: value,
               utcOffset: widget.utcOffset,
             );
+          }
+          if (value != null) {
             textController.text = formatDate.format(value);
           } else {
             textController.text = '';
@@ -385,13 +387,19 @@ getValue -------------------------------------
                 inputDecoration.prefixIcon ?? const Icon(Icons.date_range),
           ),
           onTap: () async {
-            DateTime? date = value ?? DateTime.now();
-            int year = date!.year < 2020 ? date.year : 2000;
+            DateTime now = DateTime.now().toUtc();
+            DateTime date = value ?? now;
+            DateTime dateBefore = now;
+            DateTime dateAfter = now;
+            if (value != null) {
+              dateBefore = date.isBefore(now) ? date : now;
+              dateAfter = date.isAfter(now) ? date : now;
+            }
             final DateTime? picked = await showDatePicker(
               context: context,
               initialDate: date,
-              firstDate: DateTime(year),
-              lastDate: date.add(const Duration(days: 365)),
+              firstDate: dateBefore.subtract(const Duration(days: 365 * 10)),
+              lastDate: dateAfter.add(const Duration(days: 365 * 10)),
             );
             if (picked != null) {
               final newDate = Utils.dateTimeOffset(
