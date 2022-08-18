@@ -21,7 +21,7 @@ enum MediaOrigin {
 
 /// Image helper class
 class MediaHelper {
-  /// Get fileurl
+  /// Get Image as [MediaData]
   /// [origin] either 'camera' or 'gallery'
   static Future<MediaData> getImage({
     required MediaOrigin origin,
@@ -92,11 +92,6 @@ class MediaHelper {
       if (kDebugMode) print('Resizing the image: $error');
       rethrow;
     }
-
-    // assert(fileData != null, 'alert--missing-file-bytes');
-    // assert(contentType != null, 'alert--missing-content-type');
-    // assert(extension != null, 'alert--missing-file-extension');
-    // assert(fileName != null, 'alert--missing-file-name');
     final encodeData = base64Encode(fileData!);
     return MediaData(
       data: encodeData,
@@ -134,11 +129,8 @@ class MediaHelper {
         }
       }
 
-      /// Return same data if doesn't require resize
-      if (!needsResize) return imageByes;
-
       img.Image _resize(img.Image src) {
-        /// Ignore if it doesn't need to resize
+        /// Return same data if doesn't require resize
         if (!needsResize) return src;
         return img.copyResize(
           src,
@@ -150,22 +142,29 @@ class MediaHelper {
       late Uint8List encodedImage;
       switch (imageType) {
         case 'gif':
-          img.Animation? gifAnimation = img.decodeGifAnimation(imageByes);
-          img.Animation copyGif = img.Animation();
-          for (var element in gifAnimation!.frames) {
-            copyGif.addFrame(_resize(element));
+          if (needsResize) {
+            img.Animation? gifAnimation = img.decodeGifAnimation(imageByes);
+            img.Animation copyGif = img.Animation();
+            for (var element in gifAnimation!.frames) {
+              copyGif.addFrame(_resize(element));
+            }
+            encodedImage = img.encodeGifAnimation(copyGif, samplingFactor: 20)
+                as Uint8List;
+          } else {
+            /// Return same image if don't need to resize
+            /// Gif doesn't perform right on flutter
+            encodedImage = imageByes;
           }
-          encodedImage = img.encodeGifAnimation(copyGif) as Uint8List;
           break;
         case 'png':
           baseImage = _resize(baseImage);
-          encodedImage = img.encodePng(baseImage) as Uint8List;
+          encodedImage = img.encodePng(baseImage, level: 10) as Uint8List;
           break;
         case 'jpeg':
         case 'jpg':
         default:
           baseImage = _resize(baseImage);
-          encodedImage = img.encodeJpg(baseImage) as Uint8List;
+          encodedImage = img.encodeJpg(baseImage, quality: 90) as Uint8List;
           break;
       }
       return encodedImage;
