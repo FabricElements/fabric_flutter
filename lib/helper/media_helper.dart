@@ -164,7 +164,7 @@ class MediaHelper {
         case 'jpg':
         default:
           baseImage = _resize(baseImage);
-          encodedImage = img.encodeJpg(baseImage, quality: 90) as Uint8List;
+          encodedImage = img.encodeJpg(baseImage, quality: 95) as Uint8List;
           break;
       }
       return encodedImage;
