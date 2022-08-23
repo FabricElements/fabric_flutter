@@ -1,6 +1,6 @@
 name: fabric_flutter
 description: Native components and helpers
-version: 1.0.12
+version: 1.0.13
 
 environment:
   sdk: ">=2.17.6 <3.0.0"
@@ -26,15 +26,15 @@ dev_dependencies:
   file_picker: ^5.0.1
   provider: ^6.0.3
   image: ^3.2.0
-  cloud_firestore: ^3.4.4
-  cloud_functions: ^3.3.4
-  firebase_analytics: ^9.3.1
-  firebase_auth: ^3.6.3
-  firebase_core: ^1.20.1
-  firebase_dynamic_links: ^4.3.4
-  firebase_messaging: ^12.0.2
-  firebase_storage: ^10.3.5
-  firebase_database: ^9.1.1
+  cloud_firestore: ^3.4.5
+  cloud_functions: ^3.3.5
+  firebase_analytics: ^9.3.2
+  firebase_auth: ^3.6.4
+  firebase_core: ^1.21.0
+  firebase_dynamic_links: ^4.3.5
+  firebase_messaging: ^12.0.3
+  firebase_storage: ^10.3.6
+  firebase_database: ^9.1.2
   json_annotation: ^4.6.0
   google_sign_in: ^5.4.1
   flutter_dotenv: ^5.0.2
@@ -46,8 +46,8 @@ dev_dependencies:
   flutter_linkify: ^5.0.2
   flutter_markdown: ^0.6.10+3
   animations: ^2.0.3
-  google_maps_flutter: ^2.1.10
-  google_maps_flutter_web: ^0.4.0+1
+  google_maps_flutter: ^2.1.12
+  google_maps_flutter_web: ^0.4.0+2
   google_maps_webservice: ^0.0.20-nullsafety.5
   package_info_plus: ^1.4.3+1
   sign_in_with_apple: ^4.1.0
