@@ -631,6 +631,10 @@ dynamic defaultLocales = {
     'en': "The '{label}' can't be changed later.",
     'es': "El '{label}' no se puede cambiar más tarde."
   },
+  'error--401': {
+    'en': 'Unauthorized',
+    'es': 'No autorizado',
+  },
   'error--404': {
     'en': 'Not Found',
     'es': 'No se encuentra',

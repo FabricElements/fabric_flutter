@@ -10,6 +10,9 @@ enum AuthScheme {
   Basic,
   // ignore: constant_identifier_names
   Bearer,
+  // TODO: Remove after it's implemented
+  // ignore: constant_identifier_names
+  JWT,
 }
 
 class HTTPRequest {
