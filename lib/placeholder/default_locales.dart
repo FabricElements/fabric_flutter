@@ -765,4 +765,12 @@ dynamic defaultLocales = {
     'en': 'Messages',
     'es': 'Mensajes',
   },
+  'label--enabled': {
+    'en': 'Enabled',
+    'es': 'activado/a',
+  },
+  'label--disabled': {
+    'en': 'Disabled',
+    'es': 'desactivado/a',
+  },
 };
