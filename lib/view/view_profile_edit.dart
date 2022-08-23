@@ -11,7 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../helper/app_localizations_delegate.dart';
-import '../helper/image_helper.dart';
+import '../helper/media_helper.dart';
 import '../placeholder/loading_screen.dart';
 import '../state/state_alert.dart';
 import '../state/state_user.dart';
@@ -208,11 +208,12 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
       if (mounted) setState(() {});
     }
 
-    Future<void> getImageFromOrigin(String origin) async {
+    Future<void> getImageFromOrigin(MediaOrigin origin) async {
       loading = true;
       if (mounted) setState(() {});
       try {
-        _temporalImageBytes = await ImageHelper().getImage(origin: origin);
+        final imageSelected = await MediaHelper.getImage(origin: origin);
+        _temporalImageBytes = base64Decode(imageSelected.data);
         if (_temporalImageBytes != null) {
           changed = _temporalImageBytes != null;
         }
@@ -222,7 +223,6 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
           type: AlertType.critical,
         ));
       }
-
       loading = false;
       if (mounted) setState(() {});
     }
@@ -274,7 +274,8 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
                                         Theme.of(context).colorScheme.secondary,
                                   ),
                                   onPressed: () async {
-                                    await getImageFromOrigin('gallery');
+                                    await getImageFromOrigin(
+                                        MediaOrigin.gallery);
                                   },
                                 ),
                               ),
@@ -286,7 +287,8 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
                                         heroTag: 'camera',
                                         child: const Icon(Icons.photo_camera),
                                         onPressed: () async {
-                                          await getImageFromOrigin('camera');
+                                          await getImageFromOrigin(
+                                              MediaOrigin.camera);
                                         },
                                       ),
                                     )

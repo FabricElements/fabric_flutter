@@ -34,11 +34,7 @@ class StateShared extends ChangeNotifier {
   dynamic get data => _data;
 
   /// Default Callback function
-  callbackDefault(dynamic data) {
-    // if (kDebugMode) {
-    //   if (data != null) print(data);
-    // }
-  }
+  callbackDefault(dynamic data) {}
 
   /// Callback function
   Function(dynamic data)? _callback;
@@ -56,7 +52,7 @@ class StateShared extends ChangeNotifier {
     for (final item in toMerge) {
       dynamic _id = item['id'];
       int _index = _newData.indexWhere((element) => element['id'] == _id);
-      if (_index >= 0) {
+      if (_index >= initialPage) {
         _newData[_index] = item;
       } else {
         _newData.add(item);
@@ -66,10 +62,17 @@ class StateShared extends ChangeNotifier {
   }
 
   /// Push elements from new requests at the end or updates old ones by id
+  /// Use it to get all the previews results for pagination
   bool incrementalPagination = false;
 
+  /// Allow pagination
+  bool paginate = false;
+
+  /// Initial Page defines the pagination starting point
+  final int initialPage = 1;
+
   /// Verify if it's possible to paginate
-  bool get canPaginate => dataOld != null && dataOld.isNotEmpty;
+  bool get canPaginate => paginate && dataOld != null && dataOld.isNotEmpty;
 
   /// Paginate and call
   Future<dynamic> next() async {
@@ -88,7 +91,7 @@ class StateShared extends ChangeNotifier {
       await Future.delayed(const Duration(milliseconds: 200));
       return next();
     }
-    if (page == 0) return null;
+    if (page <= initialPage) return null;
     page = page - 1;
     return call(ignoreDuplicatedCalls: true);
   }
@@ -142,7 +145,7 @@ class StateShared extends ChangeNotifier {
 
   /// Pagination
   /// More at [page]
-  int pageDefault = 0;
+  int pageDefault = 1;
 
   /// More at [limitDefault]
   int limitDefault = 3;
@@ -155,7 +158,7 @@ class StateShared extends ChangeNotifier {
 
   /// Set the [page] number and trigger filter
   set page(int? value) {
-    pageDefault = value ?? 0;
+    pageDefault = value ?? initialPage;
     if (kDebugMode) {
       if (value != null) print('page: $value');
     }
@@ -196,10 +199,6 @@ class StateShared extends ChangeNotifier {
   /// List of query parameters
   Map<String, List<String>>? _queryParameters;
 
-  /// Convert page to new limit
-  /// Use it to get all the previews results for pagination
-  bool queryAllPaginated = false;
-
   /// Return only the parameters when required and only what you need with [parametersList]
   Map<String, List<String>>? get queryParameters {
     if (!passParameters) return null;
@@ -223,17 +222,20 @@ class StateShared extends ChangeNotifier {
       }
     });
 
-    /// Add default values
-    if (!_passingQueryParameters.containsKey('page')) {
-      _passingQueryParameters['page'] = [page.toString()];
-    }
-    if (!_passingQueryParameters.containsKey('limit')) {
-      _passingQueryParameters['limit'] = [limit.toString()];
-    }
-    if (queryAllPaginated) {
-      _passingQueryParameters['page'] = ['0'];
+    if (paginate) {
+      /// Add default values for pagination
+      _passingQueryParameters['page'] = [initialPage.toString()];
       _passingQueryParameters['limit'] = [(limit * (page + 1)).toString()];
+
+      /// Override pagination parameters
+      if (!_passingQueryParameters.containsKey('page')) {
+        _passingQueryParameters['page'] = [page.toString()];
+      }
+      if (!_passingQueryParameters.containsKey('limit')) {
+        _passingQueryParameters['limit'] = [limit.toString()];
+      }
     }
+
     return _passingQueryParameters;
   }
 
@@ -242,10 +244,11 @@ class StateShared extends ChangeNotifier {
     _queryParameters = p != null && p.isNotEmpty ? p : null;
     if (_queryParameters != null) {
       if (_queryParameters!.containsKey('page')) {
-        pageDefault = int.tryParse(_queryParameters!['page']![0]) ?? 0;
+        pageDefault =
+            int.tryParse(_queryParameters!['page']!.first) ?? initialPage;
       }
       if (_queryParameters!.containsKey('limit')) {
-        limit = int.tryParse(_queryParameters!['limit']![0]) ?? limitDefault;
+        limit = int.tryParse(_queryParameters!['limit']!.first) ?? limitDefault;
       }
     }
   }
@@ -293,7 +296,6 @@ class StateShared extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<dynamic> call({bool ignoreDuplicatedCalls = false}) async {
-    return null;
-  }
+  /// async function to process request
+  Future<dynamic> call({bool ignoreDuplicatedCalls = false}) async {}
 }

@@ -2,22 +2,15 @@ library fabric_flutter;
 
 import 'dart:io';
 
-import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
+import 'package:firebase_storage/firebase_storage.dart';
 
 /// This is a helper which uploads any type of file to the firebase storage path specified.
 /// This helper returns the storage task snapshot for further use.
 ///
-/// [reference] Application's firebase storage reference.
-///
 /// ```dart
-/// FirebaseStorageHelper(reference: FirebaseStorage.instance.ref());
+/// FirebaseStorageHelper;
 /// ```
 class FirebaseStorageHelper {
-  FirebaseStorageHelper({
-    required this.reference,
-  });
-
-  final firebase_storage.Reference reference;
 
   /// This is a helper which uploads any type of file to the firebase storage path specified.
   /// This helper returns the storage task snapshot for further use.
@@ -37,19 +30,36 @@ class FirebaseStorageHelper {
   ///      {'name': 'testFile'},
   ///    );
   /// ```
-  Future<firebase_storage.TaskSnapshot> upload(
-      File file, String path, String name,
+  @Deprecated('use [FirebaseStorageHelper.save]')
+  static Future<TaskSnapshot> upload(File file, String path, String name,
       [String? contentType, Map<String, dynamic>? metadata]) async {
-    final firebase_storage.Reference ref = reference.child(path).child(name);
-    final firebase_storage.UploadTask uploadTask = ref.putFile(
+    final storageRef = FirebaseStorage.instance.ref();
+    final ref = storageRef.child(path).child(name);
+    final uploadTask = ref.putFile(
       file,
-      firebase_storage.SettableMetadata(
+      SettableMetadata(
         contentType: contentType,
         customMetadata: metadata as Map<String, String>?,
       ),
     );
-    firebase_storage.TaskSnapshot storageTaskSnapshot =
-        await uploadTask.then((value) => value);
-    return storageTaskSnapshot;
+    return await uploadTask.then((value) => value);
+  }
+
+  /// Save file
+  /// Return file path with fileSavedReference.ref.fullPath
+  static Future<TaskSnapshot> save({
+    required String data,
+    required String path,
+    bool autoId = false,
+    SettableMetadata? metadata,
+    PutStringFormat format = PutStringFormat.raw,
+  }) async {
+    final storageRef = FirebaseStorage.instance.ref();
+    String finalPath = path;
+    if (autoId) {
+      finalPath += DateTime.now().millisecondsSinceEpoch.toString();
+    }
+    final imagesRef = storageRef.child(finalPath);
+    return imagesRef.putString(data, format: format, metadata: metadata);
   }
 }

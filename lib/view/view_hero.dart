@@ -29,9 +29,12 @@ class _ViewHeroState extends State<ViewHero> {
       _content = SizedBox.expand(
         child: Hero(
           tag: 'hero-media',
-          child: Image.network(
-            mediaUrl,
-            fit: BoxFit.contain,
+          child: InteractiveViewer(
+            boundaryMargin: const EdgeInsets.all(16),
+            child: Image.network(
+              mediaUrl,
+              fit: BoxFit.contain,
+            ),
           ),
         ),
       );

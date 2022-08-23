@@ -174,6 +174,7 @@ class GSM {
   static GSMData info(String? content) {
     if (content == null || content.isEmpty) {
       return GSMData(
+        text: '',
         segments: 0,
         charsLeft: 160,
         charSet: CharSet.gsm,
@@ -188,6 +189,7 @@ class GSM {
       var totalLength = getTotalLengthGSM(content);
       if (totalLength <= 160) {
         return GSMData(
+          text: content,
           segments: 1,
           charsLeft: 160 - totalLength,
           charSet: CharSet.gsm,
@@ -218,6 +220,7 @@ class GSM {
         }
 
         return GSMData(
+          text: content,
           segments: parts.length,
           charsLeft: maxLength - getTotalLengthGSM(parts[parts.length - 1]),
           charSet: CharSet.gsm,
@@ -227,6 +230,7 @@ class GSM {
     } else {
       if (content.length <= 70) {
         return GSMData(
+          text: content,
           segments: 1,
           charsLeft: 70 - content.length,
           charSet: CharSet.unicode,
@@ -243,6 +247,7 @@ class GSM {
           parts.add(partText);
         }
         return GSMData(
+          text: content,
           segments: parts.length,
           charsLeft: maxLength - parts[parts.length - 1].length,
           charSet: CharSet.unicode,

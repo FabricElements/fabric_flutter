@@ -12,17 +12,20 @@ enum CharSet {
 
 @JsonSerializable(explicitToJson: true)
 class GSMData {
+  final String text;
   final int segments;
   final int charsLeft;
   final CharSet charSet;
   final List<String> parts;
+  final int chars;
 
   GSMData({
+    required this.text,
     required this.segments,
     required this.charsLeft,
     required this.charSet,
     required this.parts,
-  });
+  }) : chars = text.length;
 
   factory GSMData.fromJson(Map<String, dynamic>? json) =>
       _$GSMDataFromJson(json ?? {});

@@ -1,436 +1,888 @@
 library fabric_flutter;
 
+import '../serialized/iso_data.dart';
+
 /// All the language locales with name, native name and emoji if exists.
-class IsoLanguage {
-  Map<String, dynamic> isoLanguages = {
-    'ab': {'name': 'Abkhaz', 'nativeName': 'аҧсуа', 'emoji': '🌐'},
-    'aa': {'name': 'Afar', 'nativeName': 'Afaraf', 'emoji': '🇪🇹'},
-    'af': {'name': 'Afrikaans', 'nativeName': 'Afrikaans', 'emoji': '🇳🇦'},
-    'ak': {'name': 'Akan', 'nativeName': 'Akan', 'emoji': '🌐'},
-    'sq': {'name': 'Albanian', 'nativeName': 'Shqip', 'emoji': '🇦🇱'},
-    'am': {'name': 'Amharic', 'nativeName': 'አማርኛ', 'emoji': '🇪🇹'},
-    'ar': {'name': 'Arabic', 'nativeName': 'العربية', 'emoji': '🇩🇿'},
-    'an': {'name': 'Aragonese', 'nativeName': 'Aragonés', 'emoji': '🌐'},
-    'hy': {'name': 'Armenian', 'nativeName': 'Հայերեն', 'emoji': '🇦🇲'},
-    'as': {'name': 'Assamese', 'nativeName': 'অসমীয়া', 'emoji': '🌐'},
-    'av': {
+class ISOLanguages {
+  static List<Map<String, dynamic>> raw = [
+    {'name': 'Abkhaz', 'nativeName': 'аҧсуа', 'emoji': '🌐', 'alpha2': 'ab'},
+    {'name': 'Afar', 'nativeName': 'Afaraf', 'emoji': '🇪🇹', 'alpha2': 'aa'},
+    {
+      'name': 'Afrikaans',
+      'nativeName': 'Afrikaans',
+      'emoji': '🇳🇦',
+      'alpha2': 'af'
+    },
+    {'name': 'Akan', 'nativeName': 'Akan', 'emoji': '🌐', 'alpha2': 'ak'},
+    {
+      'name': 'Albanian',
+      'nativeName': 'Shqip',
+      'emoji': '🇦🇱',
+      'alpha2': 'sq'
+    },
+    {'name': 'Amharic', 'nativeName': 'አማርኛ', 'emoji': '🇪🇹', 'alpha2': 'am'},
+    {
+      'name': 'Arabic',
+      'nativeName': 'العربية',
+      'emoji': '🇩🇿',
+      'alpha2': 'ar'
+    },
+    {
+      'name': 'Aragonese',
+      'nativeName': 'Aragonés',
+      'emoji': '🌐',
+      'alpha2': 'an'
+    },
+    {
+      'name': 'Armenian',
+      'nativeName': 'Հայերեն',
+      'emoji': '🇦🇲',
+      'alpha2': 'hy'
+    },
+    {
+      'name': 'Assamese',
+      'nativeName': 'অসমীয়া',
+      'emoji': '🌐',
+      'alpha2': 'as'
+    },
+    {
       'name': 'Avaric',
       'nativeName': 'авар мацӀ, магӀарул мацӀ',
-      'emoji': '🌐'
+      'emoji': '🌐',
+      'alpha2': 'av'
     },
-    'ae': {'name': 'Avestan', 'nativeName': 'avesta', 'emoji': '🌐'},
-    'ay': {'name': 'Aymara', 'nativeName': 'aymar aru', 'emoji': '🇧🇴'},
-    'az': {
+    {'name': 'Avestan', 'nativeName': 'avesta', 'emoji': '🌐', 'alpha2': 'ae'},
+    {
+      'name': 'Aymara',
+      'nativeName': 'aymar aru',
+      'emoji': '🇧🇴',
+      'alpha2': 'ay'
+    },
+    {
       'name': 'Azerbaijani',
       'nativeName': 'azərbaycan dili',
-      'emoji': '🇦🇿'
+      'emoji': '🇦🇿',
+      'alpha2': 'az'
     },
-    'bm': {'name': 'Bambara', 'nativeName': 'bamanankan', 'emoji': '🌐'},
-    'ba': {'name': 'Bashkir', 'nativeName': 'башҡорт теле', 'emoji': '🌐'},
-    'eu': {'name': 'Basque', 'nativeName': 'euskara, euskera', 'emoji': '🌐'},
-    'be': {'name': 'Belarusian', 'nativeName': 'Беларуская', 'emoji': '🇧🇾'},
-    'bn': {'name': 'Bengali', 'nativeName': 'বাংলা', 'emoji': '🇧🇩'},
-    'bh': {'name': 'Bihari', 'nativeName': 'भोजपुरी', 'emoji': '🌐'},
-    'bi': {'name': 'Bislama', 'nativeName': 'Bislama', 'emoji': '🇻🇺'},
-    'bs': {'name': 'Bosnian', 'nativeName': 'bosanski jezik', 'emoji': '🇧🇦'},
-    'br': {'name': 'Breton', 'nativeName': 'brezhoneg', 'emoji': '🌐'},
-    'bg': {
+    {
+      'name': 'Bambara',
+      'nativeName': 'bamanankan',
+      'emoji': '🌐',
+      'alpha2': 'bm'
+    },
+    {
+      'name': 'Bashkir',
+      'nativeName': 'башҡорт теле',
+      'emoji': '🌐',
+      'alpha2': 'ba'
+    },
+    {
+      'name': 'Basque',
+      'nativeName': 'euskara, euskera',
+      'emoji': '🌐',
+      'alpha2': 'eu'
+    },
+    {
+      'name': 'Belarusian',
+      'nativeName': 'Беларуская',
+      'emoji': '🇧🇾',
+      'alpha2': 'be'
+    },
+    {'name': 'Bengali', 'nativeName': 'বাংলা', 'emoji': '🇧🇩', 'alpha2': 'bn'},
+    {'name': 'Bihari', 'nativeName': 'भोजपुरी', 'emoji': '🌐', 'alpha2': 'bh'},
+    {
+      'name': 'Bislama',
+      'nativeName': 'Bislama',
+      'emoji': '🇻🇺',
+      'alpha2': 'bi'
+    },
+    {
+      'name': 'Bosnian',
+      'nativeName': 'bosanski jezik',
+      'emoji': '🇧🇦',
+      'alpha2': 'bs'
+    },
+    {
+      'name': 'Breton',
+      'nativeName': 'brezhoneg',
+      'emoji': '🌐',
+      'alpha2': 'br'
+    },
+    {
       'name': 'Bulgarian',
       'nativeName': 'български език',
-      'emoji': '🇧🇬'
+      'emoji': '🇧🇬',
+      'alpha2': 'bg'
     },
-    'my': {'name': 'Burmese', 'nativeName': 'ဗမာစာ', 'emoji': '🇲🇲'},
-    'ca': {
+    {'name': 'Burmese', 'nativeName': 'ဗမာစာ', 'emoji': '🇲🇲', 'alpha2': 'my'},
+    {
       'name': 'Catalan; Valencian',
       'nativeName': 'Català',
-      'emoji': '🇦🇩'
+      'emoji': '🇦🇩',
+      'alpha2': 'ca'
     },
-    'ch': {'name': 'Chamorro', 'nativeName': 'Chamoru', 'emoji': '🇬🇺'},
-    'ce': {'name': 'Chechen', 'nativeName': 'нохчийн мотт', 'emoji': '🌐'},
-    'ny': {
+    {
+      'name': 'Chamorro',
+      'nativeName': 'Chamoru',
+      'emoji': '🇬🇺',
+      'alpha2': 'ch'
+    },
+    {
+      'name': 'Chechen',
+      'nativeName': 'нохчийн мотт',
+      'emoji': '🌐',
+      'alpha2': 'ce'
+    },
+    {
       'name': 'Chichewa; Chewa; Nyanja',
       'nativeName': 'chiCheŵa, chinyanja',
-      'emoji': '🇲🇼'
+      'emoji': '🇲🇼',
+      'alpha2': 'ny'
     },
-    'zh': {
+    {
       'name': 'Chinese',
       'nativeName': '中文 (Zhōngwén), 汉语, 漢語',
-      'emoji': '🇨🇳'
+      'emoji': '🇨🇳',
+      'alpha2': 'zh'
     },
-    'cv': {'name': 'Chuvash', 'nativeName': 'чӑваш чӗлхи', 'emoji': '🌐'},
-    'kw': {'name': 'Cornish', 'nativeName': 'Kernewek', 'emoji': '🌐'},
-    'co': {
+    {
+      'name': 'Chuvash',
+      'nativeName': 'чӑваш чӗлхи',
+      'emoji': '🌐',
+      'alpha2': 'cv'
+    },
+    {
+      'name': 'Cornish',
+      'nativeName': 'Kernewek',
+      'emoji': '🌐',
+      'alpha2': 'kw'
+    },
+    {
       'name': 'Corsican',
       'nativeName': 'corsu, lingua corsa',
-      'emoji': '🌐'
+      'emoji': '🌐',
+      'alpha2': 'co'
     },
-    'cr': {'name': 'Cree', 'nativeName': 'ᓀᐦᐃᔭᐍᐏᐣ', 'emoji': '🌐'},
-    'hr': {'name': 'Croatian', 'nativeName': 'hrvatski', 'emoji': '🇧🇦'},
-    'cs': {'name': 'Czech', 'nativeName': 'česky, čeština', 'emoji': '🇨🇿'},
-    'da': {
-      'name': 'Danish',
-      'nativeName': 'dansk',
-      'emoji': '🇩🇰',
+    {'name': 'Cree', 'nativeName': 'ᓀᐦᐃᔭᐍᐏᐣ', 'emoji': '🌐', 'alpha2': 'cr'},
+    {
+      'name': 'Croatian',
+      'nativeName': 'hrvatski',
+      'emoji': '🇧🇦',
+      'alpha2': 'hr'
     },
-    'dv': {
+    {
+      'name': 'Czech',
+      'nativeName': 'česky, čeština',
+      'emoji': '🇨🇿',
+      'alpha2': 'cs'
+    },
+    {'name': 'Danish', 'nativeName': 'dansk', 'emoji': '🇩🇰', 'alpha2': 'da'},
+    {
       'name': 'Divehi; Dhivehi; Maldivian;',
       'nativeName': 'ދިވެހި',
-      'emoji': '🇲🇻'
+      'emoji': '🇲🇻',
+      'alpha2': 'dv'
     },
-    'nl': {
+    {
       'name': 'Dutch',
       'nativeName': 'Nederlands, Vlaams',
-      'emoji': '🇳🇱'
+      'emoji': '🇳🇱',
+      'alpha2': 'nl'
     },
-    'en': {'name': 'English', 'nativeName': 'English', 'emoji': '🇺🇸'},
-    'eo': {'name': 'Esperanto', 'nativeName': 'Esperanto', 'emoji': '🌐'},
-    'et': {
+    {
+      'name': 'English',
+      'nativeName': 'English',
+      'emoji': '🇺🇸',
+      'alpha2': 'en'
+    },
+    {
+      'name': 'Esperanto',
+      'nativeName': 'Esperanto',
+      'emoji': '🌐',
+      'alpha2': 'eo'
+    },
+    {
       'name': 'Estonian',
       'nativeName': 'eesti, eesti keel',
-      'emoji': '🇪🇪'
+      'emoji': '🇪🇪',
+      'alpha2': 'et'
     },
-    'ee': {'name': 'Ewe', 'nativeName': 'Eʋegbe', 'emoji': '🌐'},
-    'fo': {'name': 'Faroese', 'nativeName': 'føroyskt', 'emoji': '🇫🇴'},
-    'fj': {'name': 'Fijian', 'nativeName': 'vosa Vakaviti', 'emoji': '🇫🇯'},
-    'fi': {
+    {'name': 'Ewe', 'nativeName': 'Eʋegbe', 'emoji': '🌐', 'alpha2': 'ee'},
+    {
+      'name': 'Faroese',
+      'nativeName': 'føroyskt',
+      'emoji': '🇫🇴',
+      'alpha2': 'fo'
+    },
+    {
+      'name': 'Fijian',
+      'nativeName': 'vosa Vakaviti',
+      'emoji': '🇫🇯',
+      'alpha2': 'fj'
+    },
+    {
       'name': 'Finnish',
       'nativeName': 'suomi, suomen kieli',
-      'emoji': '🇫🇮'
+      'emoji': '🇫🇮',
+      'alpha2': 'fi'
     },
-    'fr': {
+    {
       'name': 'French',
       'nativeName': 'français, langue française',
-      'emoji': '🇫🇷'
+      'emoji': '🇫🇷',
+      'alpha2': 'fr'
     },
-    'ff': {
+    {
       'name': 'Fula; Fulah; Pulaar; Pular',
       'nativeName': 'Fulfulde, Pulaar, Pular',
-      'emoji': '🇬🇳'
+      'emoji': '🇬🇳',
+      'alpha2': 'ff'
     },
-    'gl': {'name': 'Galician', 'nativeName': 'Galego', 'emoji': '🌐'},
-    'ka': {'name': 'Georgian', 'nativeName': 'ქართული', 'emoji': '🇬🇪'},
-    'de': {'name': 'German', 'nativeName': 'Deutsch', 'emoji': '🇩🇪'},
-    'el': {'name': 'Greek, Modern', 'nativeName': 'Ελληνικά', 'emoji': '🇬🇷'},
-    'gn': {'name': 'Guaraní', 'nativeName': 'Avañeẽ', 'emoji': '🇦🇷'},
-    'gu': {'name': 'Gujarati', 'nativeName': 'ગુજરાતી', 'emoji': '🌐'},
-    'ht': {
+    {'name': 'Galician', 'nativeName': 'Galego', 'emoji': '🌐', 'alpha2': 'gl'},
+    {
+      'name': 'Georgian',
+      'nativeName': 'ქართული',
+      'emoji': '🇬🇪',
+      'alpha2': 'ka'
+    },
+    {
+      'name': 'German',
+      'nativeName': 'Deutsch',
+      'emoji': '🇩🇪',
+      'alpha2': 'de'
+    },
+    {
+      'name': 'Greek, Modern',
+      'nativeName': 'Ελληνικά',
+      'emoji': '🇬🇷',
+      'alpha2': 'el'
+    },
+    {
+      'name': 'Guaraní',
+      'nativeName': 'Avañeẽ',
+      'emoji': '🇦🇷',
+      'alpha2': 'gn'
+    },
+    {
+      'name': 'Gujarati',
+      'nativeName': 'ગુજરાતી',
+      'emoji': '🌐',
+      'alpha2': 'gu'
+    },
+    {
       'name': 'Haitian; Haitian Creole',
       'nativeName': 'Kreyòl ayisyen',
-      'emoji': '🇭🇹'
+      'emoji': '🇭🇹',
+      'alpha2': 'ht'
     },
-    'ha': {'name': 'Hausa', 'nativeName': 'Hausa, هَوُسَ', 'emoji': '🌐'},
-    'he': {'name': 'Hebrew (modern)', 'nativeName': 'עברית', 'emoji': '🇮🇱'},
-    'hz': {'name': 'Herero', 'nativeName': 'Otjiherero', 'emoji': '🌐'},
-    'hi': {'name': 'Hindi', 'nativeName': 'हिन्दी, हिंदी', 'emoji': '🇮🇳'},
-    'ho': {'name': 'Hiri Motu', 'nativeName': 'Hiri Motu', 'emoji': '🌐'},
-    'hu': {'name': 'Hungarian', 'nativeName': 'Magyar', 'emoji': '🇭🇺'},
-    'ia': {'name': 'Interlingua', 'nativeName': 'Interlingua', 'emoji': '🌐'},
-    'id': {
+    {
+      'name': 'Hausa',
+      'nativeName': 'Hausa, هَوُسَ',
+      'emoji': '🌐',
+      'alpha2': 'ha'
+    },
+    {
+      'name': 'Hebrew (modern)',
+      'nativeName': 'עברית',
+      'emoji': '🇮🇱',
+      'alpha2': 'he'
+    },
+    {
+      'name': 'Herero',
+      'nativeName': 'Otjiherero',
+      'emoji': '🌐',
+      'alpha2': 'hz'
+    },
+    {
+      'name': 'Hindi',
+      'nativeName': 'हिन्दी, हिंदी',
+      'emoji': '🇮🇳',
+      'alpha2': 'hi'
+    },
+    {
+      'name': 'Hiri Motu',
+      'nativeName': 'Hiri Motu',
+      'emoji': '🌐',
+      'alpha2': 'ho'
+    },
+    {
+      'name': 'Hungarian',
+      'nativeName': 'Magyar',
+      'emoji': '🇭🇺',
+      'alpha2': 'hu'
+    },
+    {
+      'name': 'Interlingua',
+      'nativeName': 'Interlingua',
+      'emoji': '🌐',
+      'alpha2': 'ia'
+    },
+    {
       'name': 'Indonesian',
       'nativeName': 'Bahasa Indonesia',
-      'emoji': '🇮🇩'
+      'emoji': '🇮🇩',
+      'alpha2': 'id'
     },
-    'ie': {
+    {
       'name': 'Interlingue',
       'nativeName': 'Originally called Occidental; then Interlingue after WWII',
-      'emoji': '🌐'
+      'emoji': '🌐',
+      'alpha2': 'ie'
     },
-    'ga': {'name': 'Irish', 'nativeName': 'Gaeilge', 'emoji': '🇮🇪'},
-    'ig': {'name': 'Igbo', 'nativeName': 'Asụsụ Igbo', 'emoji': '🌐'},
-    'ik': {
+    {'name': 'Irish', 'nativeName': 'Gaeilge', 'emoji': '🇮🇪', 'alpha2': 'ga'},
+    {'name': 'Igbo', 'nativeName': 'Asụsụ Igbo', 'emoji': '🌐', 'alpha2': 'ig'},
+    {
       'name': 'Inupiaq',
       'nativeName': 'Iñupiaq, Iñupiatun',
-      'emoji': '🌐'
+      'emoji': '🌐',
+      'alpha2': 'ik'
     },
-    'io': {'name': 'Ido', 'nativeName': 'Ido', 'emoji': '🌐'},
-    'is': {'name': 'Icelandic', 'nativeName': 'Íslenska', 'emoji': '🇮🇸'},
-    'it': {'name': 'Italian', 'nativeName': 'Italiano', 'emoji': '🇮🇹'},
-    'iu': {'name': 'Inuktitut', 'nativeName': 'ᐃᓄᒃᑎᑐᑦ', 'emoji': '🌐'},
-    'ja': {
+    {'name': 'Ido', 'nativeName': 'Ido', 'emoji': '🌐', 'alpha2': 'io'},
+    {
+      'name': 'Icelandic',
+      'nativeName': 'Íslenska',
+      'emoji': '🇮🇸',
+      'alpha2': 'is'
+    },
+    {
+      'name': 'Italian',
+      'nativeName': 'Italiano',
+      'emoji': '🇮🇹',
+      'alpha2': 'it'
+    },
+    {
+      'name': 'Inuktitut',
+      'nativeName': 'ᐃᓄᒃᑎᑐᑦ',
+      'emoji': '🌐',
+      'alpha2': 'iu'
+    },
+    {
       'name': 'Japanese',
       'nativeName': '日本語 (にほんご／にっぽんご)',
-      'emoji': '🇯🇵'
+      'emoji': '🇯🇵',
+      'alpha2': 'ja'
     },
-    'jv': {'name': 'Javanese', 'nativeName': 'basa Jawa', 'emoji': '🌐'},
-    'kl': {
+    {
+      'name': 'Javanese',
+      'nativeName': 'basa Jawa',
+      'emoji': '🌐',
+      'alpha2': 'jv'
+    },
+    {
       'name': 'Kalaallisut, Greenlandic',
       'nativeName': 'kalaallisut, kalaallit oqaasii',
-      'emoji': '🇬🇱'
+      'emoji': '🇬🇱',
+      'alpha2': 'kl'
     },
-    'kn': {'name': 'Kannada', 'nativeName': 'ಕನ್ನಡ', 'emoji': '🌐'},
-    'kr': {'name': 'Kanuri', 'nativeName': 'Kanuri', 'emoji': '🌐'},
-    'ks': {'name': 'Kashmiri', 'nativeName': 'कश्मीरी, كشميري‎', 'emoji': '🌐'},
-    'kk': {'name': 'Kazakh', 'nativeName': 'Қазақ тілі', 'emoji': '🇰🇿'},
-    'km': {'name': 'Khmer', 'nativeName': 'ភាសាខ្មែរ', 'emoji': '🇰🇭'},
-    'ki': {'name': 'Kikuyu, Gikuyu', 'nativeName': 'Gĩkũyũ', 'emoji': '🌐'},
-    'rw': {
+    {'name': 'Kannada', 'nativeName': 'ಕನ್ನಡ', 'emoji': '🌐', 'alpha2': 'kn'},
+    {'name': 'Kanuri', 'nativeName': 'Kanuri', 'emoji': '🌐', 'alpha2': 'kr'},
+    {
+      'name': 'Kashmiri',
+      'nativeName': 'कश्मीरी, كشميري‎',
+      'emoji': '🌐',
+      'alpha2': 'ks'
+    },
+    {
+      'name': 'Kazakh',
+      'nativeName': 'Қазақ тілі',
+      'emoji': '🇰🇿',
+      'alpha2': 'kk'
+    },
+    {
+      'name': 'Khmer',
+      'nativeName': 'ភាសាខ្មែរ',
+      'emoji': '🇰🇭',
+      'alpha2': 'km'
+    },
+    {
+      'name': 'Kikuyu, Gikuyu',
+      'nativeName': 'Gĩkũyũ',
+      'emoji': '🌐',
+      'alpha2': 'ki'
+    },
+    {
       'name': 'Kinyarwanda',
       'nativeName': 'Ikinyarwanda',
-      'emoji': '🇷🇼'
+      'emoji': '🇷🇼',
+      'alpha2': 'rw'
     },
-    'ky': {
+    {
       'name': 'Kirghiz, Kyrgyz',
       'nativeName': 'кыргыз тили',
-      'emoji': '🇰🇬'
+      'emoji': '🇰🇬',
+      'alpha2': 'ky'
     },
-    'kv': {'name': 'Komi', 'nativeName': 'коми кыв', 'emoji': '🌐'},
-    'kg': {'name': 'Kongo', 'nativeName': 'KiKongo', 'emoji': '🇨🇩'},
-    'ko': {
+    {'name': 'Komi', 'nativeName': 'коми кыв', 'emoji': '🌐', 'alpha2': 'kv'},
+    {'name': 'Kongo', 'nativeName': 'KiKongo', 'emoji': '🇨🇩', 'alpha2': 'kg'},
+    {
       'name': 'Korean',
       'nativeName': '한국어 (韓國語), 조선말 (朝鮮語)',
-      'emoji': '🇰🇷'
+      'emoji': '🇰🇷',
+      'alpha2': 'ko'
     },
-    'ku': {'name': 'Kurdish', 'nativeName': 'Kurdî, كوردی‎', 'emoji': '🇮🇶'},
-    'kj': {
+    {
+      'name': 'Kurdish',
+      'nativeName': 'Kurdî, كوردی‎',
+      'emoji': '🇮🇶',
+      'alpha2': 'ku'
+    },
+    {
       'name': 'Kwanyama, Kuanyama',
       'nativeName': 'Kuanyama',
-      'emoji': '🌐'
+      'emoji': '🌐',
+      'alpha2': 'kj'
     },
-    'la': {
+    {
       'name': 'Latin',
       'nativeName': 'latine, lingua latina',
-      'emoji': '🇻🇦'
+      'emoji': '🇻🇦',
+      'alpha2': 'la'
     },
-    'lb': {
+    {
       'name': 'Luxembourgish, Letzeburgesch',
       'nativeName': 'Lëtzebuergesch',
-      'emoji': '🇱🇺'
+      'emoji': '🇱🇺',
+      'alpha2': 'lb'
     },
-    'lg': {'name': 'Luganda', 'nativeName': 'Luganda', 'emoji': '🌐'},
-    'li': {
+    {'name': 'Luganda', 'nativeName': 'Luganda', 'emoji': '🌐', 'alpha2': 'lg'},
+    {
       'name': 'Limburgish, Limburgan, Limburger',
       'nativeName': 'Limburgs',
-      'emoji': '🌐'
+      'emoji': '🌐',
+      'alpha2': 'li'
     },
-    'ln': {'name': 'Lingala', 'nativeName': 'Lingála', 'emoji': '🇨🇩'},
-    'lo': {'name': 'Lao', 'nativeName': 'ພາສາລາວ', 'emoji': '🇱🇦'},
-    'lt': {
+    {
+      'name': 'Lingala',
+      'nativeName': 'Lingála',
+      'emoji': '🇨🇩',
+      'alpha2': 'ln'
+    },
+    {'name': 'Lao', 'nativeName': 'ພາສາລາວ', 'emoji': '🇱🇦', 'alpha2': 'lo'},
+    {
       'name': 'Lithuanian',
       'nativeName': 'lietuvių kalba',
-      'emoji': '🇱🇹'
+      'emoji': '🇱🇹',
+      'alpha2': 'lt'
     },
-    'lu': {'name': 'Luba-Katanga', 'nativeName': '', 'emoji': '🌐'},
-    'lv': {'name': 'Latvian', 'nativeName': 'latviešu valoda', 'emoji': '🇱🇻'},
-    'gv': {'name': 'Manx', 'nativeName': 'Gaelg, Gailck', 'emoji': '🇮🇲'},
-    'mk': {
+    {'name': 'Luba-Katanga', 'nativeName': '', 'emoji': '🌐', 'alpha2': 'lu'},
+    {
+      'name': 'Latvian',
+      'nativeName': 'latviešu valoda',
+      'emoji': '🇱🇻',
+      'alpha2': 'lv'
+    },
+    {
+      'name': 'Manx',
+      'nativeName': 'Gaelg, Gailck',
+      'emoji': '🇮🇲',
+      'alpha2': 'gv'
+    },
+    {
       'name': 'Macedonian',
       'nativeName': 'македонски јазик',
       'emoji': '🇲🇰',
+      'alpha2': 'mk'
     },
-    'mg': {
+    {
       'name': 'Malagasy',
       'nativeName': 'Malagasy fiteny',
-      'emoji': '🇲🇬'
+      'emoji': '🇲🇬',
+      'alpha2': 'mg'
     },
-    'ms': {
+    {
       'name': 'Malay',
       'nativeName': 'bahasa Melayu, بهاس ملايو‎',
-      'emoji': '🇸🇬'
+      'emoji': '🇸🇬',
+      'alpha2': 'ms'
     },
-    'ml': {'name': 'Malayalam', 'nativeName': 'മലയാളം', 'emoji': '🌐'},
-    'mt': {'name': 'Maltese', 'nativeName': 'Malti', 'emoji': '🇲🇹'},
-    'mi': {'name': 'Māori', 'nativeName': 'te reo Māori', 'emoji': '🇳🇿'},
-    'mr': {'name': 'Marathi (Marāṭhī)', 'nativeName': 'मराठी', 'emoji': '🌐'},
-    'mh': {
+    {
+      'name': 'Malayalam',
+      'nativeName': 'മലയാളം',
+      'emoji': '🌐',
+      'alpha2': 'ml'
+    },
+    {'name': 'Maltese', 'nativeName': 'Malti', 'emoji': '🇲🇹', 'alpha2': 'mt'},
+    {
+      'name': 'Māori',
+      'nativeName': 'te reo Māori',
+      'emoji': '🇳🇿',
+      'alpha2': 'mi'
+    },
+    {
+      'name': 'Marathi (Marāṭhī)',
+      'nativeName': 'मराठी',
+      'emoji': '🌐',
+      'alpha2': 'mr'
+    },
+    {
       'name': 'Marshallese',
       'nativeName': 'Kajin M̧ajeļ',
-      'emoji': '🇲🇭'
+      'emoji': '🇲🇭',
+      'alpha2': 'mh'
     },
-    'mn': {'name': 'Mongolian', 'nativeName': 'монгол', 'emoji': '🇲🇳'},
-    'na': {'name': 'Nauru', 'nativeName': 'Ekakairũ Naoero', 'emoji': '🇳🇷'},
-    'nv': {
+    {
+      'name': 'Mongolian',
+      'nativeName': 'монгол',
+      'emoji': '🇲🇳',
+      'alpha2': 'mn'
+    },
+    {
+      'name': 'Nauru',
+      'nativeName': 'Ekakairũ Naoero',
+      'emoji': '🇳🇷',
+      'alpha2': 'na'
+    },
+    {
       'name': 'Navajo, Navaho',
       'nativeName': 'Diné bizaad, Dinékʼehǰí',
-      'emoji': '🌐'
+      'emoji': '🌐',
+      'alpha2': 'nv'
     },
-    'nb': {
+    {
       'name': 'Norwegian Bokmål',
       'nativeName': 'Norsk bokmål',
-      'emoji': '🌐'
+      'emoji': '🌐',
+      'alpha2': 'nb'
     },
-    'nd': {
+    {
       'name': 'North Ndebele',
       'nativeName': 'isiNdebele',
-      'emoji': '🇿🇼'
+      'emoji': '🇿🇼',
+      'alpha2': 'nd'
     },
-    'ne': {'name': 'Nepali', 'nativeName': 'नेपाली', 'emoji': '🇳🇵'},
-    'ng': {'name': 'Ndonga', 'nativeName': 'Owambo', 'emoji': '🌐'},
-    'nn': {
+    {'name': 'Nepali', 'nativeName': 'नेपाली', 'emoji': '🇳🇵', 'alpha2': 'ne'},
+    {'name': 'Ndonga', 'nativeName': 'Owambo', 'emoji': '🌐', 'alpha2': 'ng'},
+    {
       'name': 'Norwegian Nynorsk',
       'nativeName': 'Norsk nynorsk',
-      'emoji': '🇧🇻'
+      'emoji': '🇧🇻',
+      'alpha2': 'nn'
     },
-    'no': {'name': 'Norwegian', 'nativeName': 'Norsk', 'emoji': '🇳🇴'},
-    'ii': {'name': 'Nuosu', 'nativeName': 'ꆈꌠ꒿ Nuosuhxop', 'emoji': '🌐'},
-    'nr': {
+    {
+      'name': 'Norwegian',
+      'nativeName': 'Norsk',
+      'emoji': '🇳🇴',
+      'alpha2': 'no'
+    },
+    {
+      'name': 'Nuosu',
+      'nativeName': 'ꆈꌠ꒿ Nuosuhxop',
+      'emoji': '🌐',
+      'alpha2': 'ii'
+    },
+    {
       'name': 'South Ndebele',
       'nativeName': 'isiNdebele',
-      'emoji': '🇿🇦'
+      'emoji': '🇿🇦',
+      'alpha2': 'nr'
     },
-    'oc': {'name': 'Occitan', 'nativeName': 'Occitan', 'emoji': '🌐'},
-    'oj': {'name': 'Ojibwe, Ojibwa', 'nativeName': 'ᐊᓂᔑᓈᐯᒧᐎᓐ', 'emoji': '🌐'},
-    'cu': {
+    {'name': 'Occitan', 'nativeName': 'Occitan', 'emoji': '🌐', 'alpha2': 'oc'},
+    {
+      'name': 'Ojibwe, Ojibwa',
+      'nativeName': 'ᐊᓂᔑᓈᐯᒧᐎᓐ',
+      'emoji': '🌐',
+      'alpha2': 'oj'
+    },
+    {
       'name':
           'Old Church Slavonic, Church Slavic, Church Slavonic, Old Bulgarian, Old Slavonic',
       'nativeName': 'ѩзыкъ словѣньскъ',
-      'emoji': '🌐'
+      'emoji': '🌐',
+      'alpha2': 'cu'
     },
-    'om': {'name': 'Oromo', 'nativeName': 'Afaan Oromoo', 'emoji': '🌐'},
-    'or': {'name': 'Oriya', 'nativeName': 'ଓଡ଼ିଆ', 'emoji': '🌐'},
-    'os': {
+    {
+      'name': 'Oromo',
+      'nativeName': 'Afaan Oromoo',
+      'emoji': '🌐',
+      'alpha2': 'om'
+    },
+    {'name': 'Oriya', 'nativeName': 'ଓଡ଼ିଆ', 'emoji': '🌐', 'alpha2': 'or'},
+    {
       'name': 'Ossetian, Ossetic',
       'nativeName': 'ирон æвзаг',
-      'emoji': '🌐'
+      'emoji': '🌐',
+      'alpha2': 'os'
     },
-    'pa': {
+    {
       'name': 'Panjabi, Punjabi',
       'nativeName': 'ਪੰਜਾਬੀ, پنجابی‎',
-      'emoji': '🇦🇼'
+      'emoji': '🇦🇼',
+      'alpha2': 'pa'
     },
-    'pi': {'name': 'Pāli', 'nativeName': 'पाऴि', 'emoji': '🌐'},
-    'fa': {'name': 'Persian', 'nativeName': 'فارسی', 'emoji': '🇮🇷'},
-    'pl': {'name': 'Polish', 'nativeName': 'polski', 'emoji': '🇵🇱'},
-    'ps': {'name': 'Pashto, Pushto', 'nativeName': 'پښتو', 'emoji': '🇦🇫'},
-    'pt': {'name': 'Portuguese', 'nativeName': 'Português', 'emoji': '🇵🇹'},
-    'qu': {
+    {'name': 'Pāli', 'nativeName': 'पाऴि', 'emoji': '🌐', 'alpha2': 'pi'},
+    {'name': 'Persian', 'nativeName': 'فارسی', 'emoji': '🇮🇷', 'alpha2': 'fa'},
+    {'name': 'Polish', 'nativeName': 'polski', 'emoji': '🇵🇱', 'alpha2': 'pl'},
+    {
+      'name': 'Pashto, Pushto',
+      'nativeName': 'پښتو',
+      'emoji': '🇦🇫',
+      'alpha2': 'ps'
+    },
+    {
+      'name': 'Portuguese',
+      'nativeName': 'Português',
+      'emoji': '🇵🇹',
+      'alpha2': 'pt'
+    },
+    {
       'name': 'Quechua',
       'nativeName': 'Runa Simi, Kichwa',
-      'emoji': '🇧🇴'
+      'emoji': '🇧🇴',
+      'alpha2': 'qu'
     },
-    'rm': {
+    {
       'name': 'Romansh',
       'nativeName': 'rumantsch grischun',
-      'emoji': '🌐'
+      'emoji': '🌐',
+      'alpha2': 'rm'
     },
-    'rn': {'name': 'Kirundi', 'nativeName': 'kiRundi', 'emoji': '🇧🇮'},
-    'ro': {
+    {
+      'name': 'Kirundi',
+      'nativeName': 'kiRundi',
+      'emoji': '🇧🇮',
+      'alpha2': 'rn'
+    },
+    {
       'name': 'Romanian, Moldavian, Moldovan',
       'nativeName': 'română',
-      'emoji': '🇷🇴'
+      'emoji': '🇷🇴',
+      'alpha2': 'ro'
     },
-    'ru': {'name': 'Russian', 'nativeName': 'русский язык', 'emoji': '🇷🇺'},
-    'sa': {
+    {
+      'name': 'Russian',
+      'nativeName': 'русский язык',
+      'emoji': '🇷🇺',
+      'alpha2': 'ru'
+    },
+    {
       'name': 'Sanskrit (Saṁskṛta)',
       'nativeName': 'संस्कृतम्',
-      'emoji': '🌐'
+      'emoji': '🌐',
+      'alpha2': 'sa'
     },
-    'sc': {'name': 'Sardinian', 'nativeName': 'sardu', 'emoji': '🌐'},
-    'sd': {
+    {'name': 'Sardinian', 'nativeName': 'sardu', 'emoji': '🌐', 'alpha2': 'sc'},
+    {
       'name': 'Sindhi',
       'nativeName': 'सिन्धी, سنڌي، سندھی‎',
-      'emoji': '🌐'
+      'emoji': '🌐',
+      'alpha2': 'sd'
     },
-    'se': {
+    {
       'name': 'Northern Sami',
       'nativeName': 'Davvisámegiella',
-      'emoji': '🌐'
+      'emoji': '🌐',
+      'alpha2': 'se'
     },
-    'sm': {'name': 'Samoan', 'nativeName': 'gagana faa Samoa', 'emoji': '🇼🇸'},
-    'sg': {'name': 'Sango', 'nativeName': 'yângâ tî sängö', 'emoji': '🇨🇫'},
-    'sr': {'name': 'Serbian', 'nativeName': 'српски језик', 'emoji': '🇷🇸'},
-    'gd': {
+    {
+      'name': 'Samoan',
+      'nativeName': 'gagana faa Samoa',
+      'emoji': '🇼🇸',
+      'alpha2': 'sm'
+    },
+    {
+      'name': 'Sango',
+      'nativeName': 'yângâ tî sängö',
+      'emoji': '🇨🇫',
+      'alpha2': 'sg'
+    },
+    {
+      'name': 'Serbian',
+      'nativeName': 'српски језик',
+      'emoji': '🇷🇸',
+      'alpha2': 'sr'
+    },
+    {
       'name': 'Scottish Gaelic; Gaelic',
       'nativeName': 'Gàidhlig',
-      'emoji': '🌐'
+      'emoji': '🌐',
+      'alpha2': 'gd'
     },
-    'sn': {'name': 'Shona', 'nativeName': 'chiShona', 'emoji': '🇿🇼'},
-    'si': {
+    {
+      'name': 'Shona',
+      'nativeName': 'chiShona',
+      'emoji': '🇿🇼',
+      'alpha2': 'sn'
+    },
+    {
       'name': 'Sinhala, Sinhalese',
       'nativeName': 'සිංහල',
-      'emoji': '🇱🇰'
+      'emoji': '🇱🇰',
+      'alpha2': 'si'
     },
-    'sk': {'name': 'Slovak', 'nativeName': 'slovenčina', 'emoji': '🇸🇰'},
-    'sl': {'name': 'Slovene', 'nativeName': 'slovenščina', 'emoji': '🇸🇮'},
-    'so': {
+    {
+      'name': 'Slovak',
+      'nativeName': 'slovenčina',
+      'emoji': '🇸🇰',
+      'alpha2': 'sk'
+    },
+    {
+      'name': 'Slovene',
+      'nativeName': 'slovenščina',
+      'emoji': '🇸🇮',
+      'alpha2': 'sl'
+    },
+    {
       'name': 'Somali',
       'nativeName': 'Soomaaliga, af Soomaali',
-      'emoji': '🇸🇴'
+      'emoji': '🇸🇴',
+      'alpha2': 'so'
     },
-    'st': {'name': 'Southern Sotho', 'nativeName': 'Sesotho', 'emoji': '🇱🇸'},
-    'es': {
+    {
+      'name': 'Southern Sotho',
+      'nativeName': 'Sesotho',
+      'emoji': '🇱🇸',
+      'alpha2': 'st'
+    },
+    {
       'name': 'Spanish; Castilian',
       'nativeName': 'español, castellano',
-      'emoji': '🇪🇸'
+      'emoji': '🇪🇸',
+      'alpha2': 'es'
     },
-    'su': {'name': 'Sundanese', 'nativeName': 'Basa Sunda', 'emoji': '🌐'},
-    'sw': {'name': 'Swahili', 'nativeName': 'Kiswahili', 'emoji': '🇰🇪'},
-    'ss': {'name': 'Swati', 'nativeName': 'SiSwati', 'emoji': '🇿🇦'},
-    'sv': {'name': 'Swedish', 'nativeName': 'svenska', 'emoji': '🇸🇪'},
-    'ta': {'name': 'Tamil', 'nativeName': 'தமிழ்', 'emoji': '🇸🇬'},
-    'te': {'name': 'Telugu', 'nativeName': 'తెలుగు', 'emoji': '🌐'},
-    'tg': {
+    {
+      'name': 'Sundanese',
+      'nativeName': 'Basa Sunda',
+      'emoji': '🌐',
+      'alpha2': 'su'
+    },
+    {
+      'name': 'Swahili',
+      'nativeName': 'Kiswahili',
+      'emoji': '🇰🇪',
+      'alpha2': 'sw'
+    },
+    {'name': 'Swati', 'nativeName': 'SiSwati', 'emoji': '🇿🇦', 'alpha2': 'ss'},
+    {
+      'name': 'Swedish',
+      'nativeName': 'svenska',
+      'emoji': '🇸🇪',
+      'alpha2': 'sv'
+    },
+    {'name': 'Tamil', 'nativeName': 'தமிழ்', 'emoji': '🇸🇬', 'alpha2': 'ta'},
+    {'name': 'Telugu', 'nativeName': 'తెలుగు', 'emoji': '🌐', 'alpha2': 'te'},
+    {
       'name': 'Tajik',
       'nativeName': 'тоҷикӣ, toğikī, تاجیکی‎',
-      'emoji': '🇹🇯'
+      'emoji': '🇹🇯',
+      'alpha2': 'tg'
     },
-    'th': {'name': 'Thai', 'nativeName': 'ไทย', 'emoji': '🇹🇭'},
-    'ti': {'name': 'Tigrinya', 'nativeName': 'ትግርኛ', 'emoji': '🇪🇷'},
-    'bo': {
+    {'name': 'Thai', 'nativeName': 'ไทย', 'emoji': '🇹🇭', 'alpha2': 'th'},
+    {'name': 'Tigrinya', 'nativeName': 'ትግርኛ', 'emoji': '🇪🇷', 'alpha2': 'ti'},
+    {
       'name': 'Tibetan Standard, Tibetan, Central',
       'nativeName': 'བོད་ཡིག',
-      'emoji': '🌐'
+      'emoji': '🌐',
+      'alpha2': 'bo'
     },
-    'tk': {
+    {
       'name': 'Turkmen',
       'nativeName': 'Türkmen, Түркмен',
-      'emoji': '🇹🇲'
+      'emoji': '🇹🇲',
+      'alpha2': 'tk'
     },
-    'tl': {
+    {
       'name': 'Tagalog',
       'nativeName': 'Wikang Tagalog, ᜏᜒᜃᜅ᜔ ᜆᜄᜎᜓᜄ᜔',
-      'emoji': '🌐'
+      'emoji': '🌐',
+      'alpha2': 'tl'
     },
-    'tn': {'name': 'Tswana', 'nativeName': 'Setswana', 'emoji': '🇧🇼'},
-    'to': {
+    {
+      'name': 'Tswana',
+      'nativeName': 'Setswana',
+      'emoji': '🇧🇼',
+      'alpha2': 'tn'
+    },
+    {
       'name': 'Tonga (Tonga Islands)',
       'nativeName': 'faka Tonga',
-      'emoji': '🇹🇴'
+      'emoji': '🇹🇴',
+      'alpha2': 'to'
     },
-    'tr': {'name': 'Turkish', 'nativeName': 'Türkçe', 'emoji': '🇹🇷'},
-    'ts': {'name': 'Tsonga', 'nativeName': 'Xitsonga', 'emoji': '🇿🇦'},
-    'tt': {
+    {
+      'name': 'Turkish',
+      'nativeName': 'Türkçe',
+      'emoji': '🇹🇷',
+      'alpha2': 'tr'
+    },
+    {
+      'name': 'Tsonga',
+      'nativeName': 'Xitsonga',
+      'emoji': '🇿🇦',
+      'alpha2': 'ts'
+    },
+    {
       'name': 'Tatar',
       'nativeName': 'татарча, tatarça, تاتارچا‎',
-      'emoji': '🌐'
+      'emoji': '🌐',
+      'alpha2': 'tt'
     },
-    'tw': {'name': 'Twi', 'nativeName': 'Twi', 'emoji': '🌐'},
-    'ty': {'name': 'Tahitian', 'nativeName': 'Reo Tahiti', 'emoji': '🌐'},
-    'ug': {
+    {'name': 'Twi', 'nativeName': 'Twi', 'emoji': '🌐', 'alpha2': 'tw'},
+    {
+      'name': 'Tahitian',
+      'nativeName': 'Reo Tahiti',
+      'emoji': '🌐',
+      'alpha2': 'ty'
+    },
+    {
       'name': 'Uighur, Uyghur',
       'nativeName': 'Uyƣurqə, ئۇيغۇرچە‎',
-      'emoji': '🌐'
+      'emoji': '🌐',
+      'alpha2': 'ug'
     },
-    'uk': {'name': 'Ukrainian', 'nativeName': 'українська', 'emoji': '🇺🇦'},
-    'ur': {'name': 'Urdu', 'nativeName': 'اردو', 'emoji': '🇵🇰'},
-    'uz': {
+    {
+      'name': 'Ukrainian',
+      'nativeName': 'українська',
+      'emoji': '🇺🇦',
+      'alpha2': 'uk'
+    },
+    {'name': 'Urdu', 'nativeName': 'اردو', 'emoji': '🇵🇰', 'alpha2': 'ur'},
+    {
       'name': 'Uzbek',
       'nativeName': 'zbek, Ўзбек, أۇزبېك‎',
-      'emoji': '🌐'
+      'emoji': '🌐',
+      'alpha2': 'uz'
     },
-    've': {'name': 'Venda', 'nativeName': 'Tshivenḓa', 'emoji': '🇿🇦'},
-    'vi': {'name': 'Vietnamese', 'nativeName': 'Tiếng Việt', 'emoji': '🇻🇳'},
-    'vo': {'name': 'Volapük', 'nativeName': 'Volapük', 'emoji': '🌐'},
-    'wa': {'name': 'Walloon', 'nativeName': 'Walon', 'emoji': '🌐'},
-    'cy': {'name': 'Welsh', 'nativeName': 'Cymraeg', 'emoji': '🌐'},
-    'wo': {'name': 'Wolof', 'nativeName': 'Wollof', 'emoji': '🌐'},
-    'fy': {'name': 'Western Frisian', 'nativeName': 'Frysk', 'emoji': '🌐'},
-    'xh': {'name': 'Xhosa', 'nativeName': 'isiXhosa', 'emoji': '🇿🇦'},
-    'yi': {'name': 'Yiddish', 'nativeName': 'ייִדיש', 'emoji': '🌐'},
-    'yo': {'name': 'Yoruba', 'nativeName': 'Yorùbá', 'emoji': '🌐'},
-    'za': {
+    {
+      'name': 'Venda',
+      'nativeName': 'Tshivenḓa',
+      'emoji': '🇿🇦',
+      'alpha2': 've'
+    },
+    {
+      'name': 'Vietnamese',
+      'nativeName': 'Tiếng Việt',
+      'emoji': '🇻🇳',
+      'alpha2': 'vi'
+    },
+    {'name': 'Volapük', 'nativeName': 'Volapük', 'emoji': '🌐', 'alpha2': 'vo'},
+    {'name': 'Walloon', 'nativeName': 'Walon', 'emoji': '🌐', 'alpha2': 'wa'},
+    {'name': 'Welsh', 'nativeName': 'Cymraeg', 'emoji': '🌐', 'alpha2': 'cy'},
+    {'name': 'Wolof', 'nativeName': 'Wollof', 'emoji': '🌐', 'alpha2': 'wo'},
+    {
+      'name': 'Western Frisian',
+      'nativeName': 'Frysk',
+      'emoji': '🌐',
+      'alpha2': 'fy'
+    },
+    {
+      'name': 'Xhosa',
+      'nativeName': 'isiXhosa',
+      'emoji': '🇿🇦',
+      'alpha2': 'xh'
+    },
+    {'name': 'Yiddish', 'nativeName': 'ייִדיש', 'emoji': '🌐', 'alpha2': 'yi'},
+    {'name': 'Yoruba', 'nativeName': 'Yorùbá', 'emoji': '🌐', 'alpha2': 'yo'},
+    {
       'name': 'Zhuang, Chuang',
       'nativeName': 'Saɯ cueŋƅ, Saw cuengh',
-      'emoji': '🌐'
+      'emoji': '🌐',
+      'alpha2': 'za'
     },
-    'zu': {
-      'name': 'Zulu',
-      'nativeName': '',
-      'emoji': '🇿🇦',
-    },
-  };
+    {'name': 'Zulu', 'nativeName': '', 'emoji': '🇿🇦', 'alpha2': 'zu'},
+  ];
 
   // List of supported Google Text-to-Speech WaveNet languages
-  List waveNetLanguages = [
+  static List waveNetLanguages = [
     'da',
     'nl',
     'en',
@@ -450,23 +902,29 @@ class IsoLanguage {
     'uk'
   ];
 
-  /// This method return the language name by [key]
-  String getName(key) {
-    if (isoLanguages.containsKey(key)) {
-      Map<String, String> language = isoLanguages[key];
-      return language['name'] ?? '';
-    } else {
-      return '';
+  static List<ISOLanguage> get languages {
+    List<ISOLanguage> items = [];
+    for (var element in raw) {
+      items.add(ISOLanguage.fromJson(element));
+    }
+    return items;
+  }
+
+  /// This method return the language name by [alpha2]
+  static String? getName(String? alpha2) {
+    try {
+      return languages.firstWhere((element) => element.alpha2 == alpha2).name;
+    } catch (error) {
+      return null;
     }
   }
 
   /// This method return the emoji country by [key]
-  String getEmoji(key) {
-    if (isoLanguages.containsKey(key)) {
-      Map<String, String> language = isoLanguages[key];
-      return language['emoji'] ?? '🌐';
-    } else {
-      return '🌐';
+  static String? getEmoji(String? alpha2) {
+    try {
+      return languages.firstWhere((element) => element.alpha2 == alpha2).emoji;
+    } catch (error) {
+      return null;
     }
   }
 }

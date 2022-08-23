@@ -139,6 +139,10 @@ dynamic defaultLocales = {
     'en': 'Remove',
     'es': 'Eliminar',
   },
+  'label--remove-label': {
+    'en': 'Remove {label}',
+    'es': 'Eliminar {label}',
+  },
   'alert--user-removed': {
     'en': 'User Removed',
     'es': 'Usuario Eliminado',
@@ -146,6 +150,26 @@ dynamic defaultLocales = {
   'alert--no-choose-files': {
     'en': "You didn't choose any files",
     'es': 'No elegiste ningún archivo',
+  },
+  'alert--file-is-too-small': {
+    'en': 'File is too small',
+    'es': 'El archivo es muy pequeño',
+  },
+  'alert--no-photo-was-taken': {
+    'en': 'No photo was taken',
+    'es': 'No se tomó una foto'
+  },
+  'alert--not-implemented': {
+    'en': 'Not Implemented',
+    'es': 'No implementada',
+  },
+  'alert--issue-resizing-image': {
+    'en': 'There was an issue resizing the image',
+    'es': 'Hubo un problema al cambiar el tamaño de la imagen',
+  },
+  'alert--action-permanent': {
+    'en': 'This action can\'t be undone',
+    'es': 'Esta acción no se puede deshacer',
   },
   'label--save': {
     'en': 'Save',
@@ -378,6 +402,10 @@ dynamic defaultLocales = {
   'label--delete': {
     'en': 'Delete',
     'es': 'Eliminar',
+  },
+  'label--delete-label': {
+    'en': 'Delete {label}',
+    'es': 'Eliminar {label}',
   },
   'label--name-first': {
     'en': 'First Name',
@@ -716,5 +744,21 @@ dynamic defaultLocales = {
   'label--not-supported': {
     'en': 'Not Supported',
     'es': 'No soportado',
+  },
+  'label--template': {
+    'en': 'Template',
+    'es': 'Plantilla',
+  },
+  'label--templates': {
+    'en': 'Templates',
+    'es': 'Plantillas',
+  },
+  'label--message': {
+    'en': 'Message',
+    'es': 'Mensaje',
+  },
+  'label--messages': {
+    'en': 'Messages',
+    'es': 'Mensajes',
   },
 };

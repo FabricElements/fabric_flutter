@@ -25,6 +25,7 @@ enum InputDataType {
   radio,
   phone,
   secret,
+  url,
 }
 
 /// [InputData] provides an useful way to handle data input
@@ -54,6 +55,8 @@ class InputData extends StatefulWidget {
     this.textStyle,
     this.obscureText,
     this.label,
+    this.textInputAction,
+    this.autocorrect = false,
   }) : super(key: key);
   final dynamic value;
   final List<dynamic> enums;
@@ -74,6 +77,8 @@ class InputData extends StatefulWidget {
   final TextStyle? textStyle;
   final bool? obscureText;
   final String? label;
+  final TextInputAction? textInputAction;
+  final bool autocorrect;
 
   /// [onSubmit]
   /// Never use expression body or value won't be update correctly
@@ -104,6 +109,7 @@ class _InputDataState extends State<InputData> {
         case InputDataType.phone:
         case InputDataType.email:
         case InputDataType.secret:
+        case InputDataType.url:
           String tempValue = newValue?.toString() ?? '';
           if (tempValue != value) {
             value = tempValue;
@@ -112,12 +118,14 @@ class _InputDataState extends State<InputData> {
           }
           break;
         case InputDataType.date:
-          value = newValue as DateTime?;
-          if (value != null) {
+          value = newValue != null ? newValue as DateTime : null;
+          if (value != null && widget.utcOffset != null) {
             value = Utils.dateTimeOffset(
               dateTime: value,
               utcOffset: widget.utcOffset,
             );
+          }
+          if (value != null) {
             textController.text = formatDate.format(value);
           } else {
             textController.text = '';
@@ -198,6 +206,7 @@ getValue -------------------------------------
       case InputDataType.phone:
       case InputDataType.email:
       case InputDataType.secret:
+      case InputDataType.url:
         inputIcon = widget.icon != null ? Icon(widget.icon) : null;
         break;
       default:
@@ -208,9 +217,15 @@ getValue -------------------------------------
       style: const TextStyle(color: Colors.orange),
     );
     TextInputType keyboardType = TextInputType.text;
+    TextInputAction? textInputAction = widget.textInputAction;
     List<TextInputFormatter> inputFormatters = [];
     final inputValidation = InputValidation(locales: locales);
     switch (widget.type) {
+      case InputDataType.text:
+        keyboardType = TextInputType.multiline;
+        textInputAction = widget.textInputAction ?? TextInputAction.newline;
+        break;
+
       case InputDataType.phone:
 
         /// https://en.wikipedia.org/wiki/Telephone_numbering_plan
@@ -237,6 +252,14 @@ getValue -------------------------------------
           FilteringTextInputFormatter.singleLineFormatter,
         ]);
         validator = inputValidation.validateEmail;
+        break;
+      case InputDataType.url:
+        hintTextDefault = 'https://example.com';
+        keyboardType = TextInputType.url;
+        inputFormatters.addAll([
+          FilteringTextInputFormatter.singleLineFormatter,
+        ]);
+        validator = inputValidation.validateUrl;
         break;
       case InputDataType.double:
         keyboardType = const TextInputType.numberWithOptions(decimal: true);
@@ -316,7 +339,9 @@ getValue -------------------------------------
       case InputDataType.phone:
       case InputDataType.email:
       case InputDataType.secret:
+      case InputDataType.url:
         endWidget = TextFormField(
+          autocorrect: widget.autocorrect,
           controller: textController,
           enableSuggestions: false,
           keyboardType: keyboardType,
@@ -351,6 +376,7 @@ getValue -------------------------------------
         endWidget = TextFormField(
           enableSuggestions: false,
           keyboardType: keyboardType,
+          textInputAction: textInputAction,
           controller: textController,
           readOnly: true,
           decoration: inputDecoration.copyWith(
@@ -361,13 +387,19 @@ getValue -------------------------------------
                 inputDecoration.prefixIcon ?? const Icon(Icons.date_range),
           ),
           onTap: () async {
-            DateTime? date = value ?? DateTime.now();
-            int year = date!.year < 2020 ? date.year : 2000;
+            DateTime now = DateTime.now().toUtc();
+            DateTime date = value ?? now;
+            DateTime dateBefore = now;
+            DateTime dateAfter = now;
+            if (value != null) {
+              dateBefore = date.isBefore(now) ? date : now;
+              dateAfter = date.isAfter(now) ? date : now;
+            }
             final DateTime? picked = await showDatePicker(
               context: context,
               initialDate: date,
-              firstDate: DateTime(year),
-              lastDate: date.add(const Duration(days: 365)),
+              firstDate: dateBefore.subtract(const Duration(days: 365 * 10)),
+              lastDate: dateAfter.add(const Duration(days: 365 * 10)),
             );
             if (picked != null) {
               final newDate = Utils.dateTimeOffset(
