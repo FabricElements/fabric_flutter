@@ -32,7 +32,6 @@ class FlagChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var formatLanguage = IsoLanguage();
     final NumberFormat formatDecimal = NumberFormat.decimalPattern();
     final theme = Theme.of(context);
     final TextTheme textTheme = theme.textTheme;
@@ -49,7 +48,7 @@ class FlagChip extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.only(left: 8),
             child: Text(
-              formatLanguage.getEmoji(language),
+              ISOLanguages.getEmoji(language) ?? '',
               style: textTheme.bodyText2!.copyWith(
                 fontSize: 20,
                 color: colorText,

@@ -753,4 +753,12 @@ dynamic defaultLocales = {
     'en': 'Templates',
     'es': 'Plantillas',
   },
+  'label--message': {
+    'en': 'Message',
+    'es': 'Mensaje',
+  },
+  'label--messages': {
+    'en': 'Messages',
+    'es': 'Mensajes',
+  },
 };
