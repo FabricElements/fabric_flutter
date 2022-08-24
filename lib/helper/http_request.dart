@@ -50,7 +50,8 @@ class HTTPRequest {
 
   /// Throw an error if it's found or null if it's ok
   static error(Response r) {
-    if (r.statusCode == 200) {
+    /// Accept status code from 200 to 299
+    if (r.statusCode >= 200 && r.statusCode <= 299) {
       return;
     }
 

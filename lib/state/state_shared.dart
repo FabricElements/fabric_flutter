@@ -25,13 +25,13 @@ class StateShared extends ChangeNotifier {
   Stream<String?> get streamError => _controllerStreamError.stream;
 
   /// Last data assigned
-  dynamic dataOld;
+  dynamic privateOldData;
 
   /// Returns data [data]
-  dynamic _data;
+  dynamic privateData;
 
   /// Returns [data] object
-  dynamic get data => _data;
+  dynamic get data => privateData;
 
   /// Default Callback function
   callbackDefault(dynamic data) {}
@@ -72,7 +72,8 @@ class StateShared extends ChangeNotifier {
   final int initialPage = 1;
 
   /// Verify if it's possible to paginate
-  bool get canPaginate => paginate && dataOld != null && dataOld.isNotEmpty;
+  bool get canPaginate =>
+      paginate && privateOldData != null && privateOldData.isNotEmpty;
 
   /// Paginate and call
   Future<dynamic> next() async {
@@ -98,9 +99,9 @@ class StateShared extends ChangeNotifier {
 
   /// Set [data]
   set data(dynamic dataObject) {
-    if (dataOld == dataObject) return;
-    dataOld = dataObject;
-    _data = dataObject;
+    if (privateOldData == dataObject) return;
+    privateOldData = dataObject;
+    privateData = dataObject;
     notifyListeners();
     callback(data);
     _controllerStream.sink.add(data);

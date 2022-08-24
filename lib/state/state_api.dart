@@ -45,10 +45,15 @@ class StateAPI extends StateShared {
     limitDefault = 5;
     selectedItems = [];
     _lastEndpointCalled = null;
-    data = null;
-    dataOld = null;
+    privateOldData = null;
     clearAfter();
-    if (notify) notifyListeners();
+    if (notify) {
+      data = null;
+      Future.delayed(const Duration(milliseconds: 100))
+          .then((value) => notifyListeners());
+    } else {
+      privateData = null;
+    }
   }
 
   /// Define the HTTPS [endpoint] (https://example.com/demo)
@@ -112,8 +117,14 @@ class StateAPI extends StateShared {
       isSameClearPath = lastEndpointClear == endpointClear && paginate;
       if (!isSameClearPath) {
         _errorCount = 0;
-        data = null;
+        privateData = null;
         initialized = false;
+      } else {
+        // Disable this code block when ignoreDuplicatedCalls is set to false
+        if (isSameClearPath && !ignoreDuplicatedCalls) {
+          isSameClearPath = false;
+          privateData = null;
+        }
       }
       _lastEndpointCalled = endpoint;
       if (_errorCount > 1) {
@@ -164,12 +175,12 @@ class StateAPI extends StateShared {
       loading = false;
 
       /// pagination
-      if (incrementalPagination && page > 0) {
+      if (incrementalPagination && page > initialPage) {
         if (data != null && newData != null && newData.isNotEmpty) {
-          data = merge(base: data, toMerge: newData);
+          privateData = merge(base: data, toMerge: newData);
         }
       } else {
-        data = newData;
+        privateData = newData;
       }
     } catch (e) {
       if (kDebugMode) print('------ ERROR API CALL : Parent catch ------');
@@ -178,12 +189,13 @@ class StateAPI extends StateShared {
       _errorCount++;
       error = e.toString();
     }
-    if (notify) {
-      /// Notify with delay in case widgets using the state need paint
-      Future.delayed(const Duration(milliseconds: 100)).then((value) {
-        notifyListeners();
-      });
-    }
+    // if (notify) {
+    //   /// Notify with delay in case widgets using the state need paint
+    //   Future.delayed(const Duration(milliseconds: 100)).then((value) {
+    //     notifyListeners();
+    //   });
+    // }
+    data = privateData;
     return data;
   }
 }

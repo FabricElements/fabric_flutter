@@ -22,7 +22,7 @@ class PaginationNav extends StatelessWidget {
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context)!;
     List<Widget> actions = [
-      Text('Page: $page / ${canPaginate ? page + 1 : page}'),
+      Text('Page: $page / ${canPaginate ? (1 + page) : page}'),
       const Spacer(),
       TextButton.icon(
         onPressed: page > initialPage ? () => previous() : null,
