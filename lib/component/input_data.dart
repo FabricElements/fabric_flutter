@@ -40,6 +40,7 @@ class InputData extends StatefulWidget {
     this.options = const [],
     this.onChanged,
     this.onSubmit,
+    this.onComplete,
     this.disabled = false,
     this.hintText,
     this.isDense = false,
@@ -57,6 +58,7 @@ class InputData extends StatefulWidget {
     this.label,
     this.textInputAction,
     this.autocorrect = false,
+    this.autofocus = false,
   }) : super(key: key);
   final dynamic value;
   final List<dynamic> enums;
@@ -79,10 +81,15 @@ class InputData extends StatefulWidget {
   final String? label;
   final TextInputAction? textInputAction;
   final bool autocorrect;
+  final bool autofocus;
 
   /// [onSubmit]
   /// Never use expression body or value won't be update correctly
   final ValueChanged<dynamic>? onSubmit;
+
+  /// [onComplete]
+  /// Never use expression body or value won't be update correctly
+  final ValueChanged<dynamic>? onComplete;
 
   /// [onChanged]
   /// Never use expression body or value won't be update correctly
@@ -341,10 +348,12 @@ getValue -------------------------------------
       case InputDataType.secret:
       case InputDataType.url:
         endWidget = TextFormField(
+          autofocus: widget.autofocus,
           autocorrect: widget.autocorrect,
           controller: textController,
           enableSuggestions: false,
           keyboardType: keyboardType,
+          textInputAction: textInputAction,
           inputFormatters: inputFormatters,
           validator: validator,
           autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -359,17 +368,19 @@ getValue -------------------------------------
               widget.onChanged!(_valueChanged(value));
             }
           },
-          onFieldSubmitted: (newValue) {
-            value = newValue;
-            if (widget.onSubmit != null) {
-              widget.onSubmit!(_valueChanged(value));
-            }
-          },
-          onEditingComplete: () {
-            if (widget.onSubmit != null) {
-              widget.onSubmit!(_valueChanged(value));
-            }
-          },
+          onFieldSubmitted: widget.onSubmit == null
+              ? null
+              : (newValue) {
+                  value = newValue;
+                  widget.onSubmit!(_valueChanged(value));
+                  FocusManager.instance.primaryFocus?.unfocus();
+                },
+          onEditingComplete: widget.onComplete == null
+              ? null
+              : () {
+                  widget.onComplete!(_valueChanged(value));
+                  FocusManager.instance.primaryFocus?.unfocus();
+                },
         );
         break;
       case InputDataType.date:

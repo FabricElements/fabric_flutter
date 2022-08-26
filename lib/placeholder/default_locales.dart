@@ -67,6 +67,10 @@ dynamic defaultLocales = {
     'en': 'New {label}',
     'es': 'Nuevo {label}',
   },
+  'label--edit': {
+    'en': 'Edit',
+    'es': 'Editar',
+  },
   'label--edit-label': {
     'en': 'Edit {label}',
     'es': 'Editar {label}',
@@ -255,6 +259,10 @@ dynamic defaultLocales = {
     'en': 'Create',
     'es': 'Crear',
   },
+  'label--create-label': {
+    'en': 'Create {label}',
+    'es': 'Crear {label}',
+  },
   'label--confirm': {
     'en': 'Confirm',
     'es': 'Confirmar',
@@ -331,10 +339,6 @@ dynamic defaultLocales = {
     'en': 'Sign in with Apple',
     'es': 'Iniciar sesión con Apple',
   },
-  'page-auth--description': {
-    'en': 'Placeholder',
-    'es': 'Temporal',
-  },
   'label--sign-in-with-phone': {
     'en': 'SIGN IN WITH PHONE',
     'es': 'INICIAR CON CELULAR',
@@ -374,6 +378,10 @@ dynamic defaultLocales = {
   'label--send': {
     'en': 'Send',
     'es': 'Enviar',
+  },
+  'label--test': {
+    'en': 'Test',
+    'es': 'Probar',
   },
   'label--accept': {
     'en': 'Accept',
@@ -418,6 +426,10 @@ dynamic defaultLocales = {
   'label--name': {
     'en': 'Name',
     'es': 'Nombre',
+  },
+  'label--description': {
+    'en': 'Description',
+    'es': 'Descripción',
   },
   'label--sign-out': {
     'en': 'Sign out',
@@ -654,6 +666,14 @@ dynamic defaultLocales = {
   'label--time': {
     'en': 'Time',
     'es': 'Tiempo',
+  },
+  'label--title': {
+    'en': 'Title',
+    'es': 'Título',
+  },
+  'page-auth--description': {
+    'en': 'Placeholder',
+    'es': 'Temporal',
   },
   'validation--email-address': {
     'en': 'Enter a valid email address',
