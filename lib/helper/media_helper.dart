@@ -39,7 +39,7 @@ class MediaHelper {
             withData: true,
           );
           if (result == null || result.files.isEmpty) {
-            throw 'alert--no-choose-files';
+            throw 'alert--no-chosen-files';
           }
           final file = result.files.first;
           if (file.size < 1000) throw ('alert--file-is-too-small');
@@ -188,7 +188,7 @@ class MediaHelper {
       allowedExtensions: allowedExtensions,
       withData: true,
     );
-    if (result == null || result.files.isEmpty) throw 'alert--no-choose-files';
+    if (result == null || result.files.isEmpty) throw 'alert--no-chosen-files';
     final file = result.files.first;
     if (file.size < 1000) throw ('alert--file-is-too-small');
     fileData = file.bytes;

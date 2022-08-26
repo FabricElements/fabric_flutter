@@ -151,7 +151,7 @@ dynamic defaultLocales = {
     'en': 'User Removed',
     'es': 'Usuario Eliminado',
   },
-  'alert--no-choose-files': {
+  'alert--no-chosen-files': {
     'en': "You didn't choose any files",
     'es': 'No elegiste ningún archivo',
   },
@@ -792,5 +792,74 @@ dynamic defaultLocales = {
   'label--disabled': {
     'en': 'Disabled',
     'es': 'desactivado/a',
+  },
+  'label--replace': {
+    'en': 'Replace',
+    'es': 'Reemplazar',
+  },
+  'label--basic': {
+    'en': 'Basic',
+    'es': 'Básico',
+  },
+  'label--text': {
+    'en': 'Text',
+    'es': 'Texto',
+  },
+  'label--link': {
+    'en': 'Link',
+    'es': 'Enlace',
+  },
+  'label--download': {
+    'en': 'Download',
+    'es': 'Descargar',
+  },
+  'label--files': {
+    'en': 'Files',
+    'es': 'Archivos',
+  },
+  'label--gallery': {
+    'en': 'Gallery',
+    'es': 'Galería',
+  },
+  'label--camera': {
+    'en': 'Camera',
+    'es': 'Cámara',
+  },
+  'label--image': {
+    'en': 'Image',
+    'es': 'Imagen',
+  },
+  'label--images': {
+    'en': 'Images',
+    'es': 'Imágenes',
+  },
+  'label--youtube': {
+    'en': 'YouTube',
+  },
+  'label--vimeo': {
+    'en': 'Vimeo',
+  },
+  'label--video': {
+    'en': 'Video',
+    'es': 'Video',
+  },
+  'label--audio': {
+    'en': 'Audio',
+    'es': 'Audio',
+  },
+  'lorem--s': {
+    'en': 'Aliquam tincidunt mauris eu risus.',
+  },
+  'lorem--m': {
+    'en':
+        'Donec nec justo eget felis facilisis fermentum. Aliquam porttitor mauris sit amet orci.'
+  },
+  'lorem--l': {
+    'en':
+        'Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec odio. Quisque volutpat mattis eros. Nullam malesuada erat ut turpis. Suspendisse urna nibh, viverra non, semper suscipit, posuere a, pede.'
+  },
+  'lorem--block': {
+    'en':
+        'Praesent dapibus, neque id cursus faucibus, tortor neque egestas auguae, eu vulputate magna eros eu erat. Aliquam erat volutpat. Nam dui mi, tincidunt quis, accumsan porttitor, facilisis luctus, metus. \nPhasellus ultrices nulla quis nibh. Quisque a lectus. Donec consectetuer ligula vulputate sem tristique cursus. Nam nulla quam, gravida non, commodo a, sodales sit amet, nisi.'
   },
 };
