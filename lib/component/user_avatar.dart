@@ -1,5 +1,3 @@
-library fabric_flutter;
-
 import 'package:flutter/material.dart';
 
 /// UserAvatar shows the image and the name of the users in profile sections.

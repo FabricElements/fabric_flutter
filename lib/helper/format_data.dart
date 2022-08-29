@@ -1,5 +1,3 @@
-library fabric_flutter;
-
 import 'package:intl/intl.dart';
 
 /// [FormatData] provides helpful value formats used to display data

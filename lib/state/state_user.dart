@@ -1,5 +1,3 @@
-library fabric_flutter;
-
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -8,6 +6,7 @@ import 'package:flutter/foundation.dart';
 
 import '../helper/utils.dart';
 import '../serialized/user_data.dart';
+import '../serialized/user_status.dart';
 import 'state_document.dart';
 
 final _auth = FirebaseAuth.instance;

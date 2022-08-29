@@ -1,5 +1,3 @@
-library fabric_flutter;
-
 import 'package:flutter/cupertino.dart';
 
 import './input_data.dart';

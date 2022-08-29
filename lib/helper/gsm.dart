@@ -1,5 +1,3 @@
-library fabric_flutter;
-
 import 'dart:core';
 
 import '../serialized/gsm_data.dart';

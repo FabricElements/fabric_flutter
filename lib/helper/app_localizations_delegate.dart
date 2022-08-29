@@ -1,5 +1,3 @@
-library fabric_flutter;
-
 import 'dart:async';
 import 'dart:convert';
 
@@ -35,7 +33,7 @@ class AppLocalizations {
     return true;
   }
 
-  String _mergeLocales(keyPath) {
+  String _mergeLocales(String keyPath) {
     RegExp regExp = RegExp(r'([a-zA-Z\d_-]+)');
     String finalResponse = '';
     try {
@@ -57,9 +55,7 @@ class AppLocalizations {
 
   String _replaceOptions(String text, Map<String, String> options) {
     String result = text;
-    RegExp regExp = RegExp(r'{.*?}', multiLine: true);
-    // RegExp _regexBrackets = RegExp(r'{}', multiLine: true);
-
+    RegExp regExp = RegExp(r'{.*?}');
     Iterable matches = regExp.allMatches(text);
     if (matches.isNotEmpty) {
       for (var match in matches) {
@@ -83,13 +79,16 @@ class AppLocalizations {
   /// [key] the locale key. It will be cleaned and fixed as needed
   /// [options] the locale optional values that will be replaced
   String get(String? key, [Map<String, String>? options]) {
-    String _key = key ?? "label--unknown";
+    String _key = key ?? 'label--unknown';
     // Fix dash
     _key = _key.replaceAll('_', '-');
+    // Remove invalid characters
+    RegExp regExp = RegExp(r'([^a-zA-Z\d-]+)');
+    _key = _key.replaceAll(regExp, '');
     // Handle camelCase
     RegExp exp = RegExp(r'(?<=[a-z])[A-Z]');
     String endKey = _key
-        .replaceAllMapped(exp, (Match m) => ('-' + m.group(0)!))
+        .replaceAllMapped(exp, (Match m) => ('-${m.group(0)!}'))
         .toLowerCase();
     String finalLocalization = _mergeLocales(endKey);
     if (options != null) {

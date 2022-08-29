@@ -1,5 +1,3 @@
-library fabric_flutter;
-
 import 'package:flutter/material.dart';
 
 /// SectionTitle is a widget used for emphasis and a screen which can show the start of a section.

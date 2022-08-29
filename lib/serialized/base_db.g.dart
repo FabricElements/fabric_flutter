@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of fabric_flutter;
+part of 'base_db.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
@@ -13,8 +13,10 @@ BaseFirestore _$BaseFirestoreFromJson(Map<String, dynamic> json) {
   );
   return BaseFirestore(
     id: json['id'] as String,
-    created: Utils.timestampFromJsonDefault(json['created'] as Timestamp?),
-    updated: Utils.timestampFromJsonDefault(json['updated'] as Timestamp?),
+    created:
+        FirestoreHelper.timestampFromJsonDefault(json['created'] as Timestamp?),
+    updated:
+        FirestoreHelper.timestampFromJsonDefault(json['updated'] as Timestamp?),
     backup: json['backup'] as bool? ?? false,
   );
 }
@@ -22,7 +24,7 @@ BaseFirestore _$BaseFirestoreFromJson(Map<String, dynamic> json) {
 Map<String, dynamic> _$BaseFirestoreToJson(BaseFirestore instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'updated': Utils.timestampUpdate(instance.updated),
-      'created': Utils.timestampToJsonDefault(instance.created),
+      'updated': FirestoreHelper.timestampUpdate(instance.updated),
+      'created': FirestoreHelper.timestampToJsonDefault(instance.created),
       'backup': Utils.boolFalse(instance.backup),
     };

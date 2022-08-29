@@ -1,5 +1,3 @@
-library fabric_flutter;
-
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';

@@ -407,6 +407,10 @@ dynamic defaultLocales = {
     'en': 'Upload',
     'es': 'Subir',
   },
+  'label--schedule': {
+    'en': 'Schedule',
+    'es': 'Horario',
+  },
   'label--delete': {
     'en': 'Delete',
     'es': 'Eliminar',
@@ -506,6 +510,10 @@ dynamic defaultLocales = {
   'label--dashboard': {
     'en': 'Dashboard',
     'es': 'Tablero',
+  },
+  'notification--user-signed-in': {
+    'en': 'Welcome back',
+    'es': 'Bienvenido',
   },
   'notification--invitation-sent': {
     'en': 'Invitation sent',

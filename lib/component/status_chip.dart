@@ -1,5 +1,3 @@
-library fabric_flutter;
-
 import 'package:flutter/material.dart';
 
 import '../helper/app_localizations_delegate.dart';

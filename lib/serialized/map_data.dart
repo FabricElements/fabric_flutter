@@ -1,5 +1,3 @@
-library fabric_flutter;
-
 import 'package:json_annotation/json_annotation.dart';
 
 part 'map_data.g.dart';

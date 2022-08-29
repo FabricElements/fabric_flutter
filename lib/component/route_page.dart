@@ -1,10 +1,8 @@
-library fabric_flutter;
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../helper/route_helper.dart';
-import '../serialized/user_data.dart';
+import '../serialized/user_status.dart';
 import '../state/state_alert.dart';
 
 class RoutePage extends StatelessWidget {

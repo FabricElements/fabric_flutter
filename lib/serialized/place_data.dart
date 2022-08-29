@@ -1,5 +1,3 @@
-library fabric_flutter;
-
 import 'package:google_maps_webservice/places.dart';
 import 'package:json_annotation/json_annotation.dart';
 

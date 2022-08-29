@@ -1,5 +1,3 @@
-library fabric_flutter;
-
 import 'dart:async';
 import 'dart:io' show Platform;
 

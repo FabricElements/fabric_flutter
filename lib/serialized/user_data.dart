@@ -1,8 +1,7 @@
-library fabric_flutter;
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:json_annotation/json_annotation.dart';
 
+import '../helper/firestore_helper.dart';
 import '../helper/utils.dart';
 
 part 'user_data.g.dart';
@@ -38,8 +37,8 @@ class UserData {
 
   /// User Creation Time: [created]
   @JsonKey(
-    fromJson: Utils.timestampFromJsonDefault,
-    toJson: Utils.timestampToJsonDefault,
+    fromJson: FirestoreHelper.timestampFromJsonDefault,
+    toJson: FirestoreHelper.timestampToJsonDefault,
     includeIfNull: true,
     defaultValue: null,
   )
@@ -83,8 +82,8 @@ class UserData {
 
   /// Last time the user was ping
   @JsonKey(
-    fromJson: Utils.timestampFromJson,
-    toJson: Utils.timestampToJson,
+    fromJson: FirestoreHelper.timestampFromJson,
+    toJson: FirestoreHelper.timestampToJson,
     includeIfNull: true,
     defaultValue: null,
   )
@@ -103,8 +102,8 @@ class UserData {
 
   /// Last time the user was updated: [updated]
   @JsonKey(
-    fromJson: Utils.timestampFromJsonDefault,
-    toJson: Utils.timestampToJsonDefault,
+    fromJson: FirestoreHelper.timestampFromJsonDefault,
+    toJson: FirestoreHelper.timestampToJsonDefault,
     includeIfNull: true,
     defaultValue: null,
   )
@@ -137,28 +136,4 @@ class UserData {
       _$UserDataFromJson(json ?? {});
 
   Map<String, dynamic> toJson() => _$UserDataToJson(this);
-}
-
-@JsonSerializable(explicitToJson: true)
-class UserStatus {
-  @JsonKey(includeIfNull: false)
-  bool signedIn;
-  @JsonKey(includeIfNull: false)
-  bool admin;
-  @JsonKey(includeIfNull: true)
-  String role;
-  @JsonKey(includeIfNull: false)
-  String? uid;
-
-  UserStatus({
-    this.signedIn = false,
-    this.admin = false,
-    this.role = 'user',
-    this.uid,
-  });
-
-  factory UserStatus.fromJson(Map<String, dynamic>? json) =>
-      _$UserStatusFromJson(json ?? {});
-
-  Map<String, dynamic> toJson() => _$UserStatusToJson(this);
 }

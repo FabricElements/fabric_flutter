@@ -1,5 +1,3 @@
-library fabric_flutter;
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -59,6 +57,7 @@ class InputData extends StatefulWidget {
     this.textInputAction,
     this.autocorrect = false,
     this.autofocus = false,
+    this.textController,
   }) : super(key: key);
   final dynamic value;
   final List<dynamic> enums;
@@ -82,6 +81,7 @@ class InputData extends StatefulWidget {
   final TextInputAction? textInputAction;
   final bool autocorrect;
   final bool autofocus;
+  final TextEditingController? textController;
 
   /// [onSubmit]
   /// Never use expression body or value won't be update correctly
@@ -100,7 +100,7 @@ class InputData extends StatefulWidget {
 }
 
 class _InputDataState extends State<InputData> {
-  TextEditingController textController = TextEditingController();
+  late TextEditingController textController;
   DateFormat formatDate = DateFormat.yMd('en_US');
   dynamic value;
 
@@ -161,6 +161,7 @@ getValue -------------------------------------
 
   @override
   void initState() {
+    textController = widget.textController ?? TextEditingController();
     getValue(newValue: widget.value);
     super.initState();
   }

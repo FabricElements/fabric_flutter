@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of fabric_flutter;
+part of 'gsm_data.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator

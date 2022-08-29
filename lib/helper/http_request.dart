@@ -1,5 +1,3 @@
-library fabric_flutter;
-
 import 'dart:convert';
 
 import 'package:http/http.dart';

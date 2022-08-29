@@ -1,7 +1,6 @@
-library fabric_flutter;
-
-import 'package:fabric_flutter/helper/app_localizations_delegate.dart';
 import 'package:flutter/material.dart';
+
+import '../helper/app_localizations_delegate.dart';
 
 class PaginationNav extends StatelessWidget {
   const PaginationNav({

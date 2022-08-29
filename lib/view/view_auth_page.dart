@@ -1,5 +1,3 @@
-library fabric_flutter;
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show Platform;
@@ -742,7 +740,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     List<Widget> sectionsPhoneNumber = [
       Flex(
         direction: Axis.horizontal,
-        // mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           CountryCodePicker(

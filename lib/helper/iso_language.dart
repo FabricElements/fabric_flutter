@@ -1,5 +1,3 @@
-library fabric_flutter;
-
 import '../serialized/iso_data.dart';
 
 /// All the language locales with name, native name and emoji if exists.

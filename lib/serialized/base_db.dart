@@ -1,8 +1,8 @@
-library fabric_flutter;
-
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:fabric_flutter/helper/utils.dart';
 import 'package:json_annotation/json_annotation.dart';
+
+import '../helper/firestore_helper.dart';
+import '../helper/utils.dart';
 
 part 'base_db.g.dart';
 
@@ -15,16 +15,16 @@ class BaseFirestore {
 
   /// Last time the user was updated
   @JsonKey(
-    fromJson: Utils.timestampFromJsonDefault,
-    toJson: Utils.timestampUpdate,
+    fromJson: FirestoreHelper.timestampFromJsonDefault,
+    toJson: FirestoreHelper.timestampUpdate,
     includeIfNull: true,
   )
   DateTime updated;
 
   /// Creation time
   @JsonKey(
-    fromJson: Utils.timestampFromJsonDefault,
-    toJson: Utils.timestampToJsonDefault,
+    fromJson: FirestoreHelper.timestampFromJsonDefault,
+    toJson: FirestoreHelper.timestampToJsonDefault,
     includeIfNull: true,
   )
   DateTime created;
