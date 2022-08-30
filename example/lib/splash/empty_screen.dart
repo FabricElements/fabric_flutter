@@ -1,9 +1,8 @@
-import 'package:flare_flutter/flare_actor.dart';
 import 'package:flutter/material.dart';
 
-/// LoadingScreen is a preview screen when is loading any content.
+/// LoadingScreen is a preview screen when there is no data available.
 class EmptyScreen extends StatelessWidget {
-  EmptyScreen({
+  const EmptyScreen({
     Key? key,
     this.parent = false,
   }) : super(key: key);
@@ -11,12 +10,28 @@ class EmptyScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: FlareActor(
-        "assets/empty.flr",
-        alignment: Alignment.center,
-        fit: BoxFit.contain,
-        animation: "cart",
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    return Scaffold(
+      primary: parent,
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Flex(
+            direction: Axis.vertical,
+            children: [
+              Text(
+                'Hmmm',
+                style: textTheme.displaySmall,
+              ),
+              const SizedBox(height: 32),
+              Text(
+                'There is nothing here.',
+                style: textTheme.subtitle1,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
