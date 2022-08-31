@@ -58,6 +58,7 @@ class InputData extends StatefulWidget {
     this.autocorrect = false,
     this.autofocus = false,
     this.textController,
+    this.autofillHints,
   }) : super(key: key);
   final dynamic value;
   final List<dynamic> enums;
@@ -82,6 +83,7 @@ class InputData extends StatefulWidget {
   final bool autocorrect;
   final bool autofocus;
   final TextEditingController? textController;
+  final Iterable<String>? autofillHints;
 
   /// [onSubmit]
   /// Never use expression body or value won't be update correctly
@@ -349,6 +351,7 @@ getValue -------------------------------------
       case InputDataType.secret:
       case InputDataType.url:
         endWidget = TextFormField(
+          autofillHints: widget.autofillHints,
           autofocus: widget.autofocus,
           autocorrect: widget.autocorrect,
           controller: textController,
@@ -386,6 +389,7 @@ getValue -------------------------------------
         break;
       case InputDataType.date:
         endWidget = TextFormField(
+          autofillHints: widget.autofillHints,
           enableSuggestions: false,
           keyboardType: keyboardType,
           textInputAction: textInputAction,
