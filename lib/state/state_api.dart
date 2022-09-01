@@ -73,15 +73,16 @@ class StateAPI extends StateShared {
 
   String? get endpoint {
     if (queryParameters == null || baseEndpoint == null) return baseEndpoint;
-    return Utils.uriQueryToStringPath(
-        uri: Uri.parse(baseEndpoint!), queryParameters: queryParameters!);
+    return Utils.uriMergeQuery(
+            uri: Uri.parse(baseEndpoint!), queryParameters: queryParameters!)
+        .toString();
   }
 
   /// Clear URL from pagination queries
   String? urlClear(String? url) {
     if (url == null) return null;
-    return Utils.uriQueryToStringPath(
-        uri: Uri.parse(url), queryParameters: {'page': [], 'limit': []});
+    return Utils.uriMergeQuery(
+        uri: Uri.parse(url), queryParameters: {'page': [], 'limit': []}).toString();
   }
 
   /// API Call

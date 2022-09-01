@@ -67,10 +67,10 @@ class SmartImage extends StatelessWidget {
             'height': [height.toString()],
           });
         }
-        String path = Utils.uriQueryToStringPath(
+        String path = Utils.uriMergeQuery(
           uri: uri,
           queryParameters: queryParameters,
-        );
+        ).toString();
         return Container(
           color: color,
           child: Image.network(

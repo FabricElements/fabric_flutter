@@ -539,6 +539,10 @@ dynamic defaultLocales = {
     'en': 'Successfully added',
     'es': 'Se agregó correctamente',
   },
+  'notification--downloaded': {
+    'en': 'Successfully downloaded',
+    'es': 'Se descargó correctamente',
+  },
   'user-role-update--title': {
     'en': 'Update role for: {name}',
     'es': 'Actualizar rol de {name}',

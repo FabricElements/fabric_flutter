@@ -63,7 +63,7 @@ class Utils {
 
   /// Get a String path from a provided [uri] and [queryParameters]
   /// If any key value is empty the key is removed from the response
-  static String uriQueryToStringPath({
+  static Uri uriMergeQuery({
     required Uri uri,
     required Map<String, List<String>> queryParameters,
   }) {
@@ -74,7 +74,7 @@ class Utils {
     baseUri = baseUri.replace(
       queryParameters: groupParameters,
     );
-    return baseUri.toString();
+    return baseUri;
   }
 
   static List<String>? valuesFromQueryKey(
@@ -93,10 +93,10 @@ class Utils {
     required Map<String, List<String>> queryParameters,
     required Uri uri,
   }) {
-    Navigator.of(context).pushNamed(uriQueryToStringPath(
+    Navigator.of(context).pushNamed(uriMergeQuery(
       uri: uri,
       queryParameters: queryParameters,
-    ));
+    ).toString());
   }
 
   static DateTime? dateTimeOffset({
