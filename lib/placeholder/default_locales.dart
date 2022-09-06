@@ -531,6 +531,14 @@ dynamic defaultLocales = {
     'en': 'Successfully updated',
     'es': 'Se actualizó correctamente',
   },
+  'notification--deleted': {
+    'en': 'Successfully Deleted',
+    'es': 'Se eliminó correctamente',
+  },
+  'notification--removed': {
+    'en': 'Successfully Removed',
+    'es': 'Se eliminó correctamente',
+  },
   'notification--created': {
     'en': 'Successfully created',
     'es': 'Se creó correctamente',
@@ -566,6 +574,10 @@ dynamic defaultLocales = {
   'label--reject': {
     'en': 'Reject',
     'es': 'Rechazar',
+  },
+  'label--confirm-are-you-sure-delete': {
+    'en': 'Are you sure you want to delete?',
+    'es': '¿Seguro que quieres eliminar?'
   },
   'label--confirm-are-you-sure-update': {
     'en': 'Are you sure you want to update?',
