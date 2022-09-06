@@ -1,6 +1,6 @@
 name: fabric_flutter
 description: Native components and helpers
-version: 1.0.13
+version: 1.0.13+1
 
 environment:
   sdk: '>=2.18.0 <3.0.0'
@@ -36,7 +36,7 @@ dependencies:
   flutter_linkify: ^5.0.2
   flutter_markdown: ^0.6.10+5
   animations: ^2.0.4
-  google_maps_flutter: ^2.1.12
+  google_maps_flutter: ^2.2.0
   google_maps_flutter_web: ^0.4.0+2
   google_maps_webservice: ^0.0.20-nullsafety.5
   package_info_plus: ^1.4.3+1
