@@ -70,8 +70,15 @@ class StateShared extends ChangeNotifier {
   final int initialPage = 1;
 
   /// Verify if it's possible to paginate
-  bool get canPaginate =>
-      paginate && privateOldData != null && privateOldData.isNotEmpty;
+  /// TODO: Verify pagination in case the 'x-total-count' is not present
+  /// Old Version: bool get canPaginate => paginate && privateOldData != null && privateOldData.isNotEmpty && ((totalCount / page) >= 1);
+  bool get canPaginate => paginate && ((totalCount / (page * limit)) >= 1);
+
+  /// Get total count from the API request, used for pagination
+  int totalCount = 0;
+
+  /// Return total number of pages
+  int get totalPages => (totalCount / limit).ceil();
 
   /// Paginate and call
   Future<dynamic> next() async {

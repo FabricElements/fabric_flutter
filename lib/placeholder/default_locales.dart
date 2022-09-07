@@ -833,6 +833,10 @@ dynamic defaultLocales = {
     'en': 'Link',
     'es': 'Enlace',
   },
+  'label--limit': {
+    'en': 'Limit',
+    'es': 'Límite',
+  },
   'label--download': {
     'en': 'Download',
     'es': 'Descargar',

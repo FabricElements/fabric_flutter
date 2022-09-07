@@ -44,6 +44,7 @@ class StateAPI extends StateShared {
     selectedItems = [];
     _lastEndpointCalled = null;
     privateOldData = null;
+    totalCount = 0;
     clearAfter();
     if (notify) {
       data = null;
@@ -162,6 +163,22 @@ class StateAPI extends StateShared {
       try {
         final response = await http.get(url, headers: headers);
         newData = HTTPRequest.response(response);
+        final hasTotalHeader = response.headers.containsKey('x-total-count');
+        if (hasTotalHeader) {
+          final xTotalCountHeader =
+              int.tryParse(response.headers['x-total-count'] ?? '0') ?? 0;
+          totalCount = xTotalCountHeader;
+        } else if (paginate && !hasTotalHeader) {
+          /// Default totalCount depending on the page
+          int newTotal = (newData as List<dynamic>).length;
+          if (page > initialPage) {
+            int basePage = page;
+            if (basePage == 0) basePage = 1;
+            totalCount = ((basePage - 1) * limit) + newTotal;
+          } else {
+            totalCount = newTotal;
+          }
+        }
         error = null;
       } catch (e) {
         if (kDebugMode) print('------------ ERROR API CALL -------------');
