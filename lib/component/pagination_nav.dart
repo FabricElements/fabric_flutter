@@ -50,6 +50,10 @@ class PaginationNav extends StatelessWidget {
         value: 100,
       ),
     ];
+    int defaultLimit = 10;
+    if (limitOptions.where((element) => element.value == limit).isNotEmpty) {
+      defaultLimit = limit;
+    }
     List<Widget> actions = [
       Text('Page: $page / $totalPages'),
       const SizedBox(width: 16),
@@ -59,7 +63,7 @@ class PaginationNav extends StatelessWidget {
           isDense: true,
           hintText: locales.get('label--limit'),
           label: locales.get('label--limit'),
-          value: limit,
+          value: defaultLimit,
           type: InputDataType.dropdown,
           options: limitOptions,
           onChanged: (value) {
