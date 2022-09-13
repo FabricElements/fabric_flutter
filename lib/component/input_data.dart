@@ -472,7 +472,7 @@ getValue -------------------------------------
         }
         List<DropdownMenuItem<dynamic>> buttons = [
           DropdownMenuItem(
-            value: null,
+            value: '',
             child: Text(
               hintText ?? defaultTextOptions,
               overflow: TextOverflow.ellipsis,
