@@ -472,7 +472,7 @@ getValue -------------------------------------
         }
         List<DropdownMenuItem<dynamic>> buttons = [
           DropdownMenuItem(
-            value: '',
+            value: null,
             child: Text(
               hintText ?? defaultTextOptions,
               overflow: TextOverflow.ellipsis,
@@ -495,13 +495,6 @@ getValue -------------------------------------
             ),
           );
         }));
-        if (value != null) {
-          if (widget.type == InputDataType.dropdown) {
-            // textSelected = widget.options
-            //     .firstWhere((element) => element.value == value)
-            //     .label;
-          }
-        }
         if (buttons.length == (isDense ? 0 : 1)) {
           isDisabled = true;
         }
@@ -542,8 +535,7 @@ getValue -------------------------------------
             ),
             onTap: () {
               if (widget.onChanged != null) {
-                widget.onChanged!(
-                    e.value?.toString() == '' ? null : e.value?.toString());
+                widget.onChanged!(e.value?.toString() == '' ? null : e.value);
               }
             },
           );
