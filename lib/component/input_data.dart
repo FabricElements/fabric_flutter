@@ -423,6 +423,7 @@ getValue -------------------------------------
                 utcOffset: widget.utcOffset,
                 reverse: true,
               );
+              getValue(notify: true, newValue: newDate);
               if (widget.onChanged != null) widget.onChanged!(newDate);
             }
           },
