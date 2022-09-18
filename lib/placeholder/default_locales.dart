@@ -311,6 +311,20 @@ dynamic defaultLocales = {
     'en': 'Copied to clipboard',
     'es': 'Popiado al portapapeles'
   },
+  'alert--password-must-be-different': {
+    'en': 'The new password must be different.',
+    'es': 'La nueva contraseña debe ser diferente.',
+  },
+  'alert--invalid-password': {
+    'en':
+        'It must contain at least 8 characters, 1 uppercase, 1 lowercase, 1 symbol, and 1 number.',
+    'es':
+        'Debe contener al menos 8 caracteres, 1 mayúscula, 1 minúscula, 1 símbolo y 1 número.',
+  },
+  'alert--password-do-not-match': {
+    'en': 'Password don\'t match',
+    'es': 'La contraseña no coincide',
+  },
   'page-auth--title': {
     'en': 'Welcome',
     'es': 'Bienvenido',

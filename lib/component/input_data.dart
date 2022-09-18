@@ -52,7 +52,7 @@ class InputData extends StatefulWidget {
     this.icon,
     this.error,
     this.textStyle,
-    this.obscureText,
+    this.obscureText = false,
     this.label,
     this.textInputAction,
     this.autocorrect = false,
@@ -77,7 +77,7 @@ class InputData extends StatefulWidget {
   final IconData? icon;
   final String? error;
   final TextStyle? textStyle;
-  final bool? obscureText;
+  final bool obscureText;
   final String? label;
   final TextInputAction? textInputAction;
   final bool autocorrect;
@@ -105,6 +105,7 @@ class _InputDataState extends State<InputData> {
   late TextEditingController textController;
   DateFormat formatDate = DateFormat.yMd('en_US');
   dynamic value;
+  late bool obscureText;
 
   /// Get Value from parameter
   void getValue({bool notify = false, required dynamic newValue}) {
@@ -165,6 +166,7 @@ getValue -------------------------------------
   void initState() {
     textController = widget.textController ?? TextEditingController();
     getValue(newValue: widget.value);
+    obscureText = widget.obscureText;
     super.initState();
   }
 
@@ -220,6 +222,17 @@ getValue -------------------------------------
         inputIcon = widget.icon != null ? Icon(widget.icon) : null;
         break;
       default:
+    }
+
+    Widget? inputTrailingIcon;
+    if (widget.obscureText) {
+      inputTrailingIcon = IconButton(
+        onPressed: () {
+          obscureText = !obscureText;
+          if (mounted) setState(() {});
+        },
+        icon: Icon(obscureText ? Icons.visibility : Icons.visibility_off),
+      );
     }
 
     Widget endWidget = Text(
@@ -312,6 +325,7 @@ getValue -------------------------------------
       errorText: errorText,
       enabled: !widget.disabled,
       prefixIcon: inputIcon,
+      suffixIcon: inputTrailingIcon,
       labelText: widget.label,
       labelStyle: theme.textTheme.bodyMedium,
       // floatingLabelBehavior: FloatingLabelBehavior.always,
@@ -338,8 +352,6 @@ getValue -------------------------------------
           return valueLocal;
       }
     }
-
-    bool obscureText = widget.obscureText ?? false;
 
     switch (widget.type) {
       case InputDataType.double:

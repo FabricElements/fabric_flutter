@@ -159,17 +159,6 @@ class StateAlert extends ChangeNotifier {
     }
     alertData.brightness ??= brightness; // Default
     alertData.brightness ??= Brightness.light;
-    // if (alertData.color != null) {
-    //   double luminance = alertData.color!.computeLuminance();
-    //   alertData.brightness =
-    //       luminance > 0.5 ? Brightness.light : Brightness.dark;
-    //   // print('------------------ LUMINANCE:::: $luminance -------------');
-    // }
-    // print(
-    //     '------------------ brightness:::: ${alertData.brightness} -------------');
-    // alertData.color ??= alertData.brightness == Brightness.light
-    //     ? Colors.red.shade200
-    //     : Colors.red;
     switch (alertData.type) {
       case AlertType.critical:
         alertData.color ??= Colors.red;
@@ -188,12 +177,9 @@ class StateAlert extends ChangeNotifier {
 
     /// Set default values for null safety
     alertData.duration ??= 10;
-    // alertData.color ??= Colors.grey.shade800;
     alertData.color ??= theme.colorScheme.primary;
-    // alertData.titleStyle ??= textTheme.headline5?.apply(color: Colors.white);
-    alertData.titleStyle ??= textTheme.headline5;
-    // alertData.bodyStyle ??= textTheme.bodyText1?.apply(color: Colors.grey.shade50);
-    alertData.bodyStyle ??= textTheme.bodyText1;
+    alertData.titleStyle ??= textTheme.headline6;
+    alertData.bodyStyle ??= textTheme.titleSmall;
 
     alertData.titleStyle = alertData.titleStyle!.apply(
       color: alertData.brightness == Brightness.light
