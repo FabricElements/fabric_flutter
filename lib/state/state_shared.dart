@@ -230,9 +230,6 @@ class StateShared extends ChangeNotifier {
 
     if (paginate) {
       /// Add default values for pagination
-      _passingQueryParameters['page'] = [initialPage.toString()];
-      _passingQueryParameters['limit'] = [(limit * (page + 1)).toString()];
-
       /// Override pagination parameters
       if (!_passingQueryParameters.containsKey('page')) {
         _passingQueryParameters['page'] = [page.toString()];
