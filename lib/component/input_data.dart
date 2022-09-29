@@ -333,7 +333,7 @@ getValue -------------------------------------
       // constraints: const BoxConstraints(maxWidth: double.maxFinite, maxHeight: double.maxFinite),
       // constraints: isDense ? const BoxConstraints(minHeight: 30) : null,
       contentPadding: isDense
-          ? const EdgeInsets.symmetric(horizontal: 4, vertical: 4)
+          ? const EdgeInsets.symmetric(horizontal: 8, vertical: 8)
           : widget.padding,
       // constraints: BoxConstraints(minHeight: minHeight),
     );
@@ -508,7 +508,7 @@ getValue -------------------------------------
             ),
           );
         }));
-        if (buttons.length == (isDense ? 0 : 1)) {
+        if (buttons.length == 1) {
           isDisabled = true;
         }
         endWidget = DropdownButtonFormField<dynamic>(
