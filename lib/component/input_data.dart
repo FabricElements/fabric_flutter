@@ -333,7 +333,7 @@ getValue -------------------------------------
       // constraints: const BoxConstraints(maxWidth: double.maxFinite, maxHeight: double.maxFinite),
       // constraints: isDense ? const BoxConstraints(minHeight: 30) : null,
       contentPadding: isDense
-          ? const EdgeInsets.symmetric(horizontal: 8, vertical: 8)
+          ? const EdgeInsets.symmetric(horizontal: 4, vertical: 4)
           : widget.padding,
       // constraints: BoxConstraints(minHeight: minHeight),
     );
