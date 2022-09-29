@@ -32,9 +32,7 @@ class GoogleMapsSearch extends StatefulWidget {
     this.zoom = 8,
     this.minMaxZoomPreference = const MinMaxZoomPreference(5, 25),
     this.description,
-    this.baseUrl = kIsWeb
-        ? 'https://cors-anywhere.herokuapp.com/https://maps.googleapis.com/maps/api'
-        : null,
+    this.baseUrl = 'https://maps.googleapis.com/maps/api',
     this.autofocus = false,
   }) : super(key: key);
   final Function(Place)? onChange;
@@ -48,7 +46,7 @@ class GoogleMapsSearch extends StatefulWidget {
   final double zoom;
   final MinMaxZoomPreference minMaxZoomPreference;
   final String? description;
-  final String? baseUrl;
+  final String baseUrl;
   final bool autofocus;
 
   /// Recommended 'administrative_area_level_1,administrative_area_level_2,locality,postal_codes'
@@ -101,15 +99,6 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
 
   @override
   void initState() {
-    if (kDebugMode) {
-      if (kIsWeb) {
-        print('''
-          --------------------- <o> <o> ---------------------
-          Call baseUrl to call Google API locally: ${widget.baseUrl}
-          ---------------------------------------------------
-        ''');
-      }
-    }
     resetDefaultValues();
     getParentValues();
     loading = false;
@@ -139,11 +128,8 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
         'fields': requiredFields.join(','),
         'place_id': placeId,
       };
-      Uri url = Uri.https(
-        'maps.googleapis.com',
-        '/maps/api/place/details/json',
-        queryParameters,
-      );
+      Uri url = Uri.parse('${widget.baseUrl}/place/details/json');
+      url = url.replace(queryParameters: queryParameters);
       final response = await http.get(url);
       dynamic newData = json.decode(response.body);
       final placeResponse = PlaceResponse.fromJson(newData);
@@ -222,11 +208,9 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
                           widget.types.isEmpty ? null : widget.types.join(','),
                       'fields': searchFields.join(',')
                     };
-                    Uri url = Uri.https(
-                      'maps.googleapis.com',
-                      '/maps/api/place/findplacefromtext/json',
-                      queryParameters,
-                    );
+                    Uri url = Uri.parse(
+                        '${widget.baseUrl}/place/findplacefromtext/json');
+                    url = url.replace(queryParameters: queryParameters);
                     final response = await http.get(url);
                     dynamic newData = json.decode(response.body);
                     final search = PlacesResponse.fromJson(newData);
