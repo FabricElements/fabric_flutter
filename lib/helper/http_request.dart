@@ -61,10 +61,29 @@ class HTTPRequest {
     /// Catch Error Message from JSON response
     try {
       Map<String, dynamic> responseObject = jsonDecode(r.body);
-      print(responseObject);
       if (responseObject.containsKey('message') &&
           (responseObject['message'] as String).isNotEmpty) {
         errorResponse = responseObject['message'];
+      }
+    } catch (e) {
+      //--
+    }
+
+    /// Catch Error Message List from JSON response
+    try {
+      if (errorResponse == null) {
+        Map<String, dynamic> responseObject = jsonDecode(r.body);
+        if (responseObject.containsKey('errors')) {
+          final errors = responseObject['errors'] as List<dynamic>;
+          if (errors.isNotEmpty) {
+            if (errors.first.containsKey('description')) {
+              errorResponse =
+                  errors.map((e) => e['description']).toList().join(', ');
+            }
+          }
+        } else {
+          print(responseObject);
+        }
       }
     } catch (e) {
       //--
