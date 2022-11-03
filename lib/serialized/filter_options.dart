@@ -2,11 +2,12 @@ import 'package:json_annotation/json_annotation.dart';
 
 import '../component/input_data.dart';
 
-part 'filter_menu_data.g.dart';
+part 'filter_options.g.dart';
 
-/// Filter Menu Data
+/// Filter Options
 @JsonSerializable(explicitToJson: true)
-class FilterMenuData {
+class FilterOptions {
+  String id;
   final String label;
   final InputDataType type;
   @JsonKey(includeIfNull: false)
@@ -14,15 +15,16 @@ class FilterMenuData {
   @JsonKey(includeIfNull: false)
   dynamic value;
 
-  FilterMenuData({
+  FilterOptions({
+    required this.id,
     required this.label,
     required this.type,
     this.options,
     this.value,
   });
 
-  factory FilterMenuData.fromJson(Map<String, dynamic>? json) =>
-      _$FilterMenuDataFromJson(json ?? {});
+  factory FilterOptions.fromJson(Map<String, dynamic>? json) =>
+      _$FilterOptionsFromJson(json ?? {});
 
-  Map<String, dynamic> toJson() => _$FilterMenuDataToJson(this);
+  Map<String, dynamic> toJson() => _$FilterOptionsToJson(this);
 }
