@@ -2,10 +2,21 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'filter_data.g.dart';
 
+enum FilterDataOptions {
+  equal,
+  notEqual,
+  contains,
+  between,
+  greaterThan,
+  lessThan,
+  any,
+}
+
 /// Filter Data
 @JsonSerializable(explicitToJson: true)
 class FilterData {
   String id;
+  FilterDataOptions option;
 
   /// Non numerical
   dynamic equal; // is
@@ -19,7 +30,7 @@ class FilterData {
   dynamic greaterThan;
   dynamic lessThan;
 
-  bool any;
+  bool? any;
 
   FilterData({
     required this.id,
@@ -29,7 +40,8 @@ class FilterData {
     this.between,
     this.greaterThan,
     this.lessThan,
-    this.any = false,
+    this.any,
+    this.option = FilterDataOptions.any,
   });
 
   factory FilterData.fromJson(Map<String, dynamic>? json) =>
