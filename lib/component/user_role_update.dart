@@ -95,7 +95,7 @@ class _UserRoleUpdateState extends State<UserRoleUpdate> {
       }
       try {
         final HttpsCallable callable =
-            FirebaseFunctions.instance.httpsCallable('user-actions-updateRole');
+            FirebaseFunctions.instance.httpsCallable('user-actions-role');
         await callable.call(data);
         alert.show(AlertData(
           body: locales.get('notification--user-role-updated'),
