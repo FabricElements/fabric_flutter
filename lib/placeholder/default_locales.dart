@@ -904,4 +904,36 @@ dynamic defaultLocales = {
     'en':
         'Praesent dapibus, neque id cursus faucibus, tortor neque egestas auguae, eu vulputate magna eros eu erat. Aliquam erat volutpat. Nam dui mi, tincidunt quis, accumsan porttitor, facilisis luctus, metus. \nPhasellus ultrices nulla quis nibh. Quisque a lectus. Donec consectetuer ligula vulputate sem tristique cursus. Nam nulla quam, gravida non, commodo a, sodales sit amet, nisi.'
   },
+  'label--is': {
+    'en': 'Is',
+    'es': 'Es',
+  },
+  'label--equal': {
+    'en': 'Equal',
+    'es': 'Igual',
+  },
+  'label--not-equal': {
+    'en': 'Not Equal',
+    'es': 'Diferente',
+  },
+  'label--contains': {
+    'en': 'Contains',
+    'es': 'Contiene',
+  },
+  'label--between': {
+    'en': 'Between',
+    'es': 'Entre',
+  },
+  'label--greater-than': {
+    'en': 'Greater Than',
+    'es': 'Mayor Que',
+  },
+  'label--less-than': {
+    'en': 'Less Than',
+    'es': 'Menor Que',
+  },
+  'label--value': {
+    'en': 'Value',
+    'es': 'Valor',
+  },
 };

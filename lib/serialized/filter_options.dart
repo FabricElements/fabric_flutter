@@ -11,7 +11,9 @@ class FilterOptions {
   final String label;
   final InputDataType type;
   @JsonKey(includeIfNull: false)
-  final List<dynamic>? options;
+  final List<dynamic> enums;
+  // final List<ButtonOptions> options;
+
   @JsonKey(includeIfNull: false)
   dynamic value;
 
@@ -19,7 +21,8 @@ class FilterOptions {
     required this.id,
     required this.label,
     required this.type,
-    this.options,
+    this.enums = const [],
+    // this.options = const [],
     this.value,
   });
 

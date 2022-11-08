@@ -1,5 +1,7 @@
+import 'package:fabric_flutter/helper/enum_data.dart';
 import 'package:flutter/material.dart';
 
+import '../helper/app_localizations_delegate.dart';
 import '../serialized/filter_data.dart';
 import '../serialized/filter_options.dart';
 import 'input_data.dart';
@@ -15,10 +17,12 @@ class FilterMenuOption extends StatefulWidget {
     required this.option,
     required this.data,
     required this.onChange,
+    required this.onDelete,
   }) : super(key: key);
   final FilterOptions option;
   final FilterData data;
   final ValueChanged<FilterData> onChange;
+  final VoidCallback onDelete;
 
   @override
   State<FilterMenuOption> createState() => _FilterMenuOptionState();
@@ -48,6 +52,81 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
 
   @override
   Widget build(BuildContext context) {
+    final locales = AppLocalizations.of(context)!;
+    final enumData = EnumData(locales: locales);
+    String dataOptionString = enumData.localesFromEnum(widget.data.option);
+    String optionTypeString = enumData.localesFromEnum(widget.option.type);
+    String label = widget.option.label;
+    label += ' ${locales.get('label--is')}';
+    label += ' $dataOptionString ';
+    switch (widget.data.option) {
+      case FilterDataOptions.equal:
+        // TODO: Handle this case.
+        break;
+      case FilterDataOptions.notEqual:
+        // TODO: Handle this case.
+        break;
+      case FilterDataOptions.contains:
+        // TODO: Handle this case.
+        break;
+      case FilterDataOptions.between:
+        // TODO: Handle this case.
+        break;
+      case FilterDataOptions.greaterThan:
+        // TODO: Handle this case.
+        break;
+      case FilterDataOptions.lessThan:
+        // TODO: Handle this case.
+        break;
+      case FilterDataOptions.any:
+        // TODO: Handle this case.
+        break;
+    }
+
+    switch (widget.option.type) {
+      case InputDataType.date:
+        // TODO: Handle this case.
+        break;
+      case InputDataType.email:
+        // TODO: Handle this case.
+        break;
+      case InputDataType.time:
+        // TODO: Handle this case.
+        break;
+      case InputDataType.double:
+        // TODO: Handle this case.
+        break;
+      case InputDataType.int:
+        // label += data;
+        // TODO: Handle this case.
+        break;
+      case InputDataType.text:
+        // TODO: Handle this case.
+        break;
+      case InputDataType.enums:
+        // TODO: Handle this case.
+        break;
+      case InputDataType.dropdown:
+        // TODO: Handle this case.
+        break;
+      case InputDataType.string:
+        // TODO: Handle this case.
+        break;
+      case InputDataType.radio:
+        // TODO: Handle this case.
+        break;
+      case InputDataType.phone:
+        // TODO: Handle this case.
+        break;
+      case InputDataType.secret:
+        // TODO: Handle this case.
+        break;
+      case InputDataType.url:
+        // TODO: Handle this case.
+        break;
+    }
+    // label += locales.get('');
+
     return PopupMenuButton(
       padding: EdgeInsets.zero,
       onCanceled: () => reset(),
@@ -59,42 +138,21 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
               late Widget optionInput;
               switch (data.option) {
                 case FilterDataOptions.equal:
-                  optionInput = InputData(
-                    type: widget.option.type,
-                    value: data.equal,
-                    onChanged: (value) {
-                      data = FilterData(
-                        id: data.id,
-                        option: data.option,
-                        equal: value,
-                      );
-                      if (mounted) setState(() {});
-                    },
-                  );
-                  break;
                 case FilterDataOptions.notEqual:
-                  optionInput = InputData(
-                    type: widget.option.type,
-                    value: data.notEqual,
-                    onChanged: (value) {
-                      data = FilterData(
-                        id: data.id,
-                        option: data.option,
-                        notEqual: value,
-                      );
-                      if (mounted) setState(() {});
-                    },
-                  );
-                  break;
                 case FilterDataOptions.contains:
+                case FilterDataOptions.lessThan:
+                case FilterDataOptions.greaterThan:
                   optionInput = InputData(
+                    label: locales.get('label--value'),
                     type: widget.option.type,
-                    value: data.contains,
+                    value: data.value,
+                    enums: widget.option.enums,
+                    // options: widget.option.options,
                     onChanged: (value) {
                       data = FilterData(
                         id: data.id,
                         option: data.option,
-                        contains: value,
+                        value: value,
                       );
                       if (mounted) setState(() {});
                     },
@@ -105,58 +163,36 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
                     direction: Axis.vertical,
                     children: [
                       InputData(
+                        label: '${locales.get('label--value')} 1',
                         type: widget.option.type,
-                        value: data.between?[0],
+                        value: data.value?[0],
+                        enums: widget.option.enums,
+                        // options: widget.option.options,
                         onChanged: (value) {
                           data = FilterData(
                             id: data.id,
                             option: data.option,
-                            between: [value, data.between?[1]],
+                            value: [value, data.value?[1]],
                           );
                           if (mounted) setState(() {});
                         },
                       ),
                       InputData(
+                        label: '${locales.get('label--value')} 2',
                         type: widget.option.type,
-                        value: data.between?[0],
+                        value: data.value?[1],
+                        enums: widget.option.enums,
+                        // options: widget.option.options,
                         onChanged: (value) {
                           data = FilterData(
                             id: data.id,
                             option: data.option,
-                            between: [data.between?[0], value],
+                            value: [data.value?[0], value],
                           );
                           if (mounted) setState(() {});
                         },
                       ),
                     ],
-                  );
-                  break;
-                case FilterDataOptions.greaterThan:
-                  optionInput = InputData(
-                    type: widget.option.type,
-                    value: data.greaterThan,
-                    onChanged: (value) {
-                      data = FilterData(
-                        id: data.id,
-                        option: data.option,
-                        greaterThan: value,
-                      );
-                      if (mounted) setState(() {});
-                    },
-                  );
-                  break;
-                case FilterDataOptions.lessThan:
-                  optionInput = InputData(
-                    type: widget.option.type,
-                    value: data.lessThan,
-                    onChanged: (value) {
-                      data = FilterData(
-                        id: data.id,
-                        option: data.option,
-                        lessThan: value,
-                      );
-                      if (mounted) setState(() {});
-                    },
                   );
                   break;
                 case FilterDataOptions.any:
@@ -167,13 +203,14 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
                 direction: Axis.vertical,
                 children: [
                   InputData(
+                    label: widget.option.label,
                     type: InputDataType.enums,
                     enums: FilterDataOptions.values,
                     onChanged: (value) {
                       data = FilterData(
                         id: data.id,
-                        option: value,
-                        any: value == FilterDataOptions.any ? true : null,
+                        option: value ?? FilterDataOptions.any,
+                        value: null,
                       );
                       if (mounted) setState(() {});
                     },
@@ -207,15 +244,9 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
           ),
         ];
       },
-      child: Container(
-        constraints: const BoxConstraints(
-          minWidth: 100,
-          minHeight: kMinInteractiveDimension,
-        ),
-        padding: const EdgeInsets.all(8),
-        // TODO: format and style label
-        child: Text(
-            '${widget.option.label} is ${widget.data.option.name} {value}'),
+      child: Chip(
+        label: Text(label),
+        onDeleted: widget.onDelete,
       ),
     );
   }
@@ -297,6 +328,12 @@ class _FilterMenuState extends State<FilterMenu> {
           final itemIndex =
               data.indexWhere((element) => element.id == option.id);
           data[itemIndex] = value;
+          widget.onChange(data);
+        },
+        onDelete: () {
+          // final itemIndex =
+          // data.indexWhere((element) => element.id == option.id);
+          data.removeWhere((element) => element.id == item.id);
           widget.onChange(data);
         },
       );

@@ -6,9 +6,9 @@ enum FilterDataOptions {
   equal,
   notEqual,
   contains,
-  between,
   greaterThan,
   lessThan,
+  between,
   any,
 }
 
@@ -17,31 +17,26 @@ enum FilterDataOptions {
 class FilterData {
   String id;
   FilterDataOptions option;
+  dynamic value;
 
-  /// Non numerical
-  dynamic equal; // is
-  dynamic notEqual; // not is
-  dynamic contains;
-
-  /// Numerical
-  List<dynamic>? between;
-
-  /// Any options
-  dynamic greaterThan;
-  dynamic lessThan;
-
-  bool? any;
+  // /// Non numerical
+  // dynamic equal; // is
+  // dynamic notEqual; // not is
+  // dynamic contains;
+  //
+  // /// Numerical
+  // List<dynamic>? between;
+  //
+  // /// Any options
+  // dynamic greaterThan;
+  // dynamic lessThan;
+  //
+  // bool? any;
 
   FilterData({
     required this.id,
-    this.equal,
-    this.notEqual,
-    this.contains,
-    this.between,
-    this.greaterThan,
-    this.lessThan,
-    this.any,
     this.option = FilterDataOptions.any,
+    this.value,
   });
 
   factory FilterData.fromJson(Map<String, dynamic>? json) =>
