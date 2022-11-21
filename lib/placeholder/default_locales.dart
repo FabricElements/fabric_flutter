@@ -187,6 +187,14 @@ dynamic defaultLocales = {
     'en': 'Add {label}',
     'es': 'Agregar {label}',
   },
+  'label--clear-label': {
+    'en': 'Clear {label}',
+    'es': 'Borrar {label}',
+  },
+  'label--clear': {
+    'en': 'Clear',
+    'es': 'Borrar',
+  },
   'label--replace-label': {
     'en': 'Replace {label}',
     'es': 'Replace {label}',

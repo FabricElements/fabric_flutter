@@ -90,81 +90,65 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
 
     /// Label value
     String dataOperatorString = enumData.localesFromEnum(data.operator);
-    String optionTypeString = enumData.localesFromEnum(data.type);
+    // String optionTypeString = enumData.localesFromEnum(data.type);
     String label = data.label;
-    label += ' ${locales.get('label--is')}';
-    label += ' $dataOperatorString ';
-    // assert(data.operator != null, 'operator can\'t be null');
-    try {
-      switch (data.type) {
-        case InputDataType.date:
-          if (data.operator == FilterOperator.between) {
-            label += FormatData.formatDateShort().format(data.value[0]);
-            label += ' ${locales.get('label--and')} ';
-            label += FormatData.formatDateShort().format(data.value[1]);
-          } else {
-            label += FormatData.formatDateShort().format(data.value);
-          }
-          // TODO: Handle this case.
-          break;
-        case InputDataType.email:
-          // TODO: Handle this case.
-          break;
-        case InputDataType.time:
-          if (data.operator == FilterOperator.between) {
-            //
-          } else {
-            //
-          }
-          break;
-        case InputDataType.double:
-          if (data.operator == FilterOperator.between) {
-            //
-          } else {
-            //
-          }
-          break;
-        case InputDataType.int:
-          if (data.operator == FilterOperator.between) {
-            //
-          } else {
-            //
-          }
-          break;
-        case InputDataType.text:
-          if (data.operator == FilterOperator.between) {
-            //
-          } else {
-            //
-          }
-          break;
-        case InputDataType.enums:
-          // TODO: Handle this case.
-          break;
-        case InputDataType.dropdown:
-          // TODO: Handle this case.
-          break;
-        case InputDataType.string:
-          if (data.operator == FilterOperator.between) {
-            //
-          } else {
-            //
-          }
-          break;
-        case InputDataType.radio:
-          // TODO: Handle this case.
-          break;
-        case InputDataType.phone:
-          // TODO: Handle this case.
-          break;
-        case InputDataType.secret:
-          // TODO: Handle this case.
-          break;
-        case InputDataType.url:
-          // TODO: Handle this case.
-          break;
+    if (data.operator != FilterOperator.contains) {
+      label += ' ${locales.get('label--is')}';
+    }
+    label += ' $dataOperatorString';
+
+    if (data.operator != FilterOperator.any) {
+      label += ': ';
+      try {
+        switch (data.type) {
+          case InputDataType.date:
+            if (data.operator == FilterOperator.between) {
+              label += FormatData.formatDateShort().format(data.value[0]);
+              label += ' ${locales.get('label--and')} ';
+              label += FormatData.formatDateShort().format(data.value[1]);
+            } else {
+              label += FormatData.formatDateShort().format(data.value);
+            }
+            break;
+          case InputDataType.time:
+            if (data.operator == FilterOperator.between) {
+              label += data.value[0].format(context);
+              label += ' ${locales.get('label--and')} ';
+              label += data.value[1].format(context);
+            } else {
+              label += data.value.format(context);
+            }
+            break;
+          case InputDataType.email:
+          case InputDataType.double:
+          case InputDataType.int:
+          case InputDataType.text:
+          case InputDataType.string:
+          case InputDataType.phone:
+          case InputDataType.url:
+            if (data.operator == FilterOperator.between) {
+              label += data.value[0].toString();
+              label += ' ${locales.get('label--and')} ';
+              label += data.value[1].toString();
+            } else {
+              label += data.value.toString();
+            }
+            break;
+          case InputDataType.enums:
+            label += enumData.localesFromEnum(data.value);
+            break;
+          case InputDataType.dropdown:
+          case InputDataType.radio:
+            label += data.toString();
+            break;
+          case InputDataType.secret:
+            label += '***';
+            break;
+        }
+      } catch (e) {
+        //
       }
-    } catch (e) {}
+    }
 
     // label += locales.get('');
 
@@ -247,7 +231,8 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
                       enums: dropdownOptions,
                       onChanged: (value) {
                         data.operator = value ?? FilterOperator.any;
-                        data.value = null;
+                        data.value =
+                            data.operator == FilterOperator.any ? true : null;
                         if (mounted) setState(() {});
                       },
                       value: data.operator,
@@ -286,7 +271,15 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
       },
       child: Chip(
         label: Text(label),
+        avatar: Icon(
+          inputDataTypeIcon(data.type),
+          color: Colors.grey,
+        ),
         onDeleted: widget.onDelete,
+        deleteButtonTooltipMessage: locales.get(
+          'label--clear-label',
+          {'label': locales.get('label--filter')},
+        ),
       ),
     );
   }
@@ -382,7 +375,7 @@ class _FilterMenuState extends State<FilterMenu> {
           constraints: const BoxConstraints(minWidth: 100),
           child: ListTile(
             title: Text(item.label),
-            trailing: const Icon(Icons.add),
+            trailing: Icon(inputDataTypeIcon(selected.type)),
           ),
         ),
       );
@@ -428,7 +421,11 @@ class _FilterMenuState extends State<FilterMenu> {
     if (activeOptions.isNotEmpty) {
       menuOptions.add(IconButton(
         onPressed: clear,
-        icon: widget.iconClear ?? const Icon(Icons.clear),
+        icon: widget.iconClear ?? const Icon(Icons.clear, color: Colors.red),
+        tooltip: locales.get(
+          'label--clear-label',
+          {'label': locales.get('label--filters')},
+        ),
       ));
     }
 
