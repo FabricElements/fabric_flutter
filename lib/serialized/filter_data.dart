@@ -1,8 +1,11 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import '../component/input_data.dart';
+import '../helper/options.dart';
+
 part 'filter_data.g.dart';
 
-enum FilterDataOptions {
+enum FilterOperator {
   equal,
   notEqual,
   contains,
@@ -15,28 +18,48 @@ enum FilterDataOptions {
 /// Filter Data
 @JsonSerializable(explicitToJson: true)
 class FilterData {
+  ///
   String id;
-  FilterDataOptions option;
+
+  ///
+  @JsonKey(ignore: true)
+  final String label;
+
+  ///
+  final InputDataType type;
+
+  ///
+  @JsonKey(ignore: true)
+  final List<dynamic> enums;
+
+  ///
+  @JsonKey(ignore: true)
+  final List<ButtonOptions> options;
+
+  ///
+  FilterOperator? operator;
+
+  ///
+  @JsonKey(includeIfNull: true)
   dynamic value;
 
-  // /// Non numerical
-  // dynamic equal; // is
-  // dynamic notEqual; // not is
-  // dynamic contains;
-  //
-  // /// Numerical
-  // List<dynamic>? between;
-  //
-  // /// Any options
-  // dynamic greaterThan;
-  // dynamic lessThan;
-  //
-  // bool? any;
+  ///
+  int index;
+
+  ///
+  @JsonKey(ignore: true)
+  Function(FilterData)? onChange;
 
   FilterData({
     required this.id,
-    this.option = FilterDataOptions.any,
+    this.operator,
     this.value,
+    this.label = 'Unknown',
+    required this.type,
+    this.enums = const [],
+    this.options = const [],
+    this.index = 0,
+    this.onChange,
   });
 
   factory FilterData.fromJson(Map<String, dynamic>? json) =>

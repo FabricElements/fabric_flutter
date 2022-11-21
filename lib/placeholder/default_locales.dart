@@ -231,6 +231,10 @@ dynamic defaultLocales = {
     'en': 'Enter an e-mail',
     'es': 'Ingresa un correo electrónico',
   },
+  'label--apply': {
+    'en': 'Apply',
+    'es': 'Aplicar',
+  },
   'label--cancel': {
     'en': 'Cancel',
     'es': 'Cancelar',
@@ -731,6 +735,18 @@ dynamic defaultLocales = {
   'label--total-label': {
     'en': 'Total {label}',
   },
+  'label--and': {
+    'en': 'And',
+    'es': 'Y',
+  },
+  'label--from': {
+    'en': 'From',
+    'es': 'Desde',
+  },
+  'label--to': {
+    'en': 'To',
+    'es': 'Para',
+  },
   'label--next': {
     'en': 'Next',
     'es': 'Siguiente',
@@ -798,6 +814,10 @@ dynamic defaultLocales = {
   'label--hide-label': {
     'en': 'Hide {label}',
     'es': 'Ocultar {label}',
+  },
+  'label--filter': {
+    'en': 'Filter',
+    'es': 'Filtro',
   },
   'label--filters': {
     'en': 'Filters',
