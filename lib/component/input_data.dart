@@ -26,6 +26,53 @@ enum InputDataType {
   url,
 }
 
+/// Input Data Type default icon
+IconData inputDataTypeIcon(InputDataType inputDataType) {
+  late IconData icon;
+  switch (inputDataType) {
+    case InputDataType.date:
+      icon = Icons.calendar_month;
+      break;
+    case InputDataType.email:
+      icon = Icons.email;
+      break;
+    case InputDataType.time:
+      icon = Icons.access_time;
+      break;
+    case InputDataType.double:
+      icon = Icons.numbers;
+      break;
+    case InputDataType.int:
+      icon = Icons.numbers;
+      break;
+    case InputDataType.text:
+      icon = Icons.short_text;
+      break;
+    case InputDataType.enums:
+      icon = Icons.list;
+      break;
+    case InputDataType.dropdown:
+      icon = Icons.list;
+      break;
+    case InputDataType.string:
+      icon = Icons.text_fields;
+      break;
+    case InputDataType.radio:
+      icon = Icons.radio_button_checked;
+      break;
+    case InputDataType.phone:
+      icon = Icons.phone;
+      break;
+    case InputDataType.secret:
+      icon = Icons.security;
+      break;
+    case InputDataType.url:
+      icon = Icons.link;
+      break;
+  }
+  return icon;
+}
+
 /// [InputData] provides an useful way to handle data input
 /// It's much faster to use this component because includes all the controllers
 /// you require for multiple data types [InputDataType]

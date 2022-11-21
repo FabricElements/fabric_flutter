@@ -95,7 +95,7 @@ class _UserRoleUpdateState extends State<UserRoleUpdate> {
       }
       try {
         final HttpsCallable callable =
-            FirebaseFunctions.instance.httpsCallable('user-actions-updateRole');
+            FirebaseFunctions.instance.httpsCallable('user-actions-role');
         await callable.call(data);
         alert.show(AlertData(
           body: locales.get('notification--user-role-updated'),
@@ -123,6 +123,7 @@ class _UserRoleUpdateState extends State<UserRoleUpdate> {
     return SimpleDialog(
       title:
           Text(locales.get('user-role-update--title', {'name': widget.name})),
+      contentPadding: const EdgeInsets.all(20),
       children: [
         RoleSelector(
           asList: true,
@@ -145,7 +146,6 @@ class _UserRoleUpdateState extends State<UserRoleUpdate> {
           onPressed: canInvite ? updateUserRole : null,
         )
       ],
-      contentPadding: const EdgeInsets.all(20),
     );
   }
 }

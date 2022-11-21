@@ -187,6 +187,14 @@ dynamic defaultLocales = {
     'en': 'Add {label}',
     'es': 'Agregar {label}',
   },
+  'label--clear-label': {
+    'en': 'Clear {label}',
+    'es': 'Borrar {label}',
+  },
+  'label--clear': {
+    'en': 'Clear',
+    'es': 'Borrar',
+  },
   'label--replace-label': {
     'en': 'Replace {label}',
     'es': 'Replace {label}',
@@ -230,6 +238,10 @@ dynamic defaultLocales = {
   'label--enter-an-email': {
     'en': 'Enter an e-mail',
     'es': 'Ingresa un correo electrónico',
+  },
+  'label--apply': {
+    'en': 'Apply',
+    'es': 'Aplicar',
   },
   'label--cancel': {
     'en': 'Cancel',
@@ -731,6 +743,18 @@ dynamic defaultLocales = {
   'label--total-label': {
     'en': 'Total {label}',
   },
+  'label--and': {
+    'en': 'And',
+    'es': 'Y',
+  },
+  'label--from': {
+    'en': 'From',
+    'es': 'Desde',
+  },
+  'label--to': {
+    'en': 'To',
+    'es': 'Para',
+  },
   'label--next': {
     'en': 'Next',
     'es': 'Siguiente',
@@ -798,6 +822,10 @@ dynamic defaultLocales = {
   'label--hide-label': {
     'en': 'Hide {label}',
     'es': 'Ocultar {label}',
+  },
+  'label--filter': {
+    'en': 'Filter',
+    'es': 'Filtro',
   },
   'label--filters': {
     'en': 'Filters',
@@ -903,5 +931,37 @@ dynamic defaultLocales = {
   'lorem--block': {
     'en':
         'Praesent dapibus, neque id cursus faucibus, tortor neque egestas auguae, eu vulputate magna eros eu erat. Aliquam erat volutpat. Nam dui mi, tincidunt quis, accumsan porttitor, facilisis luctus, metus. \nPhasellus ultrices nulla quis nibh. Quisque a lectus. Donec consectetuer ligula vulputate sem tristique cursus. Nam nulla quam, gravida non, commodo a, sodales sit amet, nisi.'
+  },
+  'label--is': {
+    'en': 'Is',
+    'es': 'Es',
+  },
+  'label--equal': {
+    'en': 'Equal',
+    'es': 'Igual',
+  },
+  'label--not-equal': {
+    'en': 'Not Equal',
+    'es': 'Diferente',
+  },
+  'label--contains': {
+    'en': 'Contains',
+    'es': 'Contiene',
+  },
+  'label--between': {
+    'en': 'Between',
+    'es': 'Entre',
+  },
+  'label--greater-than': {
+    'en': 'Greater Than',
+    'es': 'Mayor Que',
+  },
+  'label--less-than': {
+    'en': 'Less Than',
+    'es': 'Menor Que',
+  },
+  'label--value': {
+    'en': 'Value',
+    'es': 'Valor',
   },
 };
