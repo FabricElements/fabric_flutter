@@ -7,9 +7,6 @@ import '../serialized/filter_data.dart';
 import 'input_data.dart';
 import 'popup_entry.dart';
 
-/// TODO: Add pop when save
-/// Navigator.of(context).pop()
-
 /// FilterMenuOption
 class FilterMenuOption extends StatefulWidget {
   const FilterMenuOption({
@@ -27,25 +24,10 @@ class FilterMenuOption extends StatefulWidget {
 }
 
 class _FilterMenuOptionState extends State<FilterMenuOption> {
-  late FilterData data;
-
-  @override
-  void initState() {
-    data = widget.data;
-    super.initState();
-  }
-
   @override
   void didUpdateWidget(covariant FilterMenuOption oldWidget) {
-    // print('updated FilterMenuOption!!!!');
-    data = widget.data;
     if (mounted) setState(() {});
     super.didUpdateWidget(oldWidget);
-  }
-
-  void reset() {
-    data = widget.data;
-    if (mounted) setState(() {});
   }
 
   @override
@@ -74,7 +56,7 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
       FilterOperator.any,
     ];
 
-    switch (data.type) {
+    switch (widget.data.type) {
       case InputDataType.email:
       case InputDataType.enums:
       case InputDataType.dropdown:
@@ -89,34 +71,35 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
     }
 
     /// Label value
-    String dataOperatorString = enumData.localesFromEnum(data.operator);
-    // String optionTypeString = enumData.localesFromEnum(data.type);
-    String label = data.label;
-    if (data.operator != FilterOperator.contains) {
+    String dataOperatorString = enumData.localesFromEnum(widget.data.operator);
+    String label = widget.data.label;
+    if (widget.data.operator != FilterOperator.contains) {
       label += ' ${locales.get('label--is')}';
     }
     label += ' $dataOperatorString';
 
-    if (data.operator != FilterOperator.any) {
+    if (widget.data.operator != FilterOperator.any) {
       label += ': ';
       try {
-        switch (data.type) {
+        switch (widget.data.type) {
           case InputDataType.date:
-            if (data.operator == FilterOperator.between) {
-              label += FormatData.formatDateShort().format(data.value[0]);
+            if (widget.data.operator == FilterOperator.between) {
+              label +=
+                  FormatData.formatDateShort().format(widget.data.value[0]);
               label += ' ${locales.get('label--and')} ';
-              label += FormatData.formatDateShort().format(data.value[1]);
+              label +=
+                  FormatData.formatDateShort().format(widget.data.value[1]);
             } else {
-              label += FormatData.formatDateShort().format(data.value);
+              label += FormatData.formatDateShort().format(widget.data.value);
             }
             break;
           case InputDataType.time:
-            if (data.operator == FilterOperator.between) {
-              label += data.value[0].format(context);
+            if (widget.data.operator == FilterOperator.between) {
+              label += widget.data.value[0].format(context);
               label += ' ${locales.get('label--and')} ';
-              label += data.value[1].format(context);
+              label += widget.data.value[1].format(context);
             } else {
-              label += data.value.format(context);
+              label += widget.data.value.format(context);
             }
             break;
           case InputDataType.email:
@@ -126,20 +109,20 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
           case InputDataType.string:
           case InputDataType.phone:
           case InputDataType.url:
-            if (data.operator == FilterOperator.between) {
-              label += data.value[0].toString();
+            if (widget.data.operator == FilterOperator.between) {
+              label += widget.data.value[0].toString();
               label += ' ${locales.get('label--and')} ';
-              label += data.value[1].toString();
+              label += widget.data.value[1].toString();
             } else {
-              label += data.value.toString();
+              label += widget.data.value.toString();
             }
             break;
           case InputDataType.enums:
-            label += enumData.localesFromEnum(data.value);
+            label += enumData.localesFromEnum(widget.data.value);
             break;
           case InputDataType.dropdown:
           case InputDataType.radio:
-            label += data.toString();
+            label += widget.data.toString();
             break;
           case InputDataType.secret:
             label += '***';
@@ -149,25 +132,26 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
         //
       }
     }
-
-    // label += locales.get('');
-
     const space = SizedBox(height: 16);
 
     return PopupMenuButton(
       tooltip: locales.get(
         'label--edit-label',
-        {'label': data.label},
+        {'label': widget.data.label},
       ),
       padding: EdgeInsets.zero,
-      onCanceled: () => reset(),
+      onCanceled: () {
+        if (mounted) setState(() {});
+      },
       itemBuilder: (BuildContext context) {
+        FilterData? edit;
+        edit ??= FilterData.fromJson(widget.data.toJson());
         return [
           PopupEntry(
             child: StatefulBuilder(
                 builder: (BuildContext context, StateSetter setState) {
               late Widget optionInput;
-              switch (data.operator) {
+              switch (edit!.operator) {
                 case FilterOperator.equal:
                 case FilterOperator.notEqual:
                 case FilterOperator.contains:
@@ -175,12 +159,12 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
                 case FilterOperator.greaterThan:
                   optionInput = InputData(
                     label: locales.get('label--value'),
-                    type: data.type,
-                    value: data.value,
-                    enums: data.enums,
-                    options: data.options,
+                    type: widget.data.type,
+                    value: edit.value,
+                    enums: widget.data.enums,
+                    options: widget.data.options,
                     onChanged: (value) {
-                      data.value = value;
+                      edit!.value = value;
                       if (mounted) setState(() {});
                     },
                   );
@@ -191,24 +175,24 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
                     children: [
                       InputData(
                         label: '${locales.get('label--value')} 1',
-                        type: data.type,
-                        value: data.value?[0],
-                        enums: data.enums,
-                        options: data.options,
+                        type: widget.data.type,
+                        value: edit.value?[0],
+                        enums: widget.data.enums,
+                        options: widget.data.options,
                         onChanged: (value) {
-                          data.value = [value, data.value?[1]];
+                          edit!.value = [value, edit.value?[1]];
                           if (mounted) setState(() {});
                         },
                       ),
                       space,
                       InputData(
                         label: '${locales.get('label--value')} 2',
-                        type: data.type,
-                        value: data.value?[1],
-                        enums: data.enums,
-                        options: data.options,
+                        type: widget.data.type,
+                        value: edit.value?[1],
+                        enums: widget.data.enums,
+                        options: widget.data.options,
                         onChanged: (value) {
-                          data.value = [data.value?[0], value];
+                          edit!.value = [edit.value?[0], value];
                           if (mounted) setState(() {});
                         },
                       ),
@@ -226,16 +210,16 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
                   direction: Axis.vertical,
                   children: [
                     InputData(
-                      label: data.label,
+                      label: widget.data.label,
                       type: InputDataType.enums,
                       enums: dropdownOptions,
                       onChanged: (value) {
-                        data.operator = value ?? FilterOperator.any;
-                        data.value =
-                            data.operator == FilterOperator.any ? true : null;
+                        edit!.operator = value ?? FilterOperator.any;
+                        edit.value =
+                            edit.operator == FilterOperator.any ? true : null;
                         if (mounted) setState(() {});
                       },
-                      value: data.operator,
+                      value: edit.operator,
                     ),
                     space,
                     optionInput,
@@ -244,7 +228,6 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
                       children: [
                         TextButton(
                           onPressed: () {
-                            data = widget.data;
                             if (mounted) setState(() {});
                             Navigator.of(context).pop();
                           },
@@ -252,10 +235,12 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
                         ),
                         const Spacer(),
                         ElevatedButton(
-                          onPressed: data.value == null || data.operator == null
+                          onPressed: edit.value == null || edit.operator == null
                               ? null
                               : () {
-                                  widget.onChange(data);
+                                  widget.data.operator = edit!.operator;
+                                  widget.data.value = edit.value;
+                                  widget.onChange(widget.data);
                                   Navigator.of(context).pop();
                                 },
                           child: Text(locales.get('label--apply')),
@@ -272,7 +257,7 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
       child: Chip(
         label: Text(label),
         avatar: Icon(
-          inputDataTypeIcon(data.type),
+          inputDataTypeIcon(widget.data.type),
           color: Colors.grey,
         ),
         onDeleted: widget.onDelete,
@@ -389,6 +374,7 @@ class _FilterMenuState extends State<FilterMenu> {
       return FilterMenuOption(
         data: item,
         onChange: (value) {
+          print('on changed from filterMenuOption');
           selected.operator = value.operator;
           selected.value = value.value;
           if (selected.onChange != null) selected.onChange!(selected);
@@ -405,7 +391,6 @@ class _FilterMenuState extends State<FilterMenu> {
     });
 
     /// Add popUp button
-
     if (pendingOptions.isNotEmpty) {
       menuOptions.add(PopupMenuButton<String>(
         tooltip: locales.get(
