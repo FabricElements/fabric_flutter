@@ -4,12 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../helper/app_localizations_delegate.dart';
+import '../serialized/add_user_data.dart';
 import '../state/state_alert.dart';
-import '../state/state_user.dart';
 import 'input_data.dart';
 import 'role_selector.dart';
-
-enum TypeOptions { phone, email }
 
 /// Sends invitation to a new user
 ///
@@ -27,102 +25,79 @@ class UserAdd extends StatefulWidget {
     Key? key,
     this.roles,
     this.data,
+    required this.onAdd,
+    required this.uid,
+    this.email = true,
+    this.phone = true,
+    this.username = true,
+    this.name = true,
+    required this.onChanged,
   }) : super(key: key);
   final Map<String, dynamic>? data;
   final List<String>? roles;
+  final Function(AddUserData data) onAdd;
+  final dynamic uid;
+  final bool email;
+  final bool phone;
+  final bool username;
+  final bool name;
+  final Function onChanged;
 
   @override
   State<UserAdd> createState() => _UserAddState();
 }
 
 class _UserAddState extends State<UserAdd> {
-  AppLocalizations? locales;
-  bool? sending;
-  String phoneNumber = '';
-  String email = '';
-  String? roleSelect;
-  dynamic resp;
-  final _textControllerPhone = TextEditingController();
-  final _textControllerEmail = TextEditingController();
+  late bool sending;
   Color? backgroundColor;
   Function? onChange;
-  late TypeOptions _typeOption;
-
-  @override
-  void dispose() {
-    _textControllerPhone.clear();
-    _textControllerEmail.clear();
-    roleSelect = null;
-    super.dispose();
-  }
+  late AddUserData data;
 
   @override
   void initState() {
-    phoneNumber = '';
-    email = '';
+    data = AddUserData(uid: widget.uid, data: widget.data);
     sending = false;
-    resp = null;
     backgroundColor = const Color(0xFF161A21);
-    roleSelect = null;
-    _typeOption = TypeOptions.phone;
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    final stateUser = Provider.of<StateUser>(context);
     bool canInvite = sending == false &&
-        roleSelect != null &&
-        (email.length > 4 || phoneNumber.length >= 8);
-
-    AppLocalizations locales = AppLocalizations.of(context)!;
-    // ThemeData theme = Theme.of(context);
+        data.role != null &&
+        ((data.email ?? data.phone ?? '').length > 4) &&
+        (widget.username &&
+                (data.username != null && data.username!.isNotEmpty) ||
+            !widget.username);
+    final locales = AppLocalizations.of(context)!;
     final alert = Provider.of<StateAlert>(context, listen: false);
+    const spacer = SizedBox(height: 8, width: 8);
 
     /// Sends user invite to firebase function with the necessary information when inviting a user.
     ///
     /// [type] Whether it is an e-mail or phone number.
     /// [contact] The e-mail or phone number.
-    _sendInvitation(
-        {required String type, String? contact, String? role}) async {
-      if (contact == null) {
-        if (kDebugMode) print('Define the contact information before sending');
-        return;
-      }
+    addUser() async {
       sending = true;
       if (mounted) setState(() {});
+      assert(data.role != null, 'You must select a user role');
+      assert(data.username != null || data.email != null || data.phone != null,
+          'username, email or phone must not be null');
+
       alert.show(AlertData(
         body: locales.get('notification--please-wait'),
         duration: 5,
       ));
-      Map<String, dynamic> data = {};
-      if (role != null) {
-        data.addAll({
-          'role': role,
-        });
-      }
-      data.addAll({
-        'uid': stateUser.id,
-      });
-      if (widget.data != null) {
-        data.addAll(widget.data!);
-      }
-      // Update object with email or phone depending on the type.
-      if (type == 'email') {
-        data.addAll({'email': contact});
-      } else {
-        data.addAll({'phoneNumber': contact});
-      }
+
       try {
-        final HttpsCallable callable =
-            FirebaseFunctions.instance.httpsCallable('user-actions-invite');
-        await callable.call(data);
+        await widget.onAdd(data);
         alert.show(AlertData(
           body: locales.get('notification--added'),
           type: AlertType.success,
           duration: 3,
         ));
         Navigator.pop(context, 'send-invitation');
+        await widget.onChanged();
       } on FirebaseFunctionsException catch (error) {
         alert.show(AlertData(
           body: error.message ?? error.details['message'],
@@ -142,100 +117,123 @@ class _UserAddState extends State<UserAdd> {
           type: AlertType.critical,
         ));
       }
-      if (_typeOption == TypeOptions.phone) {
-        await _sendInvitation(
-          type: 'phoneNumber',
-          contact: phoneNumber,
-          role: roleSelect,
-        );
-      } else {
-        await _sendInvitation(
-          type: 'email',
-          contact: email,
-          role: roleSelect,
-        );
-      }
+      await addUser();
     }
 
-    /// Invite user using a phone number or email
-    Widget selectedTypeWidget = _typeOption == TypeOptions.phone
-        ? InputData(
-            isExpanded: true,
-            value: phoneNumber,
-            type: InputDataType.phone,
-            onChanged: (value) {
-              phoneNumber = value;
-              if (mounted) setState(() {});
-            },
-          )
-        : InputData(
-            isExpanded: true,
-            value: email,
-            type: InputDataType.email,
-            onChanged: (value) {
-              email = value;
-              if (mounted) setState(() {});
-            },
-          );
+    Widget phoneInput = SizedBox(
+      width: double.maxFinite,
+      child: InputData(
+        label: locales.get('label--phone-number'),
+        isExpanded: true,
+        value: data.phone,
+        type: InputDataType.phone,
+        onChanged: (value) {
+          data.phone = value;
+          if (mounted) setState(() {});
+        },
+      ),
+    );
+    Widget emailInput = SizedBox(
+      width: double.maxFinite,
+      child: InputData(
+        label: locales.get('label--email'),
+        isExpanded: true,
+        value: data.email,
+        type: InputDataType.email,
+        onChanged: (value) {
+          data.email = value;
+          if (mounted) setState(() {});
+        },
+      ),
+    );
 
-    Widget typeSelector = Row(
-      children: <Widget>[
-        Expanded(
-          child: RadioListTile<TypeOptions>(
-            contentPadding: const EdgeInsets.only(left: 8),
-            title: Text(locales.get('label--phone-number')),
-            value: TypeOptions.phone,
-            groupValue: _typeOption,
-            onChanged: (TypeOptions? value) {
-              _typeOption = value!;
-              email = '';
-              phoneNumber = '';
-              if (mounted) setState(() {});
-            },
-          ),
-        ),
-        Expanded(
-          child: RadioListTile<TypeOptions>(
-            contentPadding: const EdgeInsets.only(right: 8),
-            title: Text(locales.get('label--email')),
-            value: TypeOptions.email,
-            groupValue: _typeOption,
-            onChanged: (TypeOptions? value) {
-              _typeOption = value!;
-              email = '';
-              phoneNumber = '';
-              if (mounted) setState(() {});
-            },
-          ),
-        ),
-      ],
+    Widget usernameInput = SizedBox(
+      width: double.maxFinite,
+      child: InputData(
+        label: locales.get('label--username'),
+        isExpanded: true,
+        value: data.username,
+        type: InputDataType.string,
+        onChanged: (value) {
+          data.username = value;
+          if (mounted) setState(() {});
+        },
+      ),
+    );
+
+    Widget firstNameInput = SizedBox(
+      width: double.maxFinite,
+      child: InputData(
+        label: locales.get('label--first-name'),
+        isExpanded: true,
+        value: data.firstName,
+        type: InputDataType.string,
+        onChanged: (value) {
+          data.firstName = value;
+          if (mounted) setState(() {});
+        },
+      ),
+    );
+    Widget lastNameInput = SizedBox(
+      width: double.maxFinite,
+      child: InputData(
+        label: locales.get('label--last-name'),
+        isExpanded: true,
+        value: data.lastName,
+        type: InputDataType.string,
+        onChanged: (value) {
+          data.lastName = value;
+          if (mounted) setState(() {});
+        },
+      ),
     );
 
     List<Widget> inviteWidgets = [
       RoleSelector(
         roles: widget.roles,
         onChange: (value) {
-          if (value != null) {
-            roleSelect = value;
-          }
+          data.role = value;
           if (mounted) setState(() {});
         },
       ),
-      typeSelector,
-      Container(height: 16),
-      SizedBox(
-        width: double.maxFinite,
-        child: selectedTypeWidget,
-      ),
+    ];
+
+    if (widget.email) {
+      inviteWidgets.addAll([
+        spacer,
+        emailInput,
+      ]);
+    }
+    if (widget.phone) {
+      inviteWidgets.addAll([
+        spacer,
+        phoneInput,
+      ]);
+    }
+
+    if (widget.username) {
+      inviteWidgets.addAll([
+        spacer,
+        usernameInput,
+      ]);
+    }
+    if (widget.name) {
+      inviteWidgets.addAll([
+        spacer,
+        firstNameInput,
+        spacer,
+        lastNameInput,
+      ]);
+    }
+
+    inviteWidgets.addAll([
       Padding(
         padding: const EdgeInsets.only(top: 16),
         child: Row(
           children: [
             TextButton.icon(
               icon: const Icon(Icons.close),
-              label: Text(
-                locales.get('label--cancel'),
-              ),
+              label: Text(locales.get('label--cancel')),
               onPressed: () {
                 Navigator.pop(context, 'cancel');
               },
@@ -254,12 +252,12 @@ class _UserAddState extends State<UserAdd> {
           ],
         ),
       )
-    ];
+    ]);
 
     return SimpleDialog(
       title: Text(locales.get('user-invite--title')),
-      children: inviteWidgets,
       contentPadding: const EdgeInsets.all(20),
+      children: inviteWidgets,
     );
   }
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../helper/utils.dart';
+
 /// UserAvatar shows the image and the name of the users in profile sections.
 ///
 /// [avatar] This is a parameter of the image in the widget.
@@ -12,35 +14,14 @@ class UserAvatar extends StatelessWidget {
   const UserAvatar({
     Key? key,
     required this.avatar,
-    required this.name,
+    this.name,
+    this.firstName,
+    this.lastName,
   }) : super(key: key);
   final String? avatar;
   final String? name;
-
-  String _acronym(String? text) {
-    if (text == null) {
-      return '';
-    }
-    String finalText = '';
-    var matches = text.split(' ');
-    if (matches.isEmpty) {
-      return '?';
-    }
-    int totalMatches = matches.length > 2 ? matches.length : matches.length;
-    for (int i = 0; i < totalMatches; i++) {
-      try {
-        String match = matches[i][0];
-        finalText += match;
-      } catch (error) {
-        //
-      }
-    }
-    if (finalText.isEmpty) {
-      return '?';
-    }
-    finalText = finalText.toUpperCase();
-    return finalText;
-  }
+  final String? firstName;
+  final String? lastName;
 
   @override
   Widget build(BuildContext context) {
@@ -50,11 +31,15 @@ class UserAvatar extends StatelessWidget {
         backgroundColor: Colors.grey.shade100,
       );
     }
-    if (name != null) {
-      String finalName = _acronym(name);
+    String abbreviation = Utils.nameAbbreviation(
+      name: name,
+      firstName: firstName,
+      lastName: lastName,
+    );
+    if (abbreviation.isNotEmpty) {
       return CircleAvatar(
         backgroundColor: Colors.grey.shade100,
-        child: Text(finalName),
+        child: Text(abbreviation),
       );
     }
     return CircleAvatar(

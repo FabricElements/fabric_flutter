@@ -37,11 +37,10 @@ UserData _$UserDataFromJson(Map<String, dynamic> json) => UserData(
       fcm: json['fcm'] as String?,
       id: json['id'] as String?,
       role: json['role'] as String? ?? 'user',
-      nameInitials: json['nameInitials'] as String? ?? '',
       avatar: json['avatar'] as String? ??
           'https://images.unsplash.com/photo-1547679904-ac76451d1594',
-      nameFirst: json['nameFirst'] as String? ?? '',
-      nameLast: json['nameLast'] as String? ?? '',
+      firstName: json['firstName'] as String? ?? '',
+      lastName: json['lastName'] as String? ?? '',
       language: json['language'] as String? ?? 'en',
     );
 
@@ -53,9 +52,8 @@ Map<String, dynamic> _$UserDataToJson(UserData instance) {
     'fcm': instance.fcm,
     'id': instance.id,
     'name': instance.name,
-    'nameFirst': instance.nameFirst,
-    'nameInitials': instance.nameInitials,
-    'nameLast': instance.nameLast,
+    'firstName': instance.firstName,
+    'lastName': instance.lastName,
     'language': instance.language,
   };
 

@@ -25,12 +25,14 @@ class UserRoleUpdate extends StatefulWidget {
     required this.uid,
     required this.name,
     this.selected,
+    required this.onUpdate,
   }) : super(key: key);
   final Map<String, dynamic>? data;
   final List<String>? roles;
   final String uid;
   final String name;
   final String? selected;
+  final Function(Map<String, dynamic>) onUpdate;
 
   @override
   State<UserRoleUpdate> createState() => _UserRoleUpdateState();
@@ -94,9 +96,7 @@ class _UserRoleUpdateState extends State<UserRoleUpdate> {
         data.addAll(widget.data!);
       }
       try {
-        final HttpsCallable callable =
-            FirebaseFunctions.instance.httpsCallable('user-actions-role');
-        await callable.call(data);
+        await widget.onUpdate(data);
         alert.show(AlertData(
           body: locales.get('notification--user-role-updated'),
           type: AlertType.success,

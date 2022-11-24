@@ -56,21 +56,22 @@ class UserData {
   @JsonKey(includeIfNull: true)
   final String? id;
 
-  /// User name = [nameFirst] + [nameLast]
+  /// User name = [firstName] + [lastName]
   @JsonKey(includeIfNull: true)
   final String name;
 
-  /// [nameFirst] First Name
+  /// [firstName] First Name
   @JsonKey(includeIfNull: false)
-  String nameFirst;
+  String firstName;
 
-  /// [nameInitials] = [nameFirst] + [nameLast] first characters
+  /// Name abbreviation
+  /// [abbr] = [firstName] + [lastName] first characters
   @JsonKey(includeIfNull: false)
-  final String nameInitials;
+  final String abbr;
 
-  /// [nameLast] Last Name
+  /// [lastName] Last Name
   @JsonKey(includeIfNull: false)
-  String nameLast;
+  String lastName;
 
   /// [language]
   @JsonKey(includeIfNull: true)
@@ -125,12 +126,16 @@ class UserData {
     this.fcm,
     this.id,
     this.role = 'user',
-    this.nameInitials = '',
     this.avatar = 'https://images.unsplash.com/photo-1547679904-ac76451d1594',
-    this.nameFirst = '',
-    this.nameLast = '',
+    this.firstName = '',
+    this.lastName = '',
     this.language = 'en',
-  }) : presence = Utils.getPresence(ping);
+  })  : presence = Utils.getPresence(ping),
+        abbr = Utils.nameAbbreviation(
+          name: name,
+          firstName: firstName,
+          lastName: lastName,
+        );
 
   factory UserData.fromJson(Map<String, dynamic>? json) =>
       _$UserDataFromJson(json ?? {});
