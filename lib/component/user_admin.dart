@@ -4,13 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../helper/app_localizations_delegate.dart';
+import '../helper/options.dart';
 import '../helper/user_roles.dart';
-import '../serialized/add_user_data.dart';
 import '../serialized/user_data.dart';
 import '../state/state_alert.dart';
-import 'user_add.dart';
+import 'user_add_update.dart';
 import 'user_avatar.dart';
-import 'user_role_update.dart';
 
 /// Invite and manage Users and their roles
 /// [loader] Widget displayed when a process is in progress
@@ -22,9 +21,8 @@ class UserAdmin extends StatefulWidget {
     this.loader,
     this.roles,
     this.primary = false,
-    this.collection,
-    this.data,
-    this.id,
+    this.group,
+    this.groupId,
     this.appBar,
     this.maxWidth = 900,
     this.disabled = false,
@@ -33,38 +31,47 @@ class UserAdmin extends StatefulWidget {
     required this.onUpdate,
     required this.uid,
     required this.getUsers,
+    this.role = true,
     this.email = true,
     this.phone = true,
     this.username = true,
     this.name = true,
+    this.emailUpdate = true,
+    this.phoneUpdate = true,
+    this.usernameUpdate = true,
+    this.nameUpdate = true,
+    this.roleUpdate = true,
   }) : super(key: key);
   final Widget? empty;
   final Widget? loader;
   final List<String>? roles;
   final bool primary;
   final bool disabled;
-  final Function(AddUserData data) onAdd;
-  final Function(Map<String, dynamic> options) onRemove;
-  final Function(Map<String, dynamic> options) onUpdate;
+  final Function(UserData data, {dynamic group, dynamic groupId}) onAdd;
+  final Function(UserData data, {dynamic group, dynamic groupId}) onRemove;
+  final Function(UserData data, {dynamic group, dynamic groupId}) onUpdate;
   final Future<List<Map<String, dynamic>>> Function() getUsers;
 
   /// Current user UID
   final dynamic uid;
 
-  /// Firestore Document [id]
-  final String? id;
+  /// Firestore Document id
+  final dynamic groupId;
 
-  /// Firestore [collection]
-  final String? collection;
-
-  /// Firestore [data]
-  final Map<String, dynamic>? data;
+  /// Firestore collection
+  final dynamic group;
   final PreferredSizeWidget? appBar;
   final double maxWidth;
+  final bool role;
   final bool email;
   final bool phone;
   final bool username;
   final bool name;
+  final bool emailUpdate;
+  final bool phoneUpdate;
+  final bool usernameUpdate;
+  final bool nameUpdate;
+  final bool roleUpdate;
 
   @override
   State<UserAdmin> createState() => _UserAdminState();
@@ -96,40 +103,38 @@ class _UserAdminState extends State<UserAdmin> {
     ThemeData theme = Theme.of(context);
     TextTheme textTheme = theme.textTheme;
     AppLocalizations locales = AppLocalizations.of(context)!;
-    String? id = widget.id;
-    String? collection = widget.collection;
-    Map<String, dynamic>? documentData = widget.data;
-    if (collection != null || id != null || documentData != null) {
-      assert(collection != null && id != null,
+    if (widget.group != null || widget.groupId != null) {
+      assert(widget.group != null && widget.groupId != null,
           'collection, document and documentData can\'t be null when including one of them.');
     }
-    bool fromCollection = collection != null && id != null;
+    bool fromCollection = widget.group != null && widget.groupId != null;
     Widget space = Container(width: 16);
-    Map<String, dynamic> inviteMetadata = {};
     final alert = Provider.of<StateAlert>(context, listen: false);
-    Map<String, dynamic> removeOptions = {};
-    inviteMetadata = {
-      'admin': true,
-    };
-    if (fromCollection) {
-      inviteMetadata = {
-        'collection': collection,
-        'document': id,
-      };
-    }
-    removeOptions.addAll(inviteMetadata);
 
     /// Deletes the related user listed user, the documentId is the users uid
-    _removeUser(String documentId) async {
-      removeOptions.addAll({
-        'uid': documentId,
-      });
-      widget.onRemove(removeOptions);
-      // Type indicates the data field to use in the function, admin level or collection.
+    removeUser(UserData data) async {
       alert.show(AlertData(
-        body: locales.get('alert--user-removed'),
-        type: AlertType.success,
-        duration: 3,
+        title: locales.get(
+          'label--confirm-are-you-sure-remove-label',
+          {
+            'label':
+                '${locales.get('label--user').toLowerCase()}: ${data.firstName ?? ''} ${data.lastName ?? ''}'
+          },
+        ),
+        action: ButtonOptions(onTap: () async {
+          await widget.onRemove(data,
+              group: widget.group, groupId: widget.groupId);
+          getUsers();
+          if (mounted) setState(() {});
+          // Type indicates the data field to use in the function, admin level or collection.
+          alert.show(AlertData(
+            brightness: Brightness.dark,
+            body: locales.get('alert--user-removed'),
+            type: AlertType.success,
+            duration: 3,
+          ));
+        }),
+        type: AlertType.warning,
       ));
     }
 
@@ -148,153 +153,144 @@ class _UserAdminState extends State<UserAdmin> {
         // Don't allow a user to change anything about itself on the 'admin' view
         bool canUpdateUser = !sameUser;
         if (widget.disabled) canUpdateUser = false;
-        Color statusColor = Colors.grey.shade600;
-        switch (user.presence) {
-          case 'active':
-            statusColor = Colors.green;
-            break;
-          case 'inactive':
-            statusColor = Colors.deepOrange;
-        }
-        if (sameUser) {
-          statusColor = Colors.green;
-        }
+        UserData userUpdateData = UserData.fromJson(userData);
+        userUpdateData.role = user.role;
         String roleFinal = user.role;
-        if (id != null) {
+        if (fromCollection) {
           roleFinal = UserRoles.roleFromData(
             compareData: userData,
-            level: collection,
-            levelId: id,
+            level: widget.group,
+            levelId: widget.groupId,
             clean: true, // Use clean: true to reduce the role locales
           );
         }
         List<Widget> trailing = [];
-        trailing.add(space);
-        trailing.add(
-          Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(
-              color: statusColor,
-              shape: BoxShape.circle,
+        if (canUpdateUser) {
+          trailing.addAll([
+            IconButton(
+              onPressed: () async {
+                showDialog<void>(
+                  useRootNavigator: false,
+                  barrierColor: Colors.transparent,
+                  context: context,
+                  builder: (context) => UserAddUpdate(
+                    role: widget.roleUpdate,
+                    roles: widget.roles,
+                    onConfirm: widget.onUpdate,
+                    email: widget.emailUpdate,
+                    phone: widget.phoneUpdate,
+                    username: widget.usernameUpdate,
+                    name: widget.nameUpdate,
+                    onChanged: getUsers,
+                    user: userUpdateData,
+                  ),
+                );
+              },
+              icon: Icon(
+                Icons.edit,
+                color: theme.colorScheme.primary,
+              ),
             ),
-          ),
-        );
+            space,
+            IconButton(
+              onPressed: () async {
+                try {
+                  await removeUser(userUpdateData);
+                } on FirebaseFunctionsException catch (error) {
+                  alert.show(AlertData(
+                    brightness: Brightness.dark,
+                    body: error.message ?? error.details['message'],
+                    type: AlertType.critical,
+                  ));
+                } catch (error) {
+                  alert.show(AlertData(
+                    brightness: Brightness.dark,
+                    body: error.toString(),
+                    type: AlertType.critical,
+                  ));
+                }
+              },
+              icon: const Icon(
+                Icons.person_remove,
+                color: Colors.deepOrange,
+              ),
+            ),
+          ]);
+        }
+
+        /// TODO add edit action
         List<Widget> roleChips = [
           Chip(
             padding: EdgeInsets.zero,
             label: Text(locales.get('label--$roleFinal')),
           ),
         ];
-        String name =
-            user.name.isNotEmpty ? user.name : locales.get('label--unknown');
-        if (user.phone.isNotEmpty) {
+        String name = user.name.isNotEmpty ? user.name : '';
+        if (user.phone != null) {
           roleChips.add(Chip(
             avatar: Icon(Icons.phone, color: Colors.grey.shade600),
             backgroundColor: Colors.transparent,
             padding: const EdgeInsets.all(0),
-            label: Text(user.phone),
+            label: Text(user.phone!),
           ));
-        } else if (user.email.isNotEmpty) {
+        }
+        if (user.email != null) {
           roleChips.add(Chip(
             avatar: Icon(Icons.email, color: Colors.grey.shade600),
             backgroundColor: Colors.transparent,
             padding: const EdgeInsets.all(0),
-            label: Text(user.email),
+            label: Text(user.email!),
+          ));
+        }
+        if (user.username != null && user.username!.isNotEmpty) {
+          roleChips.add(Chip(
+            avatar: Icon(Icons.alternate_email, color: Colors.grey.shade600),
+            backgroundColor: Colors.transparent,
+            padding: const EdgeInsets.all(0),
+            label: Text(user.username!),
           ));
         }
 
-        return Align(
-          alignment: Alignment.topCenter,
-          child: Container(
-            constraints: BoxConstraints(maxWidth: widget.maxWidth),
-            child: Wrap(
-              children: <Widget>[
-                AbsorbPointer(
-                  absorbing: !canUpdateUser,
-                  child: Dismissible(
-                    key: Key(user.id!),
-                    background: Container(
-                      color: Colors.deepOrangeAccent,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: <Widget>[
-                          const Icon(Icons.delete, color: Colors.white),
-                          space,
-                          Text(
-                            locales.get('label--remove'),
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                          space,
-                        ],
-                      ),
-                    ),
-                    direction: DismissDirection.endToStart,
-                    confirmDismiss: (DismissDirection direction) async {
-                      bool response = false;
-                      try {
-                        if (direction == DismissDirection.endToStart) {
-                          await _removeUser(user.id!);
-                          response = true;
-                          if (mounted) setState(() {});
-                        }
-                      } on FirebaseFunctionsException catch (error) {
-                        alert.show(AlertData(
-                          body: error.message ?? error.details['message'],
-                          type: AlertType.critical,
-                        ));
-                      } catch (error) {
-                        alert.show(AlertData(
-                          body: error.toString(),
-                          type: AlertType.critical,
-                        ));
-                      }
-                      return response;
-                    },
-                    child: ListTile(
-                      onTap: () async {
-                        showDialog<void>(
-                          barrierColor: Colors.black12,
-                          context: context,
-                          builder: (context) => UserRoleUpdate(
-                            data: inviteMetadata,
-                            roles: widget.roles,
-                            uid: user.id!,
-                            name: name,
-                            onUpdate: widget.onUpdate,
-                          ),
-                        );
-                      },
-                      isThreeLine: true,
-                      leading: UserAvatar(
-                        avatar: user.avatar,
-                        name: user.name.isNotEmpty
-                            ? user.name
-                            : locales.get('label--unknown'),
-                      ),
-                      title: Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0),
-                        child: Text(name, style: textTheme.subtitle1),
-                      ),
-                      subtitle: Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: roleChips,
-                      ),
-                      trailing: Wrap(
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: trailing,
-                      ),
-                    ),
-                  ),
-                ),
-                const Divider(height: 0),
-              ],
-            ),
+        return ListTile(
+          isThreeLine: true,
+          leading: UserAvatar(
+            avatar: user.avatar,
+            name: user.name,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            presence: user.presence,
+          ),
+          title: Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: Text(name, style: textTheme.subtitle1),
+          ),
+          subtitle: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: roleChips,
+          ),
+          trailing: Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: trailing,
           ),
         );
       }),
+    );
+
+    Widget userAddWidget = UserAddUpdate(
+      // user: UserData(
+      //   group: widget.group,
+      //   groupId: widget.groupId,
+      // ),
+      roles: widget.roles,
+      onConfirm: widget.onAdd,
+      email: widget.email,
+      phone: widget.phone,
+      username: widget.username,
+      name: widget.name,
+      onChanged: getUsers,
+      role: widget.role,
     );
 
     if (widget.primary) {
@@ -314,23 +310,15 @@ class _UserAdminState extends State<UserAdmin> {
                 }).toUpperCase()),
                 onPressed: () {
                   showDialog<void>(
-                    barrierColor: Colors.black12,
+                    // barrierColor: Colors.black12,
                     context: context,
-                    builder: (context) => UserAdd(
-                      data: inviteMetadata,
-                      roles: widget.roles,
-                      onAdd: widget.onAdd,
-                      uid: widget.uid,
-                      email: widget.email,
-                      phone: widget.phone,
-                      username: widget.username,
-                      name: widget.name,
-                      onChanged: getUsers,
-                    ),
+                    builder: (context) => userAddWidget,
                   );
                 },
               ),
-        body: content,
+        body: SingleChildScrollView(
+          child: content,
+        ),
       );
     }
 
@@ -351,13 +339,7 @@ class _UserAdminState extends State<UserAdmin> {
               showDialog<void>(
                 barrierColor: Colors.black12,
                 context: context,
-                builder: (context) => UserAdd(
-                  data: inviteMetadata,
-                  roles: widget.roles,
-                  onAdd: widget.onAdd,
-                  uid: widget.uid,
-                  onChanged: widget.getUsers,
-                ),
+                builder: (context) => userAddWidget,
               );
             },
           ),

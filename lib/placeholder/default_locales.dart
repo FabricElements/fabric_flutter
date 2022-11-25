@@ -131,9 +131,9 @@ dynamic defaultLocales = {
     'en': 'User',
     'es': 'Usuario',
   },
-  'label--choose-role': {
-    'en': 'Please choose a role',
-    'es': 'Por favor escoge un rol',
+  'label--role': {
+    'en': 'Role',
+    'es': 'Rol',
   },
   'label--add': {
     'en': 'Add',
@@ -577,14 +577,6 @@ dynamic defaultLocales = {
     'en': 'Successfully downloaded',
     'es': 'Se descargó correctamente',
   },
-  'user-role-update--title': {
-    'en': 'Update role for: {name}',
-    'es': 'Actualizar rol de {name}',
-  },
-  'user-invite--title': {
-    'en': 'Add a new User',
-    'es': 'Agrega un nuevo Usuario',
-  },
   'label--plus-code': {
     'en': 'Plus Code',
     'es': 'Código Plus',
@@ -616,6 +608,10 @@ dynamic defaultLocales = {
   'label--confirm-are-you-sure-cancel': {
     'en': "Are you sure you want to cancel?. Your changes won't be saved",
     'es': '¿Estas seguro que quieres cancelar?. Tus cambios no se guardarán'
+  },
+  'label--confirm-are-you-sure-remove-label': {
+    'en': 'Are you sure you want to remove {label}?',
+    'es': '¿Seguro que quieres eliminar {label}?'
   },
   'label--confirm-are-you-sure-update-label': {
     'en': 'Are you sure you want to update {label}?',

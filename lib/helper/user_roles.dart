@@ -1,5 +1,5 @@
 class UserRoles {
-  /// [roleFromData] Return an user role using [uid]
+  /// [roleFromData] Return an user role using [groupId]
   static String roleFromData({
     Map<String, dynamic>? compareData,
     String? level,

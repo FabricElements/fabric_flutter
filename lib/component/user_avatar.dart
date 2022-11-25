@@ -17,36 +17,75 @@ class UserAvatar extends StatelessWidget {
     this.name,
     this.firstName,
     this.lastName,
+    this.presence,
   }) : super(key: key);
   final String? avatar;
   final String? name;
   final String? firstName;
   final String? lastName;
+  final String? presence;
 
   @override
   Widget build(BuildContext context) {
-    if (avatar != null) {
-      return CircleAvatar(
-        backgroundImage: NetworkImage(avatar!),
-        backgroundColor: Colors.grey.shade100,
-      );
-    }
     String abbreviation = Utils.nameAbbreviation(
-      name: name,
       firstName: firstName,
       lastName: lastName,
     );
-    if (abbreviation.isNotEmpty) {
-      return CircleAvatar(
-        backgroundColor: Colors.grey.shade100,
-        child: Text(abbreviation),
-      );
-    }
-    return CircleAvatar(
+    Widget avatarContainer = CircleAvatar(
       backgroundColor: Colors.grey.shade100,
       child: Icon(
         Icons.person,
         color: Colors.grey.shade500,
+      ),
+    );
+    if (avatar != null) {
+      avatarContainer = CircleAvatar(
+        backgroundImage: NetworkImage(avatar!),
+        backgroundColor: Colors.grey.shade100,
+      );
+    } else if (abbreviation.isNotEmpty) {
+      avatarContainer = CircleAvatar(
+        backgroundColor: Colors.grey.shade100,
+        child: Text(abbreviation),
+      );
+    }
+
+    /// Return only avatar if presence is null
+    if (presence == null) return avatarContainer;
+
+    /// Get user status presence
+    Color statusColor = Colors.transparent;
+    switch (presence) {
+      case 'active':
+        statusColor = Colors.green;
+        break;
+      case 'inactive':
+        statusColor = Colors.deepOrange;
+    }
+    final presenceWidget = Container(
+      width: 8,
+      height: 8,
+      decoration: BoxDecoration(
+        color: statusColor,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: Colors.white,
+          width: 1,
+          strokeAlign: StrokeAlign.outside,
+        ),
+      ),
+    );
+    return AspectRatio(
+      aspectRatio: 1 / 1,
+      child: Stack(
+        children: [
+          avatarContainer,
+          Positioned(
+            right: 0,
+            top: 0,
+            child: presenceWidget,
+          ),
+        ],
       ),
     );
   }

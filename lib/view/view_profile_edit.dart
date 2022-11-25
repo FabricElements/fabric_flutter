@@ -86,8 +86,8 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
     final stateUser = Provider.of<StateUser>(context);
     stateUser.ping('profile');
     userImage = stateUser.serialized.avatar;
-    nameFirst = stateUser.serialized.firstName;
-    nameLast = stateUser.serialized.lastName;
+    nameFirst = stateUser.serialized.firstName ?? '';
+    nameLast = stateUser.serialized.lastName ?? '';
     if (!changed) {
       nameFirstController.text = nameFirst;
       nameLastController.text = nameLast;

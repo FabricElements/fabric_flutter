@@ -4,58 +4,58 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../helper/app_localizations_delegate.dart';
-import '../serialized/add_user_data.dart';
+import '../helper/options.dart';
+import '../serialized/user_data.dart';
 import '../state/state_alert.dart';
 import 'input_data.dart';
-import 'role_selector.dart';
 
 /// Sends invitation to a new user
 ///
 /// [roles] Optional array of roles
-/// [data] Object with necessary information such as 'organization' data
 /// ```dart
-/// UserAdd(
-///   'data': {
-///     'organization': 'organization-id',
-///   }
+/// UserAddUpdate(
 /// );
 /// ```
-class UserAdd extends StatefulWidget {
-  const UserAdd({
+class UserAddUpdate extends StatefulWidget {
+  const UserAddUpdate({
     Key? key,
     this.roles,
-    this.data,
-    required this.onAdd,
-    required this.uid,
+    required this.onConfirm,
     this.email = true,
     this.phone = true,
+    this.role = true,
     this.username = true,
     this.name = true,
     required this.onChanged,
+    this.user,
+    this.group,
+    this.groupId,
   }) : super(key: key);
-  final Map<String, dynamic>? data;
   final List<String>? roles;
-  final Function(AddUserData data) onAdd;
-  final dynamic uid;
+  final Function(UserData data, {dynamic group, dynamic groupId}) onConfirm;
   final bool email;
   final bool phone;
   final bool username;
   final bool name;
+  final bool role;
   final Function onChanged;
+  final UserData? user;
+  final dynamic group;
+  final dynamic groupId;
 
   @override
-  State<UserAdd> createState() => _UserAddState();
+  State<UserAddUpdate> createState() => _UserAddUpdateState();
 }
 
-class _UserAddState extends State<UserAdd> {
+class _UserAddUpdateState extends State<UserAddUpdate> {
   late bool sending;
   Color? backgroundColor;
   Function? onChange;
-  late AddUserData data;
+  late UserData data;
 
   @override
   void initState() {
-    data = AddUserData(uid: widget.uid, data: widget.data);
+    data = widget.user ?? UserData(id: widget.user?.id);
     sending = false;
     backgroundColor = const Color(0xFF161A21);
     super.initState();
@@ -64,14 +64,17 @@ class _UserAddState extends State<UserAdd> {
   @override
   Widget build(BuildContext context) {
     bool canInvite = sending == false &&
-        data.role != null &&
         ((data.email ?? data.phone ?? '').length > 4) &&
         (widget.username &&
                 (data.username != null && data.username!.isNotEmpty) ||
             !widget.username);
     final locales = AppLocalizations.of(context)!;
     final alert = Provider.of<StateAlert>(context, listen: false);
-    const spacer = SizedBox(height: 8, width: 8);
+    const spacer = SizedBox(height: 16, width: 16);
+    final title = locales
+        .get(data.id == null ? 'label--add-label' : 'label--update-label', {
+      'label': locales.get('label--user'),
+    });
 
     /// Sends user invite to firebase function with the necessary information when inviting a user.
     ///
@@ -80,31 +83,34 @@ class _UserAddState extends State<UserAdd> {
     addUser() async {
       sending = true;
       if (mounted) setState(() {});
-      assert(data.role != null, 'You must select a user role');
+      assert(data.role.isNotEmpty, 'You must select a user role');
       assert(data.username != null || data.email != null || data.phone != null,
           'username, email or phone must not be null');
-
-      alert.show(AlertData(
-        body: locales.get('notification--please-wait'),
-        duration: 5,
-      ));
-
       try {
-        await widget.onAdd(data);
-        alert.show(AlertData(
+        await widget.onConfirm(data,
+            group: widget.group, groupId: widget.groupId);
+        alert
+            .show(AlertData(
+          brightness: Brightness.dark,
           body: locales.get('notification--added'),
           type: AlertType.success,
           duration: 3,
-        ));
-        Navigator.pop(context, 'send-invitation');
+        ))
+            .then((value) {
+          Navigator.pop(context);
+        });
         await widget.onChanged();
       } on FirebaseFunctionsException catch (error) {
         alert.show(AlertData(
+          brightness: Brightness.dark,
           body: error.message ?? error.details['message'],
           type: AlertType.critical,
         ));
       } catch (error) {
-        alert.show(AlertData(body: error.toString(), type: AlertType.critical));
+        alert.show(AlertData(
+            brightness: Brightness.dark,
+            body: error.toString(),
+            type: AlertType.critical));
       }
       sending = false;
       if (mounted) setState(() {});
@@ -113,6 +119,7 @@ class _UserAddState extends State<UserAdd> {
     void validateInvitation() async {
       if (!canInvite) {
         alert.show(AlertData(
+          brightness: Brightness.dark,
           title: 'incomplete data',
           type: AlertType.critical,
         ));
@@ -123,6 +130,7 @@ class _UserAddState extends State<UserAdd> {
     Widget phoneInput = SizedBox(
       width: double.maxFinite,
       child: InputData(
+        icon: Icons.phone,
         label: locales.get('label--phone-number'),
         isExpanded: true,
         value: data.phone,
@@ -136,6 +144,7 @@ class _UserAddState extends State<UserAdd> {
     Widget emailInput = SizedBox(
       width: double.maxFinite,
       child: InputData(
+        icon: Icons.email,
         label: locales.get('label--email'),
         isExpanded: true,
         value: data.email,
@@ -150,10 +159,12 @@ class _UserAddState extends State<UserAdd> {
     Widget usernameInput = SizedBox(
       width: double.maxFinite,
       child: InputData(
+        icon: Icons.alternate_email,
         label: locales.get('label--username'),
         isExpanded: true,
         value: data.username,
         type: InputDataType.string,
+        maxLength: 20,
         onChanged: (value) {
           data.username = value;
           if (mounted) setState(() {});
@@ -161,68 +172,83 @@ class _UserAddState extends State<UserAdd> {
       ),
     );
 
-    Widget firstNameInput = SizedBox(
-      width: double.maxFinite,
-      child: InputData(
-        label: locales.get('label--first-name'),
-        isExpanded: true,
-        value: data.firstName,
-        type: InputDataType.string,
-        onChanged: (value) {
-          data.firstName = value;
-          if (mounted) setState(() {});
-        },
-      ),
+    Widget firstNameInput = InputData(
+      label: locales.get('label--first-name'),
+      isExpanded: true,
+      value: data.firstName,
+      type: InputDataType.string,
+      onChanged: (value) {
+        data.firstName = value;
+        if (mounted) setState(() {});
+      },
+      maxLength: 20,
     );
-    Widget lastNameInput = SizedBox(
-      width: double.maxFinite,
-      child: InputData(
-        label: locales.get('label--last-name'),
-        isExpanded: true,
-        value: data.lastName,
-        type: InputDataType.string,
-        onChanged: (value) {
-          data.lastName = value;
-          if (mounted) setState(() {});
-        },
-      ),
+    Widget lastNameInput = InputData(
+      label: locales.get('label--last-name'),
+      isExpanded: true,
+      value: data.lastName,
+      type: InputDataType.string,
+      onChanged: (value) {
+        data.lastName = value;
+        if (mounted) setState(() {});
+      },
+      maxLength: 20,
     );
 
-    List<Widget> inviteWidgets = [
-      RoleSelector(
-        roles: widget.roles,
-        onChange: (value) {
-          data.role = value;
-          if (mounted) setState(() {});
-        },
-      ),
-    ];
-
+    List<String> roles = widget.roles ?? ['user', 'admin'];
+    List<Widget> inviteWidgets = [];
+    if (widget.role) {
+      inviteWidgets.addAll([
+        InputData(
+          icon: Icons.security,
+          label: locales.get('label--role'),
+          value: data.role,
+          type: InputDataType.dropdown,
+          options: List.generate(roles.length, (index) {
+            final item = roles[index];
+            return ButtonOptions(
+              value: item,
+              label: locales.get('label--$item'),
+            );
+          }),
+          onChanged: (value) {
+            data.role = value ?? roles.first;
+            if (mounted) setState(() {});
+          },
+        ),
+        spacer,
+        spacer,
+      ]);
+    }
     if (widget.email) {
       inviteWidgets.addAll([
-        spacer,
         emailInput,
+        spacer,
       ]);
     }
     if (widget.phone) {
       inviteWidgets.addAll([
-        spacer,
         phoneInput,
+        spacer,
       ]);
     }
 
     if (widget.username) {
       inviteWidgets.addAll([
-        spacer,
         usernameInput,
+        spacer,
       ]);
     }
     if (widget.name) {
       inviteWidgets.addAll([
+        Row(
+          children: [
+            Expanded(child: firstNameInput),
+            spacer,
+            Expanded(child: lastNameInput),
+          ],
+        ),
         spacer,
-        firstNameInput,
-        spacer,
-        lastNameInput,
       ]);
     }
 
@@ -242,11 +268,7 @@ class _UserAddState extends State<UserAdd> {
             const Spacer(),
             ElevatedButton.icon(
               icon: const Icon(Icons.person_add),
-              label: Text(
-                locales.get('label--add-label', {
-                  'label': locales.get('label--user'),
-                }),
-              ),
+              label: Text(title),
               onPressed: canInvite ? validateInvitation : null,
             ),
           ],
@@ -255,7 +277,7 @@ class _UserAddState extends State<UserAdd> {
     ]);
 
     return SimpleDialog(
-      title: Text(locales.get('user-invite--title')),
+      title: Text(title),
       contentPadding: const EdgeInsets.all(20),
       children: inviteWidgets,
     );

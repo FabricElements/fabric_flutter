@@ -62,30 +62,31 @@ class Utils {
   }
 
   /// Get name abbreviation
-  static String nameAbbreviation(
-      {String? name, String? firstName, String? lastName}) {
+  static String nameFromParts({String? firstName, String? lastName}) {
     String finalName = '';
-    if (firstName != null || lastName != null || name != null) {
+    if (firstName != null && firstName.isNotEmpty) {
+      finalName += firstName;
+    }
+    if (lastName != null && lastName.isNotEmpty) {
+      finalName += ' ';
+      finalName += lastName;
+    } else {
+      finalName += '.';
+    }
+    return finalName;
+  }
+
+  /// Get name abbreviation
+  static String nameAbbreviation({String? firstName, String? lastName}) {
+    String finalName = '';
+    if (firstName != null || lastName != null) {
       if (firstName != null && firstName.isNotEmpty) {
         finalName += firstName[0];
       }
       if (lastName != null && lastName.isNotEmpty) {
         finalName += lastName[0];
-      }
-      if (finalName.isEmpty && name != null && name.isNotEmpty) {
-        var matches = name.split(' ');
-        if (matches.isNotEmpty) {
-          int totalMatches =
-              matches.length > 2 ? matches.length : matches.length;
-          for (int i = 0; i < totalMatches; i++) {
-            try {
-              String match = matches[i][0];
-              finalName += match;
-            } catch (error) {
-              //
-            }
-          }
-        }
+      } else {
+        finalName += '.';
       }
     }
     return finalName.toUpperCase();
