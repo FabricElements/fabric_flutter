@@ -35,42 +35,43 @@ class UserData {
   @JsonKey(includeIfNull: true)
   final String avatar;
 
-  /// User Creation Time: [created]
-  @JsonKey(
-    fromJson: FirestoreHelper.timestampFromJsonDefault,
-    toJson: FirestoreHelper.timestampToJsonDefault,
-    includeIfNull: true,
-    defaultValue: null,
-  )
-  final DateTime? created;
+  // /// User Creation Time: [created]
+  // @JsonKey(
+  //   fromJson: FirestoreHelper.timestampFromJsonDefault,
+  //   toJson: FirestoreHelper.timestampToJsonDefault,
+  //   includeIfNull: true,
+  //   defaultValue: null,
+  // )
+  // final DateTime? created;
 
   /// email used for authentication
-  @JsonKey(includeIfNull: true)
-  final String email;
+  @JsonKey(includeIfNull: false)
+  String? email;
 
   /// Firebase Cloud Messaging [fcm] token https://firebase.google.com/docs/cloud-messaging
   @JsonKey(includeIfNull: true)
   final String? fcm;
 
   /// User id
-  @JsonKey(includeIfNull: true)
-  final String? id;
+  @JsonKey(includeIfNull: false)
+  final dynamic id;
 
-  /// User name = [nameFirst] + [nameLast]
+  /// User name = [firstName] + [lastName]
   @JsonKey(includeIfNull: true)
   final String name;
 
-  /// [nameFirst] First Name
+  /// [firstName] First Name
   @JsonKey(includeIfNull: false)
-  String nameFirst;
+  String? firstName;
 
-  /// [nameInitials] = [nameFirst] + [nameLast] first characters
+  /// Name abbreviation
+  /// [abbr] = [firstName] + [lastName] first characters
   @JsonKey(includeIfNull: false)
-  final String nameInitials;
+  final String abbr;
 
-  /// [nameLast] Last Name
+  /// [lastName] Last Name
   @JsonKey(includeIfNull: false)
-  String nameLast;
+  String? lastName;
 
   /// [language]
   @JsonKey(includeIfNull: true)
@@ -90,47 +91,53 @@ class UserData {
   final DateTime? ping;
 
   /// [phone] used for authentication
-  @JsonKey(defaultValue: '', includeIfNull: true)
-  final String phone;
+  @JsonKey(includeIfNull: false)
+  String? phone;
 
   /// User role
   @JsonKey(includeIfNull: true)
-  final String role;
+  String role;
 
   /// User [presence] (active, inactive, away)
   final String presence;
 
   /// Last time the user was updated: [updated]
-  @JsonKey(
-    fromJson: FirestoreHelper.timestampFromJsonDefault,
-    toJson: FirestoreHelper.timestampToJsonDefault,
-    includeIfNull: true,
-    defaultValue: null,
-  )
-  final DateTime? updated;
+  // @JsonKey(
+  //   fromJson: FirestoreHelper.timestampFromJsonDefault,
+  //   toJson: FirestoreHelper.timestampToJsonDefault,
+  //   includeIfNull: true,
+  //   defaultValue: null,
+  // )
+  // final DateTime? updated;
 
   /// Optional [username]
   @JsonKey(includeIfNull: true)
-  final String? username;
+  String? username;
 
   UserData({
-    this.created,
-    this.updated,
-    this.name = '',
+    // this.created,
+    // this.updated,
     this.onboarding,
-    this.phone = '',
+    this.phone,
     this.ping,
     this.username,
-    this.email = '',
+    this.email,
     this.fcm,
     this.id,
     this.role = 'user',
-    this.nameInitials = '',
     this.avatar = 'https://images.unsplash.com/photo-1547679904-ac76451d1594',
-    this.nameFirst = '',
-    this.nameLast = '',
+    this.firstName,
+    this.lastName,
     this.language = 'en',
-  }) : presence = Utils.getPresence(ping);
+  })  : presence = Utils.getPresence(ping),
+        name = Utils.nameFromParts(
+          firstName: firstName,
+          lastName: lastName,
+        ),
+        abbr = Utils.nameAbbreviation(
+          firstName: firstName,
+          lastName: lastName,
+        );
 
   factory UserData.fromJson(Map<String, dynamic>? json) =>
       _$UserDataFromJson(json ?? {});

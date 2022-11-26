@@ -1,16 +1,15 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../helper/app_localizations_delegate.dart';
+import '../helper/options.dart';
+import '../helper/user_roles.dart';
 import '../serialized/user_data.dart';
 import '../state/state_alert.dart';
-import '../state/state_user.dart';
-import 'user_add.dart';
+import 'user_add_update.dart';
 import 'user_avatar.dart';
-import 'user_role_update.dart';
 
 /// Invite and manage Users and their roles
 /// [loader] Widget displayed when a process is in progress
@@ -22,54 +21,81 @@ class UserAdmin extends StatefulWidget {
     this.loader,
     this.roles,
     this.primary = false,
-    this.collection,
-    this.data,
-    this.id,
+    this.group,
+    this.groupId,
     this.appBar,
     this.maxWidth = 900,
     this.disabled = false,
+    required this.onAdd,
+    required this.onRemove,
+    required this.onUpdate,
+    required this.uid,
+    required this.getUsers,
+    this.role = true,
+    this.email = true,
+    this.phone = true,
+    this.username = true,
+    this.name = true,
+    this.emailUpdate = true,
+    this.phoneUpdate = true,
+    this.usernameUpdate = true,
+    this.nameUpdate = true,
+    this.roleUpdate = true,
   }) : super(key: key);
   final Widget? empty;
   final Widget? loader;
   final List<String>? roles;
   final bool primary;
   final bool disabled;
+  final Function(UserData data, {dynamic group, dynamic groupId}) onAdd;
+  final Function(UserData data, {dynamic group, dynamic groupId}) onRemove;
+  final Function(UserData data, {dynamic group, dynamic groupId}) onUpdate;
+  final Future<List<Map<String, dynamic>>> Function() getUsers;
 
-  /// Firestore Document [id]
-  final String? id;
+  /// Current user UID
+  final dynamic uid;
 
-  /// Firestore [collection]
-  final String? collection;
+  /// Firestore Document id
+  final dynamic groupId;
 
-  /// Firestore [data]
-  final Map<String, dynamic>? data;
+  /// Firestore collection
+  final dynamic group;
   final PreferredSizeWidget? appBar;
   final double maxWidth;
+  final bool role;
+  final bool email;
+  final bool phone;
+  final bool username;
+  final bool name;
+  final bool emailUpdate;
+  final bool phoneUpdate;
+  final bool usernameUpdate;
+  final bool nameUpdate;
+  final bool roleUpdate;
 
   @override
   State<UserAdmin> createState() => _UserAdminState();
 }
 
 class _UserAdminState extends State<UserAdmin> {
-  Stream<QuerySnapshot>? _usersStream;
-  List<DocumentSnapshot>? items;
+  late List<Map<String, dynamic>> users;
   int? totalItems;
+
+  void getUsers() async {
+    try {
+      users = await widget.getUsers();
+      if (mounted) setState(() {});
+    } catch (e) {
+      print(e);
+    }
+  }
 
   @override
   void initState() {
     totalItems = 0;
-    items = [];
+    users = [];
+    getUsers();
     super.initState();
-  }
-
-  @override
-  void dispose() {
-    try {
-      _usersStream!.drain();
-    } catch (error) {
-      //
-    }
-    super.dispose();
   }
 
   @override
@@ -77,248 +103,203 @@ class _UserAdminState extends State<UserAdmin> {
     ThemeData theme = Theme.of(context);
     TextTheme textTheme = theme.textTheme;
     AppLocalizations locales = AppLocalizations.of(context)!;
-    final stateUser = Provider.of<StateUser>(context);
-    Query baseQuery = FirebaseFirestore.instance.collection('user');
-    Query query = baseQuery;
-
-    /// Get data from navigation arguments
-    Map<String, dynamic> args = Map.from(
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
-            {});
-    String? id = widget.id ?? args['document'];
-    String? collection = widget.collection;
-    Map<String, dynamic>? documentData = widget.data ?? args['data'];
-    if (collection != null || id != null || documentData != null) {
-      assert(collection != null && id != null,
+    if (widget.group != null || widget.groupId != null) {
+      assert(widget.group != null && widget.groupId != null,
           'collection, document and documentData can\'t be null when including one of them.');
     }
-    bool fromCollection = collection != null && id != null;
+    bool fromCollection = widget.group != null && widget.groupId != null;
     Widget space = Container(width: 16);
-    Map<String, dynamic> inviteMetadata = {};
     final alert = Provider.of<StateAlert>(context, listen: false);
-    Map<String?, dynamic> removeOptions = {};
-
-    /// Order By role for global users, the role key is only available for parent users
-    query = query.orderBy('role');
-    inviteMetadata = {
-      'admin': true,
-    };
-    if (fromCollection) {
-      query = baseQuery.orderBy('$collection.$id');
-      inviteMetadata = {
-        'collection': collection,
-        'document': id,
-      };
-    }
-    removeOptions.addAll(inviteMetadata);
-    // Init here after finishing query
-    _usersStream = query.snapshots();
 
     /// Deletes the related user listed user, the documentId is the users uid
-    _removeUser(String documentId) async {
-      HttpsCallable callable =
-          FirebaseFunctions.instance.httpsCallable('user-actions-remove');
-      removeOptions.addAll({
-        'uid': documentId,
-      });
-      // Type indicates the data field to use in the function, admin level or collection.
-      await callable.call(removeOptions); // USER DATA
+    removeUser(UserData data) async {
       alert.show(AlertData(
-        body: locales.get('alert--user-removed'),
-        type: AlertType.success,
-        duration: 3,
+        clear: true,
+        title: locales.get(
+          'label--confirm-are-you-sure-remove-label',
+          {
+            'label':
+                '${locales.get('label--user').toLowerCase()}: ${data.firstName ?? ''} ${data.lastName ?? ''}'
+          },
+        ),
+        action: ButtonOptions(onTap: () async {
+          await widget.onRemove(data,
+              group: widget.group, groupId: widget.groupId);
+          getUsers();
+          if (mounted) setState(() {});
+          // Type indicates the data field to use in the function, admin level or collection.
+          alert.show(AlertData(
+            clear: true,
+            brightness: Brightness.dark,
+            body: locales.get('alert--user-removed'),
+            type: AlertType.success,
+            duration: 3,
+          ));
+        }),
+        type: AlertType.warning,
       ));
     }
 
-    Widget _buildItem(DocumentSnapshot data) {
-      DocumentSnapshot userDocument = data;
-      Map<String, dynamic> userData =
-          userDocument.data()! as Map<String, dynamic>;
-      userData.addAll({'id': userDocument.id});
-      UserData itemData = UserData.fromJson(userData);
-      bool sameUser = stateUser.id == itemData.id;
-      // Don't allow a user to change anything about itself on the 'admin' view
-      bool canUpdateUser = !sameUser;
-      if (widget.disabled) canUpdateUser = false;
-      Color statusColor = Colors.grey.shade600;
-      switch (itemData.presence) {
-        case 'active':
-          statusColor = Colors.green;
-          break;
-        case 'inactive':
-          statusColor = Colors.deepOrange;
-      }
-      if (sameUser) {
-        statusColor = Colors.green;
-      }
-      String roleFinal = itemData.role;
-      if (id != null) {
-        roleFinal = stateUser.roleFromDataAny(
-          compareData: userData,
-          level: collection,
-          levelId: id,
-          clean: true, // Use clean: true to reduce the role locales
-        );
-      }
-      List<Widget> trailing = [];
-      trailing.add(space);
-      trailing.add(
-        Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(
-            color: statusColor,
-            shape: BoxShape.circle,
-          ),
-        ),
-      );
-      List<Widget> roleChips = [
-        Chip(
-          padding: EdgeInsets.zero,
-          label: Text(locales.get('label--$roleFinal')),
-        ),
-      ];
-      String name = itemData.name.isNotEmpty
-          ? itemData.name
-          : locales.get('label--unknown');
-      if (itemData.phone.isNotEmpty) {
-        roleChips.add(Chip(
-          avatar: Icon(Icons.phone, color: Colors.grey.shade600),
-          backgroundColor: Colors.transparent,
-          padding: const EdgeInsets.all(0),
-          label: Text(itemData.phone),
-        ));
-      } else if (itemData.email.isNotEmpty) {
-        roleChips.add(Chip(
-          avatar: Icon(Icons.email, color: Colors.grey.shade600),
-          backgroundColor: Colors.transparent,
-          padding: const EdgeInsets.all(0),
-          label: Text(itemData.email),
-        ));
-      }
+    late Widget content;
 
-      return Align(
-        alignment: Alignment.topCenter,
-        child: Container(
-          constraints: BoxConstraints(maxWidth: widget.maxWidth),
-          child: Wrap(
-            children: <Widget>[
-              AbsorbPointer(
-                absorbing: !canUpdateUser,
-                child: Dismissible(
-                  key: Key(itemData.id!),
-                  background: Container(
-                    color: Colors.deepOrangeAccent,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: <Widget>[
-                        const Icon(Icons.delete, color: Colors.white),
-                        space,
-                        Text(
-                          locales.get('label--remove'),
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                        space,
-                      ],
-                    ),
-                  ),
-                  direction: DismissDirection.endToStart,
-                  confirmDismiss: (DismissDirection direction) async {
-                    bool response = false;
-                    try {
-                      if (direction == DismissDirection.endToStart) {
-                        await _removeUser(userDocument.id);
-                        response = true;
-                        if (mounted) setState(() {});
-                      }
-                    } on FirebaseFunctionsException catch (error) {
-                      alert.show(AlertData(
-                        body: error.message ?? error.details['message'],
-                        type: AlertType.critical,
-                      ));
-                    } catch (error) {
-                      alert.show(AlertData(
-                        body: error.toString(),
-                        type: AlertType.critical,
-                      ));
-                    }
-                    return response;
-                  },
-                  child: ListTile(
-                    onTap: () async {
-                      showDialog<void>(
-                        barrierColor: Colors.black12,
-                        context: context,
-                        builder: (context) => UserRoleUpdate(
-                          data: inviteMetadata,
-                          roles: widget.roles,
-                          uid: itemData.id!,
-                          name: name,
-                        ),
-                      );
-                    },
-                    isThreeLine: true,
-                    leading: UserAvatar(
-                      avatar: itemData.avatar,
-                      name: itemData.name.isNotEmpty
-                          ? itemData.name
-                          : locales.get('label--unknown'),
-                    ),
-                    title: Padding(
-                      padding: const EdgeInsets.only(bottom: 8.0),
-                      child: Text(name, style: textTheme.subtitle1),
-                    ),
-                    subtitle: Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: roleChips,
-                    ),
-                    trailing: Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: trailing,
-                    ),
-                  ),
-                ),
-              ),
-              const Divider(height: 0),
-            ],
-          ),
-        ),
-      );
+    if (users.isEmpty) {
+      content = widget.empty ?? Container();
     }
 
-    Widget content = StreamBuilder<QuerySnapshot>(
-      stream: _usersStream,
-      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-        if (snapshot.hasError) {
-          if (kDebugMode) print(snapshot.error);
-          return Text('Error: ${snapshot.error}');
-        }
-        if (snapshot.connectionState == ConnectionState.none) {
-          return widget.loader ?? Container();
-        }
-        int totalDocs = snapshot.data?.size ?? 0;
-        if (totalDocs == 0) {
-          return widget.empty ?? Container();
-        }
-        if (widget.primary) {
-          return ListView.builder(
-            primary: widget.primary,
-            padding: widget.primary
-                ? const EdgeInsets.only(top: 8, left: 8, right: 8, bottom: 100)
-                : const EdgeInsets.only(bottom: 100),
-            itemCount: snapshot.data!.docs.length,
-            itemBuilder: (BuildContext context, int index) {
-              return _buildItem(snapshot.data!.docs[index]);
-            },
+    content = Flex(
+      direction: Axis.vertical,
+      children: List.generate(users.length, (index) {
+        final userData = users[index];
+        final user = UserData.fromJson(userData);
+        bool sameUser = widget.uid == user.id;
+        // Don't allow a user to change anything about itself on the 'admin' view
+        bool canUpdateUser = !sameUser;
+        if (widget.disabled) canUpdateUser = false;
+        UserData userUpdateData = UserData.fromJson(userData);
+        userUpdateData.role = user.role;
+        String roleFinal = user.role;
+        if (fromCollection) {
+          roleFinal = UserRoles.roleFromData(
+            compareData: userData,
+            level: widget.group,
+            levelId: widget.groupId,
+            clean: true, // Use clean: true to reduce the role locales
           );
         }
-        return Flex(
-          direction: Axis.vertical,
-          children: snapshot.data!.docs.map((e) => _buildItem(e)).toList(),
+        List<Widget> trailing = [];
+        if (canUpdateUser) {
+          trailing.addAll([
+            IconButton(
+              onPressed: () async {
+                showDialog<void>(
+                  useRootNavigator: false,
+                  barrierColor: Colors.transparent,
+                  context: context,
+                  builder: (context) => UserAddUpdate(
+                    role: widget.roleUpdate,
+                    roles: widget.roles,
+                    onConfirm: widget.onUpdate,
+                    email: widget.emailUpdate,
+                    phone: widget.phoneUpdate,
+                    username: widget.usernameUpdate,
+                    name: widget.nameUpdate,
+                    onChanged: getUsers,
+                    user: userUpdateData,
+                  ),
+                );
+              },
+              icon: Icon(
+                Icons.edit,
+                color: theme.colorScheme.primary,
+              ),
+            ),
+            space,
+            IconButton(
+              onPressed: () async {
+                try {
+                  await removeUser(userUpdateData);
+                } on FirebaseFunctionsException catch (error) {
+                  alert.show(AlertData(
+                    clear: true,
+                    brightness: Brightness.dark,
+                    body: error.message ?? error.details['message'],
+                    type: AlertType.critical,
+                  ));
+                } catch (error) {
+                  alert.show(AlertData(
+                    clear: true,
+                    brightness: Brightness.dark,
+                    body: error.toString(),
+                    type: AlertType.critical,
+                  ));
+                }
+              },
+              icon: const Icon(
+                Icons.person_remove,
+                color: Colors.deepOrange,
+              ),
+            ),
+          ]);
+        }
+
+        /// TODO add edit action
+        List<Widget> roleChips = [
+          Chip(
+            padding: EdgeInsets.zero,
+            label: Text(locales.get('label--$roleFinal')),
+          ),
+        ];
+        String name = user.name.isNotEmpty ? user.name : '';
+        if (user.phone != null) {
+          roleChips.add(Chip(
+            avatar: Icon(Icons.phone, color: Colors.grey.shade600),
+            backgroundColor: Colors.transparent,
+            padding: const EdgeInsets.all(0),
+            label: Text(user.phone!),
+          ));
+        }
+        if (user.email != null) {
+          roleChips.add(Chip(
+            avatar: Icon(Icons.email, color: Colors.grey.shade600),
+            backgroundColor: Colors.transparent,
+            padding: const EdgeInsets.all(0),
+            label: Text(user.email!),
+          ));
+        }
+        if (user.username != null && user.username!.isNotEmpty) {
+          roleChips.add(Chip(
+            avatar: Icon(Icons.alternate_email, color: Colors.grey.shade600),
+            backgroundColor: Colors.transparent,
+            padding: const EdgeInsets.all(0),
+            label: Text(user.username!),
+          ));
+        }
+
+        return Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: widget.maxWidth),
+            child: ListTile(
+              isThreeLine: true,
+              leading: UserAvatar(
+                avatar: user.avatar,
+                name: user.name,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                presence: user.presence,
+              ),
+              title: Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Text(name, style: textTheme.subtitle1),
+              ),
+              subtitle: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: roleChips,
+              ),
+              trailing: Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: trailing,
+              ),
+            ),
+          ),
         );
-      },
+      }),
+    );
+
+    Widget userAddWidget = UserAddUpdate(
+      // user: UserData(
+      //   group: widget.group,
+      //   groupId: widget.groupId,
+      // ),
+      roles: widget.roles,
+      onConfirm: widget.onAdd,
+      email: widget.email,
+      phone: widget.phone,
+      username: widget.username,
+      name: widget.name,
+      onChanged: getUsers,
+      role: widget.role,
     );
 
     if (widget.primary) {
@@ -338,14 +319,15 @@ class _UserAdminState extends State<UserAdmin> {
                 }).toUpperCase()),
                 onPressed: () {
                   showDialog<void>(
-                    barrierColor: Colors.black12,
+                    // barrierColor: Colors.black12,
                     context: context,
-                    builder: (context) =>
-                        UserAdd(data: inviteMetadata, roles: widget.roles),
+                    builder: (context) => userAddWidget,
                   );
                 },
               ),
-        body: content,
+        body: SingleChildScrollView(
+          child: content,
+        ),
       );
     }
 
@@ -366,8 +348,7 @@ class _UserAdminState extends State<UserAdmin> {
               showDialog<void>(
                 barrierColor: Colors.black12,
                 context: context,
-                builder: (context) =>
-                    UserAdd(data: inviteMetadata, roles: widget.roles),
+                builder: (context) => userAddWidget,
               );
             },
           ),

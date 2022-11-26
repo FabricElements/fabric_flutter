@@ -61,6 +61,37 @@ class Utils {
     return _presence;
   }
 
+  /// Get name abbreviation
+  static String nameFromParts({String? firstName, String? lastName}) {
+    String finalName = '';
+    if (firstName != null && firstName.isNotEmpty) {
+      finalName += firstName;
+    }
+    if (lastName != null && lastName.isNotEmpty) {
+      finalName += ' ';
+      finalName += lastName;
+    } else {
+      finalName += '.';
+    }
+    return finalName;
+  }
+
+  /// Get name abbreviation
+  static String nameAbbreviation({String? firstName, String? lastName}) {
+    String finalName = '';
+    if (firstName != null || lastName != null) {
+      if (firstName != null && firstName.isNotEmpty) {
+        finalName += firstName[0];
+      }
+      if (lastName != null && lastName.isNotEmpty) {
+        finalName += lastName[0];
+      } else {
+        finalName += '.';
+      }
+    }
+    return finalName.toUpperCase();
+  }
+
   /// Get a String path from a provided [uri] and [queryParameters]
   /// If any key value is empty the key is removed from the response
   static Uri uriMergeQuery({

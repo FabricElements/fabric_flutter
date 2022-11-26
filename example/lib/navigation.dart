@@ -5,7 +5,6 @@ import 'demos/components/card-button-example.dart';
 import 'demos/components/charts-example.dart';
 import 'demos/components/chips-example.dart';
 import 'demos/components/featured-view-example.dart';
-import 'demos/components/invitation-example.dart';
 import 'demos/components/language-selector-example.dart';
 import 'demos/components/preview-audio-example.dart';
 import 'demos/components/section-title-example.dart';
@@ -90,13 +89,6 @@ Route<dynamic>? routes(RouteSettings settings) {
             title: Text("Charts"),
             onTap: () {
               Navigator.pushNamed(context, "/charts");
-            },
-          ),
-          ListTile(
-            contentPadding: EdgeInsets.all(8),
-            title: Text("Invitation"),
-            onTap: () {
-              Navigator.pushNamed(context, "/invitation");
             },
           ),
         ],
@@ -197,18 +189,6 @@ Route<dynamic>? routes(RouteSettings settings) {
             appBar: AppBar(),
             drawer: _drawer(context),
             body: ChartsExample(scaffoldKey: _scaffoldKey),
-          );
-        },
-      );
-      break;
-    case "/invitation":
-      _route = MaterialPageRoute<dynamic>(
-        builder: (BuildContext context) {
-          return Scaffold(
-            key: _scaffoldKey,
-            appBar: AppBar(),
-            drawer: _drawer(context),
-            body: InvitationExample(scaffoldKey: _scaffoldKey),
           );
         },
       );

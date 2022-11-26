@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 
+import '../helper/user_roles.dart';
 import '../helper/utils.dart';
 import '../serialized/user_data.dart';
 import '../serialized/user_status.dart';
@@ -106,31 +107,6 @@ class StateUser extends StateDocument {
   /// [signedIn] Returns true when the user is authenticated
   bool get signedIn => _userObject != null && _userObject?.uid == id;
 
-  /// [roleFromDataAny] Return an user role using [uid]
-  String roleFromDataAny({
-    Map<String, dynamic>? compareData,
-    String? level,
-    String? levelId,
-    String? role,
-
-    /// [clean] returns the role without the [level]
-    bool clean = false,
-  }) {
-    String roleDefault = compareData?['role'] ?? role ?? 'user';
-    if (level == null || levelId == null || compareData == null) {
-      return roleDefault;
-    }
-
-    /// Get role and access level
-    Map<dynamic, dynamic> levelRole = compareData[level] ?? {};
-    if (levelRole.containsKey(levelId)) {
-      String baseRole = levelRole[levelId];
-      if (clean) return baseRole;
-      roleDefault = '$level-$baseRole';
-    }
-    return roleDefault;
-  }
-
   /// [roleFromData] Return the current user role
   String roleFromData({
     String? level,
@@ -145,7 +121,7 @@ class StateUser extends StateDocument {
     if (level == null || levelId == null || data == null) {
       return role;
     }
-    return roleFromDataAny(
+    return UserRoles.roleFromData(
       level: level,
       levelId: levelId,
       compareData: data,

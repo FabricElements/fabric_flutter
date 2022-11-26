@@ -86,8 +86,8 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
     final stateUser = Provider.of<StateUser>(context);
     stateUser.ping('profile');
     userImage = stateUser.serialized.avatar;
-    nameFirst = stateUser.serialized.nameFirst;
-    nameLast = stateUser.serialized.nameLast;
+    nameFirst = stateUser.serialized.firstName ?? '';
+    nameLast = stateUser.serialized.lastName ?? '';
     if (!changed) {
       nameFirstController.text = nameFirst;
       nameLastController.text = nameLast;
@@ -107,7 +107,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
           String userLastUpdate = stateUser.data['updated'] != null
               ? (stateUser.data['updated'] as Timestamp).seconds.toString()
               : '';
-          _avatarFinalUrl = '$userImage?size=medium&t=' + userLastUpdate;
+          _avatarFinalUrl = '$userImage?size=medium&t=$userLastUpdate';
           previewImage = NetworkImage(_avatarFinalUrl!);
           return;
         }
@@ -187,7 +187,8 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
           title: locales.get('page-profile--alert--profile-updated'),
           type: AlertType.success,
         ));
-        if (stateUser.serialized.onboarding != null && !stateUser.serialized.onboarding!.name) {
+        if (stateUser.serialized.onboarding != null &&
+            !stateUser.serialized.onboarding!.name) {
           Navigator.of(context).pop();
         }
         refreshImage();

@@ -162,7 +162,7 @@ class StateAlert extends ChangeNotifier {
     switch (alertData.type) {
       case AlertType.critical:
         alertData.color ??= Colors.red;
-        alertData.duration ??= 600;
+        alertData.duration ??= 15;
         break;
       case AlertType.warning:
         alertData.color ??= Colors.deepOrange;

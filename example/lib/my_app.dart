@@ -2,6 +2,7 @@ import 'package:fabric_flutter/component/route_page.dart';
 import 'package:fabric_flutter/component/user_admin.dart';
 import 'package:fabric_flutter/helper/app_localizations_delegate.dart';
 import 'package:fabric_flutter/helper/route_helper.dart';
+import 'package:fabric_flutter/helper/user_roles_firebase.dart';
 import 'package:fabric_flutter/state/state_user.dart';
 import 'package:fabric_flutter/view/view_auth_page.dart';
 import 'package:fabric_flutter/view/view_hero.dart';
@@ -34,8 +35,8 @@ class MyApp extends StatelessWidget {
       GlobalCupertinoLocalizations.delegate,
     ];
     Iterable<Locale> supportedLocales = [
-      Locale.fromSubtags(languageCode: "en"),
-      Locale.fromSubtags(languageCode: "es"),
+      const Locale.fromSubtags(languageCode: "en"),
+      const Locale.fromSubtags(languageCode: "es"),
     ];
     return MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -71,10 +72,18 @@ class MyApp extends StatelessWidget {
               iOSBundleId: dotenv.get('IOS_BUNDLE_ID', fallback: ''),
               url: dotenv.get('WWW', fallback: ''),
             ),
-            '/': HomePage(),
-            '/profile': ViewProfileEdit(loader: LoadingScreen()),
-            '/users': UserAdmin(loader: LoadingScreen(), primary: true),
-            '/hero': ViewHero(),
+            '/': const HomePage(),
+            '/profile': const ViewProfileEdit(loader: LoadingScreen()),
+            '/users': UserAdmin(
+              loader: const LoadingScreen(),
+              primary: true,
+              onAdd: UserRolesFirebase.onAdd,
+              onRemove: UserRolesFirebase.onRemove,
+              onUpdate: UserRolesFirebase.onUpdate,
+              getUsers: UserRolesFirebase.getUsers,
+              uid: stateUser.id,
+            ),
+            '/hero': const ViewHero(),
           },
           unknownRoute: "/",
         );
