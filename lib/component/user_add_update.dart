@@ -91,6 +91,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
             group: widget.group, groupId: widget.groupId);
         alert
             .show(AlertData(
+          clear: true,
           brightness: Brightness.dark,
           body: locales.get('notification--added'),
           type: AlertType.success,
@@ -102,15 +103,18 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
         await widget.onChanged();
       } on FirebaseFunctionsException catch (error) {
         alert.show(AlertData(
+          clear: true,
           brightness: Brightness.dark,
           body: error.message ?? error.details['message'],
           type: AlertType.critical,
         ));
       } catch (error) {
         alert.show(AlertData(
-            brightness: Brightness.dark,
-            body: error.toString(),
-            type: AlertType.critical));
+          clear: true,
+          brightness: Brightness.dark,
+          body: error.toString(),
+          type: AlertType.critical,
+        ));
       }
       sending = false;
       if (mounted) setState(() {});
@@ -119,6 +123,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     void validateInvitation() async {
       if (!canInvite) {
         alert.show(AlertData(
+          clear: true,
           brightness: Brightness.dark,
           title: 'incomplete data',
           type: AlertType.critical,

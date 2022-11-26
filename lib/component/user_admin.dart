@@ -114,6 +114,7 @@ class _UserAdminState extends State<UserAdmin> {
     /// Deletes the related user listed user, the documentId is the users uid
     removeUser(UserData data) async {
       alert.show(AlertData(
+        clear: true,
         title: locales.get(
           'label--confirm-are-you-sure-remove-label',
           {
@@ -128,6 +129,7 @@ class _UserAdminState extends State<UserAdmin> {
           if (mounted) setState(() {});
           // Type indicates the data field to use in the function, admin level or collection.
           alert.show(AlertData(
+            clear: true,
             brightness: Brightness.dark,
             body: locales.get('alert--user-removed'),
             type: AlertType.success,
@@ -198,12 +200,14 @@ class _UserAdminState extends State<UserAdmin> {
                   await removeUser(userUpdateData);
                 } on FirebaseFunctionsException catch (error) {
                   alert.show(AlertData(
+                    clear: true,
                     brightness: Brightness.dark,
                     body: error.message ?? error.details['message'],
                     type: AlertType.critical,
                   ));
                 } catch (error) {
                   alert.show(AlertData(
+                    clear: true,
                     brightness: Brightness.dark,
                     body: error.toString(),
                     type: AlertType.critical,
@@ -251,28 +255,33 @@ class _UserAdminState extends State<UserAdmin> {
           ));
         }
 
-        return ListTile(
-          isThreeLine: true,
-          leading: UserAvatar(
-            avatar: user.avatar,
-            name: user.name,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            presence: user.presence,
-          ),
-          title: Padding(
-            padding: const EdgeInsets.only(bottom: 8.0),
-            child: Text(name, style: textTheme.subtitle1),
-          ),
-          subtitle: Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: roleChips,
-          ),
-          trailing: Wrap(
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: trailing,
+        return Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: widget.maxWidth),
+            child: ListTile(
+              isThreeLine: true,
+              leading: UserAvatar(
+                avatar: user.avatar,
+                name: user.name,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                presence: user.presence,
+              ),
+              title: Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Text(name, style: textTheme.subtitle1),
+              ),
+              subtitle: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: roleChips,
+              ),
+              trailing: Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: trailing,
+              ),
+            ),
           ),
         );
       }),
