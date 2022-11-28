@@ -37,6 +37,7 @@ UserData _$UserDataFromJson(Map<String, dynamic> json) => UserData(
       firstName: json['firstName'] as String?,
       lastName: json['lastName'] as String?,
       language: json['language'] as String? ?? 'en',
+      password: json['password'] as String?,
     );
 
 Map<String, dynamic> _$UserDataToJson(UserData instance) {
@@ -59,6 +60,7 @@ Map<String, dynamic> _$UserDataToJson(UserData instance) {
   writeNotNull('onboarding', instance.onboarding?.toJson());
   val['ping'] = FirestoreHelper.timestampToJson(instance.ping);
   writeNotNull('phone', instance.phone);
+  writeNotNull('password', instance.password);
   val['role'] = instance.role;
   val['username'] = instance.username;
   return val;

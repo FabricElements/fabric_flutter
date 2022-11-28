@@ -26,6 +26,7 @@ class UserAddUpdate extends StatefulWidget {
     this.role = true,
     this.username = true,
     this.name = true,
+    this.password = false,
     required this.onChanged,
     this.user,
     this.group,
@@ -38,6 +39,7 @@ class UserAddUpdate extends StatefulWidget {
   final bool username;
   final bool name;
   final bool role;
+  final bool password;
   final Function onChanged;
   final UserData? user;
   final dynamic group;
@@ -200,6 +202,20 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       maxLength: 20,
     );
 
+    Widget passwordInput = InputData(
+      icon: Icons.lock,
+      label: locales.get('label--password'),
+      isExpanded: true,
+      value: data.password,
+      type: InputDataType.secret,
+      obscureText: true,
+      onChanged: (value) {
+        data.password = value;
+        if (mounted) setState(() {});
+      },
+      maxLength: 20,
+    );
+
     List<String> roles = widget.roles ?? ['user', 'admin'];
     List<Widget> inviteWidgets = [];
     if (widget.role) {
@@ -225,6 +241,18 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
         spacer,
       ]);
     }
+    if (widget.name) {
+      inviteWidgets.addAll([
+        Row(
+          children: [
+            Expanded(child: firstNameInput),
+            spacer,
+            Expanded(child: lastNameInput),
+          ],
+        ),
+        spacer,
+      ]);
+    }
     if (widget.email) {
       inviteWidgets.addAll([
         emailInput,
@@ -237,22 +265,15 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
         spacer,
       ]);
     }
-
     if (widget.username) {
       inviteWidgets.addAll([
         usernameInput,
         spacer,
       ]);
     }
-    if (widget.name) {
+    if (widget.password) {
       inviteWidgets.addAll([
-        Row(
-          children: [
-            Expanded(child: firstNameInput),
-            spacer,
-            Expanded(child: lastNameInput),
-          ],
-        ),
+        passwordInput,
         spacer,
       ]);
     }

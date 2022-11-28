@@ -94,6 +94,10 @@ class UserData {
   @JsonKey(includeIfNull: false)
   String? phone;
 
+  /// password used for authentication
+  @JsonKey(includeIfNull: false)
+  String? password;
+
   /// User role
   @JsonKey(includeIfNull: true)
   String role;
@@ -129,6 +133,7 @@ class UserData {
     this.firstName,
     this.lastName,
     this.language = 'en',
+    this.password,
   })  : presence = Utils.getPresence(ping),
         name = Utils.nameFromParts(
           firstName: firstName,

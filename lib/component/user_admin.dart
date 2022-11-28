@@ -41,6 +41,7 @@ class UserAdmin extends StatefulWidget {
     this.usernameUpdate = true,
     this.nameUpdate = true,
     this.roleUpdate = true,
+    this.password = false,
   }) : super(key: key);
   final Widget? empty;
   final Widget? loader;
@@ -62,6 +63,7 @@ class UserAdmin extends StatefulWidget {
   final dynamic group;
   final PreferredSizeWidget? appBar;
   final double maxWidth;
+  final bool password;
   final bool role;
   final bool email;
   final bool phone;
@@ -300,6 +302,7 @@ class _UserAdminState extends State<UserAdmin> {
       name: widget.name,
       onChanged: getUsers,
       role: widget.role,
+      password: widget.password,
     );
 
     if (widget.primary) {
