@@ -19,7 +19,7 @@ class UserAdmin extends StatefulWidget {
     Key? key,
     this.empty,
     this.loader,
-    this.roles,
+    this.roles = const ['user', 'admin'],
     this.primary = false,
     this.group,
     this.groupId,
@@ -45,13 +45,14 @@ class UserAdmin extends StatefulWidget {
   }) : super(key: key);
   final Widget? empty;
   final Widget? loader;
-  final List<String>? roles;
+  final List<String> roles;
   final bool primary;
   final bool disabled;
   final Function(UserData data, {dynamic group, dynamic groupId}) onAdd;
   final Function(UserData data, {dynamic group, dynamic groupId}) onRemove;
   final Function(UserData data, {dynamic group, dynamic groupId}) onUpdate;
-  final Future<List<Map<String, dynamic>>> Function() getUsers;
+  final Future<List<Map<String, dynamic>>> Function(
+      {dynamic group, dynamic groupId}) getUsers;
 
   /// Current user UID
   final dynamic uid;
@@ -85,7 +86,10 @@ class _UserAdminState extends State<UserAdmin> {
 
   void getUsers() async {
     try {
-      users = await widget.getUsers();
+      users = await widget.getUsers(
+        group: widget.group,
+        groupId: widget.groupId,
+      );
       if (mounted) setState(() {});
     } catch (e) {
       print(e);
@@ -152,16 +156,14 @@ class _UserAdminState extends State<UserAdmin> {
       direction: Axis.vertical,
       children: List.generate(users.length, (index) {
         final userData = users[index];
-        final user = UserData.fromJson(userData);
+        UserData user = UserData.fromJson(userData);
         bool sameUser = widget.uid == user.id;
         // Don't allow a user to change anything about itself on the 'admin' view
         bool canUpdateUser = !sameUser;
         if (widget.disabled) canUpdateUser = false;
-        UserData userUpdateData = UserData.fromJson(userData);
-        userUpdateData.role = user.role;
-        String roleFinal = user.role;
+        user.role = user.role;
         if (fromCollection) {
-          roleFinal = UserRoles.roleFromData(
+          user.role = UserRoles.roleFromData(
             compareData: userData,
             group: widget.group,
             groupId: widget.groupId,
@@ -186,7 +188,7 @@ class _UserAdminState extends State<UserAdmin> {
                     username: widget.usernameUpdate,
                     name: widget.nameUpdate,
                     onChanged: getUsers,
-                    user: userUpdateData,
+                    user: user,
                   ),
                 );
               },
@@ -199,7 +201,7 @@ class _UserAdminState extends State<UserAdmin> {
             IconButton(
               onPressed: () async {
                 try {
-                  await removeUser(userUpdateData);
+                  await removeUser(user);
                 } on FirebaseFunctionsException catch (error) {
                   alert.show(AlertData(
                     clear: true,
@@ -228,7 +230,7 @@ class _UserAdminState extends State<UserAdmin> {
         List<Widget> roleChips = [
           Chip(
             padding: EdgeInsets.zero,
-            label: Text(locales.get('label--$roleFinal')),
+            label: Text(locales.get('label--${user.role}')),
           ),
         ];
         String name = user.name.isNotEmpty ? user.name : '';
@@ -290,10 +292,6 @@ class _UserAdminState extends State<UserAdmin> {
     );
 
     Widget userAddWidget = UserAddUpdate(
-      // user: UserData(
-      //   group: widget.group,
-      //   groupId: widget.groupId,
-      // ),
       roles: widget.roles,
       onConfirm: widget.onAdd,
       email: widget.email,

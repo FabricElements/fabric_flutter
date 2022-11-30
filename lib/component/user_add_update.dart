@@ -19,7 +19,7 @@ import 'input_data.dart';
 class UserAddUpdate extends StatefulWidget {
   const UserAddUpdate({
     Key? key,
-    this.roles,
+    this.roles = const ['user', 'admin'],
     required this.onConfirm,
     this.email = true,
     this.phone = true,
@@ -32,7 +32,7 @@ class UserAddUpdate extends StatefulWidget {
     this.group,
     this.groupId,
   }) : super(key: key);
-  final List<String>? roles;
+  final List<String> roles;
   final Function(UserData data, {dynamic group, dynamic groupId}) onConfirm;
   final bool email;
   final bool phone;
@@ -57,7 +57,13 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
 
   @override
   void initState() {
+    /// Set default user data
     data = widget.user ?? UserData(id: widget.user?.id);
+
+    /// If the role assigned doesn't match the options, set the first role from the list
+    if (!widget.roles.contains(data.role)) {
+      data.role = widget.roles.first;
+    }
     sending = false;
     backgroundColor = const Color(0xFF161A21);
     super.initState();
@@ -219,7 +225,6 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       maxLength: 20,
     );
 
-    List<String> roles = widget.roles ?? ['user', 'admin'];
     List<Widget> inviteWidgets = [];
     if (widget.role) {
       inviteWidgets.addAll([
@@ -228,15 +233,15 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
           label: locales.get('label--role'),
           value: data.role,
           type: InputDataType.dropdown,
-          options: List.generate(roles.length, (index) {
-            final item = roles[index];
+          options: List.generate(widget.roles.length, (index) {
+            final item = widget.roles[index];
             return ButtonOptions(
               value: item,
               label: locales.get('label--$item'),
             );
           }),
           onChanged: (value) {
-            data.role = value ?? roles.first;
+            data.role = value ?? widget.roles.first;
             if (mounted) setState(() {});
           },
         ),
