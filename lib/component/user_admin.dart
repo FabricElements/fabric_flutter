@@ -48,20 +48,20 @@ class UserAdmin extends StatefulWidget {
   final List<String> roles;
   final bool primary;
   final bool disabled;
-  final Function(UserData data, {dynamic group, dynamic groupId}) onAdd;
-  final Function(UserData data, {dynamic group, dynamic groupId}) onRemove;
-  final Function(UserData data, {dynamic group, dynamic groupId}) onUpdate;
+  final Function(UserData data, {String? group, String? groupId}) onAdd;
+  final Function(UserData data, {String? group, String? groupId}) onRemove;
+  final Function(UserData data, {String? group, String? groupId}) onUpdate;
   final Future<List<Map<String, dynamic>>> Function(
-      {dynamic group, dynamic groupId}) getUsers;
+      {String? group, String? groupId}) getUsers;
 
   /// Current user UID
   final dynamic uid;
 
-  /// Firestore Document id
-  final dynamic groupId;
-
   /// Firestore collection
-  final dynamic group;
+  final String? group;
+
+  /// Firestore Document id
+  final String? groupId;
   final PreferredSizeWidget? appBar;
   final double maxWidth;
   final bool password;
@@ -114,6 +114,8 @@ class _UserAdminState extends State<UserAdmin> {
           'collection, document and documentData can\'t be null when including one of them.');
     }
     bool fromCollection = widget.group != null && widget.groupId != null;
+    print(
+        'From Collection: $fromCollection -- Group: ${widget.group} - Group ID: ${widget.groupId}');
     Widget space = Container(width: 16);
     final alert = Provider.of<StateAlert>(context, listen: false);
 
@@ -189,6 +191,8 @@ class _UserAdminState extends State<UserAdmin> {
                     name: widget.nameUpdate,
                     onChanged: getUsers,
                     user: user,
+                    group: widget.group,
+                    groupId: widget.groupId,
                   ),
                 );
               },
@@ -234,12 +238,12 @@ class _UserAdminState extends State<UserAdmin> {
           ),
         ];
         String name = user.name.isNotEmpty ? user.name : '';
-        if (user.phoneNumber != null) {
+        if (user.phone != null) {
           roleChips.add(Chip(
             avatar: Icon(Icons.phone, color: Colors.grey.shade600),
             backgroundColor: Colors.transparent,
             padding: const EdgeInsets.all(0),
-            label: Text(user.phoneNumber!),
+            label: Text(user.phone!),
           ));
         }
         if (user.email != null) {
@@ -301,6 +305,8 @@ class _UserAdminState extends State<UserAdmin> {
       onChanged: getUsers,
       role: widget.role,
       password: widget.password,
+      group: widget.group,
+      groupId: widget.groupId,
     );
 
     if (widget.primary) {

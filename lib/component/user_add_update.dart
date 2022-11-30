@@ -33,7 +33,7 @@ class UserAddUpdate extends StatefulWidget {
     this.groupId,
   }) : super(key: key);
   final List<String> roles;
-  final Function(UserData data, {dynamic group, dynamic groupId}) onConfirm;
+  final Function(UserData data, {String? group, String? groupId}) onConfirm;
   final bool email;
   final bool phone;
   final bool username;
@@ -42,8 +42,8 @@ class UserAddUpdate extends StatefulWidget {
   final bool password;
   final Function onChanged;
   final UserData? user;
-  final dynamic group;
-  final dynamic groupId;
+  final String? group;
+  final String? groupId;
 
   @override
   State<UserAddUpdate> createState() => _UserAddUpdateState();
@@ -72,7 +72,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
   @override
   Widget build(BuildContext context) {
     bool canInvite = sending == false &&
-        ((data.email ?? data.phoneNumber ?? '').length > 4) &&
+        ((data.email ?? data.phone ?? '').length > 4) &&
         (widget.username &&
                 (data.username != null && data.username!.isNotEmpty) ||
             !widget.username);
@@ -92,10 +92,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       sending = true;
       if (mounted) setState(() {});
       assert(data.role.isNotEmpty, 'You must select a user role');
-      assert(
-          data.username != null ||
-              data.email != null ||
-              data.phoneNumber != null,
+      assert(data.username != null || data.email != null || data.phone != null,
           'username, email or phone must not be null');
       try {
         await widget.onConfirm(data,
@@ -149,10 +146,10 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
         icon: Icons.phone,
         label: locales.get('label--phone-number'),
         isExpanded: true,
-        value: data.phoneNumber,
+        value: data.phone,
         type: InputDataType.phone,
         onChanged: (value) {
-          data.phoneNumber = value;
+          data.phone = value;
           if (mounted) setState(() {});
         },
       ),

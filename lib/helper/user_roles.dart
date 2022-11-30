@@ -1,12 +1,12 @@
 class UserRoles {
-  /// [roleFromData] Return an user role using [groupId]
+  /// roleFromData Return an user role using [groupId]
   static String roleFromData({
     Map<String, dynamic>? compareData,
-    dynamic group,
-    dynamic groupId,
+    String? group,
+    String? groupId,
     String? role,
 
-    /// [clean] returns the role without the [group]
+    /// Returns the role without the [group] prefix
     bool clean = false,
   }) {
     String roleDefault = compareData?['role'] ?? role ?? 'user';

@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../helper/firestore_helper.dart';
@@ -84,15 +83,16 @@ class UserData {
   /// Last time the user was ping
   @JsonKey(
     fromJson: FirestoreHelper.timestampFromJson,
-    toJson: FirestoreHelper.timestampToJson,
+    // toJson: FirestoreHelper.timestampToJson,
     includeIfNull: true,
     defaultValue: null,
+    ignore: true,
   )
   final DateTime? ping;
 
-  /// [phoneNumber] used for authentication
+  /// [phone] used for authentication
   @JsonKey(includeIfNull: false)
-  String? phoneNumber;
+  String? phone;
 
   /// password used for authentication
   @JsonKey(includeIfNull: false)
@@ -122,7 +122,7 @@ class UserData {
     // this.created,
     // this.updated,
     this.onboarding,
-    this.phoneNumber,
+    this.phone,
     this.ping,
     this.username,
     this.email,

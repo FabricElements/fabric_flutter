@@ -15,7 +15,7 @@ class UserRoleContent extends StatefulWidget {
   }) : super(key: key);
   final Map<String, dynamic>? compareData;
   final List<String> roles;
-  final dynamic group;
+  final String? group;
   final Widget child;
 
   /// [path]: Redirects the view to named path when present

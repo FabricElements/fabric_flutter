@@ -4,27 +4,43 @@ import 'package:cloud_functions/cloud_functions.dart';
 import '../serialized/user_data.dart';
 
 class UserRolesFirebase {
-  static onAdd(UserData data, {dynamic group, dynamic groupId}) {
+  static onAdd(UserData user, {String? group, String? groupId}) {
     final callable =
         FirebaseFunctions.instance.httpsCallable('user-actions-add');
-    return callable.call({data.toJson(), group, groupId});
+    Map<String, dynamic> dataFinal = {
+      ...user.toJson(),
+      'group': group,
+      'groupId': groupId,
+    };
+    return callable.call(dataFinal);
   }
 
-  static onRemove(UserData data, {dynamic group, dynamic groupId}) {
+  static onRemove(UserData user, {String? group, String? groupId}) {
     final callable =
         FirebaseFunctions.instance.httpsCallable('user-actions-remove');
-    return callable.call({data.toJson(), group, groupId});
+    Map<String, dynamic> dataFinal = {
+      ...user.toJson(),
+      'group': group,
+      'groupId': groupId,
+    };
+    print(dataFinal);
+    return callable.call(dataFinal);
   }
 
-  static onUpdate(UserData data, {dynamic group, dynamic groupId}) {
+  static onUpdate(UserData user, {String? group, String? groupId}) {
     final callable =
         FirebaseFunctions.instance.httpsCallable('user-actions-role');
-    return callable.call({data.toJson(), group, groupId});
+    Map<String, dynamic> dataFinal = {
+      ...user.toJson(),
+      'group': group,
+      'groupId': groupId,
+    };
+    return callable.call(dataFinal);
   }
 
   static Future<List<Map<String, dynamic>>> getUsers({
-    dynamic group,
-    dynamic groupId,
+    String? group,
+    String? groupId,
   }) async {
     if (group != null || groupId != null) {
       assert(group != null && groupId != null,

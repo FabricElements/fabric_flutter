@@ -109,8 +109,8 @@ class StateUser extends StateDocument {
 
   /// [roleFromData] Return the current user role
   String roleFromData({
-    dynamic group,
-    dynamic groupId,
+    String? group,
+    String? groupId,
 
     /// [clean] returns the role without the group
     bool clean = false,
@@ -193,8 +193,8 @@ class StateUser extends StateDocument {
 
   /// [accessByRole] displays content only if the the role matches for current user
   bool accessByRole({
-    dynamic group,
-    dynamic groupId,
+    String? group,
+    String? groupId,
     List<String> roles = const ['admin'],
   }) {
     return roles.contains(roleFromData(group: group, groupId: groupId));
