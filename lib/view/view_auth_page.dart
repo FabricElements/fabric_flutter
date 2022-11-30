@@ -233,7 +233,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       bool success = false;
       if (mounted) setState(() {});
       try {
-        await verifyIfUserExists({'phoneNumber': dataAuth.phoneValid});
+        await verifyIfUserExists({'phone': dataAuth.phoneValid});
         if (kIsWeb) {
           final confirmationResult =
               await _auth.signInWithPhoneNumber(dataAuth.phoneValid!);
