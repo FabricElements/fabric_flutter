@@ -8,14 +8,14 @@ class UserRoleContent extends StatefulWidget {
     Key? key,
     required this.compareData,
     this.roles = const ['admin'],
-    this.level,
+    this.group,
     required this.child,
     this.placeholder,
     this.path,
   }) : super(key: key);
   final Map<String, dynamic>? compareData;
   final List<String> roles;
-  final String? level;
+  final dynamic group;
   final Widget child;
 
   /// [path]: Redirects the view to named path when present
@@ -39,7 +39,7 @@ class _UserRoleContentState extends State<UserRoleContent> {
     }
     final stateUser = Provider.of<StateUser>(context);
     final hasAccess = stateUser.accessByRole(
-      level: widget.level,
+      group: widget.group,
       roles: widget.roles,
     );
     if (!hasAccess) {

@@ -66,7 +66,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
   @override
   Widget build(BuildContext context) {
     bool canInvite = sending == false &&
-        ((data.email ?? data.phone ?? '').length > 4) &&
+        ((data.email ?? data.phoneNumber ?? '').length > 4) &&
         (widget.username &&
                 (data.username != null && data.username!.isNotEmpty) ||
             !widget.username);
@@ -86,7 +86,10 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       sending = true;
       if (mounted) setState(() {});
       assert(data.role.isNotEmpty, 'You must select a user role');
-      assert(data.username != null || data.email != null || data.phone != null,
+      assert(
+          data.username != null ||
+              data.email != null ||
+              data.phoneNumber != null,
           'username, email or phone must not be null');
       try {
         await widget.onConfirm(data,
@@ -140,10 +143,10 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
         icon: Icons.phone,
         label: locales.get('label--phone-number'),
         isExpanded: true,
-        value: data.phone,
+        value: data.phoneNumber,
         type: InputDataType.phone,
         onChanged: (value) {
-          data.phone = value;
+          data.phoneNumber = value;
           if (mounted) setState(() {});
         },
       ),

@@ -109,21 +109,21 @@ class StateUser extends StateDocument {
 
   /// [roleFromData] Return the current user role
   String roleFromData({
-    String? level,
-    String? levelId,
+    dynamic group,
+    dynamic groupId,
 
-    /// [clean] returns the role without the [level]
+    /// [clean] returns the role without the group
     bool clean = false,
   }) {
     if (id != null && admin) {
       return role;
     }
-    if (level == null || levelId == null || data == null) {
+    if (group == null || groupId == null || data == null) {
       return role;
     }
     return UserRoles.roleFromData(
-      level: level,
-      levelId: levelId,
+      group: group,
+      groupId: groupId,
       compareData: data,
       role: role,
       clean: clean,
@@ -193,11 +193,11 @@ class StateUser extends StateDocument {
 
   /// [accessByRole] displays content only if the the role matches for current user
   bool accessByRole({
-    String? level,
-    String? levelId,
+    dynamic group,
+    dynamic groupId,
     List<String> roles = const ['admin'],
   }) {
-    return roles.contains(roleFromData(level: level, levelId: levelId));
+    return roles.contains(roleFromData(group: group, groupId: groupId));
   }
 
   UserStatus get userStatus {

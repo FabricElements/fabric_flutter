@@ -90,9 +90,9 @@ class UserData {
   )
   final DateTime? ping;
 
-  /// [phone] used for authentication
+  /// [phoneNumber] used for authentication
   @JsonKey(includeIfNull: false)
-  String? phone;
+  String? phoneNumber;
 
   /// password used for authentication
   @JsonKey(includeIfNull: false)
@@ -122,7 +122,7 @@ class UserData {
     // this.created,
     // this.updated,
     this.onboarding,
-    this.phone,
+    this.phoneNumber,
     this.ping,
     this.username,
     this.email,

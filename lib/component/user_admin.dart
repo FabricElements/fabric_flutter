@@ -33,13 +33,13 @@ class UserAdmin extends StatefulWidget {
     required this.getUsers,
     this.role = true,
     this.email = true,
-    this.phone = true,
-    this.username = true,
-    this.name = true,
-    this.emailUpdate = true,
-    this.phoneUpdate = true,
-    this.usernameUpdate = true,
-    this.nameUpdate = true,
+    this.phone = false,
+    this.username = false,
+    this.name = false,
+    this.emailUpdate = false,
+    this.phoneUpdate = false,
+    this.usernameUpdate = false,
+    this.nameUpdate = false,
     this.roleUpdate = true,
     this.password = false,
   }) : super(key: key);
@@ -163,8 +163,8 @@ class _UserAdminState extends State<UserAdmin> {
         if (fromCollection) {
           roleFinal = UserRoles.roleFromData(
             compareData: userData,
-            level: widget.group,
-            levelId: widget.groupId,
+            group: widget.group,
+            groupId: widget.groupId,
             clean: true, // Use clean: true to reduce the role locales
           );
         }
@@ -232,12 +232,12 @@ class _UserAdminState extends State<UserAdmin> {
           ),
         ];
         String name = user.name.isNotEmpty ? user.name : '';
-        if (user.phone != null) {
+        if (user.phoneNumber != null) {
           roleChips.add(Chip(
             avatar: Icon(Icons.phone, color: Colors.grey.shade600),
             backgroundColor: Colors.transparent,
             padding: const EdgeInsets.all(0),
-            label: Text(user.phone!),
+            label: Text(user.phoneNumber!),
           ));
         }
         if (user.email != null) {
