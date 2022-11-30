@@ -144,7 +144,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
       if (newNameFirst.length < 3) {
         alert.show(AlertData(
           title: locales.get('label--too-short', {
-            'label': locales.get('label--name-first'),
+            'label': locales.get('label--first-name'),
             'number': '3',
           }),
           type: AlertType.critical,
@@ -154,7 +154,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
       if (newNameLast.length < 3) {
         alert.show(AlertData(
           title: locales.get('label--too-short', {
-            'label': locales.get('label--name-last'),
+            'label': locales.get('label--last-name'),
             'number': '3',
           }),
           type: AlertType.critical,
@@ -165,8 +165,8 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
       if (mounted) setState(() {});
 
       Map<String, dynamic> newData = {
-        'nameFirst': newNameFirst,
-        'nameLast': newNameLast,
+        'firstName': newNameFirst,
+        'lastName': newNameLast,
       };
       try {
         if (_temporalImageBytes != null) {
@@ -307,8 +307,8 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
             child: TextField(
               controller: nameFirstController,
               decoration: InputDecoration(
-                labelText: locales.get('label--name-first'),
-                hintText: locales.get('label--name-first'),
+                labelText: locales.get('label--first-name'),
+                hintText: locales.get('label--first-name'),
               ),
               maxLines: 1,
               keyboardType: TextInputType.text,
@@ -324,8 +324,8 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
             child: TextField(
               controller: nameLastController,
               decoration: InputDecoration(
-                labelText: locales.get('label--name-last'),
-                hintText: locales.get('label--name-last'),
+                labelText: locales.get('label--last-name'),
+                hintText: locales.get('label--last-name'),
               ),
               maxLines: 1,
               keyboardType: TextInputType.text,

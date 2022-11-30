@@ -449,10 +449,6 @@ dynamic defaultLocales = {
     'en': 'First Name',
     'es': 'Nombres',
   },
-  'label--name-last': {
-    'en': 'Last Name',
-    'es': 'Apellidos',
-  },
   'label--name': {
     'en': 'Name',
     'es': 'Nombre',
