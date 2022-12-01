@@ -114,8 +114,6 @@ class _UserAdminState extends State<UserAdmin> {
           'collection, document and documentData can\'t be null when including one of them.');
     }
     bool fromCollection = widget.group != null && widget.groupId != null;
-    print(
-        'From Collection: $fromCollection -- Group: ${widget.group} - Group ID: ${widget.groupId}');
     Widget space = Container(width: 16);
     final alert = Provider.of<StateAlert>(context, listen: false);
 
