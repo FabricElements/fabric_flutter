@@ -109,6 +109,7 @@ class _UserAdminState extends State<UserAdmin> {
     ThemeData theme = Theme.of(context);
     TextTheme textTheme = theme.textTheme;
     AppLocalizations locales = AppLocalizations.of(context)!;
+    assert(widget.uid != null, 'uid is required');
     if (widget.group != null || widget.groupId != null) {
       assert(widget.group != null && widget.groupId != null,
           'collection, document and documentData can\'t be null when including one of them.');
@@ -157,6 +158,7 @@ class _UserAdminState extends State<UserAdmin> {
       children: List.generate(users.length, (index) {
         final userData = users[index];
         UserData user = UserData.fromJson(userData);
+        assert(user.id != null, 'user id is required');
         bool sameUser = widget.uid == user.id;
         // Don't allow a user to change anything about itself on the 'admin' view
         bool canUpdateUser = !sameUser;

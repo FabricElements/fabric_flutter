@@ -18,7 +18,7 @@ class StateNotifications extends ChangeNotifier {
 
   String? _token;
   Map<String, dynamic> _notification = {};
-  String _uid = '';
+  dynamic _uid = '';
   bool _initialized = false;
   Function(Map<String, dynamic> message)? _callback;
 
@@ -26,14 +26,14 @@ class StateNotifications extends ChangeNotifier {
   String get token => _token ?? '';
 
   /// Update user token on the firestore user/{uid}
-  void _updateUserToken(String? _token) async {
-    if (_token == null || _token.isEmpty || _uid.isEmpty) {
+  void _updateUserToken(String? tokenId) async {
+    if (tokenId == null || tokenId.isEmpty || _uid.isEmpty) {
       return;
     }
     try {
       await FirebaseFirestore.instance.collection('user').doc(_uid).set({
         'backup': false,
-        'fcm': _token,
+        'fcm': tokenId,
         'updated': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } catch (error) {
@@ -152,7 +152,7 @@ class StateNotifications extends ChangeNotifier {
   }
 
   /// Define user id
-  set uid(String? id) {
+  set uid(dynamic id) {
     _uid = id ?? '';
   }
 

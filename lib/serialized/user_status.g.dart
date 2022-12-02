@@ -10,7 +10,7 @@ UserStatus _$UserStatusFromJson(Map<String, dynamic> json) => UserStatus(
       signedIn: json['signedIn'] as bool? ?? false,
       admin: json['admin'] as bool? ?? false,
       role: json['role'] as String? ?? 'user',
-      uid: json['uid'] as String?,
+      uid: json['uid'],
     );
 
 Map<String, dynamic> _$UserStatusToJson(UserStatus instance) {

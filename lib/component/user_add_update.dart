@@ -71,18 +71,33 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
 
   @override
   Widget build(BuildContext context) {
-    bool canInvite = sending == false &&
-        ((data.email ?? data.phone ?? '').length > 4) &&
-        (widget.username &&
-                (data.username != null && data.username!.isNotEmpty) ||
-            !widget.username);
+    bool canCall = sending == false;
+    if (widget.email) {
+      canCall = canCall && data.email != null && data.email!.isNotEmpty;
+    }
+    if (widget.phone) {
+      canCall = canCall && data.phone != null && data.phone!.isNotEmpty;
+    }
+    if (widget.username) {
+      canCall = canCall && data.username != null && data.username!.isNotEmpty;
+    }
+    if (widget.name) {
+      canCall = canCall && data.firstName != null && data.firstName!.isNotEmpty;
+    }
+    if (widget.password) {
+      canCall = canCall && data.password != null && data.password!.isNotEmpty;
+    }
     final locales = AppLocalizations.of(context)!;
     final alert = Provider.of<StateAlert>(context, listen: false);
     const spacer = SizedBox(height: 16, width: 16);
-    final title = locales
+    String title = locales
         .get(data.id == null ? 'label--add-label' : 'label--update-label', {
       'label': locales.get('label--user'),
     });
+    String actionLabel = title;
+    if (data.name.isNotEmpty) {
+      title += ': ${data.name}';
+    }
 
     /// Sends user invite to firebase function with the necessary information when inviting a user.
     ///
@@ -129,7 +144,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     }
 
     void validateInvitation() async {
-      if (!canInvite) {
+      if (!canCall) {
         alert.show(AlertData(
           clear: true,
           brightness: Brightness.dark,
@@ -299,8 +314,8 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
             const Spacer(),
             ElevatedButton.icon(
               icon: const Icon(Icons.person_add),
-              label: Text(title),
-              onPressed: canInvite ? validateInvitation : null,
+              label: Text(actionLabel),
+              onPressed: canCall ? validateInvitation : null,
             ),
           ],
         ),

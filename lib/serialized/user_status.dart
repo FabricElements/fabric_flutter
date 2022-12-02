@@ -11,7 +11,7 @@ class UserStatus {
   @JsonKey(includeIfNull: true)
   String role;
   @JsonKey(includeIfNull: false)
-  String? uid;
+  dynamic uid;
 
   UserStatus({
     this.signedIn = false,
