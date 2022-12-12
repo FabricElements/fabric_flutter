@@ -1,4 +1,4 @@
-import 'package:cloud_functions/cloud_functions.dart';
+// import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -39,10 +39,10 @@ class InitApp extends StatelessWidget {
     ]);
 
     /// Run on emulators
-    if (kDebugMode) {
-      FirebaseFunctions.instance.useFunctionsEmulator('localhost', 5001);
-      // FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
-    }
+    // if (kDebugMode) {
+    //   FirebaseFunctions.instance.useFunctionsEmulator('localhost', 5001);
+    //   // FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
+    // }
     return MultiProvider(
       providers: allProviders,
       child: InitAppChild(

@@ -130,18 +130,34 @@ class _UserAdminState extends State<UserAdmin> {
           },
         ),
         action: ButtonOptions(onTap: () async {
-          await widget.onRemove(data,
-              group: widget.group, groupId: widget.groupId);
-          getUsers();
-          if (mounted) setState(() {});
-          // Type indicates the data field to use in the function, admin level or collection.
-          alert.show(AlertData(
-            clear: true,
-            brightness: Brightness.dark,
-            body: locales.get('alert--user-removed'),
-            type: AlertType.success,
-            duration: 3,
-          ));
+          try {
+            await widget.onRemove(data,
+                group: widget.group, groupId: widget.groupId);
+            getUsers();
+            if (mounted) setState(() {});
+            // Type indicates the data field to use in the function, admin level or collection.
+            alert.show(AlertData(
+              clear: true,
+              brightness: Brightness.dark,
+              body: locales.get('alert--user-removed'),
+              type: AlertType.success,
+              duration: 3,
+            ));
+          } on FirebaseFunctionsException catch (error) {
+            alert.show(AlertData(
+              clear: true,
+              brightness: Brightness.dark,
+              body: error.message ?? error.details['message'],
+              type: AlertType.critical,
+            ));
+          } catch (error) {
+            alert.show(AlertData(
+              clear: true,
+              brightness: Brightness.dark,
+              body: error.toString(),
+              type: AlertType.critical,
+            ));
+          }
         }),
         type: AlertType.warning,
       ));
