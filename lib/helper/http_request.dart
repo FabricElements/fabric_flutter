@@ -46,21 +46,31 @@ class HTTPRequest {
     return _headers;
   }
 
+  /// Throw an error if response return a 401 response
+  static authenticated(Response response) {
+    if (response.statusCode == 401) {
+      throw 'error--${response.statusCode}';
+    }
+  }
+
   /// Throw an error if it's found or null if it's ok
-  static error(Response r) {
+  static error(Response response) {
     /// Accept status code from 200 to 299
-    if (r.statusCode >= 200 && r.statusCode <= 299) {
+    if (response.statusCode >= 200 && response.statusCode <= 299) {
       return;
     }
 
+    authenticated(response);
+
     /// Catch Reason Phrase
-    String? errorResponse = r.reasonPhrase != null && r.reasonPhrase!.isNotEmpty
-        ? r.reasonPhrase
-        : null;
+    String? errorResponse =
+        response.reasonPhrase != null && response.reasonPhrase!.isNotEmpty
+            ? response.reasonPhrase
+            : null;
 
     /// Catch Error Message from JSON response
     try {
-      Map<String, dynamic> responseObject = jsonDecode(r.body);
+      Map<String, dynamic> responseObject = jsonDecode(response.body);
       if (responseObject.containsKey('message') &&
           (responseObject['message'] as String).isNotEmpty) {
         errorResponse = responseObject['message'];
@@ -72,7 +82,7 @@ class HTTPRequest {
     /// Catch Error Message List from JSON response
     try {
       if (errorResponse == null) {
-        Map<String, dynamic> responseObject = jsonDecode(r.body);
+        Map<String, dynamic> responseObject = jsonDecode(response.body);
         if (responseObject.containsKey('errors')) {
           final errors = responseObject['errors'] as List<dynamic>;
           if (errors.isNotEmpty) {
@@ -90,18 +100,18 @@ class HTTPRequest {
     }
 
     /// Use status code if error is null
-    errorResponse ??= 'error--${r.statusCode}';
+    errorResponse ??= 'error--${response.statusCode}';
 
     /// Throw error
     throw errorResponse;
   }
 
   /// Return decoded request response
-  static dynamic response(Response r) {
+  static dynamic response(Response response) {
     /// Check for errors
-    error(r);
+    error(response);
 
     /// Get response
-    return jsonDecode(r.body);
+    return jsonDecode(response.body);
   }
 }
