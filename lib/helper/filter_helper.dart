@@ -22,12 +22,12 @@ class FilterHelper {
       case InputDataType.string:
       case InputDataType.phone:
       case InputDataType.secret:
-      case InputDataType.double:
       case InputDataType.url:
       case InputDataType.dropdown:
       case InputDataType.radio:
         response = '"$value"';
         break;
+      case InputDataType.double:
       case InputDataType.int:
         response = value;
         break;
