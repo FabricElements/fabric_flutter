@@ -80,4 +80,35 @@ class EnumData {
     }
     return null;
   }
+
+  static dynamic find({
+    required List<dynamic> enums,
+    required dynamic value,
+  }) {
+    dynamic finalValue;
+    try {
+      /// Find from enum
+      finalValue = match(
+        enums: enums,
+        value: value,
+        unknown: null,
+      );
+    } catch (e) {
+      print('!!!! Find from enum: $e');
+      //
+    }
+    if (finalValue == null) {
+      /// Find from string value
+      try {
+        finalValue =
+            enums.firstWhere((e) => describeEnum(e) == value.toString());
+      } catch (e) {
+        print('!!!! Find from string: $e');
+        //
+      }
+    }
+
+    // if (finalValue != null) print('ENUM found: $finalValue');
+    return finalValue;
+  }
 }

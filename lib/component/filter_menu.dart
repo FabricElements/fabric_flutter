@@ -240,8 +240,8 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
                               : () {
                                   widget.data.operator = edit!.operator;
                                   widget.data.value = edit.value;
-                                  widget.onChange(widget.data);
                                   Navigator.of(context).pop();
+                                  widget.onChange(widget.data);
                                 },
                           child: Text(locales.get('label--apply')),
                         ),

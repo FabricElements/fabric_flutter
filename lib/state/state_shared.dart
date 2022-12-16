@@ -218,7 +218,8 @@ class StateShared extends ChangeNotifier {
       'order',
       'sort',
       'page',
-      'limit'
+      'limit',
+      'filters',
     ];
     _parametersToPass.addAll(parametersList);
     _parametersToPass = _parametersToPass.toSet().toList();

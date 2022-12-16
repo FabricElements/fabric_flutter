@@ -193,6 +193,12 @@ class _InputDataState extends State<InputData> {
           value = newValue as TimeOfDay?;
           if (notify && mounted) setState(() {});
           break;
+        case InputDataType.enums:
+          value = EnumData.find(
+            enums: widget.enums,
+            value: newValue,
+          );
+          break;
         default:
           value = newValue;
           if (notify && mounted) setState(() {});
