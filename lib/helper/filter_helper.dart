@@ -28,14 +28,16 @@ class FilterHelper {
       case InputDataType.url:
       case InputDataType.dropdown:
       case InputDataType.radio:
-        response = '"$value"';
+        response = value != null ? '"$value"' : null;
         break;
       case InputDataType.double:
       case InputDataType.int:
         response = value;
         break;
       case InputDataType.enums:
-        response = '"${EnumData.describe(value)}"';
+        response = EnumData.describe(value) != null
+            ? '"${EnumData.describe(value)}"'
+            : null;
         break;
     }
     return response;
@@ -53,20 +55,19 @@ class FilterHelper {
     int count = 0;
     for (int i = 0; i < filters.length; i++) {
       FilterData filter = filters[i];
-      final filterObject = filter.toJson();
       String subQuery = '';
       switch (filter.operator!) {
         case FilterOperator.equal:
           final value = valueFromType(
             dataType: filter.type,
-            value: filterObject['value'],
+            value: filter.value,
           );
           subQuery += '${filter.id} = $value';
           break;
         case FilterOperator.notEqual:
           final value = valueFromType(
             dataType: filter.type,
-            value: filterObject['value'],
+            value: filter.value,
           );
           subQuery += '${filter.id} != $value';
           break;
@@ -74,32 +75,32 @@ class FilterHelper {
           // TODO: Handle this case.
           final value = valueFromType(
             dataType: filter.type,
-            value: filterObject['value'],
+            value: filter.value,
           );
           subQuery += '${filter.id} = $value';
           break;
         case FilterOperator.greaterThan:
           final value = valueFromType(
             dataType: filter.type,
-            value: filterObject['value'],
+            value: filter.value,
           );
           subQuery += '${filter.id} >= $value';
           break;
         case FilterOperator.lessThan:
           final value = valueFromType(
             dataType: filter.type,
-            value: filterObject['value'],
+            value: filter.value,
           );
           subQuery += '${filter.id} <= $value';
           break;
         case FilterOperator.between:
           final value1 = valueFromType(
             dataType: filter.type,
-            value: filterObject['value'][0],
+            value: filter.value[0],
           );
           final value2 = valueFromType(
             dataType: filter.type,
-            value: filterObject['value'][1],
+            value: filter.value[1],
           );
           subQuery += '${filter.id} >= $value1';
           subQuery += ' and ';
