@@ -329,6 +329,8 @@ class _FilterMenuState extends State<FilterMenu> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     assert(
       !(widget.child != null && widget.icon != null),
       'You can only pass [child] or [icon], not both.',
@@ -399,18 +401,34 @@ class _FilterMenuState extends State<FilterMenu> {
         ),
         padding: EdgeInsets.zero,
         itemBuilder: (BuildContext context) => buttons,
-        icon: widget.icon,
-        child: widget.child,
+        child: widget.child == null
+            ? OutlinedButton.icon(
+                style: ButtonStyle(
+                  foregroundColor: MaterialStateProperty.all(
+                    theme.buttonTheme.colorScheme?.primary ?? Colors.black,
+                  ),
+                ),
+                onPressed: null,
+                icon: widget.icon ?? const Icon(Icons.filter_alt),
+                label: Text(locales.get(
+                  'label--add-label',
+                  {'label': locales.get('label--filters')},
+                )),
+              )
+            : null,
       ));
     }
     if (activeOptions.isNotEmpty) {
-      menuOptions.add(IconButton(
+      menuOptions.add(OutlinedButton.icon(
+        style: ButtonStyle(
+          foregroundColor: MaterialStateProperty.all(Colors.red),
+        ),
         onPressed: clear,
-        icon: widget.iconClear ?? const Icon(Icons.clear, color: Colors.red),
-        tooltip: locales.get(
+        icon: widget.iconClear ?? const Icon(Icons.clear),
+        label: Text(locales.get(
           'label--clear-label',
           {'label': locales.get('label--filters')},
-        ),
+        )),
       ));
     }
 
