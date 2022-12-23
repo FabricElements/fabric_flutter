@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../helper/app_localizations_delegate.dart';
 import '../helper/format_data.dart';
+import '../helper/options.dart';
 import '../serialized/filter_data.dart';
 import 'input_data.dart';
 import 'popup_entry.dart';
@@ -122,7 +123,10 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
             break;
           case InputDataType.dropdown:
           case InputDataType.radio:
-            label += widget.data.toString();
+            label += widget.data.options
+                .firstWhere((element) => element.value == widget.data.value,
+                    orElse: () => ButtonOptions())
+                .label;
             break;
           case InputDataType.secret:
             label += '***';
@@ -359,7 +363,7 @@ class _FilterMenuState extends State<FilterMenu> {
           widget.onChange(data);
         },
         child: ConstrainedBox(
-          constraints: const BoxConstraints(minWidth: 100),
+          constraints: const BoxConstraints(minWidth: 150),
           child: ListTile(
             title: Text(item.label),
             trailing: Icon(inputDataTypeIcon(selected.type)),

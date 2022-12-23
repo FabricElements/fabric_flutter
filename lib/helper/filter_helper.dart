@@ -212,6 +212,7 @@ class FilterHelper {
         .toList();
   }
 
+  /// Base64 Encode filters
   static String? encode(List<FilterData> filters) {
     final filterDataValid = FilterHelper.filter(filters: filters);
     dynamic jsonParsed = json.encode(filterDataValid);
@@ -220,5 +221,19 @@ class FilterHelper {
 
     /// Encode
     return stringToBase64.encode(filterString);
+  }
+
+  /// Get value from id
+  static dynamic valueFromId({
+    required List<FilterData> filters,
+    required String id,
+  }) {
+    final matches = filter(filters: filters, strict: true)
+        .where((item) => item.id == id)
+        .toList();
+    if (matches.isNotEmpty) {
+      return matches.first.value;
+    }
+    return null;
   }
 }
