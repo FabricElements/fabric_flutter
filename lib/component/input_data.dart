@@ -554,7 +554,7 @@ getValue -------------------------------------
             onTap:
                 option.onTap != null ? () => option.onTap!(option.value) : null,
             child: ConstrainedBox(
-              constraints: const BoxConstraints(minWidth: 150, maxWidth: 190),
+              constraints: const BoxConstraints(minWidth: 100, maxWidth: 190),
               child: Text(
                 option.label,
                 overflow: TextOverflow.ellipsis,
