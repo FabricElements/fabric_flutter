@@ -553,11 +553,14 @@ getValue -------------------------------------
             value: option.value,
             onTap:
                 option.onTap != null ? () => option.onTap!(option.value) : null,
-            child: Text(
-              option.label,
-              overflow: TextOverflow.ellipsis,
-              softWrap: false,
-              maxLines: 1,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: 150, maxWidth: 190),
+              child: Text(
+                option.label,
+                overflow: TextOverflow.ellipsis,
+                softWrap: false,
+                maxLines: 1,
+              ),
             ),
           );
         }));

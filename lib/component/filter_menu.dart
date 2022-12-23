@@ -363,9 +363,13 @@ class _FilterMenuState extends State<FilterMenu> {
           widget.onChange(data);
         },
         child: ConstrainedBox(
-          constraints: const BoxConstraints(minWidth: 150),
+          constraints: const BoxConstraints(minWidth: 150, maxWidth: 190),
           child: ListTile(
-            title: Text(item.label),
+            title: Text(
+              item.label,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
             trailing: Icon(inputDataTypeIcon(selected.type)),
           ),
         ),
