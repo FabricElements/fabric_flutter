@@ -314,7 +314,6 @@ class _FilterMenuState extends State<FilterMenu> {
 
   @override
   void didUpdateWidget(covariant FilterMenu oldWidget) {
-    // print('updated FilterMenu!!!!');
     data = widget.data;
     if (mounted) setState(() {});
     super.didUpdateWidget(oldWidget);
@@ -359,8 +358,10 @@ class _FilterMenuState extends State<FilterMenu> {
           selected.operator = FilterOperator.any;
           selected.value = true;
           selected.index = activeOptions.length + 1;
-          if (selected.onChange != null) selected.onChange!(selected);
-          widget.onChange(data);
+          if (mounted) setState(() {});
+          // Do not call onChange or it will trigger unwanted calls
+          // if (selected.onChange != null) selected.onChange!(selected);
+          // widget.onChange(data);
         },
         child: ListTile(
           title: Text(
@@ -381,7 +382,6 @@ class _FilterMenuState extends State<FilterMenu> {
       return FilterMenuOption(
         data: item,
         onChange: (value) {
-          print('on changed from filterMenuOption');
           selected.operator = value.operator;
           selected.value = value.value;
           if (selected.onChange != null) selected.onChange!(selected);

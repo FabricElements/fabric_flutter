@@ -220,6 +220,7 @@ class StateShared extends ChangeNotifier {
       'page',
       'limit',
       'filters',
+      'sql',
     ];
     _parametersToPass.addAll(parametersList);
     _parametersToPass = _parametersToPass.toSet().toList();

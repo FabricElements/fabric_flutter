@@ -4,6 +4,12 @@ import '../component/input_data.dart';
 import '../serialized/filter_data.dart';
 import 'enum_data.dart';
 
+enum SQLQueryType {
+  sql,
+  openSearch,
+  bigQuery,
+}
+
 class FilterHelper {
   /// Return SQL valid value from data type
   static dynamic valueFromType({
@@ -31,16 +37,55 @@ class FilterHelper {
         response = value != null ? '"$value"' : null;
         break;
       case InputDataType.double:
+        response = double.tryParse(value.toString());
+        break;
       case InputDataType.int:
-        response = value;
+        response = int.tryParse(value.toString());
         break;
       case InputDataType.enums:
-        response = EnumData.describe(value) != null
-            ? '"${EnumData.describe(value)}"'
-            : null;
+        response = value != null ? '"${EnumData.describe(value)}"' : null;
         break;
     }
     return response;
+  }
+
+  static String _sqlOperator(
+    FilterOperator operator,
+    SQLQueryType sqlQueryType,
+  ) {
+    late String operatorResult;
+    switch (operator) {
+      case FilterOperator.equal:
+        operatorResult = '=';
+        break;
+      case FilterOperator.notEqual:
+        switch (sqlQueryType) {
+          case SQLQueryType.sql:
+          case SQLQueryType.bigQuery:
+            operatorResult = '!=';
+            break;
+          case SQLQueryType.openSearch:
+            operatorResult = '<>';
+            break;
+        }
+        break;
+      case FilterOperator.contains:
+        operatorResult = '=';
+        break;
+      case FilterOperator.greaterThan:
+        operatorResult = '>';
+        break;
+      case FilterOperator.lessThan:
+        operatorResult = '<';
+        break;
+      case FilterOperator.between:
+        operatorResult = '';
+        break;
+      case FilterOperator.any:
+        operatorResult = '!= null';
+        break;
+    }
+    return operatorResult;
   }
 
   /// Returns a SQL query string from a list of filters
@@ -48,8 +93,9 @@ class FilterHelper {
     required table,
     required List<FilterData> filterData,
     int? limit,
+    SQLQueryType sqlQueryType = SQLQueryType.sql,
   }) {
-    List<FilterData> filters = filter(filters: filterData, strict: true);
+    List<FilterData> filters = filter(filters: filterData);
     if (filters.isEmpty) return null;
     String query = 'select * from $table';
     int count = 0;
@@ -62,36 +108,40 @@ class FilterHelper {
             dataType: filter.type,
             value: filter.value,
           );
-          subQuery += '${filter.id} = $value';
+          subQuery +=
+              '${filter.id} ${_sqlOperator(filter.operator!, sqlQueryType)} $value';
           break;
         case FilterOperator.notEqual:
           final value = valueFromType(
             dataType: filter.type,
             value: filter.value,
           );
-          subQuery += '${filter.id} != $value';
+          subQuery +=
+              '${filter.id} ${_sqlOperator(filter.operator!, sqlQueryType)} $value';
           break;
         case FilterOperator.contains:
-          // TODO: Handle this case.
           final value = valueFromType(
             dataType: filter.type,
             value: filter.value,
           );
-          subQuery += '${filter.id} = $value';
+          subQuery +=
+              '${filter.id} ${_sqlOperator(filter.operator!, sqlQueryType)} $value';
           break;
         case FilterOperator.greaterThan:
           final value = valueFromType(
             dataType: filter.type,
             value: filter.value,
           );
-          subQuery += '${filter.id} >= $value';
+          subQuery +=
+              '${filter.id} ${_sqlOperator(filter.operator!, sqlQueryType)} $value';
           break;
         case FilterOperator.lessThan:
           final value = valueFromType(
             dataType: filter.type,
             value: filter.value,
           );
-          subQuery += '${filter.id} <= $value';
+          subQuery +=
+              '${filter.id} ${_sqlOperator(filter.operator!, sqlQueryType)} $value';
           break;
         case FilterOperator.between:
           final value1 = valueFromType(
@@ -107,7 +157,8 @@ class FilterHelper {
           subQuery += '${filter.id} <= $value2';
           break;
         case FilterOperator.any:
-          if (filter.value == null) continue;
+          subQuery +=
+              '${filter.id} ${_sqlOperator(filter.operator!, sqlQueryType)}';
           break;
       }
 
@@ -129,9 +180,15 @@ class FilterHelper {
   static String? toSQLEncoded({
     required table,
     required List<FilterData> filterData,
+    SQLQueryType sqlQueryType = SQLQueryType.sql,
     int? limit,
   }) {
-    final sqlQuery = toSQL(table: table, filterData: filterData, limit: limit);
+    final sqlQuery = toSQL(
+      table: table,
+      filterData: filterData,
+      limit: limit,
+      sqlQueryType: sqlQueryType,
+    );
     if (sqlQuery == null) return null;
     print(sqlQuery);
     Codec<String, String> stringToBase64 = utf8.fuse(base64);

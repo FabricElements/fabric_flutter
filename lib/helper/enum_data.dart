@@ -18,7 +18,7 @@ class EnumData {
       label = describeEnum(base);
       return label;
     } catch (error) {
-      //
+      label = base.toString();
     }
     return label;
   }
