@@ -160,6 +160,8 @@ class _UserAdminState extends State<UserAdmin> {
           }
         }),
         type: AlertType.warning,
+        widget: AlertWidget.banner,
+        brightness: Brightness.dark,
       ));
     }
 
