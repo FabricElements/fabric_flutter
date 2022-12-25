@@ -48,7 +48,7 @@ class HTTPRequest {
 
   /// Throw an error if response return a 401 response
   static authenticated(Response response) {
-    if (response.statusCode == 401) {
+    if (response.statusCode >= 400 && response.statusCode <= 599) {
       throw 'error--${response.statusCode}';
     }
   }

@@ -58,7 +58,7 @@ class PaginationNav extends StatelessWidget {
       Text('Page: $page / $totalPages'),
       const SizedBox(width: 16),
       SizedBox(
-        width: 105,
+        width: 152,
         child: InputData(
           isDense: true,
           hintText: locales.get('label--limit'),
