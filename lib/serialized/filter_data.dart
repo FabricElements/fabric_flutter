@@ -115,7 +115,7 @@ class FilterData {
             break;
           case InputDataType.dropdown:
           case InputDataType.radio:
-            finalValue = value.toString();
+            finalValue = value;
             break;
           case InputDataType.secret:
             finalValue = value.toString();

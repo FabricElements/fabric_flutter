@@ -25,8 +25,17 @@ class FilterMenuOption extends StatefulWidget {
 }
 
 class _FilterMenuOptionState extends State<FilterMenuOption> {
+  late FilterData data;
+
+  @override
+  void initState() {
+    data = widget.data;
+    super.initState();
+  }
+
   @override
   void didUpdateWidget(covariant FilterMenuOption oldWidget) {
+    data = widget.data;
     if (mounted) setState(() {});
     super.didUpdateWidget(oldWidget);
   }
@@ -57,7 +66,7 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
       FilterOperator.any,
     ];
 
-    switch (widget.data.type) {
+    switch (data.type) {
       case InputDataType.email:
       case InputDataType.enums:
       case InputDataType.dropdown:
@@ -72,35 +81,33 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
     }
 
     /// Label value
-    String dataOperatorString = enumData.localesFromEnum(widget.data.operator);
-    String label = widget.data.label;
-    if (widget.data.operator != FilterOperator.contains) {
+    String dataOperatorString = enumData.localesFromEnum(data.operator);
+    String label = data.label;
+    if (data.operator != FilterOperator.contains) {
       label += ' ${locales.get('label--is')}';
     }
     label += ' $dataOperatorString';
 
-    if (widget.data.operator != FilterOperator.any) {
+    if (data.operator != FilterOperator.any) {
       label += ': ';
       try {
-        switch (widget.data.type) {
+        switch (data.type) {
           case InputDataType.date:
-            if (widget.data.operator == FilterOperator.between) {
-              label +=
-                  FormatData.formatDateShort().format(widget.data.value[0]);
+            if (data.operator == FilterOperator.between) {
+              label += FormatData.formatDateShort().format(data.value[0]);
               label += ' ${locales.get('label--and')} ';
-              label +=
-                  FormatData.formatDateShort().format(widget.data.value[1]);
+              label += FormatData.formatDateShort().format(data.value[1]);
             } else {
-              label += FormatData.formatDateShort().format(widget.data.value);
+              label += FormatData.formatDateShort().format(data.value);
             }
             break;
           case InputDataType.time:
-            if (widget.data.operator == FilterOperator.between) {
-              label += widget.data.value[0].format(context);
+            if (data.operator == FilterOperator.between) {
+              label += data.value[0].format(context);
               label += ' ${locales.get('label--and')} ';
-              label += widget.data.value[1].format(context);
+              label += data.value[1].format(context);
             } else {
-              label += widget.data.value.format(context);
+              label += data.value.format(context);
             }
             break;
           case InputDataType.email:
@@ -110,21 +117,21 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
           case InputDataType.string:
           case InputDataType.phone:
           case InputDataType.url:
-            if (widget.data.operator == FilterOperator.between) {
-              label += widget.data.value[0].toString();
+            if (data.operator == FilterOperator.between) {
+              label += data.value[0].toString();
               label += ' ${locales.get('label--and')} ';
-              label += widget.data.value[1].toString();
+              label += data.value[1].toString();
             } else {
-              label += widget.data.value.toString();
+              label += data.value.toString();
             }
             break;
           case InputDataType.enums:
-            label += enumData.localesFromEnum(widget.data.value);
+            label += enumData.localesFromEnum(data.value);
             break;
           case InputDataType.dropdown:
           case InputDataType.radio:
-            label += widget.data.options
-                .firstWhere((element) => element.value == widget.data.value,
+            label += data.options
+                .firstWhere((element) => element.value == data.value,
                     orElse: () => ButtonOptions())
                 .label;
             break;
@@ -141,7 +148,7 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
     return PopupMenuButton(
       tooltip: locales.get(
         'label--edit-label',
-        {'label': widget.data.label},
+        {'label': data.label},
       ),
       padding: EdgeInsets.zero,
       onCanceled: () {
@@ -149,7 +156,7 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
       },
       itemBuilder: (BuildContext context) {
         FilterData? edit;
-        edit ??= FilterData.fromJson(widget.data.toJson());
+        edit ??= FilterData.fromJson(data.toJson());
         return [
           PopupEntry(
             child: StatefulBuilder(
@@ -163,10 +170,10 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
                 case FilterOperator.greaterThan:
                   optionInput = InputData(
                     label: locales.get('label--value'),
-                    type: widget.data.type,
+                    type: data.type,
                     value: edit.value,
-                    enums: widget.data.enums,
-                    options: widget.data.options,
+                    enums: data.enums,
+                    options: data.options,
                     onChanged: (value) {
                       edit!.value = value;
                       if (mounted) setState(() {});
@@ -179,10 +186,10 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
                     children: [
                       InputData(
                         label: '${locales.get('label--value')} 1',
-                        type: widget.data.type,
+                        type: data.type,
                         value: edit.value?[0],
-                        enums: widget.data.enums,
-                        options: widget.data.options,
+                        enums: data.enums,
+                        options: data.options,
                         onChanged: (value) {
                           edit!.value = [value, edit.value?[1]];
                           if (mounted) setState(() {});
@@ -191,10 +198,10 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
                       space,
                       InputData(
                         label: '${locales.get('label--value')} 2',
-                        type: widget.data.type,
+                        type: data.type,
                         value: edit.value?[1],
-                        enums: widget.data.enums,
-                        options: widget.data.options,
+                        enums: data.enums,
+                        options: data.options,
                         onChanged: (value) {
                           edit!.value = [edit.value?[0], value];
                           if (mounted) setState(() {});
@@ -214,7 +221,7 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
                   direction: Axis.vertical,
                   children: [
                     InputData(
-                      label: widget.data.label,
+                      label: data.label,
                       type: InputDataType.enums,
                       enums: dropdownOptions,
                       onChanged: (value) {
@@ -242,10 +249,10 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
                           onPressed: edit.value == null || edit.operator == null
                               ? null
                               : () {
-                                  widget.data.operator = edit!.operator;
-                                  widget.data.value = edit.value;
+                                  data.operator = edit!.operator;
+                                  data.value = edit.value;
                                   Navigator.of(context).pop();
-                                  widget.onChange(widget.data);
+                                  widget.onChange(data);
                                 },
                           child: Text(locales.get('label--apply')),
                         ),
@@ -261,7 +268,7 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
       child: Chip(
         label: Text(label),
         avatar: Icon(
-          inputDataTypeIcon(widget.data.type),
+          inputDataTypeIcon(data.type),
           color: Colors.grey,
         ),
         onDeleted: widget.onDelete,
@@ -320,7 +327,7 @@ class _FilterMenuState extends State<FilterMenu> {
   }
 
   void clear() {
-    data = data.map((e) {
+    data = widget.data.map((e) {
       FilterData item = e;
       item.operator = null;
       item.value = null;
@@ -342,16 +349,16 @@ class _FilterMenuState extends State<FilterMenu> {
 
     /// Ignore options that are included on the filters data
     List<FilterData> pendingOptions =
-        widget.data.where((element) => element.value == null).toList();
+        data.where((element) => element.value == null).toList();
     List<FilterData> activeOptions =
-        widget.data.where((element) => element.value != null).toList();
+        data.where((element) => element.value != null).toList();
     activeOptions.sort((a, b) => a.index.compareTo(b.index));
 
     List<PopupMenuEntry<String>> buttons =
         List.generate(pendingOptions.length, (index) {
       final item = pendingOptions[index];
       FilterData selected =
-          widget.data.singleWhere((element) => element.id == item.id);
+          data.singleWhere((element) => element.id == item.id);
       return PopupMenuItem<String>(
         value: item.id,
         onTap: () {
@@ -378,7 +385,7 @@ class _FilterMenuState extends State<FilterMenu> {
     List<Widget> menuOptions = List.generate(activeOptions.length, (index) {
       final item = activeOptions[index];
       FilterData selected =
-          widget.data.singleWhere((element) => element.id == item.id);
+          data.singleWhere((element) => element.id == item.id);
       return FilterMenuOption(
         data: item,
         onChange: (value) {

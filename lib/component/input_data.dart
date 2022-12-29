@@ -199,6 +199,16 @@ class _InputDataState extends State<InputData> {
             value: newValue,
           );
           break;
+        case InputDataType.dropdown:
+          bool valueInOptions = widget.options.where((item) {
+            return item.value == newValue;
+          }).isNotEmpty;
+          if (valueInOptions) {
+            value = newValue;
+          } else {
+            value = null;
+          }
+          break;
         default:
           value = newValue;
           if (notify && mounted) setState(() {});
