@@ -32,9 +32,21 @@ class FilterHelper {
       case InputDataType.phone:
       case InputDataType.secret:
       case InputDataType.url:
+        response = value != null ? '"$value"' : null;
+        break;
       case InputDataType.dropdown:
       case InputDataType.radio:
-        response = value != null ? '"$value"' : null;
+        response = null;
+        if (value != null) {
+          switch (value.runtimeType) {
+            case String:
+              response = '"$value"';
+              break;
+            default:
+              response = value;
+          }
+        }
+        // response = value != null ? '"$value"' : null;
         break;
       case InputDataType.double:
         response = double.tryParse(value.toString());
