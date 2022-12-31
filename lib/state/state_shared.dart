@@ -261,8 +261,14 @@ class StateShared extends ChangeNotifier {
   /// Merge list of parameters
   set mergeQueryParameters(Map<String, List<String>> p) {
     Map<String, List<String>> qp = {};
-    if (_queryParameters != null) qp.addAll(_queryParameters!);
-    qp.addAll(p);
+    if (_queryParameters == null) {
+      qp = p;
+    } else {
+      qp = {
+        ..._queryParameters!,
+        ...p,
+      };
+    }
     _queryParameters = qp;
   }
 
