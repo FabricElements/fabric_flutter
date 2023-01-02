@@ -60,7 +60,7 @@ class MediaHelper {
           File baseImage = File(pickedFile.path);
           fileData = baseImage.readAsBytesSync();
           final baseDecoded = img.decodeImage(fileData)!;
-          fileData = img.encodeJpg(baseDecoded) as Uint8List;
+          fileData = img.encodeJpg(baseDecoded);
           extension = 'jpeg';
           contentType = 'image/jpeg';
           break;
@@ -141,13 +141,14 @@ class MediaHelper {
       switch (imageType) {
         case 'gif':
           if (needsResize) {
-            img.Animation? gifAnimation = img.decodeGifAnimation(imageByes);
-            img.Animation copyGif = img.Animation();
-            for (var element in gifAnimation!.frames) {
-              copyGif.addFrame(_resize(element));
-            }
-            encodedImage = img.encodeGifAnimation(copyGif, samplingFactor: 20)
-                as Uint8List;
+            encodedImage = imageByes;
+            // img.Animation? gifAnimation = img.decodeGifAnimation(imageByes);
+            // img.Animation copyGif = img.Animation();
+            // for (var element in gifAnimation!.frames) {
+            //   copyGif.addFrame(_resize(element));
+            // }
+            // encodedImage = img.encodeGifAnimation(copyGif, samplingFactor: 20)
+            //     as Uint8List;
           } else {
             /// Return same image if don't need to resize
             /// Gif doesn't perform right on flutter
