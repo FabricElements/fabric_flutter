@@ -1,3 +1,4 @@
+import 'package:fabric_flutter/serialized/user_data.dart';
 import 'package:flutter/material.dart';
 
 import '../helper/utils.dart';
@@ -23,7 +24,7 @@ class UserAvatar extends StatelessWidget {
   final String? name;
   final String? firstName;
   final String? lastName;
-  final String? presence;
+  final UserPresence? presence;
 
   @override
   Widget build(BuildContext context) {
@@ -56,11 +57,16 @@ class UserAvatar extends StatelessWidget {
     /// Get user status presence
     Color statusColor = Colors.transparent;
     switch (presence) {
-      case 'active':
+      case UserPresence.active:
         statusColor = Colors.green;
         break;
-      case 'inactive':
+      case UserPresence.inactive:
         statusColor = Colors.deepOrange;
+        break;
+      case UserPresence.away:
+        statusColor = Colors.transparent;
+        break;
+      default:
     }
     final presenceWidget = Container(
       width: 8,

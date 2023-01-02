@@ -5,6 +5,12 @@ import '../helper/utils.dart';
 
 part 'user_data.g.dart';
 
+enum UserPresence {
+  active,
+  inactive,
+  away,
+}
+
 /// Onboarding Object
 @JsonSerializable(explicitToJson: true)
 class UserDataOnboarding {
@@ -34,15 +40,6 @@ class UserData {
   @JsonKey(includeIfNull: true)
   final String avatar;
 
-  // /// User Creation Time: [created]
-  // @JsonKey(
-  //   fromJson: FirestoreHelper.timestampFromJsonDefault,
-  //   toJson: FirestoreHelper.timestampToJsonDefault,
-  //   includeIfNull: true,
-  //   defaultValue: null,
-  // )
-  // final DateTime? created;
-
   /// email used for authentication
   @JsonKey(includeIfNull: false)
   String? email;
@@ -59,20 +56,20 @@ class UserData {
   @JsonKey(includeIfNull: true)
   final String name;
 
-  /// [firstName] First Name
+  /// First Name
   @JsonKey(includeIfNull: false)
   String? firstName;
 
   /// Name abbreviation
-  /// [abbr] = [firstName] + [lastName] first characters
+  /// abbr = [firstName] + [lastName] first characters
   @JsonKey(includeIfNull: false)
   final String abbr;
 
-  /// [lastName] Last Name
+  /// Last Name
   @JsonKey(includeIfNull: false)
   String? lastName;
 
-  /// [language]
+  /// Language
   @JsonKey(includeIfNull: true)
   String language;
 
@@ -90,7 +87,7 @@ class UserData {
   )
   final DateTime? ping;
 
-  /// [phone] used for authentication
+  /// phone used for authentication
   @JsonKey(includeIfNull: false)
   String? phone;
 
@@ -102,25 +99,18 @@ class UserData {
   @JsonKey(includeIfNull: true)
   String role;
 
-  /// User [presence] (active, inactive, away)
-  final String presence;
+  /// User presence
+  final UserPresence presence;
 
-  /// Last time the user was updated: [updated]
-  // @JsonKey(
-  //   fromJson: FirestoreHelper.timestampFromJsonDefault,
-  //   toJson: FirestoreHelper.timestampToJsonDefault,
-  //   includeIfNull: true,
-  //   defaultValue: null,
-  // )
-  // final DateTime? updated;
+  /// Account group with roles
+  @JsonKey(ignore: true)
+  final Map<String, String> accounts;
 
-  /// Optional [username]
+  /// Optional username
   @JsonKey(includeIfNull: true)
   String? username;
 
   UserData({
-    // this.created,
-    // this.updated,
     this.onboarding,
     this.phone,
     this.ping,
@@ -134,6 +124,7 @@ class UserData {
     this.lastName,
     this.language = 'en',
     this.password,
+    this.accounts = const {},
   })  : presence = Utils.getPresence(ping),
         name = Utils.nameFromParts(
           firstName: firstName,
