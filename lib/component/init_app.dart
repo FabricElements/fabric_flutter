@@ -14,37 +14,35 @@ import '../state/state_user.dart';
 class InitApp extends StatelessWidget {
   const InitApp({
     Key? key,
-    required this.providers,
+    this.providers = const [],
     required this.child,
     this.notifications = false,
     this.links = false,
   }) : super(key: key);
 
-  final List<SingleChildWidget>? providers;
+  final List<SingleChildWidget> providers;
   final Widget child;
   final bool notifications;
   final bool links;
 
   @override
   Widget build(BuildContext context) {
-    /// Init Providers
-    List<SingleChildWidget> allProviders = providers ?? [];
-    allProviders.addAll([
-      ChangeNotifierProvider(create: (context) => StateUser()),
-      ChangeNotifierProvider(create: (context) => StateAnalytics()),
-      ChangeNotifierProvider(create: (context) => StateDynamicLinks()),
-      ChangeNotifierProvider(create: (context) => StateNotifications()),
-      ChangeNotifierProvider(create: (context) => StateGlobal()),
-      ChangeNotifierProvider(create: (context) => StateAlert()),
-    ]);
-
     /// Run on emulators
     // if (kDebugMode) {
     //   FirebaseFunctions.instance.useFunctionsEmulator('localhost', 5001);
     //   // FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
     // }
     return MultiProvider(
-      providers: allProviders,
+      /// Init Providers
+      providers: [
+        ...providers,
+        ChangeNotifierProvider(create: (context) => StateUser()),
+        ChangeNotifierProvider(create: (context) => StateAnalytics()),
+        ChangeNotifierProvider(create: (context) => StateDynamicLinks()),
+        ChangeNotifierProvider(create: (context) => StateNotifications()),
+        ChangeNotifierProvider(create: (context) => StateGlobal()),
+        ChangeNotifierProvider(create: (context) => StateAlert()),
+      ],
       child: InitAppChild(
         notifications: notifications,
         links: links,
