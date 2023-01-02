@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:devicelocale/devicelocale.dart';
+import 'package:fabric_flutter/serialized/user_data.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
@@ -49,16 +50,16 @@ class Utils {
 
   /// User Presence
   /// responses: active, inactive, away
-  static String getPresence(DateTime? time) {
-    String _presence = 'away';
-    if (time == null) return _presence;
+  static UserPresence getPresence(DateTime? time) {
+    UserPresence value = UserPresence.away;
+    if (time == null) return value;
     DateTime now = DateTime.now();
     DateTime timeInactive = now.subtract(const Duration(minutes: 2));
     DateTime timeAway = now.subtract(const Duration(minutes: 3));
-    if (time.isAfter(timeInactive)) _presence = 'active';
-    if (time.isBefore(timeInactive)) _presence = 'inactive';
-    if (time.isBefore(timeAway)) _presence = 'away';
-    return _presence;
+    if (time.isAfter(timeInactive)) value = UserPresence.active;
+    if (time.isBefore(timeInactive)) value = UserPresence.inactive;
+    if (time.isBefore(timeAway)) value = UserPresence.away;
+    return value;
   }
 
   /// Get name abbreviation
