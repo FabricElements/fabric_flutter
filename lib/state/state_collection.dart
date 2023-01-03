@@ -37,7 +37,14 @@ class StateCollection extends StateShared {
     try {
       _streamReference?.listen((snapshot) {
         List<QueryDocumentSnapshot> dataDocs = snapshot.docs;
-        data = dataDocs.isNotEmpty ? dataDocs : null;
+        data = dataDocs.isNotEmpty
+            ? dataDocs
+                .map((e) => {
+                      ...e.data() as Map<String, dynamic>,
+                      'id': e.id,
+                    })
+                .toList()
+            : null;
         notifyListeners();
       }, cancelOnError: true).onError((e) {
         isValid = false;
