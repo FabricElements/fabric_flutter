@@ -40,10 +40,20 @@ class Breadcrumbs extends StatelessWidget {
           }
         };
       }
-      if (button.icon != null) {
+      if (button.icon != null || button.image != null) {
+        late Widget iconButton;
+        if (button.icon != null) {
+          iconButton = Icon(button.icon);
+        }
+        if (button.image != null) {
+          iconButton = CircleAvatar(
+            backgroundImage: NetworkImage(button.image!),
+            backgroundColor: Colors.grey.shade100,
+          );
+        }
         items.add(
           TextButton.icon(
-            icon: Icon(button.icon),
+            icon: iconButton,
             onPressed: onPressed,
             label: Text(button.label, style: textStyleDefault),
             style: buttonStyle,

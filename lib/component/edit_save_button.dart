@@ -17,6 +17,7 @@ class EditSaveButton extends StatefulWidget {
     this.alertWidget = AlertWidget.snackBar,
     this.alertType = AlertType.basic,
     this.brightness,
+    this.labels = false,
   }) : super(key: key);
 
   /// if [active] the controls to edit are available
@@ -40,6 +41,8 @@ class EditSaveButton extends StatefulWidget {
 
   final AlertType alertType;
 
+  final bool labels;
+
   @override
   State<EditSaveButton> createState() => _EditSaveButtonState();
 }
@@ -50,55 +53,112 @@ class _EditSaveButtonState extends State<EditSaveButton> {
     ThemeData theme = Theme.of(context);
     final alert = Provider.of<StateAlert>(context, listen: false);
     AppLocalizations locales = AppLocalizations.of(context)!;
-    if (widget.active) {
-      return Wrap(
-        children: [
-          IconButton(
-            onPressed: () async {
-              if (!widget.confirm) {
-                widget.cancel();
-                return;
-              }
-              alert.show(AlertData(
-                type: widget.alertType,
-                widget: widget.alertWidget,
-                brightness: widget.brightness,
-                title: locales.get('label--confirm-are-you-sure-cancel'),
-                action: ButtonOptions(
-                  onTap: widget.cancel,
-                  label: 'label--cancel',
-                ),
-                clear: true,
-              ));
-            },
-            icon: const Icon(Icons.cancel, color: Colors.deepOrange),
-          ),
-          IconButton(
-            onPressed: () async {
-              if (!widget.confirm) {
-                widget.save();
-                return;
-              }
-              alert.show(AlertData(
-                title: locales.get('label--confirm-are-you-sure-update'),
-                action: ButtonOptions(
-                  onTap: widget.save,
-                  label: 'label--update',
-                ),
-                type: widget.alertType,
-                widget: widget.alertWidget,
-                brightness: widget.brightness,
-                clear: true,
-              ));
-            },
-            icon: Icon(Icons.save, color: theme.colorScheme.primary),
-          )
-        ],
-      );
+
+    void update() async {
+      if (!widget.confirm) {
+        widget.save();
+        return;
+      }
+      alert.show(AlertData(
+        title: locales.get('label--confirm-are-you-sure-update'),
+        action: ButtonOptions(
+          onTap: widget.save,
+          label: 'label--update',
+        ),
+        type: widget.alertType,
+        widget: widget.alertWidget,
+        brightness: widget.brightness,
+        clear: true,
+      ));
     }
-    return IconButton(
+
+    void cancel() async {
+      if (!widget.confirm) {
+        widget.cancel();
+        return;
+      }
+      alert.show(AlertData(
+        type: widget.alertType,
+        widget: widget.alertWidget,
+        brightness: widget.brightness,
+        title: locales.get('label--confirm-are-you-sure-cancel'),
+        action: ButtonOptions(
+          onTap: widget.cancel,
+          label: 'label--cancel',
+        ),
+        clear: true,
+      ));
+    }
+
+    Widget cancelButton = IconButton(
+      onPressed: cancel,
+      icon: const Icon(Icons.cancel, color: Colors.deepOrange),
+    );
+
+    Widget updateButton = IconButton(
+      onPressed: update,
+      icon: Icon(Icons.save, color: theme.colorScheme.primary),
+    );
+
+    Widget editButton = IconButton(
       icon: Icon(Icons.edit, color: theme.colorScheme.primary),
       onPressed: widget.edit,
+    );
+
+    if (widget.labels) {
+      cancelButton = OutlinedButton.icon(
+        onPressed: cancel,
+        icon: const Icon(Icons.cancel),
+        label: Text(locales.get('label--cancel')),
+        style: ButtonStyle(
+          foregroundColor: MaterialStateProperty.all(
+            theme.buttonTheme.colorScheme?.secondary ?? Colors.deepOrange,
+          ),
+          backgroundColor: MaterialStateProperty.all(Colors.white),
+        ),
+      );
+
+      updateButton = ElevatedButton.icon(
+        onPressed: update,
+        icon: Icon(Icons.save, color: theme.colorScheme.primary),
+        label: Text(locales.get('label--update')),
+        style: ButtonStyle(
+          foregroundColor: MaterialStateProperty.all(
+            theme.buttonTheme.colorScheme?.primary ?? Colors.indigo,
+          ),
+          backgroundColor: MaterialStateProperty.all(Colors.white),
+        ),
+      );
+
+      editButton = ElevatedButton.icon(
+        icon: Icon(Icons.edit, color: theme.colorScheme.primary),
+        onPressed: widget.edit,
+        label: Text(locales.get('label--edit')),
+        style: ButtonStyle(
+          foregroundColor: MaterialStateProperty.all(
+            theme.buttonTheme.colorScheme?.primary ?? Colors.indigo,
+          ),
+          backgroundColor: MaterialStateProperty.all(Colors.white),
+        ),
+      );
+    }
+
+    List<Widget> buttons = [];
+
+    if (widget.active) {
+      buttons = [
+        cancelButton,
+        const SizedBox(width: 8),
+        updateButton,
+      ];
+    } else {
+      buttons = [editButton];
+    }
+
+    return Flex(
+      direction: Axis.horizontal,
+      mainAxisSize: MainAxisSize.min,
+      children: buttons,
     );
   }
 }

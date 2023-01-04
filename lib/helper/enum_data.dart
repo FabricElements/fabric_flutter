@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import 'app_localizations_delegate.dart';
 
-/// [EnumData] provides extended support for enums
+/// EnumData provides extended support for enums
 class EnumData {
   const EnumData({
     this.locales,
@@ -110,5 +110,10 @@ class EnumData {
 
     // if (finalValue != null) print('ENUM found: $finalValue');
     return finalValue;
+  }
+
+  /// List of enums to string values
+  static List<String> toList(List<dynamic> enums) {
+    return enums.map((e) => describe(e)!).toList();
   }
 }
