@@ -25,18 +25,18 @@ class FilterData {
 
   ///
   @JsonKey(ignore: true)
-  final String label;
+  String label;
 
   ///
-  final InputDataType type;
-
-  ///
-  @JsonKey(ignore: true)
-  final List<dynamic> enums;
+  InputDataType type;
 
   ///
   @JsonKey(ignore: true)
-  final List<ButtonOptions> options;
+  List<dynamic> enums;
+
+  ///
+  @JsonKey(ignore: true)
+  List<ButtonOptions> options;
 
   ///
   FilterOperator? operator;
