@@ -10,15 +10,21 @@ enum ContentContainerSize {
 class ContentContainer extends StatelessWidget {
   const ContentContainer({
     Key? key,
-    required this.child,
+    this.child,
     this.size = ContentContainerSize.medium,
     this.padding,
     this.margin,
-  }) : super(key: key);
-  final Widget child;
+    this.children,
+    this.direction = Axis.vertical,
+  })  : assert(child != null || children != null,
+            'child or children must be specified'),
+        super(key: key);
+  final Widget? child;
+  final List<Widget>? children;
   final ContentContainerSize size;
   final EdgeInsets? padding;
   final EdgeInsets? margin;
+  final Axis direction;
 
   @override
   Widget build(BuildContext context) {
@@ -37,12 +43,19 @@ class ContentContainer extends StatelessWidget {
         maxSize = 2000;
         break;
     }
+    Widget content = child ??
+        Flex(
+          direction: direction,
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: children!,
+        );
     return Center(
       child: Container(
         constraints: BoxConstraints(maxWidth: maxSize),
         margin: margin,
         padding: padding,
-        child: child,
+        child: content,
       ),
     );
   }
