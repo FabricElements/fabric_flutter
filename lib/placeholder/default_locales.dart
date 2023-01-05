@@ -725,6 +725,10 @@ dynamic defaultLocales = {
     'en': 'Enter a valid phone number',
     'es': 'Introduce un número de teléfono válido'
   },
+  'validation--not-empty': {
+    'en': 'This field can\'t be empty',
+    'es': 'Este campo no puede estar vacío'
+  },
   'label--activity': {
     'en': 'Activity',
     'es': 'Actividad',
