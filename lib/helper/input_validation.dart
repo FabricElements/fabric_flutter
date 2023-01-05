@@ -54,4 +54,20 @@ class InputValidation {
       return locales?.get('validation--url') ?? 'Enter a valid URL';
     }
   }
+
+  /// Returns true if contains a valid url
+  static bool isNotEmpty(dynamic value) {
+    if (value == null || value.toString().isEmpty) return false;
+    return true;
+  }
+
+  /// Returns null if contains a valid url
+  String? validateNotEmpty(dynamic value) {
+    if (isNotEmpty(value)) {
+      return null;
+    } else {
+      return locales?.get('validation--not-empty') ??
+          'This field can\'t be empty';
+    }
+  }
 }
