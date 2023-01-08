@@ -683,7 +683,18 @@ dynamic defaultLocales = {
   },
   'label--label-cant-be-changed': {
     'en': "The '{label}' can't be changed later.",
-    'es': "El '{label}' no se puede cambiar más tarde."
+    'es': "El '{label}' no se puede cambiar más tarde.",
+  },
+  'label--latitude': {
+    'en': 'Latitude',
+    'es': 'Latitud',
+  },
+  'label--longitude': {
+    'en': 'Longitude',
+    'es': 'Longitud',
+  },
+  'label--id': {
+    'en': 'ID',
   },
   'error--401': {
     'en': 'Unauthorized',

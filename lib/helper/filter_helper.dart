@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:flutter/widgets.dart';
+
 import '../component/input_data.dart';
 import '../serialized/filter_data.dart';
 import 'enum_data.dart';
@@ -202,9 +204,8 @@ class FilterHelper {
       sqlQueryType: sqlQueryType,
     );
     if (sqlQuery == null) return null;
-    print(sqlQuery);
+    debugPrint(sqlQuery);
     Codec<String, String> stringToBase64 = utf8.fuse(base64);
-    print(stringToBase64.encode(sqlQuery));
     return stringToBase64.encode(sqlQuery);
   }
 
@@ -283,7 +284,8 @@ class FilterHelper {
 
   /// Base64 Encode filters
   static String? encode(List<FilterData> filters) {
-    final filterDataValid = FilterHelper.filter(filters: filters);
+    final filterDataValid = filter(filters: filters);
+    if (filterDataValid.isEmpty) return null;
     dynamic jsonParsed = json.encode(filterDataValid);
     final filterString = jsonParsed.toString();
     Codec<String, dynamic> stringToBase64 = utf8.fuse(base64);
