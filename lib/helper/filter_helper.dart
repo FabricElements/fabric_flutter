@@ -93,10 +93,17 @@ class FilterHelper {
         operatorResult = '<';
         break;
       case FilterOperator.between:
+        // Ignore
         operatorResult = '';
         break;
       case FilterOperator.any:
         operatorResult = '!= null';
+        break;
+      case FilterOperator.greaterThanOrEqual:
+        operatorResult = '>=';
+        break;
+      case FilterOperator.lessThanOrEqual:
+        operatorResult = '<=';
         break;
     }
     return operatorResult;
@@ -117,22 +124,6 @@ class FilterHelper {
       FilterData filter = filters[i];
       String subQuery = '';
       switch (filter.operator!) {
-        case FilterOperator.equal:
-          final value = valueFromType(
-            dataType: filter.type,
-            value: filter.value,
-          );
-          subQuery +=
-              '${filter.id} ${_sqlOperator(filter.operator!, sqlQueryType)} $value';
-          break;
-        case FilterOperator.notEqual:
-          final value = valueFromType(
-            dataType: filter.type,
-            value: filter.value,
-          );
-          subQuery +=
-              '${filter.id} ${_sqlOperator(filter.operator!, sqlQueryType)} $value';
-          break;
         case FilterOperator.contains:
           final value = valueFromType(
             dataType: filter.type,
@@ -141,14 +132,11 @@ class FilterHelper {
           subQuery +=
               '${filter.id} ${_sqlOperator(filter.operator!, sqlQueryType)} $value';
           break;
+        case FilterOperator.equal:
+        case FilterOperator.notEqual:
         case FilterOperator.greaterThan:
-          final value = valueFromType(
-            dataType: filter.type,
-            value: filter.value,
-          );
-          subQuery +=
-              '${filter.id} ${_sqlOperator(filter.operator!, sqlQueryType)} $value';
-          break;
+        case FilterOperator.greaterThanOrEqual:
+        case FilterOperator.lessThanOrEqual:
         case FilterOperator.lessThan:
           final value = valueFromType(
             dataType: filter.type,
@@ -180,9 +168,9 @@ class FilterHelper {
       late String operator;
       count++;
       if (count == 1) {
-        operator = 'where ';
+        operator = 'where';
       } else {
-        operator = 'and ';
+        operator = 'and';
       }
       query += ' $operator $subQuery';
     }

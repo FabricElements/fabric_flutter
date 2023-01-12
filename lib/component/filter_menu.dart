@@ -52,7 +52,9 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
       FilterOperator.notEqual,
       // FilterOperator.contains,
       FilterOperator.greaterThan,
+      FilterOperator.greaterThanOrEqual,
       FilterOperator.lessThan,
+      FilterOperator.lessThanOrEqual,
       FilterOperator.between,
       FilterOperator.any,
     ];
@@ -168,6 +170,8 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
                 case FilterOperator.contains:
                 case FilterOperator.lessThan:
                 case FilterOperator.greaterThan:
+                case FilterOperator.greaterThanOrEqual:
+                case FilterOperator.lessThanOrEqual:
                   optionInput = InputData(
                     label: locales.get('label--value'),
                     type: data.type,

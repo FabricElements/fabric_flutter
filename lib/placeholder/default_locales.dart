@@ -963,9 +963,17 @@ dynamic defaultLocales = {
     'en': 'Greater Than',
     'es': 'Mayor Que',
   },
+  'label--greater-than-or-equal': {
+    'en': 'Greater Than or Equal',
+    'es': 'Mayor Que o Igual',
+  },
   'label--less-than': {
     'en': 'Less Than',
     'es': 'Menor Que',
+  },
+  'label--less-than-or-equal': {
+    'en': 'Less Than or Equal',
+    'es': 'Menor Que o Igual',
   },
   'label--value': {
     'en': 'Value',

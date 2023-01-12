@@ -54,12 +54,13 @@ class TableColumnData {
   String? label;
   @JsonKey(includeIfNull: true)
   TableDataType type;
-  double? width;
+  @JsonKey(includeIfNull: false)
+  double width;
 
   TableColumnData({
     this.value = '',
     this.type = TableDataType.string,
-    this.width,
+    this.width = 50,
     this.label,
   });
 

@@ -12,7 +12,9 @@ enum FilterOperator {
   notEqual,
   contains,
   greaterThan,
+  greaterThanOrEqual,
   lessThan,
+  lessThanOrEqual,
   between,
   any,
 }

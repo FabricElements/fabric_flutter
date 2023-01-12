@@ -28,7 +28,9 @@ const _$FilterOperatorEnumMap = {
   FilterOperator.notEqual: 'notEqual',
   FilterOperator.contains: 'contains',
   FilterOperator.greaterThan: 'greaterThan',
+  FilterOperator.greaterThanOrEqual: 'greaterThanOrEqual',
   FilterOperator.lessThan: 'lessThan',
+  FilterOperator.lessThanOrEqual: 'lessThanOrEqual',
   FilterOperator.between: 'between',
   FilterOperator.any: 'any',
 };

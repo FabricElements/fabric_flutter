@@ -51,7 +51,7 @@ TableColumnData _$TableColumnDataFromJson(Map<String, dynamic> json) {
     value: json['value'] as String? ?? '',
     type: $enumDecodeNullable(_$TableDataTypeEnumMap, json['type']) ??
         TableDataType.string,
-    width: (json['width'] as num?)?.toDouble(),
+    width: (json['width'] as num?)?.toDouble() ?? 50,
     label: json['label'] as String?,
   );
 }
