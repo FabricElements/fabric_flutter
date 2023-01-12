@@ -43,7 +43,7 @@ IconData inputDataTypeIcon(InputDataType inputDataType) {
       icon = Icons.numbers;
       break;
     case InputDataType.int:
-      icon = Icons.numbers;
+      icon = Icons.pin;
       break;
     case InputDataType.text:
       icon = Icons.short_text;
@@ -170,7 +170,6 @@ class _InputDataState extends State<InputData> {
           String tempValue = newValue?.toString() ?? '';
           if (tempValue != value) {
             value = tempValue;
-            textController.text = value;
             if (notify && mounted) setState(() {});
           }
           break;
@@ -351,7 +350,8 @@ getValue -------------------------------------
         keyboardType = const TextInputType.numberWithOptions(decimal: true);
         inputFormatters.addAll([
           FilteringTextInputFormatter.singleLineFormatter,
-          FilteringTextInputFormatter.allow(RegExp(r'[\d.-]')),
+          FilteringTextInputFormatter.allow(
+              RegExp(r'^[0-9]+([.]?)+([0-9]+)?$')),
         ]);
         break;
       case InputDataType.int:
@@ -408,6 +408,10 @@ getValue -------------------------------------
       if (valueLocalString.isEmpty) return null;
       switch (widget.type) {
         case InputDataType.double:
+          if (valueLocalString.endsWith('.')) {
+            valueLocalString =
+                valueLocalString.replaceFirst(RegExp('.'), ''); // h*llo hello
+          }
           return double.tryParse(valueLocalString);
         case InputDataType.int:
           return int.tryParse(valueLocalString);
@@ -426,10 +430,10 @@ getValue -------------------------------------
       case InputDataType.secret:
       case InputDataType.url:
         endWidget = TextFormField(
+          initialValue: value?.toString(),
           autofillHints: widget.autofillHints,
           autofocus: widget.autofocus,
           autocorrect: widget.autocorrect,
-          controller: textController,
           enableSuggestions: false,
           keyboardType: keyboardType,
           textInputAction: textInputAction,
