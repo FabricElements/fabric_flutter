@@ -105,6 +105,9 @@ class FilterHelper {
       case FilterOperator.lessThanOrEqual:
         operatorResult = '<=';
         break;
+      case FilterOperator.sort:
+        operatorResult = '';
+        break;
     }
     return operatorResult;
   }
@@ -119,6 +122,7 @@ class FilterHelper {
     List<FilterData> filters = filter(filters: filterData);
     if (filters.isEmpty) return null;
     String query = 'select * from $table';
+    String sort = '';
     int count = 0;
     for (int i = 0; i < filters.length; i++) {
       FilterData filter = filters[i];
@@ -162,6 +166,22 @@ class FilterHelper {
           subQuery +=
               '${filter.id} ${_sqlOperator(filter.operator!, sqlQueryType)}';
           break;
+        case FilterOperator.sort:
+          if (filter.value == null ||
+              filter.value == true ||
+              filter.value[0] == null ||
+              filter.value[1] == null) {
+            break;
+          }
+          // final sortBy = valueFromType(
+          //   dataType: InputDataType.dropdown,
+          //   value: filter.value[0],
+          // );
+          final sortBy = filter.value[0];
+          final order = filter.value[1] ?? EnumData.describe(FilterOrder.asc);
+          sort += 'ORDER BY $sortBy';
+          if (order != null) sort += ' $order';
+          break;
       }
 
       if (subQuery.isEmpty) continue;
@@ -174,6 +194,7 @@ class FilterHelper {
       }
       query += ' $operator $subQuery';
     }
+    if (sort.isNotEmpty) query += ' $sort';
     if (limit != null) query += ' limit $limit';
     query += ';';
     return query;

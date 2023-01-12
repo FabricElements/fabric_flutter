@@ -43,6 +43,10 @@ dynamic defaultLocales = {
     'en': 'Order',
     'es': 'Orden',
   },
+  'label--order-by': {
+    'en': 'Order by',
+    'es': 'Ordenar por',
+  },
   'label--sort': {
     'en': 'Sort',
     'es': 'Ordenar',
@@ -50,6 +54,14 @@ dynamic defaultLocales = {
   'label--sort-by': {
     'en': 'Sort By',
     'es': 'Ordenar por',
+  },
+  'label--asc': {
+    'en': 'Ascending',
+    'es': 'Ascendente',
+  },
+  'label--desc': {
+    'en': 'Descending',
+    'es': 'Descendente',
   },
   'label--sort-by-label': {
     'en': 'Sort By {label}',

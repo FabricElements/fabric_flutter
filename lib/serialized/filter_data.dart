@@ -17,6 +17,12 @@ enum FilterOperator {
   lessThanOrEqual,
   between,
   any,
+  sort,
+}
+
+enum FilterOrder {
+  asc,
+  desc,
 }
 
 /// Filter Data
@@ -59,7 +65,7 @@ class FilterData {
     this.operator,
     this.value,
     this.label = 'Unknown',
-    required this.type,
+    this.type = InputDataType.string,
     this.enums = const [],
     this.options = const [],
     this.index = 0,

@@ -50,7 +50,6 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
     final filterOperatorTimeOrDate = [
       FilterOperator.equal,
       FilterOperator.notEqual,
-      // FilterOperator.contains,
       FilterOperator.greaterThan,
       FilterOperator.greaterThanOrEqual,
       FilterOperator.lessThan,
@@ -61,10 +60,6 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
     final filterOperatorExact = [
       FilterOperator.equal,
       FilterOperator.notEqual,
-      // FilterOperator.contains,
-      // FilterOperator.greaterThan,
-      // FilterOperator.lessThan,
-      // FilterOperator.between,
       FilterOperator.any,
     ];
 
@@ -85,12 +80,31 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
     /// Label value
     String dataOperatorString = enumData.localesFromEnum(data.operator);
     String label = data.label;
-    if (data.operator != FilterOperator.contains) {
-      label += ' ${locales.get('label--is')}';
-    }
-    label += ' $dataOperatorString';
-
-    if (data.operator != FilterOperator.any) {
+    bool isSort = data.operator == FilterOperator.sort || data.id == 'sort';
+    final sortOptions = FilterOrder.values
+        .map((e) => ButtonOptions(
+            id: e.name, value: e.name, label: enumData.localesFromEnum(e)))
+        .toList();
+    if (isSort) {
+      label += ': ';
+      label += data.value[0] != null
+          ? data.options
+              .firstWhere((element) => element.value == data.value[0],
+                  orElse: () => ButtonOptions())
+              .label
+          : '';
+      label += ' ';
+      label += data.value[1] != null
+          ? sortOptions
+              .firstWhere((element) => element.value == data.value[1],
+                  orElse: () => ButtonOptions())
+              .label
+          : '';
+    } else if (data.operator != FilterOperator.any) {
+      if (data.operator != FilterOperator.contains) {
+        label += ' ${locales.get('label--is')}';
+      }
+      label += ' $dataOperatorString';
       label += ': ';
       try {
         switch (data.type) {
@@ -146,7 +160,10 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
       }
     }
     const space = SizedBox(height: 16);
-
+    IconData icon = inputDataTypeIcon(data.type);
+    if (data.operator == FilterOperator.sort || data.id == 'sort') {
+      icon = Icons.sort;
+    }
     return PopupMenuButton(
       tooltip: locales.get(
         'label--edit-label',
@@ -214,29 +231,70 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
                     ],
                   );
                   break;
+                case FilterOperator.sort:
+                  optionInput = Flex(
+                    direction: Axis.vertical,
+                    children: [
+                      InputData(
+                        label: locales.get('label--sort-by'),
+                        type: InputDataType.dropdown,
+                        value: edit.value?[0],
+                        options: data.options,
+                        onChanged: (value) {
+                          edit!.value = [
+                            value,
+                            edit.value?[1],
+                          ];
+                          if (mounted) setState(() {});
+                        },
+                      ),
+                      space,
+                      InputData(
+                        label: locales.get('label--order'),
+                        type: InputDataType.dropdown,
+                        value: edit.value?[1],
+                        options: sortOptions,
+                        // enums: FilterOrder.values,
+                        onChanged: (value) {
+                          edit!.value = [
+                            edit.value?[0],
+                            value ?? FilterOrder.asc.name,
+                          ];
+                          if (mounted) setState(() {});
+                        },
+                      ),
+                    ],
+                  );
+                  break;
                 case FilterOperator.any:
                   optionInput = const SizedBox();
                   break;
                 default:
+              }
+              List<Widget> sections = [];
+              if (data.operator != FilterOperator.sort) {
+                sections.addAll([
+                  InputData(
+                    label: data.label,
+                    type: InputDataType.enums,
+                    enums: dropdownOptions,
+                    onChanged: (value) {
+                      edit!.operator = value ?? FilterOperator.any;
+                      edit.value =
+                          edit.operator == FilterOperator.any ? true : null;
+                      if (mounted) setState(() {});
+                    },
+                    value: edit.operator,
+                  ),
+                  space,
+                ]);
               }
               return Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Flex(
                   direction: Axis.vertical,
                   children: [
-                    InputData(
-                      label: data.label,
-                      type: InputDataType.enums,
-                      enums: dropdownOptions,
-                      onChanged: (value) {
-                        edit!.operator = value ?? FilterOperator.any;
-                        edit.value =
-                            edit.operator == FilterOperator.any ? true : null;
-                        if (mounted) setState(() {});
-                      },
-                      value: edit.operator,
-                    ),
-                    space,
+                    ...sections,
                     optionInput,
                     space,
                     Row(
@@ -271,10 +329,7 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
       },
       child: Chip(
         label: Text(label),
-        avatar: Icon(
-          inputDataTypeIcon(data.type),
-          color: Colors.grey,
-        ),
+        avatar: Icon(icon, color: Colors.grey),
         onDeleted: widget.onDelete,
         deleteButtonTooltipMessage: locales.get(
           'label--clear-label',
@@ -363,11 +418,23 @@ class _FilterMenuState extends State<FilterMenu> {
       final item = pendingOptions[index];
       FilterData selected =
           data.singleWhere((element) => element.id == item.id);
+      IconData icon = inputDataTypeIcon(selected.type);
+      bool isSort =
+          selected.operator == FilterOperator.sort || selected.id == 'sort';
+      if (isSort) {
+        icon = Icons.sort;
+      }
       return PopupMenuItem<String>(
         value: item.id,
         onTap: () {
-          selected.operator = FilterOperator.any;
-          selected.value = true;
+          if (isSort) {
+            selected.operator = FilterOperator.sort;
+            selected.id = 'sort';
+            selected.value = [null, null];
+          } else {
+            selected.operator = FilterOperator.any;
+            selected.value = true;
+          }
           selected.index = activeOptions.length + 1;
           if (mounted) setState(() {});
           // Do not call onChange or it will trigger unwanted calls
@@ -380,7 +447,7 @@ class _FilterMenuState extends State<FilterMenu> {
             overflow: TextOverflow.ellipsis,
             maxLines: 1,
           ),
-          trailing: Icon(inputDataTypeIcon(selected.type)),
+          trailing: Icon(icon),
         ),
       );
     });
@@ -390,6 +457,24 @@ class _FilterMenuState extends State<FilterMenu> {
       final item = activeOptions[index];
       FilterData selected =
           data.singleWhere((element) => element.id == item.id);
+
+      if (selected.id == 'sort' || selected.operator == FilterOperator.sort) {
+        /// Add Filter by
+        selected.operator = FilterOperator.sort;
+        selected.id = 'sort';
+        selected.label = locales.get('label--sort-by');
+        selected.options = data
+            .where((element) => element.id != 'sort')
+            .where((element) => element.operator != FilterOperator.sort)
+            .map((e) => ButtonOptions(
+                  label: e.label,
+                  id: e.id,
+                  value: e.id,
+                ))
+            .toList();
+        selected.type = InputDataType.dropdown;
+      }
+
       return FilterMenuOption(
         data: item,
         onChange: (value) {

@@ -10,7 +10,8 @@ FilterData _$FilterDataFromJson(Map<String, dynamic> json) => FilterData(
       id: json['id'] as String,
       operator: $enumDecodeNullable(_$FilterOperatorEnumMap, json['operator']),
       value: json['value'],
-      type: $enumDecode(_$InputDataTypeEnumMap, json['type']),
+      type: $enumDecodeNullable(_$InputDataTypeEnumMap, json['type']) ??
+          InputDataType.string,
       index: json['index'] as int? ?? 0,
     );
 
@@ -33,6 +34,7 @@ const _$FilterOperatorEnumMap = {
   FilterOperator.lessThanOrEqual: 'lessThanOrEqual',
   FilterOperator.between: 'between',
   FilterOperator.any: 'any',
+  FilterOperator.sort: 'sort',
 };
 
 const _$InputDataTypeEnumMap = {
