@@ -1,6 +1,13 @@
 import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../serialized/media_data.dart';
+import '../state/state_alert.dart';
+import 'app_localizations_delegate.dart';
+import 'media_helper.dart';
 
 /// This is a helper which uploads any type of file to the firebase storage path specified.
 /// This helper returns the storage task snapshot for further use.
@@ -9,6 +16,9 @@ import 'package:firebase_storage/firebase_storage.dart';
 /// FirebaseStorageHelper;
 /// ```
 class FirebaseStorageHelper {
+  BuildContext context;
+
+  FirebaseStorageHelper(this.context);
 
   /// This is a helper which uploads any type of file to the firebase storage path specified.
   /// This helper returns the storage task snapshot for further use.
@@ -59,5 +69,93 @@ class FirebaseStorageHelper {
     }
     final imagesRef = storageRef.child(finalPath);
     return imagesRef.putString(data, format: format, metadata: metadata);
+  }
+
+  /// Custom
+  Future<String> saveFile({
+    required String file,
+    required String contentType,
+    required String path,
+    bool autoId = false,
+  }) async {
+    final fileSaved = await save(
+      data: file,
+      path: path,
+      autoId: autoId,
+      format: PutStringFormat.base64,
+      metadata: SettableMetadata(
+        contentType: contentType,
+      ),
+    );
+    return fileSaved.ref.fullPath;
+  }
+
+  uploadImageMedia({
+    required MediaOrigin origin,
+    required Function(String, MediaData) callback,
+    required String path,
+    required int maxDimensions,
+    bool autoId = false,
+  }) async {
+    final alert = Provider.of<StateAlert>(context, listen: false);
+    final locales = AppLocalizations.of(context)!;
+    try {
+      final selectedFile = await MediaHelper.getImage(
+        origin: origin,
+        maxDimensions: maxDimensions,
+      );
+      final finalPath = await saveFile(
+        file: selectedFile.data,
+        contentType: selectedFile.contentType,
+        path: path,
+        autoId: autoId,
+      );
+      return callback(finalPath, selectedFile);
+    } catch (error) {
+      String errorMessage = error.toString();
+      final errorType = errorMessage == 'alert--no-chosen-files'
+          ? AlertType.warning
+          : AlertType.critical;
+      alert.show(AlertData(
+        body: locales.get(error.toString()),
+        type: errorType,
+        brightness: Brightness.dark,
+        duration: 5,
+        clear: true,
+      ));
+    }
+  }
+
+  uploadMedia({
+    required Function(String, MediaData) callback,
+    required String path,
+    required List<String> fileExtensions,
+    bool autoId = false,
+  }) async {
+    final alert = Provider.of<StateAlert>(context, listen: false);
+    final locales = AppLocalizations.of(context)!;
+    try {
+      final selectedFile =
+          await MediaHelper.getFile(allowedExtensions: fileExtensions);
+      final finalPath = await saveFile(
+        file: selectedFile.data,
+        contentType: selectedFile.contentType,
+        path: path,
+        autoId: autoId,
+      );
+      return callback(finalPath, selectedFile);
+    } catch (error) {
+      String errorMessage = error.toString();
+      final errorType = errorMessage == 'alert--no-chosen-files'
+          ? AlertType.warning
+          : AlertType.critical;
+      alert.show(AlertData(
+        body: locales.get(error.toString()),
+        type: errorType,
+        brightness: Brightness.dark,
+        duration: 5,
+        clear: true,
+      ));
+    }
   }
 }
