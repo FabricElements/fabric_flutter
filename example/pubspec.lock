@@ -294,7 +294,7 @@ packages:
       name: file_picker
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "5.2.4"
+    version: "5.2.5"
   firebase_analytics:
     dependency: transitive
     description:
@@ -597,7 +597,7 @@ packages:
       name: google_maps_flutter_web
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.4.0+3"
+    version: "0.4.0+4"
   google_maps_webservice:
     dependency: transitive
     description:
@@ -611,7 +611,7 @@ packages:
       name: google_sign_in
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "5.4.2"
+    version: "5.4.3"
   google_sign_in_android:
     dependency: transitive
     description:
@@ -681,7 +681,7 @@ packages:
       name: image
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "4.0.7"
+    version: "4.0.8"
   image_picker:
     dependency: transitive
     description:
@@ -826,7 +826,7 @@ packages:
       name: mime
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.3"
+    version: "1.0.4"
   modal_bottom_sheet:
     dependency: transitive
     description:
