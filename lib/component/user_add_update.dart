@@ -72,11 +72,10 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
   @override
   Widget build(BuildContext context) {
     bool canCall = sending == false;
-    if (widget.email) {
-      canCall = canCall && data.email != null && data.email!.isNotEmpty;
-    }
     if (widget.phone) {
       canCall = canCall && data.phone != null && data.phone!.isNotEmpty;
+    } else if (widget.email) {
+      canCall = canCall && data.email != null && data.email!.isNotEmpty;
     }
     if (widget.username) {
       canCall = canCall && data.username != null && data.username!.isNotEmpty;

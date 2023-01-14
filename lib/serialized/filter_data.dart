@@ -2,7 +2,6 @@ import 'package:fabric_flutter/helper/enum_data.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../component/input_data.dart';
-import '../helper/format_data.dart';
 import '../helper/options.dart';
 
 part 'filter_data.g.dart';
@@ -84,25 +83,24 @@ class FilterData {
     } else {
       try {
         switch (type) {
+          // case InputDataType.date:
+          //   print('Try to json from date: ${value.toString()}');
+          //   // if (operator == FilterOperator.between) {
+          //   //   finalValue = [value[0], value[1]];
+          //   // } else {
+          //   //   finalValue = value;
+          //   // }
+          //   if (operator == FilterOperator.between) {
+          //     finalValue = [
+          //       FormatData.formatDateShort().format(value[0]),
+          //       FormatData.formatDateShort().format(value[1]),
+          //     ];
+          //   } else {
+          //     finalValue = FormatData.formatDateShort().format(value);
+          //   }
+          //   break;
           case InputDataType.date:
-            if (operator == FilterOperator.between) {
-              finalValue = [
-                FormatData.formatDateShort().format(value[0]),
-                FormatData.formatDateShort().format(value[1]),
-              ];
-            } else {
-              finalValue = FormatData.formatDateShort().format(value[0]);
-            }
-            break;
           case InputDataType.time:
-            // if (operator == FilterOperator.between) {
-            //   label += value[0].format(context);
-            //   label += ' ${locales.get('label--and')} ';
-            //   label += value[1].format(context);
-            // } else {
-            //   label += value.format(context);
-            // }
-            break;
           case InputDataType.email:
           case InputDataType.double:
           case InputDataType.int:

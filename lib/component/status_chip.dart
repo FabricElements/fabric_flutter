@@ -45,16 +45,19 @@ class StatusChip extends StatelessWidget {
       case 'archived':
         statusColor = Colors.grey.shade700;
     }
-    return Chip(
-      label: Text(
-        baseStatus,
-        style: const TextStyle(
-          fontWeight: FontWeight.w500,
-          letterSpacing: 1.1,
-          color: Colors.white,
+    return Tooltip(
+      message: locales.get('label--status'),
+      child: Chip(
+        label: Text(
+          baseStatus,
+          style: const TextStyle(
+            fontWeight: FontWeight.w500,
+            letterSpacing: 1.1,
+            color: Colors.white,
+          ),
         ),
+        backgroundColor: statusColor,
       ),
-      backgroundColor: statusColor,
     );
   }
 }

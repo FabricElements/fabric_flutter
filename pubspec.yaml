@@ -27,9 +27,9 @@ dependencies:
   country_code_picker: ^2.0.2
   flutter_cache_manager: ^3.3.0
   image_picker: ^0.8.6
-  file_picker: ^5.2.4
-  image: ^4.0.7
-  google_sign_in: ^5.4.2
+  file_picker: ^5.2.5
+  image: ^4.0.8
+  google_sign_in: ^5.4.3
   http: ^0.13.5
   url_launcher: ^6.1.7
   share: ^2.0.4
@@ -37,11 +37,11 @@ dependencies:
   flutter_markdown: ^0.6.13
   animations: ^2.0.7
   google_maps_flutter: ^2.2.3
-  google_maps_flutter_web: ^0.4.0+3
+  google_maps_flutter_web: ^0.4.0+4
   google_maps_webservice: ^0.0.20-nullsafety.5
   package_info_plus: ^3.0.2
   sign_in_with_apple: ^4.3.0
-  mime: ^1.0.3
+  mime: ^1.0.4
   flutter_localizations:
     sdk: flutter
 
