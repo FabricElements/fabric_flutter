@@ -386,6 +386,7 @@ getValue -------------------------------------
           (value?.toString() ?? '').isNotEmpty ? value?.toString() : hintText,
       isDense: isDense,
       errorText: errorText,
+      errorMaxLines: 2,
       enabled: !widget.disabled,
       prefixIcon: inputIcon,
       suffixIcon: inputTrailingIcon,
