@@ -111,6 +111,10 @@ dynamic defaultLocales = {
     'en': 'Agent',
     'es': 'Agente',
   },
+  'label--owner': {
+    'en': 'Owner',
+    'es': 'Propietario',
+  },
   'label--user': {
     'en': 'User',
     'es': 'Usuario',

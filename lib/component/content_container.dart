@@ -16,6 +16,7 @@ class ContentContainer extends StatelessWidget {
     this.margin,
     this.children,
     this.direction = Axis.vertical,
+    this.mainAxisSize = MainAxisSize.max,
   })  : assert(child != null || children != null,
             'child or children must be specified'),
         super(key: key);
@@ -25,6 +26,7 @@ class ContentContainer extends StatelessWidget {
   final EdgeInsets? padding;
   final EdgeInsets? margin;
   final Axis direction;
+  final MainAxisSize mainAxisSize;
 
   @override
   Widget build(BuildContext context) {
@@ -40,13 +42,13 @@ class ContentContainer extends StatelessWidget {
         maxSize = 1200;
         break;
       case ContentContainerSize.xLarge:
-        maxSize = 2000;
+        maxSize = 1700;
         break;
     }
     Widget content = child ??
         Flex(
           direction: direction,
-          mainAxisSize: MainAxisSize.min,
+          mainAxisSize: mainAxisSize,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: children!,
         );
@@ -55,7 +57,10 @@ class ContentContainer extends StatelessWidget {
         constraints: BoxConstraints(maxWidth: maxSize),
         margin: margin,
         padding: padding,
-        child: content,
+        child: SizedBox(
+          width: double.maxFinite,
+          child: content,
+        ),
       ),
     );
   }
