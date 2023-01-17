@@ -882,6 +882,14 @@ dynamic defaultLocales = {
     'en': 'Disabled',
     'es': 'desactivado/a',
   },
+  'label--error': {
+    'en': 'Error',
+    'es': 'Error',
+  },
+  'label--errors': {
+    'en': 'Error',
+    'es': 'Errores',
+  },
   'label--replace': {
     'en': 'Replace',
     'es': 'Reemplazar',
