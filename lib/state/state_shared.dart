@@ -1,12 +1,18 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 
+import '../helper/filter_helper.dart';
 import '../helper/utils.dart';
+import '../serialized/filter_data.dart';
 
 class StateShared extends ChangeNotifier {
   /// [initialized] after data is called the first time
   bool initialized = false;
+
+  /// errorCount to prevent infinite loops
+  int errorCount = 0;
 
   /// More at [stream]
   /// ignore: close_sinks
@@ -269,6 +275,11 @@ class StateShared extends ChangeNotifier {
         ...p,
       };
     }
+
+    /// Remove empty values
+    qp.removeWhere((key, value) {
+      return value.isEmpty || (value.isNotEmpty && value.first.isEmpty);
+    });
     _queryParameters = qp;
   }
 
@@ -308,5 +319,81 @@ class StateShared extends ChangeNotifier {
   }
 
   /// async function to process request
-  Future<dynamic> call({bool ignoreDuplicatedCalls = false}) async {}
+  Future<dynamic> call({
+    bool ignoreDuplicatedCalls = false,
+    bool notify = false,
+  }) async {}
+
+  /// Clear and reset default values
+  void clear({bool notify = false}) {
+    errorCount = 0;
+    initialized = false;
+    pageDefault = initialPage;
+    limitDefault = 5;
+    selectedItems = [];
+    privateOldData = null;
+    totalCount = 0;
+    clearAfter();
+    if (notify) {
+      data = null;
+      // Future.delayed(const Duration(milliseconds: 100))
+      //     .then((value) => notifyListeners());
+    } else {
+      privateData = null;
+    }
+  }
+
+  /// Filters
+  /// Used to identify the table/collection id
+  String filterGroup = 'filters';
+
+  /// Define the type of sql query generated
+  SQLQueryType sqlQueryType = SQLQueryType.sql;
+
+  /// get filters from query
+  List<FilterData> get filters {
+    final fromQuery =
+        Utils.valuesFromQueryKey(queryParameters, 'filters')?.first;
+    if (fromQuery == null || fromQuery.toString().isEmpty) return [];
+    Codec<String, dynamic> stringToBase64 = utf8.fuse(base64);
+    final decodeBase = stringToBase64.decode(fromQuery);
+    final decodeJSON = (json.decode(decodeBase) as List<dynamic>)
+        .map((e) => FilterData.fromJson(e))
+        .toList();
+    return decodeJSON;
+  }
+
+  /// Get SQL
+  String? get sql {
+    try {
+      return FilterHelper.toSQLEncoded(
+        table: filterGroup,
+        filterData: filters,
+        sqlQueryType: sqlQueryType,
+      );
+    } catch (e) {
+      print('sql decode error: $e');
+      return null;
+    }
+  }
+
+  /// Merge, apply filters and call endpoint
+  void applyFilters(List<FilterData> newFilters) {
+    clear(notify: true);
+    final merged = FilterHelper.merge(
+      filters: filters,
+      merge: newFilters,
+    );
+    final filtersEncoded = FilterHelper.encode(merged);
+    data = null;
+    mergeQueryParameters = {
+      'filters': [filtersEncoded ?? ''],
+      'page': [],
+      'limit': [],
+    };
+    mergeQueryParameters = {
+      'sql': [sql ?? ''],
+    };
+    call(notify: true);
+  }
 }

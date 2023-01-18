@@ -101,7 +101,11 @@ class Utils {
   }) {
     Map<String, Iterable<String>> groupParameters = {...uri.queryParametersAll};
     groupParameters.addAll(queryParameters);
-    groupParameters.removeWhere((key, value) => value.isEmpty);
+
+    /// Remove empty values
+    groupParameters.removeWhere((key, value) {
+      return value.isEmpty || (value.isNotEmpty && value.first.isEmpty);
+    });
     Uri baseUri = uri;
     baseUri = baseUri.replace(
       queryParameters: groupParameters,

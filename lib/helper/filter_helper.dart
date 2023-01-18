@@ -176,12 +176,8 @@ class FilterHelper {
               filter.value[1] == null) {
             break;
           }
-          // final sortBy = valueFromType(
-          //   dataType: InputDataType.dropdown,
-          //   value: filter.value[0],
-          // );
           final sortBy = filter.value[0];
-          final order = filter.value[1] ?? EnumData.describe(FilterOrder.asc);
+          final order = filter.value[1] ?? EnumData.describe(FilterOrder.desc);
           sort += 'ORDER BY $sortBy';
           if (order != null) sort += ' $order';
           break;
@@ -197,7 +193,10 @@ class FilterHelper {
       }
       query += ' $operator $subQuery';
     }
-    if (sort.isNotEmpty) query += ' $sort';
+    if (sort.isEmpty) {
+      sort = 'ORDER BY id ${EnumData.describe(FilterOrder.desc)}';
+    }
+    query += ' $sort';
     if (limit != null) query += ' limit $limit';
     query += ';';
     return query;
@@ -235,15 +234,16 @@ class FilterHelper {
     required List<FilterData> filters,
     required List<FilterData> merge,
   }) {
-    List<FilterData> filterDataUpdated = filters;
+    List<FilterData> filterDataUpdated = filters.isNotEmpty ? filters : merge;
     for (int i = 0; i < merge.length; i++) {
+      FilterData toMerge = merge[i];
       try {
-        final toMerge = merge[i];
-        FilterData item =
-            filterDataUpdated.firstWhere((element) => element.id == toMerge.id);
+        FilterData item = filterDataUpdated.firstWhere(
+          (element) => element.id == toMerge.id,
+          orElse: () => toMerge,
+        );
         item.operator = toMerge.operator;
         item.index = toMerge.index;
-
         if (item.operator == FilterOperator.any) {
           item.value = toMerge.value;
         } else {
