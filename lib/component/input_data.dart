@@ -170,6 +170,7 @@ class _InputDataState extends State<InputData> {
           String tempValue = newValue?.toString() ?? '';
           if (tempValue != value) {
             value = tempValue;
+            textController.text = value?.toString() ?? '';
             if (notify && mounted) setState(() {});
           }
           break;
@@ -431,7 +432,7 @@ getValue -------------------------------------
       case InputDataType.secret:
       case InputDataType.url:
         endWidget = TextFormField(
-          initialValue: value?.toString(),
+          controller: textController,
           autofillHints: widget.autofillHints,
           autofocus: widget.autofocus,
           autocorrect: widget.autocorrect,

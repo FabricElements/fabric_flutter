@@ -49,8 +49,8 @@ class StateDocument extends StateShared {
       _streamReference?.listen((DocumentSnapshot snapshot) {
         String snapshotID = snapshot.id;
         isValid = snapshot.exists && snapshotID == _documentId;
-        data = null;
         if (!isValid) {
+          data = null;
           return;
         }
         Map<String, dynamic> _tempData =
