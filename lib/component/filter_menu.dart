@@ -161,7 +161,7 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
     }
     const space = SizedBox(height: 16);
     IconData icon = inputDataTypeIcon(data.type);
-    if (data.operator == FilterOperator.sort || data.id == 'sort') {
+    if (isSort) {
       icon = Icons.sort;
     }
     return PopupMenuButton(
@@ -272,7 +272,7 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
                 default:
               }
               List<Widget> sections = [];
-              if (data.operator != FilterOperator.sort) {
+              if (!isSort) {
                 sections.addAll([
                   InputData(
                     label: data.label,
@@ -438,8 +438,6 @@ class _FilterMenuState extends State<FilterMenu> {
           selected.index = activeOptions.length + 1;
           if (mounted) setState(() {});
           // Do not call onChange or it will trigger unwanted calls
-          // if (selected.onChange != null) selected.onChange!(selected);
-          // widget.onChange(data);
         },
         child: ListTile(
           title: Text(
@@ -457,7 +455,6 @@ class _FilterMenuState extends State<FilterMenu> {
       final item = activeOptions[index];
       FilterData selected =
           data.singleWhere((element) => element.id == item.id);
-
       if (selected.id == 'sort' || selected.operator == FilterOperator.sort) {
         /// Add Filter by
         selected.operator = FilterOperator.sort;

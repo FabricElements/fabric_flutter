@@ -227,6 +227,18 @@ getValue -------------------------------------
 
   @override
   void initState() {
+    /// Validate required parameters on init
+    switch (widget.type) {
+      case InputDataType.enums:
+        assert(widget.enums.isNotEmpty,
+            'enums is required for InputDataType.enums');
+        break;
+      case InputDataType.dropdown:
+        assert(widget.options.isNotEmpty,
+            'options is required for InputDataType.dropdown');
+        break;
+      default:
+    }
     textController = widget.textController ?? TextEditingController();
     getValue(newValue: widget.value);
     obscureText = widget.obscureText;

@@ -234,33 +234,31 @@ class FilterHelper {
     required List<FilterData> filters,
     required List<FilterData> merge,
   }) {
-    List<FilterData> filterDataUpdated = filters.isNotEmpty ? filters : merge;
+    List<FilterData> filterDataUpdated = [...filters];
     for (int i = 0; i < merge.length; i++) {
       FilterData toMerge = merge[i];
-      try {
-        FilterData item = filterDataUpdated.firstWhere(
-          (element) => element.id == toMerge.id,
-          orElse: () => toMerge,
-        );
-        item.operator = toMerge.operator;
-        item.index = toMerge.index;
-        if (item.operator == FilterOperator.any) {
-          item.value = toMerge.value;
-        } else {
-          switch (item.type) {
-            case InputDataType.enums:
-              item.value = EnumData.find(
-                enums: item.enums,
-                value: toMerge.value,
-              );
-              break;
-            default:
-              item.value = toMerge.value;
-          }
-        }
-      } catch (error) {
-        print(error);
-        //-
+
+      /// Add filter if doesn't exists
+      bool filterExists =
+          filters.where((element) => element.id == toMerge.id).isNotEmpty;
+      if (!filterExists) {
+        filterDataUpdated.add(toMerge);
+      }
+
+      /// Update existing filter
+      FilterData item =
+          filterDataUpdated.firstWhere((element) => element.id == toMerge.id);
+      item.operator = toMerge.operator;
+      item.value = toMerge.value;
+
+      final activeOptions = filter(filters: filterDataUpdated).length;
+
+      if (item.operator == null ||
+          (item.operator == null && item.value == null)) {
+        // Clear main values
+        item.clear();
+      } else {
+        if (item.index <= 0) item.index = activeOptions + 1;
       }
     }
     return filterDataUpdated;
@@ -304,6 +302,20 @@ class FilterHelper {
 
     /// Encode
     return stringToBase64.encode(filterString);
+  }
+
+  /// Decode filters from base64 encoded string
+  static List<FilterData> decode(String? filters) {
+    List<FilterData> response = [];
+    if (filters != null) {
+      Codec<String, dynamic> stringToBase64 = utf8.fuse(base64);
+      final decodeBase = stringToBase64.decode(filters);
+      final decodeJSON = (json.decode(decodeBase) as List<dynamic>)
+          .map((e) => FilterData.fromJson(e))
+          .toList();
+      response = decodeJSON;
+    }
+    return response;
   }
 
   /// Get value from id

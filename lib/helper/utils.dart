@@ -99,16 +99,10 @@ class Utils {
     required Uri uri,
     required Map<String, List<String>> queryParameters,
   }) {
-    Map<String, Iterable<String>> groupParameters = {...uri.queryParametersAll};
-    groupParameters.addAll(queryParameters);
-
-    /// Remove empty values
-    groupParameters.removeWhere((key, value) {
-      return value.isEmpty || (value.isNotEmpty && value.first.isEmpty);
-    });
+    final qp = mergeQueryParameters(uri.queryParametersAll, queryParameters);
     Uri baseUri = uri;
     baseUri = baseUri.replace(
-      queryParameters: groupParameters,
+      queryParameters: qp,
     );
     return baseUri;
   }
@@ -201,5 +195,35 @@ class Utils {
     }
 
     return language;
+  }
+
+  /// Merge two sets of query parameters and clean empty ones
+  static Map<String, List<String>> mergeQueryParameters(
+    // base parameters
+    Map<String, List<String>> base,
+    // Parameters to merge
+    Map<String, List<String>> toReplace,
+  ) {
+    Map<String, List<String>> qp = {
+      ...base,
+    };
+    // Remove sql parameter
+    qp.remove('sql');
+    // Remove pagination
+    qp.remove('page');
+    qp.remove('limit');
+    // Remove key and value if exist
+    qp.removeWhere((key, value) => toReplace.containsKey(key));
+    // Merge filters
+    qp = {
+      ...qp,
+      ...toReplace,
+    };
+    // Remove empty values
+    qp.removeWhere((key, value) {
+      return value.isEmpty || (value.isNotEmpty && value.first.isEmpty);
+    });
+    // Return new query parameters
+    return qp;
   }
 }

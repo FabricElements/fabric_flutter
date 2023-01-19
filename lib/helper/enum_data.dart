@@ -86,6 +86,7 @@ class EnumData {
     required dynamic value,
   }) {
     dynamic finalValue;
+    String? error;
     try {
       /// Find from enum
       finalValue = match(
@@ -94,8 +95,7 @@ class EnumData {
         unknown: null,
       );
     } catch (e) {
-      print('!!!! Find from enum: $e');
-      //
+      error = '!!!! Find from enum: $e';
     }
     if (finalValue == null) {
       /// Find from string value
@@ -103,12 +103,11 @@ class EnumData {
         finalValue =
             enums.firstWhere((e) => describeEnum(e) == value.toString());
       } catch (e) {
-        print('!!!! Find from string: $e');
-        //
+        error = '!!!! Find from string: $e';
       }
     }
 
-    // if (finalValue != null) print('ENUM found: $finalValue');
+    if (finalValue == null) debugPrint(error);
     return finalValue;
   }
 

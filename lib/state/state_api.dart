@@ -1,3 +1,4 @@
+import 'package:fabric_flutter/helper/filter_helper.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -50,10 +51,35 @@ class StateAPI extends StateShared {
   }
 
   String? get endpoint {
-    if (queryParameters == null || baseEndpoint == null) return baseEndpoint;
+    if (queryParameters.isEmpty || baseEndpoint == null) return baseEndpoint;
+    Map<String, List<String>> queryParametersBase = queryParameters;
+    if (sql != null) {
+      /// Merge SQL parameters
+      queryParametersBase = {
+        ...queryParametersBase,
+        'sql': [sql!],
+      };
+    }
+    if (filters.isNotEmpty) {
+      /// Merge filter parameter
+      final filterParameter = FilterHelper.encode(filters);
+      queryParametersBase = {
+        ...queryParametersBase,
+        'filters': [filterParameter ?? ''],
+      };
+    }
+    if (paginate) {
+      /// Add default values for pagination
+      queryParametersBase = {
+        ...queryParametersBase,
+        'page': [page.toString()],
+        'limit': [limit.toString()],
+      };
+    }
     return Utils.uriMergeQuery(
-            uri: Uri.parse(baseEndpoint!), queryParameters: queryParameters!)
-        .toString();
+      uri: Uri.parse(baseEndpoint!),
+      queryParameters: queryParametersBase,
+    ).toString();
   }
 
   /// Clear URL from pagination queries
