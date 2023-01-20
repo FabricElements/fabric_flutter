@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/widgets.dart';
-
 import '../component/input_data.dart';
 import '../serialized/filter_data.dart';
 import 'enum_data.dart';
@@ -215,7 +213,6 @@ class FilterHelper {
       sqlQueryType: sqlQueryType,
     );
     if (sqlQuery == null) return null;
-    debugPrint(sqlQuery);
     Codec<String, String> stringToBase64 = utf8.fuse(base64);
     return stringToBase64.encode(sqlQuery);
   }
@@ -253,8 +250,7 @@ class FilterHelper {
 
       final activeOptions = filter(filters: filterDataUpdated).length;
 
-      if (item.operator == null ||
-          (item.operator == null && item.value == null)) {
+      if (item.operator == null) {
         // Clear main values
         item.clear();
       } else {
@@ -271,7 +267,7 @@ class FilterHelper {
   }) {
     return filters
         .where((element) =>
-            element.value != null &&
+            // element.value != null &&
             element.operator != null &&
             (strict ? element.operator != FilterOperator.any : true))
         .toList();

@@ -207,11 +207,6 @@ class Utils {
     Map<String, List<String>> qp = {
       ...base,
     };
-    // Remove sql parameter
-    qp.remove('sql');
-    // Remove pagination
-    qp.remove('page');
-    qp.remove('limit');
     // Remove key and value if exist
     qp.removeWhere((key, value) => toReplace.containsKey(key));
     // Merge filters

@@ -94,9 +94,6 @@ class StateShared extends ChangeNotifier {
     }
     if (!canPaginate) return null;
     page = page + 1;
-    mergeQueryParameters = {
-      'page': [page.toString()],
-    };
     return call(ignoreDuplicatedCalls: true);
   }
 
@@ -108,9 +105,6 @@ class StateShared extends ChangeNotifier {
     }
     if (page <= initialPage) return null;
     page = page - 1;
-    mergeQueryParameters = {
-      'page': [page.toString()],
-    };
     return call(ignoreDuplicatedCalls: true);
   }
 
@@ -155,7 +149,7 @@ class StateShared extends ChangeNotifier {
     }
   }
 
-  /// Override [clearAfter] for a custom implementation
+  /// Override clearAfter for a custom implementation
   /// It is called on the [clear]
   void clearAfter() {}
 
@@ -177,9 +171,6 @@ class StateShared extends ChangeNotifier {
   /// Set the page number and trigger filter
   set page(int? value) {
     pageDefault = value ?? initialPage;
-    if (kDebugMode) {
-      if (value != null) print('page: $value');
-    }
   }
 
   /// Returns the [limit] number
@@ -188,9 +179,6 @@ class StateShared extends ChangeNotifier {
   /// Set the [limit] number and trigger filter
   set limit(int? value) {
     limitDefault = value ?? 5;
-    if (kDebugMode) {
-      if (value != null) print('limit: $value');
-    }
   }
 
   /// Returns the trade
@@ -220,6 +208,33 @@ class StateShared extends ChangeNotifier {
   /// Return only the parameters when required and only what you need with [parametersList]
   Map<String, List<String>> get queryParameters {
     if (!passParameters) return {};
+    Map<String, List<String>> queryParametersBase = _queryParameters;
+    // Merge filter parameter
+    final filterParameter = FilterHelper.encode(filters);
+    queryParametersBase = {
+      ...queryParametersBase,
+      'filters': [filterParameter ?? ''],
+    };
+    // Merge SQL parameters
+    queryParametersBase = {
+      ...queryParametersBase,
+      'sql': [sql ?? ''],
+    };
+    if (paginate) {
+      // Add default values for pagination
+      queryParametersBase = {
+        ...queryParametersBase,
+        'page': [page.toString()],
+        'limit': [limit.toString()],
+      };
+    }
+
+    return queryParametersBase;
+  }
+
+  /// Set the list of parameters
+  set queryParameters(Map<String, List<String>>? p) {
+    Map<String, List<String>> parameters = p != null && p.isNotEmpty ? p : {};
 
     /// The parameters that will be returned, everything else is ignored
     Map<String, List<String>> passingQueryParameters = {};
@@ -230,19 +245,32 @@ class StateShared extends ChangeNotifier {
       'order',
       'sort',
       'filters',
+      'page',
+      'limit',
       ...parametersList,
     ];
     for (int i = 0; i < parametersToPass.length; i++) {
       final key = parametersToPass[i];
-      final value = _queryParameters[key];
-      if (_queryParameters.containsKey(key) &&
-          value != null &&
-          (value.isNotEmpty && value.first.isNotEmpty)) {
+      final value = parameters[key];
+      if (value != null && (value.isNotEmpty && value.first.isNotEmpty)) {
         passingQueryParameters[key] = value;
       }
     }
 
+    /// Get page from query
+    final pageFromQuery = passingQueryParameters['page'];
+    final newPage =
+        pageFromQuery != null ? int.tryParse(pageFromQuery.first) : null;
+    pageDefault = newPage ?? page;
+
+    /// Get limit from query
+    final limitFromQuery = passingQueryParameters['limit'];
+    final newLimit =
+        limitFromQuery != null ? int.tryParse(limitFromQuery.first) : null;
+    limitDefault = newLimit ?? limit;
+
     try {
+      /// Get filters
       final queryFilters = passingQueryParameters['filters'];
       final queryFilter = queryFilters != null &&
               (queryFilters.isNotEmpty && queryFilters.first.isNotEmpty)
@@ -250,6 +278,7 @@ class StateShared extends ChangeNotifier {
           : null;
       _filters = FilterHelper.decode(queryFilter);
     } catch (e) {
+      _filters = [];
       debugPrint('!!! decode filters from query: ${e.toString()}');
     }
 
@@ -260,19 +289,12 @@ class StateShared extends ChangeNotifier {
     // Remove pagination parameters
     passingQueryParameters.remove('page');
     passingQueryParameters.remove('limit');
-
-    return passingQueryParameters;
-  }
-
-  /// Set the list of parameters
-  set queryParameters(Map<String, List<String>>? p) {
-    _queryParameters = p != null && p.isNotEmpty ? p : {};
+    _queryParameters = passingQueryParameters;
   }
 
   /// Merge list of parameters
   set mergeQueryParameters(Map<String, List<String>> p) {
-    final qp = Utils.mergeQueryParameters(queryParameters, p);
-    queryParameters = qp;
+    queryParameters = Utils.mergeQueryParameters(queryParameters, p);
   }
 
   /// [selectId] select item by id
@@ -328,8 +350,6 @@ class StateShared extends ChangeNotifier {
     clearAfter();
     if (notify) {
       data = null;
-      // Future.delayed(const Duration(milliseconds: 100))
-      //     .then((value) => notifyListeners());
     } else {
       privateData = null;
     }
@@ -375,27 +395,32 @@ class StateShared extends ChangeNotifier {
     Uri? uri,
     bool merge = false,
   }) {
-    filters = merge
+    List<FilterData> baseFilters = merge
         ? FilterHelper.merge(
-            filters: _filters,
+            filters: filters,
             merge: newFilters,
           )
         : newFilters;
-    clear(notify: true);
-    if (fetch) call(notify: true, ignoreDuplicatedCalls: true);
+    baseFilters = FilterHelper.filter(filters: baseFilters, strict: true);
+    _filters = baseFilters;
+    if (fetch) {
+      call(notify: true, ignoreDuplicatedCalls: true);
+    }
     if (redirect) {
       assert(context != null, 'context can\'t be null for if redirect is true');
       assert(uri != null, 'uri can\'t be null for if redirect is true');
-      final filterParameter = FilterHelper.encode(filters);
       Utils.pushNamedFromQuery(
         context: context!,
         uri: uri!,
         queryParameters: {
           ...queryParameters,
-          'filters': [filterParameter ?? ''],
+          'page': [],
+          'limit': [],
+          'sql': [],
         },
       );
     }
+    notifyListeners();
     return filters;
   }
 }

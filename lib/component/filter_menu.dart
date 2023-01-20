@@ -2,6 +2,7 @@ import 'package:fabric_flutter/helper/enum_data.dart';
 import 'package:flutter/material.dart';
 
 import '../helper/app_localizations_delegate.dart';
+import '../helper/filter_helper.dart';
 import '../helper/format_data.dart';
 import '../helper/options.dart';
 import '../serialized/filter_data.dart';
@@ -386,20 +387,19 @@ class _FilterMenuState extends State<FilterMenu> {
   }
 
   void clear() {
-    data = widget.data.map((e) {
-      FilterData item = e;
-      item.operator = null;
-      item.value = null;
-      item.index = 0;
-      return item;
-    }).toList();
-    widget.onChange(data);
+    // List<FilterData> baseFilters = widget.data;
+    // baseFilters = baseFilters.map((e) {
+    //   FilterData item = e;
+    //   item.clear();
+    //   return item;
+    // }).toList();
+    // data = FilterHelper.filter(filters: baseFilters);
+    widget.onChange([]);
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     assert(
       !(widget.child != null && widget.icon != null),
       'You can only pass [child] or [icon], not both.',
@@ -408,11 +408,9 @@ class _FilterMenuState extends State<FilterMenu> {
 
     /// Ignore options that are included on the filters data
     List<FilterData> pendingOptions =
-        data.where((element) => element.value == null).toList();
-    List<FilterData> activeOptions =
-        data.where((element) => element.value != null).toList();
+        data.where((element) => element.operator == null).toList();
+    List<FilterData> activeOptions = FilterHelper.filter(filters: data);
     activeOptions.sort((a, b) => a.index.compareTo(b.index));
-
     List<PopupMenuEntry<String>> buttons =
         List.generate(pendingOptions.length, (index) {
       final item = pendingOptions[index];
@@ -481,9 +479,7 @@ class _FilterMenuState extends State<FilterMenu> {
           widget.onChange(data);
         },
         onDelete: () {
-          selected.operator = null;
-          selected.value = null;
-          selected.index = 0;
+          selected.clear();
           if (selected.onChange != null) selected.onChange!(selected);
           widget.onChange(data);
         },

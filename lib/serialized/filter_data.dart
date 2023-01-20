@@ -147,8 +147,4 @@ class FilterData {
     value = null;
     index = 0;
   }
-
-  /// TODO: encode to base64
-  /// TODO: decode from base64 and return class
-// String encode() => base64.encode(toJson().);
 }
