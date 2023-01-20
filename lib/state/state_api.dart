@@ -13,9 +13,6 @@ class StateAPI extends StateShared {
 
   /// [initialized] after [endpoint] is set the first time
 
-  /// [_errorCount] to prevent infinite loops
-  int _errorCount = 0;
-
   /// Use [_lastEndpointCalled] to prevent duplicated calls when get() is called
   String? _lastEndpointCalled;
 
@@ -35,26 +32,6 @@ class StateAPI extends StateShared {
   /// Use [AuthScheme.Bearer] and the current user id token for authentication
   bool token = false;
 
-  /// Clear and reset default values
-  void clear({bool notify = false}) {
-    _errorCount = 0;
-    initialized = false;
-    pageDefault = initialPage;
-    limitDefault = 5;
-    selectedItems = [];
-    _lastEndpointCalled = null;
-    privateOldData = null;
-    totalCount = 0;
-    clearAfter();
-    if (notify) {
-      data = null;
-      Future.delayed(const Duration(milliseconds: 100))
-          .then((value) => notifyListeners());
-    } else {
-      privateData = null;
-    }
-  }
-
   /// Define the HTTPS [endpoint] (https://example.com/demo)
   /// when the timestamp is updated it will result in a new call to the API [endpoint].
   /// Don't use a '/' at the beginning of the path
@@ -63,9 +40,9 @@ class StateAPI extends StateShared {
     // if (value != baseEndpoint) clear(notify: false);
     // if (initialized) return;
     baseEndpoint = value;
-    if (_errorCount > 1) {
+    if (errorCount > 1) {
       if (kDebugMode) {
-        print('$_errorCount errors calls to endpoint: $baseEndpoint');
+        print('$errorCount errors calls to endpoint: $baseEndpoint');
       }
       return;
     }
@@ -73,17 +50,22 @@ class StateAPI extends StateShared {
   }
 
   String? get endpoint {
-    if (queryParameters == null || baseEndpoint == null) return baseEndpoint;
+    if (queryParameters.isEmpty || baseEndpoint == null) return baseEndpoint;
     return Utils.uriMergeQuery(
-            uri: Uri.parse(baseEndpoint!), queryParameters: queryParameters!)
-        .toString();
+      uri: Uri.parse(baseEndpoint!),
+      queryParameters: queryParameters,
+    ).toString();
   }
 
   /// Clear URL from pagination queries
   String? urlClear(String? url) {
     if (url == null) return null;
-    return Utils.uriMergeQuery(
-        uri: Uri.parse(url), queryParameters: {'page': [], 'limit': []}).toString();
+    return Utils.uriMergeQuery(uri: Uri.parse(url), queryParameters: {
+      'page': [],
+      'limit': [],
+      'sql': [],
+      'viewAs': [],
+    }).toString();
   }
 
   /// API Call
@@ -100,7 +82,7 @@ class StateAPI extends StateShared {
       if (endpoint == null) {
         data = null;
         error = 'endpoint can\'t be null';
-        _errorCount++;
+        errorCount++;
         loading = false;
         if (notify) notifyListeners();
         return;
@@ -116,7 +98,7 @@ class StateAPI extends StateShared {
       final endpointClear = urlClear(endpoint);
       isSameClearPath = lastEndpointClear == endpointClear && paginate;
       if (!isSameClearPath) {
-        _errorCount = 0;
+        errorCount = 0;
         privateData = null;
         initialized = false;
       } else {
@@ -127,9 +109,9 @@ class StateAPI extends StateShared {
         }
       }
       _lastEndpointCalled = endpoint;
-      if (_errorCount > 1) {
+      if (errorCount > 1) {
         if (kDebugMode) {
-          print('$_errorCount errors calls to endpoint: $endpoint');
+          print('$errorCount errors calls to endpoint: $endpoint');
         }
         loading = false;
         if (!isSameClearPath) data = null;
@@ -182,7 +164,7 @@ class StateAPI extends StateShared {
         error = null;
       } catch (e) {
         if (kDebugMode) print('------------ ERROR API CALL -------------');
-        _errorCount++;
+        errorCount++;
         error = e.toString();
         if (!isSameClearPath) data = null;
         newData = null;
@@ -202,16 +184,15 @@ class StateAPI extends StateShared {
       if (kDebugMode) print('------ ERROR API CALL : Parent catch ------');
       initialized = false;
       loading = false;
-      _errorCount++;
+      errorCount++;
       error = e.toString();
     }
-    // if (notify) {
-    //   /// Notify with delay in case widgets using the state need paint
-    //   Future.delayed(const Duration(milliseconds: 100)).then((value) {
-    //     notifyListeners();
-    //   });
-    // }
     data = privateData;
     return data;
+  }
+
+  @override
+  void clearAfter() {
+    _lastEndpointCalled = null;
   }
 }

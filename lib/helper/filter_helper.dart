@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/widgets.dart';
-
 import '../component/input_data.dart';
 import '../serialized/filter_data.dart';
 import 'enum_data.dart';
@@ -22,11 +20,8 @@ class FilterHelper {
     dynamic response;
     switch (dataType) {
       case InputDataType.date:
-        print('value type: ${value.runtimeType} -- ${value.toString()}');
         response =
             value != null ? '"${(value as DateTime).toIso8601String()}"' : null;
-        // response = DateFormat('yyyy/MM/dd').format(value as DateTime);
-        // response = FormatData.formatDateShort().format(value);
         break;
       case InputDataType.time:
         // TODO: Handle this case.
@@ -51,7 +46,6 @@ class FilterHelper {
               response = value;
           }
         }
-        // response = value != null ? '"$value"' : null;
         break;
       case InputDataType.double:
         response = double.tryParse(value.toString());
@@ -176,12 +170,8 @@ class FilterHelper {
               filter.value[1] == null) {
             break;
           }
-          // final sortBy = valueFromType(
-          //   dataType: InputDataType.dropdown,
-          //   value: filter.value[0],
-          // );
           final sortBy = filter.value[0];
-          final order = filter.value[1] ?? EnumData.describe(FilterOrder.asc);
+          final order = filter.value[1] ?? EnumData.describe(FilterOrder.desc);
           sort += 'ORDER BY $sortBy';
           if (order != null) sort += ' $order';
           break;
@@ -197,7 +187,10 @@ class FilterHelper {
       }
       query += ' $operator $subQuery';
     }
-    if (sort.isNotEmpty) query += ' $sort';
+    if (sort.isEmpty) {
+      sort = 'ORDER BY id ${EnumData.describe(FilterOrder.desc)}';
+    }
+    query += ' $sort';
     if (limit != null) query += ' limit $limit';
     query += ';';
     return query;
@@ -216,7 +209,6 @@ class FilterHelper {
       sqlQueryType: sqlQueryType,
     );
     if (sqlQuery == null) return null;
-    debugPrint(sqlQuery);
     Codec<String, String> stringToBase64 = utf8.fuse(base64);
     return stringToBase64.encode(sqlQuery);
   }
@@ -235,32 +227,30 @@ class FilterHelper {
     required List<FilterData> filters,
     required List<FilterData> merge,
   }) {
-    List<FilterData> filterDataUpdated = filters;
+    List<FilterData> filterDataUpdated = [...filters];
     for (int i = 0; i < merge.length; i++) {
-      try {
-        final toMerge = merge[i];
-        FilterData item =
-            filterDataUpdated.firstWhere((element) => element.id == toMerge.id);
-        item.operator = toMerge.operator;
-        item.index = toMerge.index;
+      FilterData toMerge = merge[i];
 
-        if (item.operator == FilterOperator.any) {
-          item.value = toMerge.value;
-        } else {
-          switch (item.type) {
-            case InputDataType.enums:
-              item.value = EnumData.find(
-                enums: item.enums,
-                value: toMerge.value,
-              );
-              break;
-            default:
-              item.value = toMerge.value;
-          }
-        }
-      } catch (error) {
-        print(error);
-        //-
+      /// Add filter if doesn't exists
+      bool filterExists =
+          filters.where((element) => element.id == toMerge.id).isNotEmpty;
+      if (!filterExists) {
+        filterDataUpdated.add(toMerge);
+      }
+
+      /// Update existing filter
+      FilterData item =
+          filterDataUpdated.firstWhere((element) => element.id == toMerge.id);
+      item.operator = toMerge.operator;
+      item.value = toMerge.value;
+
+      final activeOptions = filter(filters: filterDataUpdated).length;
+
+      if (item.operator == null) {
+        // Clear main values
+        item.clear();
+      } else {
+        if (item.index <= 0) item.index = activeOptions + 1;
       }
     }
     return filterDataUpdated;
@@ -273,7 +263,7 @@ class FilterHelper {
   }) {
     return filters
         .where((element) =>
-            element.value != null &&
+            // element.value != null &&
             element.operator != null &&
             (strict ? element.operator != FilterOperator.any : true))
         .toList();
@@ -304,6 +294,20 @@ class FilterHelper {
 
     /// Encode
     return stringToBase64.encode(filterString);
+  }
+
+  /// Decode filters from base64 encoded string
+  static List<FilterData> decode(String? filters) {
+    List<FilterData> response = [];
+    if (filters != null) {
+      Codec<String, dynamic> stringToBase64 = utf8.fuse(base64);
+      final decodeBase = stringToBase64.decode(filters);
+      final decodeJSON = (json.decode(decodeBase) as List<dynamic>)
+          .map((e) => FilterData.fromJson(e))
+          .toList();
+      response = decodeJSON;
+    }
+    return response;
   }
 
   /// Get value from id

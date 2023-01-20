@@ -53,10 +53,9 @@ class StateDocument extends StateShared {
           data = null;
           return;
         }
-        Map<String, dynamic> _tempData =
-            snapshot.data() as Map<String, dynamic>;
-        _tempData['id'] = snapshotID;
-        data = _tempData;
+        Map<String, dynamic> tempData = snapshot.data() as Map<String, dynamic>;
+        tempData['id'] = snapshotID;
+        data = tempData;
         notifyListeners();
       }, cancelOnError: true).onError((e) {
         isValid = false;
@@ -93,6 +92,7 @@ class StateDocument extends StateShared {
   }
 
   /// Clear document data
+  @override
   void clear({bool notify = false}) {
     _drain();
     initialized = false;
