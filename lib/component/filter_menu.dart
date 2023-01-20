@@ -373,15 +373,21 @@ class FilterMenu extends StatefulWidget {
 class _FilterMenuState extends State<FilterMenu> {
   late List<FilterData> data;
 
+  _updateData() {
+    List<FilterData> newData = widget.data;
+    newData.sort((a, b) => a.index.compareTo(b.index));
+    data = newData.reversed.toList();
+  }
+
   @override
   void initState() {
-    data = widget.data;
+    _updateData();
     super.initState();
   }
 
   @override
   void didUpdateWidget(covariant FilterMenu oldWidget) {
-    data = widget.data;
+    _updateData();
     if (mounted) setState(() {});
     super.didUpdateWidget(oldWidget);
   }
@@ -410,7 +416,6 @@ class _FilterMenuState extends State<FilterMenu> {
     List<FilterData> pendingOptions =
         data.where((element) => element.operator == null).toList();
     List<FilterData> activeOptions = FilterHelper.filter(filters: data);
-    activeOptions.sort((a, b) => a.index.compareTo(b.index));
     List<PopupMenuEntry<String>> buttons =
         List.generate(pendingOptions.length, (index) {
       final item = pendingOptions[index];

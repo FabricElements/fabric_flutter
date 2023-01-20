@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../helper/firestore_helper.dart';
@@ -83,7 +84,7 @@ class UserData {
     // toJson: FirestoreHelper.timestampToJson,
     includeIfNull: true,
     defaultValue: null,
-    ignore: true,
+    includeToJson: false,
   )
   final DateTime? ping;
 
@@ -103,7 +104,7 @@ class UserData {
   final UserPresence presence;
 
   /// Account group with roles
-  @JsonKey(ignore: true)
+  @JsonKey(includeToJson: false)
   final Map<String, String> accounts;
 
   /// Optional username

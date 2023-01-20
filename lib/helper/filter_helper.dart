@@ -20,11 +20,8 @@ class FilterHelper {
     dynamic response;
     switch (dataType) {
       case InputDataType.date:
-        print('value type: ${value.runtimeType} -- ${value.toString()}');
         response =
             value != null ? '"${(value as DateTime).toIso8601String()}"' : null;
-        // response = DateFormat('yyyy/MM/dd').format(value as DateTime);
-        // response = FormatData.formatDateShort().format(value);
         break;
       case InputDataType.time:
         // TODO: Handle this case.
@@ -49,7 +46,6 @@ class FilterHelper {
               response = value;
           }
         }
-        // response = value != null ? '"$value"' : null;
         break;
       case InputDataType.double:
         response = double.tryParse(value.toString());
