@@ -39,8 +39,9 @@ const _$FilterOperatorEnumMap = {
 
 const _$InputDataTypeEnumMap = {
   InputDataType.date: 'date',
-  InputDataType.email: 'email',
   InputDataType.time: 'time',
+  InputDataType.dateTime: 'dateTime',
+  InputDataType.email: 'email',
   InputDataType.double: 'double',
   InputDataType.int: 'int',
   InputDataType.text: 'text',

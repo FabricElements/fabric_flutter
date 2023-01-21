@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -12,8 +13,9 @@ import '../helper/utils.dart';
 /// [InputDataType] defines the supported types for the [InputData] component
 enum InputDataType {
   date,
-  email,
   time,
+  dateTime,
+  email,
   double,
   int,
   text,
@@ -33,11 +35,14 @@ IconData inputDataTypeIcon(InputDataType inputDataType) {
     case InputDataType.date:
       icon = Icons.calendar_month;
       break;
-    case InputDataType.email:
-      icon = Icons.email;
+    case InputDataType.dateTime:
+      icon = Icons.calendar_month;
       break;
     case InputDataType.time:
       icon = Icons.access_time;
+      break;
+    case InputDataType.email:
+      icon = Icons.email;
       break;
     case InputDataType.double:
       icon = Icons.numbers;
@@ -151,6 +156,8 @@ class InputData extends StatefulWidget {
 class _InputDataState extends State<InputData> {
   late TextEditingController textController;
   DateFormat formatDate = DateFormat.yMd('en_US');
+  DateFormat formatDateTime =
+      DateFormat.yMd('en_US').addPattern(' - ').add_jm();
   dynamic value;
   late bool obscureText;
 
@@ -175,6 +182,7 @@ class _InputDataState extends State<InputData> {
           }
           break;
         case InputDataType.date:
+        case InputDataType.dateTime:
           value = newValue != null ? newValue as DateTime : null;
           if (value != null && widget.utcOffset != null) {
             value = Utils.dateTimeOffset(
@@ -183,7 +191,11 @@ class _InputDataState extends State<InputData> {
             );
           }
           if (value != null) {
-            textController.text = formatDate.format(value);
+            if (widget.type == InputDataType.date) {
+              textController.text = formatDate.format(value);
+            } else {
+              textController.text = formatDateTime.format(value);
+            }
           } else {
             textController.text = '';
           }
@@ -375,6 +387,7 @@ getValue -------------------------------------
         ]);
         break;
       case InputDataType.date:
+      case InputDataType.dateTime:
         keyboardType = TextInputType.datetime;
         inputFormatters.addAll([
           FilteringTextInputFormatter.singleLineFormatter,
@@ -416,7 +429,7 @@ getValue -------------------------------------
     );
 
     /// Format New Value
-    dynamic _valueChanged(dynamic valueLocal) {
+    dynamic valueChanged(dynamic valueLocal) {
       if (valueLocal == null) return null;
       String valueLocalString = valueLocal!.toString();
       if (valueLocalString.isEmpty) return null;
@@ -462,25 +475,26 @@ getValue -------------------------------------
           onChanged: (newValue) {
             value = newValue;
             if (widget.onChanged != null) {
-              widget.onChanged!(_valueChanged(value));
+              widget.onChanged!(valueChanged(value));
             }
           },
           onFieldSubmitted: widget.onSubmit == null
               ? null
               : (newValue) {
                   value = newValue;
-                  widget.onSubmit!(_valueChanged(value));
+                  widget.onSubmit!(valueChanged(value));
                   FocusManager.instance.primaryFocus?.unfocus();
                 },
           onEditingComplete: widget.onComplete == null
               ? null
               : () {
-                  widget.onComplete!(_valueChanged(value));
+                  widget.onComplete!(valueChanged(value));
                   FocusManager.instance.primaryFocus?.unfocus();
                 },
         );
         break;
       case InputDataType.date:
+      case InputDataType.dateTime:
         endWidget = TextFormField(
           autofillHints: widget.autofillHints,
           enableSuggestions: false,
@@ -504,19 +518,70 @@ getValue -------------------------------------
               dateBefore = date.isBefore(now) ? date : now;
               dateAfter = date.isAfter(now) ? date : now;
             }
-            final DateTime? picked = await showDatePicker(
-              context: context,
-              initialDate: date,
-              firstDate: dateBefore.subtract(const Duration(days: 365 * 10)),
-              lastDate: dateAfter.add(const Duration(days: 365 * 10)),
-            );
+            late DateTime? picked;
+            final minDate = dateBefore.subtract(const Duration(days: 365 * 10));
+            final maxDate = dateAfter.add(const Duration(days: 365 * 10));
+            if (widget.type == InputDataType.date) {
+              picked = await showDatePicker(
+                context: context,
+                initialDate: date,
+                firstDate: minDate,
+                lastDate: maxDate,
+              );
+            } else if (widget.type == InputDataType.dateTime) {
+              picked = await showDialog<DateTime?>(
+                context: context,
+                barrierDismissible: false, // user must tap button!
+                builder: (BuildContext context) {
+                  DateTime? tempDate;
+                  return AlertDialog(
+                    contentPadding: EdgeInsets.zero,
+                    clipBehavior: Clip.hardEdge,
+                    content: ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        maxHeight: 300,
+                        minHeight: 300,
+                        minWidth: 360,
+                        maxWidth: 500,
+                      ),
+                      child: CupertinoDatePicker(
+                        // use24hFormat: true,
+                        initialDateTime: date,
+                        minimumDate: minDate,
+                        maximumDate: maxDate,
+                        // use24hFormat: true,
+                        // This is called when the user changes the dateTime.
+                        onDateTimeChanged: (DateTime newDateTime) {
+                          tempDate = newDateTime;
+                        },
+                        mode: CupertinoDatePickerMode.dateAndTime,
+                      ),
+                    ),
+                    actions: <Widget>[
+                      TextButton(
+                        child: Text(locales.get('label--cancel')),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                      ElevatedButton(
+                        child: Text(locales.get('label--update')),
+                        onPressed: () {
+                          Navigator.of(context).pop(tempDate);
+                        },
+                      ),
+                    ],
+                  );
+                },
+              );
+            }
             if (picked != null) {
               final newDate = Utils.dateTimeOffset(
                 dateTime: picked,
                 utcOffset: widget.utcOffset,
                 reverse: true,
               );
-              getValue(notify: true, newValue: newDate);
+              // getValue(notify: true, newValue: newDate);
               if (widget.onChanged != null) widget.onChanged!(newDate);
             }
           },
