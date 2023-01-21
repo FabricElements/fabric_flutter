@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 
+import 'content_container.dart';
+
 class StepperExtended extends StatefulWidget {
   const StepperExtended({
     Key? key,
     required this.steps,
+    this.size = ContentContainerSize.medium,
   }) : super(key: key);
   final List<Step> steps;
+  final ContentContainerSize size;
 
   @override
   State<StepperExtended> createState() => _StepperExtendedState();
@@ -67,8 +71,9 @@ class _StepperExtendedState extends State<StepperExtended> {
           child: leadingContent,
         ),
       );
-      return Container(
+      return ContentContainer(
         margin: const EdgeInsets.only(top: 16, bottom: 32, left: 0, right: 16),
+        size: widget.size,
         child: Flex(
           direction: Axis.vertical,
           crossAxisAlignment: CrossAxisAlignment.start,
