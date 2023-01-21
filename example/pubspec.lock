@@ -266,7 +266,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "1.0.15+1"
+    version: "1.0.16+1"
   fake_async:
     dependency: transitive
     description:
@@ -597,7 +597,7 @@ packages:
       name: google_maps_flutter_web
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.4.0+4"
+    version: "0.4.0+5"
   google_maps_webservice:
     dependency: transitive
     description:
@@ -688,7 +688,7 @@ packages:
       name: image_picker
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.8.6"
+    version: "0.8.6+1"
   image_picker_android:
     dependency: transitive
     description:
@@ -756,14 +756,14 @@ packages:
       name: json_annotation
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "4.7.0"
+    version: "4.8.0"
   json_serializable:
     dependency: transitive
     description:
       name: json_serializable
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "6.5.4"
+    version: "6.6.0"
   linkify:
     dependency: transitive
     description:
@@ -1181,7 +1181,7 @@ packages:
       name: url_launcher
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "6.1.7"
+    version: "6.1.8"
   url_launcher_android:
     dependency: transitive
     description:
