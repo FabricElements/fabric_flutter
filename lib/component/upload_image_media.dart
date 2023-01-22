@@ -10,10 +10,12 @@ class UploadImageMedia extends StatefulWidget {
     required this.callback,
     required this.path,
     this.maxDimensions = 1200,
+    this.autoId = false,
   }) : super(key: key);
   final Function(String, MediaData) callback;
   final String path;
   final int maxDimensions;
+  final bool autoId;
 
   @override
   State<UploadImageMedia> createState() => _UploadImageMediaState();
@@ -56,6 +58,7 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
               callback: widget.callback,
               path: widget.path,
               maxDimensions: widget.maxDimensions,
+              autoId: widget.autoId,
             );
             loading = false;
             if (mounted) setState(() {});
@@ -74,6 +77,7 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
               callback: widget.callback,
               path: widget.path,
               maxDimensions: widget.maxDimensions,
+              autoId: widget.autoId,
             );
             loading = false;
             if (mounted) setState(() {});
@@ -93,6 +97,7 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
                     callback: widget.callback,
                     path: widget.path,
                     maxDimensions: widget.maxDimensions,
+                    autoId: widget.autoId,
                   );
                   loading = false;
                   if (mounted) setState(() {});
