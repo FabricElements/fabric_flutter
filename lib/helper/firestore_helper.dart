@@ -20,4 +20,7 @@ class FirestoreHelper {
 
   /// Serialize Timestamp to Json: Used to apply the latest time on every update
   static Timestamp? timestampUpdate(DateTime? time) => Timestamp.now();
+
+  /// Return null value or delete field
+  static dynamic notNullToJson(dynamic value) => value ?? FieldValue.delete();
 }

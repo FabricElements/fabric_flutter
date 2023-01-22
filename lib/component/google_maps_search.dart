@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -8,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../../serialized/place_data.dart';
 import '../helper/app_localizations_delegate.dart';
+import '../helper/http_request.dart';
 import '../state/state_alert.dart';
 import 'google_maps_preview.dart';
 
@@ -131,7 +130,7 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
       Uri url = Uri.parse('${widget.baseUrl}/place/details/json');
       url = url.replace(queryParameters: queryParameters);
       final response = await http.get(url);
-      dynamic newData = json.decode(response.body);
+      dynamic newData = HTTPRequest.response(response);
       final placeResponse = PlaceResponse.fromJson(newData);
       if (placeResponse.errorMessage != null) {
         throw placeResponse.errorMessage!;
@@ -212,7 +211,7 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
                         '${widget.baseUrl}/place/findplacefromtext/json');
                     url = url.replace(queryParameters: queryParameters);
                     final response = await http.get(url);
-                    dynamic newData = json.decode(response.body);
+                    dynamic newData = HTTPRequest.response(response);
                     final search = PlacesResponse.fromJson(newData);
                     if (search.errorMessage != null) {
                       throw search.errorMessage!;
