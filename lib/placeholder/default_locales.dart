@@ -151,6 +151,18 @@ dynamic defaultLocales = {
     'en': 'Role',
     'es': 'Rol',
   },
+  'label--roles': {
+    'en': 'Roles',
+    'es': 'Roles',
+  },
+  'label--roles-by-group': {
+    'en': 'Roles by group',
+    'es': 'Roles por grupo',
+  },
+  'label--role-for-label': {
+    'en': 'Role for {label}',
+    'es': 'Rol para {label}',
+  },
   'label--add': {
     'en': 'Add',
     'es': 'Agregar',
@@ -625,9 +637,17 @@ dynamic defaultLocales = {
     'en': 'Are you sure you want to remove {label}?',
     'es': '¿Seguro que quieres eliminar {label}?'
   },
+  'label--confirm-are-you-sure-remove': {
+    'en': 'Are you sure you want to remove?',
+    'es': '¿Seguro que quieres eliminar?'
+  },
   'label--confirm-are-you-sure-update-label': {
     'en': 'Are you sure you want to update {label}?',
     'es': '¿Seguro que quieres actualizar {label}?'
+  },
+  'label--confirm-are-you-sure-label': {
+    'en': 'Are you sure you want to {label}?',
+    'es': '¿Seguro que quieres {label}?'
   },
   'label--confirm-are-you-sure-update-label-to': {
     'en': "Are you sure you want to update '{label}' to '{to}'?",

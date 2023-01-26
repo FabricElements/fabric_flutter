@@ -32,6 +32,10 @@ UserData _$UserDataFromJson(Map<String, dynamic> json) => UserData(
       fcm: json['fcm'] as String?,
       id: json['id'],
       role: json['role'] as String? ?? 'user',
+      roles: (json['roles'] as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k, e as String),
+          ) ??
+          const {},
       avatar: json['avatar'] as String? ??
           'https://images.unsplash.com/photo-1547679904-ac76451d1594',
       firstName: json['firstName'] as String?,
@@ -66,6 +70,7 @@ Map<String, dynamic> _$UserDataToJson(UserData instance) {
   writeNotNull('phone', instance.phone);
   writeNotNull('password', instance.password);
   val['role'] = instance.role;
+  val['roles'] = instance.roles;
   val['accounts'] = instance.accounts;
   val['username'] = instance.username;
   return val;
