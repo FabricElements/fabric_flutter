@@ -100,6 +100,10 @@ class UserData {
   @JsonKey(includeIfNull: true)
   String role;
 
+  /// User role
+  @JsonKey(includeIfNull: true)
+  Map<String, String> roles;
+
   /// User presence
   final UserPresence presence;
 
@@ -120,6 +124,7 @@ class UserData {
     this.fcm,
     this.id,
     this.role = 'user',
+    this.roles = const {},
     this.avatar = 'https://images.unsplash.com/photo-1547679904-ac76451d1594',
     this.firstName,
     this.lastName,

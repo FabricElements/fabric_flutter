@@ -1,5 +1,4 @@
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -31,6 +30,7 @@ class UserAddUpdate extends StatefulWidget {
     this.user,
     this.group,
     this.groupId,
+    this.groups,
   }) : super(key: key);
   final List<String> roles;
   final Function(UserData data, {String? group, String? groupId}) onConfirm;
@@ -42,8 +42,17 @@ class UserAddUpdate extends StatefulWidget {
   final bool password;
   final Function onChanged;
   final UserData? user;
+
+  /// Group name or key
   final String? group;
+
+  /// Group ID
   final String? groupId;
+
+  /// Groups roles used for dropdown options
+  /// {'groupName':['admin','agent']}
+  /// updates the UserData.roles['groupName'] = 'group role'
+  final Map<String, List<String>>? groups;
 
   @override
   State<UserAddUpdate> createState() => _UserAddUpdateState();
@@ -71,6 +80,8 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
     bool canCall = sending == false;
     if (widget.phone) {
       canCall = canCall && data.phone != null && data.phone!.isNotEmpty;
@@ -236,30 +247,9 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       maxLength: 20,
     );
 
-    List<Widget> inviteWidgets = [];
-    if (widget.role) {
-      inviteWidgets.addAll([
-        InputData(
-          icon: Icons.security,
-          label: locales.get('label--role'),
-          value: data.role,
-          type: InputDataType.dropdown,
-          options: List.generate(widget.roles.length, (index) {
-            final item = widget.roles[index];
-            return ButtonOptions(
-              value: item,
-              label: locales.get('label--$item'),
-            );
-          }),
-          onChanged: (value) {
-            data.role = value ?? widget.roles.first;
-            if (mounted) setState(() {});
-          },
-        ),
-        spacer,
-        spacer,
-      ]);
-    }
+    List<Widget> inviteWidgets = [
+      spacer,
+    ];
     if (widget.name) {
       inviteWidgets.addAll([
         Row(
@@ -296,6 +286,79 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
         spacer,
       ]);
     }
+    if (widget.role) {
+      inviteWidgets.addAll([
+        const Divider(),
+        spacer,
+        Text(locales.get('label--role'), style: textTheme.subtitle1),
+        spacer,
+        spacer,
+      ]);
+      inviteWidgets.addAll([
+        InputData(
+          icon: Icons.security,
+          label: locales.get('label--role'),
+          value: data.role,
+          type: InputDataType.dropdown,
+          options: List.generate(widget.roles.length, (index) {
+            final item = widget.roles[index];
+            return ButtonOptions(
+              value: item,
+              label: locales.get('label--$item'),
+            );
+          }),
+          onChanged: (value) {
+            data.role = value ?? widget.roles.first;
+            if (mounted) setState(() {});
+          },
+        ),
+        spacer,
+        spacer,
+      ]);
+    }
+
+    if (widget.groups != null) {
+      inviteWidgets.addAll([
+        const Divider(),
+        spacer,
+        Text(locales.get('label--roles-by-group'), style: textTheme.subtitle1),
+        spacer,
+        spacer,
+      ]);
+      final groupsRolesItems = widget.groups!.entries.toList();
+      for (int i = 0; i < groupsRolesItems.length; i++) {
+        final item = groupsRolesItems[i];
+        final groupsRoles = item.value;
+        inviteWidgets.addAll([
+          InputData(
+            icon: Icons.security,
+            label: locales.get('label--role-for-label',
+                {'label': locales.get('label--${item.key}')}),
+            value: data.roles[item.key],
+            type: InputDataType.dropdown,
+            options: List.generate(groupsRoles.length, (index) {
+              final item = groupsRoles[index];
+              return ButtonOptions(
+                value: item,
+                label: locales.get('label--$item'),
+              );
+            }),
+            onChanged: (value) {
+              Map<String, String> newRoles = {...data.roles};
+              if (value == null) {
+                newRoles.remove(item.key);
+              } else {
+                newRoles[item.key] = value;
+              }
+              data.roles = newRoles;
+              if (mounted) setState(() {});
+            },
+          ),
+          spacer,
+          spacer,
+        ]);
+      }
+    }
 
     inviteWidgets.addAll([
       Padding(
@@ -308,7 +371,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
               onPressed: () {
                 Navigator.pop(context, 'cancel');
               },
-              style: TextButton.styleFrom(primary: Colors.deepOrange),
+              style: TextButton.styleFrom(foregroundColor: Colors.deepOrange),
             ),
             const Spacer(),
             ElevatedButton.icon(
