@@ -118,28 +118,16 @@ class _EditSaveButtonState extends State<EditSaveButton> {
         ),
       );
 
-      updateButton = ElevatedButton.icon(
+      updateButton = FilledButton.icon(
         onPressed: update,
-        icon: Icon(Icons.save, color: theme.colorScheme.primary),
+        icon: const Icon(Icons.save),
         label: Text(locales.get('label--update')),
-        style: ButtonStyle(
-          foregroundColor: MaterialStateProperty.all(
-            theme.buttonTheme.colorScheme?.primary ?? Colors.indigo,
-          ),
-          backgroundColor: MaterialStateProperty.all(Colors.white),
-        ),
       );
 
-      editButton = ElevatedButton.icon(
-        icon: Icon(Icons.edit, color: theme.colorScheme.primary),
+      editButton = FilledButton.icon(
+        icon: const Icon(Icons.edit),
         onPressed: widget.edit,
         label: Text(locales.get('label--edit')),
-        style: ButtonStyle(
-          foregroundColor: MaterialStateProperty.all(
-            theme.buttonTheme.colorScheme?.primary ?? Colors.indigo,
-          ),
-          backgroundColor: MaterialStateProperty.all(Colors.white),
-        ),
       );
     }
 

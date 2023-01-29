@@ -4,7 +4,6 @@ import 'dart:io' show Platform;
 import 'dart:math';
 
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:country_code_picker/country_code_picker.dart';
 import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
@@ -29,7 +28,6 @@ class ViewAuthValues {
   String email = '';
   String emailPassword = '';
   String phone = '';
-  String phoneCountry;
   int? phoneVerificationCode;
   String? verificationId;
 
@@ -40,7 +38,6 @@ class ViewAuthValues {
     this.email = '',
     this.emailPassword = '',
     this.phone = '',
-    this.phoneCountry = '+1',
     this.phoneVerificationCode,
     this.verificationId,
     this.phoneValid,
@@ -157,7 +154,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     final theme = Theme.of(context);
     final stateAnalytics = Provider.of<StateAnalytics>(context, listen: false);
     stateAnalytics.screenName = 'auth';
-    void _closeKeyboard() {
+    void closeKeyboard() {
       if (kIsWeb) return;
       if (Platform.isAndroid || Platform.isIOS) {
         try {
@@ -169,17 +166,15 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     }
 
     void resetView() {
-      _closeKeyboard();
+      closeKeyboard();
       section = 0;
       dataAuth = ViewAuthValues();
       if (mounted) setState(() {});
     }
 
     /// Get phone number
-    dataAuth.phoneValid = dataAuth.phoneCountry.isNotEmpty &&
-            dataAuth.phone.isNotEmpty &&
-            dataAuth.phone.length > 4
-        ? '${dataAuth.phoneCountry}${dataAuth.phone}'
+    dataAuth.phoneValid = dataAuth.phone.isNotEmpty && dataAuth.phone.length > 4
+        ? dataAuth.phone
         : null;
 
     if (loading) {
@@ -227,7 +222,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     }
 
     /// Verify phone number
-    void _verifyPhoneNumber() async {
+    void verifyPhoneNumber() async {
       assert(dataAuth.phoneValid != null, 'Phone number can\'t be null');
       loading = true;
       bool success = false;
@@ -259,7 +254,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           clear: true,
         ));
       } catch (error) {
-        print('confirmationResult failed ----------');
+        debugPrint('confirmationResult failed ----------');
         alert.show(AlertData(
           title: error.toString(),
           type: AlertType.critical,
@@ -274,7 +269,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       if (mounted) setState(() {});
     }
 
-    Future<void> _confirmCodeWeb() async {
+    Future<void> confirmCodeWeb() async {
       try {
         assert(
             dataAuth.phoneVerificationCode != null &&
@@ -300,7 +295,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     }
 
     /// Example code of how to sign in with phone.
-    void _signInWithPhoneNumber() async {
+    void signInWithPhoneNumber() async {
       try {
         assert(dataAuth.verificationId != null, 'VerificationId missing');
         assert(
@@ -327,7 +322,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     }
 
     /// Sign in with google function
-    void _signInGoogle() async {
+    void signInGoogle() async {
       loading = true;
       if (mounted) setState(() {});
       try {
@@ -383,7 +378,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     }
 
     /// Email Link Sign-in
-    Future<void> _signInWithEmailAndLink() async {
+    Future<void> signInWithEmailAndLink() async {
       try {
         await verifyIfUserExists({'email': dataAuth.email});
         await _auth.sendSignInLinkToEmail(
@@ -421,7 +416,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     }
 
     /// Email Link Sign-in
-    Future<void> _confirmEmail() async {
+    Future<void> confirmEmail() async {
       try {
         await verifyIfUserExists({'email': dataAuth.email});
         final User? user = (await _auth.signInWithEmailLink(
@@ -545,10 +540,10 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         icon = Icons.navigate_next}) {
       return SizedBox(
         width: double.infinity,
-        child: ElevatedButton.icon(
+        child: FilledButton.icon(
           onPressed: onPressed,
           icon: Icon(icon),
-          label: Text(label, style: const TextStyle(color: Colors.white)),
+          label: Text(label),
         ),
       );
     }
@@ -583,7 +578,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         case 'google':
           text = locales.get('label--sign-in-google');
           icon = Icons.link;
-          action = _signInGoogle;
+          action = signInGoogle;
           break;
         case 'email':
           text = locales.get('label--sign-in-email');
@@ -595,7 +590,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       }
       return Padding(
         padding: const EdgeInsets.only(top: 16),
-        child: FloatingActionButton.extended(
+        child: FilledButton.icon(
           onPressed: action,
           label: Text(text.toUpperCase()),
           icon: Icon(icon),
@@ -616,7 +611,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     if (widget.phone && (kIsWeb || Platform.isIOS || Platform.isAndroid)) {
       homeButtonOptions.add(authButton('phone'));
     }
-    if (widget.email && !kIsWeb) homeButtonOptions.add(authButton('email'));
+    if (widget.email) homeButtonOptions.add(authButton('email'));
     if (widget.anonymous) homeButtonOptions.add(authButton('anonymous'));
     Widget home = AnimatedOpacity(
       opacity: section == 0 ? 1 : 0,
@@ -668,7 +663,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
                                   width: double.infinity,
                                   child: Text(
                                     locales.get('page-auth--title'),
-                                    style: textTheme.headline6,
+                                    style: textTheme.titleLarge,
                                     // textAlign: TextAlign.center,
                                   ),
                                 ),
@@ -677,7 +672,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
                                   width: double.infinity,
                                   child: Text(
                                     locales.get('page-auth--description'),
-                                    style: textTheme.subtitle1,
+                                    style: textTheme.titleMedium,
                                     // textAlign: TextAlign.center,
                                   ),
                                 ),
@@ -687,7 +682,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
                                   padding: const EdgeInsets.only(top: 16),
                                   child: Text(
                                     "${locales.get('label--version')}: ${stateGlobal.packageInfo.version}+${stateGlobal.packageInfo.buildNumber}",
-                                    style: textTheme.caption,
+                                    style: textTheme.bodySmall,
                                   ),
                                 ),
                               ],
@@ -727,57 +722,28 @@ class _ViewAuthPageState extends State<ViewAuthPage>
 
     Widget buttonCancel = SizedBox(
       width: double.infinity,
-      child: ElevatedButton.icon(
+      child: TextButton.icon(
         icon: const Icon(Icons.close),
-        style: ButtonStyle(
-            backgroundColor:
-                MaterialStateProperty.all<Color>(Colors.grey.shade800)),
         label: Text(locales.get('label--cancel').toUpperCase()),
         onPressed: resetView,
       ),
     );
 
     List<Widget> sectionsPhoneNumber = [
-      Flex(
-        direction: Axis.horizontal,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          CountryCodePicker(
-            onChanged: (CountryCode countryCode) {
-              dataAuth.phoneCountry = countryCode.toString();
-              if (mounted) setState(() {});
-            },
-            // Initial selection and favorite can be one of code ('IT') OR DIAL_CODE('+39')
-            initialSelection: 'US',
-            favorite: const ['US'],
-            // optional. Shows only country name and flag
-            showCountryOnly: true,
-            // optional. Shows only country name and flag when popup is closed.
-            showOnlyCountryWhenClosed: false,
-            // optional. aligns the flag and the Text left
-            alignLeft: false,
-            // dialogTextStyle: TextStyle(color: Colors.black),
-            // hideSearch: true,
-            // dialogTextStyle: TextStyle(color: Colors.black),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-          ),
-          spacer,
-          Expanded(
-            child: InputData(
-              value: int.tryParse(dataAuth.phone),
-              type: InputDataType.int,
-              hintText: locales.get('label--phone-number'),
-              maxLength: 14,
-              onChanged: (value) {
-                if (mounted) {
-                  setState(() {
-                    dataAuth.phone = (value ?? '').toString();
-                  });
-                }
-              },
-            ),
-          ),
-        ],
+      SizedBox(
+        width: double.maxFinite,
+        child: InputData(
+          value: dataAuth.phone,
+          type: InputDataType.phone,
+          icon: Icons.phone,
+          label: locales.get('label--phone-number'),
+          isExpanded: true,
+          maxLength: 14,
+          onChanged: (value) {
+            dataAuth.phone = (value ?? '').toString();
+            if (mounted) setState(() {});
+          },
+        ),
       ),
       spacerLarge,
     ];
@@ -787,7 +753,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         actionButton(
           icon: Icons.send_rounded,
           label: locales.get('label--verify').toUpperCase(),
-          onPressed: _verifyPhoneNumber,
+          onPressed: verifyPhoneNumber,
         ),
       );
     }
@@ -824,9 +790,9 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           label: actionLabel.toUpperCase(),
           onPressed: () async {
             if (willSignInWithEmail) {
-              await _confirmEmail();
+              await confirmEmail();
             } else {
-              await _signInWithEmailAndLink();
+              await signInWithEmailAndLink();
             }
           },
         ),
@@ -864,9 +830,9 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           label: locales.get('label--sign-in-with-phone'),
           onPressed: () {
             if (kIsWeb) {
-              _confirmCodeWeb();
+              confirmCodeWeb();
             } else {
-              _signInWithPhoneNumber();
+              signInWithPhoneNumber();
             }
           },
         ),
@@ -881,7 +847,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     return Scaffold(
       body: SizedBox.expand(
         child: Container(
-          color: theme.backgroundColor,
+          color: theme.colorScheme.background,
           child: IndexedStack(
             index: section,
             children: <Widget>[

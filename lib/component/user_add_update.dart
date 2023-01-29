@@ -374,7 +374,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
               style: TextButton.styleFrom(foregroundColor: Colors.deepOrange),
             ),
             const Spacer(),
-            ElevatedButton.icon(
+            FilledButton.icon(
               icon: const Icon(Icons.person_add),
               label: Text(actionLabel),
               onPressed: canCall ? validateInvitation : null,

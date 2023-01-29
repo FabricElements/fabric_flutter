@@ -1,5 +1,4 @@
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -364,7 +363,7 @@ class _UserAdminState extends State<UserAdmin> {
         const SizedBox(height: 32),
         Align(
           alignment: Alignment.center,
-          child: ElevatedButton.icon(
+          child: FilledButton.icon(
             icon: const Icon(Icons.person_add),
             label: Text(locales.get('label--add-label', {
               'label': locales.get('label--user'),
