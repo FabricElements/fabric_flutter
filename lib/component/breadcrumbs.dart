@@ -26,8 +26,8 @@ class Breadcrumbs extends StatelessWidget {
     ThemeData theme = Theme.of(context);
     TextTheme textTheme = theme.textTheme;
     List<Widget> items = [];
-    TextStyle? textStyleDefault = textStyle ?? textTheme.caption;
-    TextStyle? dividerStyleDefault = dividerStyle ?? textTheme.caption;
+    TextStyle? textStyleDefault = textStyle ?? textTheme.bodySmall;
+    TextStyle? dividerStyleDefault = dividerStyle ?? textTheme.bodySmall;
     for (int i = 0; i < buttons.length; i++) {
       ButtonOptions button = buttons[i];
       bool clickable = button.path != null || button.onTap != null;
