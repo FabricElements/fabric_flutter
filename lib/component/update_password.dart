@@ -104,7 +104,7 @@ class _UpdatePasswordState extends State<UpdatePassword> {
     }
 
     if (ok) {
-      sections.add(FilledButton(
+      sections.add(ElevatedButton(
         onPressed: () {
           alert.show(AlertData(
             title: locales.get('label--confirm-are-you-sure-update-label', {

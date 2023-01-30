@@ -564,7 +564,7 @@ getValue -------------------------------------
                           Navigator.of(context).pop();
                         },
                       ),
-                      FilledButton(
+                      ElevatedButton(
                         child: Text(locales.get('label--update')),
                         onPressed: () {
                           Navigator.of(context).pop(tempDate);
@@ -597,7 +597,7 @@ getValue -------------------------------------
             locales.get('label--choose-label', {
               'label': locales.get('label--time'),
             });
-        endWidget = FilledButton.icon(
+        endWidget = ElevatedButton.icon(
           onPressed: isDisabled
               ? null
               : () async {

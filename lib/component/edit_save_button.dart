@@ -118,13 +118,13 @@ class _EditSaveButtonState extends State<EditSaveButton> {
         ),
       );
 
-      updateButton = FilledButton.icon(
+      updateButton = ElevatedButton.icon(
         onPressed: update,
         icon: const Icon(Icons.save),
         label: Text(locales.get('label--update')),
       );
 
-      editButton = FilledButton.icon(
+      editButton = ElevatedButton.icon(
         icon: const Icon(Icons.edit),
         onPressed: widget.edit,
         label: Text(locales.get('label--edit')),

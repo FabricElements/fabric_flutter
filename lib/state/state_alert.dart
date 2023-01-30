@@ -298,7 +298,7 @@ class StateAlert extends ChangeNotifier {
       bool hasAction = alertData.action!.onTap != null;
       bool hasDismissAction = alertData.dismiss!.onTap != null;
       if (hasAction || hasValidPath) {
-        actions.add(FilledButton.icon(
+        actions.add(ElevatedButton.icon(
           style: ButtonStyle(
             backgroundColor: MaterialStateProperty.all(buttonColor),
             foregroundColor: MaterialStateProperty.all(buttonColorText),

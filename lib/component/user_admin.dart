@@ -363,7 +363,7 @@ class _UserAdminState extends State<UserAdmin> {
         const SizedBox(height: 32),
         Align(
           alignment: Alignment.center,
-          child: FilledButton.icon(
+          child: ElevatedButton.icon(
             icon: const Icon(Icons.person_add),
             label: Text(locales.get('label--add-label', {
               'label': locales.get('label--user'),

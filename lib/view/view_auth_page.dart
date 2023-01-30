@@ -540,7 +540,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         icon = Icons.navigate_next}) {
       return SizedBox(
         width: double.infinity,
-        child: FilledButton.icon(
+        child: ElevatedButton.icon(
           onPressed: onPressed,
           icon: Icon(icon),
           label: Text(label),
@@ -590,7 +590,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       }
       return Padding(
         padding: const EdgeInsets.only(top: 16),
-        child: FilledButton.icon(
+        child: ElevatedButton.icon(
           onPressed: action,
           label: Text(text.toUpperCase()),
           icon: Icon(icon),
