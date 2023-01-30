@@ -46,7 +46,9 @@ class AppLocalizations {
           finalResponse = keys[keyPath][locale.languageCode];
         }
       }
-    } catch (error) {}
+    } catch (error) {
+      //
+    }
     if (finalResponse == '') {
       finalResponse = keyPath;
     }
@@ -62,13 +64,13 @@ class AppLocalizations {
         try {
           String tag = text.substring(match.start, match.end);
           String cleanTag = tag.substring(1, tag.length - 1);
-          RegExp _regExp = RegExp(r'' + tag + '', multiLine: true);
+          RegExp regExpTag = RegExp(r'' + tag + '', multiLine: true);
           String? replaceWith = options[cleanTag];
           if (replaceWith != null) {
-            result = result.replaceAll(_regExp, replaceWith);
+            result = result.replaceAll(regExpTag, replaceWith);
           }
         } catch (e) {
-          print(e);
+          debugPrint(e.toString());
         }
       }
     }
@@ -78,16 +80,20 @@ class AppLocalizations {
   /// Get Locale from key and options
   /// [key] the locale key. It will be cleaned and fixed as needed
   /// [options] the locale optional values that will be replaced
-  String get(String? key, [Map<String, String>? options]) {
-    String _key = key ?? 'label--unknown';
+  String get(dynamic key, [Map<String, String>? options]) {
+    // Return same value if it doesn't contain a --- string
+    if (key != null && !key.toString().contains('--')) {
+      return key;
+    }
+    String keyFinal = key?.toString() ?? 'label--unknown';
     // Fix dash
-    _key = _key.replaceAll('_', '-');
+    keyFinal = keyFinal.replaceAll('_', '-');
     // Remove invalid characters
     RegExp regExp = RegExp(r'([^a-zA-Z\d-]+)');
-    _key = _key.replaceAll(regExp, '');
+    keyFinal = keyFinal.replaceAll(regExp, '');
     // Handle camelCase
     RegExp exp = RegExp(r'(?<=[a-z])[A-Z]');
-    String endKey = _key
+    String endKey = keyFinal
         .replaceAllMapped(exp, (Match m) => ('-${m.group(0)!}'))
         .toLowerCase();
     String finalLocalization = _mergeLocales(endKey);
