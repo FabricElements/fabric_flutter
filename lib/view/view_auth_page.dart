@@ -680,10 +680,8 @@ class _ViewAuthPageState extends State<ViewAuthPage>
                                 ...homeButtonOptions,
                                 Padding(
                                   padding: const EdgeInsets.only(top: 16),
-                                  child: Text(
-                                    "${locales.get('label--version')}: ${stateGlobal.packageInfo.version}+${stateGlobal.packageInfo.buildNumber}",
-                                    style: textTheme.bodySmall,
-                                  ),
+                                  child: Text(stateGlobal.appVersion ?? '',
+                                      style: textTheme.bodySmall),
                                 ),
                               ],
                             ),

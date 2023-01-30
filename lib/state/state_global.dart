@@ -8,7 +8,7 @@ class StateGlobal extends ChangeNotifier {
   /// More at [packageInfo]
   PackageInfo? _packageInfo;
 
-  /// [packageInfo] returns [PackageInfo] temporal or final data
+  /// packageInfo returns [PackageInfo] temporal or final data
   PackageInfo get packageInfo {
     if (_packageInfo == null) {
       PackageInfo.fromPlatform().then((value) {
@@ -17,13 +17,29 @@ class StateGlobal extends ChangeNotifier {
             .then((value) => notifyListeners());
       });
       return PackageInfo(
-        appName: 'Unknown',
-        packageName: 'Unknown',
-        version: 'Unknown',
-        buildNumber: 'Unknown',
-        buildSignature: 'Unknown',
+        appName: '',
+        packageName: '',
+        version: '',
+        buildNumber: '',
+        buildSignature: '',
       );
     }
     return _packageInfo!;
+  }
+
+  /// Return app version as a string
+  String? get appVersion {
+    if (_packageInfo == null) return '';
+    String finalVersion = '';
+    if (packageInfo.version.isNotEmpty) {
+      finalVersion += 'v';
+      finalVersion += packageInfo.version;
+      if (packageInfo.buildNumber.isNotEmpty) {
+        finalVersion += '+';
+        finalVersion += packageInfo.buildNumber;
+      }
+    }
+    if (finalVersion.isEmpty) return null;
+    return finalVersion;
   }
 }
