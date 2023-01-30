@@ -77,7 +77,6 @@ class UserAvatar extends StatelessWidget {
         border: Border.all(
           color: Colors.white,
           width: 1,
-          strokeAlign: StrokeAlign.outside,
         ),
       ),
     );
