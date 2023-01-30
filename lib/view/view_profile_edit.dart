@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
@@ -97,9 +96,6 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
       _avatarFinalUrl = null;
       try {
         if (_temporalImageBytes != null) {
-          // String base64Image = base64UrlEncode(_temporalImageBytes!);
-          // previewImage = NetworkImage(base64Image);
-          // previewImage = FileImage(File(base64Image));
           previewImage = MemoryImage(_temporalImageBytes!);
           return;
         }
@@ -119,7 +115,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
     }
 
     refreshImage();
-    void _closeKeyboard() {
+    void closeKeyboard() {
       try {
         FocusScope.of(context).requestFocus(FocusNode());
       } catch (error) {
@@ -352,7 +348,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
           },
         ),
       ),
-      body: GestureDetector(onTap: _closeKeyboard, child: getBody()),
+      body: GestureDetector(onTap: closeKeyboard, child: getBody()),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: changed && !loading
           ? FloatingActionButton.extended(
