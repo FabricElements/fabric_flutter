@@ -29,7 +29,6 @@ class StateGlobal extends ChangeNotifier {
 
   /// Return app version as a string
   String? get appVersion {
-    if (_packageInfo == null) return '';
     String finalVersion = '';
     if (packageInfo.version.isNotEmpty) {
       finalVersion += 'v';
