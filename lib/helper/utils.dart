@@ -2,10 +2,11 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:devicelocale/devicelocale.dart';
-import 'package:fabric_flutter/serialized/user_data.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
+
+import '../serialized/user_data.dart';
 
 /// Utils for a variety of different utility functions.
 class Utils {

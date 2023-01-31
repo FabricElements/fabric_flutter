@@ -1,7 +1,7 @@
-import 'package:fabric_flutter/serialized/user_data.dart';
 import 'package:flutter/material.dart';
 
 import '../helper/utils.dart';
+import '../serialized/user_data.dart';
 
 /// UserAvatar shows the image and the name of the users in profile sections.
 ///

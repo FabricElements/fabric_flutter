@@ -10,6 +10,7 @@ import '../state/state_dynamic_links.dart';
 import '../state/state_global.dart';
 import '../state/state_notifications.dart';
 import '../state/state_user.dart';
+import '../state/state_users.dart';
 
 class InitApp extends StatelessWidget {
   const InitApp({
@@ -36,12 +37,13 @@ class InitApp extends StatelessWidget {
       /// Init Providers
       providers: [
         ...providers,
+        ChangeNotifierProvider(create: (context) => StateGlobal()),
         ChangeNotifierProvider(create: (context) => StateUser()),
+        ChangeNotifierProvider(create: (context) => StateAlert()),
         ChangeNotifierProvider(create: (context) => StateAnalytics()),
         ChangeNotifierProvider(create: (context) => StateDynamicLinks()),
         ChangeNotifierProvider(create: (context) => StateNotifications()),
-        ChangeNotifierProvider(create: (context) => StateGlobal()),
-        ChangeNotifierProvider(create: (context) => StateAlert()),
+        ChangeNotifierProvider(create: (context) => StateUsers()),
       ],
       child: InitAppChild(
         notifications: notifications,

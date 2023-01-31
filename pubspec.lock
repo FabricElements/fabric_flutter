@@ -444,7 +444,7 @@ packages:
       name: flutter_markdown
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.6.13"
+    version: "0.6.13+1"
   flutter_plugin_android_lifecycle:
     dependency: transitive
     description:
@@ -622,7 +622,7 @@ packages:
       name: image
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "4.0.12"
+    version: "4.0.13"
   image_picker:
     dependency: "direct main"
     description:
@@ -984,7 +984,7 @@ packages:
       name: source_gen
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.2.6"
+    version: "1.2.7"
   source_helper:
     dependency: transitive
     description:
