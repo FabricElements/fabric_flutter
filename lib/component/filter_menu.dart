@@ -110,6 +110,7 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
       try {
         switch (data.type) {
           case InputDataType.date:
+          case InputDataType.dateTime:
             if (data.operator == FilterOperator.between) {
               label += FormatData.formatDateShort().format(data.value[0]);
               label += ' ${locales.get('label--and')} ';
@@ -415,6 +416,7 @@ class _FilterMenuState extends State<FilterMenu> {
     /// Ignore options that are included on the filters data
     List<FilterData> pendingOptions =
         data.where((element) => element.operator == null).toList();
+    pendingOptions.sort((a, b) => a.label.compareTo(b.label));
     List<FilterData> activeOptions = FilterHelper.filter(filters: data);
     List<PopupMenuEntry<String>> buttons =
         List.generate(pendingOptions.length, (index) {

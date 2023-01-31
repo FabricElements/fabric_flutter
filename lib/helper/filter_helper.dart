@@ -19,6 +19,7 @@ class FilterHelper {
     if (value == null) return value;
     dynamic response;
     switch (dataType) {
+      case InputDataType.dateTime:
       case InputDataType.date:
         response =
             value != null ? '"${(value as DateTime).toIso8601String()}"' : null;
@@ -60,10 +61,12 @@ class FilterHelper {
     return response;
   }
 
-  static String _sqlOperator(
-    FilterOperator operator,
-    SQLQueryType sqlQueryType,
-  ) {
+  static String _sqlOperator({
+    required FilterOperator operator,
+    required SQLQueryType sqlQueryType,
+    dynamic value,
+    String? id,
+  }) {
     late String operatorResult;
     switch (operator) {
       case FilterOperator.equal:
@@ -81,7 +84,15 @@ class FilterHelper {
         }
         break;
       case FilterOperator.contains:
-        operatorResult = '=';
+        switch (sqlQueryType) {
+          case SQLQueryType.sql:
+          case SQLQueryType.bigQuery:
+            operatorResult = 'LIKE';
+            break;
+          case SQLQueryType.openSearch:
+            operatorResult = 'MATCH_QUERY($id, \'$value\', 0.5)';
+            break;
+        }
         break;
       case FilterOperator.greaterThan:
         operatorResult = '>';
@@ -126,12 +137,17 @@ class FilterHelper {
       String subQuery = '';
       switch (filter.operator!) {
         case FilterOperator.contains:
-          final value = valueFromType(
-            dataType: filter.type,
-            value: filter.value,
-          );
-          subQuery +=
-              '${filter.id} ${_sqlOperator(filter.operator!, sqlQueryType)} $value';
+          if (sqlQueryType == SQLQueryType.openSearch) {
+            subQuery += _sqlOperator(
+              operator: filter.operator!,
+              sqlQueryType: sqlQueryType,
+              id: filter.id,
+              value: filter.value,
+            );
+          } else {
+            subQuery +=
+                '${filter.id} ${_sqlOperator(operator: filter.operator!, sqlQueryType: sqlQueryType)} \'%${filter.value.toString()}%\'';
+          }
           break;
         case FilterOperator.equal:
         case FilterOperator.notEqual:
@@ -144,7 +160,7 @@ class FilterHelper {
             value: filter.value,
           );
           subQuery +=
-              '${filter.id} ${_sqlOperator(filter.operator!, sqlQueryType)} $value';
+              '${filter.id} ${_sqlOperator(operator: filter.operator!, sqlQueryType: sqlQueryType)} $value';
           break;
         case FilterOperator.between:
           final value1 = valueFromType(
@@ -161,7 +177,7 @@ class FilterHelper {
           break;
         case FilterOperator.any:
           subQuery +=
-              '${filter.id} ${_sqlOperator(filter.operator!, sqlQueryType)}';
+              '${filter.id} ${_sqlOperator(operator: filter.operator!, sqlQueryType: sqlQueryType)}';
           break;
         case FilterOperator.sort:
           if (filter.value == null ||
