@@ -1,5 +1,4 @@
-// import 'package:cloud_functions/cloud_functions.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
@@ -28,11 +27,6 @@ class InitApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    /// Run on emulators
-    // if (kDebugMode) {
-    //   FirebaseFunctions.instance.useFunctionsEmulator('localhost', 5001);
-    //   // FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
-    // }
     return MultiProvider(
       /// Init Providers
       providers: [
@@ -106,7 +100,7 @@ class InitAppChild extends StatelessWidget {
       );
 
       /// Dynamic Links
-      if (links && !kDebugMode) {
+      if (links && !kIsWeb && !kDebugMode) {
         stateDynamicLinks.init();
       }
     } catch (error) {
