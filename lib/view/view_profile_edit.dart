@@ -137,7 +137,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
       newNameFirst = newNameFirst.trim();
       String newNameLast = nameLastController.text;
       newNameLast = newNameLast.trim();
-      if (newNameFirst.length < 3) {
+      if (newNameFirst.isEmpty) {
         alert.show(AlertData(
           title: locales.get('label--too-short', {
             'label': locales.get('label--first-name'),
@@ -147,7 +147,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
         ));
         return;
       }
-      if (newNameLast.length < 3) {
+      if (newNameLast.isEmpty) {
         alert.show(AlertData(
           title: locales.get('label--too-short', {
             'label': locales.get('label--last-name'),

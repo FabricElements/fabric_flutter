@@ -29,11 +29,10 @@ class UserAddUpdate extends StatefulWidget {
     required this.onChanged,
     this.user,
     this.group,
-    this.groupId,
     this.groups,
   }) : super(key: key);
   final List<String> roles;
-  final Function(UserData data, {String? group, String? groupId}) onConfirm;
+  final Function(UserData data, {String? group}) onConfirm;
   final bool email;
   final bool phone;
   final bool username;
@@ -43,11 +42,8 @@ class UserAddUpdate extends StatefulWidget {
   final Function onChanged;
   final UserData? user;
 
-  /// Group name or key
+  /// Group id
   final String? group;
-
-  /// Group ID
-  final String? groupId;
 
   /// Groups roles used for dropdown options
   /// {'groupName':['admin','agent']}
@@ -83,11 +79,9 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     bool canCall = sending == false;
-    if (widget.phone) {
-      canCall = canCall && data.phone != null && data.phone!.isNotEmpty;
-    } else if (widget.email) {
-      canCall = canCall && data.email != null && data.email!.isNotEmpty;
-    }
+    bool validPhone = data.phone != null && data.phone!.isNotEmpty;
+    bool validEmail = data.email != null && data.email!.isNotEmpty;
+    canCall = canCall && (validPhone || validEmail);
     if (widget.username) {
       canCall = canCall && data.username != null && data.username!.isNotEmpty;
     }
@@ -120,8 +114,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       assert(data.username != null || data.email != null || data.phone != null,
           'username, email or phone must not be null');
       try {
-        await widget.onConfirm(data,
-            group: widget.group, groupId: widget.groupId);
+        await widget.onConfirm(data, group: widget.group);
         alert
             .show(AlertData(
           clear: true,
@@ -334,7 +327,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
             icon: Icons.security,
             label: locales.get('label--role-for-label',
                 {'label': locales.get('label--${item.key}')}),
-            value: data.roles[item.key],
+            value: data.groups[item.key],
             type: InputDataType.dropdown,
             options: List.generate(groupsRoles.length, (index) {
               final item = groupsRoles[index];
@@ -344,13 +337,13 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
               );
             }),
             onChanged: (value) {
-              Map<String, String> newRoles = {...data.roles};
+              Map<String, String> newRoles = {...data.groups};
               if (value == null) {
                 newRoles.remove(item.key);
               } else {
                 newRoles[item.key] = value;
               }
-              data.roles = newRoles;
+              data.groups = newRoles;
               if (mounted) setState(() {});
             },
           ),

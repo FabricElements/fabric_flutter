@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -5,15 +6,20 @@ import 'package:provider/provider.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/options.dart';
 import '../helper/user_roles.dart';
+import '../helper/user_roles_firebase.dart';
 import '../serialized/user_data.dart';
 import '../state/state_alert.dart';
+import '../state/state_user.dart';
+import '../state/state_users.dart';
+import 'content_container.dart';
+import 'pagination_container.dart';
 import 'user_add_update.dart';
 import 'user_avatar.dart';
 
 /// Invite and manage Users and their roles
 /// [loader] Widget displayed when a process is in progress
 /// [roles] Replaces default roles with your custom roles
-class UserAdmin extends StatefulWidget {
+class UserAdmin extends StatelessWidget {
   const UserAdmin({
     Key? key,
     this.empty,
@@ -21,15 +27,8 @@ class UserAdmin extends StatefulWidget {
     this.roles = const ['user', 'admin'],
     this.primary = false,
     this.group,
-    this.groupId,
     this.appBar,
-    this.maxWidth = 900,
     this.disabled = false,
-    required this.onAdd,
-    required this.onRemove,
-    required this.onUpdate,
-    required this.uid,
-    required this.getUsers,
     this.role = true,
     this.email = true,
     this.phone = false,
@@ -41,28 +40,17 @@ class UserAdmin extends StatefulWidget {
     this.nameUpdate = false,
     this.roleUpdate = true,
     this.password = false,
+    this.size = ContentContainerSize.medium,
   }) : super(key: key);
   final Widget? empty;
   final Widget? loader;
   final List<String> roles;
   final bool primary;
   final bool disabled;
-  final Function(UserData data, {String? group, String? groupId}) onAdd;
-  final Function(UserData data, {String? group, String? groupId}) onRemove;
-  final Function(UserData data, {String? group, String? groupId}) onUpdate;
-  final Future<List<Map<String, dynamic>>> Function(
-      {String? group, String? groupId}) getUsers;
 
-  /// Current user UID
-  final dynamic uid;
-
-  /// Firestore collection
+  /// Role groups
   final String? group;
-
-  /// Firestore Document id
-  final String? groupId;
   final PreferredSizeWidget? appBar;
-  final double maxWidth;
   final bool password;
   final bool role;
   final bool email;
@@ -74,48 +62,45 @@ class UserAdmin extends StatefulWidget {
   final bool usernameUpdate;
   final bool nameUpdate;
   final bool roleUpdate;
-
-  @override
-  State<UserAdmin> createState() => _UserAdminState();
-}
-
-class _UserAdminState extends State<UserAdmin> {
-  late List<Map<String, dynamic>> users;
-  int? totalItems;
-
-  void getUsers() async {
-    try {
-      users = await widget.getUsers(
-        group: widget.group,
-        groupId: widget.groupId,
-      );
-      if (mounted) setState(() {});
-    } catch (e) {
-      print(e);
-    }
-  }
-
-  @override
-  void initState() {
-    totalItems = 0;
-    users = [];
-    getUsers();
-    super.initState();
-  }
+  final ContentContainerSize size;
 
   @override
   Widget build(BuildContext context) {
     ThemeData theme = Theme.of(context);
     TextTheme textTheme = theme.textTheme;
     AppLocalizations locales = AppLocalizations.of(context)!;
-    assert(widget.uid != null, 'uid is required');
-    if (widget.group != null || widget.groupId != null) {
-      assert(widget.group != null && widget.groupId != null,
-          'collection, document and documentData can\'t be null when including one of them.');
+    if (group != null) {
+      assert(group != null && group!.isNotEmpty, 'group can\'t be empty');
     }
-    bool fromCollection = widget.group != null && widget.groupId != null;
-    Widget space = Container(width: 16);
+    final stateUser = Provider.of<StateUser>(context);
+    final state = Provider.of<StateUsers>(context, listen: false);
     final alert = Provider.of<StateAlert>(context, listen: false);
+
+    apiError(String? e) => (e != null)
+        ? alert.show(AlertData(
+            title: locales.get(e),
+            type: AlertType.critical,
+            clear: true,
+            brightness: Brightness.dark,
+          ))
+        : null;
+    stateUser.onError = apiError;
+    state.onError = apiError;
+
+    /// User collection
+    Query<Map<String, dynamic>> baseQuery =
+        FirebaseFirestore.instance.collection('user');
+    Query<Map<String, dynamic>> query = baseQuery;
+
+    /// Order By role for global users, the role key is only available for parent users
+    query = query.orderBy('name');
+    bool fromCollection = group != null && group!.isNotEmpty;
+    if (fromCollection) {
+      query = baseQuery.orderBy('groups.$group');
+    }
+    state.query = query;
+
+    Widget space = Container(width: 16);
 
     /// Deletes the related user listed user, the documentId is the users uid
     removeUser(UserData data) async {
@@ -130,10 +115,7 @@ class _UserAdminState extends State<UserAdmin> {
         ),
         action: ButtonOptions(onTap: () async {
           try {
-            await widget.onRemove(data,
-                group: widget.group, groupId: widget.groupId);
-            getUsers();
-            if (mounted) setState(() {});
+            await UserRolesFirebase.onRemove(data, group: group);
             // Type indicates the data field to use in the function, admin level or collection.
             alert.show(AlertData(
               clear: true,
@@ -164,28 +146,31 @@ class _UserAdminState extends State<UserAdmin> {
       ));
     }
 
-    late Widget content;
-
-    if (users.isEmpty) {
-      content = widget.empty ?? Container();
-    }
-
-    content = Flex(
-      direction: Axis.vertical,
-      children: List.generate(users.length, (index) {
-        final userData = users[index];
-        UserData user = UserData.fromJson(userData);
+    final content = PaginationContainer(
+      padding: EdgeInsets.only(
+        top: 32,
+        right: 16,
+        bottom: primary ? 80 : 16,
+        left: 16,
+      ),
+      stream: state.stream,
+      paginate: state.next,
+      empty: empty ?? Container(),
+      initialData: state.data,
+      shrinkWrap: !primary,
+      itemBuilder: (BuildContext context, dynamic data) {
+        final userData = data as Map<String, dynamic>;
+        final user = UserData.fromJson(userData);
         assert(user.id != null, 'user id is required');
-        bool sameUser = widget.uid == user.id;
+        bool sameUser = stateUser.serialized.id == user.id;
         // Don't allow a user to change anything about itself on the 'admin' view
         bool canUpdateUser = !sameUser;
-        if (widget.disabled) canUpdateUser = false;
+        if (disabled) canUpdateUser = false;
         user.role = user.role;
         if (fromCollection) {
           user.role = UserRoles.roleFromData(
             compareData: userData,
-            group: widget.group,
-            groupId: widget.groupId,
+            group: group,
             clean: true, // Use clean: true to reduce the role locales
           );
         }
@@ -199,17 +184,16 @@ class _UserAdminState extends State<UserAdmin> {
                   barrierColor: Colors.transparent,
                   context: context,
                   builder: (context) => UserAddUpdate(
-                    role: widget.roleUpdate,
-                    roles: widget.roles,
-                    onConfirm: widget.onUpdate,
-                    email: widget.emailUpdate,
-                    phone: widget.phoneUpdate,
-                    username: widget.usernameUpdate,
-                    name: widget.nameUpdate,
-                    onChanged: getUsers,
+                    role: roleUpdate,
+                    roles: roles,
+                    onConfirm: UserRolesFirebase.onUpdate,
+                    email: emailUpdate,
+                    phone: phoneUpdate,
+                    username: usernameUpdate,
+                    name: nameUpdate,
+                    onChanged: () {},
                     user: user,
-                    group: widget.group,
-                    groupId: widget.groupId,
+                    group: group,
                   ),
                 );
               },
@@ -279,62 +263,55 @@ class _UserAdminState extends State<UserAdmin> {
             label: Text(user.username!),
           ));
         }
-
-        return Center(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: widget.maxWidth),
-            child: ListTile(
-              isThreeLine: true,
-              leading: UserAvatar(
-                avatar: user.avatar,
-                name: user.name,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                presence: user.presence,
-              ),
-              title: Padding(
-                padding: const EdgeInsets.only(bottom: 8.0),
-                child: Text(name, style: textTheme.subtitle1),
-              ),
-              subtitle: Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: roleChips,
-              ),
-              trailing: Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: trailing,
-              ),
+        return ContentContainer(
+          size: size,
+          child: ListTile(
+            isThreeLine: true,
+            leading: UserAvatar(
+              avatar: user.avatar,
+              name: user.name,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              presence: user.presence,
+            ),
+            title: Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: Text(name, style: textTheme.subtitle1),
+            ),
+            subtitle: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: roleChips,
+            ),
+            trailing: Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: trailing,
             ),
           ),
         );
-      }),
+      },
     );
-
     Widget userAddWidget = UserAddUpdate(
-      roles: widget.roles,
-      onConfirm: widget.onAdd,
-      email: widget.email,
-      phone: widget.phone,
-      username: widget.username,
-      name: widget.name,
-      onChanged: getUsers,
-      role: widget.role,
-      password: widget.password,
-      group: widget.group,
-      groupId: widget.groupId,
+      roles: roles,
+      onConfirm: UserRolesFirebase.onAdd,
+      email: email,
+      phone: phone,
+      username: username,
+      name: name,
+      onChanged: () {},
+      role: role,
+      password: password,
+      group: group,
     );
 
-    if (widget.primary) {
+    if (primary) {
       return Scaffold(
-        primary: widget.primary,
-        appBar: widget.appBar ??
-            (widget.primary
-                ? AppBar(title: Text(locales.get('label--users')))
-                : null),
+        primary: primary,
+        appBar: appBar ??
+            (primary ? AppBar(title: Text(locales.get('label--users'))) : null),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        floatingActionButton: widget.disabled
+        floatingActionButton: disabled
             ? null
             : FloatingActionButton.extended(
                 icon: const Icon(Icons.person_add),
@@ -349,18 +326,16 @@ class _UserAdminState extends State<UserAdmin> {
                   );
                 },
               ),
-        body: SingleChildScrollView(
-          child: content,
-        ),
+        body: content,
       );
     }
 
     List<Widget> items = [
       content,
     ];
-    if (!widget.disabled) {
+    if (!disabled) {
       items.addAll([
-        const SizedBox(height: 32),
+        const SizedBox(height: 16),
         Align(
           alignment: Alignment.center,
           child: ElevatedButton.icon(

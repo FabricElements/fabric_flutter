@@ -1,8 +1,9 @@
-import 'package:fabric_flutter/helper/firebase_storage_helper.dart';
-import 'package:fabric_flutter/helper/media_helper.dart';
-import 'package:fabric_flutter/serialized/media_data.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
+import '../helper/firebase_storage_helper.dart';
+import '../helper/media_helper.dart';
+import '../serialized/media_data.dart';
 
 class UploadImageMedia extends StatefulWidget {
   const UploadImageMedia({

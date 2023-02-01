@@ -1,7 +1,7 @@
-import 'package:fabric_flutter/helper/enum_data.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../component/input_data.dart';
+import '../helper/enum_data.dart';
 import '../helper/options.dart';
 import '../helper/utils.dart';
 

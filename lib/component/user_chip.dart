@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../state/state_user.dart';
+import 'user_avatar.dart';
 
 /// [UserChip] displays a User's profile name and avatar
 class UserChip extends StatefulWidget {
@@ -29,12 +30,14 @@ class _UserChipState extends State<UserChip> {
     if (user.username != null) label = user.username!;
     if (user.name.isNotEmpty) label = user.name;
     if (widget.minimal) return Text(label, style: widget.labelStyle);
-    Widget avatar = CircleAvatar(
-      backgroundImage: NetworkImage(user.avatar),
-      backgroundColor: Colors.grey.shade900,
-    );
     return Chip(
-      avatar: avatar,
+      avatar: UserAvatar(
+        avatar: user.avatar,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        name: user.name,
+        presence: user.presence,
+      ),
       label: Text(label),
     );
   }

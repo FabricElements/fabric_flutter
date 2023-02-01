@@ -1,7 +1,7 @@
-import 'package:fabric_flutter/serialized/user_data.dart';
 import 'package:flutter/material.dart';
 
 import '../helper/utils.dart';
+import '../serialized/user_data.dart';
 
 /// UserAvatar shows the image and the name of the users in profile sections.
 ///
@@ -28,6 +28,9 @@ class UserAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final color = theme.colorScheme.primary;
     String abbreviation = Utils.nameAbbreviation(
       firstName: firstName,
       lastName: lastName,
@@ -36,18 +39,21 @@ class UserAvatar extends StatelessWidget {
       backgroundColor: Colors.grey.shade100,
       child: Icon(
         Icons.person,
-        color: Colors.grey.shade500,
+        color: color,
       ),
     );
     if (avatar != null) {
       avatarContainer = CircleAvatar(
         backgroundImage: NetworkImage(avatar!),
-        backgroundColor: Colors.grey.shade100,
+        backgroundColor: color,
       );
     } else if (abbreviation.isNotEmpty) {
       avatarContainer = CircleAvatar(
         backgroundColor: Colors.grey.shade100,
-        child: Text(abbreviation),
+        child: Text(
+          abbreviation,
+          style: textTheme.titleMedium?.copyWith(color: color),
+        ),
       );
     }
 
