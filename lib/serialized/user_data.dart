@@ -39,7 +39,7 @@ class UserDataOnboarding {
 class UserData {
   /// User [avatar] URL
   @JsonKey(includeIfNull: true)
-  final String avatar;
+  final String? avatar;
 
   /// email used for authentication
   @JsonKey(includeIfNull: false)
@@ -102,7 +102,7 @@ class UserData {
 
   /// User role
   @JsonKey(includeIfNull: true)
-  Map<String, String> roles;
+  Map<String, String> groups;
 
   /// User presence
   final UserPresence presence;
@@ -124,8 +124,8 @@ class UserData {
     this.fcm,
     this.id,
     this.role = 'user',
-    this.roles = const {},
-    this.avatar = 'https://images.unsplash.com/photo-1547679904-ac76451d1594',
+    this.groups = const {},
+    this.avatar,
     this.firstName,
     this.lastName,
     this.language = 'en',
