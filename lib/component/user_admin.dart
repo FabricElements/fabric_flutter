@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:fabric_flutter/component/content_container.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -12,6 +11,7 @@ import '../serialized/user_data.dart';
 import '../state/state_alert.dart';
 import '../state/state_user.dart';
 import '../state/state_users.dart';
+import 'content_container.dart';
 import 'pagination_container.dart';
 import 'user_add_update.dart';
 import 'user_avatar.dart';
