@@ -6,7 +6,6 @@ import 'dart:math';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -19,6 +18,7 @@ import '../helper/app_localizations_delegate.dart';
 import '../placeholder/loading_screen.dart';
 import '../state/state_alert.dart';
 import '../state/state_analytics.dart';
+import '../state/state_dynamic_links.dart';
 import '../state/state_global.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -90,28 +90,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
   late ViewAuthValues dataAuth;
   ConfirmationResult? webConfirmationResult;
   late bool willSignInWithEmail;
-  late String? emailLink;
-
-  /// Access action link
-  void actionLink() async {
-    try {
-      final linkData = await FirebaseDynamicLinks.instance.getInitialLink();
-      final Uri? deepLink = linkData?.link;
-      if (linkData == null || deepLink == null) return;
-      emailLink = deepLink.toString();
-      if (_auth.isSignInWithEmailLink(deepLink.toString())) {
-        willSignInWithEmail = true;
-        section = 3;
-        if (mounted) setState(() {});
-      } else {
-        if (linkData.utmParameters.containsKey('oobCode')) {
-          await _auth.applyActionCode(linkData.utmParameters['oobCode']!);
-        }
-      }
-    } catch (e) {
-      // -- TODO: catch error
-    }
-  }
+  String? emailLink;
 
   @override
   void initState() {
@@ -120,7 +99,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     dataAuth = ViewAuthValues();
     webConfirmationResult = null;
     willSignInWithEmail = false;
-    actionLink();
     WidgetsBinding.instance.addObserver(this);
     super.initState();
   }
@@ -134,7 +112,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed) {
-      actionLink();
+      if (mounted) setState(() {});
     }
     super.didChangeAppLifecycleState(state);
   }
@@ -151,8 +129,44 @@ class _ViewAuthPageState extends State<ViewAuthPage>
   @override
   Widget build(BuildContext context) {
     final stateGlobal = Provider.of<StateGlobal>(context);
+    final stateDynamicLinks = Provider.of<StateDynamicLinks>(context);
     final theme = Theme.of(context);
     final stateAnalytics = Provider.of<StateAnalytics>(context, listen: false);
+    final locales = AppLocalizations.of(context)!;
+    TextTheme textTheme = Theme.of(context).textTheme;
+    final alert = Provider.of<StateAlert>(context, listen: false);
+
+    /// Access action link
+    void actionLink() async {
+      try {
+        final linkData = stateDynamicLinks.pendingDynamicLinkData;
+        final Uri? deepLink = linkData?.link;
+        if (deepLink == null) return;
+        emailLink = deepLink.toString();
+        if (_auth.isSignInWithEmailLink(deepLink.toString())) {
+          willSignInWithEmail = true;
+          section = 3;
+          if (mounted) setState(() {});
+        } else {
+          if (linkData != null &&
+              linkData.utmParameters.containsKey('oobCode')) {
+            await _auth.applyActionCode(linkData.utmParameters['oobCode']!);
+          }
+        }
+      } catch (error) {
+        alert.show(AlertData(
+          title: error.toString(),
+          type: AlertType.critical,
+          brightness: Brightness.dark,
+          clear: true,
+        ));
+      }
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      actionLink();
+    });
+
     stateAnalytics.screenName = 'auth';
     void closeKeyboard() {
       if (kIsWeb) return;
@@ -180,10 +194,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     if (loading) {
       return widget.loader ?? const LoadingScreen();
     }
-
-    final locales = AppLocalizations.of(context)!;
-    TextTheme textTheme = Theme.of(context).textTheme;
-    final alert = Provider.of<StateAlert>(context, listen: false);
 
     /// Verification completed: Sign in with credentials
     verificationCompleted(AuthCredential phoneAuthCredential) async {
@@ -398,6 +408,8 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           duration: 3,
           clear: true,
         ));
+        section = 0;
+        if (mounted) setState(() {});
       } on FirebaseFunctionsException catch (error) {
         alert.show(AlertData(
           title: error.message ?? error.details['message'],
@@ -424,9 +436,11 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           emailLink: emailLink!,
         ))
             .user;
+        stateDynamicLinks.pendingDynamicLinkData = null;
         if (user == null) {
           throw Exception('Please try again');
         }
+        resetView();
       } on FirebaseFunctionsException catch (error) {
         alert.show(AlertData(
           title: error.message ?? error.details['message'],
@@ -611,7 +625,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     if (widget.phone && (kIsWeb || Platform.isIOS || Platform.isAndroid)) {
       homeButtonOptions.add(authButton('phone'));
     }
-    if (widget.email) homeButtonOptions.add(authButton('email'));
+    if (widget.email && !kIsWeb) homeButtonOptions.add(authButton('email'));
     if (widget.anonymous) homeButtonOptions.add(authButton('anonymous'));
     Widget home = AnimatedOpacity(
       opacity: section == 0 ? 1 : 0,
