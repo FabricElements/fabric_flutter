@@ -7,6 +7,10 @@ dynamic defaultLocales = {
     'en': 'Say something...',
     'es': 'Di algo...',
   },
+  'label--label': {
+    'en': 'Label',
+    'es': 'etiqueta',
+  },
   'label--draft': {
     'en': 'Draft',
     'es': 'Borrador',
@@ -234,6 +238,10 @@ dynamic defaultLocales = {
   'label--email': {
     'en': 'Email',
     'es': 'Correo',
+  },
+  'label--url': {
+    'en': 'URL',
+    'es': 'Enlace',
   },
   'label--first-name': {
     'en': 'First Name',
@@ -771,6 +779,10 @@ dynamic defaultLocales = {
   'validation--phone': {
     'en': 'Enter a valid phone number',
     'es': 'Introduce un número de teléfono válido'
+  },
+  'validation--url': {
+    'en': 'Enter a valid URL',
+    'es': 'Introduce una URL válida'
   },
   'validation--not-empty': {
     'en': 'This field can\'t be empty',

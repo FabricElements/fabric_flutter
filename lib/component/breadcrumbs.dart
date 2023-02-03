@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../helper/options.dart';
+import 'smart_image.dart';
 
 /// Navigation Breadcrumbs provides a useful way to display navigation routes
 class Breadcrumbs extends StatelessWidget {
@@ -47,8 +48,8 @@ class Breadcrumbs extends StatelessWidget {
         }
         if (button.image != null) {
           iconButton = CircleAvatar(
-            backgroundImage: NetworkImage(button.image!),
             backgroundColor: Colors.grey.shade100,
+            child: ClipOval(child: SmartImage(url: button.image)),
           );
         }
         items.add(
