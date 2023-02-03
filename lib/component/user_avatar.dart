@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../helper/utils.dart';
 import '../serialized/user_data.dart';
+import 'smart_image.dart';
 
 /// UserAvatar shows the image and the name of the users in profile sections.
 ///
@@ -44,8 +45,10 @@ class UserAvatar extends StatelessWidget {
     );
     if (avatar != null) {
       avatarContainer = CircleAvatar(
-        backgroundImage: NetworkImage(avatar!),
         backgroundColor: color,
+        child: ClipOval(
+          child: SmartImage(url: avatar),
+        ),
       );
     } else if (abbreviation.isNotEmpty) {
       avatarContainer = CircleAvatar(
