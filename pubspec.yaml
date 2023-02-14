@@ -10,32 +10,32 @@ dependencies:
     sdk: flutter
   devicelocale: ^0.5.5
   provider: ^6.0.5
-  cloud_firestore: ^4.3.1
-  cloud_functions: ^4.0.7
-  firebase_analytics: ^10.1.0
-  firebase_auth: ^4.2.5
-  firebase_core: ^2.4.1
-  firebase_dynamic_links: ^5.0.11
-  firebase_messaging: ^14.2.1
-  firebase_storage: ^11.0.10
-  firebase_database: ^10.0.9
-  json_serializable: ^6.6.0
+  cloud_firestore: ^4.4.0
+  cloud_functions: ^4.0.8
+  firebase_analytics: ^10.1.1
+  firebase_auth: ^4.2.6
+  firebase_core: ^2.5.0
+  firebase_dynamic_links: ^5.0.12
+  firebase_messaging: ^14.2.2
+  firebase_storage: ^11.0.11
+  firebase_database: ^10.0.11
+  json_serializable: ^6.6.1
   json_annotation: ^4.8.0
   flutter_sound: ^9.2.13
   flutter_cache_manager: ^3.3.0
   image_picker: ^0.8.6+1
   file_picker: ^5.2.5
-  image: ^4.0.13
+  image: ^4.0.15
   google_sign_in: ^5.4.4
   http: ^0.13.5
-  url_launcher: ^6.1.8
+  url_launcher: ^6.1.9
   flutter_linkify: ^5.0.2
-  flutter_markdown: ^0.6.13+1
+  flutter_markdown: ^0.6.14
   animations: ^2.0.7
   google_maps_flutter: ^2.2.3
   google_maps_flutter_web: ^0.4.0+5
   google_maps_webservice: ^0.0.20-nullsafety.5
-  package_info_plus: ^3.0.2
+  package_info_plus: ^3.0.3
   sign_in_with_apple: ^4.3.0
   mime: ^1.0.4
   crypto: ^3.0.2
