@@ -283,6 +283,14 @@ dynamic defaultLocales = {
     'en': 'Cancel',
     'es': 'Cancelar',
   },
+  'label--importing': {
+    'en': 'Importing',
+    'es': 'Importando',
+  },
+  'label--processing': {
+    'en': 'Processing',
+    'es': 'Procesando',
+  },
   'label--pending': {
     'en': 'Pending',
     'es': 'Pendiente',
@@ -700,6 +708,10 @@ dynamic defaultLocales = {
   'label--import': {
     'en': 'Import',
     'es': 'Importar',
+  },
+  'label--success': {
+    'en': 'Success',
+    'es': 'Éxito',
   },
   'label--search': {
     'en': 'Search',
