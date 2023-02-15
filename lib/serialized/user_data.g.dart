@@ -32,7 +32,7 @@ UserData _$UserDataFromJson(Map<String, dynamic> json) => UserData(
       fcm: json['fcm'] as String?,
       id: json['id'],
       role: json['role'] as String? ?? 'user',
-      groups: (json['roles'] as Map<String, dynamic>?)?.map(
+      groups: (json['groups'] as Map<String, dynamic>?)?.map(
             (k, e) => MapEntry(k, e as String),
           ) ??
           const {},
@@ -65,12 +65,10 @@ Map<String, dynamic> _$UserDataToJson(UserData instance) {
   writeNotNull('lastName', instance.lastName);
   val['language'] = instance.language;
   writeNotNull('onboarding', instance.onboarding?.toJson());
-  val['ping'] = instance.ping?.toIso8601String();
   writeNotNull('phone', instance.phone);
   writeNotNull('password', instance.password);
   val['role'] = instance.role;
-  val['roles'] = instance.groups;
-  val['accounts'] = instance.accounts;
+  val['groups'] = instance.groups;
   val['username'] = instance.username;
   return val;
 }

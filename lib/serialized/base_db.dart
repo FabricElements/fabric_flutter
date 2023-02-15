@@ -51,10 +51,19 @@ class BaseFirestore {
         'collection and document id are required');
     Map<String, dynamic> jsonData = toJson();
     jsonData.remove('id');
+    jsonData.remove('created');
+    jsonData.remove('updated');
     return FirebaseFirestore.instance
         .collection(collection)
         .doc(id)
         .update(jsonData);
+  }
+
+  /// Update document
+  Future<void> delete({required String collection}) {
+    assert(id.isNotEmpty && collection.isNotEmpty,
+        'collection and document id are required');
+    return FirebaseFirestore.instance.collection(collection).doc(id).delete();
   }
 
   /// Set document

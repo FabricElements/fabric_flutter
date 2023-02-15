@@ -20,13 +20,11 @@ class FlagChip extends StatelessWidget {
     Key? key,
     required this.language,
     this.total,
-    this.color = Colors.black,
-    this.colorText = Colors.white,
+    this.onDeleted,
   }) : super(key: key);
   final String language;
   final int? total;
-  final Color color;
-  final Color colorText;
+  final VoidCallback? onDeleted;
 
   @override
   Widget build(BuildContext context) {
@@ -35,79 +33,82 @@ class FlagChip extends StatelessWidget {
     final TextTheme textTheme = theme.textTheme;
 
     List<Widget> items = [];
+    late Widget icon;
+
     if (language == 'total') {
-      items.add(Container(width: 16));
-    }
-    if (language != 'total') {
-      items.add(
-        SizedBox(
-          height: 30,
-          width: 50,
-          child: Padding(
-            padding: const EdgeInsets.only(left: 8),
-            child: Text(
-              ISOLanguages.getEmoji(language) ?? '',
-              style: textTheme.bodyText2!.copyWith(
-                fontSize: 20,
-                color: colorText,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
+      icon = const Icon(Icons.info);
+    } else {
+      icon = Text(
+        ISOLanguages.getEmoji(language) ?? '',
+        style: textTheme.bodyText2!.copyWith(
+          fontSize: 20,
         ),
+        textAlign: TextAlign.center,
       );
     }
     items.add(
-      SizedBox(
-        height: 30,
-        child: Padding(
-          padding: const EdgeInsets.only(top: 8, right: 8, bottom: 8),
-          child: Text(
-            language.toUpperCase(),
-            style: textTheme.bodyText2!.copyWith(
-              color: colorText,
-            ),
-          ),
+      Padding(
+        padding: const EdgeInsets.only(right: 8),
+        child: Text(
+          language.toUpperCase(),
+          style: textTheme.bodyText2,
         ),
       ),
     );
     if (total != null) {
       items.add(
-        Container(
-          color: theme.primaryColor,
-          child: Padding(
-            padding: const EdgeInsets.all(8),
-            child: Text(
-              formatDecimal.format(total),
-              style: textTheme.bodyText2!.copyWith(color: colorText),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Material(
+            color: theme.colorScheme.primaryContainer,
+            clipBehavior: Clip.hardEdge,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(4),
+            ),
+            elevation: 0,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              child: Text(formatDecimal.format(total)),
             ),
           ),
         ),
       );
     }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minWidth: 10, minHeight: 10),
-        child: Material(
-          color: color,
-          clipBehavior: Clip.hardEdge,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.0),
-          ),
-          elevation: 0,
-          child: Center(
-            widthFactor: 1.0,
-            heightFactor: 1.0,
-            child: Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              direction: Axis.horizontal,
-              children: items,
-            ),
-          ),
-        ),
+    return Chip(
+      avatar: icon,
+      label: Flex(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        direction: Axis.horizontal,
+        children: items,
       ),
+      onDeleted: onDeleted,
     );
+
+    // return Padding(
+    //   padding: const EdgeInsets.symmetric(vertical: 8),
+    //   child: ConstrainedBox(
+    //     constraints: const BoxConstraints(minWidth: 10, minHeight: 10),
+    //     child: Material(
+    //       color: color,
+    //       clipBehavior: Clip.hardEdge,
+    //       shape: RoundedRectangleBorder(
+    //         borderRadius: BorderRadius.circular(16.0),
+    //       ),
+    //       elevation: 0,
+    //       child: Center(
+    //         widthFactor: 1.0,
+    //         heightFactor: 1.0,
+    //         child: Wrap(
+    //           crossAxisAlignment: WrapCrossAlignment.center,
+    //           direction: Axis.horizontal,
+    //           children: items,
+    //         ),
+    //       ),
+    //     ),
+    //   ),
+    // );
   }
 }
