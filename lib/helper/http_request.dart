@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart';
 
 /// https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication#authentication_schemes
@@ -60,44 +61,43 @@ class HTTPRequest {
       return;
     }
 
-    authenticated(response);
-
     /// Catch Reason Phrase
-    String? errorResponse =
-        response.reasonPhrase != null && response.reasonPhrase!.isNotEmpty
-            ? response.reasonPhrase
-            : null;
+    String? errorResponse;
 
     /// Catch Error Message from JSON response
     try {
-      Map<String, dynamic> responseObject = jsonDecode(response.body);
-      if (responseObject.containsKey('message') &&
-          (responseObject['message'] as String).isNotEmpty) {
-        errorResponse = responseObject['message'];
-      }
+      final responseObject = jsonDecode(response.body);
+      errorResponse = responseObject['message']?.toString();
     } catch (e) {
       //--
     }
+    if (errorResponse != null) throw errorResponse;
 
     /// Catch Error Message List from JSON response
     try {
-      if (errorResponse == null) {
-        Map<String, dynamic> responseObject = jsonDecode(response.body);
-        if (responseObject.containsKey('errors')) {
-          final errors = responseObject['errors'] as List<dynamic>;
-          if (errors.isNotEmpty) {
-            if (errors.first.containsKey('description')) {
-              errorResponse =
-                  errors.map((e) => e['description']).toList().join(', ');
-            }
+      Map<String, dynamic> responseObject = jsonDecode(response.body);
+      if (responseObject.containsKey('errors')) {
+        final errors = responseObject['errors'] as List<dynamic>;
+        if (errors.isNotEmpty) {
+          if (errors.first.containsKey('description')) {
+            errorResponse =
+                errors.map((e) => e['description']).toList().join(', ');
           }
-        } else {
-          print(responseObject);
         }
+      } else {
+        debugPrint(responseObject.toString());
       }
     } catch (e) {
       //--
     }
+    if (errorResponse != null) throw errorResponse;
+
+    /// Get default reasonPhrase
+    errorResponse =
+        response.reasonPhrase != null && response.reasonPhrase!.isNotEmpty
+            ? response.reasonPhrase
+            : null;
+    if (errorResponse != null) throw errorResponse;
 
     /// Use status code if error is null
     errorResponse ??= 'error--${response.statusCode}';
