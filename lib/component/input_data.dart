@@ -271,7 +271,10 @@ getValue -------------------------------------
     }
     textController = widget.textController ?? TextEditingController();
     getValue(newValue: widget.value);
+
+    /// obscure text and show controls
     obscureText = widget.obscureText;
+    if (widget.type == InputDataType.secret) obscureText = true;
     super.initState();
   }
 
