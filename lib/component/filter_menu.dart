@@ -47,9 +47,10 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
     final enumData = EnumData(locales: locales);
 
     /// Define Dropdown options depending on the InputDataType
-    List<dynamic> dropdownOptions = FilterOperator.values;
     // Ignore FilterOperator.sort
-    dropdownOptions.remove(FilterOperator.sort);
+    List<dynamic> dropdownOptions = FilterOperator.values
+        .where((item) => item != FilterOperator.sort)
+        .toList();
     final filterOperatorTimeOrDate = [
       FilterOperator.equal,
       FilterOperator.notEqual,
