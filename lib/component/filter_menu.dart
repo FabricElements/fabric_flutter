@@ -63,14 +63,20 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
       FilterOperator.notEqual,
       FilterOperator.any,
     ];
-
     switch (data.type) {
+      case InputDataType.email:
+      case InputDataType.enums:
+      case InputDataType.dropdown:
+      case InputDataType.radio:
+        dropdownOptions = filterOperatorExact;
+        break;
       case InputDataType.date:
+      case InputDataType.dateTime:
       case InputDataType.time:
+      case InputDataType.bool:
         dropdownOptions = filterOperatorTimeOrDate;
         break;
       default:
-        dropdownOptions = filterOperatorExact;
     }
 
     /// Label value
