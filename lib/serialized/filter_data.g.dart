@@ -52,4 +52,5 @@ const _$InputDataTypeEnumMap = {
   InputDataType.phone: 'phone',
   InputDataType.secret: 'secret',
   InputDataType.url: 'url',
+  InputDataType.bool: 'bool',
 };

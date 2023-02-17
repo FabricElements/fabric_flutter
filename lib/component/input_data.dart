@@ -10,7 +10,7 @@ import '../helper/input_validation.dart';
 import '../helper/options.dart';
 import '../helper/utils.dart';
 
-/// [InputDataType] defines the supported types for the [InputData] component
+/// InputDataType defines the supported types for the [InputData] component
 enum InputDataType {
   date,
   time,
@@ -26,6 +26,7 @@ enum InputDataType {
   phone,
   secret,
   url,
+  bool,
 }
 
 /// Input Data Type default icon
@@ -36,7 +37,7 @@ IconData inputDataTypeIcon(InputDataType inputDataType) {
       icon = Icons.calendar_month;
       break;
     case InputDataType.dateTime:
-      icon = Icons.calendar_month;
+      icon = Icons.date_range;
       break;
     case InputDataType.time:
       icon = Icons.access_time;
@@ -74,11 +75,14 @@ IconData inputDataTypeIcon(InputDataType inputDataType) {
     case InputDataType.url:
       icon = Icons.link;
       break;
+    case InputDataType.bool:
+      icon = Icons.toggle_off_outlined;
+      break;
   }
   return icon;
 }
 
-/// [InputData] provides an useful way to handle data input
+/// InputData provides an useful way to handle data input
 /// It's much faster to use this component because includes all the controllers
 /// you require for multiple data types [InputDataType]
 class InputData extends StatefulWidget {
@@ -169,7 +173,6 @@ class _InputDataState extends State<InputData> {
         case InputDataType.double:
         case InputDataType.int:
         case InputDataType.text:
-        case InputDataType.radio:
         case InputDataType.phone:
         case InputDataType.email:
         case InputDataType.secret:
@@ -221,10 +224,25 @@ class _InputDataState extends State<InputData> {
             value = null;
           }
           break;
+        case InputDataType.bool:
+          bool baseValue = false;
+          if (newValue == null) {
+            baseValue = false;
+          } else if (newValue.runtimeType == bool) {
+            baseValue = newValue;
+          } else {
+            String valueAsString = newValue.toString().toLowerCase();
+            if (valueAsString.isNotEmpty) {
+              baseValue = valueAsString == 'true' || valueAsString == '1';
+            }
+          }
+          value = baseValue;
+          textController.text = '';
+          break;
         default:
           value = newValue;
-          if (notify && mounted) setState(() {});
       }
+      if (notify && mounted) setState(() {});
     } catch (e) {
       if (kDebugMode) {
         print('''
@@ -306,6 +324,7 @@ getValue -------------------------------------
       case InputDataType.email:
       case InputDataType.secret:
       case InputDataType.url:
+      case InputDataType.bool:
         inputIcon = widget.icon != null ? Icon(widget.icon) : null;
         break;
       default:
@@ -506,8 +525,9 @@ getValue -------------------------------------
             hintText: locales.get('label--choose-label', {
               'label': locales.get('label--date'),
             }),
-            prefixIcon:
-                inputDecoration.prefixIcon ?? const Icon(Icons.date_range),
+            prefixIcon: inputDecoration.prefixIcon ??
+                inputDecoration.prefixIcon ??
+                Icon(inputDataTypeIcon(widget.type)),
           ),
           onTap: () async {
             DateTime now = DateTime.now().toUtc();
@@ -581,8 +601,9 @@ getValue -------------------------------------
                 utcOffset: widget.utcOffset,
                 reverse: true,
               );
-              // getValue(notify: true, newValue: newDate);
               if (widget.onChanged != null) widget.onChanged!(newDate);
+              if (widget.onComplete != null) widget.onComplete!(newDate);
+              if (widget.onSubmit != null) widget.onSubmit!(newDate);
             }
           },
         );
@@ -674,6 +695,8 @@ getValue -------------------------------------
                   if (widget.onChanged != null) {
                     widget.onChanged!(newValue == '' ? null : newValue);
                   }
+                  if (widget.onComplete != null) widget.onComplete!(newValue);
+                  if (widget.onSubmit != null) widget.onSubmit!(newValue);
                 },
           items: buttons,
           decoration: inputDecoration,
@@ -684,29 +707,75 @@ getValue -------------------------------------
         List<Widget> radioOptions =
             List.generate(widget.options.length, (index) {
           final e = widget.options[index];
-          return ListTile(
+          return RadioListTile(
             title: Text(e.label),
-            leading: Radio<String?>(
-              value: e.value?.toString(),
-              groupValue: value?.toString(),
-              onChanged: (String? value) {
-                if (widget.onChanged != null) {
-                  widget.onChanged!(value == '' ? null : value);
-                }
-              },
-            ),
-            onTap: () {
-              if (widget.onChanged != null) {
-                widget.onChanged!(e.value?.toString() == '' ? null : e.value);
-              }
+            toggleable: !isDisabled,
+            value: e.value,
+            groupValue: value,
+            selected: value == e.value,
+            onChanged: (newValue) {
+              value = newValue;
+              if (mounted) setState(() {});
+              if (widget.onChanged != null) widget.onChanged!(value);
+              if (widget.onComplete != null) widget.onComplete!(value);
+              if (widget.onSubmit != null) widget.onSubmit!(value);
             },
           );
+          // return ListTile(
+          //   title: Text(e.label),
+          //   leading: Radio<String?>(
+          //     value: e.value?.toString(),
+          //     groupValue: value?.toString(),
+          //     onChanged: (String? value) {
+          //       if (widget.onChanged != null) {
+          //         widget.onChanged!(value == '' ? null : value);
+          //       }
+          //     },
+          //   ),
+          //   onTap: () {
+          //     if (widget.onChanged != null) {
+          //       widget.onChanged!(e.value?.toString() == '' ? null : e.value);
+          //     }
+          //   },
+          // );
         });
-        endWidget = Column(
+        endWidget = Flex(
+          direction: Axis.vertical,
+          mainAxisSize: MainAxisSize.min,
           children: radioOptions,
         );
         break;
-      default:
+      case InputDataType.bool:
+        endWidget = TextFormField(
+          controller: textController,
+          initialValue: null,
+          mouseCursor: MouseCursor.uncontrolled,
+          autofillHints: widget.autofillHints,
+          readOnly: true,
+          decoration: inputDecoration.copyWith(
+            floatingLabelBehavior: FloatingLabelBehavior.never,
+            hintText: widget.label ?? widget.hintText,
+            labelText: null,
+            prefixIcon: inputDecoration.prefixIcon ??
+                Icon(inputDataTypeIcon(widget.type)),
+            suffixIcon: Switch(
+              value: value,
+              onChanged: (newValue) {
+                value = newValue;
+                if (widget.onChanged != null) widget.onChanged!(value);
+                if (widget.onComplete != null) widget.onComplete!(value);
+                if (widget.onSubmit != null) widget.onSubmit!(value);
+              },
+            ),
+          ),
+          onTap: () async {
+            value = !value;
+            if (widget.onChanged != null) widget.onChanged!(value);
+            if (widget.onComplete != null) widget.onComplete!(value);
+            if (widget.onSubmit != null) widget.onSubmit!(value);
+          },
+        );
+        break;
     }
     return Container(
       margin: widget.margin,
