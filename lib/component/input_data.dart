@@ -334,7 +334,7 @@ getValue -------------------------------------
     }
 
     Widget? inputTrailingIcon;
-    if (widget.obscureText) {
+    if (obscureText) {
       inputTrailingIcon = IconButton(
         onPressed: () {
           obscureText = !obscureText;
