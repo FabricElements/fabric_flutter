@@ -335,6 +335,10 @@ dynamic defaultLocales = {
     'en': 'Reset',
     'es': 'Reiniciar',
   },
+  'label--settings': {
+    'en': 'Settings',
+    'es': 'Ajustes',
+  },
   'label--validate': {
     'en': 'Validate',
     'es': 'Validar',

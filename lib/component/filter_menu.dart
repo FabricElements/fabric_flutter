@@ -65,17 +65,12 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
     ];
 
     switch (data.type) {
-      case InputDataType.email:
-      case InputDataType.enums:
-      case InputDataType.dropdown:
-      case InputDataType.radio:
-        dropdownOptions = filterOperatorExact;
-        break;
       case InputDataType.date:
       case InputDataType.time:
         dropdownOptions = filterOperatorTimeOrDate;
         break;
       default:
+        dropdownOptions = filterOperatorExact;
     }
 
     /// Label value
@@ -155,6 +150,9 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
             break;
           case InputDataType.secret:
             label += '***';
+            break;
+          case InputDataType.bool:
+            label += ((data.value as bool?) == true).toString().toUpperCase();
             break;
         }
       } catch (e) {
@@ -282,8 +280,8 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
                     enums: dropdownOptions,
                     onChanged: (value) {
                       edit!.operator = value ?? FilterOperator.any;
-                      edit.value =
-                          edit.operator == FilterOperator.any ? true : null;
+                      edit.value = null;
+                      // edit.operator == FilterOperator.any ? true : null;
                       if (mounted) setState(() {});
                     },
                     value: edit.operator,
@@ -438,7 +436,7 @@ class _FilterMenuState extends State<FilterMenu> {
             selected.value = [null, null];
           } else {
             selected.operator = FilterOperator.any;
-            selected.value = true;
+            selected.value = null;
           }
           selected.index = activeOptions.length + 1;
           if (mounted) setState(() {});

@@ -57,6 +57,9 @@ class FilterHelper {
       case InputDataType.enums:
         response = value != null ? '"${EnumData.describe(value)}"' : null;
         break;
+      case InputDataType.bool:
+        response = value == true;
+        break;
     }
     return response;
   }
