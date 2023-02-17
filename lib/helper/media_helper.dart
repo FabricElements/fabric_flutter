@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
@@ -58,7 +57,7 @@ class MediaHelper {
             throw 'alert--no-photo-was-taken';
           }
           File baseImage = File(pickedFile.path);
-          fileData = baseImage.readAsBytesSync();
+          fileData = await baseImage.readAsBytes();
           final baseDecoded = img.decodeImage(fileData)!;
           fileData = img.encodeJpg(baseDecoded);
           extension = 'jpeg';
