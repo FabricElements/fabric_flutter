@@ -12,8 +12,8 @@ class Tabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    AppLocalizations locales = AppLocalizations.of(context)!;
-    ThemeData theme = Theme.of(context);
+    final locales = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
     TextTheme textTheme = theme.textTheme;
     TabBarTheme tbTheme = theme.tabBarTheme;
 

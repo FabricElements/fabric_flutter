@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -115,8 +114,8 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
 
   @override
   Widget build(BuildContext context) {
-    ThemeData theme = Theme.of(context);
-    AppLocalizations locales = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final locales = AppLocalizations.of(context)!;
     final alert = Provider.of<StateAlert>(context, listen: false);
 
     /// Get place object by id

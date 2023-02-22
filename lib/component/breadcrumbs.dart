@@ -24,7 +24,7 @@ class Breadcrumbs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    ThemeData theme = Theme.of(context);
+    final theme = Theme.of(context);
     TextTheme textTheme = theme.textTheme;
     List<Widget> items = [];
     TextStyle? textStyleDefault = textStyle ?? textTheme.bodySmall;

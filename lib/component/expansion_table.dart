@@ -90,7 +90,7 @@ class _ExpansionTableState extends State<ExpansionTable> {
   Widget build(BuildContext context) {
     if (widget.data == null) return const SizedBox();
     TableData data = widget.data!;
-    ThemeData theme = Theme.of(context);
+    final theme = Theme.of(context);
     // TextTheme textTheme = theme.textTheme;
     final BorderSide borderSide = Divider.createBorderSide(
       context,

@@ -23,10 +23,10 @@ dependencies:
   json_annotation: ^4.8.0
   flutter_sound: ^9.2.13
   flutter_cache_manager: ^3.3.0
-  image_picker: ^0.8.6+1
+  image_picker: ^0.8.6+2
   file_picker: ^5.2.5
   image: ^4.0.15
-  google_sign_in: ^5.4.4
+  google_sign_in: ^6.0.0
   http: ^0.13.5
   url_launcher: ^6.1.9
   flutter_linkify: ^5.0.2
