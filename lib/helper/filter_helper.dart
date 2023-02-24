@@ -93,7 +93,8 @@ class FilterHelper {
             operatorResult = 'LIKE';
             break;
           case SQLQueryType.openSearch:
-            operatorResult = 'MATCH_QUERY($id, \'$value\', 0.5)';
+            operatorResult =
+                'SCORE(matchphrasequery($id, \'$value\'), 100) OR SCORE(WILDCARD_QUERY($id, \'*$value*\'), 0.5)';
             break;
         }
         break;

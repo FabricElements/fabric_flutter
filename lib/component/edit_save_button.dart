@@ -50,9 +50,9 @@ class EditSaveButton extends StatefulWidget {
 class _EditSaveButtonState extends State<EditSaveButton> {
   @override
   Widget build(BuildContext context) {
-    ThemeData theme = Theme.of(context);
+    final theme = Theme.of(context);
     final alert = Provider.of<StateAlert>(context, listen: false);
-    AppLocalizations locales = AppLocalizations.of(context)!;
+    final locales = AppLocalizations.of(context)!;
 
     void update() async {
       if (!widget.confirm) {

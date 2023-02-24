@@ -57,7 +57,7 @@ class LogsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    ThemeData theme = Theme.of(context);
+    final theme = Theme.of(context);
     TextTheme textTheme = theme.textTheme;
     Widget container = const SizedBox(height: 0);
     if (data == null || data!.isEmpty) return container;

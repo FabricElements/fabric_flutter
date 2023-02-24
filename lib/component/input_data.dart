@@ -292,10 +292,10 @@ getValue -------------------------------------
 
   @override
   Widget build(BuildContext context) {
-    AppLocalizations locales = AppLocalizations.of(context)!;
+    final locales = AppLocalizations.of(context)!;
     final popupButtonKey = GlobalKey<State>();
     final enumData = EnumData(locales: locales);
-    ThemeData theme = Theme.of(context);
+    final theme = Theme.of(context);
     bool isDense = widget.isDense || theme.inputDecorationTheme.isDense;
     bool isDisabled = widget.disabled;
     String defaultTextOptions = locales.get('label--choose-option');

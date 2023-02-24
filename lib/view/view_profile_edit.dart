@@ -81,7 +81,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
   @override
   Widget build(BuildContext context) {
     final alert = Provider.of<StateAlert>(context, listen: false);
-    AppLocalizations locales = AppLocalizations.of(context)!;
+    final locales = AppLocalizations.of(context)!;
     final stateUser = Provider.of<StateUser>(context);
     stateUser.ping('profile');
     userImage = stateUser.serialized.avatar;
@@ -223,7 +223,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
     }
 
     Widget getBody() {
-      AppLocalizations locales = AppLocalizations.of(context)!;
+      final locales = AppLocalizations.of(context)!;
       if (loading) {
         return widget.loader ?? const LoadingScreen();
       }
