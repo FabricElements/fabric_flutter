@@ -169,8 +169,8 @@ class _InputDataState extends State<InputData> {
   void getValue({bool notify = false, required dynamic newValue}) {
     try {
       switch (widget.type) {
-        case InputDataType.string:
         case InputDataType.double:
+        case InputDataType.string:
         case InputDataType.int:
         case InputDataType.text:
         case InputDataType.phone:
@@ -213,6 +213,7 @@ class _InputDataState extends State<InputData> {
             enums: widget.enums,
             value: newValue,
           );
+          if (notify && mounted) setState(() {});
           break;
         case InputDataType.dropdown:
           bool valueInOptions = widget.options.where((item) {
@@ -223,6 +224,7 @@ class _InputDataState extends State<InputData> {
           } else {
             value = null;
           }
+          if (notify && mounted) setState(() {});
           break;
         case InputDataType.bool:
           bool baseValue = false;
@@ -238,11 +240,12 @@ class _InputDataState extends State<InputData> {
           }
           value = baseValue;
           textController.text = '';
+          if (notify && mounted) setState(() {});
           break;
         default:
           value = newValue;
+          if (notify && mounted) setState(() {});
       }
-      if (notify && mounted) setState(() {});
     } catch (e) {
       if (kDebugMode) {
         print('''
@@ -368,10 +371,8 @@ getValue -------------------------------------
           signed: true,
         );
         inputFormatters.addAll([
-          FilteringTextInputFormatter.deny(RegExp(r'[\s()-]'),
-              replacementString: ''),
-          FilteringTextInputFormatter.allow(RegExp(r'^\+\d{0,15}'),
-              replacementString: ''),
+          FilteringTextInputFormatter.deny(RegExp(r'[\s()-]')),
+          FilteringTextInputFormatter.allow(RegExp(r'^\+\d{0,15}')),
           FilteringTextInputFormatter.singleLineFormatter,
         ]);
         validator = inputValidation.validatePhone;
@@ -397,8 +398,7 @@ getValue -------------------------------------
         keyboardType = const TextInputType.numberWithOptions(decimal: true);
         inputFormatters.addAll([
           FilteringTextInputFormatter.singleLineFormatter,
-          FilteringTextInputFormatter.allow(
-              RegExp(r'^[0-9]+([.]?)+([0-9]+)?$')),
+          FilteringTextInputFormatter.allow(RegExp(r'(^\d*)(\.?)(\d*)')),
         ]);
         break;
       case InputDataType.int:
@@ -457,10 +457,10 @@ getValue -------------------------------------
       if (valueLocalString.isEmpty) return null;
       switch (widget.type) {
         case InputDataType.double:
-          if (valueLocalString.endsWith('.')) {
-            valueLocalString =
-                valueLocalString.replaceFirst(RegExp('.'), ''); // h*llo hello
-          }
+          // if (valueLocalString.endsWith('.')) {
+          //   valueLocalString =
+          //       valueLocalString.replaceAll(RegExp('.'), ''); // h*llo hello
+          // }
           return double.tryParse(valueLocalString);
         case InputDataType.int:
           return int.tryParse(valueLocalString);
@@ -510,6 +510,12 @@ getValue -------------------------------------
           onEditingComplete: widget.onComplete == null
               ? null
               : () {
+                  widget.onComplete!(valueChanged(value));
+                  FocusManager.instance.primaryFocus?.unfocus();
+                },
+          onTapOutside: widget.onComplete == null
+              ? null
+              : (event) {
                   widget.onComplete!(valueChanged(value));
                   FocusManager.instance.primaryFocus?.unfocus();
                 },
