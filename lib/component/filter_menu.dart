@@ -9,6 +9,242 @@ import '../serialized/filter_data.dart';
 import 'input_data.dart';
 import 'popup_entry.dart';
 
+/// Shows the filter options for the pop-up
+class FilterMenuOptionData extends StatefulWidget {
+  const FilterMenuOptionData({
+    Key? key,
+    required this.data,
+    required this.onChange,
+  }) : super(key: key);
+  final FilterData data;
+  final ValueChanged<FilterData> onChange;
+
+  @override
+  State<FilterMenuOptionData> createState() => _FilterMenuOptionDataState();
+}
+
+class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
+  late FilterData edit;
+
+  @override
+  void initState() {
+    edit = widget.data;
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final locales = AppLocalizations.of(context)!;
+    bool isSort =
+        widget.data.operator == FilterOperator.sort || widget.data.id == 'sort';
+    final enumData = EnumData(locales: locales);
+
+    /// Define Dropdown options depending on the InputDataType
+    // Ignore FilterOperator.sort
+    List<dynamic> dropdownOptions = FilterOperator.values
+        .where((item) => item != FilterOperator.sort)
+        .toList();
+    final filterOperatorDatesOrNumbers = [
+      FilterOperator.equal,
+      FilterOperator.notEqual,
+      FilterOperator.greaterThan,
+      FilterOperator.greaterThanOrEqual,
+      FilterOperator.lessThan,
+      FilterOperator.lessThanOrEqual,
+      FilterOperator.between,
+      FilterOperator.any,
+    ];
+    final filterOperatorExact = [
+      FilterOperator.equal,
+      FilterOperator.notEqual,
+      FilterOperator.any,
+    ];
+    switch (widget.data.type) {
+      case InputDataType.email:
+      case InputDataType.enums:
+      case InputDataType.dropdown:
+      case InputDataType.radio:
+        dropdownOptions = filterOperatorExact;
+        break;
+      case InputDataType.date:
+      case InputDataType.dateTime:
+      case InputDataType.time:
+      case InputDataType.bool:
+        dropdownOptions = filterOperatorDatesOrNumbers;
+        break;
+      case InputDataType.double:
+      case InputDataType.int:
+        dropdownOptions = filterOperatorDatesOrNumbers;
+        break;
+      case InputDataType.text:
+      case InputDataType.string:
+      case InputDataType.phone:
+      case InputDataType.secret:
+      case InputDataType.url:
+        // Using all by default
+        break;
+    }
+    final sortOptions = FilterOrder.values
+        .map((e) => ButtonOptions(
+            id: e.name, value: e.name, label: enumData.localesFromEnum(e)))
+        .toList();
+    const space = SizedBox(height: 16);
+
+    /// Options
+    late Widget optionInput;
+    switch (edit.operator) {
+      case FilterOperator.equal:
+      case FilterOperator.notEqual:
+      case FilterOperator.contains:
+      case FilterOperator.lessThan:
+      case FilterOperator.greaterThan:
+      case FilterOperator.greaterThanOrEqual:
+      case FilterOperator.lessThanOrEqual:
+        optionInput = InputData(
+          label: locales.get('label--value'),
+          type: widget.data.type,
+          value: edit.value,
+          enums: widget.data.enums,
+          options: widget.data.options,
+          onChanged: (value) {
+            edit.value = value;
+          },
+          onComplete: (value) {
+            edit.value = value;
+            if (mounted) setState(() {});
+          },
+        );
+        break;
+      case FilterOperator.between:
+        optionInput = Flex(
+          direction: Axis.vertical,
+          children: [
+            InputData(
+              label: '${locales.get('label--value')} 1',
+              type: widget.data.type,
+              value: edit.value?[0],
+              enums: widget.data.enums,
+              options: widget.data.options,
+              onChanged: (value) {
+                edit.value = [value, edit.value?[1]];
+                // Don't update the state or the position of the input will be lost
+              },
+              onComplete: (value) {
+                edit.value = [value, edit.value?[1]];
+                if (mounted) setState(() {});
+              },
+            ),
+            space,
+            InputData(
+              label: '${locales.get('label--value')} 2',
+              type: widget.data.type,
+              value: edit.value?[1],
+              enums: widget.data.enums,
+              options: widget.data.options,
+              onChanged: (value) {
+                edit.value = [edit.value?[0], value];
+                // Don't update the state or the position of the input will be lost
+              },
+              onComplete: (value) {
+                edit.value = [edit.value?[0], value];
+                if (mounted) setState(() {});
+              },
+            ),
+          ],
+        );
+        break;
+      case FilterOperator.sort:
+        optionInput = Flex(
+          direction: Axis.vertical,
+          children: [
+            InputData(
+              label: locales.get('label--sort-by'),
+              type: InputDataType.dropdown,
+              value: edit.value?[0],
+              options: widget.data.options,
+              onChanged: (value) {
+                edit.value = [
+                  value,
+                  edit.value?[1],
+                ];
+                // if (mounted) setState(() {});
+                // Don't update the state or the position of the input will be lost
+              },
+            ),
+            space,
+            InputData(
+              label: locales.get('label--order'),
+              type: InputDataType.dropdown,
+              value: edit.value?[1],
+              options: sortOptions,
+              onChanged: (value) {
+                edit.value = [
+                  edit.value?[0],
+                  value ?? FilterOrder.asc.name,
+                ];
+                // Don't update the state or the position of the input will be lost
+                // if (mounted) setState(() {});
+              },
+            ),
+          ],
+        );
+        break;
+      case FilterOperator.any:
+        optionInput = const SizedBox();
+        break;
+      default:
+    }
+    List<Widget> sections = [];
+    if (!isSort) {
+      sections.addAll([
+        InputData(
+          label: widget.data.label,
+          type: InputDataType.enums,
+          enums: dropdownOptions,
+          onChanged: (value) {
+            edit.operator = value ?? FilterOperator.any;
+            edit.value = null;
+            if (mounted) setState(() {});
+          },
+          value: edit.operator,
+        ),
+        space,
+      ]);
+    }
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Flex(
+        direction: Axis.vertical,
+        children: [
+          ...sections,
+          optionInput,
+          space,
+          Row(
+            children: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text(locales.get('label--cancel')),
+              ),
+              const Spacer(),
+              ElevatedButton(
+                onPressed: () {
+                  if (edit.operator == null) return;
+                  // data.operator = edit.operator;
+                  // data.value = edit.value;
+                  widget.onChange(edit);
+                },
+                child: Text(locales.get('label--apply')),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// FilterMenuOption
 class FilterMenuOption extends StatefulWidget {
   const FilterMenuOption({
@@ -45,42 +281,6 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context)!;
     final enumData = EnumData(locales: locales);
-
-    /// Define Dropdown options depending on the InputDataType
-    // Ignore FilterOperator.sort
-    List<dynamic> dropdownOptions = FilterOperator.values
-        .where((item) => item != FilterOperator.sort)
-        .toList();
-    final filterOperatorTimeOrDate = [
-      FilterOperator.equal,
-      FilterOperator.notEqual,
-      FilterOperator.greaterThan,
-      FilterOperator.greaterThanOrEqual,
-      FilterOperator.lessThan,
-      FilterOperator.lessThanOrEqual,
-      FilterOperator.between,
-      FilterOperator.any,
-    ];
-    final filterOperatorExact = [
-      FilterOperator.equal,
-      FilterOperator.notEqual,
-      FilterOperator.any,
-    ];
-    switch (data.type) {
-      case InputDataType.email:
-      case InputDataType.enums:
-      case InputDataType.dropdown:
-      case InputDataType.radio:
-        dropdownOptions = filterOperatorExact;
-        break;
-      case InputDataType.date:
-      case InputDataType.dateTime:
-      case InputDataType.time:
-      case InputDataType.bool:
-        dropdownOptions = filterOperatorTimeOrDate;
-        break;
-      default:
-    }
 
     /// Label value
     String dataOperatorString = enumData.localesFromEnum(data.operator);
@@ -168,7 +368,6 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
         //
       }
     }
-    const space = SizedBox(height: 16);
     IconData icon = inputDataTypeIcon(data.type);
     if (isSort) {
       icon = Icons.sort;
@@ -183,156 +382,21 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
         if (mounted) setState(() {});
       },
       itemBuilder: (BuildContext context) {
-        FilterData? edit;
-        edit ??= FilterData.fromJson(data.toJson());
         return [
           PopupEntry(
-            child: StatefulBuilder(
-                builder: (BuildContext context, StateSetter setState) {
-              late Widget optionInput;
-              switch (edit!.operator) {
-                case FilterOperator.equal:
-                case FilterOperator.notEqual:
-                case FilterOperator.contains:
-                case FilterOperator.lessThan:
-                case FilterOperator.greaterThan:
-                case FilterOperator.greaterThanOrEqual:
-                case FilterOperator.lessThanOrEqual:
-                  optionInput = InputData(
-                    label: locales.get('label--value'),
-                    type: data.type,
-                    value: edit.value,
-                    enums: data.enums,
-                    options: data.options,
-                    onChanged: (value) {
-                      edit!.value = value;
-                      if (mounted) setState(() {});
-                    },
-                  );
-                  break;
-                case FilterOperator.between:
-                  optionInput = Flex(
-                    direction: Axis.vertical,
-                    children: [
-                      InputData(
-                        label: '${locales.get('label--value')} 1',
-                        type: data.type,
-                        value: edit.value?[0],
-                        enums: data.enums,
-                        options: data.options,
-                        onChanged: (value) {
-                          edit!.value = [value, edit.value?[1]];
-                          if (mounted) setState(() {});
-                        },
-                      ),
-                      space,
-                      InputData(
-                        label: '${locales.get('label--value')} 2',
-                        type: data.type,
-                        value: edit.value?[1],
-                        enums: data.enums,
-                        options: data.options,
-                        onChanged: (value) {
-                          edit!.value = [edit.value?[0], value];
-                          if (mounted) setState(() {});
-                        },
-                      ),
-                    ],
-                  );
-                  break;
-                case FilterOperator.sort:
-                  optionInput = Flex(
-                    direction: Axis.vertical,
-                    children: [
-                      InputData(
-                        label: locales.get('label--sort-by'),
-                        type: InputDataType.dropdown,
-                        value: edit.value?[0],
-                        options: data.options,
-                        onChanged: (value) {
-                          edit!.value = [
-                            value,
-                            edit.value?[1],
-                          ];
-                          if (mounted) setState(() {});
-                        },
-                      ),
-                      space,
-                      InputData(
-                        label: locales.get('label--order'),
-                        type: InputDataType.dropdown,
-                        value: edit.value?[1],
-                        options: sortOptions,
-                        // enums: FilterOrder.values,
-                        onChanged: (value) {
-                          edit!.value = [
-                            edit.value?[0],
-                            value ?? FilterOrder.asc.name,
-                          ];
-                          if (mounted) setState(() {});
-                        },
-                      ),
-                    ],
-                  );
-                  break;
-                case FilterOperator.any:
-                  optionInput = const SizedBox();
-                  break;
-                default:
-              }
-              List<Widget> sections = [];
-              if (!isSort) {
-                sections.addAll([
-                  InputData(
-                    label: data.label,
-                    type: InputDataType.enums,
-                    enums: dropdownOptions,
-                    onChanged: (value) {
-                      edit!.operator = value ?? FilterOperator.any;
-                      edit.value = null;
-                      // edit.operator == FilterOperator.any ? true : null;
-                      if (mounted) setState(() {});
-                    },
-                    value: edit.operator,
-                  ),
-                  space,
-                ]);
-              }
-              return Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Flex(
-                  direction: Axis.vertical,
-                  children: [
-                    ...sections,
-                    optionInput,
-                    space,
-                    Row(
-                      children: [
-                        TextButton(
-                          onPressed: () {
-                            if (mounted) setState(() {});
-                            Navigator.of(context).pop();
-                          },
-                          child: Text(locales.get('label--cancel')),
-                        ),
-                        const Spacer(),
-                        ElevatedButton(
-                          onPressed: edit.value == null || edit.operator == null
-                              ? null
-                              : () {
-                                  data.operator = edit!.operator;
-                                  data.value = edit.value;
-                                  Navigator.of(context).pop();
-                                  widget.onChange(data);
-                                },
-                          child: Text(locales.get('label--apply')),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-            }),
+            child: FilterMenuOptionData(
+              data: data,
+              onChange: (newValue) {
+                Navigator.of(context).pop();
+                FilterData copy = data;
+                copy.value = newValue.value;
+                copy.operator = newValue.operator;
+                // Use 300 milliseconds to ensure the animation completes
+                // Future.delayed(const Duration(milliseconds: 300)).then((time) {
+                // });
+                widget.onChange(copy);
+              },
+            ),
           ),
         ];
       },
@@ -382,9 +446,7 @@ class _FilterMenuState extends State<FilterMenu> {
   late List<FilterData> data;
 
   _updateData() {
-    List<FilterData> newData = widget.data;
-    newData.sort((a, b) => a.index.compareTo(b.index));
-    data = newData.reversed.toList();
+    data = widget.data;
   }
 
   @override
@@ -401,30 +463,29 @@ class _FilterMenuState extends State<FilterMenu> {
   }
 
   void clear() {
-    // List<FilterData> baseFilters = widget.data;
-    // baseFilters = baseFilters.map((e) {
-    //   FilterData item = e;
-    //   item.clear();
-    //   return item;
-    // }).toList();
-    // data = FilterHelper.filter(filters: baseFilters);
     widget.onChange([]);
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     assert(
       !(widget.child != null && widget.icon != null),
       'You can only pass [child] or [icon], not both.',
     );
     final locales = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
 
     /// Ignore options that are included on the filters data
     List<FilterData> pendingOptions =
         data.where((element) => element.operator == null).toList();
     pendingOptions.sort((a, b) => a.label.compareTo(b.label));
+
+    /// Active options with order
     List<FilterData> activeOptions = FilterHelper.filter(filters: data);
+    activeOptions.sort((a, b) => a.index.compareTo(b.index));
+    activeOptions = activeOptions.reversed.toList();
+
+    /// Generate buttons
     List<PopupMenuEntry<String>> buttons =
         List.generate(pendingOptions.length, (index) {
       final item = pendingOptions[index];
@@ -439,16 +500,48 @@ class _FilterMenuState extends State<FilterMenu> {
       return PopupMenuItem<String>(
         value: item.id,
         onTap: () {
+          int newIndex = activeOptions.length + 1;
           if (isSort) {
+            /// Add Filter by
+            selected.value = [null, null];
             selected.operator = FilterOperator.sort;
             selected.id = 'sort';
-            selected.value = [null, null];
+            selected.label = locales.get('label--sort-by');
+            selected.options = data
+                .where((element) => element.id != 'sort')
+                .where((element) => element.operator != FilterOperator.sort)
+                .map((e) => ButtonOptions(
+                      label: e.label,
+                      id: e.id,
+                      value: e.id,
+                    ))
+                .toList();
+            selected.type = InputDataType.dropdown;
           } else {
-            selected.operator = FilterOperator.any;
+            selected.operator = FilterOperator.equal;
             selected.value = null;
           }
-          selected.index = activeOptions.length + 1;
-          if (mounted) setState(() {});
+          selected.index = newIndex;
+          Future.delayed(const Duration(milliseconds: 50)).then((time) {
+            showDialog<void>(
+              barrierDismissible: false, // user must tap button!
+              context: context,
+              builder: (BuildContext ctx) {
+                return AlertDialog(
+                  scrollable: true,
+                  content: FilterMenuOptionData(
+                    data: selected,
+                    onChange: (newValue) {
+                      Navigator.of(context).pop();
+                      final merged =
+                          FilterHelper.merge(filters: data, merge: [newValue]);
+                      widget.onChange(merged);
+                    },
+                  ),
+                );
+              },
+            );
+          });
           // Do not call onChange or it will trigger unwanted calls
         },
         child: ListTile(
