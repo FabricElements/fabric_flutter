@@ -409,16 +409,19 @@ class StateShared extends ChangeNotifier {
     if (redirect) {
       assert(context != null, 'context can\'t be null for if redirect is true');
       assert(uri != null, 'uri can\'t be null for if redirect is true');
-      Utils.pushNamedFromQuery(
-        context: context!,
-        uri: uri!,
-        queryParameters: {
-          ...queryParameters,
-          'page': [],
-          'limit': [],
-          'sql': [],
-        },
-      );
+      // Use 300+ milliseconds to ensure animations completes
+      Future.delayed(const Duration(milliseconds: 300)).then((time) {
+        Utils.pushNamedFromQuery(
+          context: context!,
+          uri: uri!,
+          queryParameters: {
+            ...queryParameters,
+            'page': [],
+            'limit': [],
+            'sql': [],
+          },
+        );
+      });
     }
     notifyListeners();
     return filters;
