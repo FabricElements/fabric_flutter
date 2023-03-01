@@ -41,9 +41,7 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
 
     /// Define Dropdown options depending on the InputDataType
     // Ignore FilterOperator.sort
-    List<dynamic> dropdownOptions = FilterOperator.values
-        .where((item) => item != FilterOperator.sort)
-        .toList();
+    late List<FilterOperator> dropdownOptions;
     final filterOperatorDatesOrNumbers = [
       FilterOperator.equal,
       FilterOperator.notEqual,
@@ -82,6 +80,9 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
       case InputDataType.secret:
       case InputDataType.url:
         // Using all by default
+        dropdownOptions = FilterOperator.values
+            .where((item) => item != FilterOperator.sort)
+            .toList();
         break;
     }
     final sortOptions = FilterOrder.values

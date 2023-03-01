@@ -513,12 +513,6 @@ getValue -------------------------------------
                   widget.onComplete!(valueChanged(value));
                   FocusManager.instance.primaryFocus?.unfocus();
                 },
-          onTapOutside: widget.onComplete == null
-              ? null
-              : (event) {
-                  widget.onComplete!(valueChanged(value));
-                  FocusManager.instance.primaryFocus?.unfocus();
-                },
         );
         break;
       case InputDataType.date:
