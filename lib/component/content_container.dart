@@ -18,6 +18,7 @@ class ContentContainer extends StatelessWidget {
     this.direction = Axis.vertical,
     this.mainAxisSize = MainAxisSize.max,
     this.crossAxisAlignment = CrossAxisAlignment.start,
+    this.mainAxisAlignment = MainAxisAlignment.start,
   })  : assert(child != null || children != null,
             'child or children must be specified'),
         super(key: key);
@@ -29,6 +30,7 @@ class ContentContainer extends StatelessWidget {
   final Axis direction;
   final MainAxisSize mainAxisSize;
   final CrossAxisAlignment crossAxisAlignment;
+  final MainAxisAlignment mainAxisAlignment;
 
   @override
   Widget build(BuildContext context) {
@@ -52,6 +54,7 @@ class ContentContainer extends StatelessWidget {
           direction: direction,
           mainAxisSize: mainAxisSize,
           crossAxisAlignment: crossAxisAlignment,
+          mainAxisAlignment: mainAxisAlignment,
           children: children!,
         );
     return Center(
