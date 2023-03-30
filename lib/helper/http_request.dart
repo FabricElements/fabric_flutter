@@ -47,9 +47,9 @@ class HTTPRequest {
     return _headers;
   }
 
-  /// Throw an error if response return a 401 response
+  /// Throw an error if response return a Forbidden or Unauthorized
   static authenticated(Response response) {
-    if (response.statusCode >= 400 && response.statusCode <= 599) {
+    if (response.statusCode == 401 || response.statusCode == 403) {
       throw 'error--${response.statusCode}';
     }
   }
