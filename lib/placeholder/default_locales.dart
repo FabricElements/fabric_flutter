@@ -756,6 +756,10 @@ dynamic defaultLocales = {
   'label--id': {
     'en': 'ID',
   },
+  'error--400': {
+    'en': 'Bad Request',
+    'es': 'Solicitud incorrecta',
+  },
   'error--401': {
     'en': 'Unauthorized',
     'es': 'No autorizado',
