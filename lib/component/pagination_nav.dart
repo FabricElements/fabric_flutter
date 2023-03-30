@@ -15,6 +15,7 @@ class PaginationNav extends StatelessWidget {
     required this.totalPages,
     required this.limit,
     required this.limitChange,
+    this.limits = const [5, 10, 20, 50],
   }) : super(key: key);
   final int page;
   final int limit;
@@ -24,32 +25,18 @@ class PaginationNav extends StatelessWidget {
   final ValueChanged<int> limitChange;
   final int initialPage;
   final int totalPages;
+  final List<int> limits;
 
   @override
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context)!;
-    final limitOptions = [
-      ButtonOptions(
-        label: '5',
-        value: 5,
-      ),
-      ButtonOptions(
-        label: '10',
-        value: 10,
-      ),
-      ButtonOptions(
-        label: '20',
-        value: 20,
-      ),
-      ButtonOptions(
-        label: '50',
-        value: 50,
-      ),
-      ButtonOptions(
-        label: '100',
-        value: 100,
-      ),
-    ];
+    final limitOptions = List.generate(limits.length, (index) {
+      final item = limits[index];
+      return ButtonOptions(
+        label: item.toString(),
+        value: item,
+      );
+    });
     int defaultLimit = 10;
     if (limitOptions.where((element) => element.value == limit).isNotEmpty) {
       defaultLimit = limit;
