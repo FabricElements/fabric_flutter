@@ -55,6 +55,10 @@ dynamic defaultLocales = {
     'en': 'Sort',
     'es': 'Ordenar',
   },
+  'label--done': {
+    'en': 'Done',
+    'es': 'Hecho',
+  },
   'label--sort-by': {
     'en': 'Sort By',
     'es': 'Ordenar por',
