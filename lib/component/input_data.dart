@@ -105,6 +105,7 @@ class InputData extends StatefulWidget {
     this.utcOffset,
     this.validator,
     this.backgroundColor,
+    // icon == prefixIcon
     this.icon,
     this.error,
     this.textStyle,
@@ -115,6 +116,14 @@ class InputData extends StatefulWidget {
     this.autofocus = false,
     this.textController,
     this.autofillHints,
+    this.suffix,
+    this.suffixText,
+    this.suffixIcon,
+    this.suffixStyle,
+    this.prefix,
+    this.prefixText,
+    this.prefixIcon,
+    this.prefixStyle,
   }) : super(key: key);
   final dynamic value;
   final List<dynamic> enums;
@@ -140,6 +149,16 @@ class InputData extends StatefulWidget {
   final bool autofocus;
   final TextEditingController? textController;
   final Iterable<String>? autofillHints;
+
+  // Custom suffix and prefix
+  final Widget? suffix;
+  final Widget? suffixIcon;
+  final String? suffixText;
+  final String? prefixText;
+  final Widget? prefix;
+  final Widget? prefixIcon;
+  final TextStyle? prefixStyle;
+  final TextStyle? suffixStyle;
 
   /// [onSubmit]
   /// Never use expression body or value won't be update correctly
@@ -436,8 +455,14 @@ getValue -------------------------------------
       errorText: errorText,
       errorMaxLines: 2,
       enabled: !widget.disabled,
-      prefixIcon: inputIcon,
-      suffixIcon: inputTrailingIcon,
+      prefix: widget.prefix,
+      suffix: widget.suffix,
+      prefixIcon: widget.prefixIcon ?? inputIcon,
+      suffixIcon: widget.suffixIcon ?? inputTrailingIcon,
+      prefixText: widget.prefixText,
+      suffixText: widget.suffixText,
+      prefixStyle: widget.prefixStyle,
+      suffixStyle: widget.suffixStyle,
       labelText: widget.label,
       labelStyle: theme.textTheme.bodyMedium,
       // floatingLabelBehavior: FloatingLabelBehavior.always,
