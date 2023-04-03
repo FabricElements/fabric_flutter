@@ -39,6 +39,14 @@ dynamic defaultLocales = {
     'en': 'Archived',
     'es': 'Archivado',
   },
+  'label--paused': {
+    'en': 'Paused',
+    'es': 'Pausado',
+  },
+  'label--scheduled': {
+    'en': 'Scheduled',
+    'es': 'Programado',
+  },
   'label--default': {
     'en': 'Default',
     'es': 'Predeterminado',
