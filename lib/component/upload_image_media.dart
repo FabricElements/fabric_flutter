@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../helper/app_localizations_delegate.dart';
 import '../helper/firebase_storage_helper.dart';
 import '../helper/media_helper.dart';
 import '../serialized/media_data.dart';
@@ -33,7 +34,6 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
 
   @override
   Widget build(BuildContext context) {
-    final firebaseStorageHelper = FirebaseStorageHelper(context);
     if (loading) {
       return const SizedBox(
         height: 40,
@@ -43,13 +43,17 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
         ),
       );
     }
+    final firebaseStorageHelper = FirebaseStorageHelper(context);
+    final theme = Theme.of(context);
+    final locales = AppLocalizations.of(context)!;
     return Wrap(
       spacing: 16,
       children: [
-        FloatingActionButton(
-          mini: true,
-          heroTag: 'upload-media-image',
-          child: const Icon(Icons.image),
+        IconButton(
+          tooltip: locales.get('label--upload-from-label',
+              {'label': locales.get('label--gallery')}),
+          color: theme.colorScheme.primary,
+          icon: const Icon(Icons.image),
           onPressed: () async {
             loading = true;
             if (mounted) setState(() {});
@@ -65,10 +69,11 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
             if (mounted) setState(() {});
           },
         ),
-        FloatingActionButton(
-          mini: true,
-          heroTag: 'upload-media-image-file',
-          child: const Icon(Icons.upload_file),
+        IconButton(
+          tooltip: locales.get('label--upload-from-label',
+              {'label': locales.get('label--file')}),
+          color: theme.colorScheme.primary,
+          icon: const Icon(Icons.image_search),
           onPressed: () async {
             loading = true;
             if (mounted) setState(() {});
@@ -85,10 +90,11 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
           },
         ),
         !kIsWeb
-            ? FloatingActionButton(
-                mini: true,
-                heroTag: 'upload-media-camera',
-                child: const Icon(Icons.photo_camera),
+            ? IconButton(
+                tooltip: locales.get('label--upload-from-label',
+                    {'label': locales.get('label--camera')}),
+                color: theme.colorScheme.primary,
+                icon: const Icon(Icons.photo_camera),
                 onPressed: () async {
                   loading = true;
                   if (mounted) setState(() {});

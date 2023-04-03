@@ -485,6 +485,10 @@ dynamic defaultLocales = {
     'en': 'Upload',
     'es': 'Subir',
   },
+  'label--upload-from-label': {
+    'en': 'Upload from {label}',
+    'es': 'Subir desde {label}',
+  },
   'label--schedule': {
     'en': 'Schedule',
     'es': 'Horario',
