@@ -88,15 +88,23 @@ class AppLocalizations {
     String keyFinal = key?.toString() ?? 'label--unknown';
     // Fix dash
     keyFinal = keyFinal.replaceAll('_', '-');
-    // Remove invalid characters
-    RegExp regExp = RegExp(r'([^a-zA-Z\d-]+)');
-    keyFinal = keyFinal.replaceAll(regExp, '');
-    // Handle camelCase
-    RegExp exp = RegExp(r'(?<=[a-z])[A-Z]');
-    String endKey = keyFinal
-        .replaceAllMapped(exp, (Match m) => ('-${m.group(0)!}'))
-        .toLowerCase();
-    String finalLocalization = _mergeLocales(endKey);
+    try {
+      // Remove invalid characters
+      RegExp regExp = RegExp(r'([^a-zA-Z\d-]+)');
+      keyFinal = keyFinal.replaceAll(regExp, '');
+    } catch (e) {
+      //
+    }
+    try {
+      // Handle camelCase
+      RegExp exp = RegExp(r'(?<=[a-z])[A-Z]');
+      keyFinal =
+          keyFinal.replaceAllMapped(exp, (Match m) => ('-${m.group(0)!}'));
+    } catch (e) {
+      //
+    }
+    keyFinal = keyFinal.toLowerCase();
+    String finalLocalization = _mergeLocales(keyFinal);
     if (options != null) {
       finalLocalization = _replaceOptions(finalLocalization, options);
     }
