@@ -9,10 +9,12 @@ class IframeMinimal extends StatelessWidget {
   const IframeMinimal({
     Key? key,
     required this.src,
-    this.name = 'iframe',
+    this.title = 'Iframe',
+    this.alt = 'Iframe',
   }) : super(key: key);
   final String? src;
-  final String name;
+  final String alt;
+  final String title;
 
   @override
   Widget build(BuildContext context) {
@@ -20,14 +22,26 @@ class IframeMinimal extends StatelessWidget {
     final id = '#iframe-$src';
     if (kIsWeb) {
       final IFrameElement iframeElement = IFrameElement();
-      iframeElement.src = src;
-      iframeElement.style.border = 'none';
-      iframeElement.style.height = '100%';
-      iframeElement.style.width = '100%';
-      iframeElement.allowFullscreen = true;
-      iframeElement.height = '100%';
-      iframeElement.width = '100%';
-      iframeElement.name = name;
+      // iframeElement.src = src;
+      // iframeElement.style.border = 'none';
+      // iframeElement.style.height = '100%';
+      // iframeElement.style.width = '100%';
+      // iframeElement.allowFullscreen = true;
+      // iframeElement.height = '100%';
+      // iframeElement.width = '100%';
+      // iframeElement.style.backgroundColor = 'white';
+      iframeElement.attributes = {
+        'src': src!,
+        'allowtransparency': 'true',
+        'allowfullscreen': 'true',
+        'allow': 'fullscreen',
+        'height': '100%',
+        'width': '100%',
+        'alt': alt,
+        'style':
+            'border: none; height: 100%; width: 100%; background-color: transparent;',
+        'title': title,
+      };
       // ignore: undefined_prefixed_name
       ui.platformViewRegistry.registerViewFactory(
         id,
