@@ -2,13 +2,25 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Utils for a variety of different utility functions.
 class FirestoreHelper {
+  /// Handle timestamp from Firestore and Node Firestore responses
+  /// Returns a Timestamp
+  static Timestamp? timestampFromJsonMap(dynamic data) {
+    Timestamp? timestamp;
+    if (data is Timestamp) {
+      timestamp = data;
+    } else if (data is Map) {
+      timestamp = Timestamp(data['_seconds'], data['_nanoseconds']);
+    }
+    return timestamp;
+  }
+
   /// Serialize Timestamp From Json with default value
-  static DateTime timestampFromJsonDefault(Timestamp? timestamp) =>
-      (timestamp?.toDate() ?? DateTime.now()).toUtc();
+  static DateTime timestampFromJsonDefault(dynamic timestamp) =>
+      (timestampFromJsonMap(timestamp)?.toDate() ?? DateTime.now()).toUtc();
 
   /// Serialize Timestamp From Json
-  static DateTime? timestampFromJson(Timestamp? timestamp) =>
-      timestamp?.toDate().toUtc();
+  static DateTime? timestampFromJson(dynamic timestamp) =>
+      timestampFromJsonMap(timestamp)?.toDate().toUtc();
 
   /// Serialize Timestamp to Json with default value
   static Timestamp timestampToJsonDefault(DateTime? time) =>
