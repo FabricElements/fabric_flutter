@@ -7,6 +7,9 @@ class ButtonOptions {
   /// icon
   IconData? icon;
 
+  /// Trailing Icon
+  IconData? trailingIcon;
+
   /// Define id
   String? id;
 
@@ -47,6 +50,7 @@ class ButtonOptions {
   ButtonOptions({
     this.children = const [],
     this.icon,
+    this.trailingIcon,
     this.id,
     this.image,
     this.important = false,
