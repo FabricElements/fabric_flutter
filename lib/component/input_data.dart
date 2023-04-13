@@ -383,14 +383,10 @@ getValue -------------------------------------
         break;
 
       case InputDataType.phone:
-
-        /// https://en.wikipedia.org/wiki/Telephone_numbering_plan
+        // https://en.wikipedia.org/wiki/Telephone_numbering_plan
         maxLength = 16;
         hintTextDefault = '+1 (222) 333 - 4444';
-        keyboardType = const TextInputType.numberWithOptions(
-          decimal: true,
-          signed: true,
-        );
+        keyboardType = TextInputType.phone;
         inputFormatters.addAll([
           FilteringTextInputFormatter.deny(RegExp(r'[\s()-]')),
           FilteringTextInputFormatter.allow(RegExp(r'^\+\d{0,15}')),
