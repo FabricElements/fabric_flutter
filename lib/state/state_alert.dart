@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../component/smart_image.dart';
 import '../helper/app_localizations_delegate.dart';
@@ -176,10 +177,10 @@ class StateAlert extends ChangeNotifier {
     }
 
     /// Set default values for null safety
-    alertData.duration ??= 10;
+    alertData.duration ??= 6;
     alertData.color ??= theme.colorScheme.primary;
     alertData.titleStyle ??= textTheme.headline6;
-    alertData.bodyStyle ??= textTheme.titleSmall;
+    alertData.bodyStyle ??= textTheme.bodyText1;
 
     alertData.titleStyle = alertData.titleStyle!.apply(
       color: alertData.brightness == Brightness.light
@@ -235,12 +236,17 @@ class StateAlert extends ChangeNotifier {
         onColumn.add(Container(
           constraints: BoxConstraints(minWidth: 50, maxWidth: contentWidth),
           margin: const EdgeInsets.only(bottom: 8),
-          child: Text(
-            alertData.title!,
-            style: alertData.titleStyle,
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
-            softWrap: true,
+          child: RawMaterialButton(
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: alertData.title!));
+            },
+            child: Text(
+              alertData.title!,
+              style: alertData.titleStyle,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              softWrap: true,
+            ),
           ),
         ));
       }
@@ -248,12 +254,17 @@ class StateAlert extends ChangeNotifier {
         onColumn.add(Container(
           constraints: BoxConstraints(minWidth: 50, maxWidth: contentWidth),
           margin: const EdgeInsets.only(bottom: 8),
-          child: Text(
-            alertData.body!,
-            style: alertData.bodyStyle,
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
-            softWrap: true,
+          child: RawMaterialButton(
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: alertData.body!));
+            },
+            child: Text(
+              alertData.body!,
+              style: alertData.bodyStyle,
+              maxLines: 6,
+              overflow: TextOverflow.ellipsis,
+              softWrap: true,
+            ),
           ),
         ));
       }
