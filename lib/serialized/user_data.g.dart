@@ -26,7 +26,7 @@ UserData _$UserDataFromJson(Map<String, dynamic> json) => UserData(
           : UserDataOnboarding.fromJson(
               json['onboarding'] as Map<String, dynamic>?),
       phone: json['phone'] as String?,
-      ping: FirestoreHelper.timestampFromJson(json['ping'] as Timestamp?),
+      ping: FirestoreHelper.timestampFromJson(json['ping']),
       username: json['username'] as String?,
       email: json['email'] as String?,
       fcm: json['fcm'] as String?,

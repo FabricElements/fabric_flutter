@@ -13,10 +13,8 @@ BaseFirestore _$BaseFirestoreFromJson(Map<String, dynamic> json) {
   );
   return BaseFirestore(
     id: json['id'] as String,
-    created:
-        FirestoreHelper.timestampFromJsonDefault(json['created'] as Timestamp?),
-    updated:
-        FirestoreHelper.timestampFromJsonDefault(json['updated'] as Timestamp?),
+    created: FirestoreHelper.timestampFromJsonDefault(json['created']),
+    updated: FirestoreHelper.timestampFromJsonDefault(json['updated']),
     backup: json['backup'] as bool? ?? false,
   );
 }

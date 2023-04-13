@@ -183,6 +183,7 @@ class _InputDataState extends State<InputData> {
       DateFormat.yMd('en_US').addPattern(' - ').add_jm();
   dynamic value;
   late bool obscureText;
+  late bool obscure;
 
   /// Get Value from parameter
   void getValue({bool notify = false, required dynamic newValue}) {
@@ -297,6 +298,7 @@ getValue -------------------------------------
     /// obscure text and show controls
     obscureText = widget.obscureText;
     if (widget.type == InputDataType.secret) obscureText = true;
+    obscure = obscureText;
     super.initState();
   }
 
@@ -356,7 +358,7 @@ getValue -------------------------------------
     }
 
     Widget? inputTrailingIcon;
-    if (obscureText) {
+    if (obscure) {
       inputTrailingIcon = IconButton(
         onPressed: () {
           obscureText = !obscureText;
@@ -381,14 +383,10 @@ getValue -------------------------------------
         break;
 
       case InputDataType.phone:
-
-        /// https://en.wikipedia.org/wiki/Telephone_numbering_plan
+        // https://en.wikipedia.org/wiki/Telephone_numbering_plan
         maxLength = 16;
         hintTextDefault = '+1 (222) 333 - 4444';
-        keyboardType = const TextInputType.numberWithOptions(
-          decimal: true,
-          signed: true,
-        );
+        keyboardType = TextInputType.phone;
         inputFormatters.addAll([
           FilteringTextInputFormatter.deny(RegExp(r'[\s()-]')),
           FilteringTextInputFormatter.allow(RegExp(r'^\+\d{0,15}')),

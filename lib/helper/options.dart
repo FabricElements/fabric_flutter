@@ -7,6 +7,9 @@ class ButtonOptions {
   /// icon
   IconData? icon;
 
+  /// Trailing Icon
+  IconData? trailingIcon;
+
   /// Define id
   String? id;
 
@@ -44,9 +47,16 @@ class ButtonOptions {
   /// Set image for custom buttons
   String? image;
 
+  /// Set prefix widget for custom buttons
+  Widget? prefix;
+
+  /// Set trailing widget for custom buttons
+  Widget? trailing;
+
   ButtonOptions({
     this.children = const [],
     this.icon,
+    this.trailingIcon,
     this.id,
     this.image,
     this.important = false,
@@ -58,5 +68,7 @@ class ButtonOptions {
     this.queryParameters,
     this.selected = false,
     this.value,
+    this.prefix,
+    this.trailing,
   });
 }
