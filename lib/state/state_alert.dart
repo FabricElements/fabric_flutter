@@ -243,7 +243,7 @@ class StateAlert extends ChangeNotifier {
             child: Text(
               alertData.title!,
               style: alertData.titleStyle,
-              maxLines: 3,
+              maxLines: 4,
               overflow: TextOverflow.ellipsis,
               softWrap: true,
             ),
@@ -261,7 +261,7 @@ class StateAlert extends ChangeNotifier {
             child: Text(
               alertData.body!,
               style: alertData.bodyStyle,
-              maxLines: 6,
+              maxLines: 10,
               overflow: TextOverflow.ellipsis,
               softWrap: true,
             ),
