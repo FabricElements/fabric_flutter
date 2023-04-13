@@ -129,7 +129,8 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
       AppLocalizations? locales = AppLocalizations.of(context)!;
       if (!changed) {
         alert.show(AlertData(
-          title: locales.get('page-profile--alert--nothing-to-update'),
+          brightness: Brightness.dark,
+          body: locales.get('page-profile--alert--nothing-to-update'),
         ));
         return;
       }
@@ -139,7 +140,8 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
       newNameLast = newNameLast.trim();
       if (newNameFirst.isEmpty) {
         alert.show(AlertData(
-          title: locales.get('label--too-short', {
+          brightness: Brightness.dark,
+          body: locales.get('label--too-short', {
             'label': locales.get('label--first-name'),
             'number': '3',
           }),
@@ -149,7 +151,8 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
       }
       if (newNameLast.isEmpty) {
         alert.show(AlertData(
-          title: locales.get('label--too-short', {
+          brightness: Brightness.dark,
+          body: locales.get('label--too-short', {
             'label': locales.get('label--last-name'),
             'number': '3',
           }),
@@ -180,7 +183,8 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
         loading = false;
         if (mounted) setState(() {});
         alert.show(AlertData(
-          title: locales.get('page-profile--alert--profile-updated'),
+          brightness: Brightness.dark,
+          body: locales.get('page-profile--alert--profile-updated'),
           type: AlertType.success,
         ));
         if (stateUser.serialized.onboarding != null &&
@@ -190,12 +194,14 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
         refreshImage();
       } on FirebaseFunctionsException catch (error) {
         alert.show(AlertData(
-          title: error.message ?? error.details['message'],
+          brightness: Brightness.dark,
+          body: error.message ?? error.details['message'],
           type: AlertType.critical,
         ));
       } catch (error) {
         alert.show(AlertData(
-          title: error.toString(),
+          brightness: Brightness.dark,
+          body: error.toString(),
           type: AlertType.critical,
         ));
       }
@@ -214,7 +220,8 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
         }
       } catch (error) {
         alert.show(AlertData(
-          title: error.toString(),
+          brightness: Brightness.dark,
+          body: error.toString(),
           type: AlertType.critical,
         ));
       }
