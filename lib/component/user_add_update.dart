@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../helper/app_localizations_delegate.dart';
+import '../helper/input_validation.dart';
 import '../helper/options.dart';
+import '../helper/regex_helper.dart';
 import '../serialized/user_data.dart';
 import '../state/state_alert.dart';
 import 'input_data.dart';
@@ -90,6 +92,8 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     }
     if (widget.password) {
       canCall = canCall && data.password != null && data.password!.isNotEmpty;
+      bool newPasswordOk = RegexHelper.password.hasMatch(data.password ?? '');
+      canCall = canCall && newPasswordOk;
     }
     final locales = AppLocalizations.of(context)!;
     final alert = Provider.of<StateAlert>(context, listen: false);
@@ -225,6 +229,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       },
       maxLength: 20,
     );
+    final inputValidation = InputValidation(locales: locales);
 
     Widget passwordInput = InputData(
       icon: Icons.lock,
@@ -232,7 +237,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       isExpanded: true,
       value: data.password,
       type: InputDataType.secret,
-      obscureText: true,
+      validator: inputValidation.validatePassword,
       onChanged: (value) {
         data.password = value;
         if (mounted) setState(() {});

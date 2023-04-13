@@ -10,6 +10,12 @@ class InputValidation {
   final AppLocalizations? locales;
 
   /// Returns true if contains a valid Email
+  static bool isPasswordValid(String? password) {
+    if (password == null || password.isEmpty) return false;
+    return RegexHelper.password.hasMatch(password);
+  }
+
+  /// Returns true if contains a valid Email
   static bool isEmailValid(String? email) {
     if (email == null || email.isEmpty) return false;
     return RegexHelper.email.hasMatch(email);
@@ -22,6 +28,16 @@ class InputValidation {
     } else {
       return locales?.get('validation--email-address') ??
           'Enter a valid email address';
+    }
+  }
+
+  /// Returns null if contains a valid password
+  String? validatePassword(String? password) {
+    if (isPasswordValid(password)) {
+      return null;
+    } else {
+      return locales?.get('alert--invalid-password') ??
+          'It must contain at least 8 characters, 1 uppercase, 1 lowercase, 1 symbol, and 1 number.';
     }
   }
 
