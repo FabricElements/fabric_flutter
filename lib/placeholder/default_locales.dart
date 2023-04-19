@@ -1,9 +1,5 @@
 dynamic defaultLocales = {
-  'hello': {
-    'en': 'Hello world!',
-    'es': 'Hola mundo!',
-  },
-  'say-something': {
+  'say--something': {
     'en': 'Say something...',
     'es': 'Di algo...',
   },
