@@ -5,7 +5,7 @@ import '../helper/app_localizations_delegate.dart';
 import '../helper/options.dart';
 import '../state/state_alert.dart';
 
-/// [EditSaveButton] displays a simple way to show/hide edit buttons
+/// EditSaveButton displays a simple way to show/hide edit buttons
 class EditSaveButton extends StatefulWidget {
   const EditSaveButton({
     Key? key,
@@ -18,6 +18,7 @@ class EditSaveButton extends StatefulWidget {
     this.alertType = AlertType.basic,
     this.brightness,
     this.labels = false,
+    this.direction = Axis.horizontal,
   }) : super(key: key);
 
   /// if [active] the controls to edit are available
@@ -42,6 +43,8 @@ class EditSaveButton extends StatefulWidget {
   final AlertType alertType;
 
   final bool labels;
+
+  final Axis direction;
 
   @override
   State<EditSaveButton> createState() => _EditSaveButtonState();
@@ -144,7 +147,7 @@ class _EditSaveButtonState extends State<EditSaveButton> {
     }
 
     return Flex(
-      direction: Axis.horizontal,
+      direction: widget.direction,
       mainAxisSize: MainAxisSize.min,
       children: buttons,
     );

@@ -185,6 +185,24 @@ class _InputDataState extends State<InputData> {
   late bool obscureText;
   late bool obscure;
 
+  /// Format New Value
+  dynamic valueChanged(dynamic valueLocal) {
+    if (valueLocal == null) return null;
+    String valueLocalString = valueLocal!.toString();
+    if (valueLocalString.isEmpty) return null;
+    switch (widget.type) {
+      case InputDataType.double:
+        if (valueLocalString.endsWith('.')) {
+          valueLocalString = valueLocalString.replaceAll('.', '');
+        }
+        return double.tryParse(valueLocalString);
+      case InputDataType.int:
+        return int.tryParse(valueLocalString);
+      default:
+        return valueLocal;
+    }
+  }
+
   /// Get Value from parameter
   void getValue({bool notify = false, required dynamic newValue}) {
     try {
@@ -197,10 +215,11 @@ class _InputDataState extends State<InputData> {
         case InputDataType.email:
         case InputDataType.secret:
         case InputDataType.url:
-          String tempValue = newValue?.toString() ?? '';
-          if (tempValue != value) {
-            value = tempValue;
-            textController.text = value?.toString() ?? '';
+          dynamic newFormattedValue = valueChanged(newValue)?.toString() ?? '';
+          bool sameValue = value == newFormattedValue;
+          if (!sameValue) {
+            value = newFormattedValue;
+            textController.text = value;
             if (notify && mounted) setState(() {});
           }
           break;
@@ -473,25 +492,6 @@ getValue -------------------------------------
       // constraints: BoxConstraints(minHeight: minHeight),
     );
 
-    /// Format New Value
-    dynamic valueChanged(dynamic valueLocal) {
-      if (valueLocal == null) return null;
-      String valueLocalString = valueLocal!.toString();
-      if (valueLocalString.isEmpty) return null;
-      switch (widget.type) {
-        case InputDataType.double:
-          // if (valueLocalString.endsWith('.')) {
-          //   valueLocalString =
-          //       valueLocalString.replaceAll(RegExp('.'), ''); // h*llo hello
-          // }
-          return double.tryParse(valueLocalString);
-        case InputDataType.int:
-          return int.tryParse(valueLocalString);
-        default:
-          return valueLocal;
-      }
-    }
-
     switch (widget.type) {
       case InputDataType.double:
       case InputDataType.int:
@@ -518,15 +518,18 @@ getValue -------------------------------------
           decoration: inputDecoration,
           obscureText: obscureText,
           onChanged: (newValue) {
-            value = newValue;
-            if (widget.onChanged != null) {
-              widget.onChanged!(valueChanged(value));
+            dynamic newFormattedValue = valueChanged(newValue);
+            bool sameValue = value == newFormattedValue;
+            if (!sameValue) {
+              value = newFormattedValue?.toString() ?? '';
+              if (widget.onChanged != null) {
+                widget.onChanged!(newFormattedValue);
+              }
             }
           },
           onFieldSubmitted: widget.onSubmit == null
               ? null
               : (newValue) {
-                  value = newValue;
                   widget.onSubmit!(valueChanged(value));
                   FocusManager.instance.primaryFocus?.unfocus();
                 },
