@@ -29,22 +29,20 @@ class UserRoleContent extends StatefulWidget {
 class _UserRoleContentState extends State<UserRoleContent> {
   @override
   Widget build(BuildContext context) {
-    Widget _placeholder =
+    Widget placeholderWidget =
         widget.placeholder ?? const Center(child: CircularProgressIndicator());
     if (widget.path != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.popAndPushNamed(context, widget.path!);
       });
-      return _placeholder;
+      return placeholderWidget;
     }
     final stateUser = Provider.of<StateUser>(context);
     final hasAccess = stateUser.accessByRole(
       group: widget.group,
       roles: widget.roles,
     );
-    if (!hasAccess) {
-      return _placeholder;
-    }
+    if (!hasAccess) return placeholderWidget;
     return widget.child;
   }
 }

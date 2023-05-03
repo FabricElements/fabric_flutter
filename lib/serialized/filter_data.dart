@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../component/input_data.dart';
@@ -116,10 +117,15 @@ class FilterData {
           case InputDataType.secret:
             finalValue = value.toString();
             break;
+          case InputDataType.dateTime:
+            // TODO: Handle this case.
+            break;
+          case InputDataType.bool:
+            // TODO: Handle this case.
+            break;
         }
       } catch (e) {
-        print(e);
-        //
+        if (kDebugMode) print(e);
       }
     }
     return finalValue;

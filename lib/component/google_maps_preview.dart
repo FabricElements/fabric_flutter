@@ -7,7 +7,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'smart_image.dart';
 
-/// [GoogleMapsPreview] component
+/// GoogleMapsPreview component
 /// Displays a google map using [latitude] and [longitude]
 /// MapBasic(
 ///   latitude: 40.7813821,
@@ -125,8 +125,8 @@ class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
     }
 
     LatLng location = LatLng(latitude!, longitude!);
-    Completer<GoogleMapController> _controller = Completer();
-    final CameraPosition _kGooglePlex = CameraPosition(
+    Completer<GoogleMapController> controller = Completer();
+    final CameraPosition kGooglePlex = CameraPosition(
       target: location,
       zoom: widget.zoom,
     );
@@ -145,9 +145,9 @@ class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
         minMaxZoomPreference: widget.minMaxZoomPreference,
         liteModeEnabled: false,
         mapType: widget.mapType,
-        initialCameraPosition: _kGooglePlex,
-        onMapCreated: (GoogleMapController controller) {
-          _controller.complete(controller);
+        initialCameraPosition: kGooglePlex,
+        onMapCreated: (GoogleMapController c) {
+          controller.complete(c);
         },
         markers: <Marker>{marker},
         myLocationButtonEnabled: false,

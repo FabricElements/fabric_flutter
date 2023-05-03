@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../helper/app_localizations_delegate.dart';
 import '../helper/options.dart';
 
 class Tabs extends StatelessWidget {
@@ -12,25 +11,20 @@ class Tabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final locales = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    TextTheme textTheme = theme.textTheme;
     TabBarTheme tbTheme = theme.tabBarTheme;
-
     List<Widget> tabList = List.generate(tabs.length, (i) {
       final option = tabs[i];
       bool hasAction = option.path != null || option.onTap != null;
       TextStyle? labelStyle = (option.selected
-              ? tbTheme.labelStyle ?? theme.primaryTextTheme.bodyText1
+              ? tbTheme.labelStyle ?? theme.primaryTextTheme.bodyLarge
               : tbTheme.unselectedLabelStyle ??
-                  theme.primaryTextTheme.bodyText1)
+                  theme.primaryTextTheme.bodyLarge)
           ?.copyWith(
         color:
             option.selected ? tbTheme.labelColor : tbTheme.unselectedLabelColor,
       );
       Color? indicatorColor = option.selected ? theme.indicatorColor : null;
-
-      // Color? background = tbTheme.indicator?.color;
       return Expanded(
         child: RawMaterialButton(
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,

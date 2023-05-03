@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// [RouteHelper] Enables/Disables routes depending on credentials
+/// RouteHelper Enables/Disables routes depending on credentials
 class RouteHelper {
   RouteHelper({
     required this.adminRoutes,
@@ -22,68 +22,68 @@ class RouteHelper {
   final String initialRoute;
 
   Map<String, Widget> routes({bool signed = false, bool isAdmin = false}) {
-    Map<String, Widget> _endSignedIn = {};
-    Map<String, Widget> _endPublic = {};
-    String _authRoute = authRoute ?? '/auth';
-    String _unknownRoute = unknownRoute ?? '/';
+    Map<String, Widget> endSignedIn = {};
+    Map<String, Widget> endPublic = {};
+    String endAuthRoute = authRoute ?? '/auth';
+    String endUnknownRoute = unknownRoute ?? '/';
 
-    List<String> _routesSignedIn = [];
-    List<String> _routesPublic = [];
+    List<String> routesSignedIn = [];
+    List<String> routesPublic = [];
     if (!signed) {
-      _routesPublic.add(_authRoute);
+      routesPublic.add(endAuthRoute);
     }
     if (publicRoutes != null) {
-      _routesSignedIn.addAll(publicRoutes!);
-      _routesPublic.addAll(publicRoutes!);
+      routesSignedIn.addAll(publicRoutes!);
+      routesPublic.addAll(publicRoutes!);
     }
     if (signed) {
       if (authenticatedRoutes != null) {
-        _routesSignedIn.addAll(authenticatedRoutes!);
+        routesSignedIn.addAll(authenticatedRoutes!);
       }
       if (isAdmin && adminRoutes != null) {
-        _routesSignedIn.addAll(adminRoutes!);
+        routesSignedIn.addAll(adminRoutes!);
       }
     }
 
     /// Authenticated views
     routeMap.forEach((key, value) {
-      Widget? _endViewSigned;
-      if (_routesSignedIn.contains(key)) {
+      Widget? endViewSigned0;
+      if (routesSignedIn.contains(key)) {
         if (key == initialRoute) {
-          _endViewSigned = WillPopScope(
+          endViewSigned0 = WillPopScope(
             onWillPop: () async => true,
             child: value,
           );
         } else {
-          _endViewSigned = value;
+          endViewSigned0 = value;
         }
       } else {
-        _endViewSigned = routeMap[_unknownRoute];
+        endViewSigned0 = routeMap[endUnknownRoute];
       }
-      _endSignedIn.addAll({
-        key: Scaffold(primary: false, body: _endViewSigned),
+      endSignedIn.addAll({
+        key: Scaffold(primary: false, body: endViewSigned0),
       });
     });
 
     /// Authenticated views
     routeMap.forEach((key, value) {
-      Widget? _endViewSigned;
-      if (_routesPublic.contains(key)) {
+      Widget? endViewSigned;
+      if (routesPublic.contains(key)) {
         if (key == initialRoute) {
-          _endViewSigned = WillPopScope(
+          endViewSigned = WillPopScope(
             onWillPop: () async => true,
             child: value,
           );
         } else {
-          _endViewSigned = value;
+          endViewSigned = value;
         }
       } else {
-        _endViewSigned = routeMap[_authRoute];
+        endViewSigned = routeMap[endAuthRoute];
       }
-      _endPublic.addAll({
-        key: Scaffold(primary: false, body: _endViewSigned),
+      endPublic.addAll({
+        key: Scaffold(primary: false, body: endViewSigned),
       });
     });
-    return signed ? _endSignedIn : _endPublic;
+    return signed ? endSignedIn : endPublic;
   }
 }

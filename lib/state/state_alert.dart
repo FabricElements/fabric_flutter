@@ -179,7 +179,7 @@ class StateAlert extends ChangeNotifier {
     alertData.titleStyle ??= textTheme.titleLarge;
     alertData.bodyStyle ??= textTheme.bodyLarge;
 
-    alertData.titleStyle = alertData.titleStyle!.apply(
+    alertData.titleStyle = alertData.titleStyle?.apply(
       color: alertData.brightness == Brightness.light
           ? Colors.grey.shade900
           : Colors.white,
@@ -201,7 +201,7 @@ class StateAlert extends ChangeNotifier {
         ? Colors.white
         : alertData.color!;
     Color dismissButtonColor = alertData.brightness == Brightness.light
-        ? theme.textTheme.button?.color ?? Colors.grey.shade800
+        ? theme.textTheme.labelLarge?.color ?? Colors.grey.shade800
         : Colors.white;
 
     /// Dismiss

@@ -21,7 +21,6 @@ class UserRolesFirebase {
       ...user.toJson(),
       'group': group,
     };
-    print(dataFinal);
     return callable.call(dataFinal);
   }
 

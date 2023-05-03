@@ -42,7 +42,7 @@ dependencies:
   webview_flutter: ^4.2.0
   flutter_localizations:
     sdk: flutter
-
+  intl: ^0.17.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

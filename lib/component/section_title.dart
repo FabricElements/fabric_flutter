@@ -41,11 +41,11 @@ class _SectionTitleState extends State<SectionTitle> {
       TextStyle? titleDefault = sizeBase;
       TextStyle? titleColor = sizeBase;
       if (type == 'title') {
-        sizeBase = textTheme.headline4;
-        titleDefault = sizeBase!.copyWith(
+        sizeBase = textTheme.headlineMedium;
+        titleDefault = sizeBase?.copyWith(
           fontWeight: FontWeight.w600,
         );
-        titleColor = sizeBase.copyWith(
+        titleColor = sizeBase?.copyWith(
           color: theme.primaryColor,
           fontWeight: FontWeight.w600,
         );
@@ -53,10 +53,11 @@ class _SectionTitleState extends State<SectionTitle> {
         titleDefault = sizeBase;
         titleColor = sizeBase;
         if (widget.condensed) {
-          sizeBase = textTheme.subtitle1!.copyWith(fontWeight: FontWeight.w400);
+          sizeBase =
+              textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w400);
         }
         titleDefault = titleDefault;
-        titleColor = titleColor!.copyWith(
+        titleColor = titleColor?.copyWith(
           color: theme.colorScheme.primary,
         );
       }

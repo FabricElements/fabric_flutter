@@ -340,6 +340,7 @@ class StateShared extends ChangeNotifier {
 
   /// Clear and reset default values
   void clear({bool notify = false}) {
+    _error = null;
     errorCount = 0;
     initialized = false;
     pageDefault = initialPage;

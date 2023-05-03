@@ -18,6 +18,8 @@ class StateCollection extends StateShared {
   set query(Query<Map<String, dynamic>>? reference) {
     if (reference != baseQuery) clear();
     if (reference == baseQuery) return;
+    // Drain before using new query
+    _drain();
     baseQuery = reference;
     if (reference != null) {
       _listen();
@@ -68,16 +70,5 @@ class StateCollection extends StateShared {
     } catch (error) {
       //
     }
-  }
-
-  /// Clear document data
-  void clear({bool notify = false}) {
-    _drain();
-    initialized = false;
-    baseQuery = null;
-    data = null;
-    error = null;
-    clearAfter();
-    if (notify) notifyListeners();
   }
 }

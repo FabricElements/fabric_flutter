@@ -22,7 +22,7 @@ class _StepperExtendedState extends State<StepperExtended> {
     final textTheme = theme.textTheme;
     List<Widget> children = List.generate(widget.steps.length, (index) {
       Step step = widget.steps[index];
-      TextStyle? leadingStyle = textTheme.subtitle1?.copyWith(
+      TextStyle? leadingStyle = textTheme.titleMedium?.copyWith(
         color: Colors.white,
         fontWeight: FontWeight.w700,
       );
@@ -98,7 +98,6 @@ class _StepperExtendedState extends State<StepperExtended> {
         ),
       );
     });
-
     return ListView(
       children: children,
     );

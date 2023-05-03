@@ -288,7 +288,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       inviteWidgets.addAll([
         const Divider(),
         spacer,
-        Text(locales.get('label--role'), style: textTheme.subtitle1),
+        Text(locales.get('label--role'), style: textTheme.titleMedium),
         spacer,
         spacer,
       ]);
@@ -319,7 +319,8 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       inviteWidgets.addAll([
         const Divider(),
         spacer,
-        Text(locales.get('label--roles-by-group'), style: textTheme.subtitle1),
+        Text(locales.get('label--roles-by-group'),
+            style: textTheme.titleMedium),
         spacer,
         spacer,
       ]);

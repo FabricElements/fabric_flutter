@@ -276,7 +276,7 @@ class UserAdmin extends StatelessWidget {
             ),
             title: Padding(
               padding: const EdgeInsets.only(bottom: 8.0),
-              child: Text(name, style: textTheme.subtitle1),
+              child: Text(name, style: textTheme.titleMedium),
             ),
             subtitle: Wrap(
               spacing: 8,
