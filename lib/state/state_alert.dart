@@ -143,13 +143,10 @@ class StateAlert extends ChangeNotifier {
     double width = queryData.size.width;
     double basePadding = 16.0;
     double contentWidth = width - (basePadding * 4);
-
-    // int height = constraints.maxHeight.floor();
     final locales = AppLocalizations.of(context!)!;
     final theme = Theme.of(context!);
     final textTheme = theme.textTheme;
     final brightness = theme.brightness;
-    // await Future.delayed(Duration(microseconds: 200));
     if (alertData.typeString != null) {
       alertData.type = typeFromString(alertData.typeString);
     }
@@ -177,10 +174,10 @@ class StateAlert extends ChangeNotifier {
     }
 
     /// Set default values for null safety
-    alertData.duration ??= 6;
+    alertData.duration ??= 4;
     alertData.color ??= theme.colorScheme.primary;
-    alertData.titleStyle ??= textTheme.headline6;
-    alertData.bodyStyle ??= textTheme.bodyText1;
+    alertData.titleStyle ??= textTheme.titleLarge;
+    alertData.bodyStyle ??= textTheme.bodyLarge;
 
     alertData.titleStyle = alertData.titleStyle!.apply(
       color: alertData.brightness == Brightness.light
@@ -360,7 +357,7 @@ class StateAlert extends ChangeNotifier {
         },
       ));
 
-      if (hasAction && alertData.widget == AlertWidget.snackBar) {
+      if (alertData.widget == AlertWidget.snackBar) {
         onColumn.add(Container(
           margin: const EdgeInsets.only(top: 16),
           child: Wrap(
