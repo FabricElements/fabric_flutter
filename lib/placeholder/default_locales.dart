@@ -842,6 +842,14 @@ dynamic defaultLocales = {
     'en': 'To',
     'es': 'Para',
   },
+  'label--first': {
+    'en': 'First',
+    'es': 'Primera',
+  },
+  'label--last': {
+    'en': 'Last',
+    'es': 'Última',
+  },
   'label--next': {
     'en': 'Next',
     'es': 'Siguiente',

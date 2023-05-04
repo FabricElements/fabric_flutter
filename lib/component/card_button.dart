@@ -91,8 +91,8 @@ class _CardButtonState extends State<CardButton> {
                           widget.headline != null
                               ? Text(
                                   widget.headline!,
-                                  style: textTheme.headline5!
-                                      .copyWith(color: Colors.white),
+                                  style: textTheme.headlineSmall
+                                      ?.copyWith(color: Colors.white),
                                   textAlign: TextAlign.left,
                                 )
                               : Container(),
@@ -101,8 +101,8 @@ class _CardButtonState extends State<CardButton> {
                                   padding: const EdgeInsets.only(top: 8),
                                   child: Text(
                                     widget.description!,
-                                    style: textTheme.bodyText2!
-                                        .copyWith(color: Colors.white),
+                                    style: textTheme.bodyMedium
+                                        ?.copyWith(color: Colors.white),
                                     textAlign: TextAlign.left,
                                   ),
                                 )

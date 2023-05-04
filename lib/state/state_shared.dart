@@ -8,7 +8,7 @@ import '../helper/utils.dart';
 import '../serialized/filter_data.dart';
 
 class StateShared extends ChangeNotifier {
-  /// [initialized] after data is called the first time
+  /// initialized after data is called the first time
   bool initialized = false;
 
   /// errorCount to prevent infinite loops
@@ -86,7 +86,7 @@ class StateShared extends ChangeNotifier {
   /// Return total number of pages
   int get totalPages => (totalCount / limit).ceil();
 
-  /// Paginate and call
+  /// Paginate to next page and call
   Future<dynamic> next() async {
     if (loading) {
       await Future.delayed(const Duration(milliseconds: 200));
@@ -97,7 +97,7 @@ class StateShared extends ChangeNotifier {
     return call(ignoreDuplicatedCalls: true);
   }
 
-  /// Paginate and call
+  /// Paginate to previous page and call
   Future<dynamic> previous() async {
     if (loading) {
       await Future.delayed(const Duration(milliseconds: 200));
@@ -108,7 +108,27 @@ class StateShared extends ChangeNotifier {
     return call(ignoreDuplicatedCalls: true);
   }
 
-  /// Set [data]
+  /// Paginate to first page and call
+  Future<dynamic> first() async {
+    if (loading) {
+      await Future.delayed(const Duration(milliseconds: 200));
+      return first();
+    }
+    page = initialPage;
+    return call(ignoreDuplicatedCalls: true);
+  }
+
+  /// Paginate to last page and call
+  Future<dynamic> last() async {
+    if (loading) {
+      await Future.delayed(const Duration(milliseconds: 200));
+      return last();
+    }
+    page = totalPages;
+    return call(ignoreDuplicatedCalls: true);
+  }
+
+  /// Set data
   set data(dynamic dataObject) {
     if (privateOldData == dataObject) return;
     privateOldData = dataObject;
@@ -340,6 +360,7 @@ class StateShared extends ChangeNotifier {
 
   /// Clear and reset default values
   void clear({bool notify = false}) {
+    _error = null;
     errorCount = 0;
     initialized = false;
     pageDefault = initialPage;

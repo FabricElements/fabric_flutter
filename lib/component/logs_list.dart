@@ -74,7 +74,7 @@ class LogsList extends StatelessWidget {
       List<InlineSpan> textFormatted = [];
       int? initialPosition = 0;
       TextStyle? textThemeBase =
-          textTheme.bodyText1?.copyWith(height: !minimal ? 1.7 : null);
+          textTheme.bodyLarge?.copyWith(height: !minimal ? 1.7 : null);
       TextStyle? textThemeColor = textThemeBase?.copyWith(
         color: highlightColor ?? Colors.black,
         fontWeight: FontWeight.w600,
@@ -85,7 +85,7 @@ class LogsList extends StatelessWidget {
         timestampWidget = Padding(
           padding: const EdgeInsets.only(bottom: 4.0),
           child: Text(DateFormat.yMd().add_jm().format(timestamp),
-              style: textTheme.caption),
+              style: textTheme.bodySmall),
         );
       }
       if (matches.isNotEmpty) {

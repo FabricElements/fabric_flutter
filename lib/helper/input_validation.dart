@@ -1,7 +1,7 @@
 import 'app_localizations_delegate.dart';
 import 'regex_helper.dart';
 
-/// Use [InputValidation] for any form input or the custom InputData component
+/// Use InputValidation for any form input or the custom InputData component
 class InputValidation {
   const InputValidation({
     this.locales,

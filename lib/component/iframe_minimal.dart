@@ -1,4 +1,4 @@
-import 'dart:html';
+import 'dart:html' show IFrameElement;
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
@@ -21,7 +21,7 @@ class IframeMinimal extends StatelessWidget {
     if (src == null) return const SizedBox();
     final id = '#iframe-$src';
     if (kIsWeb) {
-      final IFrameElement iframeElement = IFrameElement();
+      final iframeElement = IFrameElement();
       // iframeElement.src = src;
       // iframeElement.style.border = 'none';
       // iframeElement.style.height = '100%';

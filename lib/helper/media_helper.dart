@@ -126,7 +126,7 @@ class MediaHelper {
         }
       }
 
-      img.Image _resize(img.Image src) {
+      img.Image resizeSrc(img.Image src) {
         /// Return same data if doesn't require resize
         if (!needsResize) return src;
         return img.copyResize(
@@ -155,14 +155,14 @@ class MediaHelper {
           }
           break;
         case 'png':
-          baseImage = _resize(baseImage);
-          encodedImage = img.encodePng(baseImage, level: 10) as Uint8List;
+          baseImage = resizeSrc(baseImage);
+          encodedImage = img.encodePng(baseImage, level: 10);
           break;
         case 'jpeg':
         case 'jpg':
         default:
-          baseImage = _resize(baseImage);
-          encodedImage = img.encodeJpg(baseImage, quality: 95) as Uint8List;
+          baseImage = resizeSrc(baseImage);
+          encodedImage = img.encodeJpg(baseImage, quality: 95);
           break;
       }
       return encodedImage;

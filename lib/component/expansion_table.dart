@@ -146,8 +146,8 @@ class _ExpansionTableState extends State<ExpansionTable> {
 
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
-        double width = constraints.maxWidth.floorToDouble();
-        double height = constraints.maxHeight.floorToDouble();
+        // double width = constraints.maxWidth.floorToDouble();
+        // double height = constraints.maxHeight.floorToDouble();
 
         /// Get the rows
         Widget getRows(
@@ -355,8 +355,8 @@ class _ExpansionTableState extends State<ExpansionTable> {
         double headingRowHeight = widget.headingRowHeight ??
             theme.dataTableTheme.headingRowHeight ??
             56;
-        double totalWidth =
-            (data.header!.length * 300) + effectiveHorizontalMargin;
+        // double totalWidth =
+        //     (data.header!.length * 300) + effectiveHorizontalMargin;
         Widget columns = Material(
           elevation: 1,
           textStyle:

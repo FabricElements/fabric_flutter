@@ -26,16 +26,10 @@ enum AudioState {
 }
 
 /// Fetch audio file
-Future<http.Response> fetchFile(String url) {
-  Uri _url = Uri.parse(url);
-  return http.get(_url);
-}
+Future<http.Response> fetchFile(String url) => http.get(Uri.parse(url));
 
 /// Fetch audio file
-Future<http.Response> hedURL(String url) {
-  Uri _url = Uri.parse(url);
-  return http.head(_url);
-}
+Future<http.Response> hedURL(String url) => http.head(Uri.parse(url));
 
 /// This a component to preview audio, it loads a url and you can play it within the app.
 ///
@@ -320,7 +314,8 @@ class _AudioPreviewState extends State<AudioPreview>
                 spacer,
                 Text(
                   _playerTxt,
-                  style: textTheme.caption!.apply(color: Colors.grey.shade700),
+                  style:
+                      textTheme.bodySmall?.apply(color: Colors.grey.shade700),
                 ),
               ],
             ),

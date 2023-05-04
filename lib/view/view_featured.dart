@@ -257,7 +257,7 @@ class _ViewFeaturedState extends State<ViewFeatured> {
                               bottom: false,
                               child: Text(
                                 widget.headline!,
-                                style: textTheme.headline3!.copyWith(
+                                style: textTheme.headline3?.copyWith(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
                                 ),

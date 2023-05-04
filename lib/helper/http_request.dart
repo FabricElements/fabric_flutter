@@ -40,11 +40,11 @@ class HTTPRequest {
 
   /// Get headers
   Map<String, String> get headers {
-    Map<String, String> _headers = {};
+    Map<String, String> endHeaders = {};
     if (formattedCredentials != null) {
-      _headers.addAll({'Authorization': formattedCredentials!});
+      endHeaders.addAll({'Authorization': formattedCredentials!});
     }
-    return _headers;
+    return endHeaders;
   }
 
   /// Throw an error if response return a Forbidden or Unauthorized

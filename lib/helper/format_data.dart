@@ -1,6 +1,6 @@
 import 'package:intl/intl.dart';
 
-/// [FormatData] provides helpful value formats used to display data
+/// FormatData provides helpful value formats used to display data
 class FormatData {
   FormatData();
 

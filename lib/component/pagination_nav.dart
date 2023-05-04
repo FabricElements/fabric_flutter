@@ -4,6 +4,7 @@ import '../helper/app_localizations_delegate.dart';
 import '../helper/options.dart';
 import 'input_data.dart';
 
+/// Defines the pagination component with controls
 class PaginationNav extends StatelessWidget {
   const PaginationNav({
     Key? key,
@@ -11,6 +12,8 @@ class PaginationNav extends StatelessWidget {
     required this.canPaginate,
     required this.next,
     required this.previous,
+    this.first,
+    this.last,
     this.initialPage = 1,
     required this.totalPages,
     required this.limit,
@@ -22,6 +25,8 @@ class PaginationNav extends StatelessWidget {
   final bool canPaginate;
   final Function next;
   final Function previous;
+  final Function? first;
+  final Function? last;
   final ValueChanged<int> limitChange;
   final int initialPage;
   final int totalPages;
@@ -61,7 +66,19 @@ class PaginationNav extends StatelessWidget {
         ),
       ),
       const Spacer(),
-      TextButton.icon(
+    ];
+    if (first != null) {
+      actions.addAll([
+        TextButton.icon(
+          onPressed: page > initialPage ? () => first!() : null,
+          icon: const Icon(Icons.first_page),
+          label: Text(locales.get('label--first').toUpperCase()),
+        ),
+        const SizedBox(width: 16),
+      ]);
+    }
+    actions.addAll([
+      OutlinedButton.icon(
         onPressed: page > initialPage ? () => previous() : null,
         icon: const Icon(Icons.arrow_back),
         label: Text(locales.get('label--previous').toUpperCase()),
@@ -72,7 +89,17 @@ class PaginationNav extends StatelessWidget {
         icon: const Icon(Icons.arrow_forward),
         label: Text(locales.get('label--next').toUpperCase()),
       ),
-    ];
+    ]);
+    if (last != null) {
+      actions.addAll([
+        const SizedBox(width: 16),
+        TextButton.icon(
+          onPressed: page < totalPages ? () => last!() : null,
+          icon: const Icon(Icons.last_page),
+          label: Text(locales.get('label--last').toUpperCase()),
+        ),
+      ]);
+    }
     return Row(
       children: actions,
     );

@@ -34,12 +34,9 @@ class RedirectApp {
     Uri? link,
   }) {
     if (link != null) {
-      final Map<String, String>? params = link.queryParameters;
-      // Format the child map
-      Map<String, String> _params = params ?? {};
       toView(
         path: link.path,
-        arguments: _params,
+        arguments: link.queryParameters,
       );
     }
   }
