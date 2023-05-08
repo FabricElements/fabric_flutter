@@ -271,7 +271,7 @@ class _AudioPreviewState extends State<AudioPreview>
       return Text(widget.loadingText);
     }
     final theme = Theme.of(context);
-    final TextTheme textTheme = theme.textTheme;
+    final textTheme = theme.textTheme;
     Color cardColor = const Color.fromRGBO(255, 255, 255, 1);
 
     Widget baseCard = Material(

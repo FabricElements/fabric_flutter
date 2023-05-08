@@ -133,7 +133,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     final theme = Theme.of(context);
     final stateAnalytics = Provider.of<StateAnalytics>(context, listen: false);
     final locales = AppLocalizations.of(context)!;
-    TextTheme textTheme = Theme.of(context).textTheme;
+    final textTheme = Theme.of(context).textTheme;
     final alert = Provider.of<StateAlert>(context, listen: false);
 
     /// Access action link

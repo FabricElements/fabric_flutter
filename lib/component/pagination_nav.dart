@@ -35,6 +35,8 @@ class PaginationNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
     final limitOptions = List.generate(limits.length, (index) {
       final item = limits[index];
       return ButtonOptions(
@@ -46,62 +48,90 @@ class PaginationNav extends StatelessWidget {
     if (limitOptions.where((element) => element.value == limit).isNotEmpty) {
       defaultLimit = limit;
     }
-    List<Widget> actions = [
-      Text('Page: $page / $totalPages'),
-      const SizedBox(width: 16),
-      SizedBox(
-        width: 152,
-        child: InputData(
-          isDense: true,
-          hintText: locales.get('label--limit'),
-          label: locales.get('label--limit'),
-          value: defaultLimit,
-          type: InputDataType.dropdown,
-          options: limitOptions,
-          onChanged: (value) {
-            if (value != limit) {
-              limitChange(value ?? limit);
-            }
-          },
-        ),
-      ),
-      const Spacer(),
-    ];
-    if (first != null) {
-      actions.addAll([
-        TextButton.icon(
-          onPressed: page > initialPage ? () => first!() : null,
-          icon: const Icon(Icons.first_page),
-          label: Text(locales.get('label--first').toUpperCase()),
-        ),
-        const SizedBox(width: 16),
-      ]);
-    }
-    actions.addAll([
-      OutlinedButton.icon(
-        onPressed: page > initialPage ? () => previous() : null,
-        icon: const Icon(Icons.arrow_back),
-        label: Text(locales.get('label--previous').toUpperCase()),
-      ),
-      const SizedBox(width: 16),
-      OutlinedButton.icon(
-        onPressed: canPaginate ? () => next() : null,
-        icon: const Icon(Icons.arrow_forward),
-        label: Text(locales.get('label--next').toUpperCase()),
-      ),
-    ]);
-    if (last != null) {
-      actions.addAll([
-        const SizedBox(width: 16),
-        TextButton.icon(
-          onPressed: page < totalPages ? () => last!() : null,
-          icon: const Icon(Icons.last_page),
-          label: Text(locales.get('label--last').toUpperCase()),
-        ),
-      ]);
-    }
-    return Row(
-      children: actions,
+    final pageStyle = textTheme.bodyMedium;
+    const space = SizedBox(width: 16, height: 16);
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        double width = constraints.maxWidth;
+        bool mobileBreakpoint = width >= 800;
+        List<Widget> actions = [
+          Text(
+            '${locales.get('label--page')}: $page',
+            style: pageStyle?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          Text(
+            '/ $totalPages',
+            style: pageStyle,
+          ),
+          space,
+          SizedBox(
+            width: 152,
+            child: InputData(
+              isDense: true,
+              hintText: locales.get('label--limit'),
+              label: locales.get('label--limit'),
+              value: defaultLimit,
+              type: InputDataType.dropdown,
+              options: limitOptions,
+              onChanged: (value) {
+                if (value != limit) {
+                  limitChange(value ?? limit);
+                }
+              },
+            ),
+          ),
+        ];
+        if (mobileBreakpoint) {
+          actions.add(const Spacer());
+        } else {
+          actions.add(space);
+        }
+        if (first != null) {
+          actions.addAll([
+            TextButton.icon(
+              onPressed: page > initialPage ? () => first!() : null,
+              icon: const Icon(Icons.first_page),
+              label: Text(locales.get('label--first').toUpperCase()),
+            ),
+            space,
+          ]);
+        }
+        actions.addAll([
+          OutlinedButton.icon(
+            onPressed: page > initialPage ? () => previous() : null,
+            icon: const Icon(Icons.arrow_back),
+            label: Text(locales.get('label--previous').toUpperCase()),
+          ),
+          space,
+          OutlinedButton.icon(
+            onPressed: canPaginate ? () => next() : null,
+            icon: const Icon(Icons.arrow_forward),
+            label: Text(locales.get('label--next').toUpperCase()),
+          ),
+        ]);
+        if (last != null) {
+          actions.addAll([
+            space,
+            TextButton.icon(
+              onPressed: page < totalPages ? () => last!() : null,
+              icon: const Icon(Icons.last_page),
+              label: Text(locales.get('label--last').toUpperCase()),
+            ),
+          ]);
+        }
+        if (mobileBreakpoint) {
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: actions,
+          );
+        }
+        return Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          runSpacing: 8,
+          children: actions,
+        );
+      },
     );
   }
 }
