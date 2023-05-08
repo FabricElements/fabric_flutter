@@ -46,7 +46,7 @@ class CardButton extends StatefulWidget {
 class _CardButtonState extends State<CardButton> {
   @override
   Widget build(BuildContext context) {
-    final TextTheme textTheme = Theme.of(context).textTheme;
+    final textTheme = Theme.of(context).textTheme;
     return Container(
       padding: widget.margin ?? const EdgeInsets.symmetric(vertical: 8),
       child: Card(

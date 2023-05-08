@@ -27,7 +27,7 @@ class _SectionTitleState extends State<SectionTitle> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final TextTheme textTheme = theme.textTheme;
+    final textTheme = theme.textTheme;
     RegExp regExp = RegExp(
       r'{.*?}',
       multiLine: true,

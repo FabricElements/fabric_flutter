@@ -155,7 +155,7 @@ class _ViewFeaturedState extends State<ViewFeatured> {
       }
     }
 
-    final TextTheme textTheme = Theme.of(context).textTheme;
+    final textTheme = Theme.of(context).textTheme;
     List<Widget> options = [];
     if (widget.description != null) {
       options.add(AnimatedOpacity(

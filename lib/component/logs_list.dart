@@ -58,7 +58,7 @@ class LogsList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    TextTheme textTheme = theme.textTheme;
+    final textTheme = theme.textTheme;
     Widget container = const SizedBox(height: 0);
     if (data == null || data!.isEmpty) return container;
     RegExp regExp = RegExp(r'{.*?}', multiLine: true);

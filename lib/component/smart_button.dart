@@ -35,7 +35,7 @@ class _SmartButtonState extends State<SmartButton> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    TextTheme textTheme = theme.textTheme;
+    final textTheme = theme.textTheme;
     final Brightness _brightness =
         widget.brightness ?? theme.colorScheme.brightness;
     final bool isDark = _brightness == Brightness.dark;
