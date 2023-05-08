@@ -141,7 +141,7 @@ class StateAlert extends ChangeNotifier {
 
     final queryData = MediaQuery.of(context!);
     double width = queryData.size.width;
-    double basePadding = 16.0;
+    double basePadding = 8.0;
     double contentWidth = width - (basePadding * 4);
     final locales = AppLocalizations.of(context!)!;
     final theme = Theme.of(context!);
@@ -224,168 +224,169 @@ class StateAlert extends ChangeNotifier {
       dismissAlerts(dismissAll: true, widget: alertData.widget);
     }
 
-    try {
-      List<Widget> onColumn = [];
-      List<Widget> mainItems = [];
+    List<Widget> onColumn = [];
+    List<Widget> mainItems = [];
 
-      /// Title
-      if (alertData.title != null) {
-        onColumn.add(Container(
-          constraints: BoxConstraints(minWidth: 50, maxWidth: contentWidth),
-          margin: const EdgeInsets.only(bottom: 8),
-          child: RawMaterialButton(
-            onPressed: () {
-              Clipboard.setData(ClipboardData(text: alertData.title!));
-            },
-            child: Text(
-              alertData.title!,
-              style: alertData.titleStyle,
-              maxLines: 4,
-              overflow: TextOverflow.ellipsis,
-              softWrap: true,
-            ),
-          ),
-        ));
-      }
-      if (alertData.body != null) {
-        onColumn.add(Container(
-          constraints: BoxConstraints(minWidth: 50, maxWidth: contentWidth),
-          margin: const EdgeInsets.only(bottom: 8),
-          child: RawMaterialButton(
-            onPressed: () {
-              Clipboard.setData(ClipboardData(text: alertData.body!));
-            },
-            child: Text(
-              alertData.body!,
-              style: alertData.bodyStyle,
-              maxLines: 10,
-              overflow: TextOverflow.ellipsis,
-              softWrap: true,
-            ),
-          ),
-        ));
-      }
-
-      /// Image
-      if (alertData.image != null) {
-        mainItems.add(Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          width: double.maxFinite,
-          height: 200,
-          constraints: const BoxConstraints(
-            minHeight: 50,
-            minWidth: 50,
-            maxHeight: 300,
-            maxWidth: double.maxFinite,
-          ),
-          color: alertData.color,
-          child: AspectRatio(
-            aspectRatio: 3 / 1,
-            child: SmartImage(url: alertData.image!),
-          ),
-        ));
-      }
-
-      /// Add child widget before actions
-      if (alertData.child != null) {
-        onColumn.add(Container(
-          margin: const EdgeInsets.only(bottom: 16, top: 16),
-          constraints: BoxConstraints(
-            minHeight: 50,
-            maxHeight: 400,
-            maxWidth: contentWidth,
-          ),
-          child: alertData.child!,
-        ));
-      }
-
-      /// Actions
-      List<Widget> actions = [];
-      bool hasValidPath =
-          alertData.action!.path != null && alertData.action!.path!.isNotEmpty;
-      bool hasAction = alertData.action!.onTap != null;
-      bool hasDismissAction = alertData.dismiss!.onTap != null;
-      if (hasAction || hasValidPath) {
-        actions.add(ElevatedButton.icon(
-          style: ButtonStyle(
-            backgroundColor: MaterialStateProperty.all(buttonColor),
-            foregroundColor: MaterialStateProperty.all(buttonColorText),
-          ),
-          label: Text(locales.get(alertData.action!.label).toUpperCase()),
-          icon: Icon(alertData.action!.icon),
-          onPressed: () async {
-            try {
-              if (hasAction) {
-                await alertData.action!.onTap!();
-              }
-              dismissAlerts(widget: alertData.widget);
-              if (hasValidPath) {
-                final path = alertData.action!.path!;
-                if (alertData.action!.queryParameters != null) {
-                  final uri = Uri(path: path);
-                  Utils.pushNamedFromQuery(
-                    context: context!,
-                    uri: uri,
-                    queryParameters: alertData.action!.queryParameters!,
-                  );
-                } else {
-                  Navigator.of(context!).pushNamed(path);
-                }
-              }
-            } catch (e) {
-              if (kDebugMode) print('Action click: $e');
-            }
+    /// Title
+    if (alertData.title != null) {
+      onColumn.add(Container(
+        constraints: BoxConstraints(minWidth: 50, maxWidth: contentWidth),
+        margin: const EdgeInsets.only(bottom: 8),
+        child: RawMaterialButton(
+          onPressed: () {
+            Clipboard.setData(ClipboardData(text: alertData.title!));
           },
-        ));
-      }
-
-      actions.add(TextButton.icon(
-        style: ButtonStyle(
-          foregroundColor: MaterialStateProperty.all(dismissButtonColor),
+          child: Text(
+            alertData.title!,
+            style: alertData.titleStyle,
+            maxLines: 4,
+            overflow: TextOverflow.ellipsis,
+            softWrap: true,
+          ),
         ),
-        icon: Icon(alertData.dismiss!.icon!),
-        label: Text(locales.get(alertData.dismiss!.label).toUpperCase()),
+      ));
+    }
+    if (alertData.body != null) {
+      onColumn.add(Container(
+        constraints: BoxConstraints(minWidth: 50, maxWidth: contentWidth),
+        margin: const EdgeInsets.only(bottom: 8),
+        child: RawMaterialButton(
+          onPressed: () {
+            Clipboard.setData(ClipboardData(text: alertData.body!));
+          },
+          child: Text(
+            alertData.body!,
+            style: alertData.bodyStyle,
+            maxLines: 10,
+            overflow: TextOverflow.ellipsis,
+            softWrap: true,
+          ),
+        ),
+      ));
+    }
+
+    /// Image
+    if (alertData.image != null) {
+      mainItems.add(Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        width: double.maxFinite,
+        height: 200,
+        constraints: const BoxConstraints(
+          minHeight: 50,
+          minWidth: 50,
+          maxHeight: 300,
+          maxWidth: double.maxFinite,
+        ),
+        color: alertData.color,
+        child: AspectRatio(
+          aspectRatio: 3 / 1,
+          child: SmartImage(url: alertData.image!),
+        ),
+      ));
+    }
+
+    /// Add child widget before actions
+    if (alertData.child != null) {
+      onColumn.add(Container(
+        margin: const EdgeInsets.only(bottom: 16, top: 16),
+        constraints: BoxConstraints(
+          minHeight: 50,
+          maxHeight: 400,
+          maxWidth: contentWidth,
+        ),
+        child: alertData.child!,
+      ));
+    }
+
+    /// Actions
+    List<Widget> actions = [];
+    bool hasValidPath =
+        alertData.action!.path != null && alertData.action!.path!.isNotEmpty;
+    bool hasAction = alertData.action!.onTap != null;
+    bool hasDismissAction = alertData.dismiss!.onTap != null;
+    if (hasAction || hasValidPath) {
+      actions.add(ElevatedButton.icon(
+        style: ButtonStyle(
+          backgroundColor: MaterialStateProperty.all(buttonColor),
+          foregroundColor: MaterialStateProperty.all(buttonColorText),
+        ),
+        label: Text(locales.get(alertData.action!.label).toUpperCase()),
+        icon: Icon(alertData.action!.icon),
         onPressed: () async {
           try {
-            if (hasDismissAction) {
-              await alertData.dismiss!.onTap!();
+            if (hasAction) {
+              await alertData.action!.onTap!();
             }
             dismissAlerts(widget: alertData.widget);
+            if (hasValidPath) {
+              final path = alertData.action!.path!;
+              if (alertData.action!.queryParameters != null) {
+                final uri = Uri(path: path);
+                Utils.pushNamedFromQuery(
+                  context: context!,
+                  uri: uri,
+                  queryParameters: alertData.action!.queryParameters!,
+                );
+              } else {
+                Navigator.of(context!).pushNamed(path);
+              }
+            }
           } catch (e) {
-            if (kDebugMode) print('Dismiss click: $e');
+            if (kDebugMode) print('Action click: $e');
           }
         },
       ));
+    }
 
-      if (alertData.widget == AlertWidget.snackBar) {
-        onColumn.add(Container(
-          margin: const EdgeInsets.only(top: 16),
-          child: Wrap(
-            spacing: 16,
-            children: actions,
-          ),
-        ));
-      }
+    actions.add(TextButton.icon(
+      style: ButtonStyle(
+        foregroundColor: MaterialStateProperty.all(dismissButtonColor),
+      ),
+      icon: Icon(alertData.dismiss!.icon!),
+      label: Text(locales.get(alertData.dismiss!.label).toUpperCase()),
+      onPressed: () async {
+        try {
+          if (hasDismissAction) {
+            await alertData.dismiss!.onTap!();
+          }
+          dismissAlerts(widget: alertData.widget);
+        } catch (e) {
+          if (kDebugMode) print('Dismiss click: $e');
+        }
+      },
+    ));
 
-      mainItems.add(Flex(
-        direction: Axis.vertical,
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: onColumn,
-      ));
-      Widget content = Container(
-        color: Colors.white,
-        child: Container(
-          padding: EdgeInsets.all(basePadding),
-          color: backgroundColor,
-          child: Flex(
-            direction: Axis.vertical,
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: mainItems,
-          ),
+    if (hasAction && alertData.widget == AlertWidget.snackBar) {
+      onColumn.add(Container(
+        margin: const EdgeInsets.only(top: 16),
+        child: Wrap(
+          spacing: 16,
+          children: actions,
         ),
-      );
+      ));
+    }
+    mainItems.add(Flex(
+      direction: Axis.vertical,
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: onColumn,
+    ));
+    Widget content = Container(
+      color: Colors.white,
+      child: Container(
+        padding: EdgeInsets.all(basePadding),
+        color: backgroundColor,
+        child: Flex(
+          direction: Axis.vertical,
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: mainItems,
+        ),
+      ),
+    );
+
+    /// Show notification
+    try {
       switch (alertData.widget) {
         case AlertWidget.banner:
           ScaffoldMessenger.of(context!).showMaterialBanner(
@@ -406,6 +407,8 @@ class StateAlert extends ChangeNotifier {
               duration: Duration(seconds: alertData.duration!),
               backgroundColor: backgroundColor,
               padding: EdgeInsets.zero,
+              showCloseIcon: !hasAction,
+              closeIconColor: dismissButtonColor,
             ),
           );
           break;
