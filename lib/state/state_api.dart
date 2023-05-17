@@ -13,7 +13,7 @@ class StateAPI extends StateShared {
 
   /// [initialized] after [endpoint] is set the first time
 
-  /// Use [_lastEndpointCalled] to prevent duplicated calls when get() is called
+  /// Use lastEndpointCalled to prevent duplicated calls when get() is called
   String? _lastEndpointCalled;
 
   /// More at [endpoint]
