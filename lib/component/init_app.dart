@@ -33,7 +33,7 @@ class InitApp extends StatelessWidget {
         ...providers,
         ChangeNotifierProvider(create: (context) => StateGlobal()),
         ChangeNotifierProvider(create: (context) => StateUser()),
-        ChangeNotifierProvider(create: (context) => StateAlert()),
+        ChangeNotifierProvider(create: (context) => StateAlert(context)),
         ChangeNotifierProvider(create: (context) => StateAnalytics()),
         ChangeNotifierProvider(create: (context) => StateDynamicLinks()),
         ChangeNotifierProvider(create: (context) => StateNotifications()),
