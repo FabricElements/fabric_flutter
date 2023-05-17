@@ -85,9 +85,9 @@ class AlertData {
 }
 
 class StateAlert extends ChangeNotifier {
-  StateAlert();
+  StateAlert(this.context);
 
-  BuildContext? context;
+  BuildContext context;
 
   /// typeFromString returns AlertType from a String
   AlertType typeFromString(String? value) {
@@ -117,34 +117,32 @@ class StateAlert extends ChangeNotifier {
     switch (widget) {
       case AlertWidget.banner:
         if (dismissAll) {
-          ScaffoldMessenger.of(context!).clearMaterialBanners();
+          ScaffoldMessenger.of(context).clearMaterialBanners();
         } else {
-          ScaffoldMessenger.of(context!).removeCurrentMaterialBanner();
+          ScaffoldMessenger.of(context).removeCurrentMaterialBanner();
         }
         break;
       case AlertWidget.snackBar:
         if (dismissAll) {
-          ScaffoldMessenger.of(context!).clearSnackBars();
+          ScaffoldMessenger.of(context).clearSnackBars();
         } else {
-          ScaffoldMessenger.of(context!).removeCurrentSnackBar();
+          ScaffoldMessenger.of(context).removeCurrentSnackBar();
         }
         break;
       case AlertWidget.dialog:
-        Navigator.pop(context!);
+        Navigator.pop(context);
         break;
     }
   }
 
   /// Display Alert with [show] function
   Future<void> show(AlertData alertData) async {
-    assert(context != null, 'context can\'t be null');
-
-    final queryData = MediaQuery.of(context!);
+    final queryData = MediaQuery.of(context);
     double width = queryData.size.width;
     double basePadding = 8.0;
     double contentWidth = width - (basePadding * 4);
-    final locales = AppLocalizations.of(context!)!;
-    final theme = Theme.of(context!);
+    final locales = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final brightness = theme.brightness;
     if (alertData.typeString != null) {
@@ -318,17 +316,19 @@ class StateAlert extends ChangeNotifier {
               await alertData.action!.onTap!();
             }
             dismissAlerts(widget: alertData.widget);
-            if (hasValidPath) {
-              final path = alertData.action!.path!;
-              if (alertData.action!.queryParameters != null) {
-                final uri = Uri(path: path);
-                Utils.pushNamedFromQuery(
-                  context: context!,
-                  uri: uri,
-                  queryParameters: alertData.action!.queryParameters!,
-                );
-              } else {
-                Navigator.of(context!).pushNamed(path);
+            if (context.mounted) {
+              if (hasValidPath) {
+                final path = alertData.action!.path!;
+                if (alertData.action!.queryParameters != null) {
+                  final uri = Uri(path: path);
+                  Utils.pushNamedFromQuery(
+                    context: context,
+                    uri: uri,
+                    queryParameters: alertData.action!.queryParameters!,
+                  );
+                } else {
+                  Navigator.of(context).pushNamed(path);
+                }
               }
             }
           } catch (e) {
@@ -387,45 +387,53 @@ class StateAlert extends ChangeNotifier {
 
     /// Show notification
     try {
-      switch (alertData.widget) {
-        case AlertWidget.banner:
-          ScaffoldMessenger.of(context!).showMaterialBanner(
-            MaterialBanner(
-              actions: actions,
-              content: content,
-              backgroundColor: backgroundColor,
-              forceActionsBelow: true,
-              padding: EdgeInsets.zero,
-            ),
-          );
-          break;
-        case AlertWidget.snackBar:
-          ScaffoldMessenger.of(context!).showSnackBar(
-            SnackBar(
-              behavior: SnackBarBehavior.floating,
-              content: content,
-              duration: Duration(seconds: alertData.duration!),
-              backgroundColor: backgroundColor,
-              padding: EdgeInsets.zero,
-              showCloseIcon: !hasAction,
-              closeIconColor: dismissButtonColor,
-            ),
-          );
-          break;
-        case AlertWidget.dialog:
-          showDialog<void>(
-            context: context!,
-            builder: (BuildContext context) => AlertDialog(
-              scrollable: true,
-              actions: actions,
-              content: content,
-              backgroundColor: backgroundColor,
-              contentPadding: EdgeInsets.zero,
-              clipBehavior: Clip.hardEdge,
-              buttonPadding: const EdgeInsets.all(16),
-            ),
-          );
-          break;
+      if (context.mounted) {
+        switch (alertData.widget) {
+          case AlertWidget.banner:
+            ScaffoldMessenger.of(context).showMaterialBanner(
+              MaterialBanner(
+                actions: actions,
+                content: content,
+                backgroundColor: backgroundColor,
+                forceActionsBelow: true,
+                padding: EdgeInsets.zero,
+              ),
+            );
+            break;
+          case AlertWidget.snackBar:
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                behavior: SnackBarBehavior.floating,
+                content: content,
+                duration: Duration(seconds: alertData.duration!),
+                backgroundColor: backgroundColor,
+                padding: EdgeInsets.zero,
+                showCloseIcon: !hasAction,
+                closeIconColor: dismissButtonColor,
+              ),
+            );
+            break;
+          case AlertWidget.dialog:
+            showDialog<void>(
+              context: context,
+              builder: (BuildContext context) => Scaffold(
+                primary: false,
+                backgroundColor: Colors.transparent,
+                body: AlertDialog(
+                  scrollable: true,
+                  actions: actions,
+                  content: content,
+                  backgroundColor: backgroundColor,
+                  contentPadding: EdgeInsets.zero,
+                  clipBehavior: Clip.hardEdge,
+                  buttonPadding: const EdgeInsets.all(16),
+                ),
+              ),
+            );
+            break;
+        }
+      } else {
+        throw 'Missing context';
       }
     } catch (error) {
       if (kDebugMode) {
