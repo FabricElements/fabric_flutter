@@ -7,7 +7,7 @@ import '../helper/filter_helper.dart';
 import '../helper/utils.dart';
 import '../serialized/filter_data.dart';
 
-class StateShared extends ChangeNotifier {
+abstract class StateShared extends ChangeNotifier {
   /// initialized after data is called the first time
   bool initialized = false;
 
