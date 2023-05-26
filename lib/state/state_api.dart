@@ -8,16 +8,17 @@ import 'state_shared.dart';
 
 /// Base State for API calls
 /// Use this state to fetch updated data every time an endpoint is updated
-class StateAPI extends StateShared {
+abstract class StateAPI extends StateShared {
   StateAPI();
 
   /// [initialized] after [endpoint] is set the first time
 
-  /// Use [_lastEndpointCalled] to prevent duplicated calls when get() is called
+  /// Use lastEndpointCalled to prevent duplicated calls when get() is called
   String? _lastEndpointCalled;
 
   /// More at [endpoint]
-  String? baseEndpoint;
+  /// Don't override from outside the class, use [endpoint] for that
+  late String baseEndpoint;
 
   /// [credentials]
   /// https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication
@@ -35,7 +36,7 @@ class StateAPI extends StateShared {
   /// Define the HTTPS [endpoint] (https://example.com/demo)
   /// when the timestamp is updated it will result in a new call to the API [endpoint].
   /// Don't use a '/' at the beginning of the path
-  set endpoint(String? value) {
+  set endpoint(String value) {
     if (value == baseEndpoint && data != null) return;
     // if (value != baseEndpoint) clear(notify: false);
     // if (initialized) return;
@@ -49,10 +50,10 @@ class StateAPI extends StateShared {
     call(ignoreDuplicatedCalls: true);
   }
 
-  String? get endpoint {
-    if (queryParameters.isEmpty || baseEndpoint == null) return baseEndpoint;
+  String get endpoint {
+    if (queryParameters.isEmpty) return baseEndpoint;
     return Utils.uriMergeQuery(
-      uri: Uri.parse(baseEndpoint!),
+      uri: Uri.parse(baseEndpoint),
       queryParameters: queryParameters,
     ).toString();
   }
@@ -79,14 +80,14 @@ class StateAPI extends StateShared {
     loading = true;
     await Future.delayed(const Duration(milliseconds: 100));
     try {
-      if (endpoint == null) {
-        data = null;
-        error = 'endpoint can\'t be null';
-        errorCount++;
-        loading = false;
-        if (notify) notifyListeners();
-        return;
-      }
+      // if (endpoint == null) {
+      //   data = null;
+      //   error = 'endpoint can\'t be null';
+      //   errorCount++;
+      //   loading = false;
+      //   if (notify) notifyListeners();
+      //   return;
+      // }
       if (ignoreDuplicatedCalls &&
           _lastEndpointCalled != null &&
           _lastEndpointCalled == endpoint) {
@@ -192,7 +193,8 @@ class StateAPI extends StateShared {
   }
 
   @override
-  void clearAfter() {
+  void clear({bool notify = false}) {
     _lastEndpointCalled = null;
+    super.clear();
   }
 }
