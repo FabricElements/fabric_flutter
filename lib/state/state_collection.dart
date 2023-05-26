@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'state_shared.dart';
 
 /// This is a change notifier class which keeps track of state within the campaign builder views.
-class StateCollection extends StateShared {
+abstract class StateCollection extends StateShared {
   StateCollection();
 
   /// [initialized] after snapshot is requested the first time
