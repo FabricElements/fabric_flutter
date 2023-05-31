@@ -70,6 +70,5 @@ Map<String, dynamic> _$UserDataToJson(UserData instance) {
   val['role'] = instance.role;
   val['groups'] = instance.groups;
   writeNotNull('username', instance.username);
-  writeNotNull('customer', instance.customer);
   return val;
 }

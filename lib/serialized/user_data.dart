@@ -115,7 +115,7 @@ class UserData {
   String? username;
 
   /// Optional username
-  @JsonKey(includeIfNull: false)
+  @JsonKey(includeToJson: false)
   final String? customer;
 
   UserData({
