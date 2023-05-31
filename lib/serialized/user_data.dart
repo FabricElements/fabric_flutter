@@ -36,8 +36,8 @@ class UserDataOnboarding {
 /// Loan from loan service
 @JsonSerializable(explicitToJson: true)
 class UserData {
-  /// User [avatar] URL
-  @JsonKey(includeIfNull: true)
+  /// User avatar URL
+  @JsonKey(includeIfNull: false)
   final String? avatar;
 
   /// email used for authentication
@@ -45,7 +45,7 @@ class UserData {
   String? email;
 
   /// Firebase Cloud Messaging [fcm] token https://firebase.google.com/docs/cloud-messaging
-  @JsonKey(includeIfNull: true)
+  @JsonKey(includeIfNull: false)
   final String? fcm;
 
   /// User id
@@ -70,8 +70,8 @@ class UserData {
   String? lastName;
 
   /// Language
-  @JsonKey(includeIfNull: true)
-  String language;
+  @JsonKey(includeIfNull: false)
+  String? language;
 
   /// User onboarding journey
   @JsonKey(includeIfNull: false)
@@ -100,7 +100,7 @@ class UserData {
   String role;
 
   /// User role
-  @JsonKey(includeIfNull: true)
+  @JsonKey(includeIfNull: false)
   Map<String, String> groups;
 
   /// User presence
@@ -111,8 +111,12 @@ class UserData {
   final Map<String, String> accounts;
 
   /// Optional username
-  @JsonKey(includeIfNull: true)
+  @JsonKey(includeIfNull: false)
   String? username;
+
+  /// Optional username
+  @JsonKey(includeIfNull: false)
+  final String? customer;
 
   UserData({
     this.onboarding,
@@ -127,9 +131,10 @@ class UserData {
     this.avatar,
     this.firstName,
     this.lastName,
-    this.language = 'en',
+    this.language,
     this.password,
     this.accounts = const {},
+    this.customer,
   })  : presence = Utils.getPresence(ping),
         name = Utils.nameFromParts(
           firstName: firstName,

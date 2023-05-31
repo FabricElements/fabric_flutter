@@ -39,18 +39,17 @@ UserData _$UserDataFromJson(Map<String, dynamic> json) => UserData(
       avatar: json['avatar'] as String?,
       firstName: json['firstName'] as String?,
       lastName: json['lastName'] as String?,
-      language: json['language'] as String? ?? 'en',
+      language: json['language'] as String?,
       password: json['password'] as String?,
       accounts: (json['accounts'] as Map<String, dynamic>?)?.map(
             (k, e) => MapEntry(k, e as String),
           ) ??
           const {},
+      customer: json['customer'] as String?,
     );
 
 Map<String, dynamic> _$UserDataToJson(UserData instance) {
-  final val = <String, dynamic>{
-    'avatar': instance.avatar,
-  };
+  final val = <String, dynamic>{};
 
   void writeNotNull(String key, dynamic value) {
     if (value != null) {
@@ -58,17 +57,19 @@ Map<String, dynamic> _$UserDataToJson(UserData instance) {
     }
   }
 
+  writeNotNull('avatar', instance.avatar);
   writeNotNull('email', instance.email);
-  val['fcm'] = instance.fcm;
+  writeNotNull('fcm', instance.fcm);
   writeNotNull('id', instance.id);
   writeNotNull('firstName', instance.firstName);
   writeNotNull('lastName', instance.lastName);
-  val['language'] = instance.language;
+  writeNotNull('language', instance.language);
   writeNotNull('onboarding', instance.onboarding?.toJson());
   writeNotNull('phone', instance.phone);
   writeNotNull('password', instance.password);
   val['role'] = instance.role;
   val['groups'] = instance.groups;
-  val['username'] = instance.username;
+  writeNotNull('username', instance.username);
+  writeNotNull('customer', instance.customer);
   return val;
 }

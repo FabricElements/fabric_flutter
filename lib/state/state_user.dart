@@ -250,7 +250,7 @@ class StateUser extends StateDocument {
   Stream<String> get streamLanguage => _controllerStreamLanguage.stream;
 
   /// Get User or Device [language]
-  String get language => data != null ? serialized.language : _language;
+  String get language => serialized.language ?? _language;
 
   @override
   callbackDefault(dynamic data) {
