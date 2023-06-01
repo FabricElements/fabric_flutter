@@ -114,7 +114,7 @@ class UserData {
   @JsonKey(includeIfNull: false)
   String? username;
 
-  /// Billing Client ID
+  /// Billing Customer ID
   @JsonKey(includeToJson: false)
   final String? bcId;
 
