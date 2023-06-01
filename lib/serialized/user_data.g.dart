@@ -45,7 +45,9 @@ UserData _$UserDataFromJson(Map<String, dynamic> json) => UserData(
             (k, e) => MapEntry(k, e as String),
           ) ??
           const {},
-      customer: json['customer'] as String?,
+      bcId: json['bcId'] as String?,
+      bsId: json['bsId'] as String?,
+      bsiId: json['bsiId'] as String?,
     );
 
 Map<String, dynamic> _$UserDataToJson(UserData instance) {

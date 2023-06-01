@@ -114,9 +114,17 @@ class UserData {
   @JsonKey(includeIfNull: false)
   String? username;
 
-  /// Optional username
+  /// Billing Client ID
   @JsonKey(includeToJson: false)
-  final String? customer;
+  final String? bcId;
+
+  /// Billing Subscription ID
+  @JsonKey(includeToJson: false)
+  final String? bsId;
+
+  /// Billing Subscription Item ID to track events
+  @JsonKey(includeToJson: false)
+  final String? bsiId;
 
   UserData({
     this.onboarding,
@@ -134,7 +142,9 @@ class UserData {
     this.language,
     this.password,
     this.accounts = const {},
-    this.customer,
+    this.bcId,
+    this.bsId,
+    this.bsiId,
   })  : presence = Utils.getPresence(ping),
         name = Utils.nameFromParts(
           firstName: firstName,
