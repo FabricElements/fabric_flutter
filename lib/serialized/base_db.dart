@@ -19,7 +19,7 @@ class BaseFirestore {
     toJson: FirestoreHelper.timestampUpdate,
     includeIfNull: true,
   )
-  DateTime updated;
+  final DateTime? updated;
 
   /// Creation time
   @JsonKey(
@@ -27,15 +27,15 @@ class BaseFirestore {
     toJson: FirestoreHelper.timestampToJsonDefault,
     includeIfNull: true,
   )
-  DateTime created;
+  final DateTime? created;
 
   @JsonKey(includeIfNull: true, toJson: Utils.boolFalse)
   bool backup;
 
   BaseFirestore({
     required this.id,
-    required this.created,
-    required this.updated,
+    this.created,
+    this.updated,
     this.backup = false,
   });
 

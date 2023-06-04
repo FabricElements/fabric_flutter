@@ -5,7 +5,7 @@ dynamic defaultLocales = {
   },
   'label--label': {
     'en': 'Label',
-    'es': 'etiqueta',
+    'es': 'Etiqueta',
   },
   'label--draft': {
     'en': 'Draft',
@@ -1079,4 +1079,12 @@ dynamic defaultLocales = {
     'en': 'Value',
     'es': 'Valor',
   },
+  'label--male': {
+    'en': 'Male',
+    'es': 'Masculino',
+  },
+  'label--female': {
+    'en': 'Female',
+    'es': 'Femenino',
+  }
 };
