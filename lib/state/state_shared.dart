@@ -180,7 +180,7 @@ abstract class StateShared extends ChangeNotifier {
   int pageDefault = 1;
 
   /// More at [limitDefault]
-  int limitDefault = 3;
+  int limitDefault = 10;
 
   /// More at [selected]
   List<dynamic> selectedItems = [];
@@ -198,7 +198,7 @@ abstract class StateShared extends ChangeNotifier {
 
   /// Set the [limit] number and trigger filter
   set limit(int? value) {
-    limitDefault = value ?? 5;
+    limitDefault = value ?? 10;
   }
 
   /// Returns the trade
@@ -364,7 +364,7 @@ abstract class StateShared extends ChangeNotifier {
     errorCount = 0;
     initialized = false;
     pageDefault = initialPage;
-    limitDefault = 5;
+    limitDefault = 10;
     selectedItems = [];
     privateOldData = null;
     totalCount = 0;
