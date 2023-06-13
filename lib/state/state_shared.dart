@@ -364,7 +364,7 @@ abstract class StateShared extends ChangeNotifier {
     errorCount = 0;
     initialized = false;
     pageDefault = initialPage;
-    limitDefault = 10;
+    // limitDefault = 10;
     selectedItems = [];
     privateOldData = null;
     totalCount = 0;
