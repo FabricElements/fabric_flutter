@@ -101,7 +101,7 @@ abstract class StateShared extends ChangeNotifier {
   Future<dynamic> previous() async {
     if (loading) {
       await Future.delayed(const Duration(milliseconds: 200));
-      return next();
+      return previous();
     }
     if (page <= initialPage) return null;
     page = page - 1;
