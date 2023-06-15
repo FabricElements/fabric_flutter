@@ -12,12 +12,15 @@ class UserStatus {
   String role;
   @JsonKey(includeIfNull: false)
   dynamic uid;
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  DateTime? timestamp;
 
   UserStatus({
     this.signedIn = false,
     this.admin = false,
     this.role = 'user',
     this.uid,
+    this.timestamp,
   });
 
   factory UserStatus.fromJson(Map<String, dynamic>? json) =>

@@ -44,6 +44,7 @@ UserData _$UserDataFromJson(Map<String, dynamic> json) => UserData(
       bcId: json['bcId'] as String?,
       bsId: json['bsId'] as String?,
       bsiId: json['bsiId'] as String?,
+      brightness: $enumDecodeNullable(_$BrightnessEnumMap, json['brightness']),
     );
 
 Map<String, dynamic> _$UserDataToJson(UserData instance) {
@@ -68,5 +69,11 @@ Map<String, dynamic> _$UserDataToJson(UserData instance) {
   val['role'] = instance.role;
   val['groups'] = instance.groups;
   writeNotNull('username', instance.username);
+  writeNotNull('brightness', _$BrightnessEnumMap[instance.brightness]);
   return val;
 }
+
+const _$BrightnessEnumMap = {
+  Brightness.dark: 'dark',
+  Brightness.light: 'light',
+};

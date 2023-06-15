@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:json_annotation/json_annotation.dart';
 
 import '../helper/firestore_helper.dart';
@@ -122,6 +124,10 @@ class UserData {
   @JsonKey(includeToJson: false)
   final String? bsiId;
 
+  /// Brightness
+  @JsonKey(includeIfNull: false)
+  final Brightness? brightness;
+
   UserData({
     this.onboarding,
     this.phone,
@@ -140,6 +146,7 @@ class UserData {
     this.bcId,
     this.bsId,
     this.bsiId,
+    this.brightness,
   })  : presence = Utils.getPresence(ping),
         name = Utils.nameFromParts(
           firstName: firstName,
