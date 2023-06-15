@@ -186,7 +186,10 @@ abstract class StateShared extends ChangeNotifier {
   List<dynamic> selectedItems = [];
 
   /// Returns the page number
-  int get page => pageDefault;
+  int get page =>
+      int.tryParse(
+          Utils.valuesFromQueryKey(queryParameters, 'page')?.first ?? '') ??
+      pageDefault;
 
   /// Set the page number and trigger filter
   set page(int? value) {
