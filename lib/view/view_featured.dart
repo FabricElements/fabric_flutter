@@ -165,7 +165,7 @@ class _ViewFeaturedState extends State<ViewFeatured> {
           padding: const EdgeInsets.only(top: 8),
           child: Text(
             widget.description!,
-            style: textTheme.headline6,
+            style: textTheme.titleLarge,
             textAlign: TextAlign.left,
           ),
         ),
@@ -257,7 +257,7 @@ class _ViewFeaturedState extends State<ViewFeatured> {
                               bottom: false,
                               child: Text(
                                 widget.headline!,
-                                style: textTheme.headline3?.copyWith(
+                                style: textTheme.displaySmall?.copyWith(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
                                 ),

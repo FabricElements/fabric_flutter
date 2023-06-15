@@ -19,12 +19,12 @@ class _ViewHeroState extends State<ViewHero> {
         ModalRoute.of(context)!.settings.arguments as Map<dynamic, dynamic>? ??
             {});
     String? mediaUrl = args['url'];
-    Widget _content = const Padding(
+    Widget content = const Padding(
       padding: EdgeInsets.all(16),
       child: Text('Your media file can\'t be loaded'),
     );
     if (mediaUrl != null) {
-      _content = SizedBox.expand(
+      content = SizedBox.expand(
         child: Hero(
           tag: 'hero-media',
           child: InteractiveViewer(
@@ -41,7 +41,7 @@ class _ViewHeroState extends State<ViewHero> {
       appBar: AppBar(
         leading: const CloseButton(),
       ),
-      body: _content,
+      body: content,
     );
   }
 }

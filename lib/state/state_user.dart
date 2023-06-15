@@ -24,7 +24,7 @@ class StateUser extends StateDocument {
   Map<String, dynamic>? _claims;
   String? _pingReference;
   DateTime _pingLast = DateTime.now().subtract(const Duration(minutes: 10));
-  Map<String, UserData> _usersMap = {};
+  final Map<String, UserData> _usersMap = {};
   String? _lastUserGet;
   bool _init = false;
   String _language = 'en';

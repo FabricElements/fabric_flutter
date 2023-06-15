@@ -36,49 +36,49 @@ class _SmartButtonState extends State<SmartButton> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
-    final Brightness _brightness =
+    final Brightness brightness =
         widget.brightness ?? theme.colorScheme.brightness;
-    final bool isDark = _brightness == Brightness.dark;
+    final bool isDark = brightness == Brightness.dark;
     List<PopupMenuEntry<String>> buttons = [];
-    Color _colorBase = theme.colorScheme.primary;
-    Color _colorIcon = theme.colorScheme.secondary;
-    Color _colorBaseImportant = theme.colorScheme.secondaryContainer;
-    Color _colorBaseSelected = theme.colorScheme.primary;
+    Color colorBase = theme.colorScheme.primary;
+    Color colorIcon = theme.colorScheme.secondary;
+    Color colorBaseImportant = theme.colorScheme.secondaryContainer;
+    Color colorBaseSelected = theme.colorScheme.primary;
     if (isDark) {
-      _colorBase = Colors.white;
+      colorBase = Colors.white;
       // _colorIcon = Colors.white;
       // _colorIcon = theme.colorScheme.primary;
       // _colorBaseImportant = Colors.white;
     }
-    TextStyle? textStyle = textTheme.subtitle2;
-    double? _height = kIsWeb ? 34.00 : kMinInteractiveDimension;
+    TextStyle? textStyle = textTheme.titleSmall;
+    double? height = kIsWeb ? 34.00 : kMinInteractiveDimension;
 
     if (widget.children != null) {
       for (int i = 0; i < widget.children!.length; i++) {
         dynamic item = widget.children![i];
         bool enabled = item.onTap != null || item.path != null;
         if (item is ButtonOptions) {
-          TextStyle? _textStyle = textStyle;
+          TextStyle? textStyle0 = textStyle;
           if (item.selected) {
-            _textStyle = textStyle?.copyWith(color: _colorBaseSelected);
+            textStyle0 = textStyle?.copyWith(color: colorBaseSelected);
           }
           if (item.important) {
-            _textStyle = textStyle?.copyWith(
-                color: _colorBaseImportant, fontWeight: FontWeight.w700);
+            textStyle0 = textStyle?.copyWith(
+                color: colorBaseImportant, fontWeight: FontWeight.w700);
           }
-          Widget _content = Text(
+          Widget content = Text(
             item.label,
-            style: _textStyle,
+            style: textStyle0,
           );
           buttons.add(PopupMenuItem<String>(
-            height: _height,
+            height: height,
             enabled: enabled,
             value: item.path ?? item.label,
-            child: _content,
             textStyle: textStyle,
             onTap: () {
               if (item.onTap != null) item.onTap!();
             },
+            child: content,
           ));
         } else if (item is PopupMenuDivider) {
           buttons.add(item);
@@ -97,7 +97,7 @@ class _SmartButtonState extends State<SmartButton> {
       mainButtonWidgets.addAll([
         Icon(
           widget.button.icon,
-          color: _colorIcon,
+          color: colorIcon,
         ),
         SizedBox(width: gap),
       ]);
@@ -106,7 +106,7 @@ class _SmartButtonState extends State<SmartButton> {
       Flexible(
         child: Text(
           widget.button.label,
-          style: textStyle?.copyWith(color: _colorBase),
+          style: textStyle?.copyWith(color: colorBase),
         ),
       ),
     ]);
@@ -115,11 +115,11 @@ class _SmartButtonState extends State<SmartButton> {
         SizedBox(width: gap),
         Icon(
           Icons.arrow_drop_down,
-          color: _colorBase,
+          color: colorBase,
         ),
       ]);
     }
-    Widget _mainButton = TextButton(
+    Widget mainButton = TextButton(
       child: Padding(
         padding: const EdgeInsets.all(8),
         child: Row(
@@ -138,7 +138,7 @@ class _SmartButtonState extends State<SmartButton> {
         }
       },
     );
-    if (widget.children == null) return _mainButton;
+    if (widget.children == null) return mainButton;
     return PopupMenuButton<String>(
       offset: const Offset(0, 40),
       key: popupButtonKey,
@@ -153,12 +153,12 @@ class _SmartButtonState extends State<SmartButton> {
         }
       },
       child: MouseRegion(
-        child: _mainButton,
         cursor: SystemMouseCursors.click,
         onHover: (event) {
           dynamic state = popupButtonKey.currentState;
           state.showButtonMenu();
         },
+        child: mainButton,
       ),
       itemBuilder: (BuildContext context) => buttons,
     );

@@ -4219,12 +4219,12 @@ class IsoCountries {
   ];
 
   Map<String?, dynamic> map() {
-    Map<String?, dynamic> _map = {};
+    Map<String?, dynamic> map = {};
     for (var element in list) {
       String? id = element['iso_3166_2'];
-      _map[id] = element;
+      map[id] = element;
     }
-    return _map;
+    return map;
   }
 
   /// This method return the language name by [key]

@@ -134,7 +134,7 @@ abstract class StateAPI extends StateShared {
         return;
       }
       bool willAuthenticate = mustAuthenticate && canAuthenticate;
-      Uri url = Uri.parse(endpoint!);
+      Uri url = Uri.parse(endpoint);
       Map<String, String> headers = {};
       if (willAuthenticate) {
         headers.addAll({
