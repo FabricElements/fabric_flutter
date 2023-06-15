@@ -81,8 +81,8 @@ class _PaginationContainerState extends State<PaginationContainer> {
       if (mounted) setState(() {});
       try {
         error = null;
-        final _data = await widget.paginate();
-        end = _data == null || _data.isEmpty;
+        final data = await widget.paginate();
+        end = data == null || data.isEmpty;
       } catch (e) {
         error = e.toString();
         if (kDebugMode) print(e);

@@ -47,7 +47,7 @@ abstract class StateShared extends ChangeNotifier {
   Function(dynamic data) get callback => _callback ?? callbackDefault;
 
   /// callbackFunction is called every time the request is successful
-  set callback(Function(dynamic data) _f) => _callback = _f;
+  set callback(Function(dynamic data) f) => _callback = f;
 
   /// Merge List data
   List<dynamic> merge(
@@ -158,7 +158,7 @@ abstract class StateShared extends ChangeNotifier {
   Function(String? error) get onError => _onError ?? onErrorDefault;
 
   /// onError is called every time the request has an error
-  set onError(Function(String? error) _f) => _onError = _f;
+  set onError(Function(String? error) f) => _onError = f;
 
   /// [error] message
   set error(String? errorMessage) {

@@ -106,10 +106,6 @@ class UserData {
   /// User presence
   final UserPresence presence;
 
-  /// Account group with roles
-  @JsonKey(includeToJson: false)
-  final Map<String, String> accounts;
-
   /// Optional username
   @JsonKey(includeIfNull: false)
   String? username;
@@ -141,7 +137,6 @@ class UserData {
     this.lastName,
     this.language,
     this.password,
-    this.accounts = const {},
     this.bcId,
     this.bsId,
     this.bsiId,

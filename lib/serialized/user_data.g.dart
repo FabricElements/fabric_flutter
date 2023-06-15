@@ -41,10 +41,6 @@ UserData _$UserDataFromJson(Map<String, dynamic> json) => UserData(
       lastName: json['lastName'] as String?,
       language: json['language'] as String?,
       password: json['password'] as String?,
-      accounts: (json['accounts'] as Map<String, dynamic>?)?.map(
-            (k, e) => MapEntry(k, e as String),
-          ) ??
-          const {},
       bcId: json['bcId'] as String?,
       bsId: json['bsId'] as String?,
       bsiId: json['bsiId'] as String?,

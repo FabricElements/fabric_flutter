@@ -46,9 +46,9 @@ class StateNotifications extends ChangeNotifier {
     if (_notification.isEmpty) {
       return {};
     }
-    Map<dynamic, dynamic> _toNotify = _notification;
+    Map<dynamic, dynamic> toNotify = _notification;
     _notification = {};
-    return _toNotify;
+    return toNotify;
   }
 
   Future<String?> getToken() async {
@@ -70,12 +70,12 @@ class StateNotifications extends ChangeNotifier {
     if (data.isEmpty || data[key] == null) {
       return data;
     }
-    Map<String, dynamic> _data = Map<String, dynamic>.from(data);
+    Map<String, dynamic> data0 = Map<String, dynamic>.from(data);
     // Format the child map
-    Map<String, dynamic> stringMap = _data[key].cast<String, dynamic>();
-    _data.addAll(stringMap);
-    _data.remove(key);
-    return _data;
+    Map<String, dynamic> stringMap = data0[key].cast<String, dynamic>();
+    data0.addAll(stringMap);
+    data0.remove(key);
+    return data0;
   }
 
   /// Return notify values
@@ -83,38 +83,38 @@ class StateNotifications extends ChangeNotifier {
     if (message == null) return;
     RemoteNotification? notification = message.notification;
     Map<String, dynamic> data = message.data;
-    Map<String, dynamic> _message = data;
-    _message = _clearObject(_message, 'fcm_options');
-    _message = _clearObject(_message, 'aps');
-    _message = _clearObject(_message, 'alert');
+    Map<String, dynamic> message0 = data;
+    message0 = _clearObject(message0, 'fcm_options');
+    message0 = _clearObject(message0, 'aps');
+    message0 = _clearObject(message0, 'alert');
 
-    _message = _clearObject(_message, 'data');
-    _message = _clearObject(_message, 'notification');
+    message0 = _clearObject(message0, 'data');
+    message0 = _clearObject(message0, 'notification');
     if (!kIsWeb) {
       /// Add OS
-      _message.addAll({'os': Platform.operatingSystem});
+      message0.addAll({'os': Platform.operatingSystem});
     }
 
     /// Add origin
-    _message.addAll({'origin': origin});
+    message0.addAll({'origin': origin});
 
     if (notification?.title != null) {
-      _message.putIfAbsent('title', () => notification?.title);
+      message0.putIfAbsent('title', () => notification?.title);
     }
     if (notification?.body != null) {
-      _message.putIfAbsent('body', () => notification?.body);
+      message0.putIfAbsent('body', () => notification?.body);
     }
 
     /// Add valid path by default
-    String path = _message['path'] ?? '';
+    String path = message0['path'] ?? '';
     if (path.isNotEmpty && path.startsWith('/')) {
-      _message['path'] = path;
+      message0['path'] = path;
     } else {
-      _message['path'] = '';
+      message0['path'] = '';
     }
 
     /// Add data to stream
-    _notification = _message;
+    _notification = message0;
     try {
       if (_callback != null) await _callback!(_notification);
     } catch (error) {
@@ -142,8 +142,8 @@ class StateNotifications extends ChangeNotifier {
       return;
     }
     if (token.isEmpty) {
-      String? _pushToken = await getToken();
-      _token = _pushToken;
+      String? pushToken = await getToken();
+      _token = pushToken;
       _updateUserToken(token);
       // Any time the token refreshes, store this in the database too.
       FirebaseMessaging.instance.onTokenRefresh.listen(_updateUserToken);
