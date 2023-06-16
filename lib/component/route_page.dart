@@ -29,7 +29,7 @@ class RoutePage extends StatelessWidget {
       initialData: status,
       stream: stream,
       builder: (context, snapshot) {
-        if (snapshot.data == null) return loading;
+        if (!snapshot.hasData) return loading;
         UserStatus userStatus = snapshot.data as UserStatus;
         Map<String, Widget> routes = routeHelper.routes(
           signed: userStatus.signedIn,
