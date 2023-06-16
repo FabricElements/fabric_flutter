@@ -27,7 +27,8 @@ class StateUser extends StateDocument {
   final Map<String, UserData> _usersMap = {};
   String? _lastUserGet;
   bool _init = false;
-  String _language = 'en';
+  String? _language;
+  Brightness? _brightness;
 
   /// More at [streamStatus]
   /// ignore: close_sinks
@@ -41,15 +42,12 @@ class StateUser extends StateDocument {
   /// ignore: close_sinks
   final _controllerStreamSerialized = StreamController<UserData?>.broadcast();
 
-  /// More at [streamLanguage]
-  /// ignore: close_sinks
-  final _controllerStreamLanguage = StreamController<String>.broadcast();
-
   @override
   void clearAfter() {
     _userObject = null;
     _claims = null;
     _token = null;
+    _userStatusUpdate();
     notifyListeners();
   }
 
@@ -65,6 +63,7 @@ class StateUser extends StateDocument {
         final tokenResult = await userObject.getIdTokenResult(true);
         _token = tokenResult.token;
         _claims = tokenResult.claims;
+        _userStatusUpdate();
         notifyListeners();
       } catch (e) {
         if (kDebugMode) print(e);
@@ -78,7 +77,7 @@ class StateUser extends StateDocument {
     return _token;
   }
 
-  /// Set [object] with the [User] data
+  /// Set object with the [User] data
   set object(User? user) {
     _userObject = user;
     notifyListeners();
@@ -197,8 +196,24 @@ class StateUser extends StateDocument {
     return roles.contains(roleFromData(group: group));
   }
 
-  UserStatus get userStatus {
-    return UserStatus(
+  /// User Status
+  UserStatus? _userStatus;
+
+  /// Get userStatus
+  UserStatus? get userStatus => _userStatus;
+
+  /// Set userStatus
+  set userStatus(UserStatus? status) {
+    _userStatus = status;
+    if (_userStatus != null) {
+      _userStatus!.timestamp = DateTime.now();
+      _controllerStreamStatus.sink.add(_userStatus!);
+    }
+  }
+
+  /// Update user status data
+  _userStatusUpdate() {
+    userStatus = UserStatus(
       role: role,
       admin: admin,
       signedIn: signedIn,
@@ -211,6 +226,7 @@ class StateUser extends StateDocument {
     _init = true;
     if (id != userObject?.uid) id = userObject?.uid;
     object = userObject;
+    _userStatusUpdate();
     _controllerStreamUser.sink.add(userObject);
     if (_userObject != userObject) {
       try {
@@ -220,22 +236,22 @@ class StateUser extends StateDocument {
         //-
       }
     }
-    _controllerStreamStatus.sink.add(userStatus);
   }
 
   /// Init app and prevent duplicated calls
   void init() {
     if (_init) return;
-    _init = true;
-    _auth.userChanges().listen((value) => _refreshAuth(value),
-        onError: (e) => error = e.toString());
     Utils.getLanguage().then((value) {
       _language = value;
-      _controllerStreamLanguage.sink.add(_language);
-    }).catchError((error) {
-      if (kDebugMode) print(error);
-    });
+    }).catchError((error) {});
+
+    _auth.userChanges().listen((value) {
+      _init = true;
+      _refreshAuth(value);
+    }, onError: (e) => error = e.toString());
   }
+
+  bool get initCalled => _init;
 
   /// Stream Firebase [User] data
   Stream<User?> get streamUser => _controllerStreamUser.stream;
@@ -246,20 +262,25 @@ class StateUser extends StateDocument {
   /// Stream serialized [UserData]
   Stream<UserData?> get streamSerialized => _controllerStreamSerialized.stream;
 
-  /// Stream [language]
-  Stream<String> get streamLanguage => _controllerStreamLanguage.stream;
+  /// Get User or Device language
+  String get language => _language ?? 'en';
 
-  /// Get User or Device [language]
-  String get language => serialized.language ?? _language;
+  /// Get User or Device language
+  Brightness get brightness => _brightness ?? Brightness.light;
 
   @override
   callbackDefault(dynamic data) {
-    if (StateUser()._language != StateUser().serialized.language) {
-      StateUser()._controllerStreamLanguage.sink.add(StateUser().language);
-      StateUser()
-          ._controllerStreamSerialized
-          .sink
-          .add(data != null ? StateUser().serialized : null);
+    final _newUserData = UserData.fromJson(data);
+    bool willUpdateStatus = false;
+    if ((_language ?? 'en') != _newUserData.language) {
+      _language = _newUserData.language;
+      willUpdateStatus = true;
     }
+    if ((_brightness ?? Brightness.light) != _newUserData.brightness) {
+      _brightness = _newUserData.brightness;
+      willUpdateStatus = true;
+    }
+    if (willUpdateStatus) _userStatusUpdate();
+    _controllerStreamSerialized.sink.add(data != null ? serialized : null);
   }
 }

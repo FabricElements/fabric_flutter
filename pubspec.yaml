@@ -1,6 +1,6 @@
 name: fabric_flutter
 description: Native components and helpers
-version: 1.2.2
+version: 1.2.3
 
 environment:
   sdk: '>=3.0.3 <4.0.0'

@@ -131,11 +131,11 @@ abstract class StateShared extends ChangeNotifier {
   /// Set data
   set data(dynamic dataObject) {
     if (privateOldData == dataObject) return;
+    callback(dataObject);
+    _controllerStream.sink.add(dataObject);
     privateOldData = dataObject;
     privateData = dataObject;
     notifyListeners();
-    callback(data);
-    _controllerStream.sink.add(data);
   }
 
   /// More at [error]
