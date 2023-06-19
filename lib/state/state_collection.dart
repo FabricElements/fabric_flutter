@@ -46,7 +46,7 @@ abstract class StateCollection extends StateShared {
                       'id': e.id,
                     })
                 .toList()
-            : null;
+            : [];
         notifyListeners();
       }, cancelOnError: true).onError((e) {
         isValid = false;
