@@ -93,7 +93,6 @@ abstract class StateCollection extends StateShared {
   }) async {
     if (loading) return;
     loading = true;
-    print('Calling next: $canPaginate page: $page');
     initialized = false;
     await _streamSubscription?.cancel();
     _listen();
