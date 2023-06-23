@@ -17,7 +17,6 @@ abstract class StateCollection extends StateShared {
     if (_streamSubscription != null) {
       try {
         await _streamSubscription!.cancel();
-        print('canceled: ${baseQuery?.parameters.toString()}');
         baseQuery = null;
         return true;
       } catch (error) {
