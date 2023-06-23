@@ -69,8 +69,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
   late Stream<dynamic> stream;
   late List<dynamic>? initialData;
 
-  @override
-  void initState() {
+  _start() {
     end = false;
     loading = false;
     error = null;
@@ -94,6 +93,11 @@ class _PaginationContainerState extends State<PaginationContainer> {
       loading = false;
       if (mounted) setState(() {});
     });
+  }
+
+  @override
+  void initState() {
+    _start();
     super.initState();
   }
 
@@ -106,10 +110,9 @@ class _PaginationContainerState extends State<PaginationContainer> {
 
   @override
   void didUpdateWidget(covariant PaginationContainer oldWidget) {
-    // if (stream == widget.stream) stream.drain();
-    stream = widget.stream;
-    initialData = widget.initialData;
-    // if (mounted) setState(() {});
+    stream.drain();
+    _start();
+    if (mounted) setState(() {});
     super.didUpdateWidget(oldWidget);
   }
 
@@ -151,7 +154,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
             primary: widget.primary,
             cacheExtent: widget.cacheExtent,
             controller: _controller,
-            itemCount: loading ? (total) + 1 : total,
+            itemCount: loading ? total + 1 : total,
             padding: widget.padding,
             shrinkWrap: widget.shrinkWrap,
             itemBuilder: (BuildContext context, int index) {

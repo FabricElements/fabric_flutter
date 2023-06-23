@@ -8,6 +8,9 @@ import 'state_shared.dart';
 abstract class StateCollection extends StateShared {
   StateCollection();
 
+  @override
+  bool paginate = true;
+
   /// More at [query]
   Query? baseQuery;
 
@@ -33,9 +36,11 @@ abstract class StateCollection extends StateShared {
       return;
     }
     initialized = false;
+    loading = true;
     cancel().then((_) {
       if (reference != null) {
         baseQuery = reference;
+        clear();
         _listen();
       } else {
         data = [];
@@ -50,11 +55,15 @@ abstract class StateCollection extends StateShared {
   void _listen() {
     if (initialized) return;
     initialized = true;
-    _streamSubscription = baseQuery?.snapshots().listen((snapshot) {
-      clear();
-      data = [];
+    if (baseQuery == null) return;
+    _streamSubscription =
+        baseQuery!.limit(limit * page).snapshots().listen((snapshot) {
       initialized = true;
-      if (snapshot.size > 0) {
+      data = [];
+
+      /// Default totalCount depending on the page
+      totalCount = snapshot.size;
+      if (totalCount > 0) {
         List<Map<String, dynamic>> items = [];
         for (var doc in snapshot.docs) {
           final item = doc;
@@ -64,10 +73,28 @@ abstract class StateCollection extends StateShared {
         }
         data = items;
       }
+      Future.delayed(const Duration(seconds: 2)).then((_) {
+        loading = false;
+        notifyListeners();
+      });
     }, onError: (e) {
       clear();
       data = [];
       error = e?.toString();
+      loading = false;
     });
+  }
+
+  /// async function to process request
+  @override
+  Future<dynamic> call({
+    bool ignoreDuplicatedCalls = false,
+    bool notify = false,
+  }) async {
+    if (loading) return;
+    loading = true;
+    initialized = false;
+    await _streamSubscription?.cancel();
+    _listen();
   }
 }

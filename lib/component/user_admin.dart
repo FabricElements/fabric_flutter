@@ -73,9 +73,14 @@ class UserAdmin extends StatelessWidget {
       assert(group != null && group!.isNotEmpty, 'group can\'t be empty');
     }
     final stateUser = Provider.of<StateUser>(context);
-    final state = Provider.of<StateUsers>(context, listen: false);
+    final state = Provider.of<StateUsers>(context);
     final alert = Provider.of<StateAlert>(context, listen: false);
 
+    /// Change default limit if the height is too large
+    double height = MediaQuery.of(context).size.height;
+    if (height > 1200) {
+      state.limitDefault = (height / 80).round() + 2;
+    }
     apiError(String? e) => (e != null)
         ? alert.show(AlertData(
             title: locales.get(e),
