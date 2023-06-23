@@ -66,12 +66,16 @@ class _PaginationContainerState extends State<PaginationContainer> {
   late bool loading;
   final _controller = ScrollController();
   late String? error;
+  late Stream<dynamic> stream;
+  late List<dynamic>? initialData;
 
   @override
   void initState() {
     end = false;
     loading = false;
     error = null;
+    stream = widget.stream;
+    initialData = widget.initialData;
     _controller.addListener(() async {
       if (end) return;
       bool isBottom =
@@ -96,17 +100,27 @@ class _PaginationContainerState extends State<PaginationContainer> {
   @override
   void dispose() {
     _controller.dispose();
+    stream.drain();
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant PaginationContainer oldWidget) {
+    // if (stream == widget.stream) stream.drain();
+    stream = widget.stream;
+    initialData = widget.initialData;
+    // if (mounted) setState(() {});
+    super.didUpdateWidget(oldWidget);
   }
 
   @override
   Widget build(BuildContext context) {
     if (error != null) return Scaffold(body: widget.error, primary: false);
     return StreamBuilder(
-      stream: widget.stream,
-      initialData: widget.initialData,
+      stream: stream,
+      initialData: initialData,
       builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-        List<dynamic>? data = widget.initialData;
+        List<dynamic>? data = snapshot.data;
         if (snapshot.hasError) return widget.error;
         bool connected = false;
         switch (snapshot.connectionState) {

@@ -8,67 +8,67 @@ import 'state_shared.dart';
 abstract class StateCollection extends StateShared {
   StateCollection();
 
-  /// [initialized] after snapshot is requested the first time
-
   /// More at [query]
-  Query<Map<String, dynamic>>? baseQuery;
+  Query? baseQuery;
+
+  /// Stop listening for changes
+  Future<bool> cancel() async {
+    clear();
+    if (_streamSubscription != null) {
+      try {
+        await _streamSubscription!.cancel();
+        print('canceled: ${baseQuery?.parameters.toString()}');
+        baseQuery = null;
+        return true;
+      } catch (error) {
+        //
+      }
+    }
+    return false;
+  }
 
   /// Collection Reference
   /// FirebaseFirestore.instance.collection('example')
-  set query(Query<Map<String, dynamic>>? reference) {
-    if (reference != baseQuery) clear();
-    if (reference == baseQuery) return;
-    // Drain before using new query
-    _drain();
-    baseQuery = reference;
-    if (reference != null) {
-      _listen();
+  set query(Query? reference) {
+    if (reference?.parameters.toString() == baseQuery?.parameters.toString()) {
+      return;
     }
+    initialized = false;
+    cancel().then((_) {
+      if (reference != null) {
+        baseQuery = reference;
+        _listen();
+      } else {
+        data = [];
+      }
+    });
   }
 
   /// Firestore Document Stream Reference
-  Stream<QuerySnapshot>? get _streamReference {
-    return baseQuery?.snapshots();
-  }
+  StreamSubscription<QuerySnapshot<Object?>>? _streamSubscription;
 
   /// Listen for document changes
   void _listen() {
     if (initialized) return;
     initialized = true;
-    bool isValid = false;
-    try {
-      _streamReference?.listen((snapshot) {
-        List<QueryDocumentSnapshot> dataDocs = snapshot.docs;
-        data = dataDocs.isNotEmpty
-            ? dataDocs
-                .map((e) => {
-                      ...e.data() as Map<String, dynamic>,
-                      'id': e.id,
-                    })
-                .toList()
-            : [];
-        notifyListeners();
-      }, cancelOnError: true).onError((e) {
-        isValid = false;
-        error = e?.toString();
-        data = null;
-        notifyListeners();
-      });
-    } catch (e) {
-      if (isValid) {
-        data = null;
+    _streamSubscription = baseQuery?.snapshots().listen((snapshot) {
+      clear();
+      data = [];
+      initialized = true;
+      if (snapshot.size > 0) {
+        List<Map<String, dynamic>> items = [];
+        for (var doc in snapshot.docs) {
+          final item = doc;
+          Map<String, dynamic> tempData = item.data() as Map<String, dynamic>;
+          tempData['id'] = item.id;
+          items.add(tempData);
+        }
+        data = items;
       }
-      error = e.toString();
-      notifyListeners();
-    }
-  }
-
-  /// Stop listening for changes
-  void _drain() async {
-    try {
-      await _streamReference?.drain();
-    } catch (error) {
-      //
-    }
+    }, onError: (e) {
+      clear();
+      data = [];
+      error = e?.toString();
+    });
   }
 }

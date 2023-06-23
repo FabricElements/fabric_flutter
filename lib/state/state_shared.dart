@@ -131,10 +131,10 @@ abstract class StateShared extends ChangeNotifier {
   /// Set data
   set data(dynamic dataObject) {
     if (privateOldData == dataObject) return;
-    callback(dataObject);
-    _controllerStream.sink.add(dataObject);
     privateOldData = dataObject;
     privateData = dataObject;
+    _controllerStream.sink.add(dataObject);
+    callback(dataObject);
     notifyListeners();
   }
 
@@ -371,12 +371,12 @@ abstract class StateShared extends ChangeNotifier {
     selectedItems = [];
     privateOldData = null;
     totalCount = 0;
-    clearAfter();
     if (notify) {
       data = null;
     } else {
       privateData = null;
     }
+    clearAfter();
   }
 
   /// Filters
