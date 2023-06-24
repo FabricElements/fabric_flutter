@@ -73,7 +73,7 @@ class UserData {
 
   /// Language
   @JsonKey(includeIfNull: false)
-  String? language;
+  String language;
 
   /// User onboarding journey
   @JsonKey(includeIfNull: false)
@@ -126,7 +126,7 @@ class UserData {
 
   /// Brightness
   @JsonKey(includeIfNull: false)
-  final Brightness? brightness;
+  final Brightness brightness;
 
   UserData({
     this.onboarding,
@@ -141,12 +141,12 @@ class UserData {
     this.avatar,
     this.firstName,
     this.lastName,
-    this.language,
+    this.language = 'en',
     this.password,
     this.bcId,
     this.bsId,
     this.bsiId,
-    this.brightness,
+    this.brightness = Brightness.light,
   })  : presence = Utils.getPresence(ping),
         name = Utils.nameFromParts(
           firstName: firstName,

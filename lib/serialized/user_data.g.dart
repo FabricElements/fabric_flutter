@@ -39,12 +39,14 @@ UserData _$UserDataFromJson(Map<String, dynamic> json) => UserData(
       avatar: json['avatar'] as String?,
       firstName: json['firstName'] as String?,
       lastName: json['lastName'] as String?,
-      language: json['language'] as String?,
+      language: json['language'] as String? ?? 'en',
       password: json['password'] as String?,
       bcId: json['bcId'] as String?,
       bsId: json['bsId'] as String?,
       bsiId: json['bsiId'] as String?,
-      brightness: $enumDecodeNullable(_$BrightnessEnumMap, json['brightness']),
+      brightness:
+          $enumDecodeNullable(_$BrightnessEnumMap, json['brightness']) ??
+              Brightness.light,
     );
 
 Map<String, dynamic> _$UserDataToJson(UserData instance) {
@@ -62,14 +64,14 @@ Map<String, dynamic> _$UserDataToJson(UserData instance) {
   writeNotNull('id', instance.id);
   writeNotNull('firstName', instance.firstName);
   writeNotNull('lastName', instance.lastName);
-  writeNotNull('language', instance.language);
+  val['language'] = instance.language;
   writeNotNull('onboarding', instance.onboarding?.toJson());
   writeNotNull('phone', instance.phone);
   writeNotNull('password', instance.password);
   val['role'] = instance.role;
   val['groups'] = instance.groups;
   writeNotNull('username', instance.username);
-  writeNotNull('brightness', _$BrightnessEnumMap[instance.brightness]);
+  val['brightness'] = _$BrightnessEnumMap[instance.brightness]!;
   return val;
 }
 

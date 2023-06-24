@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:json_annotation/json_annotation.dart';
 
 part 'user_status.g.dart';
@@ -5,22 +7,27 @@ part 'user_status.g.dart';
 @JsonSerializable(explicitToJson: true)
 class UserStatus {
   @JsonKey(includeIfNull: false)
-  bool signedIn;
+  final bool signedIn;
   @JsonKey(includeIfNull: false)
-  bool admin;
+  final bool admin;
   @JsonKey(includeIfNull: true)
-  String role;
+  final String role;
   @JsonKey(includeIfNull: false)
   dynamic uid;
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  DateTime? timestamp;
+
+  /// Language
+  final String language;
+
+  /// Brightness
+  final Brightness brightness;
 
   UserStatus({
     this.signedIn = false,
     this.admin = false,
     this.role = 'user',
+    this.language = 'en',
+    this.brightness = Brightness.light,
     this.uid,
-    this.timestamp,
   });
 
   factory UserStatus.fromJson(Map<String, dynamic>? json) =>

@@ -17,7 +17,7 @@ class StateUser extends StateDocument {
   StateUser();
 
   @override
-  String? collection = 'user';
+  String get collection => 'user';
 
   /// State specific functionality
   User? _userObject;
@@ -44,10 +44,10 @@ class StateUser extends StateDocument {
 
   @override
   void clearAfter() {
+    _brightness = null;
     _userObject = null;
     _claims = null;
     _token = null;
-    _userStatusUpdate();
     notifyListeners();
   }
 
@@ -60,15 +60,16 @@ class StateUser extends StateDocument {
     _token = null;
     if (userObject != null) {
       try {
-        final tokenResult = await userObject.getIdTokenResult(true);
+        final tokenResult = await userObject.getIdTokenResult();
         _token = tokenResult.token;
         _claims = tokenResult.claims;
-        notifyListeners();
       } catch (e) {
         if (kDebugMode) print(e);
       }
     }
-    _userStatusUpdate();
+    if (userObject != null) notifyListeners();
+    await Future.delayed(const Duration(milliseconds: 500));
+    await _userStatusUpdate();
   }
 
   /// Get user token
@@ -80,6 +81,7 @@ class StateUser extends StateDocument {
   /// Set object with the [User] data
   set object(User? user) {
     _userObject = user;
+    _controllerStreamUser.sink.add(_userObject);
     notifyListeners();
   }
 
@@ -204,35 +206,40 @@ class StateUser extends StateDocument {
 
   /// Set userStatus
   set userStatus(UserStatus? status) {
-    _userStatus = status;
-    if (_userStatus != null) {
-      _userStatus!.timestamp = DateTime.now();
-      _controllerStreamStatus.sink.add(_userStatus!);
+    final previous = _userStatus?.toJson() ?? {};
+    if (status != null && !mapEquals(status.toJson(), previous)) {
+      _userStatus = status;
+      _controllerStreamStatus.sink.add(status);
     }
   }
 
   /// Update user status data
-  _userStatusUpdate() {
+  _userStatusUpdate() async {
     userStatus = UserStatus(
       role: role,
       admin: admin,
       signedIn: signedIn,
-      uid: _userObject?.uid,
+      uid: object?.uid,
+      language: language,
+      brightness: brightness,
     );
   }
 
   /// Refresh auth state
   _refreshAuth(User? userObject) async {
-    _init = true;
-    if (_userObject?.toString() != userObject?.toString()) {
-      if (id != userObject?.uid) id = userObject?.uid;
+    if (userObject == null) {
+      clear(notify: true);
+      await _userStatusUpdate();
+      return;
+    }
+    if (object?.toString() != userObject.toString()) {
+      if (id != userObject.uid) id = userObject.uid;
       object = userObject;
-      _controllerStreamUser.sink.add(userObject);
       try {
         // Call before _controllerStreamStatus to prevent unauthenticated calls
         await _getToken(userObject);
       } catch (e) {
-        _userStatusUpdate();
+        await _userStatusUpdate();
       }
     }
   }
@@ -241,12 +248,12 @@ class StateUser extends StateDocument {
   void init() {
     if (_init) return;
     _init = true;
-    Utils.getLanguage().then((value) {
-      _language = value;
-    }).catchError((error) {});
-    _auth.userChanges().listen((value) {
-      _refreshAuth(value);
-    }, onError: (e) => error = e.toString());
+    Utils.getLanguage()
+        .then((value) => _language = value)
+        .catchError((error) => '');
+    _auth
+        .userChanges()
+        .listen(_refreshAuth, onError: (e) => error = e.toString());
   }
 
   bool get initCalled => _init;
@@ -267,18 +274,20 @@ class StateUser extends StateDocument {
   Brightness get brightness => _brightness ?? Brightness.light;
 
   @override
-  callbackDefault(dynamic data) {
-    final _newUserData = UserData.fromJson(data);
-    bool willUpdateStatus = false;
-    if ((_language ?? 'en') != _newUserData.language) {
-      _language = _newUserData.language;
-      willUpdateStatus = true;
-    }
-    if ((_brightness ?? Brightness.light) != _newUserData.brightness) {
-      _brightness = _newUserData.brightness;
-      willUpdateStatus = true;
-    }
-    if (willUpdateStatus) _userStatusUpdate();
+  callbackDefault(dynamic data) async {
     _controllerStreamSerialized.sink.add(data != null ? serialized : null);
+    if (loading || data == null) return;
+    loading = true;
+    bool willUpdateStatus = false;
+    if ((_language ?? 'en') != serialized.language) {
+      _language = serialized.language;
+      willUpdateStatus = true;
+    }
+    if (brightness != serialized.brightness) {
+      _brightness = serialized.brightness;
+      willUpdateStatus = true;
+    }
+    if (willUpdateStatus && _init && initialized) await _userStatusUpdate();
+    loading = false;
   }
 }
