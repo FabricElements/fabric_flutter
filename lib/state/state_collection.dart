@@ -9,14 +9,14 @@ abstract class StateCollection extends StateShared {
   StateCollection();
 
   @override
-  bool paginate = true;
+  bool get paginate => true;
 
   /// More at [query]
   Query? baseQuery;
 
   /// Stop listening for changes
   Future<bool> cancel() async {
-    clear();
+    clear(notify: true);
     if (_streamSubscription != null) {
       try {
         await _streamSubscription!.cancel();
@@ -32,17 +32,18 @@ abstract class StateCollection extends StateShared {
   /// Collection Reference
   /// FirebaseFirestore.instance.collection('example')
   set query(Query? reference) {
-    if (reference?.parameters.toString() == baseQuery?.parameters.toString()) {
-      return;
-    }
+    if (loading) return;
+    final oldReference = ({reference?.parameters ?? {}}).toString().hashCode;
+    final newReference = ({baseQuery?.parameters ?? {}}).toString().hashCode;
+    if (newReference == oldReference) return;
     initialized = false;
     loading = true;
     cancel().then((_) {
       if (reference != null) {
         baseQuery = reference;
-        clear();
         _listen();
       } else {
+        loading = false;
         data = [];
       }
     });
@@ -59,6 +60,7 @@ abstract class StateCollection extends StateShared {
     _streamSubscription =
         baseQuery!.limit(limit * page).snapshots().listen((snapshot) {
       initialized = true;
+      loading = false;
       data = [];
 
       /// Default totalCount depending on the page
@@ -73,10 +75,6 @@ abstract class StateCollection extends StateShared {
         }
         data = items;
       }
-      Future.delayed(const Duration(seconds: 2)).then((_) {
-        loading = false;
-        notifyListeners();
-      });
     }, onError: (e) {
       clear();
       data = [];
