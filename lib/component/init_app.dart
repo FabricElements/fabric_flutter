@@ -113,8 +113,10 @@ class InitAppChild extends StatelessWidget {
       ));
     }
 
-    /// Init User
-    stateUser.init();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      /// Init User
+      stateUser.init();
+    });
 
     /// Return child component
     return child;

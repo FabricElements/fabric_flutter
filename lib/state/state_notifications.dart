@@ -133,22 +133,26 @@ class StateNotifications extends ChangeNotifier {
     if (token.isNotEmpty && !_initialized) {
       // message.listen((arg) async {});
     }
-    _initialized = true;
   }
 
   /// Initializes the notifications and starts listening
   Future<void> init() async {
-    if (_initialized) {
-      return;
-    }
+    if (_initialized) return;
+    _initialized = true;
+    // Any time the token refreshes, store this in the database too.
+    FirebaseMessaging.instance.onTokenRefresh.listen(_updateUserToken);
+    initNotifications();
+  }
+
+  /// Get user token for notifications
+  /// from the main App to prevent blocking call
+  Future<void> getUserToken() async {
+    if (!_initialized) await init();
     if (token.isEmpty) {
       String? pushToken = await getToken();
       _token = pushToken;
       _updateUserToken(token);
-      // Any time the token refreshes, store this in the database too.
-      FirebaseMessaging.instance.onTokenRefresh.listen(_updateUserToken);
     }
-    initNotifications();
   }
 
   /// Define user id
