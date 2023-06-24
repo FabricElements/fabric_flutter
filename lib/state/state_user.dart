@@ -63,12 +63,12 @@ class StateUser extends StateDocument {
         final tokenResult = await userObject.getIdTokenResult(true);
         _token = tokenResult.token;
         _claims = tokenResult.claims;
-        _userStatusUpdate();
         notifyListeners();
       } catch (e) {
         if (kDebugMode) print(e);
       }
     }
+    _userStatusUpdate();
   }
 
   /// Get user token
@@ -224,16 +224,15 @@ class StateUser extends StateDocument {
   /// Refresh auth state
   _refreshAuth(User? userObject) async {
     _init = true;
-    if (id != userObject?.uid) id = userObject?.uid;
-    object = userObject;
-    _userStatusUpdate();
-    _controllerStreamUser.sink.add(userObject);
-    if (_userObject != userObject) {
+    if (_userObject?.toString() != userObject?.toString()) {
+      if (id != userObject?.uid) id = userObject?.uid;
+      object = userObject;
+      _controllerStreamUser.sink.add(userObject);
       try {
         // Call before _controllerStreamStatus to prevent unauthenticated calls
         await _getToken(userObject);
       } catch (e) {
-        //-
+        _userStatusUpdate();
       }
     }
   }
@@ -241,12 +240,12 @@ class StateUser extends StateDocument {
   /// Init app and prevent duplicated calls
   void init() {
     if (_init) return;
+    _init = true;
     Utils.getLanguage().then((value) {
       _language = value;
     }).catchError((error) {});
-
     _auth.userChanges().listen((value) {
-      _init = true;
+      print('Auth changes: ${value?.uid}');
       _refreshAuth(value);
     }, onError: (e) => error = e.toString());
   }
