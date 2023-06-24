@@ -245,7 +245,6 @@ class StateUser extends StateDocument {
       _language = value;
     }).catchError((error) {});
     _auth.userChanges().listen((value) {
-      print('Auth changes: ${value?.uid}');
       _refreshAuth(value);
     }, onError: (e) => error = e.toString());
   }
