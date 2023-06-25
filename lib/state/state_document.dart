@@ -8,99 +8,95 @@ import 'state_shared.dart';
 abstract class StateDocument extends StateShared {
   StateDocument();
 
-  /// [initialized] after snapshot is requested the first time
+  /// More at [ref]
+  DocumentReference? baseRef;
 
-  /// More at [id]
-  String? _documentId;
-
-  /// Set document id
-  set id(String? id) {
-    if (id != _documentId) clear();
-    if (id == _documentId) return;
-    _documentId = id;
-    if (id != null) {
-      _listen();
+  /// Stop listening for changes
+  Future<bool> cancel() async {
+    clear(notify: true);
+    if (_streamSubscription != null) {
+      try {
+        await _streamSubscription!.cancel();
+        baseRef = null;
+        return true;
+      } catch (error) {
+        //
+      }
     }
+    return false;
   }
 
-  /// Get Firestore Document [id]
-  String? get id => _documentId;
-
-  /// Collection ID
-  String? collection;
-
-  /// Firestore Document Reference
-  DocumentReference<Map<String, dynamic>>? get _documentReference {
-    if (id == null || collection == null) return null;
-    return FirebaseFirestore.instance.collection(collection!).doc(id);
+  /// Collection Reference
+  /// FirebaseFirestore.instance.collection('example')
+  set ref(DocumentReference? reference) {
+    if (loading) return;
+    final oldReference = baseRef?.path ?? '';
+    final newReference = reference?.path ?? '';
+    if (newReference == oldReference) return;
+    initialized = false;
+    loading = true;
+    cancel().then((_) {
+      if (reference != null) {
+        baseRef = reference;
+        _listen();
+      } else {
+        loading = false;
+        data = null;
+      }
+    });
   }
 
   /// Firestore Document Stream Reference
-  Stream<DocumentSnapshot>? get _streamReference {
-    return _documentReference?.snapshots();
-  }
+  StreamSubscription<DocumentSnapshot<Object?>>? _streamSubscription;
 
   /// Listen for document changes
   void _listen() {
     if (initialized) return;
     initialized = true;
-    bool isValid = false;
-    try {
-      _streamReference?.listen((DocumentSnapshot snapshot) {
-        String snapshotID = snapshot.id;
-        isValid = snapshot.exists && snapshotID == _documentId;
-        if (!isValid) {
-          data = null;
-          return;
-        }
-        Map<String, dynamic> tempData = snapshot.data() as Map<String, dynamic>;
-        tempData['id'] = snapshotID;
-        data = tempData;
-        notifyListeners();
-      }, cancelOnError: true).onError((e) {
-        isValid = false;
-        error = e?.toString();
-        data = null;
-        notifyListeners();
-      });
-    } catch (e) {
-      if (isValid) {
-        data = null;
+    if (baseRef == null) return;
+    _streamSubscription = baseRef!.snapshots().listen((snapshot) {
+      initialized = true;
+      loading = false;
+      data = null;
+      Map<String, dynamic> tempData = {
+        'id': snapshot.id,
+        'backup': snapshot.id,
+        'created': FieldValue.serverTimestamp(),
+        'updated': FieldValue.serverTimestamp(),
+      };
+      if (snapshot.exists) {
+        tempData = {
+          ...tempData,
+          ...snapshot.data() as Map<String, dynamic>,
+          'id': snapshot.id,
+        };
       }
-      error = e.toString();
-      notifyListeners();
-    }
+      data = tempData;
+    }, onError: (e) {
+      clear();
+      data = null;
+      error = e?.toString();
+      loading = false;
+    });
+  }
+
+  /// async function to process request
+  @override
+  Future<dynamic> call({
+    bool ignoreDuplicatedCalls = false,
+    bool notify = false,
+  }) async {
+    if (loading) return;
+    loading = true;
+    initialized = false;
+    await _streamSubscription?.cancel();
+    _listen();
   }
 
   /// Update Firestore Document
-  Future<void> update(Map<String, dynamic> newData) {
-    return _documentReference!.update(newData);
-  }
+  Future<void> update(Map<String, dynamic> newData) => baseRef!.update(newData);
 
   /// Set Merge Firestore Document
-  Future<void> set(Map<String, dynamic> newData, {bool merge = false}) {
-    return _documentReference!.set(newData, SetOptions(merge: merge));
-  }
-
-  /// Stop listening for changes
-  void _drain() async {
-    try {
-      await _streamReference?.drain();
-    } catch (error) {
-      //
-    }
-  }
-
-  /// Clear document data
-  @override
-  void clear({bool notify = false}) {
-    _drain();
-    initialized = false;
-    _documentId = null;
-    data = null;
-    error = null;
-    clearAfter();
-    if (notify) notifyListeners();
-    super.clear(notify: false);
-  }
+  Future<void> set(Map<String, dynamic> newData, {bool merge = false}) =>
+      baseRef!.set(newData, SetOptions(merge: merge));
 }

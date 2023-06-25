@@ -11,13 +11,11 @@ import '../serialized/user_status.dart';
 import 'state_document.dart';
 
 final _auth = FirebaseAuth.instance;
+final db = FirebaseFirestore.instance;
 
 /// This is a change notifier class which keeps track of state within the widgets.
 class StateUser extends StateDocument {
   StateUser();
-
-  @override
-  String get collection => 'user';
 
   /// State specific functionality
   User? _userObject;
@@ -78,6 +76,9 @@ class StateUser extends StateDocument {
     return _token;
   }
 
+  /// Get user id
+  String? get id => _userObject!.uid;
+
   /// Set object with the [User] data
   set object(User? user) {
     _userObject = user;
@@ -106,7 +107,7 @@ class StateUser extends StateDocument {
   }
 
   /// [signedIn] Returns true when the user is authenticated
-  bool get signedIn => _userObject != null && _userObject?.uid == id;
+  bool get signedIn => _userObject != null;
 
   /// Returns the current user role
   String roleFromData({
@@ -233,7 +234,7 @@ class StateUser extends StateDocument {
       return;
     }
     if (object?.toString() != userObject.toString()) {
-      if (id != userObject.uid) id = userObject.uid;
+      ref = db.collection('user').doc(userObject.uid);
       object = userObject;
       try {
         // Call before _controllerStreamStatus to prevent unauthenticated calls
