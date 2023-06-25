@@ -44,7 +44,7 @@ abstract class StateCollection extends StateShared {
         _listen();
       } else {
         loading = false;
-        data = [];
+        data = null;
       }
     });
   }
@@ -61,7 +61,7 @@ abstract class StateCollection extends StateShared {
         baseQuery!.limit(limit * page).snapshots().listen((snapshot) {
       initialized = true;
       loading = false;
-      data = [];
+      data = null;
 
       /// Default totalCount depending on the page
       totalCount = snapshot.size;
@@ -69,15 +69,18 @@ abstract class StateCollection extends StateShared {
         List<Map<String, dynamic>> items = [];
         for (var doc in snapshot.docs) {
           final item = doc;
-          Map<String, dynamic> tempData = item.data() as Map<String, dynamic>;
-          tempData['id'] = item.id;
-          items.add(tempData);
+          items.add({
+            ...item.data() as Map<String, dynamic>,
+            'id': item.id,
+          });
         }
         data = items;
+      } else {
+        data = [];
       }
     }, onError: (e) {
       clear();
-      data = [];
+      data = null;
       error = e?.toString();
       loading = false;
     });

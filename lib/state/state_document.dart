@@ -58,20 +58,12 @@ abstract class StateDocument extends StateShared {
       initialized = true;
       loading = false;
       data = null;
-      Map<String, dynamic> tempData = {
-        'id': snapshot.id,
-        'backup': snapshot.id,
-        'created': FieldValue.serverTimestamp(),
-        'updated': FieldValue.serverTimestamp(),
-      };
       if (snapshot.exists) {
-        tempData = {
-          ...tempData,
+        data = {
           ...snapshot.data() as Map<String, dynamic>,
           'id': snapshot.id,
         };
       }
-      data = tempData;
     }, onError: (e) {
       clear();
       data = null;
