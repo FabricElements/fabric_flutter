@@ -33,7 +33,7 @@ class UserAvatar extends StatelessWidget {
     final textTheme = theme.textTheme;
     final color = theme.colorScheme.primary;
     String abbreviation = Utils.nameAbbreviation(
-      firstName: firstName,
+      firstName: firstName ?? name,
       lastName: lastName,
     );
     Widget avatarContainer = CircleAvatar(
@@ -46,8 +46,11 @@ class UserAvatar extends StatelessWidget {
     if (avatar != null) {
       avatarContainer = CircleAvatar(
         backgroundColor: color,
-        child: ClipOval(
-          child: SmartImage(url: avatar),
+        child: AspectRatio(
+          aspectRatio: 1 / 1,
+          child: ClipOval(
+            child: SmartImage(url: avatar),
+          ),
         ),
       );
     } else if (abbreviation.isNotEmpty) {
@@ -61,7 +64,12 @@ class UserAvatar extends StatelessWidget {
     }
 
     /// Return only avatar if presence is null
-    if (presence == null) return avatarContainer;
+    if (presence == null) {
+      return Tooltip(
+        message: firstName ?? lastName ?? name ?? abbreviation,
+        child: avatarContainer,
+      );
+    }
 
     /// Get user status presence
     Color statusColor = Colors.transparent;
@@ -92,8 +100,12 @@ class UserAvatar extends StatelessWidget {
     return AspectRatio(
       aspectRatio: 1 / 1,
       child: Stack(
+        fit: StackFit.expand,
         children: [
-          avatarContainer,
+          Tooltip(
+            message: firstName ?? lastName ?? name ?? abbreviation,
+            child: avatarContainer,
+          ),
           Positioned(
             right: 0,
             top: 0,
