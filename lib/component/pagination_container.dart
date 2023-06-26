@@ -110,7 +110,6 @@ class _PaginationContainerState extends State<PaginationContainer> {
 
   @override
   void didUpdateWidget(covariant PaginationContainer oldWidget) {
-    stream.drain();
     _start();
     if (mounted) setState(() {});
     super.didUpdateWidget(oldWidget);
