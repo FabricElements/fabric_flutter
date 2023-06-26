@@ -27,6 +27,7 @@ class LanguageSelector extends StatelessWidget {
     this.value = 'en',
     this.label,
     this.hintText,
+    this.disabled = false,
     required this.onChange,
   }) : super(key: key);
   final bool voice;
@@ -34,6 +35,7 @@ class LanguageSelector extends StatelessWidget {
   final Function(String?) onChange;
   final String? hintText;
   final String? label;
+  final bool disabled;
 
   @override
   Widget build(BuildContext context) {
@@ -63,6 +65,7 @@ class LanguageSelector extends StatelessWidget {
       options: options,
       onChanged: (dynamic value) => onChange(value as String?),
       isExpanded: true,
+      disabled: disabled,
     );
   }
 }
