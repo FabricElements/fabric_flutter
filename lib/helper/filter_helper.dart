@@ -4,12 +4,14 @@ import '../component/input_data.dart';
 import '../serialized/filter_data.dart';
 import 'enum_data.dart';
 
+/// Supported SQL Query outputs
 enum SQLQueryType {
   sql,
   openSearch,
   bigQuery,
 }
 
+/// FilterHelper are used by StateShared
 class FilterHelper {
   /// Return SQL valid value from data type
   static dynamic valueFromType({
@@ -216,6 +218,7 @@ class FilterHelper {
     return query;
   }
 
+  /// Filters to SQL encoded value
   static String? toSQLEncoded({
     required table,
     required List<FilterData> filterData,
@@ -233,6 +236,7 @@ class FilterHelper {
     return stringToBase64.encode(sqlQuery);
   }
 
+  /// Ignore duplicated filters
   static Map<String, dynamic> filterIdsValue(List<FilterData> filterData) {
     Map<String, dynamic> data = {};
     for (int i = 0; i < filterData.length; i++) {

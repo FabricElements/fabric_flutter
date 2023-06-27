@@ -85,6 +85,7 @@ class EnumData {
     required List<dynamic> enums,
     required dynamic value,
   }) {
+    if (value == null) return null;
     dynamic finalValue;
     String? error;
     try {
@@ -106,8 +107,7 @@ class EnumData {
         error = '!!!! Find from string: $e';
       }
     }
-
-    if (finalValue == null) debugPrint(error);
+    if (finalValue == null && error != null) debugPrint(error);
     return finalValue;
   }
 

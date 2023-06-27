@@ -186,17 +186,14 @@ abstract class StateShared extends ChangeNotifier {
   List<dynamic> selectedItems = [];
 
   /// Returns the page number
-  int get page =>
-      int.tryParse(
-          Utils.valuesFromQueryKey(queryParameters, 'page')?.first ?? '') ??
-      pageDefault;
+  int get page => pageDefault;
 
   /// Set the page number and trigger filter
   set page(int? value) {
     pageDefault = value ?? initialPage;
   }
 
-  /// Returns the [limit] number
+  /// Returns the limit number
   int get limit => limitDefault;
 
   /// Set the [limit] number and trigger filter
@@ -232,17 +229,23 @@ abstract class StateShared extends ChangeNotifier {
   Map<String, List<String>> get queryParameters {
     if (!passParameters) return {};
     Map<String, List<String>> queryParametersBase = _queryParameters;
-    // Merge filter parameter
-    final filterParameter = FilterHelper.encode(filters);
-    queryParametersBase = {
-      ...queryParametersBase,
-      'filters': [filterParameter ?? ''],
-    };
-    // Merge SQL parameters
-    queryParametersBase = {
-      ...queryParametersBase,
-      'sql': [sql ?? ''],
-    };
+    if (filters.isNotEmpty) {
+      // Merge filter parameter
+      final filterParameter = FilterHelper.encode(filters);
+      if (filterParameter != null) {
+        queryParametersBase = {
+          ...queryParametersBase,
+          'filters': [filterParameter],
+        };
+      }
+      if (sql != null) {
+        // Merge SQL parameters
+        queryParametersBase = {
+          ...queryParametersBase,
+          'sql': [sql!],
+        };
+      }
+    }
     if (paginate) {
       // Add default values for pagination
       queryParametersBase = {
@@ -320,7 +323,7 @@ abstract class StateShared extends ChangeNotifier {
     queryParameters = Utils.mergeQueryParameters(queryParameters, p);
   }
 
-  /// [selectId] select item by id
+  /// selectId select item by id
   void selectId(dynamic id, bool value) {
     if (value) {
       selectedItems.add(id);
@@ -331,21 +334,21 @@ abstract class StateShared extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// [isSelected] returns true if the id is selected
+  /// isSelected returns true if the id is selected
   bool isSelected(dynamic id) {
     return selectedItems.contains(id);
   }
 
-  /// [selected] returns a list of selected id's
+  /// selected returns a list of selected id's
   List<dynamic> get selected => selectedItems;
 
-  /// Set [selected] items with a list of id's or an empty array to reset the value
+  /// Set selected items with a list of id's or an empty array to reset the value
   set selected(List<dynamic>? items) {
     selectedItems = items ?? [];
     notifyListeners();
   }
 
-  /// [selectAll] select all available items on [data]
+  /// selectAll select all available items on [data]
   void selectAll() {
     selectedItems = [];
     if (data == null) return;
