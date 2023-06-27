@@ -29,7 +29,6 @@ abstract class StateAPI extends StateShared {
   /// Use Bearer for token authentication
   AuthScheme? authScheme;
 
-  /// [token]
   /// Use [AuthScheme.Bearer] and the current user id token for authentication
   bool token = false;
 
