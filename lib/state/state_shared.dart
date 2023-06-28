@@ -88,44 +88,32 @@ abstract class StateShared extends ChangeNotifier {
 
   /// Paginate to next page and call
   Future<dynamic> next() async {
-    if (loading) {
-      await Future.delayed(const Duration(milliseconds: 200));
-      return next();
-    }
+    if (loading) return;
     if (!canPaginate) return null;
     page = page + 1;
-    return call(ignoreDuplicatedCalls: true);
+    return call();
   }
 
   /// Paginate to previous page and call
   Future<dynamic> previous() async {
-    if (loading) {
-      await Future.delayed(const Duration(milliseconds: 200));
-      return previous();
-    }
+    if (loading) return;
     if (page <= initialPage) return null;
     page = page - 1;
-    return call(ignoreDuplicatedCalls: true);
+    return call();
   }
 
   /// Paginate to first page and call
   Future<dynamic> first() async {
-    if (loading) {
-      await Future.delayed(const Duration(milliseconds: 200));
-      return first();
-    }
+    if (loading) return;
     page = initialPage;
-    return call(ignoreDuplicatedCalls: true);
+    return call();
   }
 
   /// Paginate to last page and call
   Future<dynamic> last() async {
-    if (loading) {
-      await Future.delayed(const Duration(milliseconds: 200));
-      return last();
-    }
+    if (loading) return;
     page = totalPages;
-    return call(ignoreDuplicatedCalls: true);
+    return call();
   }
 
   /// Set data
@@ -359,10 +347,7 @@ abstract class StateShared extends ChangeNotifier {
   }
 
   /// async function to process request
-  Future<dynamic> call({
-    bool ignoreDuplicatedCalls = false,
-    bool notify = false,
-  }) async {}
+  Future<dynamic> call({bool ignoreDuplicatedCalls = true}) async {}
 
   /// Clear and reset default values
   void clear({bool notify = false}) {
@@ -431,13 +416,13 @@ abstract class StateShared extends ChangeNotifier {
     baseFilters = FilterHelper.filter(filters: baseFilters, strict: true);
     _filters = baseFilters;
     if (fetch) {
-      call(notify: true, ignoreDuplicatedCalls: true);
+      call();
     }
     if (redirect) {
       assert(context != null, 'context can\'t be null for if redirect is true');
       assert(uri != null, 'uri can\'t be null for if redirect is true');
       // Use 300+ milliseconds to ensure animations completes
-      Future.delayed(const Duration(milliseconds: 300)).then((time) {
+      Future.delayed(const Duration(milliseconds: 1)).then((time) {
         Utils.pushNamedFromQuery(
           context: context!,
           uri: uri!,

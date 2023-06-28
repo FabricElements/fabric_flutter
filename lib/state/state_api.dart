@@ -37,8 +37,6 @@ abstract class StateAPI extends StateShared {
   /// Don't use a '/' at the beginning of the path
   set endpoint(String value) {
     if (value == baseEndpoint && data != null) return;
-    // if (value != baseEndpoint) clear(notify: false);
-    // if (initialized) return;
     baseEndpoint = value;
     if (errorCount > 1) {
       if (kDebugMode) {
@@ -46,7 +44,7 @@ abstract class StateAPI extends StateShared {
       }
       return;
     }
-    call(ignoreDuplicatedCalls: true);
+    call();
   }
 
   String get endpoint {
@@ -70,58 +68,46 @@ abstract class StateAPI extends StateShared {
 
   /// API Call
   @override
-  Future<dynamic> call({
-    bool ignoreDuplicatedCalls = false,
-    bool notify = false,
-  }) async {
+  Future<dynamic> call({bool ignoreDuplicatedCalls = true}) async {
     /// Prevents duplicate calls with a delay and check for loading call again
     if (loading) return;
     loading = true;
-    await Future.delayed(const Duration(milliseconds: 100));
-    try {
-      // if (endpoint == null) {
-      //   data = null;
-      //   error = 'endpoint can\'t be null';
-      //   errorCount++;
-      //   loading = false;
-      //   if (notify) notifyListeners();
-      //   return;
-      // }
-      if (ignoreDuplicatedCalls &&
-          _lastEndpointCalled != null &&
-          _lastEndpointCalled == endpoint) {
-        loading = false;
-        return data;
-      }
-      bool isSameClearPath = false;
-      final lastEndpointClear = urlClear(_lastEndpointCalled);
-      final endpointClear = urlClear(endpoint);
-      isSameClearPath = lastEndpointClear == endpointClear && paginate;
-      if (!isSameClearPath) {
-        errorCount = 0;
+    if (ignoreDuplicatedCalls &&
+        _lastEndpointCalled != null &&
+        _lastEndpointCalled == endpoint &&
+        data != null) {
+      loading = false;
+      return data;
+    }
+    bool isSameClearPath = urlClear(_lastEndpointCalled) == urlClear(endpoint);
+    if (!isSameClearPath) {
+      errorCount = 0;
+      privateData = null;
+      initialized = false;
+    } else {
+      // Disable this code block when ignoreDuplicatedCalls is set to false
+      if (isSameClearPath && !ignoreDuplicatedCalls) {
+        isSameClearPath = false;
         privateData = null;
-        initialized = false;
-      } else {
-        // Disable this code block when ignoreDuplicatedCalls is set to false
-        if (isSameClearPath && !ignoreDuplicatedCalls) {
-          isSameClearPath = false;
-          privateData = null;
-        }
       }
-      _lastEndpointCalled = endpoint;
-      if (errorCount > 1) {
-        if (kDebugMode) {
-          print('$errorCount errors calls to endpoint: $endpoint');
-        }
-        loading = false;
-        if (!isSameClearPath) data = null;
-        return data;
+    }
+    _lastEndpointCalled = endpoint;
+    if (errorCount > 1) {
+      if (kDebugMode) {
+        print('$errorCount errors calls to endpoint: $endpoint');
       }
+      loading = false;
+      if (!isSameClearPath) data = null;
+      return data;
+    }
+    dynamic newData;
+    dynamic dataResponse;
+    try {
       bool mustAuthenticate = false;
       bool canAuthenticate = false;
       if (token) {
         authScheme = AuthScheme.Bearer;
-        credentials = await FirebaseAuth.instance.currentUser?.getIdToken();
+        credentials = await FirebaseAuth.instance.currentUser!.getIdToken();
       }
       if (authScheme != null || credentials != null) {
         mustAuthenticate = true;
@@ -141,7 +127,6 @@ abstract class StateAPI extends StateShared {
         });
       }
       if (kDebugMode) print('Calling endpoint: $endpoint');
-      dynamic newData;
       try {
         final response = await http.get(url, headers: headers);
         newData = HTTPRequest.response(response);
@@ -175,10 +160,10 @@ abstract class StateAPI extends StateShared {
       /// pagination
       if (incrementalPagination && page > initialPage) {
         if (data != null && newData != null && newData.isNotEmpty) {
-          privateData = merge(base: data, toMerge: newData);
+          dataResponse = merge(base: data, toMerge: newData);
         }
       } else {
-        privateData = newData;
+        dataResponse = newData;
       }
     } catch (e) {
       if (kDebugMode) print('------ ERROR API CALL : Parent catch ------');
@@ -187,8 +172,9 @@ abstract class StateAPI extends StateShared {
       errorCount++;
       error = e.toString();
     }
-    data = privateData;
-    return data;
+    data = null;
+    data = dataResponse;
+    return dataResponse;
   }
 
   @override

@@ -169,7 +169,6 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
                   edit.value?[1],
                 ];
                 // if (mounted) setState(() {});
-                // Don't update the state or the position of the input will be lost
               },
             ),
             space,
@@ -184,7 +183,6 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
                   value ?? FilterOrder.asc.name,
                 ];
                 // Don't update the state or the position of the input will be lost
-                // if (mounted) setState(() {});
               },
             ),
           ],
@@ -265,6 +263,13 @@ class FilterMenuOption extends StatefulWidget {
 class _FilterMenuOptionState extends State<FilterMenuOption> {
   late FilterData data;
 
+  _update() {
+    data = FilterData(id: widget.data.id);
+    if (mounted) setState(() {});
+    data = widget.data;
+    if (mounted) setState(() {});
+  }
+
   @override
   void initState() {
     data = widget.data;
@@ -273,9 +278,14 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
 
   @override
   void didUpdateWidget(covariant FilterMenuOption oldWidget) {
-    data = widget.data;
-    if (mounted) setState(() {});
+    _update();
     super.didUpdateWidget(oldWidget);
+  }
+
+  @override
+  void didChangeDependencies() {
+    _update();
+    super.didChangeDependencies();
   }
 
   @override
@@ -393,9 +403,10 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
                 copy.value = newValue.value;
                 copy.operator = newValue.operator;
                 // Use 300 milliseconds to ensure the animation completes
-                // Future.delayed(const Duration(milliseconds: 300)).then((time) {
-                // });
-                widget.onChange(copy);
+                // if (mounted) setState(() {});
+                Future.delayed(const Duration(milliseconds: 300)).then((time) {
+                  widget.onChange(copy);
+                });
               },
             ),
           ),
@@ -446,20 +457,29 @@ class FilterMenu extends StatefulWidget {
 class _FilterMenuState extends State<FilterMenu> {
   late List<FilterData> data;
 
-  _updateData() {
+  _update() {
+    data = [];
+    if (mounted) setState(() {});
     data = widget.data;
+    if (mounted) setState(() {});
   }
 
   @override
   void initState() {
-    _updateData();
+    data = widget.data;
     super.initState();
   }
 
   @override
-  void didUpdateWidget(covariant FilterMenu oldWidget) {
-    _updateData();
+  void didChangeDependencies() {
+    _update();
     if (mounted) setState(() {});
+    super.didChangeDependencies();
+  }
+
+  @override
+  void didUpdateWidget(covariant FilterMenu oldWidget) {
+    _update();
     super.didUpdateWidget(oldWidget);
   }
 
