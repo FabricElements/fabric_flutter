@@ -74,10 +74,7 @@ abstract class StateDocument extends StateShared {
 
   /// async function to process request
   @override
-  Future<dynamic> call({
-    bool ignoreDuplicatedCalls = false,
-    bool notify = false,
-  }) async {
+  Future<dynamic> call({bool ignoreDuplicatedCalls = true}) async {
     if (loading) return;
     loading = true;
     initialized = false;
