@@ -1,6 +1,6 @@
 name: fabric_flutter
 description: Native components and helpers
-version: 1.2.4
+version: 1.2.5
 
 environment:
   sdk: '>=3.0.3 <4.0.0'
@@ -19,7 +19,7 @@ dependencies:
   firebase_messaging: ^14.6.4
   firebase_storage: ^11.2.4
   firebase_database: ^10.2.3
-  json_serializable: ^6.7.0
+  json_serializable: ^6.7.1
   json_annotation: ^4.8.1
   image_picker: ^1.0.0
   file_picker: ^5.3.2
@@ -40,7 +40,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.2
-  build_runner: ^2.4.5
+  build_runner: ^2.4.6
   flutter_web_plugins:
     sdk: flutter
 

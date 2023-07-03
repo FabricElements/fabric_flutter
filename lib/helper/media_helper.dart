@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/rendering.dart';
 import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
@@ -28,6 +29,9 @@ class MediaHelper {
     String? extension;
     String? contentType;
     String fileName = 'unknown';
+    int width = 0;
+    int height = 0;
+    int size = 0;
     try {
       switch (origin) {
         case MediaOrigin.gallery:
@@ -85,6 +89,11 @@ class MediaHelper {
           maxHeight: maxDimensions,
         );
       }
+      if (fileData != null) {
+        final decodedImage = await decodeImageFromList(fileData);
+        width = decodedImage.width;
+        height = decodedImage.height;
+      }
     } catch (error) {
       if (kDebugMode) print('Resizing the image: $error');
       rethrow;
@@ -95,6 +104,9 @@ class MediaHelper {
       extension: extension!,
       contentType: contentType!,
       fileName: fileName,
+      width: width,
+      height: height,
+      size: fileData.lengthInBytes,
     );
   }
 
@@ -188,7 +200,7 @@ class MediaHelper {
     );
     if (result == null || result.files.isEmpty) throw 'alert--no-chosen-files';
     final file = result.files.first;
-    if (file.size < 10) throw ('alert--file-is-too-small');
+    if (file.size == 0) throw ('alert--file-is-too-small');
     fileData = file.bytes;
     extension = file.extension;
     fileName = file.name;
@@ -199,6 +211,7 @@ class MediaHelper {
       extension: extension!,
       contentType: contentType!,
       fileName: fileName,
+      size: file.size,
     );
   }
 }
