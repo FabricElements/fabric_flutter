@@ -4,9 +4,11 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/rendering.dart';
 import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
+import 'package:video_player/video_player.dart';
 
 import '../serialized/media_data.dart';
 
@@ -28,6 +30,8 @@ class MediaHelper {
     String? extension;
     String? contentType;
     String fileName = 'unknown';
+    int width = 0;
+    int height = 0;
     try {
       switch (origin) {
         case MediaOrigin.gallery:
@@ -89,12 +93,20 @@ class MediaHelper {
       if (kDebugMode) print('Resizing the image: $error');
       rethrow;
     }
+    if (fileData != null) {
+      final decodedImage = await decodeImageFromList(fileData);
+      width = decodedImage.width;
+      height = decodedImage.height;
+    }
     final encodeData = base64Encode(fileData!);
     return MediaData(
       data: encodeData,
       extension: extension!,
       contentType: contentType!,
       fileName: fileName,
+      width: width,
+      height: height,
+      size: fileData.lengthInBytes,
     );
   }
 
@@ -188,17 +200,43 @@ class MediaHelper {
     );
     if (result == null || result.files.isEmpty) throw 'alert--no-chosen-files';
     final file = result.files.first;
-    if (file.size < 10) throw ('alert--file-is-too-small');
-    fileData = file.bytes;
+    if (file.size == 0) throw ('alert--file-is-too-small');
+    fileData = file.bytes!;
     extension = file.extension;
     fileName = file.name;
+    int width = 0;
+    int height = 0;
     contentType = lookupMimeType(fileName);
-    final encodeData = base64Encode(fileData!);
+    final encodeData = base64Encode(fileData);
+    // if image, get the width and height
+    if (contentType!.contains('image')) {
+      final decodedImage = await decodeImageFromList(fileData);
+      width = decodedImage.width;
+      height = decodedImage.height;
+    }
+    // wrap with try catch
+    // if video, get width and height
+    if (contentType.contains('video')) {
+      // TODO: Verify this works
+      try {
+        // file from Uint8List
+        final video = VideoPlayerController.file(File.fromRawPath(fileData));
+        width = video.value.size.width.toInt();
+        height = video.value.size.height.toInt();
+        print('width: $width, height: $height');
+      } catch (e) {
+        if (kDebugMode) print(e);
+      }
+    }
+
     return MediaData(
       data: encodeData,
       extension: extension!,
-      contentType: contentType!,
+      contentType: contentType,
       fileName: fileName,
+      size: file.size,
+      width: width,
+      height: height,
     );
   }
 }
