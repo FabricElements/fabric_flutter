@@ -20,6 +20,32 @@ Map<String, dynamic> _$UserDataOnboardingToJson(UserDataOnboarding instance) =>
       'terms': instance.terms,
     };
 
+InterfaceLinks _$InterfaceLinksFromJson(Map<String, dynamic> json) =>
+    InterfaceLinks(
+      behance: json['behance'] as String?,
+      dribbble: json['dribbble'] as String?,
+      facebook: json['facebook'] as String?,
+      instagram: json['instagram'] as String?,
+      linkedin: json['linkedin'] as String?,
+      tiktok: json['tiktok'] as String?,
+      twitter: json['twitter'] as String?,
+      website: json['website'] as String?,
+      youtube: json['youtube'] as String?,
+    );
+
+Map<String, dynamic> _$InterfaceLinksToJson(InterfaceLinks instance) =>
+    <String, dynamic>{
+      'behance': instance.behance,
+      'dribbble': instance.dribbble,
+      'facebook': instance.facebook,
+      'instagram': instance.instagram,
+      'linkedin': instance.linkedin,
+      'tiktok': instance.tiktok,
+      'twitter': instance.twitter,
+      'website': instance.website,
+      'youtube': instance.youtube,
+    };
+
 UserData _$UserDataFromJson(Map<String, dynamic> json) => UserData(
       onboarding: json['onboarding'] == null
           ? null
@@ -47,6 +73,9 @@ UserData _$UserDataFromJson(Map<String, dynamic> json) => UserData(
       brightness:
           $enumDecodeNullable(_$BrightnessEnumMap, json['brightness']) ??
               Brightness.light,
+      links: json['links'] == null
+          ? null
+          : InterfaceLinks.fromJson(json['links'] as Map<String, dynamic>?),
     );
 
 Map<String, dynamic> _$UserDataToJson(UserData instance) {
@@ -66,6 +95,7 @@ Map<String, dynamic> _$UserDataToJson(UserData instance) {
   writeNotNull('lastName', instance.lastName);
   val['language'] = instance.language;
   writeNotNull('onboarding', instance.onboarding?.toJson());
+  writeNotNull('links', instance.links?.toJson());
   writeNotNull('phone', instance.phone);
   writeNotNull('password', instance.password);
   val['role'] = instance.role;

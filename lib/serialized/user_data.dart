@@ -35,6 +35,46 @@ class UserDataOnboarding {
   Map<String, dynamic> toJson() => _$UserDataOnboardingToJson(this);
 }
 
+/// InterfaceLinks Object
+@JsonSerializable(explicitToJson: true)
+class InterfaceLinks {
+  @JsonKey(includeIfNull: true)
+  String? behance;
+  @JsonKey(includeIfNull: true)
+  String? dribbble;
+  @JsonKey(includeIfNull: true)
+  String? facebook;
+  @JsonKey(includeIfNull: true)
+  String? instagram;
+  @JsonKey(includeIfNull: true)
+  String? linkedin;
+  @JsonKey(includeIfNull: true)
+  String? tiktok;
+  @JsonKey(includeIfNull: true)
+  String? twitter;
+  @JsonKey(includeIfNull: true)
+  String? website;
+  @JsonKey(includeIfNull: true)
+  String? youtube;
+
+  InterfaceLinks({
+    this.behance,
+    this.dribbble,
+    this.facebook,
+    this.instagram,
+    this.linkedin,
+    this.tiktok,
+    this.twitter,
+    this.website,
+    this.youtube,
+  });
+
+  factory InterfaceLinks.fromJson(Map<String, dynamic>? json) =>
+      _$InterfaceLinksFromJson(json ?? {});
+
+  Map<String, dynamic> toJson() => _$InterfaceLinksToJson(this);
+}
+
 /// Loan from loan service
 @JsonSerializable(explicitToJson: true)
 class UserData {
@@ -78,6 +118,10 @@ class UserData {
   /// User onboarding journey
   @JsonKey(includeIfNull: false)
   final UserDataOnboarding? onboarding;
+
+  /// User Links
+  @JsonKey(includeIfNull: false)
+  InterfaceLinks? links;
 
   /// Last time the user was ping
   @JsonKey(
@@ -147,6 +191,7 @@ class UserData {
     this.bsId,
     this.bsiId,
     this.brightness = Brightness.light,
+    this.links,
   })  : presence = Utils.getPresence(ping),
         name = Utils.nameFromParts(
           firstName: firstName,
