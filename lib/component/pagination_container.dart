@@ -40,7 +40,11 @@ class PaginationContainer extends StatefulWidget {
     this.clipBehavior = Clip.hardEdge,
     this.shrinkWrap = false,
   }) : super(key: key);
-  final Widget Function(BuildContext context, dynamic data) itemBuilder;
+  final Widget Function(
+    BuildContext context,
+    int index,
+    dynamic data,
+  ) itemBuilder;
   final bool primary;
   final bool reverse;
   final EdgeInsetsGeometry? padding;
@@ -158,7 +162,11 @@ class _PaginationContainerState extends State<PaginationContainer> {
             shrinkWrap: widget.shrinkWrap,
             itemBuilder: (BuildContext context, int index) {
               if (index < total) {
-                return widget.itemBuilder(context, data![index]);
+                return widget.itemBuilder(
+                  context,
+                  index,
+                  data![index],
+                );
               } else {
                 return widget.loading;
               }

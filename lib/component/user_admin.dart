@@ -163,7 +163,7 @@ class UserAdmin extends StatelessWidget {
       empty: empty ?? Container(),
       initialData: state.data,
       shrinkWrap: !primary,
-      itemBuilder: (BuildContext context, dynamic data) {
+      itemBuilder: (BuildContext context, index, dynamic data) {
         final userData = data as Map<String, dynamic>;
         final user = UserData.fromJson(userData);
         assert(user.id != null, 'user id is required');

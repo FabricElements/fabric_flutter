@@ -633,10 +633,10 @@ packages:
     dependency: transitive
     description:
       name: google_sign_in_android
-      sha256: "258864d68b68f2b2846c10283b7afb95f26ff3307c410a2841a010d034b65439"
+      sha256: "8d60a787b29cb7d2bcf29230865f4a91f17323c6ac5b6b9027a6418e48d9ffc3"
       url: "https://pub.dev"
     source: hosted
-    version: "6.1.17"
+    version: "6.1.18"
   google_sign_in_ios:
     dependency: transitive
     description:
@@ -713,10 +713,10 @@ packages:
     dependency: "direct main"
     description:
       name: image_picker
-      sha256: b9603755b35253ccfad4be0762bb74d5e8bf9ff75edebf0ac3beec24fac1c5b5
+      sha256: "6296e98782726d37f59663f0727d0e978eee1ced1ffed45ccaba591786a7f7b3"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.0"
+    version: "1.0.1"
   image_picker_android:
     dependency: transitive
     description:
@@ -1134,10 +1134,10 @@ packages:
     dependency: "direct main"
     description:
       name: url_launcher
-      sha256: eb1e00ab44303d50dd487aab67ebc575456c146c6af44422f9c13889984c00f3
+      sha256: "781bd58a1eb16069412365c98597726cd8810ae27435f04b3b4d3a470bacd61e"
       url: "https://pub.dev"
     source: hosted
-    version: "6.1.11"
+    version: "6.1.12"
   url_launcher_android:
     dependency: transitive
     description:
@@ -1182,18 +1182,18 @@ packages:
     dependency: transitive
     description:
       name: url_launcher_web
-      sha256: "6bb1e5d7fe53daf02a8fee85352432a40b1f868a81880e99ec7440113d5cfcab"
+      sha256: cc26720eefe98c1b71d85f9dc7ef0cada5132617046369d9dc296b3ecaa5cbb4
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.17"
+    version: "2.0.18"
   url_launcher_windows:
     dependency: transitive
     description:
       name: url_launcher_windows
-      sha256: "254708f17f7c20a9c8c471f67d86d76d4a3f9c1591aad1e15292008aceb82771"
+      sha256: "7967065dd2b5fccc18c653b97958fdf839c5478c28e767c61ee879f4e7882422"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.6"
+    version: "3.0.7"
   vector_math:
     dependency: transitive
     description:

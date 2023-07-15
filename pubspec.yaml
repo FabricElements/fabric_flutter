@@ -21,12 +21,12 @@ dependencies:
   firebase_database: ^10.2.3
   json_serializable: ^6.7.1
   json_annotation: ^4.8.1
-  image_picker: ^1.0.0
+  image_picker: ^1.0.1
   file_picker: ^5.3.2
   image: ^4.0.17
   google_sign_in: ^6.1.4
   http: ^1.1.0
-  url_launcher: ^6.1.11
+  url_launcher: ^6.1.12
   google_maps_flutter: ^2.3.1
   google_maps_webservice: ^0.0.20-nullsafety.5
   package_info_plus: ^4.0.2
