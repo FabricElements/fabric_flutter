@@ -233,7 +233,8 @@ class StateUser extends StateDocument {
       await _userStatusUpdate();
       return;
     }
-    if (object?.toString() != userObject.toString()) {
+    if (object == null ||
+        object.toString().hashCode != userObject.toString().hashCode) {
       ref = db.collection('user').doc(userObject.uid);
       object = userObject;
       try {
