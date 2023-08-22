@@ -116,6 +116,16 @@ abstract class StateShared extends ChangeNotifier {
     return call();
   }
 
+  /// Change the page limit and call
+  Future<dynamic> limitChange(int? value) async {
+    if (loading) return;
+    initialized = false;
+    limitDefault = value ?? limitDefault;
+    data = null;
+    page = initialPage;
+    return call();
+  }
+
   /// Set data
   set data(dynamic dataObject) {
     if (privateOldData == dataObject) return;
@@ -167,7 +177,7 @@ abstract class StateShared extends ChangeNotifier {
   /// More at [page]
   int pageDefault = 1;
 
-  /// More at [limitDefault]
+  /// More at limitDefault
   int limitDefault = 10;
 
   /// More at [selected]
@@ -355,7 +365,6 @@ abstract class StateShared extends ChangeNotifier {
     errorCount = 0;
     initialized = false;
     pageDefault = initialPage;
-    // limitDefault = 10;
     selectedItems = [];
     privateOldData = null;
     totalCount = 0;
