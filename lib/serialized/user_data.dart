@@ -51,7 +51,7 @@ class InterfaceLinks {
   @JsonKey(includeIfNull: true)
   String? tiktok;
   @JsonKey(includeIfNull: true)
-  String? twitter;
+  String? x;
   @JsonKey(includeIfNull: true)
   String? website;
   @JsonKey(includeIfNull: true)
@@ -64,9 +64,9 @@ class InterfaceLinks {
     this.instagram,
     this.linkedin,
     this.tiktok,
-    this.twitter,
-    this.website,
+    this.x,
     this.youtube,
+    this.website,
   });
 
   factory InterfaceLinks.fromJson(Map<String, dynamic>? json) =>

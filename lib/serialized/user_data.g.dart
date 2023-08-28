@@ -28,9 +28,9 @@ InterfaceLinks _$InterfaceLinksFromJson(Map<String, dynamic> json) =>
       instagram: json['instagram'] as String?,
       linkedin: json['linkedin'] as String?,
       tiktok: json['tiktok'] as String?,
-      twitter: json['twitter'] as String?,
-      website: json['website'] as String?,
+      x: json['x'] as String?,
       youtube: json['youtube'] as String?,
+      website: json['website'] as String?,
     );
 
 Map<String, dynamic> _$InterfaceLinksToJson(InterfaceLinks instance) =>
@@ -41,7 +41,7 @@ Map<String, dynamic> _$InterfaceLinksToJson(InterfaceLinks instance) =>
       'instagram': instance.instagram,
       'linkedin': instance.linkedin,
       'tiktok': instance.tiktok,
-      'twitter': instance.twitter,
+      'x': instance.x,
       'website': instance.website,
       'youtube': instance.youtube,
     };
