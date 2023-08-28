@@ -1098,4 +1098,8 @@ dynamic defaultLocales = {
   'label--linkedin': {'en': 'LinkedIn'},
   'label--tiktok': {'en': 'TikTok'},
   'label--twitter': {'en': 'X (Twitter)'},
+  'label--links': {
+    'en': 'Links',
+    'es': 'Enlaces',
+  },
 };
