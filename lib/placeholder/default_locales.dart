@@ -1086,5 +1086,16 @@ dynamic defaultLocales = {
   'label--female': {
     'en': 'Female',
     'es': 'Femenino',
-  }
+  },
+  'label--website': {
+    'en': 'Website',
+    'es': 'Sitio web',
+  },
+  'label--behance': {'en': 'Behance'},
+  'label--dribbble': {'en': 'Dribbble'},
+  'label--facebook': {'en': 'Facebook'},
+  'label--instagram': {'en': 'Instagram'},
+  'label--linkedin': {'en': 'LinkedIn'},
+  'label--tiktok': {'en': 'TikTok'},
+  'label--twitter': {'en': 'X (Twitter)'},
 };
