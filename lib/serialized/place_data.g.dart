@@ -90,7 +90,7 @@ Place _$PlaceFromJson(Map<String, dynamic> json) => Place(
       plusCode: json['plus_code'] == null
           ? null
           : PlusCode.fromJson(json['plus_code'] as Map<String, dynamic>?),
-      utcOffset: json['utc_offset'] as num?,
+      utcOffset: json['utc_offset'] as int?,
       name: json['name'] as String,
       placeId: json['place_id'] as String,
     );

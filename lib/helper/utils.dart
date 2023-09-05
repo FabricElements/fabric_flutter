@@ -131,23 +131,25 @@ class Utils {
   }
 
   static DateTime? dateTimeOffset({
-    num? utcOffset,
+    int? utcOffset,
     DateTime? dateTime,
     bool reverse = false,
   }) {
     if (utcOffset == null || dateTime == null) return dateTime;
     DateTime currentDate = dateTime.toUtc();
-    bool negativeTime = utcOffset.isNegative;
-    int timeZoneOffset = utcOffset.abs().toInt();
-    Duration timeZoneOffsetDuration = Duration(minutes: timeZoneOffset);
-    if (reverse) negativeTime = !negativeTime;
+    Duration timeZoneOffsetDuration = Duration(minutes: utcOffset);
+    if (!reverse) return currentDate.add(timeZoneOffsetDuration);
+    Duration timeZoneOffsetDurationReverse = Duration(minutes: utcOffset.abs());
+    String updateDateIso = dateTime.toIso8601String();
+    String formatOffset(Duration duration) {
+      String twoDigits(int n) => n.toString().padLeft(2, '0');
+      String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
+      return '${twoDigits(duration.inHours)}:$twoDigitMinutes';
+    }
 
-    /// Default date and time
-    DateTime updatedDate = negativeTime
-        ? currentDate.subtract(timeZoneOffsetDuration)
-        : currentDate.add(timeZoneOffsetDuration);
-
-    return updatedDate;
+    updateDateIso += utcOffset.isNegative ? '-' : '+';
+    updateDateIso += formatOffset(timeZoneOffsetDurationReverse);
+    return DateTime.parse(updateDateIso).toUtc();
   }
 
   static void setPageTitle(String title) {

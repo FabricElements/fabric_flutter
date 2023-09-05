@@ -136,7 +136,7 @@ class InputData extends StatefulWidget {
   final bool isExpanded;
   final EdgeInsets padding;
   final EdgeInsets margin;
-  final num? utcOffset;
+  final int? utcOffset;
   final FormFieldValidator<String>? validator;
   final Color? backgroundColor;
   final IconData? icon;
