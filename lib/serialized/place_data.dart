@@ -106,7 +106,7 @@ class Place {
   final String formattedAddress;
 
   @JsonKey(name: 'utc_offset')
-  final num? utcOffset;
+  final int? utcOffset;
 
   /// JSON address_components
   @JsonKey(name: 'address_components', includeIfNull: false)
