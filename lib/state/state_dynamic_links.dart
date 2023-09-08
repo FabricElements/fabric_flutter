@@ -38,7 +38,7 @@ class StateDynamicLinks extends ChangeNotifier {
       }
       dynamicLinks.onLink.listen((dynamicLinkData) async {
         pendingDynamicLinkData = dynamicLinkData;
-        notifyListeners();
+        if (_initialized) notifyListeners();
         final deepLink = dynamicLinkData.link;
         final linkString = deepLink.toString();
         if (kDebugMode) print('onLink: $linkString');

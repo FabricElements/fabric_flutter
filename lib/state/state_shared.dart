@@ -133,7 +133,7 @@ abstract class StateShared extends ChangeNotifier {
     privateData = dataObject;
     _controllerStream.sink.add(dataObject);
     callback(dataObject);
-    notifyListeners();
+    if (initialized) notifyListeners();
   }
 
   /// More at [error]
@@ -329,7 +329,7 @@ abstract class StateShared extends ChangeNotifier {
       selectedItems.removeWhere((item) => item == id);
     }
     selectedItems = selectedItems.toSet().toList();
-    notifyListeners();
+    if (initialized) notifyListeners();
   }
 
   /// isSelected returns true if the id is selected
@@ -343,7 +343,7 @@ abstract class StateShared extends ChangeNotifier {
   /// Set selected items with a list of id's or an empty array to reset the value
   set selected(List<dynamic>? items) {
     selectedItems = items ?? [];
-    notifyListeners();
+    if (initialized) notifyListeners();
   }
 
   /// selectAll select all available items on [data]
@@ -353,7 +353,7 @@ abstract class StateShared extends ChangeNotifier {
     for (final item in data) {
       selectedItems.add(item['id']);
     }
-    notifyListeners();
+    if (initialized) notifyListeners();
   }
 
   /// async function to process request
@@ -390,7 +390,7 @@ abstract class StateShared extends ChangeNotifier {
 
   set filters(List<FilterData> newFilters) {
     _filters = newFilters;
-    notifyListeners();
+    if (initialized) notifyListeners();
   }
 
   /// Get SQL
@@ -444,7 +444,7 @@ abstract class StateShared extends ChangeNotifier {
         );
       });
     }
-    notifyListeners();
+    if (initialized) notifyListeners();
     return filters;
   }
 }

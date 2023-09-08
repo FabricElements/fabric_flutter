@@ -40,6 +40,6 @@ class StateAnalytics extends ChangeNotifier {
   void clear() {
     _screenName = null;
     reset();
-    notifyListeners();
+    if (initialized) notifyListeners();
   }
 }

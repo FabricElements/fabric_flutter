@@ -46,7 +46,7 @@ class StateUser extends StateDocument {
     _userObject = null;
     _claims = null;
     _token = null;
-    notifyListeners();
+    if (initialized) notifyListeners();
   }
 
   /// More at [token]
@@ -65,7 +65,7 @@ class StateUser extends StateDocument {
         if (kDebugMode) print(e);
       }
     }
-    if (userObject != null) notifyListeners();
+    if (userObject != null && initialized) notifyListeners();
     await Future.delayed(const Duration(milliseconds: 500));
     await _userStatusUpdate();
   }
@@ -83,7 +83,7 @@ class StateUser extends StateDocument {
   set object(User? user) {
     _userObject = user;
     _controllerStreamUser.sink.add(_userObject);
-    notifyListeners();
+    if (initialized) notifyListeners();
   }
 
   /// [admin] Returns true if the authenticated user is an admin
@@ -178,7 +178,7 @@ class StateUser extends StateDocument {
               snapshot.data() as Map<String, dynamic>;
           itemData.addAll({'id': uid});
           _usersMap.addAll({uid: UserData.fromJson(itemData)});
-          notifyListeners();
+          if (initialized) notifyListeners();
         }
       });
     }
