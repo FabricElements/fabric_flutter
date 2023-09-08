@@ -72,8 +72,8 @@ class UserAdmin extends StatelessWidget {
     if (group != null) {
       assert(group != null && group!.isNotEmpty, 'group can\'t be empty');
     }
-    final stateUser = Provider.of<StateUser>(context);
-    final state = Provider.of<StateUsers>(context);
+    final stateUser = Provider.of<StateUser>(context, listen: false);
+    final state = Provider.of<StateUsers>(context, listen: false);
     final alert = Provider.of<StateAlert>(context, listen: false);
 
     /// Change default limit if the height is too large
