@@ -16,16 +16,18 @@ abstract class StateCollection extends StateShared {
 
   /// Stop listening for changes
   Future<bool> cancel() async {
-    clear(notify: true);
+    clear(notify: false);
     if (_streamSubscription != null) {
       try {
         await _streamSubscription!.cancel();
         baseQuery = null;
+        clear(notify: true);
         return true;
       } catch (error) {
         //
       }
     }
+    clear(notify: true);
     return false;
   }
 
@@ -57,11 +59,11 @@ abstract class StateCollection extends StateShared {
     if (initialized) return;
     initialized = true;
     if (baseQuery == null) return;
+    data = null;
     _streamSubscription =
         baseQuery!.limit(limit * page).snapshots().listen((snapshot) {
       initialized = true;
       loading = false;
-      data = null;
 
       /// Default totalCount depending on the page
       totalCount = snapshot.size;
@@ -80,7 +82,7 @@ abstract class StateCollection extends StateShared {
       }
     }, onError: (e) {
       clear();
-      data = null;
+      // data = null;
       error = e?.toString();
       loading = false;
     });

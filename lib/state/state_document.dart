@@ -13,16 +13,18 @@ abstract class StateDocument extends StateShared {
 
   /// Stop listening for changes
   Future<bool> cancel() async {
-    clear(notify: true);
+    clear(notify: false);
     if (_streamSubscription != null) {
       try {
         await _streamSubscription!.cancel();
         baseRef = null;
+        clear(notify: true);
         return true;
       } catch (error) {
         //
       }
     }
+    clear(notify: true);
     return false;
   }
 

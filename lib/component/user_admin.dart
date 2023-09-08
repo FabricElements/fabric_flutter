@@ -268,30 +268,33 @@ class UserAdmin extends StatelessWidget {
             label: Text(user.username!),
           ));
         }
-        return ContentContainer(
-          size: size,
-          child: ListTile(
-            isThreeLine: true,
-            leading: UserAvatar(
-              avatar: user.avatar,
-              name: user.name,
-              firstName: user.firstName,
-              lastName: user.lastName,
-              presence: user.presence,
-            ),
-            title: Padding(
-              padding: const EdgeInsets.only(bottom: 8.0),
-              child: Text(name, style: textTheme.titleMedium),
-            ),
-            subtitle: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: roleChips,
-            ),
-            trailing: Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: trailing,
+        return Container(
+          key: ValueKey(user.id),
+          child: ContentContainer(
+            size: size,
+            child: ListTile(
+              isThreeLine: true,
+              leading: UserAvatar(
+                avatar: user.avatar,
+                name: user.name,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                presence: user.presence,
+              ),
+              title: Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Text(name, style: textTheme.titleMedium),
+              ),
+              subtitle: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: roleChips,
+              ),
+              trailing: Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: trailing,
+              ),
             ),
           ),
         );
