@@ -59,7 +59,7 @@ abstract class StateCollection extends StateShared {
     if (initialized) return;
     initialized = true;
     if (baseQuery == null) return;
-    data = null;
+    privateOldData = null;
     _streamSubscription =
         baseQuery!.limit(limit * page).snapshots().listen((snapshot) {
       initialized = true;
