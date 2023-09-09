@@ -19,14 +19,15 @@ abstract class StateCollection extends StateShared {
     clear(notify: false);
     if (_streamSubscription != null) {
       try {
-        await _streamSubscription!.cancel();
         baseQuery = null;
+        await _streamSubscription!.cancel();
         clear(notify: true);
         return true;
       } catch (error) {
         //
       }
     }
+    baseQuery = null;
     clear(notify: true);
     return false;
   }
@@ -40,6 +41,7 @@ abstract class StateCollection extends StateShared {
     if (newReference == oldReference) return;
     initialized = false;
     loading = true;
+    baseQuery = reference;
     cancel().then((_) {
       if (reference != null) {
         baseQuery = reference;
@@ -48,6 +50,10 @@ abstract class StateCollection extends StateShared {
         loading = false;
         data = null;
       }
+    }).onError((error, stackTrace) {
+      loading = false;
+      data = null;
+      initialized = false;
     });
   }
 

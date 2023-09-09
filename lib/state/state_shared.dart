@@ -368,6 +368,7 @@ abstract class StateShared extends ChangeNotifier {
     selectedItems = [];
     privateOldData = null;
     totalCount = 0;
+    loading = false;
     if (notify) {
       data = null;
     } else {

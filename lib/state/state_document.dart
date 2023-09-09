@@ -34,9 +34,10 @@ abstract class StateDocument extends StateShared {
     if (loading) return;
     final oldReference = baseRef?.path ?? '';
     final newReference = reference?.path ?? '';
-    if (newReference == oldReference) return;
+    if (newReference.hashCode == oldReference.hashCode) return;
     initialized = false;
     loading = true;
+    baseRef = reference;
     cancel().then((_) {
       if (reference != null) {
         baseRef = reference;
@@ -44,7 +45,12 @@ abstract class StateDocument extends StateShared {
       } else {
         loading = false;
         data = null;
+        initialized = false;
       }
+    }).catchError((error) {
+      loading = false;
+      data = null;
+      initialized = false;
     });
   }
 
@@ -59,18 +65,20 @@ abstract class StateDocument extends StateShared {
     _streamSubscription = baseRef!.snapshots().listen((snapshot) {
       initialized = true;
       loading = false;
-      data = null;
       if (snapshot.exists) {
         data = {
           ...snapshot.data() as Map<String, dynamic>,
           'id': snapshot.id,
         };
+      } else {
+        data = null;
       }
     }, onError: (e) {
       clear();
       data = null;
       error = e?.toString();
       loading = false;
+      initialized = false;
     });
   }
 
