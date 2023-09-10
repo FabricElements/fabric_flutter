@@ -187,10 +187,6 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
           body: locales.get('page-profile--alert--profile-updated'),
           type: AlertType.success,
         ));
-        if (stateUser.serialized.onboarding != null &&
-            !stateUser.serialized.onboarding!.name) {
-          Navigator.of(context).pop();
-        }
         refreshImage();
       } on FirebaseFunctionsException catch (error) {
         alert.show(AlertData(
@@ -351,7 +347,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
         leading: IconButton(
           icon: const Icon(Icons.navigate_before),
           onPressed: () {
-            Navigator.popUntil(context, ModalRoute.withName('/'));
+            Navigator.of(context).popAndPushNamed('/');
           },
         ),
       ),
