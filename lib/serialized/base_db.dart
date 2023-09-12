@@ -87,7 +87,7 @@ class BaseFirestore {
     CollectionReference ref = FirebaseFirestore.instance.collection(collection);
     Map<String, dynamic> jsonData = toJson();
     jsonData.remove('id');
-    // Filter empty values
+    // Filter FieldValue.delete values
     jsonData.removeWhere((key, value) => value == FieldValue.delete());
 
     /// Handle incremental id's
