@@ -14,8 +14,13 @@ import '../state/state_alert.dart';
 import '../state/state_user.dart';
 
 class ViewProfileEdit extends StatefulWidget {
-  const ViewProfileEdit({Key? key, this.loader}) : super(key: key);
+  const ViewProfileEdit({
+    Key? key,
+    this.loader,
+    this.prefix,
+  }) : super(key: key);
   final Widget? loader;
+  final String? prefix;
 
   @override
   State<ViewProfileEdit> createState() => _ViewProfileEditState();
@@ -84,7 +89,9 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
     final locales = AppLocalizations.of(context)!;
     final stateUser = Provider.of<StateUser>(context);
     stateUser.ping('profile');
-    userImage = stateUser.serialized.avatar;
+    userImage = widget.prefix != null && stateUser.serialized.avatar != null
+        ? '${widget.prefix}/${stateUser.serialized.avatar}'
+        : stateUser.serialized.avatar;
     nameFirst = stateUser.serialized.firstName ?? '';
     nameLast = stateUser.serialized.lastName ?? '';
     if (!changed) {
@@ -347,7 +354,8 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
         leading: IconButton(
           icon: const Icon(Icons.navigate_before),
           onPressed: () {
-            Navigator.of(context).popAndPushNamed('/');
+            // Navigator.of(context).popAndPushNamed('/');
+            Navigator.of(context).pop();
           },
         ),
       ),

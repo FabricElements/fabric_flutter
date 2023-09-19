@@ -239,9 +239,16 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       if (mounted) setState(() {});
       try {
         await verifyIfUserExists({'phone': dataAuth.phoneValid});
-        if (kIsWeb) {
-          final confirmationResult =
-              await _auth.signInWithPhoneNumber(dataAuth.phoneValid!);
+        if (kIsWeb || Platform.isMacOS) {
+          final confirmationResult = await _auth.signInWithPhoneNumber(
+            dataAuth.phoneValid!,
+            // RecaptchaVerifier(
+            //   container: 'recaptcha',
+            //   size: RecaptchaVerifierSize.compact,
+            //   theme: RecaptchaVerifierTheme.dark,
+            //   auth: _auth.app,
+            // ),
+          );
           dataAuth.verificationId = confirmationResult.verificationId;
           webConfirmationResult = confirmationResult;
         } else {
@@ -518,11 +525,11 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         final appleCredential = await SignInWithApple.getAppleIDCredential(
           scopes: [
             AppleIDAuthorizationScopes.email,
-            AppleIDAuthorizationScopes.fullName,
+            // AppleIDAuthorizationScopes.fullName,
           ],
           nonce: nonce,
         );
-
+        await verifyIfUserExists({'email': appleCredential.email});
         // Create an `OAuthCredential` from the credential returned by Apple.
         final oauthCredential = OAuthProvider('apple.com').credential(
           idToken: appleCredential.identityToken,
@@ -621,7 +628,9 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     if (widget.apple && !kIsWeb && (Platform.isIOS || Platform.isMacOS)) {
       homeButtonOptions.add(authButton('apple'));
     }
-    if (widget.google) homeButtonOptions.add(authButton('google'));
+    if (widget.google && (kIsWeb || Platform.isIOS || Platform.isAndroid)) {
+      homeButtonOptions.add(authButton('google'));
+    }
     if (widget.phone && (kIsWeb || Platform.isIOS || Platform.isAndroid)) {
       homeButtonOptions.add(authButton('phone'));
     }
