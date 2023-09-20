@@ -10,6 +10,7 @@ import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import '../component/input_data.dart';
 import '../component/smart_image.dart';
@@ -513,41 +514,41 @@ class _ViewAuthPageState extends State<ViewAuthPage>
 
     signInWithApple() async {
       try {
-        final appleProvider = AppleAuthProvider();
-        if (kIsWeb) {
-          await FirebaseAuth.instance.signInWithPopup(appleProvider);
-        } else {
-          await FirebaseAuth.instance.signInWithProvider(appleProvider);
-        }
+        // final appleProvider = AppleAuthProvider();
+        // if (kIsWeb) {
+        //   await FirebaseAuth.instance.signInWithPopup(appleProvider);
+        // } else {
+        //   await FirebaseAuth.instance.signInWithProvider(appleProvider);
+        // }
 
         // To prevent replay attacks with the credential returned from Apple, we
         // include a nonce in the credential request. When signing in with
         // Firebase, the nonce in the id token returned by Apple, is expected to
         // match the sha256 hash of `rawNonce`.
-        // final rawNonce = generateNonce();
-        // final nonce = sha256ofString(rawNonce);
+        final rawNonce = generateNonce();
+        final nonce = sha256ofString(rawNonce);
 
         // Request credential for the currently signed in Apple account.
-        // final appleCredential = await SignInWithApple.getAppleIDCredential(
-        //   scopes: [
-        //     AppleIDAuthorizationScopes.email,
-        //     // AppleIDAuthorizationScopes.fullName,
-        //   ],
-        //   nonce: nonce,
-        // );
+        final appleCredential = await SignInWithApple.getAppleIDCredential(
+          scopes: [
+            AppleIDAuthorizationScopes.email,
+            // AppleIDAuthorizationScopes.fullName,
+          ],
+          nonce: nonce,
+        );
         // await verifyIfUserExists({'email': credential.user.email});
         // Create an `OAuthCredential` from the credential returned by Apple.
-        // final oauthCredential = OAuthProvider('apple.com').credential(
-        //   idToken: appleCredential.identityToken,
-        //   rawNonce: rawNonce,
-        // );
+        final oauthCredential = OAuthProvider('apple.com').credential(
+          idToken: appleCredential.identityToken,
+          rawNonce: rawNonce,
+        );
 
         // Sign in the user with Firebase. If the nonce we generated earlier does
         // not match the nonce in `appleCredential.identityToken`, sign in will fail.
-        // final User user =
-        //     (await _auth.signInWithCredential(oauthCredential)).user!;
-        // final User currentUser = _auth.currentUser!;
-        // assert(user.uid == currentUser.uid);
+        final User user =
+            (await _auth.signInWithCredential(oauthCredential)).user!;
+        final User currentUser = _auth.currentUser!;
+        assert(user.uid == currentUser.uid);
         resetView();
       } catch (error) {
         if (kDebugMode) print(error);
@@ -631,7 +632,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     Widget spacer = const SizedBox(width: 8, height: 8);
     Widget spacerLarge = const SizedBox(width: 16, height: 16);
     List<Widget> homeButtonOptions = [];
-    if (widget.apple && (kIsWeb || Platform.isIOS || Platform.isMacOS)) {
+    if (widget.apple && (Platform.isIOS || Platform.isMacOS)) {
       homeButtonOptions.add(authButton('apple'));
     }
     if (widget.google && (kIsWeb || Platform.isIOS || Platform.isAndroid)) {
