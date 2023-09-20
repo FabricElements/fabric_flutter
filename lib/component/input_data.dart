@@ -674,6 +674,7 @@ getValue -------------------------------------
           dropdownOptions = List.generate(widget.enums.length, (index) {
             final e = widget.enums[index];
             return ButtonOptions(
+              id: e.toString(),
               label: enumData.localesFromEnum(e),
               value: e,
             );
@@ -692,7 +693,11 @@ getValue -------------------------------------
         ];
         buttons.addAll(List.generate(dropdownOptions.length, (index) {
           final option = dropdownOptions[index];
+          final key =
+              (widget.label ?? hintText ?? 'option').hashCode.toString() +
+                  (option.id ?? option.value.toString());
           return DropdownMenuItem(
+            key: Key(key),
             value: option.value,
             onTap:
                 option.onTap != null ? () => option.onTap!(option.value) : null,
