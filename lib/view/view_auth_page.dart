@@ -239,9 +239,16 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       if (mounted) setState(() {});
       try {
         await verifyIfUserExists({'phone': dataAuth.phoneValid});
-        if (kIsWeb) {
-          final confirmationResult =
-              await _auth.signInWithPhoneNumber(dataAuth.phoneValid!);
+        if (kIsWeb || Platform.isMacOS) {
+          final confirmationResult = await _auth.signInWithPhoneNumber(
+            dataAuth.phoneValid!,
+            // RecaptchaVerifier(
+            //   container: 'recaptcha',
+            //   size: RecaptchaVerifierSize.compact,
+            //   theme: RecaptchaVerifierTheme.dark,
+            //   auth: _auth.app,
+            // ),
+          );
           dataAuth.verificationId = confirmationResult.verificationId;
           webConfirmationResult = confirmationResult;
         } else {
@@ -507,6 +514,13 @@ class _ViewAuthPageState extends State<ViewAuthPage>
 
     signInWithApple() async {
       try {
+        // final appleProvider = AppleAuthProvider();
+        // if (kIsWeb) {
+        //   await FirebaseAuth.instance.signInWithPopup(appleProvider);
+        // } else {
+        //   await FirebaseAuth.instance.signInWithProvider(appleProvider);
+        // }
+
         // To prevent replay attacks with the credential returned from Apple, we
         // include a nonce in the credential request. When signing in with
         // Firebase, the nonce in the id token returned by Apple, is expected to
@@ -518,11 +532,11 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         final appleCredential = await SignInWithApple.getAppleIDCredential(
           scopes: [
             AppleIDAuthorizationScopes.email,
-            AppleIDAuthorizationScopes.fullName,
+            // AppleIDAuthorizationScopes.fullName,
           ],
           nonce: nonce,
         );
-
+        // await verifyIfUserExists({'email': credential.user.email});
         // Create an `OAuthCredential` from the credential returned by Apple.
         final oauthCredential = OAuthProvider('apple.com').credential(
           idToken: appleCredential.identityToken,
@@ -618,10 +632,12 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     Widget spacer = const SizedBox(width: 8, height: 8);
     Widget spacerLarge = const SizedBox(width: 16, height: 16);
     List<Widget> homeButtonOptions = [];
-    if (widget.apple && !kIsWeb && (Platform.isIOS || Platform.isMacOS)) {
+    if (widget.apple && (Platform.isIOS || Platform.isMacOS)) {
       homeButtonOptions.add(authButton('apple'));
     }
-    if (widget.google) homeButtonOptions.add(authButton('google'));
+    if (widget.google && (kIsWeb || Platform.isIOS || Platform.isAndroid)) {
+      homeButtonOptions.add(authButton('google'));
+    }
     if (widget.phone && (kIsWeb || Platform.isIOS || Platform.isAndroid)) {
       homeButtonOptions.add(authButton('phone'));
     }

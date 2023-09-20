@@ -12,19 +12,19 @@ abstract class StateDocument extends StateShared {
   DocumentReference? baseRef;
 
   /// Stop listening for changes
-  Future<bool> cancel() async {
-    clear(notify: false);
+  Future<bool> cancel({bool clear = false}) async {
+    if (clear) this.clear(notify: false);
     if (_streamSubscription != null) {
       try {
         await _streamSubscription!.cancel();
         baseRef = null;
-        clear(notify: true);
+        if (clear) this.clear(notify: true);
         return true;
       } catch (error) {
         //
       }
     }
-    clear(notify: true);
+    if (clear) this.clear(notify: true);
     return false;
   }
 

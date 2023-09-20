@@ -2,6 +2,9 @@ import '../serialized/user_data.dart';
 import 'state_collection.dart';
 
 class StateUsers extends StateCollection {
+  @override
+  int limitDefault = 30;
+
   List<UserData> get serialized {
     if (data == null) return [];
     List<UserData> items = (data as List<dynamic>)

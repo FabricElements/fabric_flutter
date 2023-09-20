@@ -15,20 +15,20 @@ abstract class StateCollection extends StateShared {
   Query? baseQuery;
 
   /// Stop listening for changes
-  Future<bool> cancel() async {
-    clear(notify: false);
+  Future<bool> cancel({bool clear = false}) async {
+    if (clear) this.clear(notify: false);
     if (_streamSubscription != null) {
       try {
         baseQuery = null;
         await _streamSubscription!.cancel();
-        clear(notify: true);
+        if (clear) this.clear(notify: true);
         return true;
       } catch (error) {
         //
       }
     }
     baseQuery = null;
-    clear(notify: true);
+    if (clear) this.clear(notify: true);
     return false;
   }
 
@@ -42,7 +42,7 @@ abstract class StateCollection extends StateShared {
     initialized = false;
     loading = true;
     baseQuery = reference;
-    cancel().then((_) {
+    cancel(clear: true).then((_) {
       if (reference != null) {
         baseQuery = reference;
         _listen();
