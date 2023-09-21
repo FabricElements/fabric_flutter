@@ -161,12 +161,16 @@ class _ViewFeaturedState extends State<ViewFeatured> {
       options.add(AnimatedOpacity(
         duration: Duration(milliseconds: _animationDuration),
         opacity: _descriptionOpacityLevel,
-        child: Padding(
-          padding: const EdgeInsets.only(top: 8),
-          child: Text(
-            widget.description!,
-            style: textTheme.titleLarge,
-            textAlign: TextAlign.left,
+        child: SafeArea(
+          top: false,
+          bottom: widget.actionLabel == null && widget.child == null,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(
+              widget.description!,
+              style: textTheme.titleLarge,
+              textAlign: TextAlign.left,
+            ),
           ),
         ),
       ));
