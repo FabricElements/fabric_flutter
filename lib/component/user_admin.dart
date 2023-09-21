@@ -41,12 +41,14 @@ class UserAdmin extends StatelessWidget {
     this.roleUpdate = true,
     this.password = false,
     this.size = ContentContainerSize.medium,
+    this.prefix,
   }) : super(key: key);
   final Widget? empty;
   final Widget? loader;
   final List<String> roles;
   final bool primary;
   final bool disabled;
+  final String? prefix;
 
   /// Role groups
   final String? group;
@@ -179,7 +181,9 @@ class UserAdmin extends StatelessWidget {
             clean: true, // Use clean: true to reduce the role locales
           );
         }
-        List<Widget> trailing = [];
+        List<Widget> trailing = [
+          const Spacer(),
+        ];
         if (canUpdateUser) {
           trailing.addAll([
             IconButton(
@@ -268,32 +272,41 @@ class UserAdmin extends StatelessWidget {
             label: Text(user.username!),
           ));
         }
-        return Container(
+        return SizedBox(
           key: ValueKey(user.id),
           child: ContentContainer(
             size: size,
-            child: ListTile(
-              isThreeLine: true,
-              leading: UserAvatar(
-                avatar: user.avatar,
-                name: user.name,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                presence: user.presence,
-              ),
-              title: Padding(
-                padding: const EdgeInsets.only(bottom: 8.0),
-                child: Text(name, style: textTheme.titleMedium),
-              ),
-              subtitle: Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: roleChips,
-              ),
-              trailing: Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: trailing,
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Flex(
+                  direction: Axis.vertical,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ListTile(
+                      leading: UserAvatar(
+                        avatar: prefix != null && user.avatar != null
+                            ? '$prefix/${user.avatar}'
+                            : null,
+                        name: user.name,
+                        firstName: user.firstName,
+                        lastName: user.lastName,
+                        presence: user.presence,
+                      ),
+                      title: Padding(
+                        padding: const EdgeInsets.only(bottom: 8.0),
+                        child: Text(name, style: textTheme.titleMedium),
+                      ),
+                    ),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: roleChips,
+                    ),
+                    Row(children: trailing),
+                  ],
+                ),
               ),
             ),
           ),
