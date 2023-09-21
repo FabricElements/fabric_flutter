@@ -154,7 +154,8 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         }
       } catch (error) {
         alert.show(AlertData(
-          title: error.toString(),
+          title: locales.get('alert--sign-in-failed'),
+          body: error.toString(),
           type: AlertType.critical,
           brightness: Brightness.dark,
           clear: true,
@@ -264,7 +265,8 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         success = true;
       } on FirebaseFunctionsException catch (error) {
         alert.show(AlertData(
-          title: error.message ?? error.details['message'],
+          title: locales.get('alert--sign-in-failed'),
+          body: error.message ?? error.details['message'],
           type: AlertType.critical,
           brightness: Brightness.dark,
           clear: true,
@@ -272,7 +274,8 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       } catch (error) {
         debugPrint('confirmationResult failed ----------');
         alert.show(AlertData(
-          title: error.toString(),
+          title: locales.get('alert--sign-in-failed'),
+          body: error.toString(),
           type: AlertType.critical,
           brightness: Brightness.dark,
           clear: true,
@@ -376,14 +379,24 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         }
       } on FirebaseFunctionsException catch (error) {
         alert.show(AlertData(
-          title: error.message ?? error.details['message'],
+          title: locales.get('alert--sign-in-failed'),
+          body: error.message ?? error.details['message'],
+          type: AlertType.critical,
+          brightness: Brightness.dark,
+          clear: true,
+        ));
+      } on FirebaseAuthException catch (error) {
+        alert.show(AlertData(
+          title: locales.get('alert--sign-in-failed'),
+          body: error.message,
           type: AlertType.critical,
           brightness: Brightness.dark,
           clear: true,
         ));
       } catch (error) {
         alert.show(AlertData(
-          title: error.toString(),
+          title: locales.get('alert--sign-in-failed'),
+          body: error.toString(),
           type: AlertType.critical,
           brightness: Brightness.dark,
           clear: true,
@@ -418,14 +431,16 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         if (mounted) setState(() {});
       } on FirebaseFunctionsException catch (error) {
         alert.show(AlertData(
-          title: error.message ?? error.details['message'],
+          title: locales.get('alert--sign-in-failed'),
+          body: error.message ?? error.details['message'],
           type: AlertType.critical,
           brightness: Brightness.dark,
           clear: true,
         ));
       } catch (error) {
         alert.show(AlertData(
-          title: error.toString(),
+          title: locales.get('alert--sign-in-failed'),
+          body: error.toString(),
           type: AlertType.critical,
           brightness: Brightness.dark,
           clear: true,
@@ -449,14 +464,16 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         resetView();
       } on FirebaseFunctionsException catch (error) {
         alert.show(AlertData(
-          title: error.message ?? error.details['message'],
+          title: locales.get('alert--sign-in-failed'),
+          body: error.message ?? error.details['message'],
           type: AlertType.critical,
           brightness: Brightness.dark,
           clear: true,
         ));
       } catch (error) {
         alert.show(AlertData(
-          title: error.toString(),
+          title: locales.get('alert--sign-in-failed'),
+          body: error.toString(),
           type: AlertType.critical,
           brightness: Brightness.dark,
           clear: true,
@@ -493,6 +510,13 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           type: AlertType.success,
           clear: true,
         ));
+      } on FirebaseFunctionsException catch (error) {
+        alert.show(AlertData(
+          title: error.message ?? error.details['message'],
+          type: AlertType.critical,
+          brightness: Brightness.dark,
+          clear: true,
+        ));
       } on FirebaseAuthException catch (e) {
         if (kDebugMode) print(e);
         String errorMessage = locales.get('alert--sign-in-failed');
@@ -519,38 +543,24 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         } else {
           await FirebaseAuth.instance.signInWithProvider(appleProvider);
         }
-
-        // // To prevent replay attacks with the credential returned from Apple, we
-        // // include a nonce in the credential request. When signing in with
-        // // Firebase, the nonce in the id token returned by Apple, is expected to
-        // // match the sha256 hash of `rawNonce`.
-        // final rawNonce = generateNonce();
-        // final nonce = sha256ofString(rawNonce);
-        //
-        // // Request credential for the currently signed in Apple account.
-        // final appleCredential = await SignInWithApple.getAppleIDCredential(
-        //   scopes: [
-        //     AppleIDAuthorizationScopes.email,
-        //     // AppleIDAuthorizationScopes.fullName,
-        //   ],
-        //   nonce: nonce,
-        // );
-        // // await verifyIfUserExists({'email': credential.user.email});
-        // // Create an `OAuthCredential` from the credential returned by Apple.
-        // final oauthCredential = OAuthProvider('apple.com').credential(
-        //   idToken: appleCredential.identityToken,
-        //   rawNonce: rawNonce,
-        // );
-        //
-        // // Sign in the user with Firebase. If the nonce we generated earlier does
-        // // not match the nonce in `appleCredential.identityToken`, sign in will fail.
-        // final User user =
-        //     (await _auth.signInWithCredential(oauthCredential)).user!;
-        // final User currentUser = _auth.currentUser!;
-        // assert(user.uid == currentUser.uid);
         resetView();
+      } on FirebaseFunctionsException catch (error) {
+        alert.show(AlertData(
+          title: locales.get('alert--sign-in-failed'),
+          body: error.message ?? error.details['message'],
+          type: AlertType.critical,
+          brightness: Brightness.dark,
+          clear: true,
+        ));
+      } on FirebaseAuthException catch (error) {
+        alert.show(AlertData(
+          title: locales.get('alert--sign-in-failed'),
+          body: error.message,
+          type: AlertType.critical,
+          brightness: Brightness.dark,
+          clear: true,
+        ));
       } catch (error) {
-        if (kDebugMode) print(error);
         alert.show(AlertData(
           title: locales.get('alert--sign-in-failed: '),
           body: error.toString(),
