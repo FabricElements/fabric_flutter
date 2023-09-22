@@ -223,6 +223,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         type: AlertType.success,
         duration: 3,
         clear: true,
+        brightness: Brightness.dark,
       ));
     }
 
@@ -289,6 +290,8 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     }
 
     Future<void> confirmCodeWeb() async {
+      loading = true;
+      if (mounted) setState(() {});
       try {
         assert(
             dataAuth.phoneVerificationCode != null &&
@@ -311,10 +314,14 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           clear: true,
         ));
       }
+      loading = false;
+      if (mounted) setState(() {});
     }
 
     /// Example code of how to sign in with phone.
     void signInWithPhoneNumber() async {
+      loading = true;
+      if (mounted) setState(() {});
       try {
         assert(dataAuth.verificationId != null, 'VerificationId missing');
         assert(
@@ -338,6 +345,8 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           clear: true,
         ));
       }
+      loading = false;
+      if (mounted) setState(() {});
     }
 
     /// Sign in with google function
@@ -434,6 +443,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           type: AlertType.success,
           duration: 3,
           clear: true,
+          brightness: Brightness.dark,
         ));
         section = 0;
         if (mounted) setState(() {});
@@ -517,6 +527,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           title: 'Signed in with temporary account.',
           type: AlertType.success,
           clear: true,
+          brightness: Brightness.dark,
         ));
       } on FirebaseFunctionsException catch (error) {
         alert.show(AlertData(
@@ -602,7 +613,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         icon = Icons.navigate_next}) {
       return SizedBox(
         width: double.infinity,
-        child: ElevatedButton.icon(
+        child: FilledButton.icon(
           onPressed: onPressed,
           icon: Icon(icon),
           label: Text(label),
@@ -652,7 +663,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       }
       return Padding(
         padding: const EdgeInsets.only(top: 16),
-        child: ElevatedButton.icon(
+        child: FilledButton.icon(
           onPressed: action,
           label: Text(text.toUpperCase()),
           icon: Icon(icon),
@@ -805,6 +816,10 @@ class _ViewAuthPageState extends State<ViewAuthPage>
             dataAuth.phone = (value ?? '').toString();
             if (mounted) setState(() {});
           },
+          onComplete: (value) {
+            dataAuth.phone = (value ?? '').toString();
+            if (mounted) setState(() {});
+          },
         ),
       ),
       spacerLarge,
@@ -821,7 +836,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     }
     sectionsPhoneNumber.add(spacer);
     sectionsPhoneNumber.add(buttonCancel);
-
     Widget sectionPhoneNumber = baseContainer(children: sectionsPhoneNumber);
 
     List<Widget> sectionsEmailLink = [
@@ -830,11 +844,12 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         type: InputDataType.email,
         hintText: locales.get('label--enter-an-email'),
         onChanged: (value) {
-          if (mounted) {
-            setState(() {
-              dataAuth.email = value ?? '';
-            });
-          }
+          dataAuth.email = value ?? '';
+          if (mounted) setState(() {});
+        },
+        onComplete: (value) {
+          dataAuth.email = value ?? '';
+          if (mounted) setState(() {});
         },
       ),
       spacerLarge,
@@ -875,10 +890,22 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           hintText: locales.get('page-auth--input--verification-code'),
           maxLength: 6,
           onChanged: (value) {
-            if (mounted) {
-              setState(() {
-                dataAuth.phoneVerificationCode = value;
-              });
+            dataAuth.phoneVerificationCode = value;
+            if (mounted) setState(() {});
+          },
+          onComplete: (value) {
+            dataAuth.phoneVerificationCode = value;
+            if (mounted) setState(() {});
+          },
+          onSubmit: (value) {
+            if (!(dataAuth.phoneVerificationCode != null &&
+                dataAuth.phoneVerificationCode.toString().length == 6)) return;
+            dataAuth.phoneVerificationCode = value;
+            if (mounted) setState(() {});
+            if (kIsWeb) {
+              confirmCodeWeb();
+            } else {
+              signInWithPhoneNumber();
             }
           },
         ),
@@ -887,18 +914,18 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     ];
     if (dataAuth.phoneVerificationCode != null &&
         dataAuth.phoneVerificationCode.toString().length == 6) {
-      sectionsPhoneVerification.add(
-        actionButton(
-          label: locales.get('label--sign-in-with-phone'),
-          onPressed: () {
-            if (kIsWeb) {
-              confirmCodeWeb();
-            } else {
-              signInWithPhoneNumber();
-            }
-          },
-        ),
-      );
+      sectionsPhoneVerification.add(actionButton(
+        label: locales.get('label--sign-in-with-phone'),
+        onPressed: loading
+            ? null
+            : () {
+                if (kIsWeb) {
+                  confirmCodeWeb();
+                } else {
+                  signInWithPhoneNumber();
+                }
+              },
+      ));
     }
     sectionsPhoneVerification.add(spacer);
     sectionsPhoneVerification.add(buttonCancel);
