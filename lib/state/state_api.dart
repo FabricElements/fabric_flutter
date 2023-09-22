@@ -84,12 +84,6 @@ abstract class StateAPI extends StateShared {
       errorCount = 0;
       privateData = null;
       initialized = false;
-    } else {
-      // Disable this code block when ignoreDuplicatedCalls is set to false
-      if (isSameClearPath && !ignoreDuplicatedCalls) {
-        isSameClearPath = false;
-        privateData = null;
-      }
     }
     _lastEndpointCalled = endpoint;
     if (errorCount > 1) {
@@ -159,8 +153,11 @@ abstract class StateAPI extends StateShared {
 
       /// pagination
       if (incrementalPagination && page > initialPage) {
+        // Merge data or return same data as last request
         if (data != null && newData != null && newData.isNotEmpty) {
           dataResponse = merge(base: data, toMerge: newData);
+        } else {
+          dataResponse = data;
         }
       } else {
         dataResponse = newData;
