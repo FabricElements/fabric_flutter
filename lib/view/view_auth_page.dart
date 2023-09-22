@@ -898,9 +898,9 @@ class _ViewAuthPageState extends State<ViewAuthPage>
             if (mounted) setState(() {});
           },
           onSubmit: (value) {
+            dataAuth.phoneVerificationCode = value;
             if (!(dataAuth.phoneVerificationCode != null &&
                 dataAuth.phoneVerificationCode.toString().length == 6)) return;
-            dataAuth.phoneVerificationCode = value;
             if (mounted) setState(() {});
             if (kIsWeb) {
               confirmCodeWeb();
