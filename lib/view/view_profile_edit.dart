@@ -354,8 +354,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
         leading: IconButton(
           icon: const Icon(Icons.navigate_before),
           onPressed: () {
-            // Navigator.of(context).popAndPushNamed('/');
-            Navigator.of(context).pop();
+            Navigator.of(context).popAndPushNamed('/');
           },
         ),
       ),

@@ -70,9 +70,8 @@ UserData _$UserDataFromJson(Map<String, dynamic> json) => UserData(
       bcId: json['bcId'] as String?,
       bsId: json['bsId'] as String?,
       bsiId: json['bsiId'] as String?,
-      brightness:
-          $enumDecodeNullable(_$BrightnessEnumMap, json['brightness']) ??
-              Brightness.light,
+      theme: $enumDecodeNullable(_$ThemeModeEnumMap, json['theme']) ??
+          ThemeMode.system,
       links: json['links'] == null
           ? null
           : InterfaceLinks.fromJson(json['links'] as Map<String, dynamic>?),
@@ -101,11 +100,12 @@ Map<String, dynamic> _$UserDataToJson(UserData instance) {
   val['role'] = instance.role;
   val['groups'] = instance.groups;
   writeNotNull('username', instance.username);
-  val['brightness'] = _$BrightnessEnumMap[instance.brightness]!;
+  val['theme'] = _$ThemeModeEnumMap[instance.theme]!;
   return val;
 }
 
-const _$BrightnessEnumMap = {
-  Brightness.dark: 'dark',
-  Brightness.light: 'light',
+const _$ThemeModeEnumMap = {
+  ThemeMode.system: 'system',
+  ThemeMode.light: 'light',
+  ThemeMode.dark: 'dark',
 };
