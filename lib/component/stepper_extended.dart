@@ -99,6 +99,7 @@ class _StepperExtendedState extends State<StepperExtended> {
       );
     });
     return ListView(
+      restorationId: widget.key?.toString() ?? 'stepper_extended',
       children: children,
     );
   }
