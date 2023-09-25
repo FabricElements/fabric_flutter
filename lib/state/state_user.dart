@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
 import '../helper/user_roles.dart';
 import '../helper/utils.dart';
@@ -26,7 +27,7 @@ class StateUser extends StateDocument {
   String? _lastUserGet;
   bool _init = false;
   String? _language;
-  Brightness? _brightness;
+  ThemeMode? _theme;
 
   /// More at [streamStatus]
   /// ignore: close_sinks
@@ -42,7 +43,7 @@ class StateUser extends StateDocument {
 
   @override
   void clearAfter() {
-    _brightness = null;
+    _theme = null;
     _userObject = null;
     _claims = null;
     _token = null;
@@ -77,7 +78,7 @@ class StateUser extends StateDocument {
   }
 
   /// Get user id
-  String? get id => _userObject!.uid;
+  String? get id => _userObject?.uid;
 
   /// Set object with the [User] data
   set object(User? user) {
@@ -222,7 +223,7 @@ class StateUser extends StateDocument {
       signedIn: signedIn,
       uid: object?.uid,
       language: language,
-      brightness: brightness,
+      theme: theme,
     );
   }
 
@@ -273,7 +274,7 @@ class StateUser extends StateDocument {
   String get language => _language ?? 'en';
 
   /// Get User or Device language
-  Brightness get brightness => _brightness ?? Brightness.light;
+  ThemeMode get theme => _theme ?? ThemeMode.system;
 
   @override
   callbackDefault(dynamic data) async {
@@ -285,8 +286,8 @@ class StateUser extends StateDocument {
       _language = serialized.language;
       willUpdateStatus = true;
     }
-    if (brightness != serialized.brightness) {
-      _brightness = serialized.brightness;
+    if (theme != serialized.theme) {
+      _theme = serialized.theme;
       willUpdateStatus = true;
     }
     if (willUpdateStatus && _init && initialized) await _userStatusUpdate();

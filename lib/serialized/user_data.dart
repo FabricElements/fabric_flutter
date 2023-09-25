@@ -1,5 +1,4 @@
-import 'dart:ui';
-
+import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../helper/firestore_helper.dart';
@@ -170,7 +169,7 @@ class UserData {
 
   /// Brightness
   @JsonKey(includeIfNull: false)
-  final Brightness brightness;
+  final ThemeMode theme;
 
   UserData({
     this.onboarding,
@@ -190,7 +189,7 @@ class UserData {
     this.bcId,
     this.bsId,
     this.bsiId,
-    this.brightness = Brightness.light,
+    this.theme = ThemeMode.system,
     this.links,
   })  : presence = Utils.getPresence(ping),
         name = Utils.nameFromParts(

@@ -1,5 +1,4 @@
-import 'dart:ui';
-
+import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'user_status.g.dart';
@@ -19,14 +18,14 @@ class UserStatus {
   final String language;
 
   /// Brightness
-  final Brightness brightness;
+  final ThemeMode theme;
 
   UserStatus({
     this.signedIn = false,
     this.admin = false,
     this.role = 'user',
     this.language = 'en',
-    this.brightness = Brightness.light,
+    this.theme = ThemeMode.system,
     this.uid,
   });
 

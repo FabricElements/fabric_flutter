@@ -712,7 +712,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
                   left: 0,
                   right: 0,
                   child: Container(
-                    color: Colors.white,
+                    color: theme.colorScheme.background,
                     child: Column(
                       children: <Widget>[
                         Container(

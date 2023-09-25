@@ -11,9 +11,8 @@ UserStatus _$UserStatusFromJson(Map<String, dynamic> json) => UserStatus(
       admin: json['admin'] as bool? ?? false,
       role: json['role'] as String? ?? 'user',
       language: json['language'] as String? ?? 'en',
-      brightness:
-          $enumDecodeNullable(_$BrightnessEnumMap, json['brightness']) ??
-              Brightness.light,
+      theme: $enumDecodeNullable(_$ThemeModeEnumMap, json['theme']) ??
+          ThemeMode.system,
       uid: json['uid'],
     );
 
@@ -32,11 +31,12 @@ Map<String, dynamic> _$UserStatusToJson(UserStatus instance) {
 
   writeNotNull('uid', instance.uid);
   val['language'] = instance.language;
-  val['brightness'] = _$BrightnessEnumMap[instance.brightness]!;
+  val['theme'] = _$ThemeModeEnumMap[instance.theme]!;
   return val;
 }
 
-const _$BrightnessEnumMap = {
-  Brightness.dark: 'dark',
-  Brightness.light: 'light',
+const _$ThemeModeEnumMap = {
+  ThemeMode.system: 'system',
+  ThemeMode.light: 'light',
+  ThemeMode.dark: 'dark',
 };
