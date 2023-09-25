@@ -78,7 +78,7 @@ class StateUser extends StateDocument {
   }
 
   /// Get user id
-  String? get id => _userObject!.uid;
+  String? get id => _userObject?.uid;
 
   /// Set object with the [User] data
   set object(User? user) {
