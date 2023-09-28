@@ -54,6 +54,9 @@ abstract class StateDocument extends StateShared {
     });
   }
 
+  /// Get document reference
+  DocumentReference? get ref => baseRef;
+
   /// Firestore Document Stream Reference
   StreamSubscription<DocumentSnapshot<Object?>>? _streamSubscription;
 

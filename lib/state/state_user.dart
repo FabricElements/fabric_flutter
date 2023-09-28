@@ -140,10 +140,10 @@ class StateUser extends StateDocument {
     if (_pingLast.isAfter(timeRef)) return;
     _pingLast = DateTime.now(); // Define before saving because it's async
     try {
-      await FirebaseFirestore.instance
-          .collection('user')
-          .doc(id)
-          .set({'ping': FieldValue.serverTimestamp()}, SetOptions(merge: true));
+      await ref?.set(
+        {'ping': FieldValue.serverTimestamp()},
+        SetOptions(merge: true),
+      );
       _pingReference = reference;
     } catch (error) {
       if (kDebugMode) print('User ping error: ${error.toString()}');
@@ -171,9 +171,8 @@ class StateUser extends StateDocument {
       uid: UserData.fromJson({'id': uid, 'name': 'Unknown'})
     });
     if (_lastUserGet != uid) {
-      DocumentReference<Map<String, dynamic>> documentReferenceUser =
-          FirebaseFirestore.instance.collection('user').doc(uid);
-      documentReferenceUser.get().then((snapshot) {
+      final userDocRef = db.collection('user').doc(uid);
+      userDocRef.get().then((snapshot) {
         if (snapshot.exists) {
           Map<String, dynamic> itemData =
               snapshot.data() as Map<String, dynamic>;
@@ -181,6 +180,8 @@ class StateUser extends StateDocument {
           _usersMap.addAll({uid: UserData.fromJson(itemData)});
           if (initialized) notifyListeners();
         }
+      }).onError((error, stackTrace) {
+        if (kDebugMode) print('getUser: ${error.toString()}');
       });
     }
     return _usersMap[uid]!;
@@ -188,8 +189,9 @@ class StateUser extends StateDocument {
 
   /// Sign Out user
   void signOut() async {
+    await cancel();
     await _auth.signOut();
-    clear();
+    clear(notify: true);
   }
 
   /// [accessByRole] displays content only if the the role matches for current user
