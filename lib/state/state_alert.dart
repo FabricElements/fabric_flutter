@@ -173,7 +173,7 @@ class StateAlert extends ChangeNotifier {
 
     /// Set default values for null safety
     alertData.duration ??= 4;
-    alertData.color ??= theme.colorScheme.primary;
+    alertData.color ??= theme.colorScheme.primaryContainer;
     alertData.titleStyle ??= textTheme.titleLarge;
     alertData.bodyStyle ??= textTheme.bodyLarge;
 
