@@ -152,50 +152,42 @@ class StateAlert extends ChangeNotifier {
       print(alertData.title ?? alertData.body ?? 'UNKNOWN');
       print('////////////////////////////');
     }
+    Color buttonColor = theme.colorScheme.primary;
     switch (alertData.type) {
       case AlertType.critical:
         alertData.color ??= theme.colorScheme.errorContainer;
         alertData.duration ??= 15;
         alertData.textColor = theme.colorScheme.onError;
+        buttonColor = theme.colorScheme.error;
         break;
       case AlertType.warning:
         alertData.color ??= theme.colorScheme.tertiaryContainer;
         alertData.duration ??= 15;
         alertData.textColor = theme.colorScheme.onTertiaryContainer;
+        buttonColor = theme.colorScheme.tertiary;
         break;
       case AlertType.success:
-        alertData.color ??= theme.colorScheme.secondaryContainer;
+        alertData.color ??= theme.colorScheme.primaryContainer;
         alertData.duration ??= 5;
-        alertData.textColor = theme.colorScheme.onSecondaryContainer;
+        alertData.textColor = theme.colorScheme.onPrimaryContainer;
+        buttonColor = theme.colorScheme.primary;
         break;
       default:
     }
 
     /// Set default values for null safety
     alertData.duration ??= 4;
-    alertData.color ??= theme.colorScheme.inverseSurface;
-    alertData.textColor = theme.colorScheme.onInverseSurface;
+    alertData.color ??= theme.colorScheme.surfaceVariant;
+    alertData.textColor = theme.colorScheme.onSurfaceVariant;
     alertData.titleStyle ??= textTheme.titleLarge;
     alertData.bodyStyle ??= textTheme.bodyLarge;
 
     alertData.titleStyle = alertData.titleStyle?.apply(
       color: alertData.textColor,
     );
-    alertData.bodyStyle = alertData.bodyStyle!.apply(
+    alertData.bodyStyle = alertData.bodyStyle?.apply(
       color: alertData.textColor,
     );
-
-    /// Set global colors
-    // Color backgroundColor = alertData.color ?? Colors.blueGrey.shade100;
-    // Color buttonColor = alertData.brightness == Brightness.light
-    //     ? alertData.color!
-    //     : Colors.white;
-    // Color buttonColorText = alertData.brightness == Brightness.light
-    //     ? Colors.white
-    //     : alertData.color!;
-    // Color dismissButtonColor = alertData.brightness == Brightness.light
-    //     ? theme.textTheme.labelLarge?.color ?? Colors.grey.shade800
-    //     : Colors.white;
 
     /// Dismiss
     alertData.dismiss ??= ButtonOptions();
@@ -299,10 +291,9 @@ class StateAlert extends ChangeNotifier {
     bool hasDismissAction = alertData.dismiss!.onTap != null;
     if (hasAction || hasValidPath) {
       actions.add(FilledButton.icon(
-        // style: ButtonStyle(
-        //   backgroundColor: MaterialStateProperty.all(buttonColor),
-        //   foregroundColor: MaterialStateProperty.all(buttonColorText),
-        // ),
+        style: ButtonStyle(
+          backgroundColor: MaterialStateProperty.all(buttonColor),
+        ),
         label: Text(locales.get(alertData.action!.label).toUpperCase()),
         icon: Icon(alertData.action!.icon),
         onPressed: () async {
@@ -333,10 +324,10 @@ class StateAlert extends ChangeNotifier {
       ));
     }
 
-    actions.add(OutlinedButton.icon(
-      // style: ButtonStyle(
-      //   foregroundColor: MaterialStateProperty.all(dismissButtonColor),
-      // ),
+    actions.add(TextButton.icon(
+      style: ButtonStyle(
+        foregroundColor: MaterialStateProperty.all(buttonColor),
+      ),
       icon: Icon(alertData.dismiss!.icon!),
       label: Text(locales.get(alertData.dismiss!.label).toUpperCase()),
       onPressed: () async {
@@ -410,7 +401,7 @@ class StateAlert extends ChangeNotifier {
               context: context,
               builder: (BuildContext context) => Scaffold(
                 primary: false,
-                backgroundColor: theme.colorScheme.inverseSurface.withAlpha(10),
+                backgroundColor: theme.colorScheme.surface.withOpacity(0.3),
                 body: AlertDialog(
                   scrollable: true,
                   actions: actions,
