@@ -31,13 +31,13 @@ class UserAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
-    final color = theme.colorScheme.primary;
+    final color = theme.colorScheme.onPrimary;
     String abbreviation = Utils.nameAbbreviation(
       firstName: firstName ?? name,
       lastName: lastName,
     );
     Widget avatarContainer = CircleAvatar(
-      backgroundColor: Colors.grey.shade100,
+      backgroundColor: theme.colorScheme.primaryContainer,
       child: Icon(
         Icons.person,
         color: color,

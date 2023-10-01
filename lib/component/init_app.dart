@@ -77,7 +77,6 @@ class InitAppChild extends StatelessWidget {
             title: e,
             type: AlertType.critical,
             clear: true,
-            brightness: Brightness.dark,
             duration: 3,
           ))
         : null;
@@ -108,7 +107,6 @@ class InitAppChild extends StatelessWidget {
         title: error.toString(),
         type: AlertType.warning,
         clear: true,
-        brightness: Brightness.dark,
         duration: 3,
       ));
     }

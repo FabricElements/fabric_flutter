@@ -124,7 +124,6 @@ class _UpdatePasswordState extends State<UpdatePassword> {
             ),
             type: AlertType.warning,
             widget: AlertWidget.dialog,
-            brightness: Brightness.dark,
           ));
         },
         child: Text(locales.get('label--update')),

@@ -16,7 +16,6 @@ class EditSaveButton extends StatefulWidget {
     this.confirm = false,
     this.alertWidget = AlertWidget.snackBar,
     this.alertType = AlertType.basic,
-    this.brightness,
     this.labels = false,
     this.direction = Axis.horizontal,
   }) : super(key: key);
@@ -37,8 +36,6 @@ class EditSaveButton extends StatefulWidget {
   final bool confirm;
 
   final AlertWidget alertWidget;
-
-  final Brightness? brightness;
 
   final AlertType alertType;
 
@@ -70,7 +67,6 @@ class _EditSaveButtonState extends State<EditSaveButton> {
         ),
         type: widget.alertType,
         widget: widget.alertWidget,
-        brightness: widget.brightness,
         clear: true,
       ));
     }
@@ -83,7 +79,6 @@ class _EditSaveButtonState extends State<EditSaveButton> {
       alert.show(AlertData(
         type: widget.alertType,
         widget: widget.alertWidget,
-        brightness: widget.brightness,
         title: locales.get('label--confirm-are-you-sure-cancel'),
         action: ButtonOptions(
           onTap: widget.cancel,

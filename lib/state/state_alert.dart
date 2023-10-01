@@ -57,7 +57,7 @@ class AlertData {
   Color? color;
   TextStyle? titleStyle;
   TextStyle? bodyStyle;
-  Brightness? brightness;
+  Color? textColor;
   Widget? child;
 
   /// Clear all other alerts of the same type
@@ -76,10 +76,10 @@ class AlertData {
     this.typeString,
     this.image,
     this.color,
+    this.textColor,
     this.titleStyle,
     this.bodyStyle,
     this.clear = false,
-    this.brightness,
     this.child,
   });
 }
@@ -144,7 +144,6 @@ class StateAlert extends ChangeNotifier {
     final locales = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
-    final brightness = theme.brightness;
     if (alertData.typeString != null) {
       alertData.type = typeFromString(alertData.typeString);
     }
@@ -153,54 +152,50 @@ class StateAlert extends ChangeNotifier {
       print(alertData.title ?? alertData.body ?? 'UNKNOWN');
       print('////////////////////////////');
     }
-    alertData.brightness ??= brightness; // Default
-    alertData.brightness ??= Brightness.light;
     switch (alertData.type) {
       case AlertType.critical:
-        alertData.color ??= Colors.red;
+        alertData.color ??= theme.colorScheme.errorContainer;
         alertData.duration ??= 15;
+        alertData.textColor = theme.colorScheme.onError;
         break;
       case AlertType.warning:
-        alertData.color ??= Colors.deepOrange;
+        alertData.color ??= theme.colorScheme.tertiaryContainer;
         alertData.duration ??= 15;
+        alertData.textColor = theme.colorScheme.onTertiaryContainer;
         break;
       case AlertType.success:
-        alertData.color ??= Colors.green;
+        alertData.color ??= theme.colorScheme.secondaryContainer;
         alertData.duration ??= 5;
+        alertData.textColor = theme.colorScheme.onSecondaryContainer;
         break;
       default:
     }
 
     /// Set default values for null safety
     alertData.duration ??= 4;
-    alertData.color ??= theme.colorScheme.primaryContainer;
+    alertData.color ??= theme.colorScheme.inverseSurface;
+    alertData.textColor = theme.colorScheme.onInverseSurface;
     alertData.titleStyle ??= textTheme.titleLarge;
     alertData.bodyStyle ??= textTheme.bodyLarge;
 
     alertData.titleStyle = alertData.titleStyle?.apply(
-      color: alertData.brightness == Brightness.light
-          ? Colors.grey.shade900
-          : Colors.white,
+      color: alertData.textColor,
     );
     alertData.bodyStyle = alertData.bodyStyle!.apply(
-      color: alertData.brightness == Brightness.light
-          ? Colors.grey.shade800
-          : Colors.grey.shade50,
+      color: alertData.textColor,
     );
 
     /// Set global colors
-    Color backgroundColor = alertData.brightness == Brightness.light
-        ? Colors.white
-        : alertData.color!;
-    Color buttonColor = alertData.brightness == Brightness.light
-        ? alertData.color!
-        : Colors.white;
-    Color buttonColorText = alertData.brightness == Brightness.light
-        ? Colors.white
-        : alertData.color!;
-    Color dismissButtonColor = alertData.brightness == Brightness.light
-        ? theme.textTheme.labelLarge?.color ?? Colors.grey.shade800
-        : Colors.white;
+    // Color backgroundColor = alertData.color ?? Colors.blueGrey.shade100;
+    // Color buttonColor = alertData.brightness == Brightness.light
+    //     ? alertData.color!
+    //     : Colors.white;
+    // Color buttonColorText = alertData.brightness == Brightness.light
+    //     ? Colors.white
+    //     : alertData.color!;
+    // Color dismissButtonColor = alertData.brightness == Brightness.light
+    //     ? theme.textTheme.labelLarge?.color ?? Colors.grey.shade800
+    //     : Colors.white;
 
     /// Dismiss
     alertData.dismiss ??= ButtonOptions();
@@ -303,11 +298,11 @@ class StateAlert extends ChangeNotifier {
     bool hasAction = alertData.action!.onTap != null;
     bool hasDismissAction = alertData.dismiss!.onTap != null;
     if (hasAction || hasValidPath) {
-      actions.add(ElevatedButton.icon(
-        style: ButtonStyle(
-          backgroundColor: MaterialStateProperty.all(buttonColor),
-          foregroundColor: MaterialStateProperty.all(buttonColorText),
-        ),
+      actions.add(FilledButton.icon(
+        // style: ButtonStyle(
+        //   backgroundColor: MaterialStateProperty.all(buttonColor),
+        //   foregroundColor: MaterialStateProperty.all(buttonColorText),
+        // ),
         label: Text(locales.get(alertData.action!.label).toUpperCase()),
         icon: Icon(alertData.action!.icon),
         onPressed: () async {
@@ -338,10 +333,10 @@ class StateAlert extends ChangeNotifier {
       ));
     }
 
-    actions.add(TextButton.icon(
-      style: ButtonStyle(
-        foregroundColor: MaterialStateProperty.all(dismissButtonColor),
-      ),
+    actions.add(OutlinedButton.icon(
+      // style: ButtonStyle(
+      //   foregroundColor: MaterialStateProperty.all(dismissButtonColor),
+      // ),
       icon: Icon(alertData.dismiss!.icon!),
       label: Text(locales.get(alertData.dismiss!.label).toUpperCase()),
       onPressed: () async {
@@ -372,16 +367,13 @@ class StateAlert extends ChangeNotifier {
       children: onColumn,
     ));
     Widget content = Container(
-      color: Colors.white,
-      child: Container(
-        padding: EdgeInsets.all(basePadding),
-        color: backgroundColor,
-        child: Flex(
-          direction: Axis.vertical,
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: mainItems,
-        ),
+      padding: EdgeInsets.all(basePadding),
+      color: alertData.color,
+      child: Flex(
+        direction: Axis.vertical,
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: mainItems,
       ),
     );
 
@@ -394,7 +386,7 @@ class StateAlert extends ChangeNotifier {
               MaterialBanner(
                 actions: actions,
                 content: content,
-                backgroundColor: backgroundColor,
+                backgroundColor: alertData.color,
                 forceActionsBelow: true,
                 padding: EdgeInsets.zero,
               ),
@@ -406,10 +398,10 @@ class StateAlert extends ChangeNotifier {
                 behavior: SnackBarBehavior.floating,
                 content: content,
                 duration: Duration(seconds: alertData.duration!),
-                backgroundColor: backgroundColor,
+                backgroundColor: alertData.color,
                 padding: EdgeInsets.zero,
                 showCloseIcon: !hasAction,
-                closeIconColor: dismissButtonColor,
+                closeIconColor: alertData.textColor,
               ),
             );
             break;
@@ -418,12 +410,12 @@ class StateAlert extends ChangeNotifier {
               context: context,
               builder: (BuildContext context) => Scaffold(
                 primary: false,
-                backgroundColor: Colors.transparent,
+                backgroundColor: theme.colorScheme.inverseSurface.withAlpha(10),
                 body: AlertDialog(
                   scrollable: true,
                   actions: actions,
                   content: content,
-                  backgroundColor: backgroundColor,
+                  backgroundColor: alertData.color,
                   contentPadding: EdgeInsets.zero,
                   clipBehavior: Clip.hardEdge,
                   buttonPadding: const EdgeInsets.all(16),

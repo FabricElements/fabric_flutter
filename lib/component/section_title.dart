@@ -39,27 +39,18 @@ class _SectionTitleState extends State<SectionTitle> {
       Iterable matches = regExp.allMatches(textFinal);
       TextStyle? sizeBase = textTheme.bodyLarge;
       TextStyle? titleDefault = sizeBase;
-      TextStyle? titleColor = sizeBase;
       if (type == 'title') {
         sizeBase = textTheme.headlineMedium;
         titleDefault = sizeBase?.copyWith(
           fontWeight: FontWeight.w600,
         );
-        titleColor = sizeBase?.copyWith(
-          color: theme.primaryColor,
-          fontWeight: FontWeight.w600,
-        );
       } else {
         titleDefault = sizeBase;
-        titleColor = sizeBase;
         if (widget.condensed) {
           sizeBase =
               textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w400);
         }
         titleDefault = titleDefault;
-        titleColor = titleColor?.copyWith(
-          color: theme.colorScheme.primary,
-        );
       }
       if (matches.isNotEmpty) {
         for (var match in matches) {
@@ -81,7 +72,9 @@ class _SectionTitleState extends State<SectionTitle> {
                   .replaceAll('_', ' ')
                   .replaceAll('{', '')
                   .replaceAll('}', ''),
-              style: titleColor,
+              style: titleDefault?.copyWith(
+                color: theme.colorScheme.primary,
+              ),
             ),
           );
           initialHelper = match.end;
