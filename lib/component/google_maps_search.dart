@@ -178,7 +178,6 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
                 controller: textController,
                 autofocus: widget.autofocus,
                 keyboardType: TextInputType.text,
-                keyboardAppearance: Brightness.light,
                 textInputAction: TextInputAction.search,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(

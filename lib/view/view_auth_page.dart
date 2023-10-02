@@ -157,7 +157,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           title: locales.get('alert--sign-in-failed'),
           body: error.toString(),
           type: AlertType.critical,
-          brightness: Brightness.dark,
           clear: true,
         ));
       }
@@ -210,7 +209,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         title:
             '${locales.get('alert--phone-number-verification-failed')}. ${authException.message} -- Code: ${authException.code}',
         type: AlertType.critical,
-        brightness: Brightness.dark,
         clear: true,
       ));
     }
@@ -223,7 +221,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         type: AlertType.success,
         duration: 3,
         clear: true,
-        brightness: Brightness.dark,
       ));
     }
 
@@ -269,7 +266,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           title: locales.get('alert--sign-in-failed'),
           body: error.message ?? error.details['message'],
           type: AlertType.critical,
-          brightness: Brightness.dark,
           clear: true,
         ));
       } catch (error) {
@@ -278,7 +274,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           title: locales.get('alert--sign-in-failed'),
           body: error.toString(),
           type: AlertType.critical,
-          brightness: Brightness.dark,
           clear: true,
         ));
       }
@@ -310,7 +305,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           title: locales.get('alert--sign-in-failed'),
           body: error.toString(),
           type: AlertType.critical,
-          brightness: Brightness.dark,
           clear: true,
         ));
       }
@@ -341,7 +335,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           title: locales.get('alert--sign-in-failed'),
           body: error.toString(),
           type: AlertType.critical,
-          brightness: Brightness.dark,
           clear: true,
         ));
       }
@@ -391,7 +384,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           title: locales.get('alert--sign-in-failed'),
           body: error.message ?? error.details['message'],
           type: AlertType.critical,
-          brightness: Brightness.dark,
           clear: true,
         ));
       } on FirebaseAuthException catch (error) {
@@ -399,7 +391,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           title: locales.get('alert--sign-in-failed'),
           body: error.message,
           type: AlertType.critical,
-          brightness: Brightness.dark,
           clear: true,
         ));
       } on FirebaseException catch (error) {
@@ -407,7 +398,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           title: locales.get('alert--sign-in-failed'),
           body: error.message,
           type: AlertType.critical,
-          brightness: Brightness.dark,
           clear: true,
         ));
       } catch (error) {
@@ -415,7 +405,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           title: locales.get('alert--sign-in-failed'),
           body: error.toString(),
           type: AlertType.critical,
-          brightness: Brightness.dark,
           clear: true,
         ));
       }
@@ -443,7 +432,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           type: AlertType.success,
           duration: 3,
           clear: true,
-          brightness: Brightness.dark,
         ));
         section = 0;
         if (mounted) setState(() {});
@@ -452,7 +440,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           title: locales.get('alert--sign-in-failed'),
           body: error.message ?? error.details['message'],
           type: AlertType.critical,
-          brightness: Brightness.dark,
           clear: true,
         ));
       } catch (error) {
@@ -460,7 +447,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           title: locales.get('alert--sign-in-failed'),
           body: error.toString(),
           type: AlertType.critical,
-          brightness: Brightness.dark,
           clear: true,
         ));
       }
@@ -485,7 +471,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           title: locales.get('alert--sign-in-failed'),
           body: error.message ?? error.details['message'],
           type: AlertType.critical,
-          brightness: Brightness.dark,
           clear: true,
         ));
       } catch (error) {
@@ -493,7 +478,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           title: locales.get('alert--sign-in-failed'),
           body: error.toString(),
           type: AlertType.critical,
-          brightness: Brightness.dark,
           clear: true,
         ));
       }
@@ -527,13 +511,11 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           title: 'Signed in with temporary account.',
           type: AlertType.success,
           clear: true,
-          brightness: Brightness.dark,
         ));
       } on FirebaseFunctionsException catch (error) {
         alert.show(AlertData(
           title: error.message ?? error.details['message'],
           type: AlertType.critical,
-          brightness: Brightness.dark,
           clear: true,
         ));
       } on FirebaseAuthException catch (e) {
@@ -548,7 +530,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         alert.show(AlertData(
           title: errorMessage,
           type: AlertType.critical,
-          brightness: Brightness.dark,
           clear: true,
         ));
       } on FirebaseException catch (error) {
@@ -556,7 +537,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           title: locales.get('alert--sign-in-failed'),
           body: error.message,
           type: AlertType.critical,
-          brightness: Brightness.dark,
           clear: true,
         ));
       }
@@ -576,7 +556,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           title: locales.get('alert--sign-in-failed'),
           body: error.message ?? error.details['message'],
           type: AlertType.critical,
-          brightness: Brightness.dark,
           clear: true,
         ));
       } on FirebaseAuthException catch (error) {
@@ -584,7 +563,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           title: locales.get('alert--sign-in-failed'),
           body: error.message,
           type: AlertType.critical,
-          brightness: Brightness.dark,
           clear: true,
         ));
       } on FirebaseException catch (error) {
@@ -592,7 +570,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           title: locales.get('alert--sign-in-failed'),
           body: error.message,
           type: AlertType.critical,
-          brightness: Brightness.dark,
           clear: true,
         ));
       } catch (error) {
@@ -600,7 +577,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           title: locales.get('alert--sign-in-failed: '),
           body: error.toString(),
           type: AlertType.critical,
-          brightness: Brightness.dark,
           clear: true,
         ));
       }

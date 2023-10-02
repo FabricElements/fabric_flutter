@@ -88,7 +88,6 @@ class UserAdmin extends StatelessWidget {
             title: locales.get(e),
             type: AlertType.critical,
             clear: true,
-            brightness: Brightness.dark,
           ))
         : null;
     stateUser.onError = apiError;
@@ -126,7 +125,6 @@ class UserAdmin extends StatelessWidget {
             // Type indicates the data field to use in the function, admin level or collection.
             alert.show(AlertData(
               clear: true,
-              brightness: Brightness.dark,
               body: locales.get('alert--user-removed'),
               type: AlertType.success,
               duration: 3,
@@ -134,14 +132,12 @@ class UserAdmin extends StatelessWidget {
           } on FirebaseFunctionsException catch (error) {
             alert.show(AlertData(
               clear: true,
-              brightness: Brightness.dark,
               body: error.message ?? error.details['message'],
               type: AlertType.critical,
             ));
           } catch (error) {
             alert.show(AlertData(
               clear: true,
-              brightness: Brightness.dark,
               body: error.toString(),
               type: AlertType.critical,
             ));
@@ -149,7 +145,6 @@ class UserAdmin extends StatelessWidget {
         }),
         type: AlertType.warning,
         widget: AlertWidget.banner,
-        brightness: Brightness.dark,
       ));
     }
 
@@ -219,14 +214,12 @@ class UserAdmin extends StatelessWidget {
                 } on FirebaseFunctionsException catch (error) {
                   alert.show(AlertData(
                     clear: true,
-                    brightness: Brightness.dark,
                     body: error.message ?? error.details['message'],
                     type: AlertType.critical,
                   ));
                 } catch (error) {
                   alert.show(AlertData(
                     clear: true,
-                    brightness: Brightness.dark,
                     body: error.toString(),
                     type: AlertType.critical,
                   ));

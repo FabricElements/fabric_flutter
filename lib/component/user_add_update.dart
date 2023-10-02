@@ -126,7 +126,6 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
         alert
             .show(AlertData(
           clear: true,
-          brightness: Brightness.dark,
           body: locales.get('notification--added'),
           type: AlertType.success,
           duration: 3,
@@ -138,14 +137,12 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       } on FirebaseFunctionsException catch (error) {
         alert.show(AlertData(
           clear: true,
-          brightness: Brightness.dark,
           body: error.message ?? error.details['message'],
           type: AlertType.critical,
         ));
       } catch (error) {
         alert.show(AlertData(
           clear: true,
-          brightness: Brightness.dark,
           body: error.toString(),
           type: AlertType.critical,
         ));
@@ -158,7 +155,6 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       if (!canCall) {
         alert.show(AlertData(
           clear: true,
-          brightness: Brightness.dark,
           title: 'incomplete data',
           type: AlertType.critical,
         ));

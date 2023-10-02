@@ -119,7 +119,6 @@ class FirebaseStorageHelper {
       alert.show(AlertData(
         body: locales.get(error.toString()),
         type: errorType,
-        brightness: Brightness.dark,
         duration: 5,
         clear: true,
       ));
@@ -152,7 +151,6 @@ class FirebaseStorageHelper {
       alert.show(AlertData(
         body: locales.get(error.toString()),
         type: errorType,
-        brightness: Brightness.dark,
         duration: 5,
         clear: true,
       ));
