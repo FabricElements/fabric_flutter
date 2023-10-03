@@ -10,15 +10,15 @@ dependencies:
     sdk: flutter
   devicelocale: ^0.7.0
   provider: ^6.0.5
-  cloud_firestore: ^4.9.2
-  cloud_functions: ^4.4.1
-  firebase_analytics: ^10.5.0
-  firebase_auth: ^4.10.0
-  firebase_core: ^2.16.0
-  firebase_dynamic_links: ^5.3.6
-  firebase_messaging: ^14.6.8
-  firebase_storage: ^11.2.7
-  firebase_database: ^10.2.6
+  cloud_firestore: ^4.9.3
+  cloud_functions: ^4.4.2
+  firebase_analytics: ^10.5.1
+  firebase_auth: ^4.10.1
+  firebase_core: ^2.17.0
+  firebase_dynamic_links: ^5.3.7
+  firebase_messaging: ^14.6.9
+  firebase_storage: ^11.2.8
+  firebase_database: ^10.2.7
   json_serializable: ^6.7.1
   json_annotation: ^4.8.1
   image_picker: ^1.0.4

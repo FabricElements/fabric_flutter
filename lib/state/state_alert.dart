@@ -155,20 +155,20 @@ class StateAlert extends ChangeNotifier {
     Color buttonColor = theme.colorScheme.primary;
     switch (alertData.type) {
       case AlertType.critical:
-        alertData.color ??= theme.colorScheme.errorContainer;
-        alertData.duration ??= 15;
+        alertData.color = theme.colorScheme.error;
         alertData.textColor = theme.colorScheme.onError;
+        alertData.duration ??= 15;
         buttonColor = theme.colorScheme.error;
         break;
       case AlertType.warning:
+        // alertData.textColor = theme.colorScheme.error;
         alertData.duration ??= 15;
-        alertData.textColor = theme.colorScheme.onError;
         buttonColor = theme.colorScheme.error;
         break;
       case AlertType.success:
-        alertData.color ??= theme.colorScheme.primaryContainer;
-        alertData.duration ??= 5;
+        alertData.color = theme.colorScheme.primaryContainer;
         alertData.textColor = theme.colorScheme.onPrimaryContainer;
+        alertData.duration ??= 5;
         buttonColor = theme.colorScheme.primary;
         break;
       default:
@@ -177,7 +177,7 @@ class StateAlert extends ChangeNotifier {
     /// Set default values for null safety
     alertData.duration ??= 4;
     alertData.color ??= theme.colorScheme.surfaceVariant;
-    alertData.textColor = theme.colorScheme.onSurfaceVariant;
+    alertData.textColor ??= theme.colorScheme.onSurfaceVariant;
     alertData.titleStyle ??= textTheme.titleLarge;
     alertData.bodyStyle ??= textTheme.bodyLarge;
 
@@ -290,9 +290,7 @@ class StateAlert extends ChangeNotifier {
     bool hasDismissAction = alertData.dismiss!.onTap != null;
     if (hasAction || hasValidPath) {
       actions.add(FilledButton.icon(
-        style: ButtonStyle(
-          backgroundColor: MaterialStateProperty.all(buttonColor),
-        ),
+        style: TextButton.styleFrom(backgroundColor: buttonColor),
         label: Text(locales.get(alertData.action!.label).toUpperCase()),
         icon: Icon(alertData.action!.icon),
         onPressed: () async {
@@ -324,9 +322,7 @@ class StateAlert extends ChangeNotifier {
     }
 
     actions.add(TextButton.icon(
-      style: ButtonStyle(
-        foregroundColor: MaterialStateProperty.all(buttonColor),
-      ),
+      style: TextButton.styleFrom(foregroundColor: buttonColor),
       icon: Icon(alertData.dismiss!.icon!),
       label: Text(locales.get(alertData.dismiss!.label).toUpperCase()),
       onPressed: () async {
