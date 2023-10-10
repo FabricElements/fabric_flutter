@@ -1,6 +1,6 @@
 name: fabric_flutter
 description: Native components and helpers
-version: 1.2.7+1
+version: 1.2.7+2
 
 environment:
   sdk: '>=3.0.3 <4.0.0'
@@ -29,7 +29,7 @@ dependencies:
   url_launcher: ^6.1.14
   google_maps_flutter: ^2.5.0
   google_maps_webservice: ^0.0.20-nullsafety.5
-  package_info_plus: ^4.1.0
+  package_info_plus: ^5.0.0
   sign_in_with_apple: ^5.0.0
   mime: ^1.0.4
   #webview_flutter: ^4.2.2
@@ -37,7 +37,7 @@ dependencies:
     sdk: flutter
   universal_html: ^2.2.4
   video_player: ^2.7.2
-  webview_flutter: ^4.2.4
+  webview_flutter: ^4.4.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
