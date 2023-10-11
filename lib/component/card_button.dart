@@ -46,14 +46,15 @@ class CardButton extends StatefulWidget {
 class _CardButtonState extends State<CardButton> {
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
     return Container(
       padding: widget.margin ?? const EdgeInsets.symmetric(vertical: 8),
       child: Card(
-        color: Colors.grey.shade900,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(widget.borderRadius),
-        ),
+        color: theme.colorScheme.surfaceVariant,
+        // shape: RoundedRectangleBorder(
+        //   borderRadius: BorderRadius.circular(widget.borderRadius),
+        // ),
         clipBehavior: Clip.hardEdge,
         child: RawMaterialButton(
           onPressed: () => widget.onPressed(),
@@ -70,45 +71,40 @@ class _CardButtonState extends State<CardButton> {
                   left: 0,
                   right: 0,
                   child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: const BoxDecoration(
+                    // padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        stops: [0.0, 0.5, 1.0],
+                        stops: const [0.0, 0.4, 0.7],
                         colors: [
-                          Color.fromRGBO(0, 0, 0, 0.0),
-                          Color.fromRGBO(0, 0, 0, 0.3),
-                          Color.fromRGBO(0, 0, 0, 0.6),
+                          theme.colorScheme.surface.withOpacity(0.5),
+                          theme.colorScheme.surface.withOpacity(0.9),
+                          theme.colorScheme.surface.withOpacity(0.9),
                         ],
                       ),
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 64),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          widget.headline != null
-                              ? Text(
-                                  widget.headline!,
-                                  style: textTheme.headlineSmall
-                                      ?.copyWith(color: Colors.white),
-                                  textAlign: TextAlign.left,
-                                )
-                              : Container(),
-                          widget.description != null
-                              ? Padding(
-                                  padding: const EdgeInsets.only(top: 8),
-                                  child: Text(
-                                    widget.description!,
-                                    style: textTheme.bodyMedium
-                                        ?.copyWith(color: Colors.white),
-                                    textAlign: TextAlign.left,
-                                  ),
-                                )
-                              : Container(),
-                        ],
-                      ),
+                    child: ListTile(
+                      title: widget.headline != null
+                          ? Text(
+                              widget.headline!,
+                              style: textTheme.titleLarge?.copyWith(
+                                  color: theme.colorScheme.onSurface),
+                              overflow: TextOverflow.ellipsis,
+                              softWrap: true,
+                            )
+                          : null,
+                      subtitle: widget.description != null
+                          ? Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Text(
+                                widget.description!,
+                                style: textTheme.bodyMedium?.copyWith(
+                                    color: theme.colorScheme.onSurface),
+                                softWrap: true,
+                              ),
+                            )
+                          : null,
                     ),
                   ),
                 ),
