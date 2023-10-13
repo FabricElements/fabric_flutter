@@ -448,4 +448,7 @@ abstract class StateShared extends ChangeNotifier {
     if (initialized) notifyListeners();
     return filters;
   }
+
+  /// Get serialized data
+  dynamic get serialized;
 }

@@ -5,6 +5,7 @@ class StateUsers extends StateCollection {
   @override
   int limitDefault = 30;
 
+  @override
   List<UserData> get serialized {
     if (data == null) return [];
     List<UserData> items = (data as List<dynamic>)

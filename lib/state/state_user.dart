@@ -99,6 +99,7 @@ class StateUser extends StateDocument {
   Map<String, dynamic> get claims => _claims ?? {};
 
   /// Returns serialized data [UserData]
+  @override
   UserData get serialized {
     UserData userDataSerialized = UserData.fromJson(data ?? {});
     if (data != null) {
