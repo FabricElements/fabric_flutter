@@ -1,10 +1,10 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
-import './input_data.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/iso_language.dart';
 import '../helper/options.dart';
 import '../serialized/iso_data.dart';
+import 'input_data.dart';
 
 /// A Picker used to select wanted language for campaign
 ///
@@ -12,7 +12,7 @@ import '../serialized/iso_data.dart';
 /// [value] This is the language of the campaign, it will default to english.
 /// [onChange] This will push selected language iso to parent widget to sync with campaign data.
 /// ```dart
-/// LanguageSelector(
+/// LanguagePicker(
 ///   voice: false,
 ///   language: 'es',
 ///   onChange: (String iso) {
@@ -20,8 +20,8 @@ import '../serialized/iso_data.dart';
 ///   }
 /// );
 /// ```
-class LanguageSelector extends StatelessWidget {
-  const LanguageSelector({
+class LanguagePicker extends StatelessWidget {
+  const LanguagePicker({
     Key? key,
     this.voice = false,
     this.value = 'en',
@@ -40,22 +40,25 @@ class LanguageSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context)!;
-    // List of iso's corresponding to the text widgets
-    List<ISOLanguage> languages = ISOLanguages.languages;
+    late List<ISOLanguage> languages;
+    languages = ISOLanguages.languages;
     if (voice) {
       // Filter available voices by those available on WaveNet
       languages = languages.where((element) {
         return ISOLanguages.waveNetLanguages.contains(element.alpha2);
       }).toList();
     }
+    // List of iso's corresponding to the text widgets
     List<ButtonOptions> options = List.generate(languages.length, (index) {
       final language = languages[index];
       return ButtonOptions(
         label: '${language.emoji} ${language.name} (${language.alpha2})',
+        labelAlt: language.nativeName,
         value: language.alpha2,
       );
     });
     return InputData(
+      prefixIcon: const Icon(Icons.language),
       label: label ?? locales.get('label--language'),
       hintText: hintText ??
           locales.get(

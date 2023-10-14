@@ -22,9 +22,15 @@ class FilterHelper {
     dynamic response;
     switch (dataType) {
       case InputDataType.dateTime:
-      case InputDataType.date:
         response =
             value != null ? '"${(value as DateTime).toIso8601String()}"' : null;
+        break;
+      case InputDataType.date:
+        if (value != null) {
+          final baseDate = (value as DateTime).toUtc();
+          response =
+              '"${DateTime.utc(baseDate.year, baseDate.month, baseDate.day).toIso8601String()}"';
+        }
         break;
       case InputDataType.time:
         // TODO: Handle this case.
