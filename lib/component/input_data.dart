@@ -689,7 +689,7 @@ getValue -------------------------------------
           }
         }
         if (widget.type == InputDataType.enums) {
-          if (value != null) {
+          if (value != null && value != '') {
             textController.text = enumData.localesFromEnum(value);
           }
           dropdownOptions = List.generate(widget.enums.length, (index) {
