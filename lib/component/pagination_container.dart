@@ -153,6 +153,9 @@ class _PaginationContainerState extends State<PaginationContainer> {
           interactive: true,
           controller: _controller,
           child: ListView.builder(
+            key: widget.key != null
+                ? PageStorageKey(widget.key.toString())
+                : UniqueKey(),
             restorationId: widget.key?.toString() ?? 'list_view_builder',
             clipBehavior: widget.clipBehavior,
             primary: widget.primary,

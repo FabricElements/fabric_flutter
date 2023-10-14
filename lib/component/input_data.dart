@@ -178,6 +178,7 @@ class InputData extends StatefulWidget {
 
 class _InputDataState extends State<InputData> {
   late TextEditingController textController;
+  SearchController searchController = SearchController();
   DateFormat formatDate = DateFormat.yMd('en_US');
   DateFormat formatDateTime =
       DateFormat.yMd('en_US').addPattern(' - ').add_jm();
@@ -252,7 +253,12 @@ class _InputDataState extends State<InputData> {
             enums: widget.enums,
             value: newValue,
           );
-          if (notify && mounted) setState(() {});
+          dynamic newFormattedValue = valueChanged(newValue)?.toString() ?? '';
+          bool sameValue = value == newFormattedValue;
+          if (!sameValue) {
+            value = newFormattedValue;
+            if (notify && mounted) setState(() {});
+          }
           break;
         case InputDataType.dropdown:
           bool valueInOptions = widget.options.where((item) {
@@ -263,7 +269,13 @@ class _InputDataState extends State<InputData> {
           } else {
             value = null;
           }
-          if (notify && mounted) setState(() {});
+          dynamic newFormattedValue = valueChanged(newValue)?.toString() ?? '';
+          bool sameValue = value == newFormattedValue;
+          if (!sameValue) {
+            value = newFormattedValue;
+            textController.text = value;
+            if (notify && mounted) setState(() {});
+          }
           break;
         case InputDataType.bool:
           bool baseValue = false;
@@ -669,8 +681,17 @@ getValue -------------------------------------
         List<ButtonOptions> dropdownOptions = [];
         if (widget.type == InputDataType.dropdown) {
           dropdownOptions = widget.options;
+          final match = dropdownOptions.where((element) {
+            return element.value == value;
+          });
+          if (value != null && match.isNotEmpty) {
+            textController.text = match.first.label;
+          }
         }
         if (widget.type == InputDataType.enums) {
+          if (value != null) {
+            textController.text = enumData.localesFromEnum(value);
+          }
           dropdownOptions = List.generate(widget.enums.length, (index) {
             final e = widget.enums[index];
             return ButtonOptions(
@@ -680,61 +701,66 @@ getValue -------------------------------------
             );
           });
         }
-        List<DropdownMenuItem<dynamic>> buttons = [
-          DropdownMenuItem(
-            value: '',
-            child: Text(
-              hintText ?? defaultTextOptions,
-              overflow: TextOverflow.ellipsis,
-              softWrap: false,
-              maxLines: 1,
-            ),
-          ),
-        ];
-        buttons.addAll(List.generate(dropdownOptions.length, (index) {
-          final option = dropdownOptions[index];
-          final key =
-              (widget.label ?? hintText ?? 'option').hashCode.toString() +
-                  (option.id ?? option.value.toString());
-          return DropdownMenuItem(
-            key: Key(key),
-            value: option.value,
-            onTap:
-                option.onTap != null ? () => option.onTap!(option.value) : null,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minWidth: 100, maxWidth: 190),
-              child: Text(
-                option.label,
-                overflow: TextOverflow.ellipsis,
-                softWrap: false,
-                maxLines: 1,
+        endWidget = SearchAnchor(
+          searchController: searchController,
+          builder: (BuildContext context, SearchController controller) {
+            return TextFormField(
+              autofillHints: widget.autofillHints,
+              enableSuggestions: false,
+              keyboardType: keyboardType,
+              textInputAction: textInputAction,
+              controller: textController,
+              readOnly: true,
+              decoration: inputDecoration.copyWith(
+                hintText: widget.hintText ?? hintTextDefault,
+                prefixIcon: inputDecoration.prefixIcon ??
+                    inputDecoration.prefixIcon ??
+                    Icon(inputDataTypeIcon(widget.type)),
+                suffixIcon: const Icon(Icons.arrow_drop_down),
               ),
-            ),
-          );
-        }));
-        if (buttons.length == 1) {
-          isDisabled = true;
-        }
-        endWidget = DropdownButtonFormField<dynamic>(
-          hint: widget.hintText != null ? Text(widget.hintText!) : null,
-          isExpanded: widget.isExpanded,
-          isDense: true,
-          icon: icon,
-          elevation: 1,
-          key: popupButtonKey,
-          value: value,
-          onChanged: isDisabled
-              ? null
-              : (dynamic newValue) {
-                  if (widget.onChanged != null) {
-                    widget.onChanged!(newValue == '' ? null : newValue);
+              onTap: isDisabled
+                  ? null
+                  : () async {
+                      searchController.openView();
+                    },
+            );
+          },
+          suggestionsBuilder:
+              (BuildContext context, SearchController controller) {
+            final value = controller.text;
+            List<ButtonOptions> recommendations = dropdownOptions;
+            if (value.isNotEmpty) {
+              recommendations = recommendations.where((element) {
+                final labelMatch =
+                    element.label.toLowerCase().contains(value.toLowerCase());
+                final labelAltMatch = element.labelAlt
+                        ?.toLowerCase()
+                        .contains(value.toLowerCase()) ??
+                    false;
+                final valueMatch =
+                    element.value.toString().contains(value.toLowerCase());
+                return labelMatch || valueMatch || labelAltMatch;
+              }).toList();
+            }
+            return List<ListTile>.generate(recommendations.length, (int index) {
+              final item = recommendations[index];
+              return ListTile(
+                title: Text(item.label),
+                onTap: () {
+                  controller.closeView('');
+                  if (widget.onChanged != null && item.value != value) {
+                    widget.onChanged!(item.value);
                   }
-                  if (widget.onComplete != null) widget.onComplete!(newValue);
-                  if (widget.onSubmit != null) widget.onSubmit!(newValue);
+                  if (widget.onChanged != null) {
+                    widget.onChanged!(item.value == '' ? null : item.value);
+                  }
+                  if (widget.onComplete != null) widget.onComplete!(item.value);
+                  if (widget.onSubmit != null) widget.onSubmit!(item.value);
+                  // if (mounted) setState(() {});
                 },
-          items: buttons,
-          decoration: inputDecoration,
-          style: widget.textStyle,
+              );
+            });
+          },
         );
         break;
       case InputDataType.radio:
