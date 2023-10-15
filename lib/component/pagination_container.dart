@@ -155,8 +155,8 @@ class _PaginationContainerState extends State<PaginationContainer> {
           child: ListView.builder(
             key: widget.key != null
                 ? PageStorageKey(widget.key.toString())
-                : UniqueKey(),
-            restorationId: widget.key?.toString() ?? 'list_view_builder',
+                : const PageStorageKey('pagination-container'),
+            restorationId: widget.key?.toString() ?? 'pagination-container',
             clipBehavior: widget.clipBehavior,
             primary: widget.primary,
             cacheExtent: widget.cacheExtent,
