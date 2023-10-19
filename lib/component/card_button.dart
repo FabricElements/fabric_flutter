@@ -22,7 +22,7 @@ import 'smart_image.dart';
 /// ```
 class CardButton extends StatefulWidget {
   const CardButton({
-    Key? key,
+    super.key,
     this.borderRadius = 6,
     this.description,
     this.headline,
@@ -30,7 +30,7 @@ class CardButton extends StatefulWidget {
     this.margin,
     required this.image,
     required this.onPressed,
-  }) : super(key: key);
+  });
   final double borderRadius;
   final String? description;
   final String? headline;

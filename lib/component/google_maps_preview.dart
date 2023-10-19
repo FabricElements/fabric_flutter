@@ -15,7 +15,7 @@ import 'smart_image.dart';
 /// ),
 class GoogleMapsPreview extends StatefulWidget {
   const GoogleMapsPreview({
-    Key? key,
+    super.key,
     this.mapType = MapType.normal,
     this.latitude,
     this.longitude,
@@ -26,7 +26,7 @@ class GoogleMapsPreview extends StatefulWidget {
     this.description,
     this.apiKey,
     this.asImage = false,
-  }) : super(key: key);
+  });
   final MapType mapType;
   final double? latitude;
   final double? longitude;

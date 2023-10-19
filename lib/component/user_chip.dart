@@ -7,11 +7,11 @@ import 'user_avatar.dart';
 /// UserChip displays a User's profile name and avatar
 class UserChip extends StatefulWidget {
   const UserChip({
-    Key? key,
+    super.key,
     required this.uid,
     this.minimal = false,
     this.labelStyle,
-  }) : super(key: key);
+  });
   final String? uid;
   final bool minimal;
   final TextStyle? labelStyle;

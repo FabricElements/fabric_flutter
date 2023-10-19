@@ -6,11 +6,11 @@ import 'package:universal_html/html.dart' if (dart.library.html) 'dart:html'
 
 class IframeMinimal extends StatelessWidget {
   const IframeMinimal({
-    Key? key,
+    super.key,
     required this.src,
     this.title = 'Iframe',
     this.alt = 'Iframe',
-  }) : super(key: key);
+  });
   final String? src;
   final String alt;
   final String title;

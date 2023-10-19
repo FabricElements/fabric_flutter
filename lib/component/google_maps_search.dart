@@ -16,7 +16,7 @@ import 'google_maps_preview.dart';
 /// [user] returns the user object
 class GoogleMapsSearch extends StatefulWidget {
   const GoogleMapsSearch({
-    Key? key,
+    super.key,
     required this.apiKey,
     this.mapType = MapType.normal,
     this.latitude,
@@ -32,7 +32,7 @@ class GoogleMapsSearch extends StatefulWidget {
     this.description,
     this.baseUrl = 'https://maps.googleapis.com/maps/api',
     this.autofocus = false,
-  }) : super(key: key);
+  });
   final Function(Place)? onChange;
   final Function(String)? onError;
   final String apiKey;

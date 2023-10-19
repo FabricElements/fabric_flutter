@@ -14,13 +14,13 @@ import 'smart_image.dart';
 /// );
 class UserAvatar extends StatelessWidget {
   const UserAvatar({
-    Key? key,
+    super.key,
     required this.avatar,
     this.name,
     this.firstName,
     this.lastName,
     this.presence,
-  }) : super(key: key);
+  });
   final String? avatar;
   final String? name;
   final String? firstName;

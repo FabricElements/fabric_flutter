@@ -5,14 +5,14 @@ import '../state/state_user.dart';
 
 class UserRoleContent extends StatefulWidget {
   const UserRoleContent({
-    Key? key,
+    super.key,
     required this.compareData,
     this.roles = const ['admin'],
     this.group,
     required this.child,
     this.placeholder,
     this.path,
-  }) : super(key: key);
+  });
   final Map<String, dynamic>? compareData;
   final List<String> roles;
   final String? group;

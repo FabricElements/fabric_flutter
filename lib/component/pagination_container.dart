@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 class PaginationContainer extends StatefulWidget {
   const PaginationContainer({
-    Key? key,
+    super.key,
     required this.paginate,
     required this.itemBuilder,
     this.primary = false,
@@ -39,7 +39,7 @@ class PaginationContainer extends StatefulWidget {
     this.initialData,
     this.clipBehavior = Clip.hardEdge,
     this.shrinkWrap = false,
-  }) : super(key: key);
+  });
   final Widget Function(
     BuildContext context,
     int index,

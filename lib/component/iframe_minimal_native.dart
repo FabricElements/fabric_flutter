@@ -3,11 +3,11 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 class IframeMinimal extends StatefulWidget {
   const IframeMinimal({
-    Key? key,
+    super.key,
     required this.src,
     this.title = 'Iframe',
     this.alt = 'Iframe',
-  }) : super(key: key);
+  });
   final String? src;
   final String alt;
   final String title;

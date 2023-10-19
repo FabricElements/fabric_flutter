@@ -8,7 +8,7 @@ import '../state/state_alert.dart';
 /// EditSaveButton displays a simple way to show/hide edit buttons
 class EditSaveButton extends StatefulWidget {
   const EditSaveButton({
-    Key? key,
+    super.key,
     this.active = false,
     required this.cancel,
     required this.save,
@@ -18,7 +18,7 @@ class EditSaveButton extends StatefulWidget {
     this.alertType = AlertType.basic,
     this.labels = false,
     this.direction = Axis.horizontal,
-  }) : super(key: key);
+  });
 
   /// if [active] the controls to edit are available
   final bool active;

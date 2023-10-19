@@ -10,11 +10,11 @@ import 'package:flutter/material.dart';
 /// );
 class SectionTitle extends StatefulWidget {
   const SectionTitle({
-    Key? key,
+    super.key,
     this.description,
     required this.headline,
     this.condensed = false,
-  }) : super(key: key);
+  });
   final String? description;
   final String headline;
   final bool condensed;

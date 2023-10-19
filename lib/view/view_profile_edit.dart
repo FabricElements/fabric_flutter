@@ -15,10 +15,10 @@ import '../state/state_user.dart';
 
 class ViewProfileEdit extends StatefulWidget {
   const ViewProfileEdit({
-    Key? key,
+    super.key,
     this.loader,
     this.prefix,
-  }) : super(key: key);
+  });
   final Widget? loader;
   final String? prefix;
 

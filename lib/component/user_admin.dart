@@ -21,7 +21,7 @@ import 'user_avatar.dart';
 /// [roles] Replaces default roles with your custom roles
 class UserAdmin extends StatelessWidget {
   const UserAdmin({
-    Key? key,
+    super.key,
     this.empty,
     this.loader,
     this.roles = const ['user', 'admin'],
@@ -42,7 +42,7 @@ class UserAdmin extends StatelessWidget {
     this.password = false,
     this.size = ContentContainerSize.medium,
     this.prefix,
-  }) : super(key: key);
+  });
   final Widget? empty;
   final Widget? loader;
   final List<String> roles;

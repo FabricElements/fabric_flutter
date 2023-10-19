@@ -8,13 +8,13 @@ import '../state/state_alert.dart';
 
 class RoutePage extends StatelessWidget {
   const RoutePage({
-    Key? key,
+    super.key,
     required this.routeHelper,
     required this.uri,
     required this.stream,
     required this.status,
     this.loading = const LoadingScreen(),
-  }) : super(key: key);
+  });
   final RouteHelper routeHelper;
   final Uri uri;
   final Stream<UserStatus>? stream;

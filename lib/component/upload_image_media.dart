@@ -8,12 +8,12 @@ import '../serialized/media_data.dart';
 
 class UploadImageMedia extends StatefulWidget {
   const UploadImageMedia({
-    Key? key,
+    super.key,
     required this.callback,
     required this.path,
     this.maxDimensions = 1200,
     this.autoId = false,
-  }) : super(key: key);
+  });
   final Function(String, MediaData) callback;
   final String path;
   final int maxDimensions;

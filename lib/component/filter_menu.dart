@@ -12,10 +12,10 @@ import 'popup_entry.dart';
 /// Shows the filter options for the pop-up
 class FilterMenuOptionData extends StatefulWidget {
   const FilterMenuOptionData({
-    Key? key,
+    super.key,
     required this.data,
     required this.onChange,
-  }) : super(key: key);
+  });
   final FilterData data;
   final ValueChanged<FilterData> onChange;
 
@@ -247,11 +247,11 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
 /// FilterMenuOption
 class FilterMenuOption extends StatefulWidget {
   const FilterMenuOption({
-    Key? key,
+    super.key,
     required this.data,
     required this.onChange,
     required this.onDelete,
-  }) : super(key: key);
+  });
   final FilterData data;
   final ValueChanged<FilterData> onChange;
   final VoidCallback onDelete;
@@ -428,13 +428,13 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
 /// FilterMenu
 class FilterMenu extends StatefulWidget {
   const FilterMenu({
-    Key? key,
+    super.key,
     required this.data,
     required this.onChange,
     this.child,
     this.icon,
     this.iconClear,
-  }) : super(key: key);
+  });
   final List<FilterData> data;
   final ValueChanged<List<FilterData>> onChange;
 

@@ -4,10 +4,10 @@ import 'content_container.dart';
 
 class StepperExtended extends StatefulWidget {
   const StepperExtended({
-    Key? key,
+    super.key,
     required this.steps,
     this.size = ContentContainerSize.medium,
-  }) : super(key: key);
+  });
   final List<Step> steps;
   final ContentContainerSize size;
 

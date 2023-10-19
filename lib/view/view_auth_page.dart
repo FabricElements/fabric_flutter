@@ -45,7 +45,7 @@ class ViewAuthValues {
 
 class ViewAuthPage extends StatefulWidget {
   const ViewAuthPage({
-    Key? key,
+    super.key,
     this.loader,
     this.image,
     this.verify = false,
@@ -58,7 +58,7 @@ class ViewAuthPage extends StatefulWidget {
     this.androidPackageName,
     this.iOSBundleId,
     required this.url,
-  }) : super(key: key);
+  });
   final Widget? loader;
   final String? image;
   final bool verify;

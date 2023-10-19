@@ -6,14 +6,14 @@ import 'smart_image.dart';
 /// Navigation Breadcrumbs provides a useful way to display navigation routes
 class Breadcrumbs extends StatelessWidget {
   const Breadcrumbs({
-    Key? key,
+    super.key,
     required this.buttons,
     this.buttonStyle,
     this.dividerStyle,
     this.padding = const EdgeInsets.symmetric(horizontal: 16),
     this.spacing = 8,
     this.textStyle,
-  }) : super(key: key);
+  });
 
   final List<ButtonOptions> buttons;
   final ButtonStyle? buttonStyle;

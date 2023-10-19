@@ -18,12 +18,12 @@ class PlacesResponse extends GoogleResponseStatus {
   final String? errorMessage;
 
   PlacesResponse({
-    required String status,
+    required super.status,
     this.errorMessage,
     this.candidates = const [],
     this.htmlAttributions = const [],
     this.nextPageToken,
-  }) : super(status: status, errorMessage: errorMessage);
+  }) : super(errorMessage: errorMessage);
 
   factory PlacesResponse.fromJson(Map<String, dynamic>? json) =>
       _$PlacesResponseFromJson(json ?? {});

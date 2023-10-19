@@ -9,7 +9,7 @@ enum ContentContainerSize {
 
 class ContentContainer extends StatelessWidget {
   const ContentContainer({
-    Key? key,
+    super.key,
     this.child,
     this.size = ContentContainerSize.medium,
     this.padding,
@@ -20,8 +20,7 @@ class ContentContainer extends StatelessWidget {
     this.crossAxisAlignment = CrossAxisAlignment.start,
     this.mainAxisAlignment = MainAxisAlignment.start,
   })  : assert(child != null || children != null,
-            'child or children must be specified'),
-        super(key: key);
+            'child or children must be specified');
   final Widget? child;
   final List<Widget>? children;
   final ContentContainerSize size;

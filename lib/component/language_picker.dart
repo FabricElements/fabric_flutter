@@ -22,14 +22,14 @@ import 'input_data.dart';
 /// ```
 class LanguagePicker extends StatelessWidget {
   const LanguagePicker({
-    Key? key,
+    super.key,
     this.voice = false,
     this.value = 'en',
     this.label,
     this.hintText,
     this.disabled = false,
     required this.onChange,
-  }) : super(key: key);
+  });
   final bool voice;
   final String? value;
   final Function(String?) onChange;

@@ -9,7 +9,7 @@ import '../serialized/table_data.dart';
 /// -----------------------
 class ExpansionTable extends StatefulWidget {
   ExpansionTable({
-    Key? key,
+    super.key,
     required this.data,
     this.headingRowHeight,
     this.headingTextStyle,
@@ -23,8 +23,7 @@ class ExpansionTable extends StatefulWidget {
     this.columnSpacing,
     this.dividerThickness,
     this.border,
-  })  : assert(data == null || data.header!.isNotEmpty),
-        super(key: key);
+  })  : assert(data == null || data.header!.isNotEmpty);
 
   final TableData? data;
 

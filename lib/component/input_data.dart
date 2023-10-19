@@ -87,7 +87,7 @@ IconData inputDataTypeIcon(InputDataType inputDataType) {
 /// you require for multiple data types [InputDataType]
 class InputData extends StatefulWidget {
   const InputData({
-    Key? key,
+    super.key,
     required this.value,
     required this.type,
     this.enums = const [],
@@ -124,7 +124,7 @@ class InputData extends StatefulWidget {
     this.prefixText,
     this.prefixIcon,
     this.prefixStyle,
-  }) : super(key: key);
+  });
   final dynamic value;
   final List<dynamic> enums;
   final List<ButtonOptions> options;

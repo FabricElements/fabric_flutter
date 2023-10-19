@@ -11,9 +11,9 @@ import '../helper/app_localizations_delegate.dart';
 /// );
 class StatusChip extends StatelessWidget {
   const StatusChip({
-    Key? key,
+    super.key,
     required this.status,
-  }) : super(key: key);
+  });
   final String? status;
 
   @override

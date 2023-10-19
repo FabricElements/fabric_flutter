@@ -17,12 +17,12 @@ import '../helper/utils.dart';
 /// );
 class SmartImage extends StatelessWidget {
   const SmartImage({
-    Key? key,
+    super.key,
     this.placeholder,
     this.size,
     required this.url,
     this.color = Colors.transparent,
-  }) : super(key: key);
+  });
   final Uint8List? placeholder;
   final String? size;
   final String? url;

@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../state/state_user.dart';
 
 class ViewHero extends StatefulWidget {
-  const ViewHero({Key? key}) : super(key: key);
+  const ViewHero({super.key});
 
   @override
   State<ViewHero> createState() => _ViewHeroState();

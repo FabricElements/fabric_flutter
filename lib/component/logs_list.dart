@@ -33,7 +33,7 @@ import 'user_chip.dart';
 /// ),
 class LogsList extends StatelessWidget {
   const LogsList({
-    Key? key,
+    super.key,
     required this.data,
     this.actions,
     this.minimal = false,
@@ -42,7 +42,7 @@ class LogsList extends StatelessWidget {
     this.padding =
         const EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 8),
     this.margin = const EdgeInsets.symmetric(vertical: 8),
-  }) : super(key: key);
+  });
   final List<Map<String, dynamic>>? data;
   final List<ButtonOptions>? actions;
   final bool minimal;

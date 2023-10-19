@@ -10,15 +10,15 @@ dependencies:
     sdk: flutter
   devicelocale: ^0.7.0
   provider: ^6.0.5
-  cloud_firestore: ^4.10.0
-  cloud_functions: ^4.5.0
-  firebase_analytics: ^10.6.0
-  firebase_auth: ^4.11.0
-  firebase_core: ^2.18.0
-  firebase_dynamic_links: ^5.4.0
-  firebase_messaging: ^14.7.0
-  firebase_storage: ^11.3.0
-  firebase_database: ^10.3.0
+  cloud_firestore: ^4.11.0
+  cloud_functions: ^4.5.1
+  firebase_analytics: ^10.6.1
+  firebase_auth: ^4.11.1
+  firebase_core: ^2.19.0
+  firebase_dynamic_links: ^5.4.1
+  firebase_messaging: ^14.7.1
+  firebase_storage: ^11.3.1
+  firebase_database: ^10.3.1
   json_serializable: ^6.7.1
   json_annotation: ^4.8.1
   image_picker: ^1.0.4
@@ -41,7 +41,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.3
+  flutter_lints: ^3.0.0
   build_runner: ^2.4.6
   flutter_web_plugins:
     sdk: flutter

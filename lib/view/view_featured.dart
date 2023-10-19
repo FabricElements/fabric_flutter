@@ -36,7 +36,7 @@ import '../state/state_user.dart';
 /// ```
 class ViewFeatured extends StatefulWidget {
   const ViewFeatured({
-    Key? key,
+    super.key,
     this.actionLabel,
     this.actionUrl,
     this.arguments,
@@ -49,7 +49,7 @@ class ViewFeatured extends StatefulWidget {
     this.child,
     required this.image,
     this.onPressed,
-  }) : super(key: key);
+  });
   final String? actionLabel;
   final String? actionUrl;
   final Object? arguments;

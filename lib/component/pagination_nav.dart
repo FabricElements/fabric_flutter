@@ -7,7 +7,7 @@ import 'input_data.dart';
 /// Defines the pagination component with controls
 class PaginationNav extends StatelessWidget {
   const PaginationNav({
-    Key? key,
+    super.key,
     required this.page,
     required this.canPaginate,
     required this.next,
@@ -19,7 +19,7 @@ class PaginationNav extends StatelessWidget {
     required this.limit,
     required this.limitChange,
     this.limits = const [5, 10, 20, 50],
-  }) : super(key: key);
+  });
   final int page;
   final int limit;
   final bool canPaginate;

@@ -9,7 +9,7 @@ import '../serialized/password_data.dart';
 import '../state/state_alert.dart';
 
 class UpdatePassword extends StatefulWidget {
-  const UpdatePassword({Key? key, required this.callback}) : super(key: key);
+  const UpdatePassword({super.key, required this.callback});
   final Function(PasswordData) callback;
 
   @override

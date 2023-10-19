@@ -17,11 +17,11 @@ import '../helper/iso_language.dart';
 /// ```
 class FlagChip extends StatelessWidget {
   const FlagChip({
-    Key? key,
+    super.key,
     required this.language,
     this.total,
     this.onDeleted,
-  }) : super(key: key);
+  });
   final String language;
   final int? total;
   final VoidCallback? onDeleted;

@@ -13,12 +13,12 @@ import '../state/state_users.dart';
 
 class InitApp extends StatelessWidget {
   const InitApp({
-    Key? key,
+    super.key,
     this.providers = const [],
     required this.child,
     this.notifications = false,
     this.links = false,
-  }) : super(key: key);
+  });
 
   final List<SingleChildWidget> providers;
   final Widget child;
@@ -50,11 +50,11 @@ class InitApp extends StatelessWidget {
 
 class InitAppChild extends StatelessWidget {
   const InitAppChild({
-    Key? key,
+    super.key,
     required this.child,
     this.notifications = false,
     this.links = false,
-  }) : super(key: key);
+  });
 
   final Widget child;
   final bool notifications;

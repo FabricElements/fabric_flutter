@@ -4,9 +4,9 @@ import '../helper/options.dart';
 
 class Tabs extends StatelessWidget {
   const Tabs({
-    Key? key,
+    super.key,
     required this.tabs,
-  }) : super(key: key);
+  });
   final List<ButtonOptions> tabs;
 
   @override

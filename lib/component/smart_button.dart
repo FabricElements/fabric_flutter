@@ -9,13 +9,13 @@ import '../helper/options.dart';
 /// [SmartButton] allows you to easily create buttons or/and custom Popup Menus
 class SmartButton extends StatefulWidget {
   const SmartButton({
-    Key? key,
+    super.key,
     required this.button,
     this.children,
     this.redirect,
     this.brightness,
     this.pop = false,
-  }) : super(key: key);
+  });
   final ButtonOptions button;
   final Brightness? brightness;
   final bool pop;

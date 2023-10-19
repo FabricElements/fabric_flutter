@@ -19,7 +19,7 @@ import 'input_data.dart';
 /// ```
 class UserAddUpdate extends StatefulWidget {
   const UserAddUpdate({
-    Key? key,
+    super.key,
     this.roles = const ['user', 'admin'],
     required this.onConfirm,
     this.email = true,
@@ -32,7 +32,7 @@ class UserAddUpdate extends StatefulWidget {
     this.user,
     this.group,
     this.groups,
-  }) : super(key: key);
+  });
   final List<String> roles;
   final Function(UserData data, {String? group}) onConfirm;
   final bool email;
