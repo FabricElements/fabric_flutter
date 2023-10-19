@@ -102,7 +102,7 @@ class FilterHelper {
             break;
           case SQLQueryType.openSearch:
             operatorResult =
-                'SCORE(matchphrasequery($id, \'$value\'), 100) OR SCORE(WILDCARD_QUERY($id, \'*$value*\'), 0.5)';
+                '(SCORE(matchphrasequery($id, \'$value\'), 100) OR SCORE(WILDCARD_QUERY($id, \'*$value*\'), 0.5))';
             break;
         }
         break;

@@ -285,6 +285,7 @@ final charMapToReplace = {
   8200: {'original': '', 'replace': ''},
   8201: {'original': '', 'replace': ''},
   8202: {'original': '', 'replace': ''},
+  8203: {'original': '', 'replace': ''},
   8208: {'original': '‐', 'replace': '-'},
   8211: {'original': '–', 'replace': '-'},
   8212: {'original': '—', 'replace': '-'},
