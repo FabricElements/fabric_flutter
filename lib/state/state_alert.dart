@@ -139,7 +139,7 @@ class StateAlert extends ChangeNotifier {
   Future<void> show(AlertData alertData) async {
     final queryData = MediaQuery.of(context);
     double width = queryData.size.width;
-    double basePadding = 8.0;
+    double basePadding = 16;
     double contentWidth = width - (basePadding * 4);
     final locales = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
@@ -275,7 +275,7 @@ class StateAlert extends ChangeNotifier {
         margin: const EdgeInsets.only(bottom: 16, top: 16),
         constraints: BoxConstraints(
           minHeight: 50,
-          maxHeight: 400,
+          maxHeight: 900,
           maxWidth: contentWidth,
         ),
         child: alertData.child!,
@@ -288,6 +288,21 @@ class StateAlert extends ChangeNotifier {
         alertData.action!.path != null && alertData.action!.path!.isNotEmpty;
     bool hasAction = alertData.action!.onTap != null;
     bool hasDismissAction = alertData.dismiss!.onTap != null;
+    actions.add(TextButton.icon(
+      style: TextButton.styleFrom(foregroundColor: buttonColor),
+      icon: Icon(alertData.dismiss!.icon!),
+      label: Text(locales.get(alertData.dismiss!.label).toUpperCase()),
+      onPressed: () async {
+        try {
+          if (hasDismissAction) {
+            await alertData.dismiss!.onTap!();
+          }
+          dismissAlerts(widget: alertData.widget);
+        } catch (e) {
+          if (kDebugMode) print('Dismiss click: $e');
+        }
+      },
+    ));
     if (hasAction || hasValidPath) {
       actions.add(FilledButton.icon(
         style: FilledButton.styleFrom(backgroundColor: buttonColor),
@@ -320,22 +335,6 @@ class StateAlert extends ChangeNotifier {
         },
       ));
     }
-
-    actions.add(TextButton.icon(
-      style: TextButton.styleFrom(foregroundColor: buttonColor),
-      icon: Icon(alertData.dismiss!.icon!),
-      label: Text(locales.get(alertData.dismiss!.label).toUpperCase()),
-      onPressed: () async {
-        try {
-          if (hasDismissAction) {
-            await alertData.dismiss!.onTap!();
-          }
-          dismissAlerts(widget: alertData.widget);
-        } catch (e) {
-          if (kDebugMode) print('Dismiss click: $e');
-        }
-      },
-    ));
 
     if (hasAction && alertData.widget == AlertWidget.snackBar) {
       onColumn.add(Container(
@@ -404,6 +403,7 @@ class StateAlert extends ChangeNotifier {
                   backgroundColor: alertData.color,
                   contentPadding: EdgeInsets.zero,
                   clipBehavior: Clip.hardEdge,
+                  actionsPadding: const EdgeInsets.all(16),
                   buttonPadding: const EdgeInsets.all(16),
                 ),
               ),

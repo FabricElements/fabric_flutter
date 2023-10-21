@@ -5,12 +5,16 @@ import 'dart:math';
 
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:crypto/crypto.dart';
+import 'package:fabric_flutter/helper/options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 
+import '../component/content_container.dart';
 import '../component/input_data.dart';
 import '../component/smart_image.dart';
 import '../helper/app_localizations_delegate.dart';
@@ -57,8 +61,14 @@ class ViewAuthPage extends StatefulWidget {
     this.googleClientId,
     this.androidPackageName,
     this.iOSBundleId,
+    this.policies,
     required this.url,
+    this.logo,
+    this.logoHeight = 200,
+    this.logoWidth = 200,
+    this.logoCircle = false,
   });
+
   final Widget? loader;
   final String? image;
   final bool verify;
@@ -77,6 +87,11 @@ class ViewAuthPage extends StatefulWidget {
 
   /// Sets the link continue/state URL
   final String url;
+  final String? policies;
+  final String? logo;
+  final double logoHeight;
+  final double logoWidth;
+  final bool logoCircle;
 
   @override
   State<ViewAuthPage> createState() => _ViewAuthPageState();
@@ -90,6 +105,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
   ConfirmationResult? webConfirmationResult;
   late bool willSignInWithEmail;
   String? emailLink;
+  bool policiesAccepted = false;
 
   @override
   void initState() {
@@ -98,6 +114,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     dataAuth = ViewAuthValues();
     webConfirmationResult = null;
     willSignInWithEmail = false;
+    policiesAccepted = false;
     WidgetsBinding.instance.addObserver(this);
     super.initState();
   }
@@ -637,6 +654,54 @@ class _ViewAuthPageState extends State<ViewAuthPage>
             if (mounted) setState(() {});
           };
       }
+      if (widget.policies != null && !policiesAccepted) {
+        final baseAction = action;
+        action = () async {
+          try {
+            String mdFromFile = await rootBundle.loadString(widget.policies!);
+            alert.show(AlertData(
+              type: AlertType.basic,
+              widget: AlertWidget.dialog,
+              child: SizedBox(
+                height: double.maxFinite,
+                width: double.maxFinite,
+                child: SingleChildScrollView(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 32, horizontal: 32),
+                  child: Markdown(
+                    selectable: true,
+                    shrinkWrap: true,
+                    data: mdFromFile,
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
+              ),
+              action: ButtonOptions(
+                label: locales.get('label--accept'),
+                icon: Icons.check,
+                onTap: () {
+                  policiesAccepted = true;
+                  if (mounted) setState(() {});
+                  baseAction();
+                },
+              ),
+              dismiss: ButtonOptions(
+                label: locales.get('label--reject'),
+                icon: Icons.cancel,
+                onTap: () {
+                  policiesAccepted = false;
+                  if (mounted) setState(() {});
+                },
+              ),
+            ));
+          } catch (error) {
+            alert.show(AlertData(
+              body: error.toString(),
+              type: AlertType.critical,
+            ));
+          }
+        };
+      }
       return Padding(
         padding: const EdgeInsets.only(top: 16),
         child: FilledButton.icon(
@@ -687,25 +752,44 @@ class _ViewAuthPageState extends State<ViewAuthPage>
                   bottom: 0,
                   left: 0,
                   right: 0,
-                  child: Container(
-                    color: theme.colorScheme.background,
-                    child: Column(
-                      children: <Widget>[
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          // decoration: BoxDecoration(
-                          //   gradient: LinearGradient(
-                          //     begin: Alignment.topCenter,
-                          //     end: Alignment.bottomCenter,
-                          //     stops: [0.0, 0.5, 1.0],
-                          //     colors: [
-                          //       Color.fromRGBO(0, 0, 0, 0.0),
-                          //       Color.fromRGBO(0, 0, 0, 0.2),
-                          //       Color.fromRGBO(0, 0, 0, 0.4),
-                          //     ],
-                          //   ),
-                          // ),
-                          child: SafeArea(
+                  child: Flex(
+                    direction: Axis.vertical,
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      widget.logo != null
+                          ? ContentContainer(
+                              padding: const EdgeInsets.only(bottom: 32, left: 16, right: 16, top: 16),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Container(
+                                  height: widget.logoHeight,
+                                  width: widget.logoWidth,
+                                  constraints: BoxConstraints(
+                                    maxHeight: widget.logoHeight,
+                                    maxWidth: widget.logoWidth,
+                                  ),
+                                  child: widget.logoCircle
+                                      ? CircleAvatar(
+                                          // backgroundColor: color,
+                                          child: AspectRatio(
+                                            aspectRatio: 1 / 1,
+                                            child: ClipOval(
+                                              child:
+                                                  SmartImage(url: widget.logo),
+                                            ),
+                                          ),
+                                        )
+                                      : SmartImage(url: widget.logo),
+                                ),
+                              ),
+                            )
+                          : const SizedBox(),
+                      Container(
+                        color: theme.colorScheme.background,
+                        child: SafeArea(
+                          child: ContentContainer(
+                            padding: const EdgeInsets.only(
+                                left: 16, right: 16, top: 16, bottom: 48),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
@@ -738,8 +822,8 @@ class _ViewAuthPageState extends State<ViewAuthPage>
                             ),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ],
