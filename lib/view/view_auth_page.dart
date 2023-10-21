@@ -64,8 +64,8 @@ class ViewAuthPage extends StatefulWidget {
     this.policies,
     required this.url,
     this.logo,
-    this.logoHeight = 200,
-    this.logoWidth = 200,
+    this.logoHeight = 150,
+    this.logoWidth = 150,
     this.logoCircle = false,
   });
 
@@ -758,7 +758,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
                     children: <Widget>[
                       widget.logo != null
                           ? ContentContainer(
-                              padding: const EdgeInsets.only(bottom: 32, left: 16, right: 16, top: 16),
+                              padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
                               child: Align(
                                 alignment: Alignment.centerLeft,
                                 child: Container(
@@ -798,7 +798,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
                                   width: double.infinity,
                                   child: Text(
                                     locales.get('page-auth--title'),
-                                    style: textTheme.titleLarge,
+                                    style: textTheme.displayMedium,
                                     // textAlign: TextAlign.center,
                                   ),
                                 ),
