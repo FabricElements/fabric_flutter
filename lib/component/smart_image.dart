@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 
 // import 'package:transparent_image/transparent_image.dart';
@@ -18,21 +16,22 @@ import '../helper/utils.dart';
 class SmartImage extends StatelessWidget {
   const SmartImage({
     super.key,
-    this.placeholder,
     this.size,
     required this.url,
-    this.color = Colors.transparent,
+    this.color,
   });
-  final Uint8List? placeholder;
+
   final String? size;
   final String? url;
-  final Color color;
+  final Color? color;
 
   // FORMAT
 
   @override
   Widget build(BuildContext context) {
-    final placeholderWidget = Container(color: color);
+    final theme = Theme.of(context);
+    final background = color ?? theme.colorScheme.surfaceVariant;
+    Widget placeholderWidget = Container(color: background);
 
     /// Return placeholder image if path is not valid
     if (url == null || url!.isEmpty) {
@@ -72,12 +71,48 @@ class SmartImage extends StatelessWidget {
           queryParameters: queryParameters,
         ).toString();
         return Container(
-          color: color,
+          color: background,
           child: Image.network(
             path,
             fit: BoxFit.cover,
-            // colorBlendMode: BlendMode.srcATop,
-            // color: color,
+            errorBuilder: (BuildContext context, Object exception,
+                StackTrace? stackTrace) {
+              return Container(
+                color: theme.colorScheme.error,
+                child: Center(
+                  child: Icon(
+                    Icons.broken_image,
+                    color: theme.colorScheme.onError,
+                  ),
+                ),
+              );
+            },
+            loadingBuilder: (BuildContext context, Widget child,
+                ImageChunkEvent? loadingProgress) {
+              if (loadingProgress == null) {
+                return child;
+              }
+              String pathPlaceholder = Utils.uriMergeQuery(
+                uri: uri,
+                queryParameters: {
+                  'width': [50.toString()],
+                  'height': [50.toString()],
+                },
+              ).toString();
+              return Image.network(pathPlaceholder, fit: BoxFit.fill);
+            },
+            frameBuilder: (BuildContext context, Widget child, int? frame,
+                bool wasSynchronouslyLoaded) {
+              if (wasSynchronouslyLoaded) {
+                return child;
+              }
+              return AnimatedOpacity(
+                opacity: frame == null ? 0 : 1,
+                duration: const Duration(seconds: 1),
+                curve: Curves.easeOut,
+                child: child,
+              );
+            },
           ),
         );
       },

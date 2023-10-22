@@ -65,6 +65,9 @@ class AlertData {
   /// and it can affect the navigation
   bool clear;
 
+  /// Scrollable content for [AlertWidget.dialog] using [AlertDialog]
+  bool scrollable;
+
   AlertData({
     this.action,
     this.dismiss,
@@ -80,6 +83,7 @@ class AlertData {
     this.titleStyle,
     this.bodyStyle,
     this.clear = false,
+    this.scrollable = false,
     this.child,
   });
 }
@@ -153,23 +157,26 @@ class StateAlert extends ChangeNotifier {
       print('////////////////////////////');
     }
     Color buttonColor = theme.colorScheme.primary;
+    Color buttonColorForeground = theme.colorScheme.onPrimary;
     switch (alertData.type) {
       case AlertType.critical:
         alertData.color = theme.colorScheme.error;
         alertData.textColor = theme.colorScheme.onError;
         alertData.duration ??= 15;
-        buttonColor = theme.colorScheme.error;
+        buttonColor = theme.colorScheme.errorContainer;
+        buttonColorForeground = theme.colorScheme.onErrorContainer;
         break;
       case AlertType.warning:
-        // alertData.textColor = theme.colorScheme.error;
         alertData.duration ??= 15;
         buttonColor = theme.colorScheme.error;
+        buttonColorForeground = theme.colorScheme.onErrorContainer;
         break;
       case AlertType.success:
         alertData.color = theme.colorScheme.primaryContainer;
         alertData.textColor = theme.colorScheme.onPrimaryContainer;
         alertData.duration ??= 5;
         buttonColor = theme.colorScheme.primary;
+        buttonColorForeground = theme.colorScheme.onPrimary;
         break;
       default:
     }
@@ -305,7 +312,7 @@ class StateAlert extends ChangeNotifier {
     ));
     if (hasAction || hasValidPath) {
       actions.add(FilledButton.icon(
-        style: FilledButton.styleFrom(backgroundColor: buttonColor),
+        style: FilledButton.styleFrom(backgroundColor: buttonColor, foregroundColor: buttonColorForeground),
         label: Text(locales.get(alertData.action!.label).toUpperCase()),
         icon: Icon(alertData.action!.icon),
         onPressed: () async {
@@ -397,7 +404,7 @@ class StateAlert extends ChangeNotifier {
                 primary: false,
                 backgroundColor: theme.colorScheme.surface.withOpacity(0.3),
                 body: AlertDialog(
-                  scrollable: true,
+                  scrollable: alertData.scrollable,
                   actions: actions,
                   content: content,
                   backgroundColor: alertData.color,

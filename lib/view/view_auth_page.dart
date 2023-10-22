@@ -151,7 +151,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     final locales = AppLocalizations.of(context)!;
     final textTheme = Theme.of(context).textTheme;
     final alert = Provider.of<StateAlert>(context, listen: false);
-
+    final height = MediaQuery.of(context).size.height;
     /// Access action link
     void actionLink() async {
       try {
@@ -663,17 +663,14 @@ class _ViewAuthPageState extends State<ViewAuthPage>
               type: AlertType.basic,
               widget: AlertWidget.dialog,
               child: SizedBox(
-                height: double.maxFinite,
                 width: double.maxFinite,
-                child: SingleChildScrollView(
+                height: height * 0.5,
+                child: Markdown(
+                  selectable: true,
+                  // shrinkWrap: true,
+                  data: mdFromFile,
                   padding:
-                      const EdgeInsets.symmetric(vertical: 32, horizontal: 32),
-                  child: Markdown(
-                    selectable: true,
-                    shrinkWrap: true,
-                    data: mdFromFile,
-                    padding: EdgeInsets.zero,
-                  ),
+                  const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
                 ),
               ),
               action: ButtonOptions(
@@ -770,7 +767,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
                                   ),
                                   child: widget.logoCircle
                                       ? CircleAvatar(
-                                          // backgroundColor: color,
                                           child: AspectRatio(
                                             aspectRatio: 1 / 1,
                                             child: ClipOval(
@@ -788,18 +784,15 @@ class _ViewAuthPageState extends State<ViewAuthPage>
                         color: theme.colorScheme.background,
                         child: SafeArea(
                           child: ContentContainer(
-                            padding: const EdgeInsets.only(
-                                left: 16, right: 16, top: 16, bottom: 48),
+                            padding: const EdgeInsets.all(16),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
-                                Container(height: 32),
                                 SizedBox(
                                   width: double.infinity,
                                   child: Text(
                                     locales.get('page-auth--title'),
                                     style: textTheme.displayMedium,
-                                    // textAlign: TextAlign.center,
                                   ),
                                 ),
                                 Container(height: 16),
@@ -808,7 +801,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
                                   child: Text(
                                     locales.get('page-auth--description'),
                                     style: textTheme.titleMedium,
-                                    // textAlign: TextAlign.center,
                                   ),
                                 ),
                                 Container(height: 16),
