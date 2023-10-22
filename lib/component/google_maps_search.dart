@@ -181,13 +181,12 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
                 textInputAction: TextInputAction.search,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(32),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                   contentPadding: const EdgeInsets.all(16),
                   filled: true,
                   hintText: name ?? locales.get('label--search'),
                   suffixIcon: const Icon(Icons.search),
-                  fillColor: Colors.white,
                 ),
                 onChanged: (val) async {
                   if (val.length < 2) {
@@ -233,33 +232,35 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
 
         if (totalItems > 0) {
           mapComponents.add(
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16.0),
-              child: Material(
-                clipBehavior: Clip.hardEdge,
-                color: Colors.transparent,
-                borderRadius: BorderRadius.circular(8),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxWidth: width,
-                    minHeight: height / 3,
-                    maxHeight: height / 2,
-                  ),
-                  child: SingleChildScrollView(
-                    child: Flex(
-                      direction: Axis.vertical,
-                      children: results.map((e) {
-                        final item = e;
-                        String formattedAddress = item.formattedAddress;
-                        return Container(
-                          color: Colors.grey.shade50,
-                          child: Wrap(
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                child: Material(
+                  clipBehavior: Clip.hardEdge,
+                  color: theme.colorScheme.surfaceVariant,
+                  borderRadius: BorderRadius.circular(8),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: width,
+                      minHeight: height / 3,
+                      maxHeight: height / 2,
+                    ),
+                    child: SingleChildScrollView(
+                      child: Flex(
+                        direction: Axis.vertical,
+                        mainAxisSize: MainAxisSize.min,
+                        children: List.generate(results.length, (index) {
+                          final item = results[index];
+                          String formattedAddress = item.formattedAddress;
+                          return Flex(
+                            direction: Axis.vertical,
+                            mainAxisSize: MainAxisSize.min,
                             children: <Widget>[
                               ListTile(
                                 dense: true,
                                 leading: Icon(
                                   Icons.location_on,
-                                  color: theme.colorScheme.primary,
+                                  color: theme.colorScheme.secondary,
                                 ),
                                 title: Text(formattedAddress),
                                 trailing: Icon(
@@ -276,9 +277,9 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
                               ),
                               const Divider(height: 1),
                             ],
-                          ),
-                        );
-                      }).toList(),
+                          );
+                        }),
+                      ),
                     ),
                   ),
                 ),
@@ -301,16 +302,14 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
           children: <Widget>[
             preview,
             Positioned(
-              top: 0,
-              right: 0,
-              left: 0,
-              bottom: 0,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Flex(
-                  direction: Axis.vertical,
-                  children: mapComponents,
-                ),
+              top: 16,
+              right: 16,
+              left: 16,
+              bottom: 16,
+              child: Flex(
+                direction: Axis.vertical,
+                mainAxisSize: MainAxisSize.min,
+                children: mapComponents,
               ),
             ),
           ],
