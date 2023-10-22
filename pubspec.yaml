@@ -1,6 +1,6 @@
 name: fabric_flutter
 description: Native components and helpers
-version: 1.2.7+2
+version: 1.2.7+3
 
 environment:
   sdk: '>=3.0.3 <4.0.0'
@@ -38,6 +38,7 @@ dependencies:
   universal_html: ^2.2.4
   video_player: ^2.7.2
   webview_flutter: ^4.4.1
+  flutter_markdown: ^0.6.18
 dev_dependencies:
   flutter_test:
     sdk: flutter
