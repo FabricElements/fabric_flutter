@@ -65,7 +65,7 @@ UserData _$UserDataFromJson(Map<String, dynamic> json) => UserData(
       avatar: json['avatar'] as String?,
       firstName: json['firstName'] as String?,
       lastName: json['lastName'] as String?,
-      language: json['language'] as String? ?? 'en',
+      language: json['language'] as String?,
       password: json['password'] as String?,
       bcId: json['bcId'] as String?,
       bsId: json['bsId'] as String?,
@@ -92,7 +92,7 @@ Map<String, dynamic> _$UserDataToJson(UserData instance) {
   writeNotNull('id', instance.id);
   writeNotNull('firstName', instance.firstName);
   writeNotNull('lastName', instance.lastName);
-  val['language'] = instance.language;
+  writeNotNull('language', instance.language);
   writeNotNull('onboarding', instance.onboarding?.toJson());
   writeNotNull('links', instance.links?.toJson());
   writeNotNull('phone', instance.phone);

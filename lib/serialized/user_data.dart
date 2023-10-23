@@ -112,7 +112,7 @@ class UserData {
 
   /// Language
   @JsonKey(includeIfNull: false)
-  String language;
+  String? language;
 
   /// User onboarding journey
   @JsonKey(includeIfNull: false)
@@ -184,7 +184,7 @@ class UserData {
     this.avatar,
     this.firstName,
     this.lastName,
-    this.language = 'en',
+    this.language,
     this.password,
     this.bcId,
     this.bsId,
