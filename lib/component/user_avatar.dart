@@ -31,13 +31,14 @@ class UserAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
-    final color = theme.colorScheme.onPrimary;
+    final color = theme.colorScheme.onPrimaryContainer;
+    final backgroundColor = theme.colorScheme.primaryContainer;
     String abbreviation = Utils.nameAbbreviation(
       firstName: firstName ?? name,
       lastName: lastName,
     );
     Widget avatarContainer = CircleAvatar(
-      backgroundColor: theme.colorScheme.primaryContainer,
+      backgroundColor: backgroundColor,
       child: Icon(
         Icons.person,
         color: color,
@@ -45,7 +46,7 @@ class UserAvatar extends StatelessWidget {
     );
     if (avatar != null) {
       avatarContainer = CircleAvatar(
-        backgroundColor: color,
+        backgroundColor: backgroundColor,
         child: AspectRatio(
           aspectRatio: 1 / 1,
           child: ClipOval(
@@ -55,7 +56,7 @@ class UserAvatar extends StatelessWidget {
       );
     } else if (abbreviation.isNotEmpty) {
       avatarContainer = CircleAvatar(
-        backgroundColor: Colors.grey.shade100,
+        backgroundColor: backgroundColor,
         child: Text(
           abbreviation,
           style: textTheme.titleMedium?.copyWith(color: color),
