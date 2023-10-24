@@ -169,7 +169,7 @@ class StateAlert extends ChangeNotifier {
       case AlertType.warning:
         alertData.duration ??= 15;
         buttonColor = theme.colorScheme.error;
-        buttonColorForeground = theme.colorScheme.onErrorContainer;
+        buttonColorForeground = theme.colorScheme.onError;
         break;
       case AlertType.success:
         alertData.color = theme.colorScheme.primaryContainer;
