@@ -125,6 +125,7 @@ class InputData extends StatefulWidget {
     this.prefixIcon,
     this.prefixStyle,
   });
+
   final dynamic value;
   final List<dynamic> enums;
   final List<ButtonOptions> options;
@@ -701,67 +702,74 @@ getValue -------------------------------------
             );
           });
         }
-        endWidget = SearchAnchor(
-          searchController: searchController,
-          builder: (BuildContext context, SearchController controller) {
-            return TextFormField(
-              autofillHints: widget.autofillHints,
-              enableSuggestions: false,
-              keyboardType: keyboardType,
-              textInputAction: textInputAction,
-              controller: textController,
-              readOnly: true,
-              decoration: inputDecoration.copyWith(
-                hintText: widget.hintText ?? hintTextDefault,
-                prefixIcon: inputDecoration.prefixIcon ??
-                    inputDecoration.prefixIcon ??
-                    Icon(inputDataTypeIcon(widget.type)),
-                suffixIcon: const Icon(Icons.arrow_drop_down),
-              ),
-              onTap: isDisabled
-                  ? null
-                  : () async {
-                      searchController.openView();
-                    },
-            );
-          },
-          suggestionsBuilder:
-              (BuildContext context, SearchController controller) {
-            final value = controller.text;
-            List<ButtonOptions> recommendations = dropdownOptions;
-            if (value.isNotEmpty) {
-              recommendations = recommendations.where((element) {
-                final labelMatch =
-                    element.label.toLowerCase().contains(value.toLowerCase());
-                final labelAltMatch = element.labelAlt
-                        ?.toLowerCase()
-                        .contains(value.toLowerCase()) ??
-                    false;
-                final valueMatch =
-                    element.value.toString().contains(value.toLowerCase());
-                return labelMatch || valueMatch || labelAltMatch;
-              }).toList();
-            }
-            return List<ListTile>.generate(recommendations.length, (int index) {
-              final item = recommendations[index];
-              return ListTile(
-                title: Text(item.label),
-                onTap: () {
-                  controller.closeView('');
-                  if (widget.onChanged != null && item.value != value) {
-                    widget.onChanged!(item.value);
-                  }
-                  if (widget.onChanged != null) {
-                    widget.onChanged!(item.value == '' ? null : item.value);
-                  }
-                  if (widget.onComplete != null) widget.onComplete!(item.value);
-                  if (widget.onSubmit != null) widget.onSubmit!(item.value);
-                  // if (mounted) setState(() {});
+        final widgetInput = TextFormField(
+          autofillHints: widget.autofillHints,
+          enableSuggestions: false,
+          keyboardType: keyboardType,
+          textInputAction: textInputAction,
+          controller: textController,
+          readOnly: true,
+          decoration: inputDecoration.copyWith(
+            hintText: widget.hintText ?? hintTextDefault,
+            prefixIcon: inputDecoration.prefixIcon ??
+                inputDecoration.prefixIcon ??
+                Icon(inputDataTypeIcon(widget.type)),
+            suffixIcon: const Icon(Icons.arrow_drop_down),
+          ),
+          onTap: isDisabled
+              ? null
+              : () async {
+                  searchController.openView();
                 },
-              );
-            });
-          },
         );
+        if (!isDisabled) {
+          endWidget = SearchAnchor(
+            searchController: searchController,
+            builder: (BuildContext context, SearchController controller) {
+              return widgetInput;
+            },
+            suggestionsBuilder:
+                (BuildContext context, SearchController controller) {
+              final value = controller.text;
+              List<ButtonOptions> recommendations = dropdownOptions;
+              if (value.isNotEmpty) {
+                recommendations = recommendations.where((element) {
+                  final labelMatch =
+                      element.label.toLowerCase().contains(value.toLowerCase());
+                  final labelAltMatch = element.labelAlt
+                          ?.toLowerCase()
+                          .contains(value.toLowerCase()) ??
+                      false;
+                  final valueMatch =
+                      element.value.toString().contains(value.toLowerCase());
+                  return labelMatch || valueMatch || labelAltMatch;
+                }).toList();
+              }
+              return List<ListTile>.generate(recommendations.length,
+                  (int index) {
+                final item = recommendations[index];
+                return ListTile(
+                  title: Text(item.label),
+                  onTap: () {
+                    controller.closeView('');
+                    if (widget.onChanged != null && item.value != value) {
+                      widget.onChanged!(item.value);
+                    }
+                    if (widget.onChanged != null) {
+                      widget.onChanged!(item.value == '' ? null : item.value);
+                    }
+                    if (widget.onComplete != null)
+                      widget.onComplete!(item.value);
+                    if (widget.onSubmit != null) widget.onSubmit!(item.value);
+                    // if (mounted) setState(() {});
+                  },
+                );
+              });
+            },
+          );
+        } else {
+          endWidget = widgetInput;
+        }
         break;
       case InputDataType.radio:
         List<Widget> radioOptions =
