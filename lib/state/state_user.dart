@@ -31,9 +31,9 @@ class StateUser extends StateDocument {
   ThemeMode? _theme;
 
   // Internet connection status
-  bool _connected = true;
-  bool _connectionChanged = false;
-  String? _connectedTo;
+  bool connected = true;
+  bool connectionChanged = false;
+  String? connectedTo;
 
   /// More at [streamStatus]
   /// ignore: close_sinks
@@ -219,18 +219,18 @@ class StateUser extends StateDocument {
         uid: object?.uid,
         language: language,
         theme: theme,
-        connected: _connected,
-        connectionChanged: _connectionChanged,
-        connectedTo: _connected ? _connectedTo : null,
+        connected: connected,
+        connectionChanged: connectionChanged,
+        connectedTo: connected ? connectedTo : null,
       );
 
   /// Update user status data
   _userStatusUpdate() async {
     final connectivity = await Connectivity().checkConnectivity();
     final connectedUpdated = connectivity != ConnectivityResult.none;
-    _connectionChanged = _connected != connectedUpdated;
-    _connected = connectedUpdated;
-    _connectedTo = connectivity.name;
+    connectionChanged = connected != connectedUpdated;
+    connected = connectedUpdated;
+    connectedTo = connectivity.name;
     if (userStatus.toJson().toString() != _previousStatus.toJson().toString()) {
       _previousStatus = userStatus;
       _controllerStreamStatus.sink
@@ -268,7 +268,7 @@ class StateUser extends StateDocument {
     // Check connectivity
     Connectivity().onConnectivityChanged.listen(
         (ConnectivityResult result) async {
-      if (result.name != _connectedTo) await _userStatusUpdate();
+      if (result.name != connectedTo) await _userStatusUpdate();
     }, onError: (e) => {});
     _auth
         .userChanges()
