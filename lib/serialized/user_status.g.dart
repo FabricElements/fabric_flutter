@@ -14,6 +14,9 @@ UserStatus _$UserStatusFromJson(Map<String, dynamic> json) => UserStatus(
       theme: $enumDecodeNullable(_$ThemeModeEnumMap, json['theme']) ??
           ThemeMode.system,
       uid: json['uid'],
+      connected: json['connected'] as bool? ?? true,
+      connectionChanged: json['connectionChanged'] as bool? ?? false,
+      connectedTo: json['connectedTo'] as String?,
     );
 
 Map<String, dynamic> _$UserStatusToJson(UserStatus instance) {
@@ -32,6 +35,9 @@ Map<String, dynamic> _$UserStatusToJson(UserStatus instance) {
   writeNotNull('uid', instance.uid);
   val['language'] = instance.language;
   val['theme'] = _$ThemeModeEnumMap[instance.theme]!;
+  val['connected'] = instance.connected;
+  val['connectionChanged'] = instance.connectionChanged;
+  val['connectedTo'] = instance.connectedTo;
   return val;
 }
 

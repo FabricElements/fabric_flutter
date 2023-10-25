@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +29,11 @@ class StateUser extends StateDocument {
   bool _init = false;
   String? _language;
   ThemeMode? _theme;
+
+  // Internet connection status
+  bool _connected = true;
+  bool _connectionChanged = false;
+  String? _connectedTo;
 
   /// More at [streamStatus]
   /// ignore: close_sinks
@@ -203,31 +209,33 @@ class StateUser extends StateDocument {
     return roles.contains(roleFromData(group: group));
   }
 
+  UserStatus _previousStatus = UserStatus();
+
   /// User Status
-  UserStatus? _userStatus;
-
-  /// Get userStatus
-  UserStatus? get userStatus => _userStatus;
-
-  /// Set userStatus
-  set userStatus(UserStatus? status) {
-    final previous = _userStatus?.toJson() ?? {};
-    if (status != null && !mapEquals(status.toJson(), previous)) {
-      _userStatus = status;
-      _controllerStreamStatus.sink.add(status);
-    }
-  }
+  UserStatus get userStatus => UserStatus(
+        role: role,
+        admin: admin,
+        signedIn: signedIn,
+        uid: object?.uid,
+        language: language,
+        theme: theme,
+        connected: _connected,
+        connectionChanged: _connectionChanged,
+        connectedTo: _connected ? _connectedTo : null,
+      );
 
   /// Update user status data
   _userStatusUpdate() async {
-    userStatus = UserStatus(
-      role: role,
-      admin: admin,
-      signedIn: signedIn,
-      uid: object?.uid,
-      language: language,
-      theme: theme,
-    );
+    final connectivity = await Connectivity().checkConnectivity();
+    final connectedUpdated = connectivity != ConnectivityResult.none;
+    _connectionChanged = _connected != connectedUpdated;
+    _connected = connectedUpdated;
+    _connectedTo = connectivity.name;
+    if (userStatus.toJson().toString() != _previousStatus.toJson().toString()) {
+      _previousStatus = userStatus;
+      _controllerStreamStatus.sink
+          .add(UserStatus.fromJson(userStatus.toJson()));
+    }
   }
 
   /// Refresh auth state
@@ -257,9 +265,19 @@ class StateUser extends StateDocument {
     Utils.getLanguage()
         .then((value) => _language = value)
         .catchError((error) => '');
+    // Check connectivity
+    Connectivity().onConnectivityChanged.listen(
+        (ConnectivityResult result) async {
+      if (result.name != _connectedTo) await _userStatusUpdate();
+    }, onError: (e) => {});
     _auth
         .userChanges()
         .listen(_refreshAuth, onError: (e) => error = e.toString());
+    // Future.delayed(const Duration(seconds: 1)).then((_) {
+    //   _auth
+    //       .userChanges()
+    //       .listen(_refreshAuth, onError: (e) => error = e.toString());
+    // });
   }
 
   bool get initCalled => _init;

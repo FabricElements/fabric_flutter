@@ -17,8 +17,13 @@ class UserStatus {
   /// Language
   final String language;
 
-  /// Brightness
+  /// Theme Mode
   final ThemeMode theme;
+
+  /// Internet connection status
+  final bool connected;
+  final bool connectionChanged;
+  final String? connectedTo;
 
   UserStatus({
     this.signedIn = false,
@@ -27,6 +32,9 @@ class UserStatus {
     this.language = 'en',
     this.theme = ThemeMode.system,
     this.uid,
+    this.connected = true,
+    this.connectionChanged = false,
+    this.connectedTo,
   });
 
   factory UserStatus.fromJson(Map<String, dynamic>? json) =>

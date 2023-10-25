@@ -39,6 +39,7 @@ dependencies:
   video_player: ^2.7.2
   webview_flutter: ^4.4.1
   flutter_markdown: ^0.6.18
+  connectivity_plus: ^5.0.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

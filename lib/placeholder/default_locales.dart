@@ -637,6 +637,14 @@ dynamic defaultLocales = {
     'en': 'Successfully downloaded',
     'es': 'Se descargó correctamente',
   },
+  'notification--you-are--offline': {
+    'en': 'You are offline.',
+    'es': 'Sin conexión a internet.',
+  },
+  'notification--you-are-back-online': {
+    'en': 'You are back online.',
+    'es': 'Estás de nuevo en línea.',
+  },
   'label--plus-code': {
     'en': 'Plus Code',
     'es': 'Código Plus',
