@@ -226,11 +226,15 @@ class StateUser extends StateDocument {
 
   /// Update user status data
   _userStatusUpdate() async {
-    final connectivity = await Connectivity().checkConnectivity();
-    final connectedUpdated = connectivity != ConnectivityResult.none;
-    connectionChanged = connected != connectedUpdated;
-    connected = connectedUpdated;
-    connectedTo = connectivity.name;
+    try {
+      final connectivity = await Connectivity().checkConnectivity();
+      final connectedUpdated = connectivity != ConnectivityResult.none;
+      connectionChanged = connected != connectedUpdated;
+      connected = connectedUpdated;
+      connectedTo = connectivity.name;
+    } catch (e) {
+      if (kDebugMode) print('Connectivity error: ${e.toString()}');
+    }
     if (userStatus.toJson().toString() != _previousStatus.toJson().toString()) {
       _previousStatus = userStatus;
       _controllerStreamStatus.sink
@@ -265,11 +269,18 @@ class StateUser extends StateDocument {
     Utils.getLanguage()
         .then((value) => _language = value)
         .catchError((error) => '');
-    // Check connectivity
-    Connectivity().onConnectivityChanged.listen(
-        (ConnectivityResult result) async {
-      if (result.name != connectedTo) await _userStatusUpdate();
-    }, onError: (e) => {});
+    try {
+      // Check connectivity
+      Connectivity().onConnectivityChanged.listen(
+          (ConnectivityResult result) async {
+        if (result.name != connectedTo) await _userStatusUpdate();
+      },
+          onError: (error) => {
+                if (kDebugMode) print('Connectivity error: ${error.toString()}')
+              });
+    } catch (error) {
+      if (kDebugMode) print('Connectivity error: ${error.toString()}');
+    }
     _auth
         .userChanges()
         .listen(_refreshAuth, onError: (e) => error = e.toString());
