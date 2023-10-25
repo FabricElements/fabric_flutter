@@ -152,6 +152,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     final textTheme = Theme.of(context).textTheme;
     final alert = Provider.of<StateAlert>(context, listen: false);
     final height = MediaQuery.of(context).size.height;
+
     /// Access action link
     void actionLink() async {
       try {
@@ -381,20 +382,23 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         }
         // Trigger the authentication flow
         final googleUser = await googleSignInAccount.signIn();
+        if (googleUser == null) {
+          throw locales.get('notification--please-try-again');
+        }
         // Obtain the auth details from the request
-        final GoogleSignInAuthentication? googleAuth =
-            await googleUser?.authentication;
+        final GoogleSignInAuthentication googleAuth =
+            await googleUser.authentication;
 
-        await verifyIfUserExists({'email': googleUser?.email});
+        await verifyIfUserExists({'email': googleUser.email});
         // Create a new credential
         final credential = GoogleAuthProvider.credential(
-          accessToken: googleAuth?.accessToken,
-          idToken: googleAuth?.idToken,
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
         );
         // Once signed in, return the UserCredential and get the User object
         final user = (await _auth.signInWithCredential(credential)).user;
         if (user == null) {
-          throw Exception('Please try again');
+          throw locales.get('notification--please-try-again');
         }
       } on FirebaseFunctionsException catch (error) {
         alert.show(AlertData(
@@ -480,7 +484,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
             .user;
         stateDynamicLinks.pendingDynamicLinkData = null;
         if (user == null) {
-          throw Exception('Please try again');
+          throw locales.get('notification--please-try-again');
         }
         resetView();
       } on FirebaseFunctionsException catch (error) {
@@ -670,7 +674,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
                   // shrinkWrap: true,
                   data: mdFromFile,
                   padding:
-                  const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+                      const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
                 ),
               ),
               action: ButtonOptions(
@@ -755,7 +759,8 @@ class _ViewAuthPageState extends State<ViewAuthPage>
                     children: <Widget>[
                       widget.logo != null
                           ? ContentContainer(
-                              padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 32, horizontal: 16),
                               child: Align(
                                 alignment: Alignment.centerLeft,
                                 child: Container(

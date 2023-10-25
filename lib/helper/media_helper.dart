@@ -181,7 +181,7 @@ class MediaHelper {
     } catch (error) {
       if (kDebugMode) print(error);
       // Check for specific errors, if not just return error
-      throw Exception('alert--issue-resizing-image');
+      throw 'alert--issue-resizing-image';
     }
   }
 
