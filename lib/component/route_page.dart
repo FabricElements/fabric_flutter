@@ -42,12 +42,14 @@ class _RoutePageState extends State<RoutePage> {
       if (widget.status?.connectionChanged ?? false) {
         if (widget.status?.connected ?? false) {
           alert.show(AlertData(
+            icon: Icons.wifi,
             body: locales.get('notification--you-are-back-online'),
             clear: true,
             duration: 2,
           ));
         } else {
           alert.show(AlertData(
+            icon: Icons.wifi_off,
             body: locales.get('notification--you-are--offline'),
             clear: true,
             duration: 2,

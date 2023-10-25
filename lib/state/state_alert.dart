@@ -67,6 +67,7 @@ class AlertData {
 
   /// Scrollable content for [AlertWidget.dialog] using [AlertDialog]
   bool scrollable;
+  IconData? icon;
 
   AlertData({
     this.action,
@@ -77,6 +78,7 @@ class AlertData {
     this.type = AlertType.basic,
     this.widget = AlertWidget.snackBar,
     this.typeString,
+    this.icon,
     this.image,
     this.color,
     this.textColor,
@@ -257,6 +259,29 @@ class StateAlert extends ChangeNotifier {
     }
 
     /// Image
+    if (alertData.icon != null) {
+      mainItems.add(Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        width: double.maxFinite,
+        height: 48,
+        color: alertData.color,
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: AspectRatio(
+            aspectRatio: 1 / 1,
+            child: CircleAvatar(
+              backgroundColor: buttonColor,
+              child: Icon(
+                alertData.icon,
+                color: buttonColorForeground,
+              ),
+            ),
+          ),
+        ),
+      ));
+    }
+
+    /// Image
     if (alertData.image != null) {
       mainItems.add(Container(
         margin: const EdgeInsets.only(bottom: 16),
@@ -312,7 +337,9 @@ class StateAlert extends ChangeNotifier {
     ));
     if (hasAction || hasValidPath) {
       actions.add(FilledButton.icon(
-        style: FilledButton.styleFrom(backgroundColor: buttonColor, foregroundColor: buttonColorForeground),
+        style: FilledButton.styleFrom(
+            backgroundColor: buttonColor,
+            foregroundColor: buttonColorForeground),
         label: Text(locales.get(alertData.action!.label).toUpperCase()),
         icon: Icon(alertData.action!.icon),
         onPressed: () async {
