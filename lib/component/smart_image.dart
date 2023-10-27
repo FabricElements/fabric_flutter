@@ -40,7 +40,8 @@ class SmartImage extends StatelessWidget {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         final queryData = MediaQuery.of(context);
-        double devicePixelRatio = queryData.devicePixelRatio;
+        double devicePixelRatio = queryData.devicePixelRatio.floorToDouble();
+        if (devicePixelRatio < 1) devicePixelRatio = 1;
         int divisor = 100;
 
         /// Get dimensions in multiples of [divisor]
