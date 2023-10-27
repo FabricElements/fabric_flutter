@@ -43,7 +43,7 @@ class MediaHelper {
             throw 'alert--no-chosen-files';
           }
           final file = result.files.first;
-          if (file.size < 10) throw ('alert--file-is-too-small');
+          if (file.size < 10) throw 'alert--file-is-too-small';
           fileData = file.bytes;
           extension = file.extension;
           fileName = file.name;
@@ -200,7 +200,7 @@ class MediaHelper {
     );
     if (result == null || result.files.isEmpty) throw 'alert--no-chosen-files';
     final file = result.files.first;
-    if (file.size == 0) throw ('alert--file-is-too-small');
+    if (file.size == 0) throw 'alert--file-is-too-small';
     fileData = file.bytes!;
     extension = file.extension;
     fileName = file.name;

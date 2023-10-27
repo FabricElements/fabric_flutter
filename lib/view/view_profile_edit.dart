@@ -216,9 +216,15 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
           changed = _temporalImageBytes != null;
         }
       } catch (error) {
+        String errorMessage = error.toString();
+        final errorType = errorMessage == 'alert--no-chosen-files'
+            ? AlertType.warning
+            : AlertType.critical;
         alert.show(AlertData(
-          body: error.toString(),
-          type: AlertType.critical,
+          body: locales.get(errorMessage),
+          type: errorType,
+          duration: 5,
+          clear: true,
         ));
       }
       loading = false;

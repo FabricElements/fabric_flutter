@@ -155,7 +155,8 @@ class StateAlert extends ChangeNotifier {
     }
     if (kDebugMode) {
       print('////////// Alert: ${alertData.type} ///////////');
-      print(alertData.title ?? alertData.body ?? 'UNKNOWN');
+      print(alertData.title ?? 'UNKNOWN TITLE');
+      print(alertData.body ?? 'UNKNOWN BODY');
       print('////////////////////////////');
     }
     Color buttonColor = theme.colorScheme.primary;

@@ -117,7 +117,7 @@ class FirebaseStorageHelper {
           ? AlertType.warning
           : AlertType.critical;
       alert.show(AlertData(
-        body: locales.get(error.toString()),
+        body: locales.get(errorMessage),
         type: errorType,
         duration: 5,
         clear: true,
@@ -149,7 +149,7 @@ class FirebaseStorageHelper {
           ? AlertType.warning
           : AlertType.critical;
       alert.show(AlertData(
-        body: locales.get(error.toString()),
+        body: locales.get(errorMessage),
         type: errorType,
         duration: 5,
         clear: true,
