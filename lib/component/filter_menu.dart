@@ -16,6 +16,7 @@ class FilterMenuOptionData extends StatefulWidget {
     required this.data,
     required this.onChange,
   });
+
   final FilterData data;
   final ValueChanged<FilterData> onChange;
 
@@ -252,6 +253,7 @@ class FilterMenuOption extends StatefulWidget {
     required this.onChange,
     required this.onDelete,
   });
+
   final FilterData data;
   final ValueChanged<FilterData> onChange;
   final VoidCallback onDelete;
@@ -435,6 +437,7 @@ class FilterMenu extends StatefulWidget {
     this.icon,
     this.iconClear,
   });
+
   final List<FilterData> data;
   final ValueChanged<List<FilterData>> onChange;
 
@@ -625,10 +628,9 @@ class _FilterMenuState extends State<FilterMenu> {
         itemBuilder: (BuildContext context) => buttons,
         child: widget.child == null
             ? OutlinedButton.icon(
-                style: ButtonStyle(
-                  foregroundColor: MaterialStateProperty.all(
-                    theme.buttonTheme.colorScheme?.primary ?? Colors.black,
-                  ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor:
+                      theme.buttonTheme.colorScheme?.primary ?? Colors.black,
                 ),
                 onPressed: null,
                 icon: widget.icon ?? const Icon(Icons.filter_alt),
@@ -642,8 +644,8 @@ class _FilterMenuState extends State<FilterMenu> {
     }
     if (activeOptions.isNotEmpty) {
       menuOptions.add(OutlinedButton.icon(
-        style: ButtonStyle(
-          foregroundColor: MaterialStateProperty.all(Colors.red),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: theme.buttonTheme.colorScheme?.error ?? Colors.red,
         ),
         onPressed: clear,
         icon: widget.iconClear ?? const Icon(Icons.clear),

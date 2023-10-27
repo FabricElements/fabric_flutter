@@ -241,6 +241,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
       // double smallerSize =
       //     math.min(width >= 150 ? width : 150, height >= 150 ? height : 150);
       return ListView(
+        padding: const EdgeInsets.only(bottom: 64),
         children: <Widget>[
           Container(
             constraints: const BoxConstraints(maxWidth: 300, maxHeight: 300),
