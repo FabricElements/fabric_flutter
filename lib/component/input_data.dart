@@ -262,9 +262,10 @@ class _InputDataState extends State<InputData> {
           }
           break;
         case InputDataType.dropdown:
-          bool valueInOptions = widget.options.where((item) {
+          final optionMatch = widget.options.where((item) {
             return item.value == newValue;
-          }).isNotEmpty;
+          });
+          bool valueInOptions = optionMatch.isNotEmpty;
           if (valueInOptions) {
             value = newValue;
           } else {
@@ -274,7 +275,7 @@ class _InputDataState extends State<InputData> {
           bool sameValue = value == newFormattedValue;
           if (!sameValue) {
             value = newFormattedValue;
-            textController.text = value;
+            textController.text = valueInOptions ? optionMatch.first.label : '';
             if (notify && mounted) setState(() {});
           }
           break;
@@ -758,8 +759,9 @@ getValue -------------------------------------
                     if (widget.onChanged != null) {
                       widget.onChanged!(item.value == '' ? null : item.value);
                     }
-                    if (widget.onComplete != null)
+                    if (widget.onComplete != null) {
                       widget.onComplete!(item.value);
+                    }
                     if (widget.onSubmit != null) widget.onSubmit!(item.value);
                     // if (mounted) setState(() {});
                   },
