@@ -5,7 +5,7 @@ class FormatData {
   FormatData();
 
   static NumberFormat numberFormat({String locale = 'en_US'}) =>
-      NumberFormat('#,###.00', locale);
+      NumberFormat.decimalPatternDigits(locale: locale, decimalDigits: 2);
 
   static NumberFormat numberClearFormat({String locale = 'en_US'}) =>
       NumberFormat('#,###', locale);
