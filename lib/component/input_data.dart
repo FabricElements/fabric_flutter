@@ -445,14 +445,15 @@ getValue -------------------------------------
         validator = inputValidation.validateUrl;
         break;
       case InputDataType.double:
-        keyboardType = const TextInputType.numberWithOptions(decimal: true);
+        keyboardType =
+            const TextInputType.numberWithOptions(decimal: true, signed: true);
         inputFormatters.addAll([
           FilteringTextInputFormatter.singleLineFormatter,
           FilteringTextInputFormatter.allow(RegExp(r'(^\d*)(\.?)(\d*)')),
         ]);
         break;
       case InputDataType.int:
-        keyboardType = TextInputType.number;
+        keyboardType = const TextInputType.numberWithOptions(signed: true);
         inputFormatters.addAll([
           FilteringTextInputFormatter.singleLineFormatter,
           FilteringTextInputFormatter.digitsOnly,
