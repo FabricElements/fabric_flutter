@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
-import '../helper/app_localizations_delegate.dart';
 import '../state/state_alert.dart';
 import '../state/state_analytics.dart';
 import '../state/state_dynamic_links.dart';
