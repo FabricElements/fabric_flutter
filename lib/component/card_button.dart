@@ -88,7 +88,7 @@ class _CardButtonState extends State<CardButton> {
                       title: widget.headline != null
                           ? Text(
                               widget.headline!,
-                              style: textTheme.titleLarge?.copyWith(
+                              style: textTheme.titleMedium?.copyWith(
                                   color: theme.colorScheme.onSurface),
                               overflow: TextOverflow.ellipsis,
                               softWrap: true,
