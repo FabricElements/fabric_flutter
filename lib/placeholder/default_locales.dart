@@ -183,6 +183,10 @@ dynamic defaultLocales = {
     'en': 'Add',
     'es': 'Agregar',
   },
+  'label--removed': {
+    'en': 'Removed',
+    'es': 'Eliminado',
+  },
   'label--remove': {
     'en': 'Remove',
     'es': 'Eliminar',
