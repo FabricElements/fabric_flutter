@@ -52,7 +52,6 @@ class ViewAuthPage extends StatefulWidget {
     super.key,
     this.loader,
     this.image,
-    this.verify = false,
     this.phone = false,
     this.email = false,
     this.google = false,
@@ -71,7 +70,6 @@ class ViewAuthPage extends StatefulWidget {
 
   final Widget? loader;
   final String? image;
-  final bool verify;
   final bool phone;
   final bool email;
   final bool google;
@@ -107,6 +105,13 @@ class _ViewAuthPageState extends State<ViewAuthPage>
   String? emailLink;
   bool policiesAccepted = false;
 
+  late GoogleSignIn googleSignInAccount;
+  final List<String> googleScopes = <String>[
+    'email',
+  ];
+
+  bool initGoogle = false;
+
   @override
   void initState() {
     loading = false;
@@ -115,6 +120,11 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     webConfirmationResult = null;
     willSignInWithEmail = false;
     policiesAccepted = false;
+    googleSignInAccount = GoogleSignIn(
+      clientId: kIsWeb ? widget.googleClientId : null,
+      scopes: ['email'],
+      forceCodeForRefreshToken: true,
+    );
     WidgetsBinding.instance.addObserver(this);
     super.initState();
   }
@@ -131,15 +141,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       if (mounted) setState(() {});
     }
     super.didChangeAppLifecycleState(state);
-  }
-
-  /// Validate if user exists or fail
-  Future<void> verifyIfUserExists(Map<String, dynamic> data) async {
-    if (widget.verify) {
-      final HttpsCallable callable =
-          FirebaseFunctions.instance.httpsCallable('user-actions-exists');
-      await callable.call(data);
-    }
   }
 
   @override
@@ -254,7 +255,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       bool success = false;
       if (mounted) setState(() {});
       try {
-        await verifyIfUserExists({'phone': dataAuth.phoneValid});
         if (kIsWeb || Platform.isMacOS) {
           final confirmationResult = await _auth.signInWithPhoneNumber(
             dataAuth.phoneValid!,
@@ -361,52 +361,43 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     }
 
     /// Sign in with google function
-    void signInGoogle() async {
-      loading = true;
-      if (mounted) setState(() {});
+    signInGoogle() async {
+      // loading = true;
+      // if (mounted) setState(() {});
       try {
+        // Sign out if signed in
+        if (googleSignInAccount.currentUser != null) {
+          await googleSignInAccount.signOut();
+        }
+      } catch (error) {
+        //
+      }
+      try {
+        // Sign in with google provider
+        // googleProvider.addScope('https://www.googleapis.com/auth/contacts.readonly');
+        GoogleAuthProvider googleProvider = GoogleAuthProvider();
+        googleProvider.addScope('email');
+        googleProvider.addScope('profile');
         if (kIsWeb) {
-          assert(
-              widget.googleClientId != null &&
-                  widget.googleClientId!.isNotEmpty,
-              'googleClientId missing');
+          // final authenticated = await googleSignInAccount.signInSilently(
+          //     suppressErrors: true, reAuthenticate: false);
+          // if (authenticated == null) {
+          //   await googleSignInAccount.signIn();
+          // }
+          final authenticated = await googleSignInAccount.signIn();
+          if (authenticated == null) {
+            throw locales.get('notification--please-try-again');
+          }
+          final GoogleSignInAuthentication googleAuth =
+              await authenticated.authentication;
+          final credential = GoogleAuthProvider.credential(
+            accessToken: googleAuth.accessToken,
+            idToken: googleAuth.idToken,
+          );
+          await _auth.signInWithCredential(credential);
+        } else {
+          await FirebaseAuth.instance.signInWithProvider(googleProvider);
         }
-
-        final googleSignInAccount = GoogleSignIn(
-          clientId: widget.googleClientId,
-          scopes: ['email'],
-        );
-        if (await googleSignInAccount.isSignedIn()) {
-          /// Disconnect previews account
-          await googleSignInAccount.disconnect();
-        }
-        // Trigger the authentication flow
-        final googleUser = await googleSignInAccount.signIn();
-        if (googleUser == null) {
-          throw locales.get('notification--please-try-again');
-        }
-        // Obtain the auth details from the request
-        final GoogleSignInAuthentication googleAuth =
-            await googleUser.authentication;
-
-        await verifyIfUserExists({'email': googleUser.email});
-        // Create a new credential
-        final credential = GoogleAuthProvider.credential(
-          accessToken: googleAuth.accessToken,
-          idToken: googleAuth.idToken,
-        );
-        // Once signed in, return the UserCredential and get the User object
-        final user = (await _auth.signInWithCredential(credential)).user;
-        if (user == null) {
-          throw locales.get('notification--please-try-again');
-        }
-      } on FirebaseFunctionsException catch (error) {
-        alert.show(AlertData(
-          title: locales.get('alert--sign-in-failed'),
-          body: error.message ?? error.details['message'],
-          type: AlertType.critical,
-          clear: true,
-        ));
       } on FirebaseAuthException catch (error) {
         alert.show(AlertData(
           title: locales.get('alert--sign-in-failed'),
@@ -436,7 +427,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     /// Email Link Sign-in
     Future<void> signInWithEmailAndLink() async {
       try {
-        await verifyIfUserExists({'email': dataAuth.email});
         await _auth.sendSignInLinkToEmail(
           email: dataAuth.email,
           actionCodeSettings: ActionCodeSettings(
@@ -476,7 +466,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     /// Email Link Sign-in
     Future<void> confirmEmail() async {
       try {
-        await verifyIfUserExists({'email': dataAuth.email});
         final User? user = (await _auth.signInWithEmailLink(
           email: dataAuth.email,
           emailLink: emailLink!,
@@ -572,13 +561,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           await FirebaseAuth.instance.signInWithProvider(appleProvider);
         }
         resetView();
-      } on FirebaseFunctionsException catch (error) {
-        alert.show(AlertData(
-          title: locales.get('alert--sign-in-failed'),
-          body: error.message ?? error.details['message'],
-          type: AlertType.critical,
-          clear: true,
-        ));
       } on FirebaseAuthException catch (error) {
         alert.show(AlertData(
           title: locales.get('alert--sign-in-failed'),
@@ -621,7 +603,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     Widget authButton(provider) {
       String text = locales.get('label--sign-in');
       var icon = Icons.email;
-      VoidCallback action = () {
+      Function action = () {
         if (kDebugMode) print('clicked: $provider');
       };
 //      Color _iconColor = Material;
@@ -706,7 +688,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       return Padding(
         padding: const EdgeInsets.only(top: 16),
         child: FilledButton.icon(
-          onPressed: action,
+          onPressed: () => action(),
           label: Text(text.toUpperCase()),
           icon: Icon(icon),
         ),
