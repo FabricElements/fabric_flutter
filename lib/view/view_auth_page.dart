@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io' show Platform;
 import 'dart:math';
 
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:crypto/crypto.dart';
 import 'package:fabric_flutter/helper/options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -279,13 +278,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           );
         }
         success = true;
-      } on FirebaseFunctionsException catch (error) {
-        alert.show(AlertData(
-          title: locales.get('alert--sign-in-failed'),
-          body: error.message ?? error.details['message'],
-          type: AlertType.critical,
-          clear: true,
-        ));
       } catch (error) {
         debugPrint('confirmationResult failed ----------');
         alert.show(AlertData(
@@ -378,7 +370,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           throw locales.get('notification--please-try-again');
         }
         final GoogleSignInAuthentication googleAuth =
-        await authenticated.authentication;
+            await authenticated.authentication;
         final credential = GoogleAuthProvider.credential(
           accessToken: googleAuth.accessToken,
           idToken: googleAuth.idToken,
@@ -432,13 +424,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         ));
         section = 0;
         if (mounted) setState(() {});
-      } on FirebaseFunctionsException catch (error) {
-        alert.show(AlertData(
-          title: locales.get('alert--sign-in-failed'),
-          body: error.message ?? error.details['message'],
-          type: AlertType.critical,
-          clear: true,
-        ));
       } catch (error) {
         alert.show(AlertData(
           title: locales.get('alert--sign-in-failed'),
@@ -462,13 +447,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           throw locales.get('notification--please-try-again');
         }
         resetView();
-      } on FirebaseFunctionsException catch (error) {
-        alert.show(AlertData(
-          title: locales.get('alert--sign-in-failed'),
-          body: error.message ?? error.details['message'],
-          type: AlertType.critical,
-          clear: true,
-        ));
       } catch (error) {
         alert.show(AlertData(
           title: locales.get('alert--sign-in-failed'),
@@ -506,12 +484,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         alert.show(AlertData(
           title: 'Signed in with temporary account.',
           type: AlertType.success,
-          clear: true,
-        ));
-      } on FirebaseFunctionsException catch (error) {
-        alert.show(AlertData(
-          title: error.message ?? error.details['message'],
-          type: AlertType.critical,
           clear: true,
         ));
       } on FirebaseAuthException catch (e) {
