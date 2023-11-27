@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io' show Platform;
 import 'dart:math';
 
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:crypto/crypto.dart';
 import 'package:fabric_flutter/helper/options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -52,7 +51,6 @@ class ViewAuthPage extends StatefulWidget {
     super.key,
     this.loader,
     this.image,
-    this.verify = false,
     this.phone = false,
     this.email = false,
     this.google = false,
@@ -71,7 +69,6 @@ class ViewAuthPage extends StatefulWidget {
 
   final Widget? loader;
   final String? image;
-  final bool verify;
   final bool phone;
   final bool email;
   final bool google;
@@ -107,6 +104,13 @@ class _ViewAuthPageState extends State<ViewAuthPage>
   String? emailLink;
   bool policiesAccepted = false;
 
+  late GoogleSignIn googleSignInAccount;
+  final List<String> googleScopes = <String>[
+    'email',
+  ];
+
+  bool initGoogle = false;
+
   @override
   void initState() {
     loading = false;
@@ -115,6 +119,11 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     webConfirmationResult = null;
     willSignInWithEmail = false;
     policiesAccepted = false;
+    googleSignInAccount = GoogleSignIn(
+      clientId: kIsWeb ? widget.googleClientId : null,
+      scopes: ['email'],
+      forceCodeForRefreshToken: true,
+    );
     WidgetsBinding.instance.addObserver(this);
     super.initState();
   }
@@ -131,15 +140,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       if (mounted) setState(() {});
     }
     super.didChangeAppLifecycleState(state);
-  }
-
-  /// Validate if user exists or fail
-  Future<void> verifyIfUserExists(Map<String, dynamic> data) async {
-    if (widget.verify) {
-      final HttpsCallable callable =
-          FirebaseFunctions.instance.httpsCallable('user-actions-exists');
-      await callable.call(data);
-    }
   }
 
   @override
@@ -254,7 +254,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       bool success = false;
       if (mounted) setState(() {});
       try {
-        await verifyIfUserExists({'phone': dataAuth.phoneValid});
         if (kIsWeb || Platform.isMacOS) {
           final confirmationResult = await _auth.signInWithPhoneNumber(
             dataAuth.phoneValid!,
@@ -279,13 +278,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           );
         }
         success = true;
-      } on FirebaseFunctionsException catch (error) {
-        alert.show(AlertData(
-          title: locales.get('alert--sign-in-failed'),
-          body: error.message ?? error.details['message'],
-          type: AlertType.critical,
-          clear: true,
-        ));
       } catch (error) {
         debugPrint('confirmationResult failed ----------');
         alert.show(AlertData(
@@ -361,52 +353,29 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     }
 
     /// Sign in with google function
-    void signInGoogle() async {
-      loading = true;
-      if (mounted) setState(() {});
+    signInGoogle() async {
+      // loading = true;
+      // if (mounted) setState(() {});
       try {
-        if (kIsWeb) {
-          assert(
-              widget.googleClientId != null &&
-                  widget.googleClientId!.isNotEmpty,
-              'googleClientId missing');
+        // Sign out if signed in
+        if (googleSignInAccount.currentUser != null) {
+          await googleSignInAccount.signOut();
         }
-
-        final googleSignInAccount = GoogleSignIn(
-          clientId: widget.googleClientId,
-          scopes: ['email'],
-        );
-        if (await googleSignInAccount.isSignedIn()) {
-          /// Disconnect previews account
-          await googleSignInAccount.disconnect();
-        }
-        // Trigger the authentication flow
-        final googleUser = await googleSignInAccount.signIn();
-        if (googleUser == null) {
+      } catch (error) {
+        //
+      }
+      try {
+        final authenticated = await googleSignInAccount.signIn();
+        if (authenticated == null) {
           throw locales.get('notification--please-try-again');
         }
-        // Obtain the auth details from the request
         final GoogleSignInAuthentication googleAuth =
-            await googleUser.authentication;
-
-        await verifyIfUserExists({'email': googleUser.email});
-        // Create a new credential
+            await authenticated.authentication;
         final credential = GoogleAuthProvider.credential(
           accessToken: googleAuth.accessToken,
           idToken: googleAuth.idToken,
         );
-        // Once signed in, return the UserCredential and get the User object
-        final user = (await _auth.signInWithCredential(credential)).user;
-        if (user == null) {
-          throw locales.get('notification--please-try-again');
-        }
-      } on FirebaseFunctionsException catch (error) {
-        alert.show(AlertData(
-          title: locales.get('alert--sign-in-failed'),
-          body: error.message ?? error.details['message'],
-          type: AlertType.critical,
-          clear: true,
-        ));
+        await _auth.signInWithCredential(credential);
       } on FirebaseAuthException catch (error) {
         alert.show(AlertData(
           title: locales.get('alert--sign-in-failed'),
@@ -436,7 +405,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     /// Email Link Sign-in
     Future<void> signInWithEmailAndLink() async {
       try {
-        await verifyIfUserExists({'email': dataAuth.email});
         await _auth.sendSignInLinkToEmail(
           email: dataAuth.email,
           actionCodeSettings: ActionCodeSettings(
@@ -456,13 +424,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         ));
         section = 0;
         if (mounted) setState(() {});
-      } on FirebaseFunctionsException catch (error) {
-        alert.show(AlertData(
-          title: locales.get('alert--sign-in-failed'),
-          body: error.message ?? error.details['message'],
-          type: AlertType.critical,
-          clear: true,
-        ));
       } catch (error) {
         alert.show(AlertData(
           title: locales.get('alert--sign-in-failed'),
@@ -476,7 +437,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     /// Email Link Sign-in
     Future<void> confirmEmail() async {
       try {
-        await verifyIfUserExists({'email': dataAuth.email});
         final User? user = (await _auth.signInWithEmailLink(
           email: dataAuth.email,
           emailLink: emailLink!,
@@ -487,13 +447,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           throw locales.get('notification--please-try-again');
         }
         resetView();
-      } on FirebaseFunctionsException catch (error) {
-        alert.show(AlertData(
-          title: locales.get('alert--sign-in-failed'),
-          body: error.message ?? error.details['message'],
-          type: AlertType.critical,
-          clear: true,
-        ));
       } catch (error) {
         alert.show(AlertData(
           title: locales.get('alert--sign-in-failed'),
@@ -533,12 +486,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           type: AlertType.success,
           clear: true,
         ));
-      } on FirebaseFunctionsException catch (error) {
-        alert.show(AlertData(
-          title: error.message ?? error.details['message'],
-          type: AlertType.critical,
-          clear: true,
-        ));
       } on FirebaseAuthException catch (e) {
         if (kDebugMode) print(e);
         String errorMessage = locales.get('alert--sign-in-failed');
@@ -572,13 +519,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           await FirebaseAuth.instance.signInWithProvider(appleProvider);
         }
         resetView();
-      } on FirebaseFunctionsException catch (error) {
-        alert.show(AlertData(
-          title: locales.get('alert--sign-in-failed'),
-          body: error.message ?? error.details['message'],
-          type: AlertType.critical,
-          clear: true,
-        ));
       } on FirebaseAuthException catch (error) {
         alert.show(AlertData(
           title: locales.get('alert--sign-in-failed'),
@@ -621,7 +561,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     Widget authButton(provider) {
       String text = locales.get('label--sign-in');
       var icon = Icons.email;
-      VoidCallback action = () {
+      Function action = () {
         if (kDebugMode) print('clicked: $provider');
       };
 //      Color _iconColor = Material;
@@ -706,7 +646,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       return Padding(
         padding: const EdgeInsets.only(top: 16),
         child: FilledButton.icon(
-          onPressed: action,
+          onPressed: () => action(),
           label: Text(text.toUpperCase()),
           icon: Icon(icon),
         ),
@@ -719,7 +659,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     Widget spacer = const SizedBox(width: 8, height: 8);
     Widget spacerLarge = const SizedBox(width: 16, height: 16);
     List<Widget> homeButtonOptions = [];
-    if (widget.apple && (kIsWeb || Platform.isIOS || Platform.isMacOS)) {
+    if (widget.apple && !kIsWeb && (Platform.isIOS || Platform.isMacOS)) {
       homeButtonOptions.add(authButton('apple'));
     }
     if (widget.google && (kIsWeb || Platform.isIOS || Platform.isAndroid)) {
