@@ -373,31 +373,17 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         //
       }
       try {
-        // Sign in with google provider
-        // googleProvider.addScope('https://www.googleapis.com/auth/contacts.readonly');
-        GoogleAuthProvider googleProvider = GoogleAuthProvider();
-        googleProvider.addScope('email');
-        googleProvider.addScope('profile');
-        if (kIsWeb) {
-          // final authenticated = await googleSignInAccount.signInSilently(
-          //     suppressErrors: true, reAuthenticate: false);
-          // if (authenticated == null) {
-          //   await googleSignInAccount.signIn();
-          // }
-          final authenticated = await googleSignInAccount.signIn();
-          if (authenticated == null) {
-            throw locales.get('notification--please-try-again');
-          }
-          final GoogleSignInAuthentication googleAuth =
-              await authenticated.authentication;
-          final credential = GoogleAuthProvider.credential(
-            accessToken: googleAuth.accessToken,
-            idToken: googleAuth.idToken,
-          );
-          await _auth.signInWithCredential(credential);
-        } else {
-          await FirebaseAuth.instance.signInWithProvider(googleProvider);
+        final authenticated = await googleSignInAccount.signIn();
+        if (authenticated == null) {
+          throw locales.get('notification--please-try-again');
         }
+        final GoogleSignInAuthentication googleAuth =
+        await authenticated.authentication;
+        final credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        );
+        await _auth.signInWithCredential(credential);
       } on FirebaseAuthException catch (error) {
         alert.show(AlertData(
           title: locales.get('alert--sign-in-failed'),
@@ -701,7 +687,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     Widget spacer = const SizedBox(width: 8, height: 8);
     Widget spacerLarge = const SizedBox(width: 16, height: 16);
     List<Widget> homeButtonOptions = [];
-    if (widget.apple && (kIsWeb || Platform.isIOS || Platform.isMacOS)) {
+    if (widget.apple && !kIsWeb && (Platform.isIOS || Platform.isMacOS)) {
       homeButtonOptions.add(authButton('apple'));
     }
     if (widget.google && (kIsWeb || Platform.isIOS || Platform.isAndroid)) {
