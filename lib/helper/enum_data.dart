@@ -15,7 +15,7 @@ class EnumData {
     String? label = debug ? 'unknown' : null;
     if (base == null) return label;
     try {
-      label = describeEnum(base);
+      label = base.name;
       return label;
     } catch (error) {
       label = base.toString();
@@ -101,8 +101,7 @@ class EnumData {
     if (finalValue == null) {
       /// Find from string value
       try {
-        finalValue =
-            enums.firstWhere((e) => describeEnum(e) == value.toString());
+        finalValue = enums.firstWhere((e) => e.name == value.toString());
       } catch (e) {
         error = '!!!! Find from string: $e';
       }

@@ -117,7 +117,7 @@ abstract class StateAPI extends StateShared {
       Map<String, String> headers = {};
       if (willAuthenticate) {
         headers.addAll({
-          'Authorization': '${describeEnum(authScheme!)} $credentials',
+          'Authorization': '${authScheme!.name} $credentials',
         });
       }
       if (kDebugMode) print('Calling endpoint: $endpoint');
