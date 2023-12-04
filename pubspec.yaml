@@ -30,7 +30,6 @@ dependencies:
   google_maps_flutter: ^2.5.0
   google_maps_webservice: ^0.0.20-nullsafety.5
   package_info_plus: ^5.0.1
-  sign_in_with_apple: ^5.0.0
   mime: ^1.0.4
   #webview_flutter: ^4.2.2
   flutter_localizations:
