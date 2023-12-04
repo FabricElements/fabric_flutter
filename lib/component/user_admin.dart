@@ -271,8 +271,9 @@ class UserAdmin extends StatelessWidget {
           child: ContentContainer(
             size: size,
             child: Card(
+              margin: const EdgeInsets.all(16),
               child: Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.symmetric(vertical: 16),
                 child: Flex(
                   direction: Axis.vertical,
                   mainAxisSize: MainAxisSize.min,
@@ -287,18 +288,24 @@ class UserAdmin extends StatelessWidget {
                         lastName: user.lastName,
                         presence: user.presence,
                       ),
-                      title: Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0),
-                        child: Text(name, style: textTheme.titleMedium),
+                      title: Text(name, style: textTheme.titleMedium),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: SizedBox(
+                        width: double.maxFinite,
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 4,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: roleChips,
+                        ),
                       ),
                     ),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 4,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: roleChips,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(children: trailing),
                     ),
-                    Row(children: trailing),
                   ],
                 ),
               ),
