@@ -11,6 +11,7 @@ class IframeMinimal extends StatelessWidget {
     this.title = 'Iframe',
     this.alt = 'Iframe',
   });
+
   final String? src;
   final String alt;
   final String title;

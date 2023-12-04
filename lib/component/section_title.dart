@@ -15,6 +15,7 @@ class SectionTitle extends StatefulWidget {
     required this.headline,
     this.condensed = false,
   });
+
   final String? description;
   final String headline;
   final bool condensed;

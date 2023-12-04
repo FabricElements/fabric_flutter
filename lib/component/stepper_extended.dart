@@ -8,6 +8,7 @@ class StepperExtended extends StatefulWidget {
     required this.steps,
     this.size = ContentContainerSize.medium,
   });
+
   final List<Step> steps;
   final ContentContainerSize size;
 

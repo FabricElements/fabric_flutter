@@ -19,7 +19,7 @@ class ContentContainer extends StatelessWidget {
     this.mainAxisSize = MainAxisSize.max,
     this.crossAxisAlignment = CrossAxisAlignment.start,
     this.mainAxisAlignment = MainAxisAlignment.start,
-  })  : assert(child != null || children != null,
+  }) : assert(child != null || children != null,
             'child or children must be specified');
   final Widget? child;
   final List<Widget>? children;

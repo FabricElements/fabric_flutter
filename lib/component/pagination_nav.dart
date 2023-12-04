@@ -20,6 +20,7 @@ class PaginationNav extends StatelessWidget {
     required this.limitChange,
     this.limits = const [5, 10, 20, 50],
   });
+
   final int page;
   final int limit;
   final bool canPaginate;

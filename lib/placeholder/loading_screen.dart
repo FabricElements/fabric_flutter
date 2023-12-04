@@ -6,6 +6,7 @@ class LoadingScreen extends StatelessWidget {
     super.key,
     this.parent = false,
   });
+
   final bool parent;
 
   @override

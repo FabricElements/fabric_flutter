@@ -12,6 +12,7 @@ class UserChip extends StatefulWidget {
     this.minimal = false,
     this.labelStyle,
   });
+
   final String? uid;
   final bool minimal;
   final TextStyle? labelStyle;

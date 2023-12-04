@@ -21,6 +21,7 @@ class UserAvatar extends StatelessWidget {
     this.lastName,
     this.presence,
   });
+
   final String? avatar;
   final String? name;
   final String? firstName;

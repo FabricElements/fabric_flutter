@@ -7,6 +7,7 @@ class Tabs extends StatelessWidget {
     super.key,
     required this.tabs,
   });
+
   final List<ButtonOptions> tabs;
 
   @override

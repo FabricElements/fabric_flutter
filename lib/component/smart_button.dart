@@ -16,6 +16,7 @@ class SmartButton extends StatefulWidget {
     this.brightness,
     this.pop = false,
   });
+
   final ButtonOptions button;
   final Brightness? brightness;
   final bool pop;

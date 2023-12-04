@@ -50,6 +50,7 @@ class ViewFeatured extends StatefulWidget {
     required this.image,
     this.onPressed,
   });
+
   final String? actionLabel;
   final String? actionUrl;
   final Object? arguments;

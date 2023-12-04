@@ -22,6 +22,7 @@ class FlagChip extends StatelessWidget {
     this.total,
     this.onDeleted,
   });
+
   final String language;
   final int? total;
   final VoidCallback? onDeleted;

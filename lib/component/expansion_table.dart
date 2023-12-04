@@ -23,7 +23,7 @@ class ExpansionTable extends StatefulWidget {
     this.columnSpacing,
     this.dividerThickness,
     this.border,
-  })  : assert(data == null || data.header!.isNotEmpty);
+  }) : assert(data == null || data.header!.isNotEmpty);
 
   final TableData? data;
 

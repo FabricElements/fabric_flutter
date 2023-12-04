@@ -14,6 +14,7 @@ class StatusChip extends StatelessWidget {
     super.key,
     required this.status,
   });
+
   final String? status;
 
   @override

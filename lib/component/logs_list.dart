@@ -43,6 +43,7 @@ class LogsList extends StatelessWidget {
         const EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 8),
     this.margin = const EdgeInsets.symmetric(vertical: 8),
   });
+
   final List<Map<String, dynamic>>? data;
   final List<ButtonOptions>? actions;
   final bool minimal;

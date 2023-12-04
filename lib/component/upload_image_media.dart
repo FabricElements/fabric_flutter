@@ -14,6 +14,7 @@ class UploadImageMedia extends StatefulWidget {
     this.maxDimensions = 1200,
     this.autoId = false,
   });
+
   final Function(String, MediaData) callback;
   final String path;
   final int maxDimensions;

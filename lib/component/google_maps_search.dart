@@ -33,6 +33,7 @@ class GoogleMapsSearch extends StatefulWidget {
     this.baseUrl = 'https://maps.googleapis.com/maps/api',
     this.autofocus = false,
   });
+
   final Function(Place)? onChange;
   final Function(String)? onError;
   final String apiKey;

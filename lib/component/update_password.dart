@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import './input_data.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/options.dart';
 import '../helper/regex_helper.dart';
 import '../serialized/password_data.dart';
 import '../state/state_alert.dart';
+import './input_data.dart';
 
 class UpdatePassword extends StatefulWidget {
   const UpdatePassword({super.key, required this.callback});
+
   final Function(PasswordData) callback;
 
   @override

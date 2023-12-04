@@ -40,6 +40,7 @@ class PaginationContainer extends StatefulWidget {
     this.clipBehavior = Clip.hardEdge,
     this.shrinkWrap = false,
   });
+
   final Widget Function(
     BuildContext context,
     int index,

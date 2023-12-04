@@ -43,6 +43,7 @@ class UserAdmin extends StatelessWidget {
     this.size = ContentContainerSize.medium,
     this.prefix,
   });
+
   final Widget? empty;
   final Widget? loader;
   final List<String> roles;

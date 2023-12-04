@@ -109,7 +109,8 @@ class _EditSaveButtonState extends State<EditSaveButton> {
         icon: const Icon(Icons.cancel),
         label: Text(locales.get('label--cancel')),
         style: OutlinedButton.styleFrom(
-          foregroundColor: theme.buttonTheme.colorScheme?.secondary ?? Colors.deepOrange,
+          foregroundColor:
+              theme.buttonTheme.colorScheme?.secondary ?? Colors.deepOrange,
         ),
       );
 

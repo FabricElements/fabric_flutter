@@ -13,6 +13,7 @@ class UserRoleContent extends StatefulWidget {
     this.placeholder,
     this.path,
   });
+
   final Map<String, dynamic>? compareData;
   final List<String> roles;
   final String? group;

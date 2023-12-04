@@ -19,6 +19,7 @@ class ViewProfileEdit extends StatefulWidget {
     this.loader,
     this.prefix,
   });
+
   final Widget? loader;
   final String? prefix;
 
