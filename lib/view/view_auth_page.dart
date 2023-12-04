@@ -512,7 +512,8 @@ class _ViewAuthPageState extends State<ViewAuthPage>
 
     signInWithApple() async {
       try {
-        final appleProvider = AppleAuthProvider();
+        var appleProvider = AppleAuthProvider();
+        appleProvider.addScope('email'); //this scope is required
         if (kIsWeb) {
           await FirebaseAuth.instance.signInWithPopup(appleProvider);
         } else {
