@@ -631,6 +631,9 @@ class _FilterMenuState extends State<FilterMenu> {
                 style: OutlinedButton.styleFrom(
                   foregroundColor:
                       theme.buttonTheme.colorScheme?.primary ?? Colors.black,
+                  disabledForegroundColor:
+                      theme.buttonTheme.colorScheme?.primary ?? Colors.black,
+                  disabledMouseCursor: SystemMouseCursors.click,
                 ),
                 onPressed: null,
                 icon: widget.icon ?? const Icon(Icons.filter_alt),
