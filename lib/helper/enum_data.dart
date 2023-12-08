@@ -15,10 +15,16 @@ class EnumData {
     String? label = debug ? 'unknown' : null;
     if (base == null) return label;
     try {
-      label = base.name;
-      return label;
+      if (base is Enum) {
+        label = base.name;
+      } else {
+        label = base.toString();
+      }
     } catch (error) {
-      label = base.toString();
+      label = base.tostring();
+    }
+    if (label != null && label.contains('.')) {
+      label = label.split('.').last;
     }
     return label;
   }

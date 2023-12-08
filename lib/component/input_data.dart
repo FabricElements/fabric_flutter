@@ -350,28 +350,19 @@ getValue -------------------------------------
   @override
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context)!;
-    final popupButtonKey = GlobalKey<State>();
     final enumData = EnumData(locales: locales);
     final theme = Theme.of(context);
     bool isDense = widget.isDense || theme.inputDecorationTheme.isDense;
     bool isDisabled = widget.disabled;
     String defaultTextOptions = locales.get('label--choose-option');
-    // String textSelected = defaultText;
     String? hintTextDefault;
     int? maxLength = widget.maxLength;
     FormFieldValidator<String>? validator = widget.validator;
-    Widget? icon = widget.icon != null ? Icon(widget.icon) : null;
 
     /// Text styles
     String? errorText;
-    // TextStyle? labelStyle;
-    // InputBorder? border;
-    // InputBorder? focusedBorder;
     if (widget.error != null) {
       errorText = widget.error;
-      // labelStyle = theme.inputDecorationTheme.errorStyle;
-      // border = theme.inputDecorationTheme.errorBorder;
-      // focusedBorder = theme.inputDecorationTheme.focusedErrorBorder;
     }
 
     Widget? inputIcon;
@@ -583,8 +574,9 @@ getValue -------------------------------------
               dateAfter = date.isAfter(now) ? date : now;
             }
             late DateTime? picked;
-            final minDate = dateBefore.subtract(const Duration(days: 365 * 10));
-            final maxDate = dateAfter.add(const Duration(days: 365 * 10));
+            final minDate =
+                dateBefore.subtract(const Duration(days: 365 * 101));
+            final maxDate = dateAfter.add(const Duration(days: 365 * 101));
             if (widget.type == InputDataType.date) {
               picked = await showDatePicker(
                 context: context,
