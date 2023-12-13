@@ -85,7 +85,7 @@ class InitAppChild extends StatelessWidget {
       stateUser.streamStatus.listen(
         (value) {
           if (value.signedIn) {
-            if (notifications && !kDebugMode) {
+            if (notifications) {
               stateNotifications.uid = value.uid;
               stateNotifications.init();
             }

@@ -13,9 +13,6 @@ class StateNotifications extends ChangeNotifier {
 
   bool initialized = Firebase.apps.isNotEmpty;
 
-  FirebaseMessaging? get _firebaseMessaging =>
-      initialized ? FirebaseMessaging.instance : null;
-
   String? _token;
   Map<String, dynamic> _notification = {};
   dynamic _uid = '';
@@ -23,17 +20,15 @@ class StateNotifications extends ChangeNotifier {
   Function(Map<String, dynamic> message)? _callback;
 
   /// [token] Returns device token
-  String get token => _token ?? '';
+  String? get token => _token;
 
   /// Update user token on the firestore user/{uid}
   void _updateUserToken(String? tokenId) async {
-    if (tokenId == null || tokenId.isEmpty || _uid.isEmpty) {
-      return;
-    }
+    if (!initialized || _uid.isEmpty || tokenId == _token) return;
     try {
       await FirebaseFirestore.instance.collection('user').doc(_uid).set({
         'backup': false,
-        'fcm': tokenId,
+        'fcm': tokenId ?? FieldValue.delete(),
         'updated': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } catch (error) {
@@ -53,16 +48,28 @@ class StateNotifications extends ChangeNotifier {
 
   Future<String?> getToken() async {
     if (!initialized) throw 'Initialize Firebase app first';
-    _firebaseMessaging!.requestPermission(
+    // You may set the permission requests to "provisional" which allows the user to choose what type
+    // of notifications they would like to receive once the user receives a notification.
+    final notificationSettings =
+        await FirebaseMessaging.instance.requestPermission(
       alert: true,
       announcement: false,
       badge: true,
       carPlay: true,
-      criticalAlert: false,
-      provisional: true,
+      criticalAlert: true,
+      // provisional: true,
       sound: true,
     );
-    String? token = await _firebaseMessaging!.getToken();
+    switch (notificationSettings.authorizationStatus) {
+      case AuthorizationStatus.authorized:
+      case AuthorizationStatus.provisional:
+        debugPrint(
+            'User granted permission: ${notificationSettings.authorizationStatus}');
+        break;
+      default:
+        return null;
+    }
+    String? token = await FirebaseMessaging.instance.getToken();
     return token;
   }
 
@@ -130,9 +137,6 @@ class StateNotifications extends ChangeNotifier {
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
       await _notify(message: message, origin: 'resume');
     });
-    if (token.isNotEmpty && !_initialized) {
-      // message.listen((arg) async {});
-    }
   }
 
   /// Initializes the notifications and starts listening
@@ -140,7 +144,7 @@ class StateNotifications extends ChangeNotifier {
     if (_initialized) return;
     _initialized = true;
     // Any time the token refreshes, store this in the database too.
-    FirebaseMessaging.instance.onTokenRefresh.listen(_updateUserToken);
+    // FirebaseMessaging.instance.onTokenRefresh.listen(_updateUserToken);
     initNotifications();
   }
 
@@ -148,10 +152,10 @@ class StateNotifications extends ChangeNotifier {
   /// from the main App to prevent blocking call
   Future<void> getUserToken() async {
     if (!_initialized) await init();
-    if (token.isEmpty) {
-      String? pushToken = await getToken();
-      _token = pushToken;
-      _updateUserToken(token);
+    if (_token == null) {
+      final newToken = await getToken();
+      _updateUserToken(newToken);
+      _token = newToken;
     }
   }
 
