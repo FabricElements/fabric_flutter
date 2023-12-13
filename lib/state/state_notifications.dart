@@ -90,11 +90,11 @@ class StateNotifications extends ChangeNotifier {
     if (message == null) return;
     RemoteNotification? notification = message.notification;
     Map<String, dynamic> data = message.data;
+    print('notification: ${notification?.toMap()}');
     Map<String, dynamic> message0 = data;
     message0 = _clearObject(message0, 'fcm_options');
     message0 = _clearObject(message0, 'aps');
     message0 = _clearObject(message0, 'alert');
-
     message0 = _clearObject(message0, 'data');
     message0 = _clearObject(message0, 'notification');
     if (!kIsWeb) {
@@ -104,12 +104,18 @@ class StateNotifications extends ChangeNotifier {
 
     /// Add origin
     message0.addAll({'origin': origin});
-
     if (notification?.title != null) {
       message0.putIfAbsent('title', () => notification?.title);
     }
     if (notification?.body != null) {
       message0.putIfAbsent('body', () => notification?.body);
+    }
+    if ((notification?.apple?.imageUrl ?? notification?.android?.imageUrl) !=
+        null) {
+      message0.putIfAbsent(
+          'imageUrl',
+          () =>
+              notification?.apple?.imageUrl ?? notification?.android?.imageUrl);
     }
 
     /// Add valid path by default
@@ -119,6 +125,8 @@ class StateNotifications extends ChangeNotifier {
     } else {
       message0['path'] = '';
     }
+    message0.putIfAbsent(
+        'clear', () => bool.tryParse(message0['clear'], caseSensitive: false));
 
     /// Add data to stream
     _notification = message0;
@@ -135,6 +143,7 @@ class StateNotifications extends ChangeNotifier {
     });
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
+      await Future.delayed(const Duration(milliseconds: 200));
       await _notify(message: message, origin: 'resume');
     });
   }
