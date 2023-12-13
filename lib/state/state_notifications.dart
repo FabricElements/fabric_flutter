@@ -90,7 +90,6 @@ class StateNotifications extends ChangeNotifier {
     if (message == null) return;
     RemoteNotification? notification = message.notification;
     Map<String, dynamic> data = message.data;
-    print('notification: ${notification?.toMap()}');
     Map<String, dynamic> message0 = data;
     message0 = _clearObject(message0, 'fcm_options');
     message0 = _clearObject(message0, 'aps');
