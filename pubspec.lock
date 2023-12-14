@@ -85,10 +85,10 @@ packages:
     dependency: transitive
     description:
       name: build_resolvers
-      sha256: "64e12b0521812d1684b1917bc80945625391cb9bdd4312536b1d69dcb6133ed8"
+      sha256: "339086358431fa15d7eca8b6a36e5d783728cf025e559b834f4609a1fcfb7b0a"
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.1"
+    version: "2.4.2"
   build_runner:
     dependency: "direct dev"
     description:
@@ -117,10 +117,10 @@ packages:
     dependency: transitive
     description:
       name: built_value
-      sha256: "69acb7007eb2a31dc901512bfe0f7b767168be34cb734835d54c070bfa74c1b2"
+      sha256: c9aabae0718ec394e5bc3c7272e6bb0dc0b32201a08fe185ec1d8401d3e39309
       url: "https://pub.dev"
     source: hosted
-    version: "8.8.0"
+    version: "8.8.1"
   characters:
     dependency: transitive
     description:
@@ -593,10 +593,10 @@ packages:
     dependency: transitive
     description:
       name: google_identity_services_web
-      sha256: "000b7a31e1fa17ee04b6c0553a2b2ea18f9f9352e4dcc0c9fcc785cf10f2484e"
+      sha256: "0c56c2c5d60d6dfaf9725f5ad4699f04749fb196ee5a70487a46ef184837ccf6"
       url: "https://pub.dev"
     source: hosted
-    version: "0.2.2"
+    version: "0.3.0+2"
   google_maps:
     dependency: transitive
     description:
@@ -657,10 +657,10 @@ packages:
     dependency: "direct main"
     description:
       name: google_sign_in
-      sha256: "23982b6a6b9e664bdc540488732d5760bc73e83ec74c2bd87cb690cfd357dd75"
+      sha256: "0b8787cb9c1a68ad398e8010e8c8766bfa33556d2ab97c439fb4137756d7308f"
       url: "https://pub.dev"
     source: hosted
-    version: "6.2.0"
+    version: "6.2.1"
   google_sign_in_android:
     dependency: transitive
     description:
@@ -681,18 +681,18 @@ packages:
     dependency: transitive
     description:
       name: google_sign_in_platform_interface
-      sha256: "35ceee5f0eadc1c07b0b4af7553246e315c901facbb7d3dadf734ba2693ceec4"
+      sha256: e10eaaa30a0cb03af12dd324fb2e630ac7e9d854d0530f7a87a4d825031f9a4a
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.2"
+    version: "2.4.3"
   google_sign_in_web:
     dependency: transitive
     description:
       name: google_sign_in_web
-      sha256: "794f5494a945d6dd2654c52f979594ecd2558e5c82ce8272295ba371c93015e6"
+      sha256: "38e6ec2a7d65ec34bb7ae2db64a1d042b021330433b999e87330d45c688ff549"
       url: "https://pub.dev"
     source: hosted
-    version: "0.12.2+1"
+    version: "0.12.3+1"
   graphs:
     dependency: transitive
     description:
@@ -753,10 +753,10 @@ packages:
     dependency: transitive
     description:
       name: image_picker_android
-      sha256: d6a6e78821086b0b737009b09363018309bbc6de3fd88cc5c26bc2bb44a4957f
+      sha256: ecdc963d2aa67af5195e723a40580f802d4392e31457a12a562b3e2bd6a396fe
       url: "https://pub.dev"
     source: hosted
-    version: "0.8.8+2"
+    version: "0.8.9+1"
   image_picker_for_web:
     dependency: transitive
     description:
@@ -769,10 +769,10 @@ packages:
     dependency: transitive
     description:
       name: image_picker_ios
-      sha256: "76ec722aeea419d03aa915c2c96bf5b47214b053899088c9abb4086ceecf97a7"
+      sha256: eac0a62104fa12feed213596df0321f57ce5a572562f72a68c4ff81e9e4caacf
       url: "https://pub.dev"
     source: hosted
-    version: "0.8.8+4"
+    version: "0.8.9"
   image_picker_linux:
     dependency: transitive
     description:
@@ -1021,14 +1021,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.3"
-  quiver:
-    dependency: transitive
-    description:
-      name: quiver
-      sha256: b1c1ac5ce6688d77f65f3375a9abb9319b3cb32486bdc7a1e0fdf004d7ba4e47
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.2.1"
   sanitize_html:
     dependency: transitive
     description:
@@ -1062,10 +1054,10 @@ packages:
     dependency: transitive
     description:
       name: source_gen
-      sha256: fc0da689e5302edb6177fdd964efcb7f58912f43c28c2047a808f5bfff643d16
+      sha256: "14658ba5f669685cd3d63701d01b31ea748310f7ab854e471962670abcf57832"
       url: "https://pub.dev"
     source: hosted
-    version: "1.4.0"
+    version: "1.5.0"
   source_helper:
     dependency: transitive
     description:
@@ -1190,10 +1182,10 @@ packages:
     dependency: transitive
     description:
       name: url_launcher_linux
-      sha256: "9f2d390e096fdbe1e6e6256f97851e51afc2d9c423d3432f1d6a02a8a9a8b9fd"
+      sha256: ab360eb661f8879369acac07b6bb3ff09d9471155357da8443fd5d3cf7363811
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.0"
+    version: "3.1.1"
   url_launcher_macos:
     dependency: transitive
     description:
@@ -1214,18 +1206,18 @@ packages:
     dependency: transitive
     description:
       name: url_launcher_web
-      sha256: "138bd45b3a456dcfafc46d1a146787424f8d2edfbf2809c9324361e58f851cf7"
+      sha256: "7286aec002c8feecc338cc33269e96b73955ab227456e9fb2a91f7fab8a358e9"
       url: "https://pub.dev"
     source: hosted
-    version: "2.2.1"
+    version: "2.2.2"
   url_launcher_windows:
     dependency: transitive
     description:
       name: url_launcher_windows
-      sha256: "7754a1ad30ee896b265f8d14078b0513a4dba28d358eabb9d5f339886f4a1adc"
+      sha256: ecf9725510600aa2bb6d7ddabe16357691b6d2805f66216a97d1b881e21beff7
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.0"
+    version: "3.1.1"
   vector_math:
     dependency: transitive
     description:
@@ -1254,10 +1246,10 @@ packages:
     dependency: transitive
     description:
       name: video_player_avfoundation
-      sha256: bc923884640d6dc403050586eb40713cdb8d1d84e6886d8aca50ab04c59124c2
+      sha256: "01a57940e1dabc8769ccd457c4ae9ea50274e7d5a7617f7820dae5fe1d8436ae"
       url: "https://pub.dev"
     source: hosted
-    version: "2.5.2"
+    version: "2.5.3"
   video_player_platform_interface:
     dependency: transitive
     description:
@@ -1310,10 +1302,10 @@ packages:
     dependency: transitive
     description:
       name: webview_flutter_android
-      sha256: "8326ee235f87605a2bfc444a4abc897f4abc78d83f054ba7d3d1074ce82b4fbf"
+      sha256: e313dcdf45d4c95bcb8960351ef2389b7f0687b90bc92483f7f7983ae5758456
       url: "https://pub.dev"
     source: hosted
-    version: "3.12.1"
+    version: "3.13.0"
   webview_flutter_platform_interface:
     dependency: transitive
     description:
