@@ -67,10 +67,24 @@ class _RoutePageNotificationsState extends State<RoutePageFirebase> {
         Navigator.of(context).popAndPushNamed(path);
         path = null;
       }
+      // Translate title
+      String? title = message['title'];
+      if (title != null && title.isNotEmpty) {
+        title = locales.get(title);
+      } else {
+        title = null;
+      }
+      // Translate body
+      String? body = message['body'];
+      if (body != null && body.isNotEmpty) {
+        body = locales.get(body);
+      } else {
+        body = null;
+      }
       return alert.show(AlertData(
         duration: duration,
-        title: message['title'],
-        body: message['body'],
+        title: title,
+        body: body,
         image: message['imageUrl'],
         typeString: message['type'],
         clear: message['clear'] ?? false,
