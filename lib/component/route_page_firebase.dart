@@ -71,11 +71,9 @@ class _RoutePageNotificationsState extends State<RoutePageFirebase> {
         duration: duration,
         title: message['title'],
         body: message['body'],
-        // path: message["path"],
         image: message['imageUrl'],
-        // arguments: message,
         typeString: message['type'],
-        clear: bool.tryParse(message['clear'] ?? 'false') ?? false,
+        clear: message['clear'] ?? false,
         action: (path != null)
             ? ButtonOptions(
                 label: locales.get('label--open'),
