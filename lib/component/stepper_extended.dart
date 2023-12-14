@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'content_container.dart';
 
-class StepperExtended extends StatefulWidget {
+class StepperExtended extends StatelessWidget {
   const StepperExtended({
     super.key,
     required this.steps,
@@ -13,16 +13,11 @@ class StepperExtended extends StatefulWidget {
   final ContentContainerSize size;
 
   @override
-  State<StepperExtended> createState() => _StepperExtendedState();
-}
-
-class _StepperExtendedState extends State<StepperExtended> {
-  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
-    List<Widget> children = List.generate(widget.steps.length, (index) {
-      Step step = widget.steps[index];
+    List<Widget> children = List.generate(steps.length, (index) {
+      Step step = steps[index];
       TextStyle? leadingStyle = textTheme.titleMedium?.copyWith(
         color: Colors.white,
         fontWeight: FontWeight.w700,
@@ -74,7 +69,7 @@ class _StepperExtendedState extends State<StepperExtended> {
       );
       return ContentContainer(
         margin: const EdgeInsets.only(top: 16, bottom: 32, left: 0, right: 16),
-        size: widget.size,
+        size: size,
         child: Flex(
           direction: Axis.vertical,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -100,7 +95,7 @@ class _StepperExtendedState extends State<StepperExtended> {
       );
     });
     return ListView(
-      restorationId: widget.key?.toString() ?? 'stepper_extended',
+      restorationId: key?.toString() ?? 'stepper_extended',
       children: children,
     );
   }
