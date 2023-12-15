@@ -123,14 +123,6 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
     }
 
     refreshImage();
-    void closeKeyboard() {
-      try {
-        FocusScope.of(context).requestFocus(FocusNode());
-      } catch (error) {
-        //
-      }
-    }
-
     updateUser() async {
       loading = false;
       if (mounted) setState(() {});
@@ -359,7 +351,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
           },
         ),
       ),
-      body: GestureDetector(onTap: closeKeyboard, child: getBody()),
+      body: getBody(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: changed && !loading
           ? FloatingActionButton.extended(
