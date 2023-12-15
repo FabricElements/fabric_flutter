@@ -185,19 +185,10 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     });
 
     stateAnalytics.screenName = 'auth';
-    void closeKeyboard() {
-      if (kIsWeb) return;
-      if (Platform.isAndroid || Platform.isIOS) {
-        try {
-          FocusScope.of(context).requestFocus(FocusNode());
-        } catch (error) {
-          //
-        }
-      }
-    }
 
     void resetView() {
-      closeKeyboard();
+      // Close Keyboard
+      FocusScope.of(context).requestFocus(FocusNode());
       section = 0;
       dataAuth = ViewAuthValues();
       if (mounted) setState(() {});

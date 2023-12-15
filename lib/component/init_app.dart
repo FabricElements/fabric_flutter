@@ -117,6 +117,15 @@ class InitAppChild extends StatelessWidget {
     });
 
     /// Return child component
-    return child;
+    return GestureDetector(
+      onTap: () {
+        /// Close keyboard when tap outside input
+        FocusScopeNode currentFocus = FocusScope.of(context);
+        if (!currentFocus.hasPrimaryFocus) {
+          currentFocus.requestFocus(FocusNode());
+        }
+      },
+      child: child,
+    );
   }
 }
