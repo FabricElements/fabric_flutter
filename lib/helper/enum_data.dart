@@ -80,7 +80,7 @@ class EnumData {
     assert(enums.isNotEmpty, 'enums can\'t be empty');
     if (value == null) return null;
     try {
-      return enums.firstWhere((e) => describe(e)!.endsWith(value));
+      return enums.firstWhere((e) => describe(e) == value);
     } catch (e) {
       // - Ignore error
     }
@@ -107,7 +107,7 @@ class EnumData {
     if (finalValue == null) {
       /// Find from string value
       try {
-        finalValue = enums.firstWhere((e) => e.name == value.toString());
+        finalValue = enums.firstWhere((e) => describe(e) == describe(value));
       } catch (e) {
         error = '!!!! Find from string: $e';
       }
