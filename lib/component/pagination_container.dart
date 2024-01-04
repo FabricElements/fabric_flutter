@@ -141,12 +141,12 @@ class _PaginationContainerState extends State<PaginationContainer> {
               data = snapshot.data as List<dynamic>;
             }
         }
+        if (data == null && !connected) {
+          return widget.loading;
+        }
         int total = data?.length ?? 0;
         if (total == 0) {
           return widget.empty;
-        }
-        if (data == null && !connected) {
-          return widget.loading;
         }
         return Scrollbar(
           thumbVisibility: true,
