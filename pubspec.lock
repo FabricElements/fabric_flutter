@@ -853,6 +853,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.7.1"
+  json_view:
+    dependency: "direct main"
+    description:
+      name: json_view
+      sha256: "905c69f9e69d1eab5406b87ab6c10c3706c04c70c6a4959621bd2b43c2d27374"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.4.2"
   lints:
     dependency: transitive
     description:
