@@ -1118,4 +1118,8 @@ dynamic defaultLocales = {
     'en': 'Links',
     'es': 'Enlaces',
   },
+  'label--copy': {
+    'en': 'Copy',
+    'es': 'Copiar',
+  },
 };
