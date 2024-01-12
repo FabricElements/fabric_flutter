@@ -10,6 +10,11 @@ class FirestoreHelper {
       timestamp = data;
     } else if (data is Map) {
       timestamp = Timestamp(data['_seconds'], data['_nanoseconds']);
+    } else if (data is DateTime) {
+      timestamp = Timestamp.fromDate(data);
+    } else if (data is String) {
+      final baseDate = DateTime.tryParse(data);
+      timestamp = baseDate != null ? Timestamp.fromDate(baseDate) : null;
     }
     return timestamp;
   }

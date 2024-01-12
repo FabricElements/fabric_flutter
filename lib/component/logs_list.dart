@@ -2,39 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../helper/options.dart';
+import '../helper/utils.dart';
+import '../serialized/logs_data.dart';
 import 'user_chip.dart';
 
-/// [LogsList] displays a list of logs from an array of [data]
-///
-/// Example:
-/// ----------------------------------------------------
-/// LogsList(
-///   actions: [
-///     ButtonOptions(
-///       label: "Load version",
-///       onTap: (dynamic id) {
-///         print("id: $id");
-///       },
-///     ),
-///   ],
-///   data: [
-///     {
-///       'text': '{Donec} nec {justo} eget felis facilisis fermentum.',
-///       'id': 'hello',
-///       'timestamp': "2021-11-09T09:25:27",
-///     },
-///     {
-///       'text':
-///           '{@Vcr3IZKdvqepEj51vjM8xqLxzfq1} Vestibulum commodo {@VnCYNfYzlVQc3fCAJH2LyNv9vGj2} demo {porttitor} felis.',
-///       'id': 'demo',
-///       'timestamp': "2021-11-09T20:23:27"
-///     },
-///   ],
-/// ),
+/// [LogsList] displays a list of logs from an array of [logs]
 class LogsList extends StatelessWidget {
   const LogsList({
     super.key,
-    required this.data,
+    required this.logs,
     this.actions,
     this.minimal = false,
     this.highlightColor,
@@ -42,9 +18,10 @@ class LogsList extends StatelessWidget {
     this.padding =
         const EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 8),
     this.margin = const EdgeInsets.symmetric(vertical: 8),
+    this.showData = false,
   });
 
-  final List<Map<String, dynamic>>? data;
+  final List<LogsData>? logs;
   final List<ButtonOptions>? actions;
   final bool minimal;
   final Color? highlightColor;
@@ -56,21 +33,18 @@ class LogsList extends StatelessWidget {
   /// Main content margin space
   final EdgeInsetsGeometry margin;
 
+  final bool showData;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     Widget container = const SizedBox(height: 0);
-    if (data == null || data!.isEmpty) return container;
+    if (logs == null || logs!.isEmpty) return container;
     RegExp regExp = RegExp(r'{.*?}', multiLine: true);
-    Widget getItem(Map<String, dynamic> item) {
-      DateTime? timestamp =
-          item.containsKey('timestamp') && item['timestamp'].isNotEmpty
-              ? DateTime.tryParse(item['timestamp'].toString())?.toUtc()
-              : null;
-      String? text = item.containsKey('text') && item['text'].isNotEmpty
-          ? item['text']
-          : null;
+    Widget getItem(LogsData item) {
+      DateTime? timestamp = item.timestamp ?? DateTime.now();
+      String? text = item.text?.isNotEmpty == true ? item.text : null;
       if (text == null || text.isEmpty) return container;
       List<InlineSpan> textFormatted = [];
       int? initialPosition = 0;
@@ -81,14 +55,11 @@ class LogsList extends StatelessWidget {
         fontWeight: FontWeight.w600,
       );
       Iterable matches = regExp.allMatches(text);
-      Widget? timestampWidget;
-      if (timestamp != null) {
-        timestampWidget = Padding(
-          padding: const EdgeInsets.only(bottom: 4.0),
-          child: Text(DateFormat.yMd().add_jm().format(timestamp),
-              style: textTheme.bodySmall),
-        );
-      }
+      final timestampWidget = Padding(
+        padding: const EdgeInsets.only(bottom: 4.0),
+        child: Text(DateFormat.yMd().add_jm().format(timestamp),
+            style: textTheme.bodySmall),
+      );
       if (matches.isNotEmpty) {
         for (var match in matches) {
           /// First part
@@ -136,7 +107,7 @@ class LogsList extends StatelessWidget {
       } else {
         textFormatted.add(TextSpan(text: text));
       }
-      dynamic id = item.containsKey('id') ? item['id'] : null;
+      dynamic id = item.id ?? Utils.createCryptoRandomString(8);
       List<PopupMenuEntry<String>> buttons = [];
       Widget? actionsWidgets;
       if (actions != null) {
@@ -146,6 +117,8 @@ class LogsList extends StatelessWidget {
             child: Text(option.label),
           ));
         }
+      }
+      if (buttons.isNotEmpty) {
         actionsWidgets = Padding(
           padding: const EdgeInsets.only(left: 8.0),
           child: PopupMenuButton<String>(
@@ -154,12 +127,20 @@ class LogsList extends StatelessWidget {
           ),
         );
       }
-      List<Widget> vertical = [];
-      if (timestampWidget != null) vertical.add(timestampWidget);
-      vertical.add(Text.rich(
-        TextSpan(children: textFormatted),
-        style: textThemeBase,
-      ));
+
+      List<Widget> vertical = [
+        timestampWidget,
+        Text.rich(
+          TextSpan(children: textFormatted),
+          style: textThemeBase,
+        ),
+      ];
+      if (item.child != null) {
+        vertical.add(Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: item.child!,
+        ));
+      }
       List<Widget> horizontal = [
         Expanded(
           child: Flex(
@@ -183,13 +164,13 @@ class LogsList extends StatelessWidget {
 
     if (scrollable) {
       return ListView.builder(
-        itemCount: data!.length,
-        itemBuilder: (BuildContext context, int index) => getItem(data![index]),
+        itemCount: logs!.length,
+        itemBuilder: (BuildContext context, int index) => getItem(logs![index]),
         padding: margin,
       );
     } else {
       final cellsBase =
-          List.generate(data!.length, (index) => getItem(data![index]));
+          List.generate(logs!.length, (index) => getItem(logs![index]));
       return Padding(
         padding: margin,
         child: Flex(direction: Axis.vertical, children: cellsBase),
