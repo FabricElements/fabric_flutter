@@ -21,6 +21,7 @@ class IframeMinimal extends StatelessWidget {
     if (src == null) return const SizedBox();
     final id = '#iframe-${src.hashCode}';
     final iframeElement = IFrameElement();
+    // TODO: verify if everything can be added to allow and add it as custom attributes if can be implemented
     iframeElement.attributes = {
       'src': src!,
       'allowtransparency': 'true',

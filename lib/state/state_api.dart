@@ -69,9 +69,17 @@ abstract class StateAPI extends StateShared {
   /// API Call
   @override
   Future<dynamic> call({bool ignoreDuplicatedCalls = true}) async {
+    // Check for empty baseEndpoint
+    if (baseEndpoint.isEmpty) {
+      data = null;
+      error = 'Endpoint path is empty';
+      return null;
+    }
+
     /// Prevents duplicate calls with a delay and check for loading call again
     if (loading) return;
     loading = true;
+    // Check for duplicated calls
     if (ignoreDuplicatedCalls &&
         _lastEndpointCalled != null &&
         _lastEndpointCalled == endpoint &&
@@ -142,9 +150,13 @@ abstract class StateAPI extends StateShared {
         }
         error = null;
       } catch (e) {
-        if (kDebugMode) print('------------ ERROR API CALL -------------');
+        if (kDebugMode) {
+          print('------------ ERROR API CALL ::::::::::::::::::::');
+          print('Endpoint: $endpoint');
+        }
         errorCount++;
         error = e.toString();
+        if (kDebugMode) print('////////////// ERROR API CALL -------------');
         if (!isSameClearPath) data = null;
         newData = null;
       }
