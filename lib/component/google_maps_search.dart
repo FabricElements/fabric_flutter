@@ -116,7 +116,7 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final locales = AppLocalizations.of(context)!;
+    final locales = AppLocalizations.of(context);
     final alert = Provider.of<StateAlert>(context, listen: false);
 
     /// Get place object by id

@@ -46,7 +46,7 @@ class LogsList extends StatelessWidget {
     Widget container = const SizedBox(height: 0);
     if (logs == null || logs!.isEmpty) return container;
     RegExp regExp = RegExp(r'{.*?}', multiLine: true);
-    final locales = AppLocalizations.of(context)!;
+    final locales = AppLocalizations.of(context);
     final alert = Provider.of<StateAlert>(context, listen: false);
     alert.context = context;
     void copyText(dynamic text) {

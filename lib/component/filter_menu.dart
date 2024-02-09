@@ -35,7 +35,7 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
 
   @override
   Widget build(BuildContext context) {
-    final locales = AppLocalizations.of(context)!;
+    final locales = AppLocalizations.of(context);
     bool isSort =
         widget.data.operator == FilterOperator.sort || widget.data.id == 'sort';
     final enumData = EnumData(locales: locales);
@@ -292,7 +292,7 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
 
   @override
   Widget build(BuildContext context) {
-    final locales = AppLocalizations.of(context)!;
+    final locales = AppLocalizations.of(context);
     final enumData = EnumData(locales: locales);
 
     /// Label value
@@ -496,7 +496,7 @@ class _FilterMenuState extends State<FilterMenu> {
       !(widget.child != null && widget.icon != null),
       'You can only pass [child] or [icon], not both.',
     );
-    final locales = AppLocalizations.of(context)!;
+    final locales = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     /// Ignore options that are included on the filters data

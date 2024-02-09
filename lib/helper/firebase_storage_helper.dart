@@ -98,7 +98,7 @@ class FirebaseStorageHelper {
     bool autoId = false,
   }) async {
     final alert = Provider.of<StateAlert>(context, listen: false);
-    final locales = AppLocalizations.of(context)!;
+    final locales = AppLocalizations.of(context);
     try {
       final selectedFile = await MediaHelper.getImage(
         origin: origin,
@@ -132,7 +132,7 @@ class FirebaseStorageHelper {
     bool autoId = false,
   }) async {
     final alert = Provider.of<StateAlert>(context, listen: false);
-    final locales = AppLocalizations.of(context)!;
+    final locales = AppLocalizations.of(context);
     try {
       final selectedFile =
           await MediaHelper.getFile(allowedExtensions: fileExtensions);

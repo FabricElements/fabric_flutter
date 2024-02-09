@@ -71,7 +71,7 @@ class UserAdmin extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
-    final locales = AppLocalizations.of(context)!;
+    final locales = AppLocalizations.of(context);
     if (group != null) {
       assert(group != null && group!.isNotEmpty, 'group can\'t be empty');
     }

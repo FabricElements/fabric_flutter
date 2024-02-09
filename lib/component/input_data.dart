@@ -349,7 +349,7 @@ getValue -------------------------------------
 
   @override
   Widget build(BuildContext context) {
-    final locales = AppLocalizations.of(context)!;
+    final locales = AppLocalizations.of(context);
     final enumData = EnumData(locales: locales);
     final theme = Theme.of(context);
     bool isDense = widget.isDense || theme.inputDecorationTheme.isDense;

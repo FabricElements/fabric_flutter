@@ -35,7 +35,7 @@ class _RoutePageState extends State<RoutePage> {
   @override
   Widget build(BuildContext context) {
     if (widget.status == null) return widget.loading;
-    final locales = AppLocalizations.of(context)!;
+    final locales = AppLocalizations.of(context);
     final alert = Provider.of<StateAlert>(context, listen: false);
     alert.context = context;
     try {
