@@ -11,6 +11,7 @@ class StateGlobal extends ChangeNotifier {
   /// packageInfo returns [PackageInfo] temporal or final data
   PackageInfo get packageInfo {
     if (_packageInfo == null) {
+      WidgetsFlutterBinding.ensureInitialized();
       PackageInfo.fromPlatform().then((value) {
         _packageInfo = value;
         Future.delayed(const Duration(seconds: 1))
