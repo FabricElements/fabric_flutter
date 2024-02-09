@@ -275,11 +275,10 @@ class StateUser extends StateDocument {
           (ConnectivityResult result) async {
         if (result.name != connectedTo) await _userStatusUpdate();
       },
-          onError: (error) => {
-                if (kDebugMode) print('Connectivity error: ${error.toString()}')
-              });
+          onError: (error) =>
+              {debugPrint('Connectivity error: ${error.toString()}')});
     } catch (error) {
-      if (kDebugMode) print('Connectivity error: ${error.toString()}');
+      debugPrint('Connectivity error: ${error.toString()}');
     }
     _auth
         .userChanges()

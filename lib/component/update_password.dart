@@ -38,7 +38,7 @@ class _UpdatePasswordState extends State<UpdatePassword> {
 
   @override
   Widget build(BuildContext context) {
-    final locales = AppLocalizations.of(context)!;
+    final locales = AppLocalizations.of(context);
     final alert = Provider.of<StateAlert>(context, listen: false);
     String? errorValidation;
     String? errorValidation2;

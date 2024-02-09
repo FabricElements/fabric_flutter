@@ -46,7 +46,7 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
     }
     final firebaseStorageHelper = FirebaseStorageHelper(context);
     final theme = Theme.of(context);
-    final locales = AppLocalizations.of(context)!;
+    final locales = AppLocalizations.of(context);
     return Wrap(
       spacing: 16,
       children: [

@@ -87,7 +87,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
   @override
   Widget build(BuildContext context) {
     final alert = Provider.of<StateAlert>(context, listen: false);
-    final locales = AppLocalizations.of(context)!;
+    final locales = AppLocalizations.of(context);
     final stateUser = Provider.of<StateUser>(context);
     stateUser.ping('profile');
     userImage = widget.prefix != null && stateUser.serialized.avatar != null
@@ -126,7 +126,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
     updateUser() async {
       loading = false;
       if (mounted) setState(() {});
-      AppLocalizations? locales = AppLocalizations.of(context)!;
+      AppLocalizations? locales = AppLocalizations.of(context);
       if (!changed) {
         alert.show(AlertData(
           body: locales.get('page-profile--alert--nothing-to-update'),
@@ -225,7 +225,7 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
     }
 
     Widget getBody() {
-      final locales = AppLocalizations.of(context)!;
+      final locales = AppLocalizations.of(context);
       if (loading) {
         return widget.loader ?? const LoadingScreen();
       }

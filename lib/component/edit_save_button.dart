@@ -52,7 +52,7 @@ class _EditSaveButtonState extends State<EditSaveButton> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final alert = Provider.of<StateAlert>(context, listen: false);
-    final locales = AppLocalizations.of(context)!;
+    final locales = AppLocalizations.of(context);
 
     void update() async {
       if (!widget.confirm) {

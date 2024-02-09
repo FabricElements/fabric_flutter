@@ -100,7 +100,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       bool newPasswordOk = RegexHelper.password.hasMatch(data.password ?? '');
       canCall = canCall && newPasswordOk;
     }
-    final locales = AppLocalizations.of(context)!;
+    final locales = AppLocalizations.of(context);
     final alert = Provider.of<StateAlert>(context, listen: false);
     const spacer = SizedBox(height: 16, width: 16);
     String title = locales

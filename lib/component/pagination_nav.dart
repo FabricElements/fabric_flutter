@@ -35,7 +35,7 @@ class PaginationNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final locales = AppLocalizations.of(context)!;
+    final locales = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final limitOptions = List.generate(limits.length, (index) {

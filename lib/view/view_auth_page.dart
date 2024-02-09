@@ -1,9 +1,6 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io' show Platform;
-import 'dart:math';
 
-import 'package:crypto/crypto.dart';
 import 'package:fabric_flutter/helper/options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
@@ -148,7 +145,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     final stateDynamicLinks = Provider.of<StateDynamicLinks>(context);
     final theme = Theme.of(context);
     final stateAnalytics = Provider.of<StateAnalytics>(context, listen: false);
-    final locales = AppLocalizations.of(context)!;
+    final locales = AppLocalizations.of(context);
     final textTheme = Theme.of(context).textTheme;
     final alert = Provider.of<StateAlert>(context, listen: false);
     final height = MediaQuery.of(context).size.height;
@@ -448,24 +445,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       }
     }
 
-    /// Sign in with Apple
-    /// Generates a cryptographically secure random nonce, to be included in a
-    /// credential request.
-    String generateNonce([int length = 32]) {
-      const charset =
-          '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
-      final random = Random.secure();
-      return List.generate(
-          length, (_) => charset[random.nextInt(charset.length)]).join();
-    }
-
-    /// Returns the sha256 hash of [input] in hex notation.
-    String sha256ofString(String input) {
-      final bytes = utf8.encode(input);
-      final digest = sha256.convert(bytes);
-      return digest.toString();
-    }
-
+    /// Sign in anonymously
     signInAnonymously() async {
       try {
         final userCredential = await _auth.signInAnonymously();
@@ -501,6 +481,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       }
     }
 
+    /// Sign in with Apple
     signInWithApple() async {
       try {
         var appleProvider = AppleAuthProvider();
@@ -550,6 +531,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       );
     }
 
+    /// Auth button widget
     Widget authButton(provider) {
       String text = locales.get('label--sign-in');
       var icon = Icons.email;
@@ -645,7 +627,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       );
     }
 
-//    final Widget svgIcon = Container(height: 10, width: 10);
     String backgroundImage = widget.image ??
         'https://images.unsplash.com/photo-1615406020658-6c4b805f1f30';
     Widget spacer = const SizedBox(width: 8, height: 8);

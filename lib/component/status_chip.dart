@@ -19,7 +19,7 @@ class StatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final locales = AppLocalizations.of(context)!;
+    final locales = AppLocalizations.of(context);
     Color statusColor = Colors.grey.shade800;
     String baseStatus = status ?? 'unknown';
     baseStatus = locales.get('label--$status');

@@ -40,7 +40,7 @@ class LanguagePicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final locales = AppLocalizations.of(context)!;
+    final locales = AppLocalizations.of(context);
     late List<ISOLanguage> languages;
     languages = ISOLanguages.languages;
     if (voice) {
