@@ -247,7 +247,7 @@ class UserAdmin extends StatelessWidget {
             avatar: Icon(Icons.phone, color: Colors.grey.shade600),
             backgroundColor: Colors.transparent,
             padding: const EdgeInsets.all(0),
-            label: Text(user.phone!),
+            label: SelectableText(user.phone!),
           ));
         }
         if (user.email != null) {
@@ -255,7 +255,7 @@ class UserAdmin extends StatelessWidget {
             avatar: Icon(Icons.email, color: Colors.grey.shade600),
             backgroundColor: Colors.transparent,
             padding: const EdgeInsets.all(0),
-            label: Text(user.email!),
+            label: SelectableText(user.email!),
           ));
         }
         if (user.username != null && user.username!.isNotEmpty) {
@@ -263,7 +263,15 @@ class UserAdmin extends StatelessWidget {
             avatar: Icon(Icons.alternate_email, color: Colors.grey.shade600),
             backgroundColor: Colors.transparent,
             padding: const EdgeInsets.all(0),
-            label: Text(user.username!),
+            label: SelectableText(user.username!),
+          ));
+        }
+        if (stateUser.admin) {
+          roleChips.add(Chip(
+            avatar: Icon(Icons.person, color: Colors.grey.shade600),
+            backgroundColor: Colors.transparent,
+            padding: const EdgeInsets.all(0),
+            label: SelectableText(user.id),
           ));
         }
         return SizedBox(
@@ -288,7 +296,7 @@ class UserAdmin extends StatelessWidget {
                         lastName: user.lastName,
                         presence: user.presence,
                       ),
-                      title: Text(name, style: textTheme.titleMedium),
+                      title: SelectableText(name, style: textTheme.titleMedium),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(16),
