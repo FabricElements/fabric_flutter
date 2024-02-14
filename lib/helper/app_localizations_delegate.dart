@@ -12,12 +12,25 @@ class AppLocalizations {
 
   final Locale locale;
 
-  static AppLocalizations of(BuildContext context) {
-    return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
+  /// Verify if the localizations are defined on the context
+  /// [context] the context to verify
+  /// Returns true if the localizations are defined
+  static bool _isLocalizationsDefined(BuildContext context) {
+    return Localizations.of<AppLocalizations>(context, AppLocalizations) !=
+        null;
   }
 
+  static AppLocalizations of(BuildContext context) {
+    if (_isLocalizationsDefined(context)) {
+      return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
+    }
+    return AppLocalizations(const Locale('en', 'US'));
+  }
+
+  /// The keys of the locales
   Map<String, dynamic> keys = {};
 
+  /// Load the locales from the assets
   Future<bool> load() async {
     try {
       String data = await rootBundle.loadString('assets/locales.json');
@@ -33,6 +46,7 @@ class AppLocalizations {
     return true;
   }
 
+  /// Merge the default locales with the asset locales
   String _mergeLocales(String keyPath) {
     RegExp regExp = RegExp(r'([a-zA-Z\d_-]+)');
     String finalResponse = '';
@@ -55,6 +69,7 @@ class AppLocalizations {
     return finalResponse;
   }
 
+  /// Replace the options in the string
   String _replaceOptions(String text, Map<String, String> options) {
     String result = text;
     RegExp regExp = RegExp(r'{.*?}');
@@ -112,6 +127,7 @@ class AppLocalizations {
   }
 }
 
+/// The localizations delegate
 class AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   const AppLocalizationsDelegate();
 
