@@ -12,8 +12,15 @@ class AppLocalizations {
 
   final Locale locale;
 
+  static bool isLocalizationsDefined(BuildContext context) {
+    return Localizations.of<Localizations>(context, Localizations) != null;
+  }
+
   static AppLocalizations of(BuildContext context) {
-    return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
+    if (isLocalizationsDefined(context)) {
+      return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
+    }
+    return AppLocalizations(const Locale('en', 'US'));
   }
 
   Map<String, dynamic> keys = {};
