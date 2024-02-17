@@ -183,6 +183,7 @@ class _InputDataState extends State<InputData> {
   DateFormat formatDate = DateFormat.yMd('en_US');
   DateFormat formatDateTime =
       DateFormat.yMd('en_US').addPattern(' - ').add_jm();
+  String? prefixText;
   dynamic value;
   late bool obscureText;
   late bool obscure;
@@ -200,6 +201,13 @@ class _InputDataState extends State<InputData> {
         return double.tryParse(valueLocalString);
       case InputDataType.int:
         return int.tryParse(valueLocalString);
+      case InputDataType.phone:
+        // only accept digits
+        String onlyNumbers = valueLocalString
+            .replaceAll(RegExp(r'\D'), '')
+            .replaceAll(RegExp(r'\+'), '');
+        // Add plus sign if it's missing
+        return '+$onlyNumbers';
       default:
         return valueLocal;
     }
@@ -213,7 +221,6 @@ class _InputDataState extends State<InputData> {
         case InputDataType.string:
         case InputDataType.int:
         case InputDataType.text:
-        case InputDataType.phone:
         case InputDataType.email:
         case InputDataType.secret:
         case InputDataType.url:
@@ -222,6 +229,18 @@ class _InputDataState extends State<InputData> {
           if (!sameValue) {
             value = newFormattedValue;
             textController.text = value;
+            if (notify && mounted) setState(() {});
+          }
+          break;
+        case InputDataType.phone:
+          dynamic newFormattedValue = valueChanged(newValue)?.toString() ?? '';
+          // remove plus sign to avoid double plus sign on the input
+          final valueWithoutPlusSign =
+              newFormattedValue.replaceAll(RegExp(r'\+'), '');
+          bool sameValue = value == newFormattedValue;
+          if (!sameValue) {
+            value = newFormattedValue;
+            textController.text = valueWithoutPlusSign;
             if (notify && mounted) setState(() {});
           }
           break;
@@ -405,15 +424,15 @@ getValue -------------------------------------
         keyboardType = TextInputType.multiline;
         textInputAction = widget.textInputAction ?? TextInputAction.newline;
         break;
-
       case InputDataType.phone:
         // https://en.wikipedia.org/wiki/Telephone_numbering_plan
         maxLength = 16;
-        hintTextDefault = '+1 (222) 333 - 4444';
+        prefixText = '+';
+        hintTextDefault = ' (222) 333 - 4444';
         keyboardType = TextInputType.phone;
         inputFormatters.addAll([
-          FilteringTextInputFormatter.deny(RegExp(r'[\s()-]')),
-          FilteringTextInputFormatter.allow(RegExp(r'^\+\d{0,15}')),
+          FilteringTextInputFormatter.deny(RegExp(r'[\s()-+]')),
+          FilteringTextInputFormatter.allow(RegExp(r'[\d{0,15}]')),
           FilteringTextInputFormatter.singleLineFormatter,
         ]);
         validator = inputValidation.validatePhone;
@@ -482,7 +501,7 @@ getValue -------------------------------------
       suffix: widget.suffix,
       prefixIcon: widget.prefixIcon ?? inputIcon,
       suffixIcon: widget.suffixIcon ?? inputTrailingIcon,
-      prefixText: widget.prefixText,
+      prefixText: widget.prefixText ?? prefixText,
       suffixText: widget.suffixText,
       prefixStyle: widget.prefixStyle,
       suffixStyle: widget.suffixStyle,

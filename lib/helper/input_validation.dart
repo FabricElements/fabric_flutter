@@ -47,9 +47,15 @@ class InputValidation {
     return RegexHelper.phone.hasMatch(phone);
   }
 
+  /// Returns true if contains a valid phone number
+  static bool isPhoneValidNoPlusSign(String? phone) {
+    if (phone == null || phone.isEmpty) return false;
+    return RegexHelper.phoneNoPlusSign.hasMatch(phone);
+  }
+
   /// Returns null if contains a valid phone number
   String? validatePhone(String? phone) {
-    if (isPhoneValid(phone)) {
+    if (isPhoneValidNoPlusSign(phone)) {
       return null;
     } else {
       return locales?.get('validation--phone') ?? 'Enter a valid phone number';
