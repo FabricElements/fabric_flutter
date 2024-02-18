@@ -2,19 +2,19 @@ import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:fabric_flutter/component/content_container.dart';
+import 'package:fabric_flutter/component/input_data.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../helper/app_localizations_delegate.dart';
 import '../helper/media_helper.dart';
-import '../placeholder/loading_screen.dart';
 import '../state/state_alert.dart';
 import '../state/state_user.dart';
 
-class ViewProfileEdit extends StatefulWidget {
-  const ViewProfileEdit({
+class ProfileEdit extends StatefulWidget {
+  const ProfileEdit({
     super.key,
     this.loader,
     this.prefix,
@@ -24,20 +24,18 @@ class ViewProfileEdit extends StatefulWidget {
   final String? prefix;
 
   @override
-  State<ViewProfileEdit> createState() => _ViewProfileEditState();
+  State<ProfileEdit> createState() => _ProfileEditState();
 }
 
-class _ViewProfileEditState extends State<ViewProfileEdit> {
+class _ProfileEditState extends State<ProfileEdit> {
   late bool changed;
   AssetImage? defaultImage;
   late bool loading;
   ImageProvider? previewImage;
   Uint8List? _temporalImageBytes;
   String? userImage;
-  String nameFirst = '';
-  String nameLast = '';
-  TextEditingController nameFirstController = TextEditingController();
-  TextEditingController nameLastController = TextEditingController();
+  String? nameFirst;
+  String? nameLast;
   String? _avatarFinalUrl;
 
   @override
@@ -45,43 +43,9 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
     loading = false;
     changed = false;
     defaultImage = const AssetImage('assets/placeholder.jpg');
-    nameFirstController.text = '';
-    nameLastController.text = '';
-    nameFirst = '';
-    nameLast = '';
+    nameFirst = null;
+    nameLast = null;
     super.initState();
-  }
-
-  @override
-  void didChangeDependencies() {
-    nameFirstController.addListener(_nameFirstChanged);
-    nameLastController.addListener(_nameLastChanged);
-    super.didChangeDependencies();
-  }
-
-  @override
-  void dispose() {
-    nameFirstController.dispose();
-    nameLastController.dispose();
-    super.dispose();
-  }
-
-  _nameFirstChanged() {
-    var newName = nameFirstController.text;
-    if (newName.isEmpty || newName == nameFirst) {
-      return;
-    }
-    changed = true;
-    if (mounted) setState(() {});
-  }
-
-  _nameLastChanged() {
-    var newName = nameLastController.text;
-    if (newName.isEmpty || newName == nameLast) {
-      return;
-    }
-    changed = true;
-    if (mounted) setState(() {});
   }
 
   @override
@@ -93,12 +57,9 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
     userImage = widget.prefix != null && stateUser.serialized.avatar != null
         ? '${widget.prefix}/${stateUser.serialized.avatar}'
         : stateUser.serialized.avatar;
-    nameFirst = stateUser.serialized.firstName ?? '';
-    nameLast = stateUser.serialized.lastName ?? '';
     if (!changed) {
-      nameFirstController.text = nameFirst;
-      nameLastController.text = nameLast;
-      changed = false;
+      nameFirst = nameFirst ?? stateUser.serialized.firstName;
+      nameLast = nameLast ?? stateUser.serialized.lastName;
     }
     void refreshImage() {
       _avatarFinalUrl = null;
@@ -124,45 +85,55 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
 
     refreshImage();
     updateUser() async {
-      loading = false;
-      if (mounted) setState(() {});
-      AppLocalizations? locales = AppLocalizations.of(context);
+      assert(nameFirst != null, 'First Name must be defined');
+      assert(nameLast != null, 'Last Name must be defined');
       if (!changed) {
         alert.show(AlertData(
           body: locales.get('page-profile--alert--nothing-to-update'),
+          clear: true,
         ));
         return;
       }
-      String newNameFirst = nameFirstController.text;
-      newNameFirst = newNameFirst.trim();
-      String newNameLast = nameLastController.text;
-      newNameLast = newNameLast.trim();
-      if (newNameFirst.isEmpty) {
+      alert.show(AlertData(
+        body: locales.get('notification--please-wait'),
+        duration: 4,
+        clear: true,
+      ));
+      loading = false;
+      // Remove spaces
+      nameFirst = nameFirst!.trimLeft().trimRight();
+      nameLast = nameLast!.trimLeft().trimRight();
+      if (mounted) setState(() {});
+      if (nameFirst!.isEmpty) {
         alert.show(AlertData(
           body: locales.get('label--too-short', {
             'label': locales.get('label--first-name'),
             'number': '3',
           }),
           type: AlertType.critical,
+          clear: true,
         ));
         return;
       }
-      if (newNameLast.isEmpty) {
+      if (nameFirst!.isEmpty) {
         alert.show(AlertData(
           body: locales.get('label--too-short', {
             'label': locales.get('label--last-name'),
             'number': '3',
           }),
           type: AlertType.critical,
+          clear: true,
         ));
         return;
       }
+      // Change first character to uppercase
+      nameFirst = nameFirst![0].toUpperCase() + nameFirst!.substring(1);
+      nameLast = nameLast![0].toUpperCase() + nameLast!.substring(1);
       loading = true;
       if (mounted) setState(() {});
-
       Map<String, dynamic> newData = {
-        'firstName': newNameFirst,
-        'lastName': newNameLast,
+        'firstName': nameFirst!,
+        'lastName': nameLast!,
       };
       try {
         if (_temporalImageBytes != null) {
@@ -182,17 +153,20 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
         alert.show(AlertData(
           body: locales.get('page-profile--alert--profile-updated'),
           type: AlertType.success,
+          clear: true,
         ));
         refreshImage();
       } on FirebaseFunctionsException catch (error) {
         alert.show(AlertData(
           body: error.message ?? error.details['message'],
           type: AlertType.critical,
+          clear: true,
         ));
       } catch (error) {
         alert.show(AlertData(
           body: error.toString(),
           type: AlertType.critical,
+          clear: true,
         ));
       }
       loading = false;
@@ -224,19 +198,16 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
       if (mounted) setState(() {});
     }
 
-    Widget getBody() {
-      final locales = AppLocalizations.of(context);
-      if (loading) {
-        return widget.loader ?? const LoadingScreen();
-      }
-      // double width = MediaQuery.of(context).size.width;
-      // double height = MediaQuery.of(context).size.height;
-      // double smallerSize =
-      //     math.min(width >= 150 ? width : 150, height >= 150 ? height : 150);
-      return ListView(
-        padding: const EdgeInsets.only(bottom: 64),
-        children: <Widget>[
-          Container(
+    final readyToSave = changed &&
+        !loading &&
+        ((nameFirst ?? '').length > 1 && (nameLast ?? '').length > 1);
+    return ListView(
+      padding: const EdgeInsets.only(bottom: 64, left: 16, right: 16, top: 16),
+      children: <Widget>[
+        ContentContainer(
+          size: ContentContainerSize.small,
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Container(
             constraints: const BoxConstraints(maxWidth: 300, maxHeight: 300),
             child: AspectRatio(
               aspectRatio: 1 / 1,
@@ -264,17 +235,20 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
                                 bottom: 0,
                                 left: 15,
                                 child: FloatingActionButton(
+                                  tooltip: locales.get('label--gallery'),
                                   backgroundColor: Colors.grey.shade50,
                                   heroTag: 'image',
+                                  onPressed: loading
+                                      ? null
+                                      : () async {
+                                          await getImageFromOrigin(
+                                              MediaOrigin.gallery);
+                                        },
                                   child: Icon(
                                     Icons.image,
                                     color:
                                         Theme.of(context).colorScheme.secondary,
                                   ),
-                                  onPressed: () async {
-                                    await getImageFromOrigin(
-                                        MediaOrigin.gallery);
-                                  },
                                 ),
                               ),
                               !kIsWeb
@@ -283,11 +257,14 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
                                       right: 15,
                                       child: FloatingActionButton(
                                         heroTag: 'camera',
+                                        tooltip: locales.get('label--camera'),
+                                        onPressed: loading
+                                            ? null
+                                            : () async {
+                                                await getImageFromOrigin(
+                                                    MediaOrigin.camera);
+                                              },
                                         child: const Icon(Icons.photo_camera),
-                                        onPressed: () async {
-                                          await getImageFromOrigin(
-                                              MediaOrigin.camera);
-                                        },
                                       ),
                                     )
                                   : Container(),
@@ -301,65 +278,63 @@ class _ViewProfileEditState extends State<ViewProfileEdit> {
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: TextField(
-              controller: nameFirstController,
-              decoration: InputDecoration(
-                labelText: locales.get('label--first-name'),
-                hintText: locales.get('label--first-name'),
-              ),
-              maxLines: 1,
-              keyboardType: TextInputType.text,
-              maxLength: 15,
-              inputFormatters: <TextInputFormatter>[
-                FilteringTextInputFormatter.singleLineFormatter,
-                FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]')),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: TextField(
-              controller: nameLastController,
-              decoration: InputDecoration(
-                labelText: locales.get('label--last-name'),
-                hintText: locales.get('label--last-name'),
-              ),
-              maxLines: 1,
-              keyboardType: TextInputType.text,
-              maxLength: 15,
-              inputFormatters: <TextInputFormatter>[
-                FilteringTextInputFormatter.singleLineFormatter,
-                FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z '-]")),
-              ],
-            ),
-          ),
-          Container(height: 32),
-        ],
-      );
-    }
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(locales.get('page-profile--title')),
-        automaticallyImplyLeading: false,
-        leading: IconButton(
-          icon: const Icon(Icons.navigate_before),
-          onPressed: () {
-            Navigator.of(context).popAndPushNamed('/');
-          },
         ),
-      ),
-      body: getBody(),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: changed && !loading
-          ? FloatingActionButton.extended(
-              label: Text(locales.get('label--update')),
-              onPressed: updateUser,
-              heroTag: 'update-button',
-            )
-          : null,
+        // First Name
+        ContentContainer(
+          size: ContentContainerSize.small,
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: InputData(
+            disabled: loading,
+            maxLength: 35,
+            type: InputDataType.string,
+            value: nameFirst,
+            label: locales.get('label--first-name'),
+            onChanged: (newValue) {
+              String value = newValue?.toString() ?? '';
+              // Remove invalid characters
+              value = value.replaceAll(RegExp(r'[0-9!@#$%^*()_+={}<>~]'), '');
+              nameFirst = value;
+              if (mounted) setState(() {});
+              if (stateUser.serialized.firstName == value) return;
+              changed = true;
+              if (mounted) setState(() {});
+            },
+          ),
+        ),
+        // Last Name
+        ContentContainer(
+          size: ContentContainerSize.small,
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: InputData(
+            disabled: loading,
+            maxLength: 35,
+            type: InputDataType.string,
+            value: nameLast,
+            label: locales.get('label--last-name'),
+            onChanged: (newValue) {
+              String value = newValue?.toString() ?? '';
+              // Remove invalid characters
+              value = value.replaceAll(RegExp(r'[0-9!@#$%^*()_+={}<>~]'), '');
+              nameLast = value;
+              if (mounted) setState(() {});
+              if (stateUser.serialized.lastName == value) return;
+              changed = true;
+              if (mounted) setState(() {});
+            },
+          ),
+        ),
+        const SizedBox(height: 32),
+        ContentContainer(
+          size: ContentContainerSize.small,
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: FilledButton.icon(
+            key: const Key('update-button'),
+            label: Text(locales.get('label--update')),
+            onPressed: readyToSave ? updateUser : null,
+            icon: const Icon(Icons.save),
+          ),
+        ),
+      ],
     );
   }
 }
