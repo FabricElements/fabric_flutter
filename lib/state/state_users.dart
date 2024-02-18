@@ -3,7 +3,7 @@ import 'state_collection.dart';
 
 class StateUsers extends StateCollection {
   @override
-  int limitDefault = 50;
+  int limitDefault = 100;
 
   @override
   List<UserData> get serialized {
