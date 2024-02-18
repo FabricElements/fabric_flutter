@@ -61,6 +61,11 @@ class StatusChip extends StatelessWidget {
       case 'archived':
         icon = Icons.archive;
         statusColor = Colors.grey.shade700;
+        break;
+      case 'suspended':
+        icon = Icons.warning;
+        statusColor = Colors.red.shade500;
+        break;
     }
     return Tooltip(
       message: locales.get('label--status'),

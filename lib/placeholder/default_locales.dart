@@ -39,6 +39,10 @@ dynamic defaultLocales = {
     'en': 'Paused',
     'es': 'Pausado',
   },
+  'label--suspended': {
+    'en': 'Suspended',
+    'es': 'Suspendido',
+  },
   'label--page': {
     'en': 'Page',
     'es': 'Página',
