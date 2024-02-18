@@ -441,10 +441,6 @@ dynamic defaultLocales = {
     'en': 'Verification code',
     'es': 'Código de verificación',
   },
-  'page-profile--title': {
-    'en': 'Edit Profile',
-    'es': 'Editar perfil',
-  },
   'page-profile--alert--nothing-to-update': {
     'en': 'Nothing to update',
     'es': 'Nada por actualizar',
