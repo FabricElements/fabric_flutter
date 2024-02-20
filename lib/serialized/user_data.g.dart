@@ -75,6 +75,7 @@ UserData _$UserDataFromJson(Map<String, dynamic> json) => UserData(
       links: json['links'] == null
           ? null
           : InterfaceLinks.fromJson(json['links'] as Map<String, dynamic>?),
+      os: $enumDecodeNullable(_$UserOSEnumMap, json['os']) ?? UserOS.unknown,
     );
 
 Map<String, dynamic> _$UserDataToJson(UserData instance) {
@@ -95,6 +96,7 @@ Map<String, dynamic> _$UserDataToJson(UserData instance) {
   writeNotNull('language', instance.language);
   writeNotNull('onboarding', instance.onboarding?.toJson());
   writeNotNull('links', instance.links?.toJson());
+  val['os'] = _$UserOSEnumMap[instance.os]!;
   writeNotNull('phone', instance.phone);
   writeNotNull('password', instance.password);
   val['role'] = instance.role;
@@ -108,4 +110,15 @@ const _$ThemeModeEnumMap = {
   ThemeMode.system: 'system',
   ThemeMode.light: 'light',
   ThemeMode.dark: 'dark',
+};
+
+const _$UserOSEnumMap = {
+  UserOS.android: 'android',
+  UserOS.ios: 'ios',
+  UserOS.macos: 'macos',
+  UserOS.linux: 'linux',
+  UserOS.web: 'web',
+  UserOS.fuchsia: 'fuchsia',
+  UserOS.windows: 'windows',
+  UserOS.unknown: 'unknown',
 };

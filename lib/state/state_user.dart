@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -146,9 +147,29 @@ class StateUser extends StateDocument {
     DateTime timeRef = DateTime.now().subtract(const Duration(minutes: 1));
     if (_pingLast.isAfter(timeRef)) return;
     _pingLast = DateTime.now(); // Define before saving because it's async
+    /// Get user device
+    UserOS userOs = UserOS.unknown;
+    try {
+      if (kIsWeb) {
+        userOs = UserOS.web;
+      } else {
+        String os = Platform.operatingSystem;
+        userOs = UserOS.values.firstWhere(
+          (e) => e.name == os.toLowerCase(),
+          orElse: () => UserOS.unknown,
+        );
+      }
+    } catch (e) {
+      if (kDebugMode) print('Device type error: ${e.toString()}');
+    }
+
+    /// Save ping data
     try {
       await ref?.set(
-        {'ping': FieldValue.serverTimestamp()},
+        {
+          'ping': FieldValue.serverTimestamp(),
+          'os': userOs.name,
+        },
         SetOptions(merge: true),
       );
       _pingReference = reference;

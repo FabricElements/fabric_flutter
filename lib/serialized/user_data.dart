@@ -12,6 +12,18 @@ enum UserPresence {
   away,
 }
 
+/// User Device OS
+enum UserOS {
+  android,
+  ios,
+  macos,
+  linux,
+  web,
+  fuchsia,
+  windows,
+  unknown,
+}
+
 /// Onboarding Object
 @JsonSerializable(explicitToJson: true)
 class UserDataOnboarding {
@@ -122,6 +134,10 @@ class UserData {
   @JsonKey(includeIfNull: false)
   InterfaceLinks? links;
 
+  /// User device type
+  @JsonKey(includeIfNull: true, defaultValue: UserOS.unknown)
+  UserOS os;
+
   /// Last time the user was ping
   @JsonKey(
     fromJson: FirestoreHelper.timestampFromJson,
@@ -191,6 +207,7 @@ class UserData {
     this.bsiId,
     this.theme = ThemeMode.system,
     this.links,
+    this.os = UserOS.unknown,
   })  : presence = Utils.getPresence(ping),
         name = Utils.nameFromParts(
           firstName: firstName,
