@@ -165,6 +165,7 @@ class StateNotifications extends ChangeNotifier {
       final newToken = await getToken();
       _updateUserToken(newToken);
       _token = newToken;
+      notifyListeners();
     }
   }
 
