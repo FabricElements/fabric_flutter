@@ -329,6 +329,7 @@ class StateAlert implements Listenable {
     bool hasValidPath =
         alertData.action!.path != null && alertData.action!.path!.isNotEmpty;
     bool hasAction = alertData.action!.onTap != null;
+    bool showAction = hasAction || hasValidPath;
     bool hasDismissAction = alertData.dismiss!.onTap != null;
     actions.add(TextButton.icon(
       style: TextButton.styleFrom(foregroundColor: buttonColor),
@@ -345,7 +346,7 @@ class StateAlert implements Listenable {
         }
       },
     ));
-    if (hasAction || hasValidPath) {
+    if (showAction) {
       actions.add(FilledButton.icon(
         style: FilledButton.styleFrom(
             backgroundColor: buttonColor,
@@ -380,7 +381,7 @@ class StateAlert implements Listenable {
       ));
     }
 
-    if (hasAction && alertData.widget == AlertWidget.snackBar) {
+    if (showAction && alertData.widget == AlertWidget.snackBar) {
       onColumn.add(Container(
         margin: const EdgeInsets.only(top: 16),
         child: Wrap(
@@ -429,7 +430,7 @@ class StateAlert implements Listenable {
               duration: Duration(seconds: alertData.duration!),
               backgroundColor: alertData.color,
               padding: EdgeInsets.zero,
-              showCloseIcon: !hasAction,
+              showCloseIcon: !showAction,
               closeIconColor: alertData.textColor,
             ),
           );
