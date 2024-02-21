@@ -48,13 +48,16 @@ class StateUser extends StateDocument {
   /// ignore: close_sinks
   final _controllerStreamSerialized = StreamController<UserData?>.broadcast();
 
-  @override
-  void clearAfter() {
+  /// Independent function to clear all credential data
+  void clearAuth({bool notify = false}) {
+    clear(notify: false);
     _theme = null;
     _userObject = null;
     _claims = null;
     _token = null;
-    if (initialized) notifyListeners();
+    error = null;
+    if (notify) notifyListeners();
+    clear(notify: notify);
   }
 
   /// More at [token]
@@ -218,8 +221,8 @@ class StateUser extends StateDocument {
   /// Sign Out user
   void signOut() async {
     await cancel();
+    clearAuth(notify: false);
     await _auth.signOut();
-    clear(notify: true);
   }
 
   /// [accessByRole] displays content only if the the role matches for current user
@@ -266,7 +269,7 @@ class StateUser extends StateDocument {
   /// Refresh auth state
   _refreshAuth(User? userObject) async {
     if (userObject == null) {
-      clear(notify: true);
+      clearAuth(notify: true);
       await _userStatusUpdate();
       return;
     }
@@ -304,11 +307,6 @@ class StateUser extends StateDocument {
     _auth
         .userChanges()
         .listen(_refreshAuth, onError: (e) => error = e.toString());
-    // Future.delayed(const Duration(seconds: 1)).then((_) {
-    //   _auth
-    //       .userChanges()
-    //       .listen(_refreshAuth, onError: (e) => error = e.toString());
-    // });
   }
 
   bool get initCalled => _init;
