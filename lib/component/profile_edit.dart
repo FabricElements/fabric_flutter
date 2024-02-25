@@ -53,7 +53,9 @@ class _ProfileEditState extends State<ProfileEdit> {
     final alert = Provider.of<StateAlert>(context, listen: false);
     final locales = AppLocalizations.of(context);
     final stateUser = Provider.of<StateUser>(context);
-    stateUser.ping('profile');
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      stateUser.ping('profile');
+    });
     userImage = widget.prefix != null && stateUser.serialized.avatar != null
         ? '${widget.prefix}/${stateUser.serialized.avatar}'
         : stateUser.serialized.avatar;
@@ -87,24 +89,16 @@ class _ProfileEditState extends State<ProfileEdit> {
     updateUser() async {
       assert(nameFirst != null, 'First Name must be defined');
       assert(nameLast != null, 'Last Name must be defined');
-      if (!changed) {
-        alert.show(AlertData(
-          body: locales.get('page-profile--alert--nothing-to-update'),
-          clear: true,
-        ));
-        return;
-      }
+      assert(changed, 'No changes detected');
+      loading = true;
       alert.show(AlertData(
         body: locales.get('notification--please-wait'),
         duration: 4,
         clear: true,
       ));
-      loading = false;
-      // Remove spaces
-      nameFirst = nameFirst!.trimLeft().trimRight();
-      nameLast = nameLast!.trimLeft().trimRight();
-      if (mounted) setState(() {});
       if (nameFirst!.isEmpty) {
+        loading = false;
+        if (mounted) setState(() {});
         alert.show(AlertData(
           body: locales.get('label--too-short', {
             'label': locales.get('label--first-name'),
@@ -115,7 +109,9 @@ class _ProfileEditState extends State<ProfileEdit> {
         ));
         return;
       }
-      if (nameFirst!.isEmpty) {
+      if (nameLast!.isEmpty) {
+        loading = false;
+        if (mounted) setState(() {});
         alert.show(AlertData(
           body: locales.get('label--too-short', {
             'label': locales.get('label--last-name'),
@@ -126,11 +122,6 @@ class _ProfileEditState extends State<ProfileEdit> {
         ));
         return;
       }
-      // Change first character to uppercase
-      nameFirst = nameFirst![0].toUpperCase() + nameFirst!.substring(1);
-      nameLast = nameLast![0].toUpperCase() + nameLast!.substring(1);
-      loading = true;
-      if (mounted) setState(() {});
       Map<String, dynamic> newData = {
         'firstName': nameFirst!,
         'lastName': nameLast!,
@@ -148,8 +139,6 @@ class _ProfileEditState extends State<ProfileEdit> {
         await callable.call(newData);
         _temporalImageBytes = null;
         changed = false;
-        loading = false;
-        if (mounted) setState(() {});
         alert.show(AlertData(
           body: locales.get('page-profile--alert--profile-updated'),
           type: AlertType.success,
@@ -293,9 +282,8 @@ class _ProfileEditState extends State<ProfileEdit> {
               String value = newValue?.toString() ?? '';
               // Remove invalid characters
               value = value.replaceAll(RegExp(r'[0-9!@#$%^*()_+={}<>~]'), '');
-              nameFirst = value;
-              if (mounted) setState(() {});
               if (stateUser.serialized.firstName == value) return;
+              nameFirst = value;
               changed = true;
               if (mounted) setState(() {});
             },
@@ -315,9 +303,8 @@ class _ProfileEditState extends State<ProfileEdit> {
               String value = newValue?.toString() ?? '';
               // Remove invalid characters
               value = value.replaceAll(RegExp(r'[0-9!@#$%^*()_+={}<>~]'), '');
-              nameLast = value;
-              if (mounted) setState(() {});
               if (stateUser.serialized.lastName == value) return;
+              nameLast = value;
               changed = true;
               if (mounted) setState(() {});
             },

@@ -441,10 +441,6 @@ dynamic defaultLocales = {
     'en': 'Verification code',
     'es': 'Código de verificación',
   },
-  'page-profile--alert--nothing-to-update': {
-    'en': 'Nothing to update',
-    'es': 'Nada por actualizar',
-  },
   'label--too-short': {
     'en': "'{label}' is too short. It must be at least {number} characters",
     'es': "'{label}' es muy corto. Debe tener al menos {number} caracteres",
