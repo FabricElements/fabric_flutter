@@ -368,7 +368,7 @@ class UserAdmin extends StatelessWidget {
         const SizedBox(height: 16),
         Align(
           alignment: Alignment.center,
-          child: ElevatedButton.icon(
+          child: FilledButton.icon(
             icon: const Icon(Icons.person_add),
             label: Text(locales.get('label--add-label', {
               'label': locales.get('label--user'),

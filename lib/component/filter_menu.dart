@@ -228,7 +228,7 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
                 child: Text(locales.get('label--cancel')),
               ),
               const Spacer(),
-              ElevatedButton(
+              FilledButton(
                 onPressed: () {
                   if (edit.operator == null) return;
                   // data.operator = edit.operator;
