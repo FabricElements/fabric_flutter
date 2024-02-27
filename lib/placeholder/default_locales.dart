@@ -319,6 +319,10 @@ dynamic defaultLocales = {
     'en': 'Language',
     'es': 'Idioma',
   },
+  'label--country': {
+    'en': 'Country',
+    'es': 'País',
+  },
   'label--continue': {
     'en': 'Continue',
     'es': 'Continuar',
@@ -724,6 +728,10 @@ dynamic defaultLocales = {
   'label--buy': {
     'en': 'Buy',
     'es': 'Comprar',
+  },
+  'label--buy-label': {
+    'en': 'Buy {label}',
+    'es': 'Comprar {label}',
   },
   'label--category': {
     'en': 'Category',
