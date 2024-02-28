@@ -1,6 +1,6 @@
 name: fabric_flutter
 description: Native components and helpers
-version: 1.3.0+4
+version: 1.3.0+5
 
 environment:
   sdk: '>=3.3.0 <4.0.0'
@@ -12,15 +12,15 @@ dependencies:
     sdk: flutter
   devicelocale: ^0.7.0
   provider: ^6.1.1
-  firebase_core: ^2.25.4
-  cloud_firestore: ^4.15.5
-  cloud_functions: ^4.6.5
-  firebase_analytics: ^10.8.6
-  firebase_auth: ^4.17.5
-  firebase_dynamic_links: ^5.4.14
-  firebase_messaging: ^14.7.16
-  firebase_storage: ^11.6.6
-  firebase_database: ^10.4.6
+  firebase_core: ^2.25.5
+  cloud_firestore: ^4.15.6
+  cloud_functions: ^4.6.6
+  firebase_analytics: ^10.8.7
+  firebase_auth: ^4.17.6
+  firebase_dynamic_links: ^5.4.15
+  firebase_messaging: ^14.7.17
+  firebase_storage: ^11.6.7
+  firebase_database: ^10.4.7
   json_serializable: ^6.7.1
   json_annotation: ^4.8.1
   image_picker: ^1.0.7
