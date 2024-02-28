@@ -753,8 +753,7 @@ getValue -------------------------------------
                           ?.toLowerCase()
                           .contains(value.toLowerCase()) ??
                       false;
-                  final valueMatch =
-                      element.value.toString().contains(value.toLowerCase());
+                  final valueMatch = element.value.toString().contains(value);
                   return labelMatch || valueMatch || labelAltMatch;
                 }).toList();
               }
