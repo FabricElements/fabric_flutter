@@ -100,6 +100,7 @@ class StepperExtended extends StatelessWidget {
               subtitle: step.subtitle,
               subtitleTextStyle: subtitleTextStyle,
               minLeadingWidth: 32,
+              isThreeLine: step.subtitle != null,
             ),
             Container(
               padding: const EdgeInsets.only(left: 32),
