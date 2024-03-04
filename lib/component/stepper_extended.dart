@@ -7,10 +7,29 @@ class StepperExtended extends StatelessWidget {
     super.key,
     required this.steps,
     this.size = ContentContainerSize.medium,
+    this.titleTextStyle,
+    this.subtitleTextStyle,
   });
 
   final List<Step> steps;
   final ContentContainerSize size;
+
+  /// The text style for ListTile's [title].
+  ///
+  /// If this property is null, then [ListTileThemeData.titleTextStyle] is used.
+  /// If that is also null and [ThemeData.useMaterial3] is true, [TextTheme.bodyLarge]
+  /// with [ColorScheme.onSurface] will be used. Otherwise, If ListTile style is
+  /// [ListTileStyle.list], [TextTheme.titleMedium] will be used and if ListTile style
+  /// is [ListTileStyle.drawer], [TextTheme.bodyLarge] will be used.
+  final TextStyle? titleTextStyle;
+
+  /// The text style for ListTile's [subtitle].
+  ///
+  /// If this property is null, then [ListTileThemeData.subtitleTextStyle] is used.
+  /// If that is also null and [ThemeData.useMaterial3] is true, [TextTheme.bodyMedium]
+  /// with [ColorScheme.onSurfaceVariant] will be used, otherwise [TextTheme.bodyMedium]
+  /// with [TextTheme.bodySmall] color will be used.
+  final TextStyle? subtitleTextStyle;
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +96,9 @@ class StepperExtended extends StatelessWidget {
             ListTile(
               leading: leading,
               title: step.title,
+              titleTextStyle: titleTextStyle,
               subtitle: step.subtitle,
+              subtitleTextStyle: subtitleTextStyle,
               minLeadingWidth: 32,
             ),
             Container(
