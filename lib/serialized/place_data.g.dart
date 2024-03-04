@@ -18,7 +18,7 @@ Map<String, dynamic> _$LocationToJson(Location instance) => <String, dynamic>{
 
 Geometry _$GeometryFromJson(Map<String, dynamic> json) => Geometry(
       location: Location.fromJson(json['location'] as Map<String, dynamic>),
-      locationType: json['locationType'] as String?,
+      locationType: json['location_type'] as String?,
       viewport: json['viewport'] == null
           ? null
           : Bounds.fromJson(json['viewport'] as Map<String, dynamic>),
@@ -29,7 +29,7 @@ Geometry _$GeometryFromJson(Map<String, dynamic> json) => Geometry(
 
 Map<String, dynamic> _$GeometryToJson(Geometry instance) => <String, dynamic>{
       'location': instance.location.toJson(),
-      'locationType': instance.locationType,
+      'location_type': instance.locationType,
       'viewport': instance.viewport?.toJson(),
       'bounds': instance.bounds?.toJson(),
     };
@@ -151,31 +151,31 @@ Map<String, dynamic> _$OpeningHoursPeriodToJson(OpeningHoursPeriod instance) =>
     };
 
 Photo _$PhotoFromJson(Map<String, dynamic> json) => Photo(
-      photoReference: json['photoReference'] as String,
+      photoReference: json['photo_reference'] as String,
       height: json['height'] as num,
       width: json['width'] as num,
-      htmlAttributions: (json['htmlAttributions'] as List<dynamic>?)
+      htmlAttributions: (json['html_attributions'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           const <String>[],
     );
 
 Map<String, dynamic> _$PhotoToJson(Photo instance) => <String, dynamic>{
-      'photoReference': instance.photoReference,
+      'photo_reference': instance.photoReference,
       'height': instance.height,
       'width': instance.width,
-      'htmlAttributions': instance.htmlAttributions,
+      'html_attributions': instance.htmlAttributions,
     };
 
 AlternativeId _$AlternativeIdFromJson(Map<String, dynamic> json) =>
     AlternativeId(
-      placeId: json['placeId'] as String,
+      placeId: json['place_id'] as String,
       scope: json['scope'] as String,
     );
 
 Map<String, dynamic> _$AlternativeIdToJson(AlternativeId instance) =>
     <String, dynamic>{
-      'placeId': instance.placeId,
+      'place_id': instance.placeId,
       'scope': instance.scope,
     };
 
@@ -184,15 +184,15 @@ AddressComponent _$AddressComponentFromJson(Map<String, dynamic> json) =>
       types:
           (json['types'] as List<dynamic>?)?.map((e) => e as String).toList() ??
               [],
-      longName: json['longName'] as String,
-      shortName: json['shortName'] as String,
+      longName: json['long_name'] as String,
+      shortName: json['short_name'] as String,
     );
 
 Map<String, dynamic> _$AddressComponentToJson(AddressComponent instance) =>
     <String, dynamic>{
       'types': instance.types,
-      'longName': instance.longName,
-      'shortName': instance.shortName,
+      'long_name': instance.longName,
+      'short_name': instance.shortName,
     };
 
 Place _$PlaceFromJson(Map<String, dynamic> json) => Place(

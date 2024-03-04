@@ -43,11 +43,9 @@ class Location {
 class Geometry {
   final Location location;
 
-  /// JSON location_type
+  @JsonKey(name: 'location_type')
   final String? locationType;
-
   final Bounds? viewport;
-
   final Bounds? bounds;
 
   Geometry({
@@ -200,12 +198,11 @@ class OpeningHoursPeriod {
 
 @JsonSerializable(explicitToJson: true)
 class Photo {
-  /// JSON photo_reference
+  @JsonKey(name: 'photo_reference')
   final String photoReference;
   final num height;
   final num width;
-
-  /// JSON html_attributions
+  @JsonKey(name: 'html_attributions')
   final List<String> htmlAttributions;
 
   Photo({
@@ -222,7 +219,7 @@ class Photo {
 
 @JsonSerializable(explicitToJson: true)
 class AlternativeId {
-  /// JSON place_id
+  @JsonKey(name: 'place_id')
   final String placeId;
 
   final String scope;
@@ -240,10 +237,10 @@ class AddressComponent {
   @JsonKey(defaultValue: <String>[])
   final List<String> types;
 
-  /// JSON long_name
+  @JsonKey(name: 'long_name')
   final String longName;
 
-  /// JSON short_name
+  @JsonKey(name: 'short_name')
   final String shortName;
 
   AddressComponent({
@@ -296,7 +293,6 @@ class Place {
   @JsonKey(name: 'utc_offset')
   final int? utcOffset;
 
-  /// JSON address_components
   @JsonKey(name: 'address_components', includeIfNull: false)
   List<AddressComponent>? addressComponents;
 

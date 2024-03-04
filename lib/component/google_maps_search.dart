@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -131,7 +133,12 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
       url = url.replace(queryParameters: queryParameters);
       final response = await http.get(url);
       dynamic newData = HTTPRequest.response(response);
+      if (newData != null) debugPrint('Place Response Data: $newData');
       final placeResponse = PlaceResponse.fromJson(newData);
+      if (newData != null) {
+        debugPrint(
+            'Serialized PlaceResponse Data: ${jsonEncode(placeResponse.toJson())}');
+      }
       if (placeResponse.errorMessage != null) {
         throw placeResponse.errorMessage!;
       }
