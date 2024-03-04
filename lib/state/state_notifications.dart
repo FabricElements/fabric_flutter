@@ -138,6 +138,8 @@ class StateNotifications extends ChangeNotifier {
   }
 
   initNotifications() async {
+    // Prevent calling this function in debug mode
+    if (kIsWeb && kDebugMode) return;
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       await _notify(message: message, origin: 'message');
     });
@@ -160,6 +162,8 @@ class StateNotifications extends ChangeNotifier {
   /// Get user token for notifications
   /// from the main App to prevent blocking call
   Future<void> getUserToken() async {
+    // Prevent calling this function in debug mode
+    if (kIsWeb && kDebugMode) return;
     if (!_initialized) await init();
     if (_token == null) {
       final newToken = await getToken();
