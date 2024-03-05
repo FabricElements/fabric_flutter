@@ -428,7 +428,7 @@ getValue -------------------------------------
         // https://en.wikipedia.org/wiki/Telephone_numbering_plan
         maxLength = 16;
         prefixText = '+';
-        hintTextDefault = ' (222) 333 - 4444';
+        hintTextDefault = '1 (222) 333 - 4444';
         keyboardType = TextInputType.phone;
         inputFormatters.addAll([
           FilteringTextInputFormatter.deny(RegExp(r'[\s()-+]')),
