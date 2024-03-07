@@ -1,10 +1,5 @@
-import 'dart:io';
-
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-
-bool kIsTest = (!kIsWeb && Platform.environment.containsKey('FLUTTER_TEST'));
 
 /// This is a change notifier class which keeps track of state within the widgets.
 class StateGlobal extends ChangeNotifier {
@@ -22,7 +17,7 @@ class StateGlobal extends ChangeNotifier {
         Future.delayed(const Duration(seconds: 1))
             .then((value) => notifyListeners());
       }).catchError((e) {
-        debugPrint('PackageInfo Error: $e');
+        // Ignore error, it's usually an issue with the test environment
       });
       return PackageInfo(
         appName: '',
