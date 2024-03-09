@@ -9,6 +9,7 @@ class StepperExtended extends StatelessWidget {
     this.size = ContentContainerSize.medium,
     this.titleTextStyle,
     this.subtitleTextStyle,
+    this.scrollable = false,
   });
 
   final List<Step> steps;
@@ -30,6 +31,9 @@ class StepperExtended extends StatelessWidget {
   /// with [ColorScheme.onSurfaceVariant] will be used, otherwise [TextTheme.bodyMedium]
   /// with [TextTheme.bodySmall] color will be used.
   final TextStyle? subtitleTextStyle;
+
+  /// If true, the stepper will be displayed on a [ListView].
+  final bool scrollable;
 
   @override
   Widget build(BuildContext context) {
@@ -116,8 +120,17 @@ class StepperExtended extends StatelessWidget {
         ),
       );
     });
-    return ListView(
-      restorationId: key?.toString() ?? 'stepper_extended',
+
+    if (scrollable) {
+      return ListView(
+        restorationId: key?.toString() ?? 'stepper_extended',
+        children: children,
+      );
+    }
+    return Flex(
+      direction: Axis.vertical,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: children,
     );
   }
