@@ -13,9 +13,15 @@ class StatusChip extends StatelessWidget {
   const StatusChip({
     super.key,
     required this.status,
+    this.icon,
+    this.color,
+    this.textColor,
   });
 
   final String? status;
+  final IconData? icon;
+  final Color? color;
+  final Color? textColor;
 
   @override
   Widget build(BuildContext context) {
@@ -23,60 +29,68 @@ class StatusChip extends StatelessWidget {
     Color statusColor = Colors.grey.shade800;
     String baseStatus = status ?? 'unknown';
     baseStatus = locales.get('label--$status');
-    IconData icon = Icons.circle;
+    IconData iconData = Icons.circle;
 
     switch (status) {
       case 'draft':
         statusColor = Colors.blueGrey.shade600;
-        icon = Icons.circle;
+        iconData = Icons.circle;
         break;
       case 'review':
         statusColor = Colors.amber.shade900;
-        icon = Icons.remove_red_eye;
+        iconData = Icons.remove_red_eye;
         break;
       case 'approved':
         statusColor = Colors.deepPurple.shade500;
-        icon = Icons.check_circle;
+        iconData = Icons.check_circle;
         break;
       case 'rejected':
-        icon = Icons.warning;
+        iconData = Icons.warning;
         statusColor = Colors.red.shade500;
         break;
       case 'inactive':
-        icon = Icons.warning;
+        iconData = Icons.warning;
         statusColor = Colors.red.shade500;
         break;
       case 'paused':
-        icon = Icons.pause_circle;
+        iconData = Icons.pause_circle;
         statusColor = Colors.deepOrange.shade500;
         break;
       case 'scheduled':
-        icon = Icons.schedule;
+        iconData = Icons.schedule;
         statusColor = Colors.deepPurple.shade500;
         break;
       case 'active':
-        icon = Icons.incomplete_circle;
+        iconData = Icons.incomplete_circle;
         statusColor = Colors.teal.shade600;
         break;
       case 'archived':
-        icon = Icons.archive;
+        iconData = Icons.archive;
         statusColor = Colors.grey.shade700;
         break;
       case 'suspended':
-        icon = Icons.warning;
+        iconData = Icons.warning;
         statusColor = Colors.red.shade500;
         break;
     }
+
+    /// Override iconData if icon is not null
+    iconData = icon ?? iconData;
+
+    /// Override statusColor if color is not null
+    statusColor = color ?? statusColor;
+
+    /// Return a Tooltip with a message and a Chip with an icon and label.
     return Tooltip(
       message: locales.get('label--status'),
       child: Chip(
-        avatar: Icon(icon, color: Colors.white),
+        avatar: Icon(iconData, color: Colors.white),
         label: Text(
           baseStatus,
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.w500,
             letterSpacing: 1.1,
-            color: Colors.white,
+            color: textColor ?? Colors.white,
           ),
         ),
         backgroundColor: statusColor,
