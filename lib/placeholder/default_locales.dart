@@ -677,6 +677,14 @@ dynamic defaultLocales = {
     'en': 'Are you sure you want to update?',
     'es': '¿Seguro que quieres actualizar?'
   },
+  'label--confirm-are-you-sure-replace': {
+    'en': 'Are you sure you want to replace?',
+    'es': '¿Seguro que quieres reemplazar?'
+  },
+  'label--confirm-are-you-sure-replace-label': {
+    'en': 'Are you sure you want to replace {label}?',
+    'es': '¿Seguro que quieres reemplazar {label}?'
+  },
   'label--confirm-are-you-sure-add-label': {
     'en': 'Are you sure you want to add a new {label}?',
     'es': '¿Seguro que quieres agregar un nuevo {label}?'
