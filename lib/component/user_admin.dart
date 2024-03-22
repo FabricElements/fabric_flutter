@@ -338,8 +338,7 @@ class UserAdmin extends StatelessWidget {
     if (primary) {
       return Scaffold(
         primary: primary,
-        appBar: appBar ??
-            (primary ? AppBar(title: Text(locales.get('label--users'))) : null),
+        appBar: appBar,
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
         floatingActionButton: disabled
             ? null
