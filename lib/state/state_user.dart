@@ -251,11 +251,22 @@ class StateUser extends StateDocument {
   /// Update user status data
   _userStatusUpdate() async {
     try {
-      final connectivity = await Connectivity().checkConnectivity();
-      final connectedUpdated = connectivity != ConnectivityResult.none;
+      final List<ConnectivityResult> connectivityResult =
+          await (Connectivity().checkConnectivity());
+      ConnectivityResult connectivityStatus = ConnectivityResult.none;
+      if (connectivityResult.contains(ConnectivityResult.wifi)) {
+        connectivityStatus = ConnectivityResult.wifi;
+      } else if (connectivityResult.contains(ConnectivityResult.ethernet)) {
+        connectivityStatus = ConnectivityResult.ethernet;
+      } else if (connectivityResult.contains(ConnectivityResult.mobile)) {
+        connectivityStatus = ConnectivityResult.mobile;
+      } else if (connectivityResult.contains(ConnectivityResult.other)) {
+        connectivityStatus = ConnectivityResult.other;
+      }
+      final connectedUpdated = connectivityStatus != ConnectivityResult.none;
       connectionChanged = connected != connectedUpdated;
       connected = connectedUpdated;
-      connectedTo = connectivity.name;
+      connectedTo = connectivityStatus.name;
     } catch (e) {
       if (kDebugMode) print('Connectivity error: ${e.toString()}');
     }
@@ -295,9 +306,8 @@ class StateUser extends StateDocument {
         .catchError((error) => '');
     try {
       // Check connectivity
-      Connectivity().onConnectivityChanged.listen(
-          (ConnectivityResult result) async {
-        if (result.name != connectedTo) await _userStatusUpdate();
+      Connectivity().onConnectivityChanged.listen((results) async {
+        if (results.firstOrNull?.name != connectedTo) await _userStatusUpdate();
       },
           onError: (error) =>
               {debugPrint('Connectivity error: ${error.toString()}')});

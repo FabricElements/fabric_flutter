@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:intl/intl.dart';
+
 import '../component/input_data.dart';
 import '../serialized/filter_data.dart';
 import 'enum_data.dart';
@@ -16,20 +18,42 @@ class FilterHelper {
   /// Return SQL valid value from data type
   static dynamic valueFromType({
     required InputDataType dataType,
+    required SQLQueryType sqlQueryType,
     dynamic value,
   }) {
     if (value == null) return value;
     dynamic response;
     switch (dataType) {
       case InputDataType.dateTime:
-        response =
-            value != null ? '"${(value as DateTime).toIso8601String()}"' : null;
+        // response =
+        //     value != null ? '"${(value as DateTime).toIso8601String()}"' : null;
+        if (value != null) {
+          final baseDate = (value as DateTime).toUtc();
+          final DateFormat formatter = DateFormat('yyyy-MM-ddTHH:mm:ss');
+          final endDateFormatted = DateTime.utc(
+            baseDate.year,
+            baseDate.month,
+            baseDate.day,
+            baseDate.hour,
+            baseDate.minute,
+            baseDate.second,
+          );
+          final formatted = formatter.format(endDateFormatted);
+          // response =
+          //     '"${DateTime.utc(baseDate.year, baseDate.month, baseDate.day).toIso8601String()}"';
+          response = '"$formatted"';
+        }
         break;
       case InputDataType.date:
         if (value != null) {
           final baseDate = (value as DateTime).toUtc();
-          response =
-              '"${DateTime.utc(baseDate.year, baseDate.month, baseDate.day).toIso8601String()}"';
+          final DateFormat formatter = DateFormat('yyyy-MM-dd');
+          final endDateFormatted =
+              DateTime.utc(baseDate.year, baseDate.month, baseDate.day);
+          final formatted = formatter.format(endDateFormatted);
+          // response =
+          //     '"${DateTime.utc(baseDate.year, baseDate.month, baseDate.day).toIso8601String()}"';
+          response = '"$formatted"';
         }
         break;
       case InputDataType.time:
@@ -68,6 +92,29 @@ class FilterHelper {
       case InputDataType.bool:
         response = value == true;
         break;
+    }
+    if (dataType == InputDataType.date) {
+      switch (sqlQueryType) {
+        case SQLQueryType.sql:
+          break;
+        case SQLQueryType.bigQuery:
+          response = 'DATE($response)';
+          break;
+        case SQLQueryType.openSearch:
+          break;
+      }
+    }
+    // dateTime
+    if (dataType == InputDataType.dateTime) {
+      switch (sqlQueryType) {
+        case SQLQueryType.sql:
+          break;
+        case SQLQueryType.bigQuery:
+          response = 'DATETIME($response)';
+          break;
+        case SQLQueryType.openSearch:
+          break;
+      }
     }
     return response;
   }
@@ -168,6 +215,7 @@ class FilterHelper {
         case FilterOperator.lessThanOrEqual:
         case FilterOperator.lessThan:
           final value = valueFromType(
+            sqlQueryType: sqlQueryType,
             dataType: filter.type,
             value: filter.value,
           );
@@ -176,10 +224,12 @@ class FilterHelper {
           break;
         case FilterOperator.between:
           final value1 = valueFromType(
+            sqlQueryType: sqlQueryType,
             dataType: filter.type,
             value: filter.value[0],
           );
           final value2 = valueFromType(
+            sqlQueryType: sqlQueryType,
             dataType: filter.type,
             value: filter.value[1],
           );

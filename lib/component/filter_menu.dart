@@ -169,7 +169,7 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
                   value,
                   edit.value?[1],
                 ];
-                // if (mounted) setState(() {});
+                if (mounted) setState(() {});
               },
             ),
             space,
@@ -183,7 +183,7 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
                   edit.value?[0],
                   value ?? FilterOrder.asc.name,
                 ];
-                // Don't update the state or the position of the input will be lost
+                if (mounted) setState(() {});
               },
             ),
           ],
