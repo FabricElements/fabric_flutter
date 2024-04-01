@@ -18,7 +18,7 @@ class StateAnalytics extends ChangeNotifier {
       initialized ? FirebaseAnalyticsObserver(analytics: analytics!) : null;
 
   void _sendCurrentTabToAnalytics(String screenName) {
-    observer?.analytics.setCurrentScreen(
+    observer?.analytics.logScreenView(
       screenName: screenName,
     );
   }

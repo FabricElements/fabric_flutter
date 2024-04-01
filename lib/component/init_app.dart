@@ -70,6 +70,7 @@ class InitAppChild extends StatelessWidget {
         Provider.of<StateDynamicLinks>(context, listen: false);
     final alert = Provider.of<StateAlert>(context, listen: false);
     alert.context = context;
+    final stateAnalytics = Provider.of<StateAnalytics>(context, listen: false);
 
     /// Define default error message
     stateUser.onError = (String? e) => (e != null)
@@ -84,6 +85,11 @@ class InitAppChild extends StatelessWidget {
     try {
       stateUser.streamStatus.listen(
         (value) {
+          try {
+            stateAnalytics.analytics?.setUserId(id: value.uid);
+          } catch (error) {
+            debugPrint('FirebaseAnalytics error: $error');
+          }
           if (value.signedIn) {
             if (notifications) {
               stateNotifications.uid = value.uid;
