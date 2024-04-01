@@ -67,6 +67,7 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
         break;
       case InputDataType.date:
       case InputDataType.dateTime:
+      case InputDataType.timestamp:
       case InputDataType.time:
       case InputDataType.bool:
         dropdownOptions = filterOperatorDatesOrNumbers;
@@ -328,6 +329,7 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
         switch (data.type) {
           case InputDataType.date:
           case InputDataType.dateTime:
+          case InputDataType.timestamp:
             if (data.operator == FilterOperator.between) {
               label += FormatData.formatDateShort().format(data.value[0]);
               label += ' ${locales.get('label--and')} ';

@@ -15,6 +15,7 @@ enum InputDataType {
   date,
   time,
   dateTime,
+  timestamp,
   email,
   double,
   int,
@@ -38,6 +39,9 @@ IconData inputDataTypeIcon(InputDataType inputDataType) {
       break;
     case InputDataType.dateTime:
       icon = Icons.date_range;
+      break;
+    case InputDataType.timestamp:
+      icon = Icons.access_time;
       break;
     case InputDataType.time:
       icon = Icons.access_time;
@@ -246,6 +250,7 @@ class _InputDataState extends State<InputData> {
           break;
         case InputDataType.date:
         case InputDataType.dateTime:
+        case InputDataType.timestamp:
           value = newValue != null ? newValue as DateTime : null;
           if (value != null && widget.utcOffset != null) {
             value = Utils.dateTimeOffset(
@@ -471,6 +476,7 @@ getValue -------------------------------------
         break;
       case InputDataType.date:
       case InputDataType.dateTime:
+      case InputDataType.timestamp:
         keyboardType = TextInputType.datetime;
         inputFormatters.addAll([
           FilteringTextInputFormatter.singleLineFormatter,
@@ -568,6 +574,7 @@ getValue -------------------------------------
         break;
       case InputDataType.date:
       case InputDataType.dateTime:
+      case InputDataType.timestamp:
         endWidget = TextFormField(
           autofillHints: widget.autofillHints,
           enableSuggestions: false,
@@ -603,7 +610,8 @@ getValue -------------------------------------
                 firstDate: minDate,
                 lastDate: maxDate,
               );
-            } else if (widget.type == InputDataType.dateTime) {
+            } else if (widget.type == InputDataType.dateTime ||
+                widget.type == InputDataType.timestamp) {
               picked = await showDialog<DateTime?>(
                 context: context,
                 barrierDismissible: false, // user must tap button!

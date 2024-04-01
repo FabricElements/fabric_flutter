@@ -24,9 +24,17 @@ class FilterHelper {
     if (value == null) return value;
     dynamic response;
     switch (dataType) {
+      case InputDataType.date:
+        if (value != null) {
+          final baseDate = (value as DateTime).toUtc();
+          final DateFormat formatter = DateFormat('yyyy-MM-dd');
+          final endDateFormatted =
+              DateTime.utc(baseDate.year, baseDate.month, baseDate.day);
+          final formatted = formatter.format(endDateFormatted);
+          response = '"$formatted"';
+        }
+        break;
       case InputDataType.dateTime:
-        // response =
-        //     value != null ? '"${(value as DateTime).toIso8601String()}"' : null;
         if (value != null) {
           final baseDate = (value as DateTime).toUtc();
           final DateFormat formatter = DateFormat('yyyy-MM-ddTHH:mm:ss');
@@ -39,22 +47,12 @@ class FilterHelper {
             baseDate.second,
           );
           final formatted = formatter.format(endDateFormatted);
-          // response =
-          //     '"${DateTime.utc(baseDate.year, baseDate.month, baseDate.day).toIso8601String()}"';
           response = '"$formatted"';
         }
         break;
-      case InputDataType.date:
-        if (value != null) {
-          final baseDate = (value as DateTime).toUtc();
-          final DateFormat formatter = DateFormat('yyyy-MM-dd');
-          final endDateFormatted =
-              DateTime.utc(baseDate.year, baseDate.month, baseDate.day);
-          final formatted = formatter.format(endDateFormatted);
-          // response =
-          //     '"${DateTime.utc(baseDate.year, baseDate.month, baseDate.day).toIso8601String()}"';
-          response = '"$formatted"';
-        }
+      case InputDataType.timestamp:
+        response =
+            value != null ? '"${(value as DateTime).toUtc().toIso8601String()}"' : null;
         break;
       case InputDataType.time:
         // TODO: Handle this case.
@@ -111,6 +109,18 @@ class FilterHelper {
           break;
         case SQLQueryType.bigQuery:
           response = 'DATETIME($response)';
+          break;
+        case SQLQueryType.openSearch:
+          break;
+      }
+    }
+    // timestamp
+    if (dataType == InputDataType.timestamp) {
+      switch (sqlQueryType) {
+        case SQLQueryType.sql:
+          break;
+        case SQLQueryType.bigQuery:
+          response = 'TIMESTAMP($response)';
           break;
         case SQLQueryType.openSearch:
           break;

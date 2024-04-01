@@ -118,6 +118,7 @@ class FilterData {
             finalValue = value.toString();
             break;
           case InputDataType.dateTime:
+          case InputDataType.timestamp:
             // TODO: Handle this case.
             break;
           case InputDataType.bool:

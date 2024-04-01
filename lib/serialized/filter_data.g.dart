@@ -41,6 +41,7 @@ const _$InputDataTypeEnumMap = {
   InputDataType.date: 'date',
   InputDataType.time: 'time',
   InputDataType.dateTime: 'dateTime',
+  InputDataType.timestamp: 'timestamp',
   InputDataType.email: 'email',
   InputDataType.double: 'double',
   InputDataType.int: 'int',
