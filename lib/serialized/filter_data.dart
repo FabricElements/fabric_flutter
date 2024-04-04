@@ -82,6 +82,8 @@ class FilterData {
       try {
         switch (type) {
           case InputDataType.date:
+          case InputDataType.dateTime:
+          case InputDataType.timestamp:
             if (operator == FilterOperator.between) {
               finalValue = [
                 (value[0] as DateTime?)?.toIso8601String(),
@@ -117,12 +119,8 @@ class FilterData {
           case InputDataType.secret:
             finalValue = value.toString();
             break;
-          case InputDataType.dateTime:
-          case InputDataType.timestamp:
-            // TODO: Handle this case.
-            break;
           case InputDataType.bool:
-            // TODO: Handle this case.
+            finalValue = value;
             break;
         }
       } catch (e) {
@@ -141,6 +139,8 @@ class FilterData {
     /// Convert value
     switch (base.type) {
       case InputDataType.date:
+      case InputDataType.dateTime:
+      case InputDataType.timestamp:
         if (base.operator == FilterOperator.between) {
           finalValue = [
             Utils.dateTimeFromJson(baseValue[0]),

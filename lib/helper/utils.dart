@@ -27,9 +27,8 @@ class Utils {
       time != null ? DateTime.tryParse(time)?.toUtc() : null;
 
   /// Serialize DateTime to JSON string
-  static String? dateTimeToJson(DateTime? time) => time != null
-      ? DateFormat("yyyy-MM-dd'T'HH:mm:ss").format(time.toUtc()).toString()
-      : null;
+  static String? dateTimeToJson(DateTime? time) =>
+      time?.toUtc().toIso8601String();
 
   /// Serialize Date to JSON string (yyyy-MM-dd)
   static String? dateToJson(DateTime? time) {

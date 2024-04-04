@@ -25,34 +25,18 @@ class FilterHelper {
     dynamic response;
     switch (dataType) {
       case InputDataType.date:
-        if (value != null) {
-          final baseDate = (value as DateTime).toUtc();
-          final DateFormat formatter = DateFormat('yyyy-MM-dd');
-          final endDateFormatted =
-              DateTime.utc(baseDate.year, baseDate.month, baseDate.day);
-          final formatted = formatter.format(endDateFormatted);
-          response = '"$formatted"';
-        }
+        final baseDate = (value as DateTime).toUtc();
+        final DateFormat formatter = DateFormat('yyyy-MM-dd');
+        final endDateFormatted =
+            DateTime.utc(baseDate.year, baseDate.month, baseDate.day);
+        final formatted = formatter.format(endDateFormatted);
+        response = '"$formatted"';
         break;
       case InputDataType.dateTime:
-        if (value != null) {
-          final baseDate = (value as DateTime).toUtc();
-          final DateFormat formatter = DateFormat('yyyy-MM-ddTHH:mm:ss');
-          final endDateFormatted = DateTime.utc(
-            baseDate.year,
-            baseDate.month,
-            baseDate.day,
-            baseDate.hour,
-            baseDate.minute,
-            baseDate.second,
-          );
-          final formatted = formatter.format(endDateFormatted);
-          response = '"$formatted"';
-        }
-        break;
       case InputDataType.timestamp:
-        response =
-            value != null ? '"${(value as DateTime).toUtc().toIso8601String()}"' : null;
+        final baseDate = (value as DateTime).toUtc();
+        final formatted = baseDate.toIso8601String();
+        response = '"$formatted"';
         break;
       case InputDataType.time:
         // TODO: Handle this case.
@@ -63,7 +47,7 @@ class FilterHelper {
       case InputDataType.phone:
       case InputDataType.secret:
       case InputDataType.url:
-        response = value != null ? '"$value"' : null;
+        response = '"$value"';
         break;
       case InputDataType.dropdown:
       case InputDataType.radio:
@@ -85,7 +69,7 @@ class FilterHelper {
         response = int.tryParse(value.toString());
         break;
       case InputDataType.enums:
-        response = value != null ? '"${EnumData.describe(value)}"' : null;
+        response = '"${EnumData.describe(value)}"';
         break;
       case InputDataType.bool:
         response = value == true;
