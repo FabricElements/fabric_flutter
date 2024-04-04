@@ -111,6 +111,7 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
           options: widget.data.options,
           onChanged: (value) {
             edit.value = value;
+            // Don't update the state or the position of the input will be lost
           },
           onComplete: (value) {
             edit.value = value;
@@ -234,6 +235,7 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
                   if (edit.operator == null) return;
                   // data.operator = edit.operator;
                   // data.value = edit.value;
+                  print(edit.value);
                   widget.onChange(edit);
                 },
                 child: Text(locales.get('label--apply')),
