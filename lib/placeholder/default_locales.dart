@@ -1134,4 +1134,8 @@ dynamic defaultLocales = {
     'en': 'Copy',
     'es': 'Copiar',
   },
+  'label--operator': {
+    'en': 'Operator',
+    'es': 'Operador',
+  }
 };
