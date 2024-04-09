@@ -128,6 +128,7 @@ class InputData extends StatefulWidget {
     this.prefixText,
     this.prefixIcon,
     this.prefixStyle,
+    this.floatingLabelBehavior,
   });
 
   final dynamic value;
@@ -176,6 +177,28 @@ class InputData extends StatefulWidget {
   /// [onChanged]
   /// Never use expression body or value won't be update correctly
   final ValueChanged<dynamic>? onChanged;
+
+  /// {@template flutter.material.inputDecoration.floatingLabelBehavior}
+  /// Defines **how** the floating label should behave.
+  ///
+  /// When [FloatingLabelBehavior.auto] the label will float to the top only when
+  /// the field is focused or has some text content, otherwise it will appear
+  /// in the field in place of the content.
+  ///
+  /// When [FloatingLabelBehavior.always] the label will always float at the top
+  /// of the field above the content.
+  ///
+  /// When [FloatingLabelBehavior.never] the label will always appear in an empty
+  /// field in place of the content.
+  /// {@endtemplate}
+  ///
+  /// If null, [InputDecorationTheme.floatingLabelBehavior] will be used.
+  ///
+  /// See also:
+  ///
+  ///  * [floatingLabelAlignment] which defines **where** the floating label
+  ///    should be displayed.
+  final FloatingLabelBehavior? floatingLabelBehavior;
 
   @override
   State<InputData> createState() => _InputDataState();
@@ -513,6 +536,7 @@ getValue -------------------------------------
       suffixStyle: widget.suffixStyle,
       labelText: widget.label,
       labelStyle: theme.textTheme.bodyMedium,
+      floatingLabelBehavior: widget.floatingLabelBehavior,
       // floatingLabelBehavior: FloatingLabelBehavior.always,
       // helperText: defaultText,
       // constraints: const BoxConstraints(maxWidth: double.maxFinite, maxHeight: double.maxFinite),
@@ -842,7 +866,8 @@ getValue -------------------------------------
           autofillHints: widget.autofillHints,
           readOnly: true,
           decoration: inputDecoration.copyWith(
-            floatingLabelBehavior: FloatingLabelBehavior.never,
+            floatingLabelBehavior:
+                widget.floatingLabelBehavior ?? FloatingLabelBehavior.never,
             hintText: widget.label ?? widget.hintText,
             labelText: null,
             prefixIcon: inputDecoration.prefixIcon ??

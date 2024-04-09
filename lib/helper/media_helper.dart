@@ -223,7 +223,7 @@ class MediaHelper {
         final video = VideoPlayerController.file(File.fromRawPath(fileData));
         width = video.value.size.width.toInt();
         height = video.value.size.height.toInt();
-        print('width: $width, height: $height');
+        debugPrint('width: $width, height: $height');
       } catch (e) {
         if (kDebugMode) print(e);
       }
