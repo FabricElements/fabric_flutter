@@ -53,8 +53,8 @@ class FilterHelper {
       case InputDataType.radio:
         response = null;
         if (value != null) {
-          switch (value.runtimeType) {
-            case String:
+          switch (value.runtimeType.toString()) {
+            case 'String':
               response = '"$value"';
               break;
             default:

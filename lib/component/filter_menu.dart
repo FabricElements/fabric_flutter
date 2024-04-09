@@ -235,7 +235,6 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
                   if (edit.operator == null) return;
                   // data.operator = edit.operator;
                   // data.value = edit.value;
-                  print(edit.value);
                   widget.onChange(edit);
                 },
                 child: Text(locales.get('label--apply')),

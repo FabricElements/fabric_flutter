@@ -259,7 +259,7 @@ class _ExpansionTableState extends State<ExpansionTable> {
                     maxWidth: _widthColumn,
                     minWidth: _widthColumn,
                     minHeight: widget.dataRowHeight ??
-                        theme.dataTableTheme.dataRowHeight ??
+                        theme.dataTableTheme.dataRowMinHeight ??
                         30,
                   ),
                   child: Align(
@@ -298,7 +298,7 @@ class _ExpansionTableState extends State<ExpansionTable> {
             child: Container(
               constraints: BoxConstraints(
                 minHeight: widget.dataRowHeight ??
-                    theme.dataTableTheme.dataRowHeight ??
+                    theme.dataTableTheme.dataRowMinHeight ??
                     30,
               ),
               child: Table(
