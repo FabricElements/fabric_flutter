@@ -50,7 +50,7 @@ class StatusChip extends StatelessWidget {
         break;
       case 'inactive':
         iconData = Icons.stop_circle;
-        statusColor = Colors.amber.shade500;
+        statusColor = Colors.amber.shade800;
         break;
       case 'paused':
         iconData = Icons.pause_circle;
