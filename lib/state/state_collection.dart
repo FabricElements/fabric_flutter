@@ -15,21 +15,16 @@ abstract class StateCollection extends StateShared {
   Query? baseQuery;
 
   /// Stop listening for changes
-  Future<bool> cancel({bool clear = false}) async {
-    if (clear) this.clear(notify: false);
+  Future<void> cancel({bool clear = false}) async {
+    baseQuery = null;
     if (_streamSubscription != null) {
       try {
-        baseQuery = null;
         await _streamSubscription!.cancel();
-        if (clear) this.clear(notify: true);
-        return true;
       } catch (error) {
         //
       }
     }
-    baseQuery = null;
     if (clear) this.clear(notify: true);
-    return false;
   }
 
   /// Collection Reference
@@ -48,11 +43,11 @@ abstract class StateCollection extends StateShared {
         _listen();
       } else {
         loading = false;
-        data = null;
+        data = [];
       }
     }).onError((error, stackTrace) {
       loading = false;
-      data = null;
+      data = [];
       initialized = false;
     });
   }
@@ -102,5 +97,13 @@ abstract class StateCollection extends StateShared {
     initialized = false;
     await _streamSubscription?.cancel();
     _listen();
+  }
+
+  /// Clear data
+  @override
+  void clear({bool notify = true}) {
+    super.clear(notify: notify);
+    baseQuery = null;
+    data = [];
   }
 }
