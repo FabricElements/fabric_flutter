@@ -12,20 +12,16 @@ abstract class StateDocument extends StateShared {
   DocumentReference? baseRef;
 
   /// Stop listening for changes
-  Future<bool> cancel({bool clear = false}) async {
-    if (clear) this.clear(notify: false);
+  Future<void> cancel({bool clear = false}) async {
+    baseRef = null;
     if (_streamSubscription != null) {
       try {
         await _streamSubscription!.cancel();
-        baseRef = null;
-        if (clear) this.clear(notify: true);
-        return true;
       } catch (error) {
         //
       }
     }
     if (clear) this.clear(notify: true);
-    return false;
   }
 
   /// Collection Reference
@@ -101,4 +97,11 @@ abstract class StateDocument extends StateShared {
   /// Set Merge Firestore Document
   Future<void> set(Map<String, dynamic> newData, {bool merge = false}) =>
       baseRef!.set(newData, SetOptions(merge: merge));
+
+  /// Clear data
+  @override
+  void clear({bool notify = true}) {
+    baseRef = null;
+    super.clear(notify: notify);
+  }
 }
