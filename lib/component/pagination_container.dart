@@ -69,17 +69,14 @@ class PaginationContainer extends StatefulWidget {
 class _PaginationContainerState extends State<PaginationContainer> {
   late bool end;
   late bool loading;
-  final _controller = ScrollController();
+  final ScrollController _controller = ScrollController();
   late String? error;
-  late Stream<dynamic> stream;
-  late List<dynamic>? initialData;
+  List<dynamic> data = [];
 
   _start() {
     end = false;
     loading = false;
     error = null;
-    stream = widget.stream;
-    initialData = widget.initialData;
     _controller.addListener(() async {
       if (end) return;
       bool isBottom =
@@ -98,6 +95,15 @@ class _PaginationContainerState extends State<PaginationContainer> {
       loading = false;
       if (mounted) setState(() {});
     });
+    data = widget.initialData ?? [];
+    // Get data from stream
+    widget.stream.listen((event) {
+      data = event != null ? event as List<dynamic> : widget.initialData ?? [];
+      if (mounted) setState(() {});
+    }).onError((e) {
+      error = e.toString();
+      if (mounted) setState(() {});
+    });
   }
 
   @override
@@ -109,78 +115,44 @@ class _PaginationContainerState extends State<PaginationContainer> {
   @override
   void dispose() {
     _controller.dispose();
-    stream.drain();
+    widget.stream.drain();
     super.dispose();
   }
 
   @override
-  void didUpdateWidget(covariant PaginationContainer oldWidget) {
-    _start();
-    if (mounted) setState(() {});
-    super.didUpdateWidget(oldWidget);
-  }
-
-  @override
   Widget build(BuildContext context) {
-    if (error != null) return Scaffold(body: widget.error, primary: false);
-    return StreamBuilder(
-      stream: stream,
-      initialData: initialData,
-      builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-        List<dynamic>? data = snapshot.data;
-        if (snapshot.hasError) return widget.error;
-        bool connected = false;
-        switch (snapshot.connectionState) {
-          case ConnectionState.none:
-          case ConnectionState.waiting:
-            break;
-          case ConnectionState.active:
-          case ConnectionState.done:
-            connected = true;
-            if (snapshot.data != null) {
-              data = snapshot.data as List<dynamic>;
-            }
-        }
-        if (data == null && !connected) {
-          return widget.loading;
-        }
-        int total = data?.length ?? 0;
-        if (total == 0) {
-          return widget.empty;
-        }
-        return Scrollbar(
-          thumbVisibility: true,
-          trackVisibility: true,
-          interactive: true,
-          controller: _controller,
-          child: ListView.builder(
-            key: widget.key != null
-                ? PageStorageKey(widget.key.toString())
-                : const PageStorageKey('pagination-container'),
-            restorationId: widget.key?.toString() ?? 'pagination-container',
-            clipBehavior: widget.clipBehavior,
-            primary: widget.primary,
-            cacheExtent: widget.cacheExtent,
-            controller: _controller,
-            itemCount: loading ? total + 1 : total,
-            padding: widget.padding,
-            shrinkWrap: widget.shrinkWrap,
-            itemBuilder: (BuildContext context, int index) {
-              if (index < total) {
-                return widget.itemBuilder(
-                  context,
-                  index,
-                  data![index],
-                );
-              } else {
-                return widget.loading;
-              }
-            },
-            reverse: widget.reverse,
-            scrollDirection: widget.scrollDirection,
-          ),
-        );
-      },
+    if (error != null) return widget.error;
+    int total = data.length;
+    if (total == 0) return widget.empty;
+    return Scrollbar(
+      thumbVisibility: true,
+      trackVisibility: true,
+      interactive: true,
+      controller: _controller,
+      child: ListView.builder(
+        key: const PageStorageKey('pagination-container-scroll'),
+        restorationId: 'pagination-container',
+        clipBehavior: widget.clipBehavior,
+        primary: widget.primary,
+        cacheExtent: widget.cacheExtent,
+        controller: _controller,
+        itemCount: loading ? total + 1 : total,
+        padding: widget.padding,
+        shrinkWrap: widget.shrinkWrap,
+        itemBuilder: (BuildContext context, int index) {
+          if (index < total) {
+            return widget.itemBuilder(
+              context,
+              index,
+              data[index],
+            );
+          } else {
+            return widget.loading;
+          }
+        },
+        reverse: widget.reverse,
+        scrollDirection: widget.scrollDirection,
+      ),
     );
   }
 }
