@@ -78,12 +78,9 @@ class UserAdmin extends StatelessWidget {
     final stateUser = Provider.of<StateUser>(context, listen: false);
     final state = Provider.of<StateUsers>(context, listen: false);
     final alert = Provider.of<StateAlert>(context, listen: false);
-
-    /// Change default limit if the height is too large
-    double height = MediaQuery.of(context).size.height;
-    if (height > 1200) {
-      state.limitDefault = (height / 80).round() + 2;
-    }
+    // Set default limit when you will use shrinkWrap
+    if (!primary) state.limitDefault = 100;
+    // Catch errors
     apiError(String? e) => (e != null)
         ? alert.show(AlertData(
             title: locales.get(e),
@@ -106,6 +103,7 @@ class UserAdmin extends StatelessWidget {
       query = baseQuery.orderBy('groups.$group');
     }
     state.query = query;
+    state.listen();
 
     Widget space = Container(width: 16);
 

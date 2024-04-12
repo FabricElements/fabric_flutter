@@ -90,6 +90,7 @@ abstract class StateShared extends ChangeNotifier {
   Future<dynamic> next() async {
     if (loading) return;
     if (!canPaginate) return null;
+    initialized = false;
     page = page + 1;
     return call();
   }
@@ -98,6 +99,7 @@ abstract class StateShared extends ChangeNotifier {
   Future<dynamic> previous() async {
     if (loading) return;
     if (page <= initialPage) return null;
+    initialized = false;
     page = page - 1;
     return call();
   }
@@ -105,6 +107,7 @@ abstract class StateShared extends ChangeNotifier {
   /// Paginate to first page and call
   Future<dynamic> first() async {
     if (loading) return;
+    initialized = false;
     page = initialPage;
     return call();
   }
@@ -112,6 +115,7 @@ abstract class StateShared extends ChangeNotifier {
   /// Paginate to last page and call
   Future<dynamic> last() async {
     if (loading) return;
+    initialized = false;
     page = totalPages;
     return call();
   }
@@ -186,9 +190,15 @@ abstract class StateShared extends ChangeNotifier {
   /// Returns the page number
   int get page => pageDefault;
 
+  /// On page change
+  void onPageChange(int newPage) {}
+
   /// Set the page number and trigger filter
   set page(int? value) {
     pageDefault = value ?? initialPage;
+    initialized = false;
+    loading = false;
+    onPageChange(pageDefault);
   }
 
   /// Returns the limit number
@@ -358,6 +368,9 @@ abstract class StateShared extends ChangeNotifier {
 
   /// async function to process request
   Future<dynamic> call({bool ignoreDuplicatedCalls = true}) async {}
+
+  /// Make call and listen for changes
+  Future<dynamic> listen() async {}
 
   /// Clear and reset default values
   void clear({bool notify = false}) {

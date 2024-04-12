@@ -475,7 +475,7 @@ class FilterMenu extends StatefulWidget {
 
 class _FilterMenuState extends State<FilterMenu> {
   late List<FilterData> data;
-  SearchController searchController = SearchController();
+  late SearchController searchController;
 
   _update() {
     data = [];
@@ -484,14 +484,24 @@ class _FilterMenuState extends State<FilterMenu> {
     if (mounted) setState(() {});
   }
 
+  void _closeSearch() {
+    try {
+      if (searchController.isOpen) searchController.closeView(null);
+    } catch (e) {
+      // Do nothing
+    }
+  }
+
   @override
   void initState() {
+    searchController = SearchController();
     data = widget.data;
     super.initState();
   }
 
   @override
   void didChangeDependencies() {
+    _closeSearch();
     _update();
     if (mounted) setState(() {});
     super.didChangeDependencies();
@@ -499,8 +509,15 @@ class _FilterMenuState extends State<FilterMenu> {
 
   @override
   void didUpdateWidget(covariant FilterMenu oldWidget) {
-    _update();
     super.didUpdateWidget(oldWidget);
+    _closeSearch();
+    _update();
+  }
+
+  @override
+  void dispose() {
+    _closeSearch();
+    super.dispose();
   }
 
   void clear() {
