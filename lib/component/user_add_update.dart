@@ -6,6 +6,7 @@ import '../helper/app_localizations_delegate.dart';
 import '../helper/input_validation.dart';
 import '../helper/options.dart';
 import '../helper/regex_helper.dart';
+import '../helper/utils.dart';
 import '../serialized/user_data.dart';
 import '../state/state_alert.dart';
 import 'input_data.dart';
@@ -32,6 +33,7 @@ class UserAddUpdate extends StatefulWidget {
     this.user,
     this.group,
     this.groups,
+    this.successMessage = 'notification--request-success',
   });
 
   final List<String> roles;
@@ -48,6 +50,8 @@ class UserAddUpdate extends StatefulWidget {
   /// Group id
   final String? group;
 
+  final String successMessage;
+
   /// Groups roles used for dropdown options
   /// {'groupName':['admin','agent']}
   /// updates the UserData.roles['groupName'] = 'group role'
@@ -62,6 +66,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
   Color? backgroundColor;
   Function? onChange;
   late UserData data;
+  String? error;
 
   @override
   void initState() {
@@ -74,6 +79,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     }
     sending = false;
     backgroundColor = const Color(0xFF161A21);
+    error = null;
     super.initState();
   }
 
@@ -81,6 +87,9 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final locales = AppLocalizations.of(context);
+    final alert = Provider.of<StateAlert>(context, listen: false);
+    alert.context = context;
     bool canCall = sending == false;
     bool validPhone = data.phone != null && data.phone!.isNotEmpty;
     bool validEmail = data.email != null && data.email!.isNotEmpty;
@@ -100,16 +109,24 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       bool newPasswordOk = RegexHelper.password.hasMatch(data.password ?? '');
       canCall = canCall && newPasswordOk;
     }
-    final locales = AppLocalizations.of(context);
-    final alert = Provider.of<StateAlert>(context, listen: false);
     const spacer = SizedBox(height: 16, width: 16);
     String title = locales
         .get(data.id == null ? 'label--add-label' : 'label--update-label', {
       'label': locales.get('label--user'),
     });
     String actionLabel = title;
-    if (data.name.isNotEmpty) {
-      title += ': ${data.name}';
+    // Get name for title
+    String? nameForTitle;
+    if (data.firstName != null || data.lastName != null) {
+      nameForTitle = Utils.nameFromParts(
+        firstName: data.firstName,
+        lastName: data.lastName,
+      );
+    }
+    nameForTitle ??=
+        data.firstName ?? data.username ?? data.phone ?? data.email ?? data.id;
+    if (nameForTitle != null) {
+      title += ': $nameForTitle';
     }
 
     /// Sends user invite to firebase function with the necessary information when inviting a user.
@@ -118,6 +135,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     /// [contact] The e-mail or phone number.
     addUser() async {
       sending = true;
+      error = null;
       if (mounted) setState(() {});
       assert(data.role.isNotEmpty, 'You must select a user role');
       assert(data.username != null || data.email != null || data.phone != null,
@@ -127,7 +145,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
         alert
             .show(AlertData(
           clear: true,
-          body: locales.get('notification--added'),
+          body: locales.get(widget.successMessage),
           type: AlertType.success,
           duration: 3,
         ))
@@ -135,18 +153,10 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
           Navigator.pop(context);
         });
         await widget.onChanged();
-      } on FirebaseFunctionsException catch (error) {
-        alert.show(AlertData(
-          clear: true,
-          body: error.message ?? error.details['message'],
-          type: AlertType.critical,
-        ));
-      } catch (error) {
-        alert.show(AlertData(
-          clear: true,
-          body: error.toString(),
-          type: AlertType.critical,
-        ));
+      } on FirebaseFunctionsException catch (e) {
+        error = e.message ?? e.details['message'];
+      } catch (e) {
+        error = error.toString();
       }
       sending = false;
       if (mounted) setState(() {});
@@ -172,6 +182,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
         value: data.phone,
         type: InputDataType.phone,
         onChanged: (value) {
+          error = null;
           data.phone = value;
           if (mounted) setState(() {});
         },
@@ -186,6 +197,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
         value: data.email,
         type: InputDataType.email,
         onChanged: (value) {
+          error = null;
           data.email = value;
           if (mounted) setState(() {});
         },
@@ -202,6 +214,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
         type: InputDataType.string,
         maxLength: 20,
         onChanged: (value) {
+          error = null;
           data.username = value;
           if (mounted) setState(() {});
         },
@@ -214,6 +227,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       value: data.firstName,
       type: InputDataType.string,
       onChanged: (value) {
+        error = null;
         data.firstName = value;
         if (mounted) setState(() {});
       },
@@ -225,6 +239,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       value: data.lastName,
       type: InputDataType.string,
       onChanged: (value) {
+        error = null;
         data.lastName = value;
         if (mounted) setState(() {});
       },
@@ -240,6 +255,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       type: InputDataType.secret,
       validator: inputValidation.validatePassword,
       onChanged: (value) {
+        error = null;
         data.password = value;
         if (mounted) setState(() {});
       },
@@ -307,6 +323,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
             );
           }),
           onChanged: (value) {
+            error = null;
             data.role = value ?? widget.roles.first;
             if (mounted) setState(() {});
           },
@@ -344,6 +361,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
               );
             }),
             onChanged: (value) {
+              error = null;
               Map<String, String> newRoles = {...data.groups};
               if (value == null) {
                 newRoles.remove(item.key);
@@ -358,6 +376,22 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
           spacer,
         ]);
       }
+    }
+
+    if (error != null) {
+      inviteWidgets.addAll([
+        ListTile(
+          tileColor: theme.colorScheme.errorContainer,
+          textColor: theme.colorScheme.onErrorContainer,
+          iconColor: theme.colorScheme.onErrorContainer,
+          title: Text(locales.get(error)),
+          leading: const Icon(Icons.error),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        spacer,
+      ]);
     }
 
     inviteWidgets.addAll([
