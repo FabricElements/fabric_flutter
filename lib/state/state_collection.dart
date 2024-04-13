@@ -11,6 +11,9 @@ abstract class StateCollection extends StateShared {
   @override
   bool get paginate => true;
 
+  @override
+  bool get canPaginate => true;
+
   /// More at [query]
   Query? baseQuery;
 
@@ -31,42 +34,100 @@ abstract class StateCollection extends StateShared {
   /// FirebaseFirestore.instance.collection('example')
   set query(Query? reference) {
     if (loading) return;
-    final oldReference = ({reference?.parameters ?? {}}).toString().hashCode;
-    final newReference = ({baseQuery?.parameters ?? {}}).toString().hashCode;
-    if (newReference == oldReference) return;
-    initialized = false;
-    loading = true;
+    final newReference =
+        ({reference?.limit(limit * page).parameters ?? {}}).toString().hashCode;
+    final oldReference = ({baseQuery?.parameters ?? {}}).toString().hashCode;
+    if (oldReference == newReference) return;
     baseQuery = reference;
-    cancel(clear: true).then((_) {
-      if (reference != null) {
-        baseQuery = reference;
-        _listen();
-      } else {
-        loading = false;
-        data = [];
-      }
-    }).onError((error, stackTrace) {
-      loading = false;
+    _streamSubscription?.cancel();
+    super.clear(notify: false);
+    data = [];
+  }
+
+  _softClear({bool notify = false}) {
+    if (notify) {
       data = [];
-      initialized = false;
-    });
+    } else {
+      privateData = null;
+    }
+    loading = false;
+    initialized = false;
   }
 
   /// Firestore Document Stream Reference
   StreamSubscription<QuerySnapshot<Object?>>? _streamSubscription;
 
-  /// Listen for document changes
-  void _listen() {
-    if (initialized) return;
-    initialized = true;
-    if (baseQuery == null) return;
-    privateOldData = null;
-    _streamSubscription =
-        baseQuery!.limit(limit * page).snapshots().listen((snapshot) {
-      initialized = true;
+  /// Make call and listen for changes
+  @override
+  Future<dynamic> listen() async {
+    if (loading) return data;
+    if (initialized) return data;
+    _softClear(notify: false);
+    loading = true;
+    await _streamSubscription?.cancel();
+    if (baseQuery == null) {
       loading = false;
+      data = [];
+      return data;
+    }
+    initialized = true;
+    try {
+      _streamSubscription =
+          baseQuery!.limit(limit * page).snapshots().listen((snapshot) {
+        loading = false;
 
-      /// Default totalCount depending on the page
+        /// Default totalCount depending on the page
+        totalCount = snapshot.size;
+        if (totalCount > 0) {
+          List<Map<String, dynamic>> items = [];
+          for (var doc in snapshot.docs) {
+            final item = doc;
+            items.add({
+              ...item.data() as Map<String, dynamic>,
+              'id': item.id,
+            });
+          }
+          data = items;
+        } else {
+          data = [];
+        }
+      }, onError: (e) {
+        super.clear();
+        data = [];
+        error = e?.toString();
+      });
+    } catch (e) {
+      super.clear(notify: false);
+      data = [];
+      error = e.toString();
+    }
+    return data;
+  }
+
+  /// On page change
+  @override
+  void onPageChange(int newPage) async {
+    _softClear(notify: false);
+  }
+
+  @override
+  Future<dynamic> call({bool ignoreDuplicatedCalls = true}) async {
+    if (_streamSubscription != null) return listen();
+    if (loading) return data;
+    if (initialized) return data;
+    _softClear(notify: false);
+    loading = true;
+    await _streamSubscription?.cancel();
+    if (baseQuery == null) {
+      loading = false;
+      data = [];
+      return data;
+    }
+    initialized = true;
+    try {
+      final snapshot = await baseQuery!.limit(limit * page).get();
+      loading = false;
+      // Default totalCount depending on the page
       totalCount = snapshot.size;
       if (totalCount > 0) {
         List<Map<String, dynamic>> items = [];
@@ -81,27 +142,17 @@ abstract class StateCollection extends StateShared {
       } else {
         data = [];
       }
-    }, onError: (e) {
-      clear();
-      // data = null;
-      error = e?.toString();
-      loading = false;
-    });
-  }
-
-  /// async function to process request
-  @override
-  Future<dynamic> call({bool ignoreDuplicatedCalls = true}) async {
-    if (loading) return;
-    loading = true;
-    initialized = false;
-    await _streamSubscription?.cancel();
-    _listen();
+    } catch (e) {
+      super.clear(notify: false);
+      data = [];
+      error = e.toString();
+    }
+    return data;
   }
 
   /// Clear data
   @override
-  void clear({bool notify = true}) {
+  void clear({bool notify = false}) {
     super.clear(notify: notify);
     baseQuery = null;
     data = [];

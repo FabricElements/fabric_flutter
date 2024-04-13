@@ -78,12 +78,10 @@ class UserAdmin extends StatelessWidget {
     final stateUser = Provider.of<StateUser>(context, listen: false);
     final state = Provider.of<StateUsers>(context, listen: false);
     final alert = Provider.of<StateAlert>(context, listen: false);
-
-    /// Change default limit if the height is too large
-    double height = MediaQuery.of(context).size.height;
-    if (height > 1200) {
-      state.limitDefault = (height / 80).round() + 2;
-    }
+    alert.context = context;
+    // Set default limit when you will use shrinkWrap
+    if (!primary) state.limitDefault = 100;
+    // Catch errors
     apiError(String? e) => (e != null)
         ? alert.show(AlertData(
             title: locales.get(e),
@@ -106,19 +104,22 @@ class UserAdmin extends StatelessWidget {
       query = baseQuery.orderBy('groups.$group');
     }
     state.query = query;
+    state.listen();
 
     Widget space = Container(width: 16);
 
     /// Deletes the related user listed user, the documentId is the users uid
-    removeUser(UserData data) async {
+    removeUser(UserData data) {
+      String? name = data.name.trim().length > 4 ? data.name : null;
+      name ??= data.firstName ??
+          data.username ??
+          data.phone ??
+          data.email ??
+          data.id;
       alert.show(AlertData(
-        clear: true,
         title: locales.get(
           'label--confirm-are-you-sure-remove-label',
-          {
-            'label':
-                '${locales.get('label--user').toLowerCase()}: ${data.firstName ?? ''} ${data.lastName ?? ''}'
-          },
+          {'label': '${locales.get('label--user').toLowerCase()}: $name'},
         ),
         action: ButtonOptions(onTap: () async {
           try {
@@ -145,7 +146,7 @@ class UserAdmin extends StatelessWidget {
           }
         }),
         type: AlertType.warning,
-        widget: AlertWidget.banner,
+        widget: AlertWidget.dialog,
       ));
     }
 
@@ -161,7 +162,7 @@ class UserAdmin extends StatelessWidget {
       empty: empty ?? Container(),
       initialData: state.data,
       shrinkWrap: !primary,
-      itemBuilder: (BuildContext context, index, dynamic data) {
+      itemBuilder: (BuildContext c, index, dynamic data) {
         final userData = data as Map<String, dynamic>;
         final user = UserData.fromJson(userData);
         assert(user.id != null, 'user id is required');
@@ -185,10 +186,9 @@ class UserAdmin extends StatelessWidget {
             IconButton(
               onPressed: () async {
                 showDialog<void>(
-                  useRootNavigator: false,
-                  barrierColor: Colors.transparent,
                   context: context,
                   builder: (context) => UserAddUpdate(
+                    successMessage: 'notification--updated',
                     role: roleUpdate,
                     roles: roles,
                     onConfirm: UserRolesFirebase.onUpdate,
@@ -209,27 +209,9 @@ class UserAdmin extends StatelessWidget {
             ),
             space,
             IconButton(
-              onPressed: () async {
-                try {
-                  await removeUser(user);
-                } on FirebaseFunctionsException catch (error) {
-                  alert.show(AlertData(
-                    clear: true,
-                    body: error.message ?? error.details['message'],
-                    type: AlertType.critical,
-                  ));
-                } catch (error) {
-                  alert.show(AlertData(
-                    clear: true,
-                    body: error.toString(),
-                    type: AlertType.critical,
-                  ));
-                }
-              },
-              icon: const Icon(
-                Icons.person_remove,
-                color: Colors.deepOrange,
-              ),
+              color: Colors.deepOrange,
+              onPressed: () => removeUser(user),
+              icon: const Icon(Icons.person_remove),
             ),
           ]);
         }
@@ -323,6 +305,7 @@ class UserAdmin extends StatelessWidget {
       },
     );
     Widget userAddWidget = UserAddUpdate(
+      successMessage: 'notification--added',
       roles: roles,
       onConfirm: UserRolesFirebase.onAdd,
       email: email,
@@ -349,7 +332,6 @@ class UserAdmin extends StatelessWidget {
                 }).toUpperCase()),
                 onPressed: () {
                   showDialog<void>(
-                    // barrierColor: Colors.black12,
                     context: context,
                     builder: (context) => userAddWidget,
                   );
@@ -374,9 +356,8 @@ class UserAdmin extends StatelessWidget {
             }).toUpperCase()),
             onPressed: () {
               showDialog<void>(
-                barrierColor: Colors.black12,
                 context: context,
-                builder: (context) => userAddWidget,
+                builder: (c) => userAddWidget,
               );
             },
           ),

@@ -129,6 +129,7 @@ class InputData extends StatefulWidget {
     this.prefixIcon,
     this.prefixStyle,
     this.floatingLabelBehavior,
+    this.searchController,
   });
 
   final dynamic value;
@@ -200,13 +201,20 @@ class InputData extends StatefulWidget {
   ///    should be displayed.
   final FloatingLabelBehavior? floatingLabelBehavior;
 
+  /// An optional controller that allows opening and closing of the search view from
+  /// other widgets.
+  ///
+  /// If this is null, one internal search controller is created automatically
+  /// and it is used to open the search view when the user taps on the anchor.
+  final SearchController? searchController;
+
   @override
   State<InputData> createState() => _InputDataState();
 }
 
 class _InputDataState extends State<InputData> {
   late TextEditingController textController;
-  SearchController searchController = SearchController();
+  late SearchController searchController;
   DateFormat formatDate = DateFormat.yMd('en_US');
   DateFormat formatDateTime =
       DateFormat.yMd('en_US').addPattern(' - ').add_jm();
@@ -367,12 +375,14 @@ getValue -------------------------------------
             'enums is required for InputDataType.enums');
         break;
       case InputDataType.dropdown:
-        assert(widget.options.isNotEmpty,
-            'options is required for InputDataType.dropdown');
+        if (widget.options.isEmpty) {
+          debugPrint('options is required for InputDataType.dropdown');
+        }
         break;
       default:
     }
     textController = widget.textController ?? TextEditingController();
+    searchController = widget.searchController ?? SearchController();
     getValue(newValue: widget.value);
 
     /// obscure text and show controls
@@ -382,16 +392,27 @@ getValue -------------------------------------
     super.initState();
   }
 
+  void _closeSearch() {
+    try {
+      if (searchController.isOpen) searchController.closeView(null);
+    } catch (e) {
+      // Do nothing
+    }
+  }
+
   @override
   void didUpdateWidget(covariant InputData oldWidget) {
-    getValue(notify: true, newValue: widget.value);
     super.didUpdateWidget(oldWidget);
+    _closeSearch();
+    getValue(notify: false, newValue: widget.value);
   }
 
   @override
   void dispose() {
-    textController.dispose();
     super.dispose();
+    _closeSearch();
+    // searchController.dispose();
+    textController.dispose();
   }
 
   @override
@@ -768,7 +789,10 @@ getValue -------------------------------------
                 },
         );
         if (!isDisabled) {
+          // final optionsHash =
+          //     dropdownOptions.map((e) => e.value).toList().toString().hashCode;
           endWidget = SearchAnchor(
+            // key: Key('search-anchor-$optionsHash'),
             searchController: searchController,
             builder: (BuildContext context, SearchController controller) {
               return widgetInput;

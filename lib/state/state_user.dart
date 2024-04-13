@@ -286,9 +286,10 @@ class StateUser extends StateDocument {
     }
     if (object == null ||
         object.toString().hashCode != userObject.toString().hashCode) {
-      ref = db.collection('user').doc(userObject.uid);
       object = userObject;
+      ref = db.collection('user').doc(userObject.uid);
       try {
+        listen();
         // Call before _controllerStreamStatus to prevent unauthenticated calls
         await _getToken(userObject);
       } catch (e) {

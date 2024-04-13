@@ -653,6 +653,10 @@ dynamic defaultLocales = {
     'en': 'Please try again.',
     'es': 'Por favor, inténtalo de nuevo.',
   },
+  'notification--request-success': {
+    'en': 'Request successful',
+    'es': 'Solicitud exitosa',
+  },
   'label--plus-code': {
     'en': 'Plus Code',
     'es': 'Código Plus',
