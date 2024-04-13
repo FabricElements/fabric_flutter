@@ -78,7 +78,6 @@ class UserAdmin extends StatelessWidget {
     final stateUser = Provider.of<StateUser>(context, listen: false);
     final state = Provider.of<StateUsers>(context, listen: false);
     final alert = Provider.of<StateAlert>(context, listen: false);
-    alert.context = context;
     // Set default limit when you will use shrinkWrap
     if (!primary) state.limitDefault = 100;
     // Catch errors
