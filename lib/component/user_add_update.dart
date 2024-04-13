@@ -89,7 +89,6 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     final textTheme = theme.textTheme;
     final locales = AppLocalizations.of(context);
     final alert = Provider.of<StateAlert>(context, listen: false);
-    alert.context = context;
     bool canCall = sending == false;
     bool validPhone = data.phone != null && data.phone!.isNotEmpty;
     bool validEmail = data.email != null && data.email!.isNotEmpty;
@@ -137,10 +136,11 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       sending = true;
       error = null;
       if (mounted) setState(() {});
-      assert(data.role.isNotEmpty, 'You must select a user role');
-      assert(data.username != null || data.email != null || data.phone != null,
-          'username, email or phone must not be null');
       try {
+        assert(data.role.isNotEmpty, 'You must select a user role');
+        assert(
+            data.username != null || data.email != null || data.phone != null,
+            'username, email or phone must not be null');
         await widget.onConfirm(data, group: widget.group);
         alert
             .show(AlertData(
@@ -160,17 +160,6 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       }
       sending = false;
       if (mounted) setState(() {});
-    }
-
-    void validateInvitation() async {
-      if (!canCall) {
-        alert.show(AlertData(
-          clear: true,
-          title: 'incomplete data',
-          type: AlertType.critical,
-        ));
-      }
-      await addUser();
     }
 
     Widget phoneInput = SizedBox(
@@ -411,7 +400,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
             FilledButton.icon(
               icon: const Icon(Icons.person_add),
               label: Text(actionLabel),
-              onPressed: canCall ? validateInvitation : null,
+              onPressed: canCall ? addUser : null,
             ),
           ],
         ),
