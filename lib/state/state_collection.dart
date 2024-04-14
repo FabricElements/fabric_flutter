@@ -34,15 +34,18 @@ abstract class StateCollection extends StateShared {
   /// FirebaseFirestore.instance.collection('example')
   set query(Query? reference) {
     if (loading) return;
-    final newReference =
-        ({reference?.limit(limit * page).parameters ?? {}}).toString().hashCode;
-    final oldReference = ({baseQuery?.parameters ?? {}}).toString().hashCode;
+    Query? newQuery = reference?.limit(limit * page);
+    final newReference = ({newQuery?.parameters ?? {}}).toString().hashCode;
+    final oldReference = ({query?.parameters ?? {}}).toString().hashCode;
     if (oldReference == newReference) return;
-    baseQuery = reference;
+    baseQuery = newQuery;
     _streamSubscription?.cancel();
     super.clear(notify: false);
     data = [];
   }
+
+  /// Get Collection Reference
+  Query? get query => baseQuery?.limit(limit * page);
 
   _softClear({bool notify = false}) {
     if (notify) {
@@ -65,15 +68,14 @@ abstract class StateCollection extends StateShared {
     _softClear(notify: false);
     loading = true;
     await _streamSubscription?.cancel();
-    if (baseQuery == null) {
+    if (query == null) {
       loading = false;
       data = [];
       return data;
     }
     initialized = true;
     try {
-      _streamSubscription =
-          baseQuery!.limit(limit * page).snapshots().listen((snapshot) {
+      _streamSubscription = query!.snapshots().listen((snapshot) {
         loading = false;
 
         /// Default totalCount depending on the page
@@ -118,14 +120,14 @@ abstract class StateCollection extends StateShared {
     _softClear(notify: false);
     loading = true;
     await _streamSubscription?.cancel();
-    if (baseQuery == null) {
+    if (query == null) {
       loading = false;
       data = [];
       return data;
     }
     initialized = true;
     try {
-      final snapshot = await baseQuery!.limit(limit * page).get();
+      final snapshot = await query!.get();
       loading = false;
       // Default totalCount depending on the page
       totalCount = snapshot.size;

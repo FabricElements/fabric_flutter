@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../helper/app_localizations_delegate.dart';
+import '../helper/utils.dart';
 
 /// StatusChip is a chip which shows the status of a campaign.
 ///
@@ -26,53 +27,10 @@ class StatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context);
-    Color statusColor = Colors.grey.shade800;
     String baseStatus = status ?? 'unknown';
     baseStatus = locales.get('label--$status');
-    IconData iconData = Icons.circle;
-
-    switch (status) {
-      case 'draft':
-        statusColor = Colors.blueGrey.shade600;
-        iconData = Icons.circle;
-        break;
-      case 'review':
-        statusColor = Colors.amber.shade900;
-        iconData = Icons.remove_red_eye;
-        break;
-      case 'approved':
-        statusColor = Colors.deepPurple.shade500;
-        iconData = Icons.check_circle;
-        break;
-      case 'rejected':
-        iconData = Icons.warning;
-        statusColor = Colors.red.shade500;
-        break;
-      case 'inactive':
-        iconData = Icons.stop_circle;
-        statusColor = Colors.amber.shade800;
-        break;
-      case 'paused':
-        iconData = Icons.pause_circle;
-        statusColor = Colors.deepOrange.shade500;
-        break;
-      case 'scheduled':
-        iconData = Icons.schedule;
-        statusColor = Colors.deepPurple.shade500;
-        break;
-      case 'active':
-        iconData = Icons.incomplete_circle;
-        statusColor = Colors.teal.shade600;
-        break;
-      case 'archived':
-        iconData = Icons.archive;
-        statusColor = Colors.grey.shade700;
-        break;
-      case 'suspended':
-        iconData = Icons.warning;
-        statusColor = Colors.red.shade500;
-        break;
-    }
+    Color statusColor = Utils.statusColor(status);
+    IconData iconData = Utils.statusIcon(status);
 
     /// Override iconData if icon is not null
     iconData = icon ?? iconData;

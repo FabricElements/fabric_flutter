@@ -2,8 +2,9 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:devicelocale/devicelocale.dart';
+import 'package:fabric_flutter/helper/enum_data.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 
 import '../serialized/user_data.dart';
@@ -222,5 +223,87 @@ class Utils {
     });
     // Return new query parameters
     return qp;
+  }
+
+  /// Get the icon for the status
+  static IconData statusIcon(dynamic value) {
+    late IconData iconData;
+    final finalValue = EnumData.describe(value)?.toLowerCase();
+    switch (finalValue) {
+      case 'draft':
+        iconData = Icons.circle;
+        break;
+      case 'review':
+        iconData = Icons.remove_red_eye;
+        break;
+      case 'approved':
+        iconData = Icons.check_circle;
+        break;
+      case 'rejected':
+        iconData = Icons.warning;
+        break;
+      case 'inactive':
+        iconData = Icons.toggle_off;
+        break;
+      case 'paused':
+        iconData = Icons.pause_circle;
+        break;
+      case 'scheduled':
+        iconData = Icons.schedule;
+        break;
+      case 'active':
+        iconData = Icons.toggle_on;
+        break;
+      case 'archived':
+        iconData = Icons.archive;
+        break;
+      case 'suspended':
+        iconData = Icons.error;
+        break;
+      default:
+        iconData = Icons.circle;
+    }
+    return iconData;
+  }
+
+  /// Get the color for the status
+  static Color statusColor(dynamic value) {
+    late Color statusColor;
+    final finalValue = EnumData.describe(value)?.toLowerCase();
+    switch (finalValue) {
+      case 'draft':
+        statusColor = Colors.blueGrey.shade600;
+        break;
+      case 'review':
+        statusColor = Colors.amber.shade900;
+        break;
+      case 'approved':
+        statusColor = Colors.deepPurple.shade500;
+        break;
+      case 'rejected':
+        statusColor = Colors.red.shade500;
+        break;
+      case 'inactive':
+        statusColor = Colors.amber.shade800;
+        break;
+      case 'paused':
+        statusColor = Colors.deepOrange.shade500;
+        break;
+      case 'scheduled':
+        statusColor = Colors.deepPurple.shade500;
+        break;
+      case 'active':
+        statusColor = Colors.teal.shade600;
+        break;
+      case 'archived':
+        statusColor = Colors.grey.shade700;
+        break;
+      case 'suspended':
+        statusColor = Colors.red.shade500;
+        break;
+      default:
+        statusColor = Colors.grey.shade800;
+    }
+    return statusColor;
   }
 }

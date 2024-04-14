@@ -124,7 +124,7 @@ abstract class StateShared extends ChangeNotifier {
   Future<dynamic> limitChange(int? value) async {
     if (loading) return;
     initialized = false;
-    limitDefault = value ?? limitDefault;
+    limit = value;
     data = null;
     page = initialPage;
     return call();
@@ -201,12 +201,15 @@ abstract class StateShared extends ChangeNotifier {
     onPageChange(pageDefault);
   }
 
+  /// Limit for pagination
+  int? _limit;
+
   /// Returns the limit number
-  int get limit => limitDefault;
+  int get limit => _limit ?? limitDefault;
 
   /// Set the [limit] number and trigger filter
   set limit(int? value) {
-    limitDefault = value ?? 10;
+    _limit = value ?? limitDefault;
   }
 
   /// Returns the trade
@@ -301,7 +304,7 @@ abstract class StateShared extends ChangeNotifier {
     final limitFromQuery = passingQueryParameters['limit'];
     final newLimit =
         limitFromQuery != null ? int.tryParse(limitFromQuery.first) : null;
-    limitDefault = newLimit ?? limit;
+    if (newLimit != null) limit = newLimit;
 
     try {
       /// Get filters

@@ -1,3 +1,4 @@
+import 'package:fabric_flutter/component/smart_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -792,6 +793,7 @@ getValue -------------------------------------
           // final optionsHash =
           //     dropdownOptions.map((e) => e.value).toList().toString().hashCode;
           endWidget = SearchAnchor(
+            // isFullScreen: false,
             // key: Key('search-anchor-$optionsHash'),
             searchController: searchController,
             builder: (BuildContext context, SearchController controller) {
@@ -816,7 +818,43 @@ getValue -------------------------------------
               return List<ListTile>.generate(recommendations.length,
                   (int index) {
                 final item = recommendations[index];
+
+                /// Leading
+                Widget? leading = item.leading;
+                if (item.icon != null) {
+                  leading = Icon(item.icon);
+                }
+                if (item.image != null) {
+                  leading = Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: CircleAvatar(
+                      backgroundColor: theme.colorScheme.surfaceVariant,
+                      child: AspectRatio(
+                        aspectRatio: 1 / 1,
+                        child: ClipOval(
+                          child: SmartImage(url: item.image),
+                        ),
+                      ),
+                    ),
+                  );
+                }
+
+                /// Trailing
+                Widget? trailing = item.trailing;
+                if (item.trailingIcon != null) {
+                  trailing = Icon(item.trailingIcon);
+                }
+                if (item.trailingImage != null) {
+                  trailing = AspectRatio(
+                    aspectRatio: 1 / 1,
+                    child: CircleAvatar(
+                      backgroundImage: NetworkImage(item.trailingImage!),
+                    ),
+                  );
+                }
                 return ListTile(
+                  leading: leading,
+                  trailing: trailing,
                   title: Text(item.label),
                   onTap: () {
                     controller.closeView('');

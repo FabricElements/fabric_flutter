@@ -47,16 +47,18 @@ class ButtonOptions {
   /// Set image for custom buttons
   String? image;
 
-  /// Set prefix widget for custom buttons
-  Widget? prefix;
+  /// Set leading widget for custom buttons
+  Widget? leading;
 
   /// Set trailing widget for custom buttons
   Widget? trailing;
 
+  /// Trailing Image
+  String? trailingImage;
+
   ButtonOptions({
     this.children = const [],
     this.icon,
-    this.trailingIcon,
     this.id,
     this.image,
     this.important = false,
@@ -68,7 +70,9 @@ class ButtonOptions {
     this.queryParameters,
     this.selected = false,
     this.value,
-    this.prefix,
+    this.leading,
     this.trailing,
+    this.trailingIcon,
+    this.trailingImage,
   });
 }
