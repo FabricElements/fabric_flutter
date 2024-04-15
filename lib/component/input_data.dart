@@ -793,7 +793,7 @@ getValue -------------------------------------
           // final optionsHash =
           //     dropdownOptions.map((e) => e.value).toList().toString().hashCode;
           endWidget = SearchAnchor(
-            // isFullScreen: false,
+            isFullScreen: false,
             // key: Key('search-anchor-$optionsHash'),
             searchController: searchController,
             builder: (BuildContext context, SearchController controller) {
