@@ -580,6 +580,7 @@ class _FilterMenuState extends State<FilterMenu> {
     /// Add popUp button
     if (pendingOptions.isNotEmpty) {
       menuOptions.add(SearchAnchor(
+        isFullScreen: false,
         searchController: searchController,
         builder: (BuildContext context, SearchController controller) {
           return OutlinedButton.icon(
