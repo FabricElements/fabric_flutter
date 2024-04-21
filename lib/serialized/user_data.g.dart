@@ -8,6 +8,7 @@ part of 'user_data.dart';
 
 UserDataOnboarding _$UserDataOnboardingFromJson(Map<String, dynamic> json) =>
     UserDataOnboarding(
+      main: json['main'] as bool? ?? false,
       avatar: json['avatar'] as bool? ?? false,
       name: json['name'] as bool? ?? false,
       terms: json['terms'] as bool? ?? false,
@@ -18,6 +19,7 @@ Map<String, dynamic> _$UserDataOnboardingToJson(UserDataOnboarding instance) =>
       'avatar': instance.avatar,
       'name': instance.name,
       'terms': instance.terms,
+      'main': instance.main,
     };
 
 InterfaceLinks _$InterfaceLinksFromJson(Map<String, dynamic> json) =>

@@ -33,8 +33,11 @@ class UserDataOnboarding {
   final bool name;
   @JsonKey(includeIfNull: true)
   final bool terms;
+  @JsonKey(includeIfNull: true)
+  final bool main;
 
   UserDataOnboarding({
+    this.main = false,
     this.avatar = false,
     this.name = false,
     this.terms = false,
