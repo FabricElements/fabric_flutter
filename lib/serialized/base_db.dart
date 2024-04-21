@@ -6,7 +6,7 @@ import '../helper/utils.dart';
 
 part 'base_db.g.dart';
 
-/// [Service] serialized data
+/// BaseFirestore serialized data
 @JsonSerializable(explicitToJson: true)
 class BaseFirestore {
   /// -
@@ -19,7 +19,7 @@ class BaseFirestore {
     toJson: FirestoreHelper.timestampUpdate,
     includeIfNull: true,
   )
-  final DateTime? updated;
+  DateTime? updated;
 
   /// Creation time
   @JsonKey(
@@ -27,7 +27,7 @@ class BaseFirestore {
     toJson: FirestoreHelper.timestampToJsonDefault,
     includeIfNull: true,
   )
-  final DateTime? created;
+  DateTime? created;
 
   @JsonKey(includeIfNull: true, toJson: Utils.boolFalse)
   bool backup;
@@ -52,7 +52,6 @@ class BaseFirestore {
     Map<String, dynamic> jsonData = toJson();
     jsonData.remove('id');
     jsonData.remove('created');
-    jsonData.remove('updated');
     return FirebaseFirestore.instance
         .collection(collection)
         .doc(id)
