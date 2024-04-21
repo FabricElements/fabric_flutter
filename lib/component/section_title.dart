@@ -8,51 +8,37 @@ import 'package:flutter/material.dart';
 ///   headline: 'This is the headline, emphasised text.',
 ///   description: 'This is where the description will go.',
 /// );
-class SectionTitle extends StatefulWidget {
+class SectionTitle extends StatelessWidget {
   const SectionTitle({
     super.key,
     this.description,
     required this.headline,
-    this.condensed = false,
+    this.headlineStyle,
+    this.descriptionStyle,
   });
 
   final String? description;
   final String headline;
-  final bool condensed;
+  final TextStyle? headlineStyle;
+  final TextStyle? descriptionStyle;
 
-  @override
-  State<SectionTitle> createState() => _SectionTitleState();
-}
-
-class _SectionTitleState extends State<SectionTitle> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    TextStyle? defaultHeadlineStyle = headlineStyle ?? textTheme.headlineMedium;
+    TextStyle? defaultDescriptionStyle =
+        descriptionStyle ?? textTheme.bodyMedium;
+
     RegExp regExp = RegExp(
       r'{.*?}',
       multiLine: true,
     );
-    List<TextSpan> importantData(String textConvert, String type) {
+    List<TextSpan> importantData(String textConvert, TextStyle? textStyle) {
       List<TextSpan> text = [];
       String textFinal = textConvert;
       int? initialHelper = 0;
       Iterable matches = regExp.allMatches(textFinal);
-      TextStyle? sizeBase = textTheme.bodyLarge;
-      TextStyle? titleDefault = sizeBase;
-      if (type == 'title') {
-        sizeBase = textTheme.headlineMedium;
-        titleDefault = sizeBase?.copyWith(
-          fontWeight: FontWeight.w600,
-        );
-      } else {
-        titleDefault = sizeBase;
-        if (widget.condensed) {
-          sizeBase =
-              textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w400);
-        }
-        titleDefault = titleDefault;
-      }
       if (matches.isNotEmpty) {
         for (var match in matches) {
           if (match.start > initialHelper) {
@@ -62,7 +48,7 @@ class _SectionTitleState extends State<SectionTitle> {
                     .replaceAll('_', ' ')
                     .replaceAll('{', '')
                     .replaceAll('}', ''),
-                style: titleDefault,
+                style: textStyle,
               ),
             );
             initialHelper = match.end;
@@ -73,7 +59,7 @@ class _SectionTitleState extends State<SectionTitle> {
                   .replaceAll('_', ' ')
                   .replaceAll('{', '')
                   .replaceAll('}', ''),
-              style: titleDefault?.copyWith(
+              style: textStyle?.copyWith(
                 color: theme.colorScheme.primary,
               ),
             ),
@@ -86,13 +72,13 @@ class _SectionTitleState extends State<SectionTitle> {
                 .replaceAll('_', ' ')
                 .replaceAll('{', ' ')
                 .replaceAll('}', ' '),
-            style: titleDefault,
+            style: textStyle,
           ),
         );
       } else {
         text.add(TextSpan(
           text: textFinal,
-          style: titleDefault,
+          style: textStyle,
         ));
       }
       return text;
@@ -103,17 +89,17 @@ class _SectionTitleState extends State<SectionTitle> {
         padding: const EdgeInsets.only(bottom: 16),
         child: Text.rich(
           TextSpan(
-            children: importantData(widget.headline, 'title'),
+            children: importantData(headline, defaultHeadlineStyle),
           ),
         ),
       ),
     ];
-    if (widget.description != null) {
+    if (description != null) {
       items.add(Padding(
         padding: const EdgeInsets.only(bottom: 4),
         child: Text.rich(
           TextSpan(
-            children: importantData(widget.description!, 'subtitle'),
+            children: importantData(description!, defaultDescriptionStyle),
           ),
         ),
       ));
