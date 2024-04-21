@@ -280,21 +280,20 @@ class StateUser extends StateDocument {
   /// Refresh auth state
   _refreshAuth(User? userObject) async {
     if (userObject == null) {
+      await cancel();
       clearAuth(notify: true);
       await _userStatusUpdate();
       return;
     }
-    if (object == null ||
-        object.toString().hashCode != userObject.toString().hashCode) {
+    try {
+      // Call before _controllerStreamStatus to prevent unauthenticated calls
+      await _getToken(userObject);
       object = userObject;
       ref = db.collection('user').doc(userObject.uid);
-      try {
-        listen();
-        // Call before _controllerStreamStatus to prevent unauthenticated calls
-        await _getToken(userObject);
-      } catch (e) {
-        await _userStatusUpdate();
-      }
+      await Future.delayed(const Duration(milliseconds: 500));
+      await listen();
+    } catch (e) {
+      await _userStatusUpdate();
     }
   }
 
