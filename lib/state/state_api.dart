@@ -181,7 +181,7 @@ abstract class StateAPI extends StateShared {
       errorCount++;
       error = e.toString();
     }
-    data = null;
+    data = paginate ? [] : null;
     data = dataResponse;
     return dataResponse;
   }
