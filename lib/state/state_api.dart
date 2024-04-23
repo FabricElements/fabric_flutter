@@ -176,7 +176,8 @@ abstract class StateAPI extends StateShared {
         dataResponse = newData;
       }
     } catch (e) {
-      debugPrint(PrintColor.error('------ ERROR API CALL : Parent catch ------'));
+      debugPrint(
+          PrintColor.error('------ ERROR API CALL : Parent catch ------'));
       initialized = false;
       loading = false;
       errorCount++;
