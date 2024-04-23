@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import '../component/smart_image.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/options.dart';
-import '../helper/print_color.dart';
+import '../helper/log_color.dart';
 import '../helper/utils.dart';
 
 /// AlertType are used to defined behavior and colors for the alerts
@@ -343,7 +343,7 @@ class StateAlert implements Listenable {
           }
           dismissAlerts(widget: alertData.widget);
         } catch (e) {
-          debugPrint(PrintColor.error('Dismiss click: $e'));
+          debugPrint(LogColor.error('Dismiss click: $e'));
         }
       },
     ));
@@ -376,7 +376,7 @@ class StateAlert implements Listenable {
               }
             }
           } catch (e) {
-            debugPrint(PrintColor.error('Action click: $e'));
+            debugPrint(LogColor.error('Action click: $e'));
           }
         },
       ));

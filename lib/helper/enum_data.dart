@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import 'app_localizations_delegate.dart';
-import 'print_color.dart';
+import 'log_color.dart';
 
 /// EnumData provides extended support for enums
 class EnumData {
@@ -114,7 +114,7 @@ class EnumData {
       }
     }
     if (finalValue == null && error != null) {
-      debugPrint(PrintColor.error('EnumData.find: $error'));
+      debugPrint(LogColor.error('EnumData.find: $error'));
     }
     return finalValue;
   }

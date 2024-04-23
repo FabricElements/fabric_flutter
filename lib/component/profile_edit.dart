@@ -8,7 +8,7 @@ import 'package:provider/provider.dart';
 
 import '../helper/app_localizations_delegate.dart';
 import '../helper/media_helper.dart';
-import '../helper/print_color.dart';
+import '../helper/log_color.dart';
 import '../state/state_alert.dart';
 import '../state/state_user.dart';
 import 'content_container.dart';
@@ -80,7 +80,7 @@ class _ProfileEditState extends State<ProfileEdit> {
           return;
         }
       } catch (error) {
-        debugPrint(PrintColor.error(error));
+        debugPrint(LogColor.error(error));
       }
 
       previewImage = defaultImage;

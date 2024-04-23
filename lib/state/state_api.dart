@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../helper/http_request.dart';
-import '../helper/print_color.dart';
+import '../helper/log_color.dart';
 import '../helper/utils.dart';
 import 'state_shared.dart';
 
@@ -116,7 +116,7 @@ abstract class StateAPI extends StateShared {
         canAuthenticate = authScheme != null && credentials != null;
       }
       if (mustAuthenticate && !canAuthenticate) {
-        debugPrint(PrintColor.error('Must Authenticate on call: $endpoint'));
+        debugPrint(LogColor.error('Must Authenticate on call: $endpoint'));
         loading = false;
         return;
       }
@@ -151,7 +151,7 @@ abstract class StateAPI extends StateShared {
         error = null;
       } catch (e) {
         debugPrint(
-            PrintColor.error('------------ ERROR API CALL ::::::::::::::::::::'
+            LogColor.error('------------ ERROR API CALL ::::::::::::::::::::'
                 'Endpoint: $endpoint'
                 '////////////// ERROR API CALL -------------'));
         errorCount++;
@@ -177,7 +177,7 @@ abstract class StateAPI extends StateShared {
       }
     } catch (e) {
       debugPrint(
-          PrintColor.error('------ ERROR API CALL : Parent catch ------'));
+          LogColor.error('------ ERROR API CALL : Parent catch ------'));
       initialized = false;
       loading = false;
       errorCount++;

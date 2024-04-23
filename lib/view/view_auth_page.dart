@@ -14,7 +14,7 @@ import '../component/input_data.dart';
 import '../component/smart_image.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/options.dart';
-import '../helper/print_color.dart';
+import '../helper/log_color.dart';
 import '../placeholder/loading_screen.dart';
 import '../state/state_alert.dart';
 import '../state/state_analytics.dart';
@@ -459,7 +459,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           clear: true,
         ));
       } on FirebaseAuthException catch (e) {
-        debugPrint(PrintColor.error(e));
+        debugPrint(LogColor.error(e));
         String errorMessage = locales.get('alert--sign-in-failed');
         switch (e.code) {
           case 'operation-not-allowed':
@@ -537,7 +537,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       String text = locales.get('label--sign-in');
       var icon = Icons.email;
       Function action = () {
-        debugPrint(PrintColor.info('clicked: $provider'));
+        debugPrint(LogColor.info('clicked: $provider'));
       };
 //      Color _iconColor = Material;
       switch (provider) {

@@ -7,7 +7,7 @@ import '../helper/app_localizations_delegate.dart';
 import '../helper/enum_data.dart';
 import '../helper/input_validation.dart';
 import '../helper/options.dart';
-import '../helper/print_color.dart';
+import '../helper/log_color.dart';
 import '../helper/utils.dart';
 import 'smart_image.dart';
 
@@ -356,7 +356,7 @@ class _InputDataState extends State<InputData> {
           if (notify && mounted) setState(() {});
       }
     } catch (e) {
-      debugPrint(PrintColor.error('''
+      debugPrint(LogColor.error('''
 ----------------------------------------------
 getValue -------------------------------------
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

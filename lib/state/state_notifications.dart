@@ -7,7 +7,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 
-import '../helper/print_color.dart';
+import '../helper/log_color.dart';
 
 /// This is a change notifier class which keeps track of state within the campaign builder views.
 class StateNotifications extends ChangeNotifier {
@@ -35,7 +35,7 @@ class StateNotifications extends ChangeNotifier {
       }, SetOptions(merge: true));
     } catch (error) {
       debugPrint(
-          PrintColor.error('error saving user token: ${error.toString()}'));
+          LogColor.error('error saving user token: ${error.toString()}'));
     }
   }
 
@@ -136,7 +136,7 @@ class StateNotifications extends ChangeNotifier {
     try {
       if (_callback != null) await _callback!(_notification);
     } catch (error) {
-      debugPrint(PrintColor.error('Callback Error: $error'));
+      debugPrint(LogColor.error('Callback Error: $error'));
     }
   }
 

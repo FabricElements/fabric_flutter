@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 import '../placeholder/default_locales.dart';
-import 'print_color.dart';
+import 'log_color.dart';
 
 class AppLocalizations {
   AppLocalizations(this.locale);
@@ -37,7 +37,7 @@ class AppLocalizations {
       String data = await rootBundle.loadString('assets/locales.json');
       keys = json.decode(data);
     } catch (e) {
-      debugPrint(PrintColor.error(
+      debugPrint(LogColor.error(
           'AppLocalizations: Unable to load locales file from path assets/locales.json - $e'));
     }
 
@@ -85,7 +85,7 @@ class AppLocalizations {
             result = result.replaceAll(regExpTag, replaceWith);
           }
         } catch (e) {
-          debugPrint(PrintColor.warning(e));
+          debugPrint(LogColor.warning(e));
         }
       }
     }
@@ -125,7 +125,7 @@ class AppLocalizations {
     }
     // Check if the key is not found
     if (kDebugMode && finalLocalization == keyFinal) {
-      debugPrint(PrintColor.warning(
+      debugPrint(LogColor.warning(
           'AppLocalizations: Missing Localization - $keyFinal'));
     }
     return finalLocalization;
