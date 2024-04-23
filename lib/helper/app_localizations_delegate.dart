@@ -38,7 +38,7 @@ class AppLocalizations {
       keys = json.decode(data);
     } catch (e) {
       debugPrint(PrintColor.error(
-          'AppLocalizations: Unable to load locales file from path assets/locales.json'));
+          'AppLocalizations: Unable to load locales file from path assets/locales.json - $e'));
     }
 
     /// Add missing locales
