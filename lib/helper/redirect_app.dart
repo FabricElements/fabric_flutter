@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
 import '../state/state_user.dart';
+import 'print_color.dart';
 
 class RedirectApp {
   RedirectApp({
@@ -26,7 +27,7 @@ class RedirectApp {
         Navigator.of(context).popAndPushNamed(path, arguments: arguments);
       }
     } catch (error) {
-      if (kDebugMode) print(error);
+      debugPrint(PrintColor.error(error));
     }
   }
 

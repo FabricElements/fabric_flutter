@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:universal_html/html.dart' if (dart.library.html) 'dart:html'
     show IFrameElement;
 
+import '../helper/print_color.dart';
+
 class IframeMinimal extends StatelessWidget {
   const IframeMinimal({
     super.key,
@@ -41,8 +43,7 @@ class IframeMinimal extends StatelessWidget {
         (int viewId) => iframeElement,
       );
     } catch (e) {
-      // ignore: avoid_print
-      print('Error IframeMinimal: $e');
+      debugPrint(PrintColor.error('Error IframeMinimal: $e'));
     }
 
     return HtmlElementView(

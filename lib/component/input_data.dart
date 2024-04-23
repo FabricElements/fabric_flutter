@@ -1,6 +1,4 @@
-import 'package:fabric_flutter/component/smart_image.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -9,7 +7,9 @@ import '../helper/app_localizations_delegate.dart';
 import '../helper/enum_data.dart';
 import '../helper/input_validation.dart';
 import '../helper/options.dart';
+import '../helper/print_color.dart';
 import '../helper/utils.dart';
+import 'smart_image.dart';
 
 /// InputDataType defines the supported types for the [InputData] component
 enum InputDataType {
@@ -356,13 +356,11 @@ class _InputDataState extends State<InputData> {
           if (notify && mounted) setState(() {});
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('''
+      debugPrint(PrintColor.error('''
 ----------------------------------------------
 getValue -------------------------------------
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-''');
-      }
+'''));
       rethrow;
     }
   }

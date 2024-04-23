@@ -56,7 +56,7 @@ abstract class StateShared extends ChangeNotifier {
     for (final item in toMerge) {
       dynamic itemID = item['id'];
       int itemIndex = newData.indexWhere((element) => element['id'] == itemID);
-      if (itemIndex >= initialPage) {
+      if (itemIndex >= 0) {
         newData[itemIndex] = item;
       } else {
         newData.add(item);
@@ -125,7 +125,7 @@ abstract class StateShared extends ChangeNotifier {
     if (loading) return;
     initialized = false;
     limit = value;
-    data = null;
+    data = paginate ? [] : null;
     page = initialPage;
     return call();
   }
@@ -382,13 +382,13 @@ abstract class StateShared extends ChangeNotifier {
     initialized = false;
     pageDefault = initialPage;
     selectedItems = [];
-    privateOldData = null;
+    privateOldData = paginate ? [] : null;
     totalCount = 0;
     loading = false;
     if (notify) {
-      data = null;
+      data = paginate ? [] : null;
     } else {
-      privateData = null;
+      privateData = paginate ? [] : null;
     }
     clearAfter();
   }

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io' show Platform;
 
-import 'package:fabric_flutter/helper/options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/material.dart';
@@ -14,6 +13,8 @@ import '../component/content_container.dart';
 import '../component/input_data.dart';
 import '../component/smart_image.dart';
 import '../helper/app_localizations_delegate.dart';
+import '../helper/options.dart';
+import '../helper/print_color.dart';
 import '../placeholder/loading_screen.dart';
 import '../state/state_alert.dart';
 import '../state/state_analytics.dart';
@@ -458,7 +459,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           clear: true,
         ));
       } on FirebaseAuthException catch (e) {
-        if (kDebugMode) print(e);
+        debugPrint(PrintColor.error(e));
         String errorMessage = locales.get('alert--sign-in-failed');
         switch (e.code) {
           case 'operation-not-allowed':
@@ -536,7 +537,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       String text = locales.get('label--sign-in');
       var icon = Icons.email;
       Function action = () {
-        if (kDebugMode) print('clicked: $provider');
+        debugPrint(PrintColor.info('clicked: $provider'));
       };
 //      Color _iconColor = Material;
       switch (provider) {

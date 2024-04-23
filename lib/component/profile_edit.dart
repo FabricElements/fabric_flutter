@@ -2,16 +2,17 @@ import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:fabric_flutter/component/content_container.dart';
-import 'package:fabric_flutter/component/input_data.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../helper/app_localizations_delegate.dart';
 import '../helper/media_helper.dart';
+import '../helper/print_color.dart';
 import '../state/state_alert.dart';
 import '../state/state_user.dart';
+import 'content_container.dart';
+import 'input_data.dart';
 
 class ProfileEdit extends StatefulWidget {
   const ProfileEdit({
@@ -79,7 +80,7 @@ class _ProfileEditState extends State<ProfileEdit> {
           return;
         }
       } catch (error) {
-        if (kDebugMode) print(error);
+        debugPrint(PrintColor.error(error));
       }
 
       previewImage = defaultImage;

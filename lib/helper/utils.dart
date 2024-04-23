@@ -2,12 +2,12 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:devicelocale/devicelocale.dart';
-import 'package:fabric_flutter/helper/enum_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 import '../serialized/user_data.dart';
+import 'enum_data.dart';
 
 /// Utils for a variety of different utility functions.
 class Utils {

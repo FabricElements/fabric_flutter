@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../helper/http_request.dart';
+import '../helper/print_color.dart';
 import '../helper/utils.dart';
 import 'state_shared.dart';
 
@@ -90,7 +91,7 @@ abstract class StateAPI extends StateShared {
     bool isSameClearPath = urlClear(_lastEndpointCalled) == urlClear(endpoint);
     if (!isSameClearPath) {
       errorCount = 0;
-      privateData = null;
+      data = null;
       initialized = false;
     }
     _lastEndpointCalled = endpoint;
@@ -99,7 +100,6 @@ abstract class StateAPI extends StateShared {
         print('$errorCount errors calls to endpoint: $endpoint');
       }
       loading = false;
-      if (!isSameClearPath) data = null;
       return data;
     }
     dynamic newData;
@@ -116,7 +116,7 @@ abstract class StateAPI extends StateShared {
         canAuthenticate = authScheme != null && credentials != null;
       }
       if (mustAuthenticate && !canAuthenticate) {
-        if (kDebugMode) print('Must Authenticate on call: $endpoint');
+        debugPrint(PrintColor.error('Must Authenticate on call: $endpoint'));
         loading = false;
         return;
       }
@@ -128,7 +128,7 @@ abstract class StateAPI extends StateShared {
           'Authorization': '${authScheme!.name} $credentials',
         });
       }
-      if (kDebugMode) print('Calling endpoint: $endpoint');
+      debugPrint('Calling endpoint: $endpoint');
       try {
         final response = await http.get(url, headers: headers);
         newData = HTTPRequest.response(response);
@@ -150,38 +150,42 @@ abstract class StateAPI extends StateShared {
         }
         error = null;
       } catch (e) {
-        if (kDebugMode) {
-          print('------------ ERROR API CALL ::::::::::::::::::::');
-          print('Endpoint: $endpoint');
-        }
+        debugPrint(
+            PrintColor.error('------------ ERROR API CALL ::::::::::::::::::::'
+                'Endpoint: $endpoint'
+                '////////////// ERROR API CALL -------------'));
         errorCount++;
         error = e.toString();
-        if (kDebugMode) print('////////////// ERROR API CALL -------------');
-        if (!isSameClearPath) data = null;
-        newData = null;
       }
       initialized = true;
       loading = false;
 
       /// pagination
-      if (incrementalPagination && page > initialPage) {
+      if (incrementalPagination) {
+        bool hasOldData = data != null && data.isNotEmpty;
+        bool hasNewData = newData != null && newData.isNotEmpty;
         // Merge data or return same data as last request
-        if (data != null && newData != null && newData.isNotEmpty) {
+        if (hasOldData && hasNewData) {
           dataResponse = merge(base: data, toMerge: newData);
-        } else {
+        } else if (hasOldData && !hasNewData) {
           dataResponse = data;
+        } else {
+          dataResponse = newData;
         }
       } else {
         dataResponse = newData;
       }
     } catch (e) {
-      if (kDebugMode) print('------ ERROR API CALL : Parent catch ------');
+      debugPrint(PrintColor.error('------ ERROR API CALL : Parent catch ------'));
       initialized = false;
       loading = false;
       errorCount++;
       error = e.toString();
     }
-    data = paginate ? [] : null;
+    // Set data with default value when needed
+    dataResponse = paginate
+        ? (dataResponse ?? []) as List<dynamic>
+        : dataResponse as dynamic;
     data = dataResponse;
     return dataResponse;
   }

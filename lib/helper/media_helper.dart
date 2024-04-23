@@ -11,6 +11,7 @@ import 'package:mime/mime.dart';
 import 'package:video_player/video_player.dart';
 
 import '../serialized/media_data.dart';
+import 'print_color.dart';
 
 enum MediaOrigin {
   camera,
@@ -77,7 +78,7 @@ class MediaHelper {
           fileName = dataFromFiles.fileName;
       }
     } catch (error) {
-      if (kDebugMode) print('Getting the image: $error');
+      debugPrint(PrintColor.error('Getting the image: $error'));
       rethrow;
     }
     try {
@@ -90,7 +91,7 @@ class MediaHelper {
         );
       }
     } catch (error) {
-      if (kDebugMode) print('Resizing the image: $error');
+      debugPrint(PrintColor.error('Resizing the image: $error'));
       rethrow;
     }
     if (fileData != null) {
@@ -179,7 +180,7 @@ class MediaHelper {
       }
       return encodedImage;
     } catch (error) {
-      if (kDebugMode) print(error);
+      debugPrint(PrintColor.error(error));
       // Check for specific errors, if not just return error
       throw 'alert--issue-resizing-image';
     }
@@ -223,9 +224,9 @@ class MediaHelper {
         final video = VideoPlayerController.file(File.fromRawPath(fileData));
         width = video.value.size.width.toInt();
         height = video.value.size.height.toInt();
-        debugPrint('width: $width, height: $height');
+        debugPrint(PrintColor.info('width: $width, height: $height'));
       } catch (e) {
-        if (kDebugMode) print(e);
+        debugPrint(PrintColor.error(e));
       }
     }
 

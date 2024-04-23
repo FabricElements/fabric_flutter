@@ -157,6 +157,5 @@ abstract class StateCollection extends StateShared {
   void clear({bool notify = false}) {
     super.clear(notify: notify);
     baseQuery = null;
-    data = [];
   }
 }

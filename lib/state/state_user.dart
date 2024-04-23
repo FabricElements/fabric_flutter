@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../helper/print_color.dart';
 import '../helper/user_roles.dart';
 import '../helper/utils.dart';
 import '../serialized/user_data.dart';
@@ -73,7 +74,7 @@ class StateUser extends StateDocument {
         _token = tokenResult.token;
         _claims = tokenResult.claims;
       } catch (e) {
-        if (kDebugMode) print(e);
+        debugPrint(PrintColor.error(e));
       }
     }
     if (userObject != null && initialized) notifyListeners();
@@ -163,7 +164,7 @@ class StateUser extends StateDocument {
         );
       }
     } catch (e) {
-      if (kDebugMode) print('Device type error: ${e.toString()}');
+      debugPrint(PrintColor.error('Device type error: ${e.toString()}'));
     }
 
     /// Save ping data
@@ -177,7 +178,7 @@ class StateUser extends StateDocument {
       );
       _pingReference = reference;
     } catch (error) {
-      if (kDebugMode) print('User ping error: ${error.toString()}');
+      debugPrint(PrintColor.error('User ping error: ${error.toString()}'));
     }
   }
 
@@ -212,7 +213,7 @@ class StateUser extends StateDocument {
           if (initialized) notifyListeners();
         }
       }).onError((error, stackTrace) {
-        if (kDebugMode) print('getUser: ${error.toString()}');
+        debugPrint(PrintColor.error('getUser: ${error.toString()}'));
       });
     }
     return _usersMap[uid]!;
@@ -268,7 +269,7 @@ class StateUser extends StateDocument {
       connected = connectedUpdated;
       connectedTo = connectivityStatus.name;
     } catch (e) {
-      if (kDebugMode) print('Connectivity error: ${e.toString()}');
+      debugPrint(PrintColor.error('Connectivity error: ${e.toString()}'));
     }
     if (userStatus.toJson().toString() != _previousStatus.toJson().toString()) {
       _previousStatus = userStatus;

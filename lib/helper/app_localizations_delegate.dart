@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 import '../placeholder/default_locales.dart';
+import 'print_color.dart';
 
 class AppLocalizations {
   AppLocalizations(this.locale);
@@ -36,9 +37,8 @@ class AppLocalizations {
       String data = await rootBundle.loadString('assets/locales.json');
       keys = json.decode(data);
     } catch (e) {
-      if (kDebugMode) {
-        print('Unable to load locales file from path assets/locales.json');
-      }
+      debugPrint(PrintColor.error(
+          'AppLocalizations: Unable to load locales file from path assets/locales.json'));
     }
 
     /// Add missing locales
@@ -85,7 +85,7 @@ class AppLocalizations {
             result = result.replaceAll(regExpTag, replaceWith);
           }
         } catch (e) {
-          debugPrint(e.toString());
+          debugPrint(PrintColor.warning(e));
         }
       }
     }
@@ -122,6 +122,11 @@ class AppLocalizations {
     String finalLocalization = _mergeLocales(keyFinal);
     if (options != null) {
       finalLocalization = _replaceOptions(finalLocalization, options);
+    }
+    // Check if the key is not found
+    if (kDebugMode && finalLocalization == keyFinal) {
+      debugPrint(PrintColor.warning(
+          'AppLocalizations: Missing Localization - $keyFinal'));
     }
     return finalLocalization;
   }

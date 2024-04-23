@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/foundation.dart';
 
+import '../helper/print_color.dart';
+
 /// This is a change notifier class which keeps track of state within the dynamic links.
 class StateDynamicLinks extends ChangeNotifier {
   StateDynamicLinks();
@@ -33,7 +35,7 @@ class StateDynamicLinks extends ChangeNotifier {
       if (dynamicLink?.link != null) {
         final Uri? deepLink = dynamicLink?.link;
         String linkString = deepLink.toString();
-        if (kDebugMode) print('InitialLink: $linkString');
+        debugPrint(PrintColor.info('InitialLink: $linkString'));
         _callback(dynamicLink);
       }
       dynamicLinks.onLink.listen((dynamicLinkData) async {
@@ -41,14 +43,14 @@ class StateDynamicLinks extends ChangeNotifier {
         if (_initialized) notifyListeners();
         final deepLink = dynamicLinkData.link;
         final linkString = deepLink.toString();
-        if (kDebugMode) print('onLink: $linkString');
+        debugPrint(PrintColor.info('onLink: $linkString'));
         _callback(dynamicLinkData);
       }).onError((e) async {
-        if (kDebugMode) print('Dynamic link error: ${e.message}');
+        debugPrint(PrintColor.error('Dynamic link error: ${e.message}'));
       });
       _initialized = true;
     } catch (error) {
-      if (kDebugMode) print('dynamic link: $error');
+      debugPrint('dynamic link: $error');
     }
   }
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../helper/print_color.dart';
+
 class PaginationContainer extends StatefulWidget {
   const PaginationContainer({
     super.key,
@@ -90,7 +92,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
         end = data == null || data.isEmpty;
       } catch (e) {
         error = e.toString();
-        if (kDebugMode) print(e);
+        debugPrint(PrintColor.error(e));
       }
       loading = false;
       if (mounted) setState(() {});
