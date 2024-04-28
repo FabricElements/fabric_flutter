@@ -6,8 +6,8 @@ import 'package:intl/intl.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/enum_data.dart';
 import '../helper/input_validation.dart';
-import '../helper/options.dart';
 import '../helper/log_color.dart';
+import '../helper/options.dart';
 import '../helper/utils.dart';
 import 'smart_image.dart';
 
@@ -830,7 +830,10 @@ getValue -------------------------------------
                       child: AspectRatio(
                         aspectRatio: 1 / 1,
                         child: ClipOval(
-                          child: SmartImage(url: item.image),
+                          child: SmartImage(
+                            url: item.image,
+                            format: AvailableOutputFormats.png,
+                          ),
                         ),
                       ),
                     ),

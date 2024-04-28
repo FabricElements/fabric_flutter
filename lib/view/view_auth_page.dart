@@ -13,8 +13,8 @@ import '../component/content_container.dart';
 import '../component/input_data.dart';
 import '../component/smart_image.dart';
 import '../helper/app_localizations_delegate.dart';
-import '../helper/options.dart';
 import '../helper/log_color.dart';
+import '../helper/options.dart';
 import '../placeholder/loading_screen.dart';
 import '../state/state_alert.dart';
 import '../state/state_analytics.dart';
@@ -661,6 +661,8 @@ class _ViewAuthPageState extends State<ViewAuthPage>
                 SizedBox.expand(
                   child: SmartImage(
                     url: backgroundImage,
+                    format: AvailableOutputFormats.jpeg,
+                    color: theme.colorScheme.primaryContainer,
                   ),
                 ),
                 Positioned(
@@ -689,12 +691,21 @@ class _ViewAuthPageState extends State<ViewAuthPage>
                                           child: AspectRatio(
                                             aspectRatio: 1 / 1,
                                             child: ClipOval(
-                                              child:
-                                                  SmartImage(url: widget.logo),
+                                              child: SmartImage(
+                                                url: widget.logo,
+                                                format:
+                                                    AvailableOutputFormats.png,
+                                                color:
+                                                    theme.colorScheme.surface,
+                                              ),
                                             ),
                                           ),
                                         )
-                                      : SmartImage(url: widget.logo),
+                                      : SmartImage(
+                                          url: widget.logo,
+                                          format: AvailableOutputFormats.png,
+                                          color: theme.colorScheme.surface,
+                                        ),
                                 ),
                               ),
                             )

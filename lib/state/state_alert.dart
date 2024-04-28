@@ -4,8 +4,8 @@ import 'package:flutter/services.dart';
 
 import '../component/smart_image.dart';
 import '../helper/app_localizations_delegate.dart';
-import '../helper/options.dart';
 import '../helper/log_color.dart';
+import '../helper/options.dart';
 import '../helper/utils.dart';
 
 /// AlertType are used to defined behavior and colors for the alerts
@@ -307,7 +307,10 @@ class StateAlert implements Listenable {
         color: alertData.color,
         child: AspectRatio(
           aspectRatio: 3 / 1,
-          child: SmartImage(url: alertData.image!),
+          child: SmartImage(
+            url: alertData.image!,
+            format: AvailableOutputFormats.jpeg,
+          ),
         ),
       ));
     }
