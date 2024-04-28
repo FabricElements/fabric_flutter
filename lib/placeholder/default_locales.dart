@@ -1141,5 +1141,17 @@ dynamic defaultLocales = {
   'label--operator': {
     'en': 'Operator',
     'es': 'Operador',
-  }
+  },
+  'label--created': {
+    'en': 'Created',
+    'es': 'Creado',
+  },
+  'label--updated': {
+    'en': 'Updated',
+    'es': 'Actualizado',
+  },
+  'label--deleted': {
+    'en': 'Deleted',
+    'es': 'Eliminado',
+  },
 };
