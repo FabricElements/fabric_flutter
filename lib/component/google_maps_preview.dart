@@ -106,27 +106,27 @@ class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
         aspectRatio: widget.aspectRatio,
         child: const SmartImage(
           url: 'https://images.unsplash.com/photo-1476973422084-e0fa66ff9456',
+          format: AvailableOutputFormats.jpeg,
         ),
       );
     }
     if (!supported || widget.asImage) {
-      String imageUrl =
-          'https://maps.googleapis.com/maps/api/staticmap?zoom=13&maptype=roadmap&key=${widget.apiKey}';
-      imageUrl += '&markers=color:red%7C${widget.latitude},${widget.longitude}';
-      if (isDarkTheme) {
-        imageUrl +=
-            '&style=element:geometry%7Ccolor:0x242f3e&style=element:labels.text.fill%7Ccolor:0x746855&style=element:labels.text.stroke%7Ccolor:0x242f3e&style=feature:administrative.locality%7Celement:labels.text.fill%7Ccolor:0xd59563&style=feature:poi%7Celement:labels.text.fill%7Ccolor:0xd59563&style=feature:poi.park%7Celement:geometry%7Ccolor:0x263c3f&style=feature:poi.park%7Celement:labels.text.fill%7Ccolor:0x6b9a76&style=feature:road%7Celement:geometry%7Ccolor:0x38414e&style=feature:road%7Celement:geometry.stroke%7Ccolor:0x212a37&style=feature:road%7Celement:labels.text.fill%7Ccolor:0x9ca5b3&style=feature:road.highway%7Celement:geometry%7Ccolor:0x746855&style=feature:road.highway%7Celement:geometry.stroke%7Ccolor:0x1f2835&style=feature:road.highway%7Celement:labels.text.fill%7Ccolor:0xf3d19c&style=feature:transit%7Celement:geometry%7Ccolor:0x2f3948&style=feature:transit.station%7Celement:labels.text.fill%7Ccolor:0xd59563&style=feature:water%7Celement:geometry%7Ccolor:0x17263c&style=feature:water%7Celement:labels.text.fill%7Ccolor:0x515c6d&style=feature:water%7Celement:labels.text.stroke%7Ccolor:0x17263c';
-      }
       return AspectRatio(
         aspectRatio: widget.aspectRatio,
         child: LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) {
           final widthBox = constraints.maxWidth.toInt();
           final heightBox = constraints.maxHeight.toInt();
-          return SmartImage(
-            url: imageUrl,
-            size: '$widthBox' 'x' '$heightBox',
-          );
+          String imageUrl =
+              'https://maps.googleapis.com/maps/api/staticmap?zoom=13&maptype=roadmap&key=${widget.apiKey}';
+          imageUrl +=
+              '&markers=color:red%7C${widget.latitude},${widget.longitude}';
+          if (isDarkTheme) {
+            imageUrl +=
+                '&style=element:geometry%7Ccolor:0x242f3e&style=element:labels.text.fill%7Ccolor:0x746855&style=element:labels.text.stroke%7Ccolor:0x242f3e&style=feature:administrative.locality%7Celement:labels.text.fill%7Ccolor:0xd59563&style=feature:poi%7Celement:labels.text.fill%7Ccolor:0xd59563&style=feature:poi.park%7Celement:geometry%7Ccolor:0x263c3f&style=feature:poi.park%7Celement:labels.text.fill%7Ccolor:0x6b9a76&style=feature:road%7Celement:geometry%7Ccolor:0x38414e&style=feature:road%7Celement:geometry.stroke%7Ccolor:0x212a37&style=feature:road%7Celement:labels.text.fill%7Ccolor:0x9ca5b3&style=feature:road.highway%7Celement:geometry%7Ccolor:0x746855&style=feature:road.highway%7Celement:geometry.stroke%7Ccolor:0x1f2835&style=feature:road.highway%7Celement:labels.text.fill%7Ccolor:0xf3d19c&style=feature:transit%7Celement:geometry%7Ccolor:0x2f3948&style=feature:transit.station%7Celement:labels.text.fill%7Ccolor:0xd59563&style=feature:water%7Celement:geometry%7Ccolor:0x17263c&style=feature:water%7Celement:labels.text.fill%7Ccolor:0x515c6d&style=feature:water%7Celement:labels.text.stroke%7Ccolor:0x17263c';
+          }
+          imageUrl += '&size=$widthBox' 'x' '$heightBox';
+          return SmartImage(url: imageUrl);
         }),
       );
     }

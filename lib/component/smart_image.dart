@@ -1,122 +1,263 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
-// import 'package:transparent_image/transparent_image.dart';
-
 import '../helper/utils.dart';
+
+/// Available Image Output Formats
+enum AvailableOutputFormats {
+  avif,
+  dz,
+  fits,
+  gif,
+  heif,
+  input,
+  jpeg,
+  jp2,
+  jxl,
+  magick,
+  openslide,
+  pdf,
+  png,
+  ppm,
+  raw,
+  svg,
+  tiff,
+  v,
+  webp,
+}
+
+/// Enum for predefined image sizes.
+///
+/// Each size corresponds to a specific dimension.
+///
+/// * `thumbnail` - thumbnail size 200x400
+/// * `small` - small size 200x200
+/// * `medium` - medium size 600x600
+/// * `standard` - standard size 1200x1200
+/// * `high` - high size 1400x1400
+/// * `max` - max size 1600x1600
+enum ImageSize {
+  thumbnail,
+  small,
+  medium,
+  standard,
+  high,
+  max,
+}
 
 /// SmartImage can be used to display an image for basic Imgix or Internal implementation.
 ///
 /// [url] This is the image url.
-/// [size] Predefined sizes:
-/// https://github.com/FabricElements/shared-helpers/blob/master/src/image-helper.ts#L17
-///
+/// [size] Predefined size
+/// https://github.com/FabricElements/shared-helpers/blob/main/src/media.ts
 /// SmartImage(
 ///   url: 'https://images.unsplash.com/photo-1516571748831-5d81767b788d',
 /// );
-class SmartImage extends StatelessWidget {
+class SmartImage extends StatefulWidget {
   const SmartImage({
     super.key,
-    this.size,
     required this.url,
+    this.size,
     this.color,
+    this.format,
   });
 
-  final String? size;
+  /// Image URL
   final String? url;
+
+  /// Predefined sizes
+  final ImageSize? size;
+
+  /// Background color
   final Color? color;
 
-  // FORMAT
+  /// Output format
+  final AvailableOutputFormats? format;
+
+  @override
+  State<SmartImage> createState() => _SmartImageState();
+}
+
+class _SmartImageState extends State<SmartImage> {
+  Timer? _timer;
+  int width = 0;
+  int height = 0;
+  double devicePixelRatio = 1;
+  int resizedTimes = 0;
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(SmartImage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.url != widget.url) {
+      width = 0;
+      height = 0;
+      resizedTimes = 0;
+      if (mounted) setState(() {});
+    }
+  }
+
+  /// Resize image with debounce
+  /// This function will resize the image with debounce to prevent too many requests
+  /// [newHeight] New height
+  /// [newWidth] New width
+  Future<void> _resizeImage({int newHeight = 0, int newWidth = 0}) async {
+    if (newHeight <= 0 && newWidth <= 0) return;
+    if (width == newWidth && height == newHeight) return;
+    _timer?.cancel();
+    if (resizedTimes > 0) await Future.delayed(const Duration(seconds: 2));
+    _timer = Timer(const Duration(seconds: 2), () {
+      if (width == newWidth && height == newHeight) return;
+      if (newHeight > 0) height = newHeight;
+      if (newWidth > 0) width = newWidth;
+      resizedTimes++;
+      if (mounted) setState(() {});
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final background = color ?? theme.colorScheme.surfaceVariant;
-    Widget placeholderWidget = Container(color: background);
+    final background = widget.color ?? theme.colorScheme.surfaceVariant;
+    final iconColor = theme.colorScheme.onSurfaceVariant;
+    final defaultPlaceholder = Container(
+      width: double.infinity,
+      height: double.infinity,
+      color: theme.colorScheme.surfaceVariant,
+      child: Center(
+        child: Icon(
+          Icons.image_not_supported,
+          color: iconColor,
+        ),
+      ),
+    );
 
     /// Return placeholder image if path is not valid
-    if (url == null || url!.isEmpty) {
-      return placeholderWidget;
+    if (widget.url == null || widget.url!.isEmpty) {
+      return defaultPlaceholder;
     }
-    return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints constraints) {
-        final queryData = MediaQuery.of(context);
-        double devicePixelRatio = queryData.devicePixelRatio.floorToDouble();
-        if (devicePixelRatio < 1) devicePixelRatio = 1;
-        int divisor = 100;
+    final errorPlaceholder = Container(
+      width: double.infinity,
+      height: double.infinity,
+      color: theme.colorScheme.error,
+      child: Center(
+        child: Icon(
+          Icons.broken_image,
+          color: theme.colorScheme.onError,
+        ),
+      ),
+    );
+    final loadingPlaceholderAnimated = SizedBox.expand(
+      child: Center(
+        child: CircularProgressIndicator.adaptive(
+          strokeWidth: 2,
+          valueColor: AlwaysStoppedAnimation<Color>(iconColor.withOpacity(0.5)),
+        ),
+      ),
+    );
+    final loadingPlaceholder = Container(
+      width: double.infinity,
+      height: double.infinity,
+      color: background,
+      child: Center(
+        child: Icon(
+          Icons.downloading,
+          color: iconColor,
+        ),
+      ),
+    );
+    Uri uri = Uri.parse(widget.url!);
 
-        /// Get dimensions in multiples of [divisor]
-        int width = (constraints.maxWidth.floor() / divisor).floor() * divisor;
-        int height =
-            (constraints.maxHeight.floor() / divisor).floor() * divisor;
-        if (width < divisor) width = divisor;
-        if (height < divisor) height = divisor;
-        // double biggest = constraints.biggest.longestSide;
-        Uri uri = Uri.parse(url!); //converts string to a uri
-        Map<String, List<String>> queryParameters = {};
+    /// List of children
+    List<Widget> children = [
+      LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          final queryData = MediaQuery.of(context);
+          devicePixelRatio = queryData.devicePixelRatio.floorToDouble();
+          if (devicePixelRatio < 1) devicePixelRatio = 1;
+          int newWidth = constraints.maxWidth.floor();
+          int newHeight = constraints.maxHeight.floor();
+
+          /// Get dimensions in multiples of [divisor]
+          /// This is to prevent too many requests do to small changes in dimensions
+          int divisor = 100; // Total pixels to divide by to get new dimensions
+          int widthBasedOnDivisor = (newWidth / divisor).floor() * divisor;
+          int heightBasedOnDivisor = (newHeight / divisor).floor() * divisor;
+          if (widthBasedOnDivisor < divisor) widthBasedOnDivisor = divisor;
+          if (heightBasedOnDivisor < divisor) heightBasedOnDivisor = divisor;
+          _resizeImage(
+              newHeight: heightBasedOnDivisor, newWidth: widthBasedOnDivisor);
+          return loadingPlaceholder;
+        },
+      ),
+    ];
+    if (width > 0 && height > 0 && resizedTimes > 0) {
+      Map<String, List<String>> queryParameters = {};
+      queryParameters.addAll({
+        'dpr': [devicePixelRatio.toString()],
+        'crop': ['entropy'],
+      });
+      if (widget.size != null) {
         queryParameters.addAll({
-          'dpr': [devicePixelRatio.toString()],
-          'crop': ['entropy'],
+          'size': [widget.size!.name],
         });
-        if (size != null) {
-          queryParameters.addAll({
-            'size': [size.toString()],
-          });
-        } else {
-          queryParameters.addAll({
-            'width': [width.toString()],
-            'height': [height.toString()],
-          });
-        }
-        String path = Utils.uriMergeQuery(
-          uri: uri,
-          queryParameters: queryParameters,
-        ).toString();
-        return Container(
-          color: background,
-          child: Image.network(
-            path,
-            fit: BoxFit.cover,
-            errorBuilder: (BuildContext context, Object exception,
-                StackTrace? stackTrace) {
-              return Container(
-                color: theme.colorScheme.error,
-                child: Center(
-                  child: Icon(
-                    Icons.broken_image,
-                    color: theme.colorScheme.onError,
-                  ),
-                ),
-              );
-            },
-            loadingBuilder: (BuildContext context, Widget child,
-                ImageChunkEvent? loadingProgress) {
-              if (loadingProgress == null) {
-                return child;
-              }
-              String pathPlaceholder = Utils.uriMergeQuery(
-                uri: uri,
-                queryParameters: {
-                  'width': [50.toString()],
-                  'height': [50.toString()],
-                },
-              ).toString();
-              return Image.network(pathPlaceholder, fit: BoxFit.fill);
-            },
-            frameBuilder: (BuildContext context, Widget child, int? frame,
-                bool wasSynchronouslyLoaded) {
-              if (wasSynchronouslyLoaded) {
-                return child;
-              }
-              return AnimatedOpacity(
-                opacity: frame == null ? 0 : 1,
-                duration: const Duration(seconds: 1),
-                curve: Curves.easeOut,
-                child: child,
-              );
-            },
-          ),
-        );
-      },
+      } else {
+        queryParameters.addAll({
+          'width': [width.toString()],
+          'height': [height.toString()],
+        });
+      }
+      if (widget.format != null) {
+        queryParameters.addAll({
+          'format': [widget.format!.name.toString()],
+          'fm': [widget.format!.name.toString()],
+        });
+      }
+
+      String path = Utils.uriMergeQuery(
+        uri: uri,
+        queryParameters: queryParameters,
+      ).toString();
+
+      /// Image
+      children.add(SizedBox.expand(
+        child: Image.network(
+          path,
+          fit: BoxFit.cover,
+          cacheWidth: width * devicePixelRatio.floor(),
+          cacheHeight: height * devicePixelRatio.floor(),
+          isAntiAlias: true,
+          filterQuality: FilterQuality.high,
+          errorBuilder:
+              (BuildContext context, Object exception, StackTrace? stackTrace) {
+            return errorPlaceholder;
+          },
+          loadingBuilder: (BuildContext context, Widget child,
+              ImageChunkEvent? loadingProgress) {
+            if (loadingProgress == null) return child;
+            return loadingPlaceholderAnimated;
+          },
+          frameBuilder: (BuildContext context, Widget child, int? frame,
+              bool wasSynchronouslyLoaded) {
+            if (wasSynchronouslyLoaded) return child;
+            return AnimatedOpacity(
+              opacity: frame == null ? 0 : 1,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+              child: child,
+            );
+          },
+        ),
+      ));
+    }
+    return Stack(
+      children: children,
     );
   }
 }

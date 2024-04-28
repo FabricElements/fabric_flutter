@@ -87,3 +87,4 @@
 ignore-*.*
 **/android/app/release/
 **/local.properties
+/package-lock.json

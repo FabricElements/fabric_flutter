@@ -65,7 +65,10 @@ class _CardButtonState extends State<CardButton> {
               fit: StackFit.expand,
               children: <Widget>[
                 SizedBox.expand(
-                  child: SmartImage(url: widget.image),
+                  child: SmartImage(
+                    url: widget.image,
+                    format: AvailableOutputFormats.jpeg,
+                  ),
                 ),
                 Positioned(
                   bottom: 0,

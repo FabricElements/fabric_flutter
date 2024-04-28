@@ -222,6 +222,7 @@ class _ViewFeaturedState extends State<ViewFeatured> {
                     SizedBox.expand(
                       child: SmartImage(
                         url: widget.image,
+                        format: AvailableOutputFormats.jpeg,
                       ),
                     ),
                     Positioned(
