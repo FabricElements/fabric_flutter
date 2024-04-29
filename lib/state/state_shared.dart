@@ -171,10 +171,6 @@ abstract class StateShared extends ChangeNotifier {
     }
   }
 
-  /// Override clearAfter for a custom implementation
-  /// It is called on the [clear]
-  void clearAfter() {}
-
   bool loading = false;
 
   /// Pagination
@@ -390,7 +386,6 @@ abstract class StateShared extends ChangeNotifier {
     } else {
       privateData = paginate ? [] : null;
     }
-    clearAfter();
   }
 
   /// Filters
@@ -472,14 +467,19 @@ abstract class StateShared extends ChangeNotifier {
   int debounceCount = 0;
 
   /// Debounce time in milliseconds
-  int debounceTime = 1000;
+  int debounceTime = 10;
 
-  /// User reference
+  /// Notify listeners with debounce
   @override
   void notifyListeners() {
+    // Make custom debounce effective only after the first call otherwise use 10ms as minimum
+    int finalDebounceTime = debounceCount > 0 ? debounceTime : 5;
+    // If the first call is not initialized, use minimum debounce time
+    if (!initialized) finalDebounceTime = 500;
+    // Increment debounce count, cancel timer and start a new one
     debounceCount++;
     _timer?.cancel();
-    _timer = Timer(Duration(milliseconds: debounceTime), () {
+    _timer = Timer(Duration(milliseconds: finalDebounceTime), () {
       debounceCount = 0;
       super.notifyListeners();
     });

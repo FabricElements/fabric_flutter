@@ -48,6 +48,7 @@ abstract class StateAPI extends StateShared {
     call();
   }
 
+  /// Get the current endpoint and query parameters as a string
   String get endpoint {
     if (queryParameters.isEmpty) return baseEndpoint;
     return Utils.uriMergeQuery(
@@ -128,7 +129,7 @@ abstract class StateAPI extends StateShared {
           'Authorization': '${authScheme!.name} $credentials',
         });
       }
-      debugPrint('Calling endpoint: $endpoint');
+      debugPrint(LogColor.info('Calling endpoint: $endpoint'));
       try {
         final response = await http.get(url, headers: headers);
         newData = HTTPRequest.response(response);
@@ -176,8 +177,7 @@ abstract class StateAPI extends StateShared {
         dataResponse = newData;
       }
     } catch (e) {
-      debugPrint(
-          LogColor.error('------ ERROR API CALL : Parent catch ------'));
+      debugPrint(LogColor.error('------ ERROR API CALL : Parent catch ------'));
       initialized = false;
       loading = false;
       errorCount++;
@@ -194,6 +194,6 @@ abstract class StateAPI extends StateShared {
   @override
   void clear({bool notify = false}) {
     _lastEndpointCalled = null;
-    super.clear();
+    super.clear(notify: notify);
   }
 }
