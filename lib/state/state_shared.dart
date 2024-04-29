@@ -467,4 +467,21 @@ abstract class StateShared extends ChangeNotifier {
 
   /// Get serialized data
   dynamic get serialized;
+
+  Timer? _timer;
+  int debounceCount = 0;
+
+  /// Debounce time in milliseconds
+  int debounceTime = 1000;
+
+  /// User reference
+  @override
+  void notifyListeners() {
+    debounceCount++;
+    _timer?.cancel();
+    _timer = Timer(Duration(milliseconds: debounceTime), () {
+      debounceCount = 0;
+      super.notifyListeners();
+    });
+  }
 }

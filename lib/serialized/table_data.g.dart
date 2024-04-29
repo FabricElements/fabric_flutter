@@ -21,7 +21,7 @@ TableData _$TableDataFromJson(Map<String, dynamic> json) {
         const [],
     footer: json['footer'] as List<dynamic>?,
     active: json['active'] as bool? ?? false,
-    level: json['level'] as int? ?? 0,
+    level: (json['level'] as num?)?.toInt() ?? 0,
   );
 }
 

@@ -8,8 +8,8 @@ part of 'gsm_data.dart';
 
 GSMData _$GSMDataFromJson(Map<String, dynamic> json) => GSMData(
       text: json['text'] as String,
-      segments: json['segments'] as int,
-      charsLeft: json['charsLeft'] as int,
+      segments: (json['segments'] as num).toInt(),
+      charsLeft: (json['charsLeft'] as num).toInt(),
       charSet: $enumDecode(_$CharSetEnumMap, json['charSet']),
       parts: (json['parts'] as List<dynamic>).map((e) => e as String).toList(),
     );

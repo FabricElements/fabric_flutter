@@ -11,9 +11,9 @@ MediaData _$MediaDataFromJson(Map<String, dynamic> json) => MediaData(
       contentType: json['contentType'] as String,
       extension: json['extension'] as String,
       fileName: json['fileName'] as String,
-      size: json['size'] as int,
-      width: json['width'] as int?,
-      height: json['height'] as int?,
+      size: (json['size'] as num).toInt(),
+      width: (json['width'] as num?)?.toInt(),
+      height: (json['height'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$MediaDataToJson(MediaData instance) => <String, dynamic>{

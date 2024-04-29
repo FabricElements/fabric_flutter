@@ -145,11 +145,11 @@ class _SmartImageState extends State<SmartImage> {
     final errorPlaceholder = Container(
       width: double.infinity,
       height: double.infinity,
-      color: theme.colorScheme.error,
+      color: theme.colorScheme.errorContainer,
       child: Center(
         child: Icon(
           Icons.broken_image,
-          color: theme.colorScheme.onError,
+          color: theme.colorScheme.onErrorContainer,
         ),
       ),
     );

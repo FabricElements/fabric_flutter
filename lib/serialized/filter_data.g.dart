@@ -12,7 +12,7 @@ FilterData _$FilterDataFromJson(Map<String, dynamic> json) => FilterData(
       value: json['value'],
       type: $enumDecodeNullable(_$InputDataTypeEnumMap, json['type']) ??
           InputDataType.string,
-      index: json['index'] as int? ?? 0,
+      index: (json['index'] as num?)?.toInt() ?? 0,
     );
 
 Map<String, dynamic> _$FilterDataToJson(FilterData instance) =>

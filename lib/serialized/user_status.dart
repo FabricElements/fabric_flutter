@@ -24,6 +24,8 @@ class UserStatus {
   final bool connected;
   final bool connectionChanged;
   final String? connectedTo;
+  @JsonKey(includeToJson: false, includeFromJson: false)
+  final bool ready;
 
   UserStatus({
     this.signedIn = false,
@@ -35,6 +37,7 @@ class UserStatus {
     this.connected = true,
     this.connectionChanged = false,
     this.connectedTo,
+    this.ready = false,
   });
 
   factory UserStatus.fromJson(Map<String, dynamic>? json) =>

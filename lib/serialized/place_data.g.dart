@@ -121,7 +121,7 @@ Map<String, dynamic> _$OpeningHoursDetailToJson(OpeningHoursDetail instance) =>
 OpeningHoursPeriodDate _$OpeningHoursPeriodDateFromJson(
         Map<String, dynamic> json) =>
     OpeningHoursPeriodDate(
-      day: json['day'] as int,
+      day: (json['day'] as num).toInt(),
       time: json['time'] as String,
     );
 
@@ -216,7 +216,7 @@ Place _$PlaceFromJson(Map<String, dynamic> json) => Place(
               ?.map((e) => AlternativeId.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
-      priceLevel: json['price_level'] as int?,
+      priceLevel: (json['price_level'] as num?)?.toInt(),
       rating: json['rating'] as num?,
       types:
           (json['types'] as List<dynamic>?)?.map((e) => e as String).toList() ??
@@ -226,7 +226,7 @@ Place _$PlaceFromJson(Map<String, dynamic> json) => Place(
       plusCode: json['plus_code'] == null
           ? null
           : PlusCode.fromJson(json['plus_code'] as Map<String, dynamic>?),
-      utcOffset: json['utc_offset'] as int?,
+      utcOffset: (json['utc_offset'] as num?)?.toInt(),
       name: json['name'] as String,
       placeId: json['place_id'] as String,
     );

@@ -21,6 +21,9 @@ final db = FirebaseFirestore.instance;
 class StateUser extends StateDocument {
   StateUser();
 
+  @override
+  int get debounceTime => 2000;
+
   /// State specific functionality
   User? _userObject;
   Map<String, dynamic>? _claims;
@@ -31,6 +34,9 @@ class StateUser extends StateDocument {
   bool _init = false;
   String? _language;
   ThemeMode? _theme;
+
+  // Initialize the user status
+  bool _ready = false;
 
   // Internet connection status
   bool connected = true;
@@ -58,7 +64,6 @@ class StateUser extends StateDocument {
     _token = null;
     error = null;
     if (notify) notifyListeners();
-    clear(notify: notify);
   }
 
   /// More at [token]
@@ -78,7 +83,6 @@ class StateUser extends StateDocument {
       }
     }
     if (userObject != null && initialized) notifyListeners();
-    await Future.delayed(const Duration(milliseconds: 500));
     await _userStatusUpdate();
   }
 
@@ -224,6 +228,7 @@ class StateUser extends StateDocument {
     await cancel();
     clearAuth(notify: false);
     await _auth.signOut();
+    notifyListeners();
   }
 
   /// [accessByRole] displays content only if the the role matches for current user
@@ -247,6 +252,7 @@ class StateUser extends StateDocument {
         connected: connected,
         connectionChanged: connectionChanged,
         connectedTo: connected ? connectedTo : null,
+        ready: _ready && _init,
       );
 
   /// Update user status data
@@ -276,26 +282,39 @@ class StateUser extends StateDocument {
       _controllerStreamStatus.sink
           .add(UserStatus.fromJson(userStatus.toJson()));
     }
+    notifyListeners();
   }
 
   /// Refresh auth state
   _refreshAuth(User? userObject) async {
+    if (!_init) return;
+    _ready = false;
     if (userObject == null) {
       await cancel();
       clearAuth(notify: true);
+      _ready = true;
       await _userStatusUpdate();
       return;
     }
     try {
-      // Call before _controllerStreamStatus to prevent unauthenticated calls
-      await _getToken(userObject);
-      object = userObject;
+      /// Get User document data
       ref = db.collection('user').doc(userObject.uid);
-      await Future.delayed(const Duration(milliseconds: 500));
       await listen();
     } catch (e) {
-      await _userStatusUpdate();
+      debugPrint(LogColor.error(
+          'StateUser - Listen User Document error: ${e.toString()}'));
     }
+    try {
+      /// Get user token
+      // Call before _controllerStreamStatus to prevent unauthenticated calls
+      await _getToken(userObject);
+    } catch (e) {
+      debugPrint(
+          LogColor.error('StateUser - Refresh auth error: ${e.toString()}'));
+    }
+    object = userObject;
+    _ready = true;
+    await _userStatusUpdate();
   }
 
   /// Init app and prevent duplicated calls

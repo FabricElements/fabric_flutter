@@ -8,48 +8,29 @@ import '../state/state_alert.dart';
 import '../state/state_notifications.dart';
 import 'route_page.dart';
 
-class RoutePageFirebase extends RoutePage {
+/// RoutePageFirebase
+/// Use to wrap
+/// Extends [BaseRoutePage]
+class RoutePageFirebase extends BaseRoutePage {
   const RoutePageFirebase({
     super.key,
     required super.routeHelper,
     required super.uri,
     required super.status,
     super.loading = const LoadingScreen(),
+    super.onInit,
   });
 
   @override
-  State<RoutePageFirebase> createState() => _RoutePageNotificationsState();
+  State<BaseRoutePage> createState() => _RoutePageNotificationsState();
 }
 
-class _RoutePageNotificationsState extends State<RoutePageFirebase> {
+class _RoutePageNotificationsState extends BaseRoutePageState {
   @override
   Widget build(BuildContext context) {
-    if (widget.status == null) return widget.loading;
     final locales = AppLocalizations.of(context);
     final alert = Provider.of<StateAlert>(context, listen: false);
     alert.context = context;
-    try {
-      if (widget.status?.connectionChanged ?? false) {
-        if (widget.status?.connected ?? false) {
-          alert.show(AlertData(
-            icon: Icons.wifi,
-            body: locales.get('notification--you-are-back-online'),
-            clear: true,
-            duration: 2,
-          ));
-        } else {
-          alert.show(AlertData(
-            icon: Icons.wifi_off,
-            body: locales.get('notification--you-are--offline'),
-            clear: true,
-            duration: 2,
-            type: AlertType.warning,
-          ));
-        }
-      }
-    } catch (e) {
-      //
-    }
 
     /// Assign notification callback
     final stateNotifications =
@@ -109,13 +90,7 @@ class _RoutePageNotificationsState extends State<RoutePageFirebase> {
       });
     }
 
-    Map<String, Widget> routes = widget.routeHelper.routes(
-      signed: widget.status!.signedIn,
-      isAdmin: widget.status!.admin,
-    );
-    if (routes.containsKey(widget.uri.path)) {
-      return routes[widget.uri.path]!;
-    }
-    return routes[widget.routeHelper.unknownRoute]!;
+    /// Return the parent build method
+    return super.build(context);
   }
 }
