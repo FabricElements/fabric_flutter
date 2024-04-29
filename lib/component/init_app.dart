@@ -117,10 +117,8 @@ class InitAppChild extends StatelessWidget {
       ));
     }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      /// Init User
-      stateUser.init();
-    });
+    /// Init User
+    stateUser.init();
 
     /// Return child component
     return GestureDetector(
