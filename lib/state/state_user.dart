@@ -21,9 +21,6 @@ final db = FirebaseFirestore.instance;
 class StateUser extends StateDocument {
   StateUser();
 
-  @override
-  int get debounceTime => 2000;
-
   /// State specific functionality
   User? _userObject;
   Map<String, dynamic>? _claims;
@@ -37,6 +34,9 @@ class StateUser extends StateDocument {
 
   // Initialize the user status
   bool _ready = false;
+
+  @override
+  int get debounceTime => _ready ? super.debounceTime : 1000;
 
   // Internet connection status
   bool connected = true;

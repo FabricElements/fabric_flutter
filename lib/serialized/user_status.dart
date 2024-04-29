@@ -25,7 +25,7 @@ class UserStatus {
   final bool connectionChanged;
   final String? connectedTo;
   @JsonKey(includeToJson: false, includeFromJson: false)
-  final bool ready;
+  bool ready;
 
   UserStatus({
     this.signedIn = false,
