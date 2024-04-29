@@ -2,39 +2,82 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../helper/app_localizations_delegate.dart';
+import '../helper/log_color.dart';
 import '../helper/route_helper.dart';
 import '../placeholder/loading_screen.dart';
 import '../serialized/user_status.dart';
 import '../state/state_alert.dart';
 
-class RoutePage extends StatefulWidget {
-  const RoutePage({
+/// BaseRoutePage
+/// Use it to structure your route page class.
+/// Extends [StatefulWidget]
+abstract class BaseRoutePage extends StatefulWidget {
+  const BaseRoutePage({
     super.key,
     required this.routeHelper,
     required this.uri,
     required this.status,
     this.loading = const LoadingScreen(),
+    this.onInit,
   });
 
   final RouteHelper routeHelper;
   final Uri uri;
   final UserStatus? status;
   final Widget loading;
-
-  @override
-  State<RoutePage> createState() => _RoutePageState();
+  final Function? onInit;
 }
 
-class _RoutePageState extends State<RoutePage> {
-  @override
-  void didUpdateWidget(covariant RoutePage oldWidget) {
+/// BaseRoutePageState
+/// Use it to structure your route page state class.
+abstract class BaseRoutePageState extends State<BaseRoutePage> {
+  /// loading state variable
+  /// Use it to show loading screen.
+  /// Default is true.
+  bool loading = true;
+
+  /// onInit
+  /// Use it to initialize your route page.
+  /// It will be called after the first frame.
+  void _onInit() async {
+    if (widget.onInit != null) {
+      try {
+        await widget.onInit!().then((value) {
+          loading = false;
+        });
+      } catch (e) {
+        loading = false;
+        debugPrint(LogColor.error('$e'));
+      }
+    } else {
+      loading = false;
+    }
     if (mounted) setState(() {});
+  }
+
+  @override
+  void initState() {
+    loading = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      _onInit();
+    });
+    super.initState();
+  }
+
+  @override
+  void didUpdateWidget(BaseRoutePage oldWidget) {
+    if (oldWidget.uri != widget.uri) {
+      loading = true;
+      if (mounted) setState(() {});
+      _onInit();
+    }
     super.didUpdateWidget(oldWidget);
   }
 
   @override
   Widget build(BuildContext context) {
-    if (widget.status == null) return widget.loading;
+    final notReady = widget.status == null || !widget.status!.ready;
+    if (loading || notReady) return widget.loading;
     final locales = AppLocalizations.of(context);
     final alert = Provider.of<StateAlert>(context, listen: false);
     alert.context = context;
@@ -71,3 +114,19 @@ class _RoutePageState extends State<RoutePage> {
     return routes[widget.routeHelper.unknownRoute]!;
   }
 }
+
+class RoutePage extends BaseRoutePage {
+  const RoutePage({
+    super.key,
+    required super.routeHelper,
+    required super.uri,
+    required super.status,
+    super.loading = const LoadingScreen(),
+    super.onInit,
+  });
+
+  @override
+  State<BaseRoutePage> createState() => _RoutePageState();
+}
+
+class _RoutePageState extends BaseRoutePageState {}
