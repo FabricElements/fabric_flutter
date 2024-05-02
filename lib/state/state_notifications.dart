@@ -15,18 +15,15 @@ class StateNotifications extends ChangeNotifier {
 
   bool initialized = Firebase.apps.isNotEmpty;
 
-  String? _token;
+  String? token;
   Map<String, dynamic> _notification = {};
   dynamic _uid = '';
   bool _initialized = false;
   Function(Map<String, dynamic> message)? _callback;
 
-  /// [token] Returns device token
-  String? get token => _token;
-
   /// Update user token on the firestore user/{uid}
   void _updateUserToken(String? tokenId) async {
-    if (!initialized || _uid.isEmpty || tokenId == _token) return;
+    if (!initialized || _uid.isEmpty || tokenId == token) return;
     try {
       await FirebaseFirestore.instance.collection('user').doc(_uid).set({
         'backup': false,
@@ -37,6 +34,8 @@ class StateNotifications extends ChangeNotifier {
       debugPrint(
           LogColor.error('error saving user token: ${error.toString()}'));
     }
+    token = tokenId;
+    notifyListeners();
   }
 
   /// [notification] returns the body oof the notification
@@ -168,12 +167,8 @@ class StateNotifications extends ChangeNotifier {
     // Prevent calling this function in debug mode
     if (kIsWeb && kDebugMode) return;
     if (!_initialized) await init();
-    if (_token == null) {
-      final newToken = await getToken();
-      _updateUserToken(newToken);
-      _token = newToken;
-      notifyListeners();
-    }
+    final newToken = await getToken();
+    _updateUserToken(newToken);
   }
 
   /// Define user id
@@ -184,7 +179,7 @@ class StateNotifications extends ChangeNotifier {
   /// Default function call every time the id changes.
   /// Override this function to add custom features for your state.
   void reset() {
-    _token = '';
+    token = '';
     _notification = {};
     _uid = '';
     _initialized = false;

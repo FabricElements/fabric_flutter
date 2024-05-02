@@ -7,8 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../helper/app_localizations_delegate.dart';
-import '../helper/media_helper.dart';
 import '../helper/log_color.dart';
+import '../helper/media_helper.dart';
 import '../state/state_alert.dart';
 import '../state/state_user.dart';
 import 'content_container.dart';
@@ -53,10 +53,7 @@ class _ProfileEditState extends State<ProfileEdit> {
   Widget build(BuildContext context) {
     final alert = Provider.of<StateAlert>(context, listen: false);
     final locales = AppLocalizations.of(context);
-    final stateUser = Provider.of<StateUser>(context);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      stateUser.ping('profile');
-    });
+    final stateUser = Provider.of<StateUser>(context, listen: false);
     userImage = widget.prefix != null && stateUser.serialized.avatar != null
         ? '${widget.prefix}/${stateUser.serialized.avatar}'
         : stateUser.serialized.avatar;

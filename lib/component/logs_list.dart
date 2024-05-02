@@ -13,7 +13,7 @@ import '../serialized/logs_data.dart';
 import '../state/state_alert.dart';
 import 'user_chip.dart';
 
-/// [LogsList] displays a list of logs from an array of [logs]
+/// Displays a list of logs from an array of [logs]
 class LogsList extends StatelessWidget {
   const LogsList({
     super.key,

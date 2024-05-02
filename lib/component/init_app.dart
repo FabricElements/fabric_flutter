@@ -1,3 +1,4 @@
+import 'package:fabric_flutter/helper/log_color.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -63,62 +64,66 @@ class InitAppChild extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     /// Call App States after MultiProvider is called
-    final stateUser = Provider.of<StateUser>(context, listen: false);
+    final stateUser = Provider.of<StateUser>(context);
+    final theme = Theme.of(context);
+
+    /// Init User
+    stateUser.init();
+
     final stateNotifications =
         Provider.of<StateNotifications>(context, listen: false);
     final stateDynamicLinks =
         Provider.of<StateDynamicLinks>(context, listen: false);
-    final alert = Provider.of<StateAlert>(context, listen: false);
-    alert.context = context;
     final stateAnalytics = Provider.of<StateAnalytics>(context, listen: false);
 
     /// Define default error message
     stateUser.onError = (String? e) => (e != null)
-        ? alert.show(AlertData(
-            title: e,
-            type: AlertType.critical,
-            clear: true,
-            duration: 3,
-          ))
+        ? debugPrint(LogColor.error('StateUser.onError: $e'))
         : null;
 
+    /// Set user id for analytics
+    if (stateUser.userStatus.signedIn) {
+      try {
+        stateAnalytics.analytics?.setUserId(id: stateUser.userStatus.uid);
+      } catch (error) {
+        debugPrint(LogColor.error('FirebaseAnalytics error: $error'));
+      }
+    }
     try {
-      stateUser.streamStatus.listen(
-        (value) {
-          try {
-            stateAnalytics.analytics?.setUserId(id: value.uid);
-          } catch (error) {
-            debugPrint('FirebaseAnalytics error: $error');
-          }
-          if (value.signedIn) {
-            if (notifications) {
-              stateNotifications.uid = value.uid;
-              stateNotifications.init();
-            }
-          } else {
-            if (notifications && !kDebugMode) {
-              // Stop notifications when sign out
-              stateNotifications.clear();
-            }
-          }
-        },
-      );
+      if (stateUser.userStatus.signedIn) {
+        if (notifications) {
+          stateNotifications.token = stateUser.serialized.fcm;
+          stateNotifications.uid = stateUser.userStatus.uid;
+          stateNotifications.init();
+          stateNotifications.getUserToken().catchError((e) {
+            debugPrint(
+                LogColor.error('StateNotifications.getUserToken() Error: $e'));
+          });
+        }
+      } else {
+        if (notifications && !kDebugMode) {
+          // Stop notifications when sign out
+          stateNotifications.clear();
+        }
+      }
 
       /// Dynamic Links
       if (links && !kIsWeb && !kDebugMode) {
         stateDynamicLinks.init();
       }
     } catch (error) {
-      alert.show(AlertData(
-        title: error.toString(),
-        type: AlertType.warning,
-        clear: true,
-        duration: 3,
-      ));
+      debugPrint(LogColor.error('InitAppChild error: $error'));
     }
 
-    /// Init User
-    stateUser.init();
+    /// Check if user is ready
+    if (!stateUser.userStatus.ready) {
+      debugPrint(LogColor.warning('User not ready'));
+      return Container(
+        color: theme.colorScheme.background,
+        child: const Center(child: CircularProgressIndicator()),
+      );
+    }
+    debugPrint(LogColor.success('User ready'));
 
     /// Return child component
     return GestureDetector(

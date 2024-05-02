@@ -3,8 +3,8 @@ import 'package:json_annotation/json_annotation.dart';
 
 import '../component/input_data.dart';
 import '../helper/enum_data.dart';
-import '../helper/options.dart';
 import '../helper/log_color.dart';
+import '../helper/options.dart';
 import '../helper/utils.dart';
 
 part 'filter_data.g.dart';
