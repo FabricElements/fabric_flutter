@@ -1,10 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 import '../component/smart_image.dart';
-import '../state/state_user.dart';
 
 /// This Widget provides a informative view, consisting of a strong headline, optional description and action button
 ///
@@ -144,8 +142,6 @@ class _ViewFeaturedState extends State<ViewFeatured> {
 
   @override
   Widget build(BuildContext context) {
-    final stateUser = Provider.of<StateUser>(context);
-    stateUser.ping('view-featured');
     Object arguments = widget.arguments ?? {};
     onClick() {
       if (widget.actionUrl != null) {

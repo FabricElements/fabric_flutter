@@ -19,7 +19,7 @@ abstract class StateAPI extends StateShared {
 
   /// More at [endpoint]
   /// Don't override from outside the class, use [endpoint] for that
-  late String baseEndpoint;
+  String baseEndpoint = '';
 
   /// [credentials]
   /// https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication
@@ -40,9 +40,8 @@ abstract class StateAPI extends StateShared {
     if (value == baseEndpoint && data != null) return;
     baseEndpoint = value;
     if (errorCount > 1) {
-      if (kDebugMode) {
-        print('$errorCount errors calls to endpoint: $baseEndpoint');
-      }
+      debugPrint(LogColor.warning(
+          '$errorCount errors calls to endpoint: $baseEndpoint'));
       return;
     }
     call();
@@ -83,7 +82,6 @@ abstract class StateAPI extends StateShared {
     loading = true;
     // Check for duplicated calls
     if (ignoreDuplicatedCalls &&
-        _lastEndpointCalled != null &&
         _lastEndpointCalled == endpoint &&
         data != null) {
       loading = false;
@@ -97,9 +95,8 @@ abstract class StateAPI extends StateShared {
     }
     _lastEndpointCalled = endpoint;
     if (errorCount > 1) {
-      if (kDebugMode) {
-        print('$errorCount errors calls to endpoint: $endpoint');
-      }
+      debugPrint(LogColor.warning(
+          '$errorCount errors calls to endpoint: $baseEndpoint'));
       loading = false;
       return data;
     }

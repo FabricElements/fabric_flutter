@@ -820,6 +820,14 @@ dynamic defaultLocales = {
     'en': 'Forbidden',
     'es': 'Prohibido',
   },
+  'error--504': {
+    'en': 'Gateway Timeout',
+    'es': 'Tiempo de espera agotado',
+  },
+  'error--500': {
+    'en': 'Internal Server Error',
+    'es': 'Error Interno del Servidor',
+  },
   'label--type-here': {
     'en': 'Type here...',
     'es': 'Escribe aquí...',

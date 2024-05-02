@@ -80,16 +80,6 @@ class _RoutePageNotificationsState extends BaseRoutePageState {
       ));
     };
 
-    if (widget.status?.signedIn ?? false) {
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        try {
-          await stateNotifications.getUserToken();
-        } catch (error) {
-          debugPrint('StateNotifications.getUserToken() Error: $error');
-        }
-      });
-    }
-
     /// Return the parent build method
     return super.build(context);
   }

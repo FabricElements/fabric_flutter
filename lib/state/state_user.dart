@@ -26,8 +26,7 @@ class StateUser extends StateDocument {
   Map<String, dynamic>? _claims;
   String? _pingReference;
   DateTime _pingLast = DateTime.now().subtract(const Duration(minutes: 10));
-  final Map<String, UserData> _usersMap = {};
-  String? _lastUserGet;
+
   bool _init = false;
   String? _language;
   ThemeMode? _theme;
@@ -36,7 +35,7 @@ class StateUser extends StateDocument {
   bool _ready = false;
 
   @override
-  int get debounceTime => _ready ? super.debounceTime : 1000;
+  int get debounceTime => _ready ? super.debounceTime : 3000;
 
   // Internet connection status
   bool connected = true;
@@ -117,9 +116,6 @@ class StateUser extends StateDocument {
   @override
   UserData get serialized {
     UserData userDataSerialized = UserData.fromJson(data ?? {});
-    if (data != null) {
-      _usersMap.addAll({'id': userDataSerialized});
-    }
     return userDataSerialized;
   }
 
@@ -186,43 +182,6 @@ class StateUser extends StateDocument {
     }
   }
 
-  /// Returns list of [users]
-  List<UserData> get users {
-    List<UserData> usersList = [];
-    _usersMap.forEach((key, value) {
-      usersList.add(value);
-    });
-    return usersList;
-  }
-
-  /// [usersMap] Returns a map of [users]
-  Map<String, UserData> get usersMap => _usersMap;
-
-  /// [getUser] returns [UserData] from uid
-  UserData getUser(String uid) {
-    if (_usersMap.containsKey(uid)) {
-      return _usersMap[uid]!;
-    }
-    _usersMap.addAll({
-      uid: UserData.fromJson({'id': uid, 'name': 'Unknown'})
-    });
-    if (_lastUserGet != uid) {
-      final userDocRef = db.collection('user').doc(uid);
-      userDocRef.get().then((snapshot) {
-        if (snapshot.exists) {
-          Map<String, dynamic> itemData =
-              snapshot.data() as Map<String, dynamic>;
-          itemData.addAll({'id': uid});
-          _usersMap.addAll({uid: UserData.fromJson(itemData)});
-          if (initialized) notifyListeners();
-        }
-      }).onError((error, stackTrace) {
-        debugPrint(LogColor.error('getUser: ${error.toString()}'));
-      });
-    }
-    return _usersMap[uid]!;
-  }
-
   /// Sign Out user
   void signOut() async {
     await cancel();
@@ -252,7 +211,7 @@ class StateUser extends StateDocument {
         connected: connected,
         connectionChanged: connectionChanged,
         connectedTo: connected ? connectedTo : null,
-        ready: _ready && _init,
+        ready: _ready && _init && !loading,
       );
 
   /// Update user status data

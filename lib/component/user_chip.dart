@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../state/state_user.dart';
+import '../state/state_users.dart';
 import 'user_avatar.dart';
 
 /// UserChip displays a User's profile name and avatar
@@ -25,8 +25,8 @@ class _UserChipState extends State<UserChip> {
   @override
   Widget build(BuildContext context) {
     if (widget.uid == null) return const SizedBox(width: 0, height: 0);
-    final stateUser = Provider.of<StateUser>(context);
-    final user = stateUser.getUser(widget.uid!);
+    final stateUsers = Provider.of<StateUsers>(context, listen: false);
+    final user = stateUsers.getUser(widget.uid!);
     String label = user.id!;
     if (user.username != null) label = user.username!;
     if (user.name.isNotEmpty) label = user.name;

@@ -1,9 +1,10 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+import 'package:fabric_flutter/variables.dart';
 import 'package:flutter/material.dart';
 
 import '../helper/filter_helper.dart';
+import '../helper/log_color.dart';
 import '../helper/utils.dart';
 import '../serialized/filter_data.dart';
 
@@ -135,9 +136,9 @@ abstract class StateShared extends ChangeNotifier {
     if (privateOldData == dataObject) return;
     privateOldData = dataObject;
     privateData = dataObject;
+    notifyListeners();
     _controllerStream.sink.add(dataObject);
     callback(dataObject);
-    if (initialized) notifyListeners();
   }
 
   /// More at [error]
@@ -148,9 +149,7 @@ abstract class StateShared extends ChangeNotifier {
 
   /// Default onError function
   onErrorDefault(String? error) {
-    if (kDebugMode) {
-      if (error != null) print('Error: $error');
-    }
+    if (error != null) debugPrint(LogColor.error(error));
   }
 
   /// onError is called every time the request has an error
@@ -165,12 +164,13 @@ abstract class StateShared extends ChangeNotifier {
   /// [error] message
   set error(String? errorMessage) {
     _error = errorMessage;
-    if (errorMessage != null) {
-      onError(errorMessage);
-      _controllerStreamError.sink.addError(errorMessage);
-    }
+    notifyListeners();
+    onError(errorMessage);
+    _controllerStreamError.sink.add(errorMessage);
   }
 
+  /// Loading state
+  /// Some processes are running
   bool loading = false;
 
   /// Pagination
@@ -194,6 +194,7 @@ abstract class StateShared extends ChangeNotifier {
     pageDefault = value ?? initialPage;
     initialized = false;
     loading = false;
+    notifyListeners();
     onPageChange(pageDefault);
   }
 
@@ -206,6 +207,7 @@ abstract class StateShared extends ChangeNotifier {
   /// Set the [limit] number and trigger filter
   set limit(int? value) {
     _limit = value ?? limitDefault;
+    notifyListeners();
   }
 
   /// Returns the trade
@@ -266,6 +268,7 @@ abstract class StateShared extends ChangeNotifier {
   }
 
   /// Set the list of parameters
+  /// Warning: Do not set parameters on build time. Use initState or other lifecycle methods
   set queryParameters(Map<String, List<String>>? p) {
     Map<String, List<String>> parameters = p != null && p.isNotEmpty ? p : {};
 
@@ -312,7 +315,8 @@ abstract class StateShared extends ChangeNotifier {
       _filters = FilterHelper.decode(queryFilter);
     } catch (e) {
       _filters = [];
-      debugPrint('!!! decode filters from query: ${e.toString()}');
+      debugPrint(
+          LogColor.error('!!! decode filters from query: ${e.toString()}'));
     }
 
     // Remove filter parameters
@@ -322,10 +326,14 @@ abstract class StateShared extends ChangeNotifier {
     // Remove pagination parameters
     passingQueryParameters.remove('page');
     passingQueryParameters.remove('limit');
+
+    /// Set the parameters directly
     _queryParameters = passingQueryParameters;
+    // Do not notifyListeners. It can cause an infinite loops because the queryParameters are set in the build method
   }
 
   /// Merge list of parameters
+  /// Warning: Do not set parameters on build time. Use initState or other lifecycle methods
   set mergeQueryParameters(Map<String, List<String>> p) {
     queryParameters = Utils.mergeQueryParameters(queryParameters, p);
   }
@@ -338,7 +346,7 @@ abstract class StateShared extends ChangeNotifier {
       selectedItems.removeWhere((item) => item == id);
     }
     selectedItems = selectedItems.toSet().toList();
-    if (initialized) notifyListeners();
+    notifyListeners();
   }
 
   /// isSelected returns true if the id is selected
@@ -352,7 +360,7 @@ abstract class StateShared extends ChangeNotifier {
   /// Set selected items with a list of id's or an empty array to reset the value
   set selected(List<dynamic>? items) {
     selectedItems = items ?? [];
-    if (initialized) notifyListeners();
+    notifyListeners();
   }
 
   /// selectAll select all available items on [data]
@@ -360,9 +368,9 @@ abstract class StateShared extends ChangeNotifier {
     selectedItems = [];
     if (data == null) return;
     for (final item in data) {
-      selectedItems.add(item['id']);
+      if (item['id'] != null) selectedItems.add(item['id']);
     }
-    if (initialized) notifyListeners();
+    notifyListeners();
   }
 
   /// async function to process request
@@ -402,7 +410,7 @@ abstract class StateShared extends ChangeNotifier {
 
   set filters(List<FilterData> newFilters) {
     _filters = newFilters;
-    if (initialized) notifyListeners();
+    notifyListeners();
   }
 
   /// Get SQL
@@ -414,7 +422,7 @@ abstract class StateShared extends ChangeNotifier {
         sqlQueryType: sqlQueryType,
       );
     } catch (e) {
-      debugPrint('sql decode error: $e');
+      debugPrint(LogColor.error('sql decode error: $e'));
       return null;
     }
   }
@@ -456,7 +464,7 @@ abstract class StateShared extends ChangeNotifier {
         );
       });
     }
-    if (initialized) notifyListeners();
+    notifyListeners();
     return filters;
   }
 
@@ -472,12 +480,18 @@ abstract class StateShared extends ChangeNotifier {
   /// Notify listeners with debounce
   @override
   void notifyListeners() {
+    // Do not debounce in test mode
+    if (kIsTest) {
+      super.notifyListeners();
+      return;
+    }
     // Make custom debounce effective only after the first call otherwise use 10ms as minimum
-    int finalDebounceTime = debounceCount > 0 ? debounceTime : 5;
+    int finalDebounceTime = debounceCount > 0 ? debounceTime : 100;
     // If the first call is not initialized, use minimum debounce time
     if (!initialized) finalDebounceTime = 500;
     // Increment debounce count, cancel timer and start a new one
     debounceCount++;
+    print('debounceCount: $debounceCount');
     _timer?.cancel();
     _timer = Timer(Duration(milliseconds: finalDebounceTime), () {
       debounceCount = 0;

@@ -152,13 +152,24 @@ class StateAlert implements Listenable {
       alertData.type = typeFromString(alertData.typeString);
     }
     if (kDebugMode) {
-      String debugMessagePrint =
-          '////////// Alert: ${alertData.type} ///////////';
+      String debugMessagePrint = '................................';
       if (alertData.title != null) debugMessagePrint += '\n${alertData.title}';
       if (alertData.body != null) debugMessagePrint += '\n${alertData.body}';
       if (context == null) debugMessagePrint += '\nContext is null ****';
-      debugMessagePrint += '\n////////////////////////////';
-      print(debugMessagePrint);
+      debugMessagePrint += '\n................................';
+      switch (alertData.type) {
+        case AlertType.critical:
+          debugPrint(LogColor.error(debugMessagePrint));
+          break;
+        case AlertType.warning:
+          debugPrint(LogColor.warning(debugMessagePrint));
+          break;
+        case AlertType.success:
+          debugPrint(LogColor.success(debugMessagePrint));
+          break;
+        default:
+          debugPrint(LogColor.info(debugMessagePrint));
+      }
     }
     if (context == null) return;
     final queryData = MediaQuery.of(context!);
@@ -460,13 +471,8 @@ class StateAlert implements Listenable {
           break;
       }
     } catch (error) {
-      if (kDebugMode) {
-        String debugMessagePrint =
-            '////////// Alert: ${alertData.type} ///////////';
-        debugMessagePrint += '\n${error.toString()}';
-        debugMessagePrint += '\n////////////////////////////';
-        print(debugMessagePrint);
-      }
+      String debugMessagePrint = error.toString();
+      debugPrint(LogColor.error(debugMessagePrint));
     }
   }
 
