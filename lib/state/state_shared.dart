@@ -491,7 +491,6 @@ abstract class StateShared extends ChangeNotifier {
     if (!initialized) finalDebounceTime = 500;
     // Increment debounce count, cancel timer and start a new one
     debounceCount++;
-    print('debounceCount: $debounceCount');
     _timer?.cancel();
     _timer = Timer(Duration(milliseconds: finalDebounceTime), () {
       debounceCount = 0;
