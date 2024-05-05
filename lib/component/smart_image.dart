@@ -111,8 +111,7 @@ class _SmartImageState extends State<SmartImage> {
     if (newHeight <= 0 && newWidth <= 0) return;
     if (width == newWidth && height == newHeight) return;
     _timer?.cancel();
-    if (resizedTimes > 0) await Future.delayed(const Duration(seconds: 2));
-    _timer = Timer(const Duration(seconds: 2), () {
+    _timer = Timer(Duration(milliseconds: resizedTimes > 0 ? 2000 : 300), () {
       if (width == newWidth && height == newHeight) return;
       if (newHeight > 0) height = newHeight;
       if (newWidth > 0) width = newWidth;
