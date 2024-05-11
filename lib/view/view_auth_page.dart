@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io' show Platform;
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -722,7 +722,9 @@ class _ViewAuthPageState extends State<ViewAuthPage>
                                   width: double.infinity,
                                   child: Text(
                                     locales.get('page-auth--title'),
-                                    style: textTheme.displayMedium,
+                                    style: textTheme.displayMedium?.copyWith(
+                                      color: theme.colorScheme.onBackground,
+                                    ),
                                   ),
                                 ),
                                 Container(height: 16),
@@ -730,15 +732,21 @@ class _ViewAuthPageState extends State<ViewAuthPage>
                                   width: double.infinity,
                                   child: Text(
                                     locales.get('page-auth--description'),
-                                    style: textTheme.titleMedium,
+                                    style: textTheme.titleMedium?.copyWith(
+                                      color: theme.colorScheme.onBackground,
+                                    ),
                                   ),
                                 ),
                                 Container(height: 16),
                                 ...homeButtonOptions,
                                 Padding(
                                   padding: const EdgeInsets.only(top: 16),
-                                  child: Text(stateGlobal.appVersion ?? '',
-                                      style: textTheme.bodySmall),
+                                  child: Text(
+                                    stateGlobal.appVersion ?? '',
+                                    style: textTheme.bodySmall?.copyWith(
+                                      color: theme.colorScheme.onBackground,
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),
@@ -916,18 +924,16 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     );
 
     return Scaffold(
+      backgroundColor: theme.colorScheme.background,
       body: SizedBox.expand(
-        child: Container(
-          color: theme.colorScheme.background,
-          child: IndexedStack(
-            index: section,
-            children: <Widget>[
-              home,
-              sectionPhoneNumber,
-              sectionPhoneVerification,
-              sectionEmail,
-            ],
-          ),
+        child: IndexedStack(
+          index: section,
+          children: <Widget>[
+            home,
+            sectionPhoneNumber,
+            sectionPhoneVerification,
+            sectionEmail,
+          ],
         ),
       ),
     );
