@@ -72,7 +72,8 @@ UserData _$UserDataFromJson(Map<String, dynamic> json) => UserData(
       bcId: json['bcId'] as String?,
       bsId: json['bsId'] as String?,
       bsiId: json['bsiId'] as String?,
-      theme: $enumDecodeNullable(_$ThemeModeEnumMap, json['theme']) ??
+      theme: $enumDecodeNullable(_$ThemeModeEnumMap, json['theme'],
+              unknownValue: ThemeMode.system) ??
           ThemeMode.system,
       links: json['links'] == null
           ? null

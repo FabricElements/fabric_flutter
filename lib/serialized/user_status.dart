@@ -15,9 +15,13 @@ class UserStatus {
   dynamic uid;
 
   /// Language
+  @JsonKey(includeIfNull: false)
   final String language;
 
   /// Theme Mode
+  @JsonKey(
+      includeIfNull: false,
+      unknownEnumValue: ThemeMode.system)
   final ThemeMode theme;
 
   /// Internet connection status

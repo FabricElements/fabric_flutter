@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:fabric_flutter/variables.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -145,11 +146,11 @@ class StateUser extends StateDocument {
 
   /// Ping user
   void ping(String reference) async {
-    if (!kReleaseMode) return;
-    if (reference == _pingReference || !signedIn || data.isEmpty) return;
+    if (kIsTest || ref == null || reference == _pingReference) return;
     _pingLast = serialized.ping ?? _pingLast;
     DateTime timeRef = DateTime.now().subtract(const Duration(minutes: 1));
     if (_pingLast.isAfter(timeRef)) return;
+    _pingReference = reference;
     _pingLast = DateTime.now(); // Define before saving because it's async
     /// Get user device
     UserOS userOs = UserOS.unknown;
@@ -176,7 +177,6 @@ class StateUser extends StateDocument {
         },
         SetOptions(merge: true),
       );
-      _pingReference = reference;
     } catch (error) {
       debugPrint(LogColor.error('User ping error: ${error.toString()}'));
     }
@@ -185,20 +185,29 @@ class StateUser extends StateDocument {
   /// Sign Out user
   void signOut() async {
     await cancel();
+    try {
+      /// Ping user before sign out to change the status
+      await ref?.set(
+        {
+          'ping': DateTime.timestamp().subtract(const Duration(minutes: 5)),
+        },
+        SetOptions(merge: true),
+      );
+    } catch (error) {
+      debugPrint(LogColor.error('User ping error: ${error.toString()}'));
+    }
     clearAuth(notify: false);
     await _auth.signOut();
     notifyListeners();
   }
 
-  /// [accessByRole] displays content only if the the role matches for current user
+  /// Displays content only if the the role matches for current user
   bool accessByRole({
     String? group,
     List<String> roles = const ['admin'],
   }) {
     return roles.contains(roleFromData(group: group));
   }
-
-  UserStatus _previousStatus = UserStatus();
 
   /// User Status
   UserStatus get userStatus => UserStatus(
@@ -236,11 +245,7 @@ class StateUser extends StateDocument {
     } catch (e) {
       debugPrint(LogColor.error('Connectivity error: ${e.toString()}'));
     }
-    if (userStatus.toJson().toString() != _previousStatus.toJson().toString()) {
-      _previousStatus = userStatus;
-      _controllerStreamStatus.sink
-          .add(UserStatus.fromJson(userStatus.toJson()));
-    }
+    _controllerStreamStatus.sink.add(UserStatus.fromJson(userStatus.toJson()));
     notifyListeners();
   }
 
@@ -258,6 +263,7 @@ class StateUser extends StateDocument {
     try {
       /// Get User document data
       ref = db.collection('user').doc(userObject.uid);
+      ping('auth');
       await listen();
     } catch (e) {
       debugPrint(LogColor.error(

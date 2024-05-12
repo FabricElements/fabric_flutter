@@ -18,15 +18,12 @@ import '../helper/options.dart';
 import '../placeholder/loading_screen.dart';
 import '../state/state_alert.dart';
 import '../state/state_analytics.dart';
-import '../state/state_dynamic_links.dart';
 import '../state/state_global.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
 /// View Auth parameters
 class ViewAuthValues {
-  String email = '';
-  String emailPassword = '';
   String phone = '';
   int? phoneVerificationCode;
   String? verificationId;
@@ -35,8 +32,6 @@ class ViewAuthValues {
   String? phoneValid;
 
   ViewAuthValues({
-    this.email = '',
-    this.emailPassword = '',
     this.phone = '',
     this.phoneVerificationCode,
     this.verificationId,
@@ -50,7 +45,6 @@ class ViewAuthPage extends StatefulWidget {
     this.loader,
     this.image,
     this.phone = false,
-    this.email = false,
     this.google = false,
     this.apple = false,
     this.anonymous = false,
@@ -68,7 +62,6 @@ class ViewAuthPage extends StatefulWidget {
   final Widget? loader;
   final String? image;
   final bool phone;
-  final bool email;
   final bool google;
   final bool apple;
   final bool anonymous;
@@ -98,8 +91,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
   late int section;
   late ViewAuthValues dataAuth;
   ConfirmationResult? webConfirmationResult;
-  late bool willSignInWithEmail;
-  String? emailLink;
   bool policiesAccepted = false;
 
   late GoogleSignIn googleSignInAccount;
@@ -115,7 +106,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     section = 0;
     dataAuth = ViewAuthValues();
     webConfirmationResult = null;
-    willSignInWithEmail = false;
     policiesAccepted = false;
     googleSignInAccount = GoogleSignIn(
       clientId: kIsWeb ? widget.googleClientId : null,
@@ -143,44 +133,12 @@ class _ViewAuthPageState extends State<ViewAuthPage>
   @override
   Widget build(BuildContext context) {
     final stateGlobal = Provider.of<StateGlobal>(context);
-    final stateDynamicLinks = Provider.of<StateDynamicLinks>(context);
     final theme = Theme.of(context);
     final stateAnalytics = Provider.of<StateAnalytics>(context, listen: false);
     final locales = AppLocalizations.of(context);
     final textTheme = Theme.of(context).textTheme;
     final alert = Provider.of<StateAlert>(context, listen: false);
     final height = MediaQuery.of(context).size.height;
-
-    /// Access action link
-    void actionLink() async {
-      try {
-        final linkData = stateDynamicLinks.pendingDynamicLinkData;
-        final Uri? deepLink = linkData?.link;
-        if (deepLink == null) return;
-        emailLink = deepLink.toString();
-        if (_auth.isSignInWithEmailLink(deepLink.toString())) {
-          willSignInWithEmail = true;
-          section = 3;
-          if (mounted) setState(() {});
-        } else {
-          if (linkData != null &&
-              linkData.utmParameters.containsKey('oobCode')) {
-            await _auth.applyActionCode(linkData.utmParameters['oobCode']!);
-          }
-        }
-      } catch (error) {
-        alert.show(AlertData(
-          title: locales.get('alert--sign-in-failed'),
-          body: error.toString(),
-          type: AlertType.critical,
-          clear: true,
-        ));
-      }
-    }
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      actionLink();
-    });
 
     stateAnalytics.screenName = 'auth';
 
@@ -391,61 +349,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       if (mounted) setState(() {});
     }
 
-    /// Email Link Sign-in
-    Future<void> signInWithEmailAndLink() async {
-      try {
-        await _auth.sendSignInLinkToEmail(
-          email: dataAuth.email,
-          actionCodeSettings: ActionCodeSettings(
-            androidInstallApp: true,
-            androidMinimumVersion: '12',
-            androidPackageName: widget.androidPackageName,
-            handleCodeInApp: true,
-            iOSBundleId: widget.iOSBundleId,
-            url: widget.url,
-          ),
-        );
-        alert.show(AlertData(
-          title: 'An email has been sent to ${dataAuth.email}',
-          type: AlertType.success,
-          duration: 3,
-          clear: true,
-        ));
-        section = 0;
-        if (mounted) setState(() {});
-      } catch (error) {
-        alert.show(AlertData(
-          title: locales.get('alert--sign-in-failed'),
-          body: error.toString(),
-          type: AlertType.critical,
-          clear: true,
-        ));
-      }
-    }
-
-    /// Email Link Sign-in
-    Future<void> confirmEmail() async {
-      try {
-        final User? user = (await _auth.signInWithEmailLink(
-          email: dataAuth.email,
-          emailLink: emailLink!,
-        ))
-            .user;
-        stateDynamicLinks.pendingDynamicLinkData = null;
-        if (user == null) {
-          throw locales.get('notification--please-try-again');
-        }
-        resetView();
-      } catch (error) {
-        alert.show(AlertData(
-          title: locales.get('alert--sign-in-failed'),
-          body: error.toString(),
-          type: AlertType.critical,
-          clear: true,
-        ));
-      }
-    }
-
     /// Sign in anonymously
     signInAnonymously() async {
       try {
@@ -565,13 +468,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           icon = Icons.link;
           action = signInGoogle;
           break;
-        case 'email':
-          text = locales.get('label--sign-in-email');
-          icon = Icons.attach_email;
-          action = () {
-            section = 3;
-            if (mounted) setState(() {});
-          };
       }
       if (widget.policies != null && !policiesAccepted) {
         final baseAction = action;
@@ -584,12 +480,16 @@ class _ViewAuthPageState extends State<ViewAuthPage>
               child: SizedBox(
                 width: double.maxFinite,
                 height: height * 0.5,
-                child: Markdown(
-                  selectable: true,
-                  // shrinkWrap: true,
-                  data: mdFromFile,
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+                child: Container(
+                  color: theme.colorScheme.background,
+                  child: Markdown(
+                    styleSheet: MarkdownStyleSheet.largeFromTheme(theme),
+                    selectable: true,
+                    // shrinkWrap: true,
+                    data: mdFromFile,
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+                  ),
                 ),
               ),
               action: ButtonOptions(
@@ -642,7 +542,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     if (widget.phone && (kIsWeb || Platform.isIOS || Platform.isAndroid)) {
       homeButtonOptions.add(authButton('phone'));
     }
-    if (widget.email && !kIsWeb) homeButtonOptions.add(authButton('email'));
     if (widget.anonymous) homeButtonOptions.add(authButton('anonymous'));
     Widget home = AnimatedOpacity(
       opacity: section == 0 ? 1 : 0,
@@ -828,48 +727,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     sectionsPhoneNumber.add(buttonCancel);
     Widget sectionPhoneNumber = baseContainer(children: sectionsPhoneNumber);
 
-    List<Widget> sectionsEmailLink = [
-      InputData(
-        value: dataAuth.email,
-        type: InputDataType.email,
-        hintText: locales.get('label--enter-an-email'),
-        onChanged: (value) {
-          dataAuth.email = value ?? '';
-          if (mounted) setState(() {});
-        },
-        onComplete: (value) {
-          dataAuth.email = value ?? '';
-          if (mounted) setState(() {});
-        },
-      ),
-      spacerLarge,
-    ];
-    if (dataAuth.email.length > 4) {
-      String actionLabel = locales.get('label--verify');
-      IconData actionIcon = Icons.insert_link;
-      if (willSignInWithEmail) {
-        actionIcon = Icons.check;
-        actionLabel = locales.get('label--sing-in');
-      }
-      sectionsEmailLink.add(
-        actionButton(
-          icon: actionIcon,
-          label: actionLabel.toUpperCase(),
-          onPressed: () async {
-            if (willSignInWithEmail) {
-              await confirmEmail();
-            } else {
-              await signInWithEmailAndLink();
-            }
-          },
-        ),
-      );
-    }
-    sectionsEmailLink.add(spacer);
-    sectionsEmailLink.add(buttonCancel);
-
-    Widget sectionEmail = baseContainer(children: sectionsEmailLink);
-
     List<Widget> sectionsPhoneVerification = [
       SizedBox(
         width: double.maxFinite,
@@ -932,7 +789,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
             home,
             sectionPhoneNumber,
             sectionPhoneVerification,
-            sectionEmail,
           ],
         ),
       ),

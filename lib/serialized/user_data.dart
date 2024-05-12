@@ -186,8 +186,8 @@ class UserData {
   @JsonKey(includeToJson: false)
   final String? bsiId;
 
-  /// Brightness
-  @JsonKey(includeIfNull: false)
+  /// Theme Mode
+  @JsonKey(includeIfNull: false, defaultValue: ThemeMode.system, unknownEnumValue: ThemeMode.system)
   final ThemeMode theme;
 
   UserData({

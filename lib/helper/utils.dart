@@ -56,7 +56,7 @@ class Utils {
     if (time == null) return value;
     DateTime now = DateTime.now();
     DateTime timeInactive = now.subtract(const Duration(minutes: 2));
-    DateTime timeAway = now.subtract(const Duration(minutes: 3));
+    DateTime timeAway = now.subtract(const Duration(minutes: 4));
     if (time.isAfter(timeInactive)) value = UserPresence.active;
     if (time.isBefore(timeInactive)) value = UserPresence.inactive;
     if (time.isBefore(timeAway)) value = UserPresence.away;
