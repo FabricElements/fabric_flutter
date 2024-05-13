@@ -103,6 +103,17 @@ class _SmartImageState extends State<SmartImage> {
     }
   }
 
+  /// Resize image
+  /// [newHeight] New height
+  /// [newWidth] New width
+  void _resize({int newHeight = 0, int newWidth = 0}) {
+    if (width == newWidth && height == newHeight) return;
+    if (newHeight > 0) height = newHeight;
+    if (newWidth > 0) width = newWidth;
+    resizedTimes++;
+    if (mounted) setState(() {});
+  }
+
   /// Resize image with debounce
   /// This function will resize the image with debounce to prevent too many requests
   /// [newHeight] New height
@@ -111,13 +122,13 @@ class _SmartImageState extends State<SmartImage> {
     if (newHeight <= 0 && newWidth <= 0) return;
     if (width == newWidth && height == newHeight) return;
     _timer?.cancel();
-    _timer = Timer(Duration(milliseconds: resizedTimes > 0 ? 2000 : 300), () {
-      if (width == newWidth && height == newHeight) return;
-      if (newHeight > 0) height = newHeight;
-      if (newWidth > 0) width = newWidth;
-      resizedTimes++;
-      if (mounted) setState(() {});
-    });
+    if (resizedTimes > 0) {
+      _timer = Timer(Duration(milliseconds: resizedTimes > 0 ? 2000 : 200), () {
+        _resize(newHeight: newHeight, newWidth: newWidth);
+      });
+    } else {
+      _resize(newHeight: newHeight, newWidth: newWidth);
+    }
   }
 
   @override
@@ -152,14 +163,6 @@ class _SmartImageState extends State<SmartImage> {
         ),
       ),
     );
-    final loadingPlaceholderAnimated = SizedBox.expand(
-      child: Center(
-        child: CircularProgressIndicator.adaptive(
-          strokeWidth: 2,
-          valueColor: AlwaysStoppedAnimation<Color>(iconColor.withOpacity(0.5)),
-        ),
-      ),
-    );
     final loadingPlaceholder = Container(
       width: double.infinity,
       height: double.infinity,
@@ -190,8 +193,10 @@ class _SmartImageState extends State<SmartImage> {
           int heightBasedOnDivisor = (newHeight / divisor).floor() * divisor;
           if (widthBasedOnDivisor < divisor) widthBasedOnDivisor = divisor;
           if (heightBasedOnDivisor < divisor) heightBasedOnDivisor = divisor;
-          _resizeImage(
-              newHeight: heightBasedOnDivisor, newWidth: widthBasedOnDivisor);
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            _resizeImage(
+                newHeight: heightBasedOnDivisor, newWidth: widthBasedOnDivisor);
+          });
           return loadingPlaceholder;
         },
       ),
@@ -240,7 +245,7 @@ class _SmartImageState extends State<SmartImage> {
           loadingBuilder: (BuildContext context, Widget child,
               ImageChunkEvent? loadingProgress) {
             if (loadingProgress == null) return child;
-            return loadingPlaceholderAnimated;
+            return loadingPlaceholder;
           },
           frameBuilder: (BuildContext context, Widget child, int? frame,
               bool wasSynchronouslyLoaded) {
