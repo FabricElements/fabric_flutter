@@ -106,7 +106,7 @@ class _SmartImageState extends State<SmartImage> {
   /// Resize image
   /// [newHeight] New height
   /// [newWidth] New width
-  void _resize({int newHeight = 0, int newWidth = 0}) {
+  void _resizeImage({int newHeight = 0, int newWidth = 0}) {
     if (width == newWidth && height == newHeight) return;
     if (newHeight > 0) height = newHeight;
     if (newWidth > 0) width = newWidth;
@@ -118,17 +118,16 @@ class _SmartImageState extends State<SmartImage> {
   /// This function will resize the image with debounce to prevent too many requests
   /// [newHeight] New height
   /// [newWidth] New width
-  Future<void> _resizeImage({int newHeight = 0, int newWidth = 0}) async {
+  Future<void> _resizeImageDebounce({
+    int newHeight = 0,
+    int newWidth = 0,
+  }) async {
     if (newHeight <= 0 && newWidth <= 0) return;
     if (width == newWidth && height == newHeight) return;
     _timer?.cancel();
-    if (resizedTimes > 0) {
-      _timer = Timer(Duration(milliseconds: resizedTimes > 0 ? 2000 : 200), () {
-        _resize(newHeight: newHeight, newWidth: newWidth);
-      });
-    } else {
-      _resize(newHeight: newHeight, newWidth: newWidth);
-    }
+    _timer = Timer(Duration(milliseconds: resizedTimes > 0 ? 2000 : 200), () {
+      _resizeImage(newHeight: newHeight, newWidth: newWidth);
+    });
   }
 
   @override
@@ -193,9 +192,18 @@ class _SmartImageState extends State<SmartImage> {
           int heightBasedOnDivisor = (newHeight / divisor).floor() * divisor;
           if (widthBasedOnDivisor < divisor) widthBasedOnDivisor = divisor;
           if (heightBasedOnDivisor < divisor) heightBasedOnDivisor = divisor;
-          WidgetsBinding.instance.addPostFrameCallback((_) async {
-            _resizeImage(
-                newHeight: heightBasedOnDivisor, newWidth: widthBasedOnDivisor);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (resizedTimes > 0) {
+              _resizeImageDebounce(
+                newHeight: heightBasedOnDivisor,
+                newWidth: widthBasedOnDivisor,
+              );
+            } else {
+              _resizeImage(
+                newHeight: heightBasedOnDivisor,
+                newWidth: widthBasedOnDivisor,
+              );
+            }
           });
           return loadingPlaceholder;
         },
@@ -234,10 +242,7 @@ class _SmartImageState extends State<SmartImage> {
         child: Image.network(
           path,
           fit: BoxFit.cover,
-          cacheWidth: width * devicePixelRatio.floor(),
-          cacheHeight: height * devicePixelRatio.floor(),
           isAntiAlias: true,
-          filterQuality: FilterQuality.high,
           errorBuilder:
               (BuildContext context, Object exception, StackTrace? stackTrace) {
             return errorPlaceholder;
@@ -252,7 +257,7 @@ class _SmartImageState extends State<SmartImage> {
             if (wasSynchronouslyLoaded) return child;
             return AnimatedOpacity(
               opacity: frame == null ? 0 : 1,
-              duration: const Duration(milliseconds: 300),
+              duration: const Duration(milliseconds: 200),
               curve: Curves.easeOut,
               child: child,
             );

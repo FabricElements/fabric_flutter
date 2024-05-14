@@ -469,9 +469,11 @@ class _ViewAuthPageState extends State<ViewAuthPage>
           action = signInGoogle;
           break;
       }
-      if (widget.policies != null && !policiesAccepted) {
+      if (widget.policies != null && !policiesAccepted && !loading) {
         final baseAction = action;
         action = () async {
+          loading = true;
+          if (mounted) setState(() {});
           try {
             String mdFromFile = await rootBundle.loadString(widget.policies!);
             alert.show(AlertData(
@@ -480,16 +482,13 @@ class _ViewAuthPageState extends State<ViewAuthPage>
               child: SizedBox(
                 width: double.maxFinite,
                 height: height * 0.5,
-                child: Container(
-                  color: theme.colorScheme.background,
-                  child: Markdown(
-                    styleSheet: MarkdownStyleSheet.largeFromTheme(theme),
-                    selectable: true,
-                    // shrinkWrap: true,
-                    data: mdFromFile,
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
-                  ),
+                child: Markdown(
+                  styleSheet: MarkdownStyleSheet.largeFromTheme(theme),
+                  selectable: true,
+                  // shrinkWrap: true,
+                  data: mdFromFile,
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
                 ),
               ),
               action: ButtonOptions(
@@ -514,8 +513,11 @@ class _ViewAuthPageState extends State<ViewAuthPage>
             alert.show(AlertData(
               body: error.toString(),
               type: AlertType.critical,
+              clear: true,
             ));
           }
+          loading = false;
+          if (mounted) setState(() {});
         };
       }
       return Padding(
