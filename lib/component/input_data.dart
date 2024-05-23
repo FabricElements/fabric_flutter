@@ -18,8 +18,10 @@ enum InputDataType {
   dateTime,
   timestamp,
   email,
-  double,
   int,
+  double,
+  currency,
+  percent,
   text,
   enums,
   dropdown,
@@ -50,11 +52,17 @@ IconData inputDataTypeIcon(InputDataType inputDataType) {
     case InputDataType.email:
       icon = Icons.email;
       break;
+    case InputDataType.int:
+      icon = Icons.pin;
+      break;
     case InputDataType.double:
       icon = Icons.numbers;
       break;
-    case InputDataType.int:
-      icon = Icons.pin;
+    case InputDataType.currency:
+      icon = Icons.attach_money;
+      break;
+    case InputDataType.percent:
+      icon = Icons.percent;
       break;
     case InputDataType.text:
       icon = Icons.short_text;
@@ -231,6 +239,8 @@ class _InputDataState extends State<InputData> {
     if (valueLocalString.isEmpty) return null;
     switch (widget.type) {
       case InputDataType.double:
+      case InputDataType.currency:
+      case InputDataType.percent:
         if (valueLocalString.endsWith('.')) {
           valueLocalString = valueLocalString.replaceAll('.', '');
         }
@@ -253,9 +263,11 @@ class _InputDataState extends State<InputData> {
   void getValue({bool notify = false, required dynamic newValue}) {
     try {
       switch (widget.type) {
+        case InputDataType.currency:
+        case InputDataType.percent:
         case InputDataType.double:
-        case InputDataType.string:
         case InputDataType.int:
+        case InputDataType.string:
         case InputDataType.text:
         case InputDataType.email:
         case InputDataType.secret:
@@ -351,9 +363,10 @@ class _InputDataState extends State<InputData> {
           textController.text = '';
           if (notify && mounted) setState(() {});
           break;
-        default:
+        case InputDataType.radio:
           value = newValue;
           if (notify && mounted) setState(() {});
+          break;
       }
     } catch (e) {
       debugPrint(LogColor.error('''
@@ -434,8 +447,10 @@ getValue -------------------------------------
 
     Widget? inputIcon;
     switch (widget.type) {
-      case InputDataType.double:
       case InputDataType.int:
+      case InputDataType.double:
+      case InputDataType.currency:
+      case InputDataType.percent:
       case InputDataType.string:
       case InputDataType.text:
       case InputDataType.phone:
@@ -503,6 +518,8 @@ getValue -------------------------------------
         validator = inputValidation.validateUrl;
         break;
       case InputDataType.double:
+      case InputDataType.currency:
+      case InputDataType.percent:
         keyboardType =
             const TextInputType.numberWithOptions(decimal: true, signed: true);
         inputFormatters.addAll([
@@ -568,8 +585,10 @@ getValue -------------------------------------
     );
 
     switch (widget.type) {
-      case InputDataType.double:
       case InputDataType.int:
+      case InputDataType.double:
+      case InputDataType.currency:
+      case InputDataType.percent:
       case InputDataType.string:
       case InputDataType.text:
       case InputDataType.phone:
