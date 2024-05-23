@@ -96,8 +96,10 @@ class FilterData {
             break;
           case InputDataType.time:
           case InputDataType.email:
-          case InputDataType.double:
           case InputDataType.int:
+          case InputDataType.double:
+          case InputDataType.currency:
+          case InputDataType.percent:
           case InputDataType.text:
           case InputDataType.string:
           case InputDataType.phone:

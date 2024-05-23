@@ -74,8 +74,10 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
       case InputDataType.bool:
         dropdownOptions = filterOperatorDatesOrNumbers;
         break;
-      case InputDataType.double:
       case InputDataType.int:
+      case InputDataType.double:
+      case InputDataType.currency:
+      case InputDataType.percent:
         dropdownOptions = filterOperatorDatesOrNumbers;
         break;
       case InputDataType.text:
@@ -367,8 +369,10 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
             }
             break;
           case InputDataType.email:
-          case InputDataType.double:
           case InputDataType.int:
+          case InputDataType.double:
+          case InputDataType.currency:
+          case InputDataType.percent:
           case InputDataType.text:
           case InputDataType.string:
           case InputDataType.phone:

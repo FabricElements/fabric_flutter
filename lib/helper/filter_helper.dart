@@ -63,6 +63,8 @@ class FilterHelper {
         }
         break;
       case InputDataType.double:
+      case InputDataType.currency:
+      case InputDataType.percent:
         response = double.tryParse(value.toString());
         break;
       case InputDataType.int:
