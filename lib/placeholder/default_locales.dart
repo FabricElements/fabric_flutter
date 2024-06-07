@@ -550,7 +550,7 @@ dynamic defaultLocales = {
     'es': 'Exportar {label}',
   },
   'label--label-selected': {
-    'en': '{label} Select',
+    'en': '{label} Selected',
     'es': '{label} Seleccionados',
   },
   'label--selected': {
@@ -1161,5 +1161,9 @@ dynamic defaultLocales = {
   'label--deleted': {
     'en': 'Deleted',
     'es': 'Eliminado',
+  },
+  'label--open-label': {
+    'en': 'Open {label}',
+    'es': 'Abrir {label}',
   },
 };
