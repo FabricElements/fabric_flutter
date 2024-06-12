@@ -13,16 +13,27 @@ FilterData _$FilterDataFromJson(Map<String, dynamic> json) => FilterData(
       type: $enumDecodeNullable(_$InputDataTypeEnumMap, json['type']) ??
           InputDataType.string,
       index: (json['index'] as num?)?.toInt() ?? 0,
+      group: json['group'],
     );
 
-Map<String, dynamic> _$FilterDataToJson(FilterData instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'type': _$InputDataTypeEnumMap[instance.type]!,
-      'operator': _$FilterOperatorEnumMap[instance.operator],
-      'value': instance.value,
-      'index': instance.index,
-    };
+Map<String, dynamic> _$FilterDataToJson(FilterData instance) {
+  final val = <String, dynamic>{
+    'id': instance.id,
+    'type': _$InputDataTypeEnumMap[instance.type]!,
+    'operator': _$FilterOperatorEnumMap[instance.operator],
+    'value': instance.value,
+    'index': instance.index,
+  };
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('group', instance.group);
+  return val;
+}
 
 const _$FilterOperatorEnumMap = {
   FilterOperator.equal: 'equal',

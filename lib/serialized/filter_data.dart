@@ -30,37 +30,44 @@ enum FilterOrder {
 /// Filter Data
 @JsonSerializable(explicitToJson: true)
 class FilterData {
-  ///
+  /// ID
   String id;
 
-  ///
+  /// Label
   @JsonKey(includeToJson: false, includeFromJson: false)
   String label;
 
-  ///
+  /// Input Data Type
+  /// @see [InputDataType]
   InputDataType type;
 
-  ///
+  /// Enums List
   @JsonKey(includeToJson: false, includeFromJson: false)
   List<dynamic> enums;
 
-  ///
+  /// Options List
+  /// @see [ButtonOptions]
   @JsonKey(includeToJson: false, includeFromJson: false)
   List<ButtonOptions> options;
 
-  ///
+  /// Operator
   FilterOperator? operator;
 
-  ///
+  /// Value
   @JsonKey(includeIfNull: true)
   dynamic value;
 
-  ///
+  /// Index
   int index;
 
-  ///
+  /// On Change
+  /// @see [FilterData]
   @JsonKey(includeToJson: false, includeFromJson: false)
   Function(FilterData)? onChange;
+
+  /// Group
+  @JsonKey(includeIfNull: false)
+  dynamic group;
 
   FilterData({
     required this.id,
@@ -72,6 +79,7 @@ class FilterData {
     this.options = const [],
     this.index = 0,
     this.onChange,
+    this.group,
   });
 
   /// Convert value from JSON
