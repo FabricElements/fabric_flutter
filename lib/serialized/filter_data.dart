@@ -9,6 +9,7 @@ import '../helper/utils.dart';
 
 part 'filter_data.g.dart';
 
+/// Filter Operator
 enum FilterOperator {
   equal,
   notEqual,
@@ -22,6 +23,7 @@ enum FilterOperator {
   sort,
 }
 
+/// Filter Order
 enum FilterOrder {
   asc,
   desc,
