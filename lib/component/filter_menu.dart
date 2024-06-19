@@ -327,14 +327,14 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
         .toList();
     if (isSort) {
       label += ': ';
-      label += data.value[0] != null
+      label += data.value != null && data.value[0] != null
           ? data.options
               .firstWhere((element) => element.value == data.value[0],
                   orElse: () => ButtonOptions())
               .label
           : '';
       label += ' ';
-      label += data.value[1] != null
+      label += data.value != null && data.value[1] != null
           ? sortOptions
               .firstWhere((element) => element.value == data.value[1],
                   orElse: () => ButtonOptions())
@@ -444,7 +444,7 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
         avatar: Icon(icon, color: Colors.grey),
         onDeleted: widget.onDelete,
         deleteButtonTooltipMessage: locales.get(
-          'label--clear-label',
+          'label--remove-label',
           {'label': locales.get('label--filter')},
         ),
       ),
@@ -543,28 +543,52 @@ class _FilterMenuState extends State<FilterMenu> {
     activeOptions.sort((a, b) => a.index.compareTo(b.index));
     activeOptions = activeOptions.reversed.toList();
 
+    /// get the sort option
+    final sortOptionFromData = activeOptions.firstWhere(
+        (element) => element.operator == FilterOperator.sort,
+        orElse: () => FilterData(
+              id: 'sort',
+              operator: FilterOperator.sort,
+              index: 1,
+            ));
+    final optionsIgnoringSort = data.where((element) =>
+        element.id != 'sort' && element.operator != FilterOperator.sort);
+    final sortOptions = optionsIgnoringSort
+        .map((e) => ButtonOptions(
+              label: e.label,
+              id: e.id,
+              value: e.id,
+            ))
+        .toList();
+    final sortOption = FilterData(
+      id: 'sort',
+      operator: FilterOperator.sort,
+      label: locales.get('label--sort-by'),
+      value: sortOptionFromData.value ?? [null, null],
+      index: 1,
+      type: InputDataType.dropdown,
+      options: sortOptions,
+    );
+
+    /// Check if the sort option is already in the list
+    bool hasSort = activeOptions.any((element) => element.id == 'sort');
+    if (hasSort) {
+      /// Remove sort from list
+      activeOptions.removeWhere((element) =>
+          element.id == 'sort' || element.operator == FilterOperator.sort);
+
+      /// Add [sortOption] to the beginning of the array
+      activeOptions.insert(0, sortOption);
+    }
+
+    /// Update index
+    activeOptions.map((e) => e.index = activeOptions.indexOf(e));
+
     /// Menu List Options
     List<Widget> menuOptions = List.generate(activeOptions.length, (index) {
       final item = activeOptions[index];
       FilterData selected =
           data.singleWhere((element) => element.id == item.id);
-      if (selected.id == 'sort' || selected.operator == FilterOperator.sort) {
-        /// Add Filter by
-        selected.operator = FilterOperator.sort;
-        selected.id = 'sort';
-        selected.label = locales.get('label--sort-by');
-        selected.options = data
-            .where((element) => element.id != 'sort')
-            .where((element) => element.operator != FilterOperator.sort)
-            .map((e) => ButtonOptions(
-                  label: e.label,
-                  id: e.id,
-                  value: e.id,
-                ))
-            .toList();
-        selected.type = InputDataType.dropdown;
-      }
-
       return FilterMenuOption(
         data: item,
         onChange: (value) {
@@ -634,25 +658,18 @@ class _FilterMenuState extends State<FilterMenu> {
               onTap: () {
                 controller.closeView(null);
                 int newIndex = activeOptions.length + 1;
+                selected.index = newIndex;
                 if (isSort) {
-                  /// Add Filter by
+                  /// Add Sort by
                   selected.value = [null, null];
                   selected.operator = FilterOperator.sort;
                   selected.id = 'sort';
                   selected.label = locales.get('label--sort-by');
-                  selected.options = data
-                      .where((element) => element.id != 'sort')
-                      .where(
-                          (element) => element.operator != FilterOperator.sort)
-                      .map((e) => ButtonOptions(
-                            label: e.label,
-                            id: e.id,
-                            value: e.id,
-                          ))
-                      .toList();
+                  selected.options = sortOptions;
                   selected.type = InputDataType.dropdown;
+                  // Update index
+                  selected.index = 1;
                 }
-                selected.index = newIndex;
                 Future.delayed(const Duration(milliseconds: 50)).then((value) {
                   showDialog<void>(
                     barrierDismissible: false, // user must tap button!
