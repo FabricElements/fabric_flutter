@@ -1,10 +1,12 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 
 import '../component/input_data.dart';
 import '../serialized/filter_data.dart';
 import 'enum_data.dart';
+import 'log_color.dart';
 
 /// Supported SQL Query outputs
 enum SQLQueryType {
@@ -240,6 +242,8 @@ class FilterHelper {
         case FilterOperator.sort:
           if (filter.value == null ||
               filter.value == true ||
+              // check if not array
+              filter.value.runtimeType.toString() != 'List<dynamic>' ||
               filter.value[0] == null ||
               filter.value[1] == null) {
             break;
@@ -362,14 +366,19 @@ class FilterHelper {
 
   /// Base64 Encode filters
   static String? encode(List<FilterData> filters) {
-    final filterDataValid = filter(filters: filters);
-    if (filterDataValid.isEmpty) return null;
-    dynamic jsonParsed = json.encode(filterDataValid);
-    final filterString = jsonParsed.toString();
-    Codec<String, dynamic> stringToBase64 = utf8.fuse(base64);
+    try {
+      final filterDataValid = filter(filters: filters);
+      if (filterDataValid.isEmpty) return null;
+      dynamic jsonParsed = json.encode(filterDataValid);
+      final filterString = jsonParsed.toString();
+      Codec<String, dynamic> stringToBase64 = utf8.fuse(base64);
 
-    /// Encode
-    return stringToBase64.encode(filterString);
+      /// Encode
+      return stringToBase64.encode(filterString);
+    } catch (e) {
+      debugPrint(LogColor.error('FilterHelper.encode: $e'));
+      return null;
+    }
   }
 
   /// Decode filters from base64 encoded string

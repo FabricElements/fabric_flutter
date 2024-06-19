@@ -60,6 +60,7 @@ class FilterData {
   dynamic value;
 
   /// Index
+  @JsonKey(includeIfNull: true)
   int index;
 
   /// On Change
@@ -68,7 +69,7 @@ class FilterData {
   Function(FilterData)? onChange;
 
   /// Group
-  @JsonKey(includeIfNull: false)
+  @JsonKey(includeToJson: false, includeFromJson: false)
   dynamic group;
 
   FilterData({
@@ -84,10 +85,15 @@ class FilterData {
     this.group,
   });
 
-  /// Convert value from JSON
+  /// Convert value to JSON
   dynamic _valueToJson() {
     dynamic finalValue;
-    if (value is bool) {
+    final isSort = operator == FilterOperator.sort || id == 'sort';
+    if (isSort) {
+      finalValue = value != null && value[0] != null && value[1] != null
+          ? [value[0], value[1]]
+          : null;
+    } else if (value is bool) {
       finalValue = value;
     } else {
       try {
@@ -115,7 +121,7 @@ class FilterData {
           case InputDataType.phone:
           case InputDataType.url:
             if (operator == FilterOperator.between) {
-              finalValue = [value[0], value[1]];
+              finalValue = value != null ? [value[0], value[1]] : [];
             } else {
               finalValue = value;
             }
@@ -137,7 +143,7 @@ class FilterData {
             break;
         }
       } catch (e) {
-        debugPrint(LogColor.error(e));
+        debugPrint(LogColor.error('ValueToJson: $e'));
       }
     }
     return finalValue;
@@ -183,8 +189,8 @@ class FilterData {
 
   /// clear filter data
   clear() {
+    index = 0;
     operator = null;
     value = null;
-    index = 0;
   }
 }
