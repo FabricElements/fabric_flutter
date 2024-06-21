@@ -45,7 +45,7 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
     /// Define Dropdown options depending on the InputDataType
     // Ignore FilterOperator.sort
     late List<FilterOperator> dropdownOptions;
-    final filterOperatorDatesOrNumbers = [
+    List<FilterOperator> filterOperatorDatesOrNumbers = [
       FilterOperator.equal,
       FilterOperator.notEqual,
       FilterOperator.greaterThan,
@@ -54,12 +54,17 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
       FilterOperator.lessThanOrEqual,
       FilterOperator.between,
       FilterOperator.any,
+      FilterOperator.whereIn,
     ];
-    final filterOperatorExact = [
+    filterOperatorDatesOrNumbers.sort((a, b) => a.name.compareTo(b.name));
+    List<FilterOperator> filterOperatorExact = [
       FilterOperator.equal,
       FilterOperator.notEqual,
       FilterOperator.any,
+      FilterOperator.whereIn,
     ];
+    filterOperatorExact.sort((a, b) => a.name.compareTo(b.name));
+
     switch (widget.data.type) {
       case InputDataType.email:
       case InputDataType.enums:
@@ -124,40 +129,81 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
         );
         break;
       case FilterOperator.between:
+      case FilterOperator.whereIn:
+        List<dynamic> values = edit.value ?? [];
+        if (edit.operator == FilterOperator.between) {
+          values = List.generate(2, (index) {
+            if (values.length > index) {
+              return values[index];
+            }
+            return null;
+          });
+        }
+        if (edit.operator == FilterOperator.whereIn) {
+          values = values.isNotEmpty ? values : [];
+        }
+        bool isMultiple = edit.operator == FilterOperator.whereIn;
         optionInput = Flex(
           direction: Axis.vertical,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            InputData(
-              label: '${locales.get('label--value')} 1',
-              type: widget.data.type,
-              value: edit.value?[0],
-              enums: widget.data.enums,
-              options: widget.data.options,
-              onChanged: (value) {
-                edit.value = [value, edit.value?[1]];
-                // Don't update the state or the position of the input will be lost
-              },
-              onComplete: (value) {
-                edit.value = [value, edit.value?[1]];
-                if (mounted) setState(() {});
-              },
-            ),
-            space,
-            InputData(
-              label: '${locales.get('label--value')} 2',
-              type: widget.data.type,
-              value: edit.value?[1],
-              enums: widget.data.enums,
-              options: widget.data.options,
-              onChanged: (value) {
-                edit.value = [edit.value?[0], value];
-                // Don't update the state or the position of the input will be lost
-              },
-              onComplete: (value) {
-                edit.value = [edit.value?[0], value];
-                if (mounted) setState(() {});
-              },
-            ),
+            if (values.isNotEmpty)
+              ...List.generate(values.length, (index) {
+                final removeButton = IconButton(
+                  color: theme.colorScheme.error,
+                  icon: const Icon(Icons.delete),
+                  onPressed: () {
+                    values.removeAt(index);
+                    edit.value = values;
+                    if (mounted) setState(() {});
+                  },
+                );
+                Widget button = InputData(
+                  label: '${locales.get('label--value')} ${index + 1}',
+                  type: widget.data.type,
+                  value: values[index],
+                  enums: widget.data.enums,
+                  options: widget.data.options,
+                  onChanged: (value) {
+                    // Update the value at the index
+                    values[index] = value;
+                    edit.value = values;
+                    // Don't update the state or the position of the input will be lost
+                  },
+                  onComplete: (value) {
+                    // Update the value at the index
+                    values[index] = value;
+                    edit.value = values;
+                    if (mounted) setState(() {});
+                  },
+                  // suffixIcon: isMultiple ? removeButton : null,
+                  // suffix: isMultiple ? removeButton : null,
+                );
+                if (isMultiple) {
+                  button = Row(
+                    children: [
+                      Expanded(child: button),
+                      removeButton,
+                    ],
+                  );
+                }
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: button,
+                );
+              }),
+            if (isMultiple)
+              OutlinedButton.icon(
+                onPressed: () {
+                  values.add(null);
+                  edit.value = values;
+                  if (mounted) setState(() {});
+                },
+                icon: const Icon(Icons.add),
+                label: Text(locales.get('label--add-label', {
+                  'label': locales.get('label--value'),
+                })),
+              ),
           ],
         );
         break;
@@ -351,21 +397,37 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
           case InputDataType.date:
           case InputDataType.dateTime:
           case InputDataType.timestamp:
-            if (data.operator == FilterOperator.between) {
-              label += FormatData.formatDateShort().format(data.value[0]);
-              label += ' ${locales.get('label--and')} ';
-              label += FormatData.formatDateShort().format(data.value[1]);
-            } else {
-              label += FormatData.formatDateShort().format(data.value);
+            switch (data.operator) {
+              case FilterOperator.between:
+                label += FormatData.formatDateShort().format(data.value[0]);
+                label += ' ${locales.get('label--and')} ';
+                label += FormatData.formatDateShort().format(data.value[1]);
+                break;
+              case FilterOperator.whereIn:
+                label += data.value
+                    .map((e) => FormatData.formatDateShort().format(e))
+                    .join(', ');
+                break;
+              default:
+                label += FormatData.formatDateShort().format(data.value);
+                break;
             }
             break;
           case InputDataType.time:
-            if (data.operator == FilterOperator.between) {
-              label += data.value[0].format(context);
-              label += ' ${locales.get('label--and')} ';
-              label += data.value[1].format(context);
-            } else {
-              label += data.value.format(context);
+            switch (data.operator) {
+              case FilterOperator.between:
+                label += data.value[0].format(context);
+                label += ' ${locales.get('label--and')} ';
+                label += data.value[1].format(context);
+                break;
+              case FilterOperator.whereIn:
+                label += (data.value as List<dynamic>)
+                    .map((e) => e.format())
+                    .join(', ');
+                break;
+              default:
+                label += data.value.format(context);
+                break;
             }
             break;
           case InputDataType.email:
@@ -377,16 +439,33 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
           case InputDataType.string:
           case InputDataType.phone:
           case InputDataType.url:
-            if (data.operator == FilterOperator.between) {
-              label += data.value[0].toString();
-              label += ' ${locales.get('label--and')} ';
-              label += data.value[1].toString();
-            } else {
-              label += data.value.toString();
+            switch (data.operator) {
+              case FilterOperator.between:
+                label += data.value[0].toString();
+                label += ' ${locales.get('label--and')} ';
+                label += data.value[1].toString();
+                break;
+              case FilterOperator.whereIn:
+                label += (data.value as List<dynamic>)
+                    .map((e) => e.toString())
+                    .join(', ');
+                break;
+              default:
+                label += data.value.toString();
+                break;
             }
             break;
           case InputDataType.enums:
-            label += enumData.localesFromEnum(data.value);
+            switch (data.operator) {
+              case FilterOperator.whereIn:
+                label += (data.value as List<dynamic>)
+                    .map((e) => enumData.localesFromEnum(e))
+                    .join(', ');
+                break;
+              default:
+                label += enumData.localesFromEnum(data.value);
+                break;
+            }
             break;
           case InputDataType.dropdown:
           case InputDataType.radio:

@@ -35,6 +35,7 @@ const _$FilterOperatorEnumMap = {
   FilterOperator.between: 'between',
   FilterOperator.any: 'any',
   FilterOperator.sort: 'sort',
+  FilterOperator.whereIn: 'whereIn',
 };
 
 const _$InputDataTypeEnumMap = {

@@ -173,6 +173,9 @@ class FilterHelper {
       case FilterOperator.sort:
         operatorResult = '';
         break;
+      case FilterOperator.whereIn:
+        operatorResult = 'IN';
+        break;
     }
     return operatorResult;
   }
@@ -221,19 +224,38 @@ class FilterHelper {
               '${filter.id} ${_sqlOperator(operator: filter.operator!, sqlQueryType: sqlQueryType)} $value';
           break;
         case FilterOperator.between:
+          final values = filter.value as List<dynamic>;
+          if (values.isEmpty) break;
           final value1 = valueFromType(
             sqlQueryType: sqlQueryType,
             dataType: filter.type,
-            value: filter.value[0],
+            value: values[0],
           );
           final value2 = valueFromType(
             sqlQueryType: sqlQueryType,
             dataType: filter.type,
-            value: filter.value[1],
+            value: values[1],
           );
           subQuery += '${filter.id} >= $value1';
           subQuery += ' and ';
           subQuery += '${filter.id} <= $value2';
+          break;
+        case FilterOperator.whereIn:
+          final values = filter.value as List<dynamic>;
+          if (values.isEmpty) break;
+          subQuery += '${filter.id} ${_sqlOperator(operator: filter.operator!, sqlQueryType: sqlQueryType)} (';
+          for (int i = 0; i < values.length; i++) {
+            final value = valueFromType(
+              sqlQueryType: sqlQueryType,
+              dataType: filter.type,
+              value: values[i],
+            );
+            subQuery += '$value';
+            if (i < values.length - 1) {
+              subQuery += ',';
+            }
+          }
+          subQuery += ')';
           break;
         case FilterOperator.any:
           subQuery +=

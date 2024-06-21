@@ -21,6 +21,7 @@ enum FilterOperator {
   between,
   any,
   sort,
+  whereIn,
 }
 
 /// Filter Order
@@ -120,15 +121,27 @@ class FilterData {
           case InputDataType.string:
           case InputDataType.phone:
           case InputDataType.url:
-            if (operator == FilterOperator.between) {
-              finalValue = value != null ? [value[0], value[1]] : [];
-            } else {
-              finalValue = value;
+            switch (operator) {
+              case FilterOperator.between:
+              case FilterOperator.whereIn:
+                finalValue = value != null && value.isNotEmpty ? value : [];
+                break;
+              default:
+                finalValue = value;
             }
             break;
           case InputDataType.enums:
             if (value is! bool) {
-              finalValue = EnumData.describe(value);
+              switch (operator) {
+                case FilterOperator.between:
+                case FilterOperator.whereIn:
+                  finalValue = (value as List<dynamic>)
+                      .map((e) => EnumData.describe(e))
+                      .toList();
+                  break;
+                default:
+                  finalValue = EnumData.describe(value);
+              }
             }
             break;
           case InputDataType.dropdown:
@@ -160,15 +173,29 @@ class FilterData {
       case InputDataType.date:
       case InputDataType.dateTime:
       case InputDataType.timestamp:
-        if (base.operator == FilterOperator.between) {
-          finalValue = [
-            Utils.dateTimeFromJson(baseValue[0]),
-            Utils.dateTimeFromJson(baseValue[1]),
-          ];
-        } else {
-          finalValue = Utils.dateTimeFromJson(baseValue);
+        switch (base.operator) {
+          case FilterOperator.between:
+          case FilterOperator.whereIn:
+            finalValue = (baseValue as List<dynamic>)
+                .map((e) => Utils.dateTimeFromJson(e))
+                .toList();
+            break;
+          default:
+            finalValue = Utils.dateTimeFromJson(baseValue);
         }
         break;
+      // case InputDataType.enums:
+      //   switch (base.operator) {
+      //     case FilterOperator.between:
+      //     case FilterOperator.whereIn:
+      //       finalValue = (baseValue as List<dynamic>)
+      //           .map((e) => EnumData.describe(e))
+      //           .toList();
+      //       break;
+      //     default:
+      //       finalValue = EnumData.describe(base.enums, baseValue);
+      //   }
+      //   break;
       default:
         finalValue = baseValue;
         break;
