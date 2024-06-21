@@ -1115,6 +1115,10 @@ dynamic defaultLocales = {
     'en': 'Less Than or Equal',
     'es': 'Menor Que o Igual',
   },
+  'label--where-in': {
+    'en': 'In',
+    'es': 'En',
+  },
   'label--value': {
     'en': 'Value',
     'es': 'Valor',
