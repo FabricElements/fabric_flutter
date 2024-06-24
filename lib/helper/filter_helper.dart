@@ -243,7 +243,8 @@ class FilterHelper {
         case FilterOperator.whereIn:
           final values = filter.value as List<dynamic>;
           if (values.isEmpty) break;
-          subQuery += '${filter.id} ${_sqlOperator(operator: filter.operator!, sqlQueryType: sqlQueryType)} (';
+          subQuery +=
+              '${filter.id} ${_sqlOperator(operator: filter.operator!, sqlQueryType: sqlQueryType)} (';
           for (int i = 0; i < values.length; i++) {
             final value = valueFromType(
               sqlQueryType: sqlQueryType,
@@ -262,12 +263,12 @@ class FilterHelper {
               '${filter.id} ${_sqlOperator(operator: filter.operator!, sqlQueryType: sqlQueryType)}';
           break;
         case FilterOperator.sort:
-          if (filter.value == null ||
-              filter.value == true ||
-              // check if not array
-              filter.value.runtimeType.toString() != 'List<dynamic>' ||
-              filter.value[0] == null ||
-              filter.value[1] == null) {
+          if (filter.value == null || filter.value == true) {
+            break;
+          }
+          // Check if value is a list and is empty
+          if (filter.value is List && ((filter.value as List).isEmpty ||
+              filter.value[0] == null)) {
             break;
           }
           final sortBy = filter.value[0];
@@ -286,9 +287,6 @@ class FilterHelper {
         operator = 'and';
       }
       query += ' $operator $subQuery';
-    }
-    if (sort.isEmpty) {
-      sort = 'ORDER BY id ${EnumData.describe(FilterOrder.desc)}';
     }
     query += ' $sort';
     if (limit != null) query += ' limit $limit';
