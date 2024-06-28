@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pointer_interceptor/pointer_interceptor.dart';
 
 import '../helper/app_localizations_delegate.dart';
 import '../helper/enum_data.dart';
@@ -270,44 +271,46 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
         space,
       ]);
     }
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Flex(
-        direction: Axis.vertical,
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ...sections,
-          optionInput,
-          space,
-          Row(
-            children: [
-              TextButton(
-                onPressed: () {
-                  // Remove the filter if the operator is null
-                  if (edit.operator == null && edit.value != null) {
-                    edit.value = null;
+    return PointerInterceptor(
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Flex(
+          direction: Axis.vertical,
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ...sections,
+            optionInput,
+            space,
+            Row(
+              children: [
+                TextButton(
+                  onPressed: () {
+                    // Remove the filter if the operator is null
+                    if (edit.operator == null && edit.value != null) {
+                      edit.value = null;
+                      widget.onChange(edit);
+                    } else {
+                      Navigator.of(context).pop();
+                    }
+                  },
+                  child: Text(locales.get('label--cancel')),
+                ),
+                const Spacer(),
+                FilledButton(
+                  onPressed: () {
+                    // Remove the filter if the operator is null
+                    if (edit.operator == null && edit.value != null) {
+                      edit.value = null;
+                    }
                     widget.onChange(edit);
-                  } else {
-                    Navigator.of(context).pop();
-                  }
-                },
-                child: Text(locales.get('label--cancel')),
-              ),
-              const Spacer(),
-              FilledButton(
-                onPressed: () {
-                  // Remove the filter if the operator is null
-                  if (edit.operator == null && edit.value != null) {
-                    edit.value = null;
-                  }
-                  widget.onChange(edit);
-                },
-                child: Text(locales.get('label--apply')),
-              ),
-            ],
-          ),
-        ],
+                  },
+                  child: Text(locales.get('label--apply')),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -489,42 +492,45 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
     if (isSort) {
       icon = Icons.sort;
     }
-    return PopupMenuButton(
-      tooltip: locales.get(
-        'label--edit-label',
-        {'label': data.label},
-      ),
-      padding: EdgeInsets.zero,
-      onCanceled: () {
-        if (mounted) setState(() {});
-      },
-      itemBuilder: (BuildContext context) {
-        return [
-          PopupEntry(
-            child: FilterMenuOptionData(
-              data: data,
-              onChange: (newValue) {
-                Navigator.of(context).pop();
-                FilterData copy = data;
-                copy.value = newValue.value;
-                copy.operator = newValue.operator;
-                // Use 300 milliseconds to ensure the animation completes
-                // if (mounted) setState(() {});
-                Future.delayed(const Duration(milliseconds: 300)).then((time) {
-                  widget.onChange(copy);
-                });
-              },
+    return PointerInterceptor(
+      child: PopupMenuButton(
+        tooltip: locales.get(
+          'label--edit-label',
+          {'label': data.label},
+        ),
+        padding: EdgeInsets.zero,
+        onCanceled: () {
+          if (mounted) setState(() {});
+        },
+        itemBuilder: (BuildContext context) {
+          return [
+            PopupEntry(
+              child: FilterMenuOptionData(
+                data: data,
+                onChange: (newValue) {
+                  Navigator.of(context).pop();
+                  FilterData copy = data;
+                  copy.value = newValue.value;
+                  copy.operator = newValue.operator;
+                  // Use 300 milliseconds to ensure the animation completes
+                  // if (mounted) setState(() {});
+                  Future.delayed(const Duration(milliseconds: 300))
+                      .then((time) {
+                    widget.onChange(copy);
+                  });
+                },
+              ),
             ),
+          ];
+        },
+        child: Chip(
+          label: Text(label),
+          avatar: Icon(icon, color: Colors.grey),
+          onDeleted: widget.onDelete,
+          deleteButtonTooltipMessage: locales.get(
+            'label--remove-label',
+            {'label': locales.get('label--filter')},
           ),
-        ];
-      },
-      child: Chip(
-        label: Text(label),
-        avatar: Icon(icon, color: Colors.grey),
-        onDeleted: widget.onDelete,
-        deleteButtonTooltipMessage: locales.get(
-          'label--remove-label',
-          {'label': locales.get('label--filter')},
         ),
       ),
     );
@@ -690,22 +696,24 @@ class _FilterMenuState extends State<FilterMenu> {
         isFullScreen: false,
         searchController: searchController,
         builder: (BuildContext context, SearchController controller) {
-          return OutlinedButton.icon(
-            style: OutlinedButton.styleFrom(
-              foregroundColor:
-                  theme.buttonTheme.colorScheme?.primary ?? Colors.black,
-              disabledForegroundColor:
-                  theme.buttonTheme.colorScheme?.primary ?? Colors.black,
-              disabledMouseCursor: SystemMouseCursors.click,
+          return PointerInterceptor(
+            child: OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                foregroundColor:
+                    theme.buttonTheme.colorScheme?.primary ?? Colors.black,
+                disabledForegroundColor:
+                    theme.buttonTheme.colorScheme?.primary ?? Colors.black,
+                disabledMouseCursor: SystemMouseCursors.click,
+              ),
+              onPressed: () {
+                searchController.openView();
+              },
+              icon: widget.icon ?? const Icon(Icons.filter_alt),
+              label: Text(locales.get(
+                'label--add-label',
+                {'label': locales.get('label--filters')},
+              )),
             ),
-            onPressed: () {
-              searchController.openView();
-            },
-            icon: widget.icon ?? const Icon(Icons.filter_alt),
-            label: Text(locales.get(
-              'label--add-label',
-              {'label': locales.get('label--filters')},
-            )),
           );
         },
         suggestionsBuilder: (BuildContext c, SearchController controller) {
@@ -719,7 +727,7 @@ class _FilterMenuState extends State<FilterMenu> {
               return labelMatch || valueMatch;
             }).toList();
           }
-          return List<ListTile>.generate(recommendations.length, (int index) {
+          return List.generate(recommendations.length, (int index) {
             final item = recommendations[index];
             FilterData selected =
                 data.singleWhere((element) => element.id == item.id);
@@ -727,50 +735,53 @@ class _FilterMenuState extends State<FilterMenu> {
             bool isSort = selected.operator == FilterOperator.sort ||
                 selected.id == 'sort';
             if (isSort) icon = Icons.sort;
-            return ListTile(
-              leading: Icon(icon),
-              title: Text(
-                item.label,
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
+            return PointerInterceptor(
+              child: ListTile(
+                leading: Icon(icon),
+                title: Text(
+                  item.label,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+                onTap: () {
+                  controller.closeView(null);
+                  int newIndex = activeOptions.length + 1;
+                  selected.index = newIndex;
+                  if (isSort) {
+                    /// Add Sort by
+                    selected.value = [null, null];
+                    selected.operator = FilterOperator.sort;
+                    selected.id = 'sort';
+                    selected.label = locales.get('label--sort-by');
+                    selected.options = sortOptions;
+                    selected.type = InputDataType.dropdown;
+                    // Update index
+                    selected.index = 1;
+                  }
+                  Future.delayed(const Duration(milliseconds: 50))
+                      .then((value) {
+                    showDialog<void>(
+                      barrierDismissible: false, // user must tap button!
+                      context: context,
+                      builder: (BuildContext ctx) {
+                        return AlertDialog(
+                          scrollable: true,
+                          content: FilterMenuOptionData(
+                            data: selected,
+                            onChange: (newValue) {
+                              Navigator.of(context).pop();
+                              final merged = FilterHelper.merge(
+                                  filters: data, merge: [newValue]);
+                              widget.onChange(merged);
+                            },
+                          ),
+                        );
+                      },
+                    );
+                  });
+                  // Do not call onChange or it will trigger unwanted calls
+                },
               ),
-              onTap: () {
-                controller.closeView(null);
-                int newIndex = activeOptions.length + 1;
-                selected.index = newIndex;
-                if (isSort) {
-                  /// Add Sort by
-                  selected.value = [null, null];
-                  selected.operator = FilterOperator.sort;
-                  selected.id = 'sort';
-                  selected.label = locales.get('label--sort-by');
-                  selected.options = sortOptions;
-                  selected.type = InputDataType.dropdown;
-                  // Update index
-                  selected.index = 1;
-                }
-                Future.delayed(const Duration(milliseconds: 50)).then((value) {
-                  showDialog<void>(
-                    barrierDismissible: false, // user must tap button!
-                    context: context,
-                    builder: (BuildContext ctx) {
-                      return AlertDialog(
-                        scrollable: true,
-                        content: FilterMenuOptionData(
-                          data: selected,
-                          onChange: (newValue) {
-                            Navigator.of(context).pop();
-                            final merged = FilterHelper.merge(
-                                filters: data, merge: [newValue]);
-                            widget.onChange(merged);
-                          },
-                        ),
-                      );
-                    },
-                  );
-                });
-                // Do not call onChange or it will trigger unwanted calls
-              },
             );
           });
         },

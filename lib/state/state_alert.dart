@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:pointer_interceptor/pointer_interceptor.dart';
 
 import '../component/smart_image.dart';
 import '../helper/app_localizations_delegate.dart';
@@ -346,53 +347,57 @@ class StateAlert implements Listenable {
     bool hasAction = alertData.action!.onTap != null;
     bool showAction = hasAction || hasValidPath;
     bool hasDismissAction = alertData.dismiss!.onTap != null;
-    actions.add(TextButton.icon(
-      style: TextButton.styleFrom(foregroundColor: buttonColor),
-      icon: Icon(alertData.dismiss!.icon!),
-      label: Text(locales.get(alertData.dismiss!.label).toUpperCase()),
-      onPressed: () async {
-        try {
-          if (hasDismissAction) {
-            await alertData.dismiss!.onTap!();
-          }
-          dismissAlerts(widget: alertData.widget);
-        } catch (e) {
-          debugPrint(LogColor.error('Dismiss click: $e'));
-        }
-      },
-    ));
-    if (showAction) {
-      actions.add(FilledButton.icon(
-        style: FilledButton.styleFrom(
-            backgroundColor: buttonColor,
-            foregroundColor: buttonColorForeground),
-        label: Text(locales.get(alertData.action!.label).toUpperCase()),
-        icon: Icon(alertData.action!.icon),
+    actions.add(PointerInterceptor(
+      child: TextButton.icon(
+        style: TextButton.styleFrom(foregroundColor: buttonColor),
+        icon: Icon(alertData.dismiss!.icon!),
+        label: Text(locales.get(alertData.dismiss!.label).toUpperCase()),
         onPressed: () async {
           try {
-            if (hasAction) {
-              await alertData.action!.onTap!();
+            if (hasDismissAction) {
+              await alertData.dismiss!.onTap!();
             }
             dismissAlerts(widget: alertData.widget);
-            if (context!.mounted) {
-              if (hasValidPath) {
-                final path = alertData.action!.path!;
-                if (alertData.action!.queryParameters != null) {
-                  final uri = Uri(path: path);
-                  Utils.pushNamedFromQuery(
-                    context: context!,
-                    uri: uri,
-                    queryParameters: alertData.action!.queryParameters!,
-                  );
-                } else {
-                  Navigator.of(context!).pushNamed(path);
-                }
-              }
-            }
           } catch (e) {
-            debugPrint(LogColor.error('Action click: $e'));
+            debugPrint(LogColor.error('Dismiss click: $e'));
           }
         },
+      ),
+    ));
+    if (showAction) {
+      actions.add(PointerInterceptor(
+        child: FilledButton.icon(
+          style: FilledButton.styleFrom(
+              backgroundColor: buttonColor,
+              foregroundColor: buttonColorForeground),
+          label: Text(locales.get(alertData.action!.label).toUpperCase()),
+          icon: Icon(alertData.action!.icon),
+          onPressed: () async {
+            try {
+              if (hasAction) {
+                await alertData.action!.onTap!();
+              }
+              dismissAlerts(widget: alertData.widget);
+              if (context!.mounted) {
+                if (hasValidPath) {
+                  final path = alertData.action!.path!;
+                  if (alertData.action!.queryParameters != null) {
+                    final uri = Uri(path: path);
+                    Utils.pushNamedFromQuery(
+                      context: context!,
+                      uri: uri,
+                      queryParameters: alertData.action!.queryParameters!,
+                    );
+                  } else {
+                    Navigator.of(context!).pushNamed(path);
+                  }
+                }
+              }
+            } catch (e) {
+              debugPrint(LogColor.error('Action click: $e'));
+            }
+          },
+        ),
       ));
     }
 
@@ -414,11 +419,16 @@ class StateAlert implements Listenable {
     Widget content = Container(
       padding: EdgeInsets.all(basePadding),
       color: alertData.color,
-      child: Flex(
-        direction: Axis.vertical,
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: mainItems,
+      child: PointerInterceptor(
+        child: SizedBox(
+          width: double.maxFinite,
+          child: Flex(
+            direction: Axis.vertical,
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: mainItems,
+          ),
+        ),
       ),
     );
 

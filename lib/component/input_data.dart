@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:pointer_interceptor/pointer_interceptor.dart';
 
 import '../helper/app_localizations_delegate.dart';
 import '../helper/enum_data.dart';
@@ -814,7 +815,7 @@ getValue -------------------------------------
             // key: Key('search-anchor-$optionsHash'),
             searchController: searchController,
             builder: (BuildContext context, SearchController controller) {
-              return widgetInput;
+              return PointerInterceptor(child: widgetInput);
             },
             suggestionsBuilder:
                 (BuildContext context, SearchController controller) {
@@ -832,8 +833,7 @@ getValue -------------------------------------
                   return labelMatch || valueMatch || labelAltMatch;
                 }).toList();
               }
-              return List<ListTile>.generate(recommendations.length,
-                  (int index) {
+              return List.generate(recommendations.length, (int index) {
                 final item = recommendations[index];
 
                 /// Leading
@@ -872,24 +872,26 @@ getValue -------------------------------------
                     ),
                   );
                 }
-                return ListTile(
-                  leading: leading,
-                  trailing: trailing,
-                  title: Text(item.label),
-                  onTap: () {
-                    controller.closeView('');
-                    if (widget.onChanged != null && item.value != value) {
-                      widget.onChanged!(item.value);
-                    }
-                    if (widget.onChanged != null) {
-                      widget.onChanged!(item.value == '' ? null : item.value);
-                    }
-                    if (widget.onComplete != null) {
-                      widget.onComplete!(item.value);
-                    }
-                    if (widget.onSubmit != null) widget.onSubmit!(item.value);
-                    // if (mounted) setState(() {});
-                  },
+                return PointerInterceptor(
+                  child: ListTile(
+                    leading: leading,
+                    trailing: trailing,
+                    title: Text(item.label),
+                    onTap: () {
+                      controller.closeView('');
+                      if (widget.onChanged != null && item.value != value) {
+                        widget.onChanged!(item.value);
+                      }
+                      if (widget.onChanged != null) {
+                        widget.onChanged!(item.value == '' ? null : item.value);
+                      }
+                      if (widget.onComplete != null) {
+                        widget.onComplete!(item.value);
+                      }
+                      if (widget.onSubmit != null) widget.onSubmit!(item.value);
+                      // if (mounted) setState(() {});
+                    },
+                  ),
                 );
               });
             },
@@ -973,9 +975,11 @@ getValue -------------------------------------
         );
         break;
     }
-    return Container(
-      margin: widget.margin,
-      child: endWidget,
+    return PointerInterceptor(
+      child: Container(
+        margin: widget.margin,
+        child: endWidget,
+      ),
     );
   }
 }
