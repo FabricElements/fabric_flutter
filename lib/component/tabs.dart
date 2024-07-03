@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../helper/options.dart';
 
-class Tabs extends StatelessWidget {
+class Tabs extends StatefulWidget {
   const Tabs({
     super.key,
     required this.tabs,
@@ -11,43 +11,47 @@ class Tabs extends StatelessWidget {
   final List<ButtonOptions> tabs;
 
   @override
+  State<Tabs> createState() => _TabsState();
+}
+
+class _TabsState extends State<Tabs> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(vsync: this, length: widget.tabs.length);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    TabBarTheme tbTheme = theme.tabBarTheme;
-    List<Widget> tabList = List.generate(tabs.length, (i) {
-      final option = tabs[i];
-      bool hasAction = option.path != null || option.onTap != null;
-      TextStyle? labelStyle = (option.selected
-              ? tbTheme.labelStyle ?? theme.primaryTextTheme.bodyLarge
-              : tbTheme.unselectedLabelStyle ??
-                  theme.primaryTextTheme.bodyLarge)
-          ?.copyWith(
-        color:
-            option.selected ? tbTheme.labelColor : tbTheme.unselectedLabelColor,
-      );
-      Color? indicatorColor = option.selected ? theme.indicatorColor : null;
-      return Expanded(
-        child: RawMaterialButton(
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          fillColor: indicatorColor,
-          textStyle: labelStyle,
-          onPressed: !hasAction
-              ? null
-              : () {
-                  if (option.onTap != null) option.onTap!();
-                  if (option.path != null) {
-                    Navigator.of(context).popAndPushNamed(option.path!);
-                  }
-                },
-          padding: tbTheme.labelPadding ?? EdgeInsets.zero,
-          child: Text(option.label),
-        ),
+    List<Tab> tabList = List.generate(widget.tabs.length, (i) {
+      final option = widget.tabs[i];
+      return Tab(
+        text: option.label,
+        icon: option.icon != null ? Icon(option.icon) : null,
       );
     });
-
-    return Flex(
-      direction: Axis.horizontal,
-      children: tabList,
+    final selected = widget.tabs.indexWhere((element) => element.selected);
+    _tabController.index = selected;
+    return TabBar(
+      controller: _tabController,
+      tabs: tabList,
+      isScrollable: true,
+      tabAlignment: TabAlignment.start,
+      onTap: (index) {
+        final option = widget.tabs[index];
+        if (option.onTap != null) option.onTap!();
+        if (option.path != null) {
+          Navigator.of(context).popAndPushNamed(option.path!);
+        }
+      },
     );
   }
 }
