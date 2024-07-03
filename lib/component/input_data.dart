@@ -119,8 +119,6 @@ class InputData extends StatefulWidget {
     this.utcOffset,
     this.validator,
     this.backgroundColor,
-    // icon == prefixIcon
-    this.icon,
     this.error,
     this.textStyle,
     this.obscureText = false,
@@ -156,7 +154,6 @@ class InputData extends StatefulWidget {
   final int? utcOffset;
   final FormFieldValidator<String>? validator;
   final Color? backgroundColor;
-  final IconData? icon;
   final String? error;
   final TextStyle? textStyle;
   final bool obscureText;
@@ -446,27 +443,9 @@ getValue -------------------------------------
       errorText = widget.error;
     }
 
-    Widget? inputIcon;
-    switch (widget.type) {
-      case InputDataType.int:
-      case InputDataType.double:
-      case InputDataType.currency:
-      case InputDataType.percent:
-      case InputDataType.string:
-      case InputDataType.text:
-      case InputDataType.phone:
-      case InputDataType.email:
-      case InputDataType.secret:
-      case InputDataType.url:
-      case InputDataType.bool:
-        inputIcon = widget.icon != null ? Icon(widget.icon) : null;
-        break;
-      default:
-    }
-
-    Widget? inputTrailingIcon;
+    Widget? inputSuffixIcon;
     if (obscure) {
-      inputTrailingIcon = IconButton(
+      inputSuffixIcon = IconButton(
         onPressed: () {
           obscureText = !obscureText;
           if (mounted) setState(() {});
@@ -566,8 +545,8 @@ getValue -------------------------------------
       enabled: !widget.disabled,
       prefix: widget.prefix,
       suffix: widget.suffix,
-      prefixIcon: widget.prefixIcon ?? inputIcon,
-      suffixIcon: widget.suffixIcon ?? inputTrailingIcon,
+      prefixIcon: widget.prefixIcon,
+      suffixIcon: widget.suffixIcon ?? inputSuffixIcon,
       prefixText: widget.prefixText ?? prefixText,
       suffixText: widget.suffixText,
       prefixStyle: widget.prefixStyle,
@@ -575,14 +554,9 @@ getValue -------------------------------------
       labelText: widget.label,
       labelStyle: theme.textTheme.bodyMedium,
       floatingLabelBehavior: widget.floatingLabelBehavior,
-      // floatingLabelBehavior: FloatingLabelBehavior.always,
-      // helperText: defaultText,
-      // constraints: const BoxConstraints(maxWidth: double.maxFinite, maxHeight: double.maxFinite),
-      // constraints: isDense ? const BoxConstraints(minHeight: 30) : null,
       contentPadding: isDense
           ? const EdgeInsets.symmetric(horizontal: 4, vertical: 4)
           : widget.padding,
-      // constraints: BoxConstraints(minHeight: minHeight),
     );
 
     switch (widget.type) {

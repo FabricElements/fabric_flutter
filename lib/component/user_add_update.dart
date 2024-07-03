@@ -165,7 +165,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     Widget phoneInput = SizedBox(
       width: double.maxFinite,
       child: InputData(
-        icon: Icons.phone,
+        prefixIcon: const Icon(Icons.phone),
         label: locales.get('label--phone-number'),
         isExpanded: true,
         value: data.phone,
@@ -180,7 +180,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     Widget emailInput = SizedBox(
       width: double.maxFinite,
       child: InputData(
-        icon: Icons.email,
+        prefixIcon: const Icon(Icons.email),
         label: locales.get('label--email'),
         isExpanded: true,
         value: data.email,
@@ -196,7 +196,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     Widget usernameInput = SizedBox(
       width: double.maxFinite,
       child: InputData(
-        icon: Icons.alternate_email,
+        prefixIcon: const Icon(Icons.alternate_email),
         label: locales.get('label--username'),
         isExpanded: true,
         value: data.username,
@@ -237,7 +237,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     final inputValidation = InputValidation(locales: locales);
 
     Widget passwordInput = InputData(
-      icon: Icons.lock,
+      prefixIcon: const Icon(Icons.lock),
       label: locales.get('label--password'),
       isExpanded: true,
       value: data.password,
@@ -300,7 +300,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       ]);
       inviteWidgets.addAll([
         InputData(
-          icon: Icons.security,
+          prefixIcon: const Icon(Icons.security),
           label: locales.get('label--role'),
           value: data.role,
           type: InputDataType.dropdown,
@@ -337,7 +337,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
         final groupsRoles = item.value;
         inviteWidgets.addAll([
           InputData(
-            icon: Icons.security,
+            prefixIcon: const Icon(Icons.security),
             label: locales.get('label--role-for-label',
                 {'label': locales.get('label--${item.key}')}),
             value: data.groups[item.key],

@@ -699,7 +699,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         child: InputData(
           value: dataAuth.phone,
           type: InputDataType.phone,
-          icon: Icons.phone,
+          prefixIcon: const Icon(Icons.phone),
           label: locales.get('label--phone-number'),
           isExpanded: true,
           maxLength: 14,
