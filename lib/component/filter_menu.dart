@@ -204,6 +204,12 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
                 label: Text(locales.get('label--add-label', {
                   'label': locales.get('label--value'),
                 })),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: theme.buttonTheme.colorScheme?.primary,
+                  side: BorderSide(
+                      color: theme.buttonTheme.colorScheme?.primary ??
+                          theme.colorScheme.primary),
+                ),
               ),
           ],
         );
@@ -365,6 +371,7 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context);
     final enumData = EnumData(locales: locales);
+    final theme = Theme.of(context);
 
     /// Label value
     String dataOperatorString = enumData.localesFromEnum(data.operator);
@@ -525,7 +532,7 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
         },
         child: Chip(
           label: Text(label),
-          avatar: Icon(icon, color: Colors.grey),
+          avatar: Icon(icon, color: theme.colorScheme.onSurface),
           onDeleted: widget.onDelete,
           deleteButtonTooltipMessage: locales.get(
             'label--remove-label',
@@ -699,10 +706,14 @@ class _FilterMenuState extends State<FilterMenu> {
           return PointerInterceptor(
             child: OutlinedButton.icon(
               style: OutlinedButton.styleFrom(
-                foregroundColor:
-                    theme.buttonTheme.colorScheme?.primary ?? Colors.black,
+                foregroundColor: theme.buttonTheme.colorScheme?.primary ??
+                    theme.colorScheme.primary,
                 disabledForegroundColor:
-                    theme.buttonTheme.colorScheme?.primary ?? Colors.black,
+                    theme.buttonTheme.colorScheme?.primary ??
+                        theme.colorScheme.primary,
+                side: BorderSide(
+                    color: theme.buttonTheme.colorScheme?.primary ??
+                        theme.colorScheme.primary),
                 disabledMouseCursor: SystemMouseCursors.click,
               ),
               onPressed: () {
@@ -791,6 +802,8 @@ class _FilterMenuState extends State<FilterMenu> {
       menuOptions.add(OutlinedButton.icon(
         style: OutlinedButton.styleFrom(
           foregroundColor: theme.buttonTheme.colorScheme?.error ?? Colors.red,
+          side: BorderSide(
+              color: theme.buttonTheme.colorScheme?.error ?? Colors.red),
         ),
         onPressed: clear,
         icon: widget.iconClear ?? const Icon(Icons.clear),
