@@ -90,6 +90,8 @@ class _ExpansionTableState extends State<ExpansionTable> {
     if (widget.data == null) return const SizedBox();
     TableData data = widget.data!;
     final theme = Theme.of(context);
+    // Define MaterialState
+    Set<MaterialState> states = <MaterialState>{};
     // final textTheme = theme.textTheme;
     final BorderSide borderSide = Divider.createBorderSide(
       context,
@@ -283,7 +285,7 @@ class _ExpansionTableState extends State<ExpansionTable> {
           if (data.level.isEven) rowDarker = !rowDarker;
           double rowOpacity = 0;
           rowOpacity = rowDarker ? 0.5 : 0;
-          Color dataRowColor = widget.dataRowColor ?? Colors.grey.shade50;
+          Color dataRowColor = widget.dataRowColor ?? theme.dataTableTheme.dataRowColor?.resolve(states) ?? Colors.transparent;
           dataRowColor = dataRowColor.withOpacity(rowOpacity);
           Color rowColor = !isFooter
               ? dataRowColor
@@ -354,13 +356,12 @@ class _ExpansionTableState extends State<ExpansionTable> {
         double headingRowHeight = widget.headingRowHeight ??
             theme.dataTableTheme.headingRowHeight ??
             56;
-        // double totalWidth =
-        //     (data.header!.length * 300) + effectiveHorizontalMargin;
         Widget columns = Material(
           elevation: 1,
           textStyle:
               widget.headingTextStyle ?? theme.dataTableTheme.headingTextStyle,
-          color: widget.headingRowColor ?? Colors.grey.shade100,
+          color: widget.headingRowColor ??
+              theme.dataTableTheme.headingRowColor?.resolve(states),
           child: Container(
             padding:
                 EdgeInsets.symmetric(horizontal: effectiveHorizontalMargin),
