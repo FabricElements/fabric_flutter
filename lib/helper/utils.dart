@@ -123,11 +123,17 @@ class Utils {
     required BuildContext context,
     required Map<String, List<String>> queryParameters,
     required Uri uri,
+    bool pop = false,
   }) {
-    Navigator.of(context).pushNamed(uriMergeQuery(
+    final newPath = uriMergeQuery(
       uri: uri,
       queryParameters: queryParameters,
-    ).toString());
+    ).toString();
+    if (pop) {
+      Navigator.of(context).popAndPushNamed(newPath);
+    } else {
+      Navigator.of(context).pushNamed(newPath);
+    }
   }
 
   static DateTime? dateTimeOffset({
