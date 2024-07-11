@@ -4,7 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../helper/format_data.dart';
 import '../serialized/table_data.dart';
 
-/// [ExpansionTable]
+/// ExpansionTable
 /// Example:
 /// -----------------------
 class ExpansionTable extends StatefulWidget {
@@ -74,35 +74,21 @@ class ExpansionTable extends StatefulWidget {
 
 double _widthColumn = 350; // default: 100
 
-// class _NullTableColumnWidth extends TableColumnWidth {
-//   const _NullTableColumnWidth();
-//
-//   @override
-//   double maxIntrinsicWidth(Iterable<RenderBox> cells, double containerWidth) => throw UnimplementedError();
-//
-//   @override
-//   double minIntrinsicWidth(Iterable<RenderBox> cells, double containerWidth) => throw UnimplementedError();
-// }
-
 class _ExpansionTableState extends State<ExpansionTable> {
   @override
   Widget build(BuildContext context) {
     if (widget.data == null) return const SizedBox();
     TableData data = widget.data!;
     final theme = Theme.of(context);
+    // Define MaterialState
+    Set<MaterialState> states = <MaterialState>{};
     // final textTheme = theme.textTheme;
     final BorderSide borderSide = Divider.createBorderSide(
       context,
       width:
           widget.dividerThickness ?? theme.dataTableTheme.dividerThickness ?? 1,
     );
-    // final Border? border = widget.showBottomBorder
-    //     ? Border(bottom: borderSide)
-    //     : index == 0 ? null : Border(top: borderSide);
     ScrollController controllerHorizontal = ScrollController();
-
-    // List<Widget> _columns = _getColumns(columns: data.header!);
-    // final List<TableColumnWidth> tableColumns = List<TableColumnWidth>.filled(data.header!.length + (displayCheckboxColumn ? 1 : 0), const _NullTableColumnWidth());
     final List<TableColumnWidth> tableColumns = List<TableColumnWidth>.filled(
         data.header!.length, const FixedColumnWidth(300.0));
     final double effectiveHorizontalMargin =
@@ -113,9 +99,6 @@ class _ExpansionTableState extends State<ExpansionTable> {
 
     List<Widget> columnsList = List.generate(data.header!.length, (index) {
       final column = data.header![index];
-      // double _paddingLeft = index > 0 ? effectiveColumnSpacing / 2 : effectiveColumnSpacing;
-      // double _paddingRight =
-      //     index < data.header!.length ? effectiveColumnSpacing / 2 : effectiveColumnSpacing;
       return ClipRect(
         clipBehavior: Clip.antiAlias,
         child: Container(
@@ -193,14 +176,7 @@ class _ExpansionTableState extends State<ExpansionTable> {
                 default:
                   baseCell = Text(cellValue.toString());
               }
-
-              /// Format correct cell value
-              // _baseCell = Text(cellValue.toString());
             }
-            // double _paddingLeft = index > 0 ? effectiveColumnSpacing / 2 : 0;
-            // double _paddingRight = index < data.header!.length
-            //     ? effectiveColumnSpacing / 2
-            //     : 0;
             if (index == 0) {
               double childLeftSpace = 0;
               childLeftSpace = (data.level.toDouble()) * 16;
@@ -282,15 +258,14 @@ class _ExpansionTableState extends State<ExpansionTable> {
           bool rowDarker = rowIndex.isEven;
           if (data.level.isEven) rowDarker = !rowDarker;
           double rowOpacity = 0;
-          rowOpacity = rowDarker ? 0.5 : 0;
-          Color dataRowColor = widget.dataRowColor ?? Colors.grey.shade50;
+          rowOpacity = rowDarker ? 0.02 : 0;
+          Color dataRowColor = widget.dataRowColor ??
+              theme.dataTableTheme.dataRowColor?.resolve(states) ??
+              Colors.transparent;
           dataRowColor = dataRowColor.withOpacity(rowOpacity);
           Color rowColor = !isFooter
               ? dataRowColor
               : widget.dataFooterColor ?? Colors.transparent;
-          // DataTable
-          // TextStyle? _dataTextStyle =
-          //     widget.dataTextStyle ?? textTheme.bodyText1;
           Widget rowWidget = Material(
             textStyle:
                 widget.dataTextStyle ?? theme.dataTableTheme.dataTextStyle,
@@ -338,29 +313,25 @@ class _ExpansionTableState extends State<ExpansionTable> {
           data.rows.length,
           (index) => getRows(row: data.rows[index], rowIndex: index),
         );
-
         if (data.footer != null && data.footer!.isNotEmpty) {
           TableRowData footer = TableRowData(
             cells: data.footer!,
           );
           rowsList.add(getRows(row: footer, isFooter: true));
         }
-
         Widget rows = Flex(
           direction: Axis.vertical,
           children: rowsList,
         );
-
         double headingRowHeight = widget.headingRowHeight ??
             theme.dataTableTheme.headingRowHeight ??
             56;
-        // double totalWidth =
-        //     (data.header!.length * 300) + effectiveHorizontalMargin;
         Widget columns = Material(
           elevation: 1,
           textStyle:
               widget.headingTextStyle ?? theme.dataTableTheme.headingTextStyle,
-          color: widget.headingRowColor ?? Colors.grey.shade100,
+          color: widget.headingRowColor ??
+              theme.dataTableTheme.headingRowColor?.resolve(states),
           child: Container(
             padding:
                 EdgeInsets.symmetric(horizontal: effectiveHorizontalMargin),

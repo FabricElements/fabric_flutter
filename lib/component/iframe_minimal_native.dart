@@ -58,8 +58,9 @@ class _IframeMinimalState extends State<IframeMinimal> {
   Widget build(BuildContext context) {
     if (widget.src == null) return const SizedBox();
     final id = '#iframe-${widget.src.hashCode}';
+    final theme = Theme.of(context);
     return Container(
-      color: Colors.white,
+      color: theme.colorScheme.background,
       constraints: const BoxConstraints(
         minHeight: 300,
         minWidth: double.maxFinite,
