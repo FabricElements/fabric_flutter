@@ -949,11 +949,9 @@ getValue -------------------------------------
         );
         break;
     }
-    return PointerInterceptor(
-      child: Container(
-        margin: widget.margin,
-        child: endWidget,
-      ),
+    return Container(
+      margin: widget.margin,
+      child: endWidget,
     );
   }
 }
