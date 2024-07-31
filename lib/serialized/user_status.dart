@@ -19,9 +19,7 @@ class UserStatus {
   final String language;
 
   /// Theme Mode
-  @JsonKey(
-      includeIfNull: false,
-      unknownEnumValue: ThemeMode.system)
+  @JsonKey(includeIfNull: false, unknownEnumValue: ThemeMode.system)
   final ThemeMode theme;
 
   /// Internet connection status

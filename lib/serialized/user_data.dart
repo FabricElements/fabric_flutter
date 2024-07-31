@@ -187,7 +187,12 @@ class UserData {
   final String? bsiId;
 
   /// Theme Mode
-  @JsonKey(includeIfNull: false, defaultValue: ThemeMode.system, unknownEnumValue: ThemeMode.system)
+
+  @JsonKey(
+    includeIfNull: false,
+    defaultValue: ThemeMode.system,
+    unknownEnumValue: ThemeMode.system,
+  )
   final ThemeMode theme;
 
   UserData({

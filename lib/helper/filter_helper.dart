@@ -267,8 +267,8 @@ class FilterHelper {
             break;
           }
           // Check if value is a list and is empty
-          if (filter.value is List && ((filter.value as List).isEmpty ||
-              filter.value[0] == null)) {
+          if (filter.value is List &&
+              ((filter.value as List).isEmpty || filter.value[0] == null)) {
             break;
           }
           final sortBy = filter.value[0];
