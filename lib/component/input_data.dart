@@ -854,9 +854,6 @@ getValue -------------------------------------
                     onTap: () {
                       controller.closeView('');
                       if (widget.onChanged != null && item.value != value) {
-                        widget.onChanged!(item.value);
-                      }
-                      if (widget.onChanged != null) {
                         widget.onChanged!(item.value == '' ? null : item.value);
                       }
                       if (widget.onComplete != null) {
@@ -892,23 +889,6 @@ getValue -------------------------------------
               if (widget.onSubmit != null) widget.onSubmit!(value);
             },
           );
-          // return ListTile(
-          //   title: Text(e.label),
-          //   leading: Radio<String?>(
-          //     value: e.value?.toString(),
-          //     groupValue: value?.toString(),
-          //     onChanged: (String? value) {
-          //       if (widget.onChanged != null) {
-          //         widget.onChanged!(value == '' ? null : value);
-          //       }
-          //     },
-          //   ),
-          //   onTap: () {
-          //     if (widget.onChanged != null) {
-          //       widget.onChanged!(e.value?.toString() == '' ? null : e.value);
-          //     }
-          //   },
-          // );
         });
         endWidget = Flex(
           direction: Axis.vertical,
