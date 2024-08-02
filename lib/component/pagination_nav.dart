@@ -19,6 +19,7 @@ class PaginationNav extends StatelessWidget {
     required this.limit,
     required this.limitChange,
     this.limits = const [5, 10, 20, 50],
+    this.children = const [],
   });
 
   final int page;
@@ -32,6 +33,7 @@ class PaginationNav extends StatelessWidget {
   final int initialPage;
   final int totalPages;
   final List<int> limits;
+  final List<Widget> children;
 
   @override
   Widget build(BuildContext context) {
@@ -82,6 +84,12 @@ class PaginationNav extends StatelessWidget {
             ),
           ),
         ];
+        if (children.isNotEmpty) {
+          actions.addAll([
+            space,
+            ...children,
+          ]);
+        }
         if (mobileBreakpoint) {
           actions.add(const Spacer());
         } else {
