@@ -138,6 +138,7 @@ class InputData extends StatefulWidget {
     this.prefixStyle,
     this.floatingLabelBehavior,
     this.searchController,
+    this.asLocalTime = false,
   });
 
   final dynamic value;
@@ -214,6 +215,11 @@ class InputData extends StatefulWidget {
   /// If this is null, one internal search controller is created automatically
   /// and it is used to open the search view when the user taps on the anchor.
   final SearchController? searchController;
+
+  /// Show local time
+  /// If true, the time will be shown in the local time zone
+  /// if false, the time will be shown in the UTC time zone
+  final bool asLocalTime;
 
   @override
   State<InputData> createState() => _InputDataState();
@@ -293,22 +299,28 @@ class _InputDataState extends State<InputData> {
         case InputDataType.date:
         case InputDataType.dateTime:
         case InputDataType.timestamp:
-          value = newValue != null ? newValue as DateTime : null;
-          if (value != null && widget.utcOffset != null) {
-            value = Utils.dateTimeOffset(
-              dateTime: value,
+          DateTime? baseValue = newValue != null ? newValue as DateTime : null;
+          if (baseValue != null && widget.utcOffset != null) {
+            baseValue = Utils.dateTimeOffset(
+              dateTime: baseValue,
               utcOffset: widget.utcOffset,
             );
           }
-          if (value != null) {
+          // Set the text
+          baseValue =
+              widget.asLocalTime ? baseValue?.toLocal() : baseValue?.toUtc();
+          if (baseValue != null) {
             if (widget.type == InputDataType.date) {
-              textController.text = formatDate.format(value);
+              textController.text = formatDate.format(baseValue);
             } else {
-              textController.text = formatDateTime.format(value);
+              textController.text = formatDateTime.format(baseValue);
             }
           } else {
             textController.text = '';
           }
+          // Set the value
+          value = baseValue;
+
           if (notify && mounted) setState(() {});
           break;
         case InputDataType.time:
@@ -629,8 +641,12 @@ getValue -------------------------------------
                 Icon(inputDataTypeIcon(widget.type)),
           ),
           onTap: () async {
-            DateTime now = DateTime.now().toUtc();
+            // Apply format depending on [showAsLocalTime]
+            DateTime now =
+                widget.asLocalTime ? DateTime.now() : DateTime.timestamp();
             DateTime date = value ?? now;
+            date = widget.asLocalTime ? date.toLocal() : date.toUtc();
+            // If the date is in the future, use the current date
             DateTime dateBefore = now;
             DateTime dateAfter = now;
             if (value != null) {
@@ -697,11 +713,24 @@ getValue -------------------------------------
               );
             }
             if (picked != null) {
-              final newDate = Utils.dateTimeOffset(
-                dateTime: picked,
-                utcOffset: widget.utcOffset,
-                reverse: true,
-              );
+              DateTime newDate = picked;
+              if (widget.utcOffset != null && widget.utcOffset != 0) {
+                newDate = Utils.dateTimeOffset(
+                  dateTime: picked,
+                  utcOffset: widget.utcOffset,
+                  reverse: true,
+                )!;
+              }
+              // Apply local time or utc time
+              if (widget.asLocalTime) {
+                newDate = newDate.toLocal();
+              } else {
+                // add Z to the end of the date to indicate it's UTC
+                // if it's not already UTC
+                if (!newDate.isUtc) {
+                  newDate = DateTime.parse('${newDate.toIso8601String()}Z');
+                }
+              }
               if (widget.onChanged != null) widget.onChanged!(newDate);
               if (widget.onComplete != null) widget.onComplete!(newDate);
               if (widget.onSubmit != null) widget.onSubmit!(newDate);
