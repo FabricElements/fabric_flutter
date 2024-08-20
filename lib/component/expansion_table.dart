@@ -81,7 +81,7 @@ class _ExpansionTableState extends State<ExpansionTable> {
     TableData data = widget.data!;
     final theme = Theme.of(context);
     // Define MaterialState
-    Set<MaterialState> states = <MaterialState>{};
+    Set<WidgetState> states = <WidgetState>{};
     // final textTheme = theme.textTheme;
     final BorderSide borderSide = Divider.createBorderSide(
       context,

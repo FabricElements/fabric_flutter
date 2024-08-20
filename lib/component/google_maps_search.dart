@@ -245,7 +245,7 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
                 child: Material(
                   clipBehavior: Clip.hardEdge,
-                  color: theme.colorScheme.surfaceVariant,
+                  color: theme.colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(8),
                   child: ConstrainedBox(
                     constraints: BoxConstraints(

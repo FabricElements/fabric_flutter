@@ -60,7 +60,7 @@ class _IframeMinimalState extends State<IframeMinimal> {
     final id = '#iframe-${widget.src.hashCode}';
     final theme = Theme.of(context);
     return Container(
-      color: theme.colorScheme.background,
+      color: theme.colorScheme.surface,
       constraints: const BoxConstraints(
         minHeight: 300,
         minWidth: double.maxFinite,

@@ -1,7 +1,7 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:omni_datetime_picker/omni_datetime_picker.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 
 import '../helper/app_localizations_delegate.dart';
@@ -666,50 +666,15 @@ getValue -------------------------------------
               );
             } else if (widget.type == InputDataType.dateTime ||
                 widget.type == InputDataType.timestamp) {
-              picked = await showDialog<DateTime?>(
+              picked = await showOmniDateTimePicker(
                 context: context,
-                barrierDismissible: false, // user must tap button!
-                builder: (BuildContext context) {
-                  DateTime? tempDate;
-                  return AlertDialog(
-                    contentPadding: EdgeInsets.zero,
-                    clipBehavior: Clip.hardEdge,
-                    content: ConstrainedBox(
-                      constraints: const BoxConstraints(
-                        maxHeight: 300,
-                        minHeight: 300,
-                        minWidth: 360,
-                        maxWidth: 500,
-                      ),
-                      child: CupertinoDatePicker(
-                        // use24hFormat: true,
-                        initialDateTime: date,
-                        minimumDate: minDate,
-                        maximumDate: maxDate,
-                        // use24hFormat: true,
-                        // This is called when the user changes the dateTime.
-                        onDateTimeChanged: (DateTime newDateTime) {
-                          tempDate = newDateTime;
-                        },
-                        mode: CupertinoDatePickerMode.dateAndTime,
-                      ),
-                    ),
-                    actions: <Widget>[
-                      TextButton(
-                        child: Text(locales.get('label--cancel')),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                      FilledButton(
-                        child: Text(locales.get('label--update')),
-                        onPressed: () {
-                          Navigator.of(context).pop(tempDate);
-                        },
-                      ),
-                    ],
-                  );
-                },
+                initialDate: date,
+                constraints: const BoxConstraints(
+                  maxHeight: 800,
+                  minHeight: 500,
+                  minWidth: 400,
+                  maxWidth: 800,
+                ),
               );
             }
             if (picked != null) {
@@ -848,7 +813,8 @@ getValue -------------------------------------
                   leading = Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: CircleAvatar(
-                      backgroundColor: theme.colorScheme.surfaceVariant,
+                      backgroundColor:
+                          theme.colorScheme.surfaceContainerHighest,
                       child: AspectRatio(
                         aspectRatio: 1 / 1,
                         child: ClipOval(
