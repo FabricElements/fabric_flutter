@@ -105,7 +105,7 @@ class InitAppChild extends StatelessWidget {
     if (!stateUser.userStatus.ready) {
       debugPrint(LogColor.warning('User not ready'));
       return Container(
-        color: theme.colorScheme.background,
+        color: theme.colorScheme.surface,
         child: const Center(child: CircularProgressIndicator()),
       );
     }

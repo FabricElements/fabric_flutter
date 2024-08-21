@@ -208,7 +208,7 @@ class StateAlert implements Listenable {
 
     /// Set default values for null safety
     alertData.duration ??= 4;
-    alertData.color ??= theme.colorScheme.surfaceVariant;
+    alertData.color ??= theme.colorScheme.surfaceContainerHighest;
     alertData.textColor ??= theme.colorScheme.onSurfaceVariant;
     alertData.titleStyle ??= textTheme.titleLarge;
     alertData.bodyStyle ??= textTheme.bodyLarge;

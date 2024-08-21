@@ -1,9 +1,9 @@
 name: fabric_flutter
 description: Native components and helpers
-version: 1.4.14
+version: 1.5.0
 
 environment:
-  sdk: '>=3.3.0 <4.0.0'
+  sdk: ^3.5.0
 
 dependencies:
   flutter:
@@ -24,12 +24,12 @@ dependencies:
   firebase_database: ^11.0.4
   json_annotation: ^4.9.0
   image_picker: ^1.1.2
-  file_picker: ^8.0.5
+  file_picker: ^8.1.2
   image: ^4.2.0
   google_sign_in: ^6.2.1
   http: ^1.2.2
   url_launcher: ^6.3.0
-  google_maps_flutter: ^2.6.1
+  google_maps_flutter: ^2.9.0
   package_info_plus: ^8.0.2
   mime: ^1.0.5
   universal_html: ^2.2.4
@@ -38,24 +38,25 @@ dependencies:
   flutter_markdown: ^0.7.3+1
   connectivity_plus: ^6.0.5
   json_view: ^0.4.2
-  web: ^0.5.1
+  web: ^1.0.0
   intl: ^0.19.0
   ansicolor: ^2.0.3
   json_serializable: ^6.8.0
   cupertino_icons: ^1.0.8
-  google_fonts: ^6.2.0
+  google_fonts: ^6.2.1
   pointer_interceptor: ^0.10.1+2
+  omni_datetime_picker: ^2.0.3
 dev_dependencies:
   integration_test:
     sdk: flutter
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
-  build_runner: ^2.4.9
+  build_runner: ^2.4.12
 
 dependency_overrides:
   intl: ^0.19.0
-#  web: ^0.5.1
+  web: ^1.0.0
 #  http: ^1.2.1
 #  firebase_core: 2.25.4
 # For information on the generic Dart part of this file, see the

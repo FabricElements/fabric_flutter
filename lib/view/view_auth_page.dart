@@ -612,7 +612,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
                             )
                           : const SizedBox(),
                       Container(
-                        color: theme.colorScheme.background,
+                        color: theme.colorScheme.surface,
                         child: SafeArea(
                           child: ContentContainer(
                             padding: const EdgeInsets.all(16),
@@ -624,7 +624,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
                                   child: Text(
                                     locales.get('page-auth--title'),
                                     style: textTheme.displayMedium?.copyWith(
-                                      color: theme.colorScheme.onBackground,
+                                      color: theme.colorScheme.onSurface,
                                     ),
                                   ),
                                 ),
@@ -634,7 +634,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
                                   child: Text(
                                     locales.get('page-auth--description'),
                                     style: textTheme.titleMedium?.copyWith(
-                                      color: theme.colorScheme.onBackground,
+                                      color: theme.colorScheme.onSurface,
                                     ),
                                   ),
                                 ),
@@ -645,7 +645,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
                                   child: Text(
                                     stateGlobal.appVersion ?? '',
                                     style: textTheme.bodySmall?.copyWith(
-                                      color: theme.colorScheme.onBackground,
+                                      color: theme.colorScheme.onSurface,
                                     ),
                                   ),
                                 ),
@@ -783,7 +783,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     );
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.background,
+      backgroundColor: theme.colorScheme.surface,
       body: SizedBox.expand(
         child: IndexedStack(
           index: section,

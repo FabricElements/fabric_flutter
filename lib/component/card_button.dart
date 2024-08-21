@@ -52,10 +52,7 @@ class _CardButtonState extends State<CardButton> {
     return Container(
       padding: widget.margin ?? const EdgeInsets.symmetric(vertical: 8),
       child: Card(
-        color: theme.colorScheme.surfaceVariant,
-        // shape: RoundedRectangleBorder(
-        //   borderRadius: BorderRadius.circular(widget.borderRadius),
-        // ),
+        color: theme.colorScheme.surfaceContainerHighest,
         clipBehavior: Clip.hardEdge,
         child: RawMaterialButton(
           onPressed: () => widget.onPressed(),

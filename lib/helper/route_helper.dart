@@ -50,10 +50,7 @@ class RouteHelper {
       Widget? endViewSigned0;
       if (routesSignedIn.contains(key)) {
         if (key == initialRoute) {
-          endViewSigned0 = PopScope(
-            onPopInvoked: (pop) => true,
-            child: value,
-          );
+          endViewSigned0 = PopScope(child: value);
         } else {
           endViewSigned0 = value;
         }
@@ -70,10 +67,7 @@ class RouteHelper {
       Widget? endViewSigned;
       if (routesPublic.contains(key)) {
         if (key == initialRoute) {
-          endViewSigned = PopScope(
-            onPopInvoked: (pop) => true,
-            child: value,
-          );
+          endViewSigned = PopScope(child: value);
         } else {
           endViewSigned = value;
         }

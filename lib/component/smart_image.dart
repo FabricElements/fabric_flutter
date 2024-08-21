@@ -133,12 +133,13 @@ class _SmartImageState extends State<SmartImage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final background = widget.color ?? theme.colorScheme.surfaceVariant;
+    final background =
+        widget.color ?? theme.colorScheme.surfaceContainerHighest;
     final iconColor = theme.colorScheme.onSurfaceVariant;
     final defaultPlaceholder = Container(
       width: double.infinity,
       height: double.infinity,
-      color: theme.colorScheme.surfaceVariant,
+      color: theme.colorScheme.surfaceContainerHighest,
       child: Center(
         child: Icon(
           Icons.image_not_supported,
