@@ -4,8 +4,7 @@ import '../serialized/gsm_data.dart';
 
 /// Dart version of GSM library
 /// https://github.com/vchatterji/gsm
-//Inspired from https://messente.com/sms/calculator
-
+/// https://twiliodeved.github.io/message-segment-calculator/
 Map<String, int> charset7bit = {
   '@': 1,
   '£': 1,
@@ -521,7 +520,6 @@ class GSM {
         List<String> parts = [];
         var maxLength = 153;
         var currentLength = 0;
-
         String partText = '';
         for (int i = 0; i < chars.length; i++) {
           String chart = chars[i];
@@ -562,10 +560,10 @@ class GSM {
         var smsCount = (content.length / 67).ceil();
         List<String> parts = [];
         var maxLength = 67;
-
         for (var i = 0; i < smsCount; i++) {
-          String partText =
-              content.substring(i * maxLength, i * maxLength + maxLength);
+          bool isLastPart = i == smsCount - 1;
+          String partText = content.substring(
+              i * maxLength, !isLastPart ? i * maxLength + maxLength : null);
           parts.add(partText);
         }
         return GSMData(
