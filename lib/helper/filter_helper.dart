@@ -189,7 +189,7 @@ class FilterHelper {
   }) {
     List<FilterData> filters = filter(filters: filterData);
     if (filters.isEmpty) return null;
-    String query = 'select * from $table';
+    String query = 'select * from `$table`';
     String sort = '';
     int count = 0;
     for (int i = 0; i < filters.length; i++) {
