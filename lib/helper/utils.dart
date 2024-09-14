@@ -145,18 +145,11 @@ class Utils {
     if (utcOffset == null || dateTime == null) return dateTime;
     DateTime currentDate = dateTime.toUtc();
     Duration timeZoneOffsetDuration = Duration(minutes: utcOffset);
-    if (!reverse) return currentDate.add(timeZoneOffsetDuration);
-    Duration timeZoneOffsetDurationReverse = Duration(minutes: utcOffset.abs());
-    String updateDateIso = dateTime.toIso8601String();
-    String formatOffset(Duration duration) {
-      String twoDigits(int n) => n.toString().padLeft(2, '0');
-      String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
-      return '${twoDigits(duration.inHours)}:$twoDigitMinutes';
+    if (reverse) {
+      return currentDate.subtract(timeZoneOffsetDuration);
+    } else {
+      return currentDate.add(timeZoneOffsetDuration);
     }
-
-    updateDateIso += utcOffset.isNegative ? '-' : '+';
-    updateDateIso += formatOffset(timeZoneOffsetDurationReverse);
-    return DateTime.parse(updateDateIso).toUtc();
   }
 
   static void setPageTitle(String title) {
