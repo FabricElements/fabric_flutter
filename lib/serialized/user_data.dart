@@ -167,6 +167,9 @@ class UserData {
   @JsonKey(includeIfNull: false)
   Map<String, String> groups;
 
+  @JsonKey(includeIfNull: false)
+  List<String> roles;
+
   /// User presence
   final UserPresence presence;
 
@@ -203,8 +206,9 @@ class UserData {
     this.email,
     this.fcm,
     this.id,
-    this.role = 'user',
+    this.role = 'unknown',
     this.groups = const {},
+    this.roles = const [],
     this.avatar,
     this.firstName,
     this.lastName,
