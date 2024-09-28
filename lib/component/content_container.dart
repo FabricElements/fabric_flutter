@@ -23,6 +23,8 @@ class ContentContainer extends StatelessWidget {
             'child or children must be specified');
   final Widget? child;
   final List<Widget>? children;
+
+  /// [size] of the container
   final ContentContainerSize size;
   final EdgeInsets? padding;
   final EdgeInsets? margin;

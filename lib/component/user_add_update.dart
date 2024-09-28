@@ -9,6 +9,7 @@ import '../helper/regex_helper.dart';
 import '../helper/utils.dart';
 import '../serialized/user_data.dart';
 import '../state/state_alert.dart';
+import 'content_container.dart';
 import 'input_data.dart';
 
 /// Sends invitation to a new user
@@ -23,17 +24,19 @@ class UserAddUpdate extends StatefulWidget {
     super.key,
     this.roles = const ['user', 'admin'],
     required this.onConfirm,
-    this.email = true,
-    this.phone = true,
-    this.role = true,
-    this.username = true,
-    this.name = true,
+    this.email = false,
+    this.phone = false,
+    this.role = false,
+    this.multipleRoles = false,
+    this.username = false,
+    this.name = false,
     this.password = false,
     required this.onChanged,
     this.user,
     this.group,
     this.groups,
     this.successMessage = 'notification--request-success',
+    this.size = ContentContainerSize.medium,
   });
 
   final List<String> roles;
@@ -43,6 +46,7 @@ class UserAddUpdate extends StatefulWidget {
   final bool username;
   final bool name;
   final bool role;
+  final bool multipleRoles;
   final bool password;
   final Function onChanged;
   final UserData? user;
@@ -56,6 +60,9 @@ class UserAddUpdate extends StatefulWidget {
   /// {'groupName':['admin','agent']}
   /// updates the UserData.roles['groupName'] = 'group role'
   final Map<String, List<String>>? groups;
+
+  /// Size of the container
+  final ContentContainerSize size;
 
   @override
   State<UserAddUpdate> createState() => _UserAddUpdateState();
@@ -92,10 +99,8 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     bool canCall = sending == false;
     bool validPhone = data.phone != null && data.phone!.isNotEmpty;
     bool validEmail = data.email != null && data.email!.isNotEmpty;
-    canCall = canCall && (validPhone || validEmail);
-    if (widget.username) {
-      canCall = canCall && data.username != null && data.username!.isNotEmpty;
-    }
+    bool validUsername = data.username != null && data.username!.isNotEmpty;
+    canCall = canCall && (validPhone || validEmail || validUsername);
     if (widget.name) {
       canCall = canCall &&
           data.firstName != null &&
@@ -156,7 +161,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       } on FirebaseFunctionsException catch (e) {
         error = e.message ?? e.details['message'];
       } catch (e) {
-        error = error.toString();
+        error = e.toString();
       }
       sending = false;
       if (mounted) setState(() {});
@@ -293,14 +298,14 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     if (widget.role) {
       inviteWidgets.addAll([
         const Divider(),
-        spacer,
-        Text(locales.get('label--role'), style: textTheme.titleMedium),
-        spacer,
+        ListTile(
+          title: Text(locales.get('label--role')),
+          leading: const Icon(Icons.security),
+        ),
         spacer,
       ]);
       inviteWidgets.addAll([
         InputData(
-          prefixIcon: const Icon(Icons.security),
           label: locales.get('label--role'),
           value: data.role,
           type: InputDataType.dropdown,
@@ -322,13 +327,14 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       ]);
     }
 
+    /// Manage roles by group
     if (widget.groups != null) {
       inviteWidgets.addAll([
         const Divider(),
-        spacer,
-        Text(locales.get('label--roles-by-group'),
-            style: textTheme.titleMedium),
-        spacer,
+        ListTile(
+          title: Text(locales.get('label--roles-by-group')),
+          leading: const Icon(Icons.group),
+        ),
         spacer,
       ]);
       final groupsRolesItems = widget.groups!.entries.toList();
@@ -337,16 +343,21 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
         final groupsRoles = item.value;
         inviteWidgets.addAll([
           InputData(
-            prefixIcon: const Icon(Icons.security),
             label: locales.get('label--role-for-label',
                 {'label': locales.get('label--${item.key}')}),
             value: data.groups[item.key],
             type: InputDataType.dropdown,
             options: List.generate(groupsRoles.length, (index) {
               final item = groupsRoles[index];
+              String labelKey = 'label--$item';
+              String label = locales.get(labelKey);
+              // if the label is not found, use the item as the label
+              if (label == labelKey) {
+                label = item[0].toUpperCase() + item.substring(1);
+              }
               return ButtonOptions(
                 value: item,
-                label: locales.get('label--$item'),
+                label: label,
               );
             }),
             onChanged: (value) {
@@ -367,6 +378,45 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       }
     }
 
+    /// Manage multiple roles using the roles array
+    if (widget.multipleRoles) {
+      inviteWidgets.addAll([
+        const Divider(),
+        ListTile(
+          title: Text(locales.get('label--roles')),
+          leading: const Icon(Icons.security),
+        ),
+        spacer,
+      ]);
+      inviteWidgets.addAll([
+        Column(
+          children: List.generate(widget.roles.length, (index) {
+            final item = widget.roles[index];
+            String labelKey = 'label--$item';
+            String label = locales.get(labelKey);
+            // if the label is not found, use the item as the label
+            if (label == labelKey) {
+              label = item[0].toUpperCase() + item.substring(1);
+            }
+            return CheckboxListTile(
+              value: data.roles.contains(item),
+              onChanged: (value) {
+                error = null;
+                if (value == true) {
+                  data.roles.add(item);
+                } else {
+                  data.roles.remove(item);
+                }
+                if (mounted) setState(() {});
+              },
+              title: Text(label),
+            );
+          }),
+        ),
+        spacer,
+        spacer,
+      ]);
+    }
     if (error != null) {
       inviteWidgets.addAll([
         ListTile(
@@ -407,10 +457,13 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       )
     ]);
 
-    return SimpleDialog(
-      title: Text(title),
-      contentPadding: const EdgeInsets.all(20),
-      children: inviteWidgets,
+    return ContentContainer(
+      size: widget.size,
+      child: SimpleDialog(
+        title: Text(title),
+        contentPadding: const EdgeInsets.all(20),
+        children: inviteWidgets,
+      ),
     );
   }
 }
