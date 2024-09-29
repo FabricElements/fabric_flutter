@@ -319,18 +319,11 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     }
     if (widget.role) {
       inviteWidgets.addAll([
-        const Divider(),
-        ListTile(
-          title: Text(locales.get('label--role')),
-          leading: const Icon(Icons.security),
-        ),
-        spacer,
-      ]);
-      inviteWidgets.addAll([
         InputData(
           label: locales.get('label--role'),
           value: data.role,
           type: InputDataType.dropdown,
+          prefixIcon: const Icon(Icons.security),
           options: List.generate(widget.roles.length, (index) {
             final item = widget.roles[index];
             return ButtonOptions(
