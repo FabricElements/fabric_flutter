@@ -59,11 +59,14 @@ UserData _$UserDataFromJson(Map<String, dynamic> json) => UserData(
       email: json['email'] as String?,
       fcm: json['fcm'] as String?,
       id: json['id'],
-      role: json['role'] as String? ?? 'user',
+      role: json['role'] as String? ?? 'unknown',
       groups: (json['groups'] as Map<String, dynamic>?)?.map(
             (k, e) => MapEntry(k, e as String),
           ) ??
           const {},
+      roles:
+          (json['roles'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+              const [],
       avatar: json['avatar'] as String?,
       firstName: json['firstName'] as String?,
       lastName: json['lastName'] as String?,
@@ -104,6 +107,7 @@ Map<String, dynamic> _$UserDataToJson(UserData instance) {
   writeNotNull('password', instance.password);
   val['role'] = instance.role;
   val['groups'] = instance.groups;
+  val['roles'] = instance.roles;
   writeNotNull('username', instance.username);
   val['theme'] = _$ThemeModeEnumMap[instance.theme]!;
   return val;
