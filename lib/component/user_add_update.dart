@@ -418,9 +418,10 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
               onChanged: (value) {
                 error = null;
                 if (value == true) {
-                  data.roles.add(item);
+                  data.roles = [...data.roles, item];
                 } else {
-                  data.roles.remove(item);
+                  data.roles =
+                      data.roles.where((element) => element != item).toList();
                 }
                 if (mounted) setState(() {});
               },
