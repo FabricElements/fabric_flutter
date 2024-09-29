@@ -39,21 +39,43 @@ class UserAddUpdate extends StatefulWidget {
     this.size = ContentContainerSize.medium,
   });
 
+  /// Array of roles
   final List<String> roles;
+
+  /// Function to call when the user is added or updated
   final Function(UserData data, {String? group}) onConfirm;
+
+  /// Allow email to be entered
   final bool email;
+
+  /// Allow phone number to be entered
   final bool phone;
+
+  /// Allow username to be entered
   final bool username;
+
+  /// Allow name to be entered
   final bool name;
+
+  /// Allow single role to be selected
   final bool role;
+
+  /// Allow multiple roles to be selected
   final bool multipleRoles;
+
+  /// Allow password to be entered
   final bool password;
+
+  /// Function to call when the user is added or updated
   final Function onChanged;
+
+  /// User data to update
   final UserData? user;
 
   /// Group id
   final String? group;
 
+  /// Success message to display
   final String successMessage;
 
   /// Groups roles used for dropdown options
