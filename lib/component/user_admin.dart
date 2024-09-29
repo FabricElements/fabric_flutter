@@ -37,6 +37,8 @@ class UserAdmin extends StatelessWidget {
     this.emailUpdate = false,
     this.phoneUpdate = false,
     this.usernameUpdate = false,
+    this.multipleRoles = false,
+    this.multipleRolesUpdate = false,
     this.nameUpdate = false,
     this.roleUpdate = true,
     this.password = false,
@@ -65,6 +67,8 @@ class UserAdmin extends StatelessWidget {
   final bool usernameUpdate;
   final bool nameUpdate;
   final bool roleUpdate;
+  final bool multipleRoles;
+  final bool multipleRolesUpdate;
   final ContentContainerSize size;
 
   @override
@@ -195,6 +199,7 @@ class UserAdmin extends StatelessWidget {
                     phone: phoneUpdate,
                     username: usernameUpdate,
                     name: nameUpdate,
+                    multipleRoles: multipleRolesUpdate,
                     onChanged: () {},
                     user: user,
                     group: group,
@@ -315,6 +320,7 @@ class UserAdmin extends StatelessWidget {
       role: role,
       password: password,
       group: group,
+      multipleRoles: multipleRoles,
     );
 
     if (primary) {
