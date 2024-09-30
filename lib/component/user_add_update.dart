@@ -366,8 +366,10 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
               final item = groupsRoles[index];
               String labelKey = 'label--$item';
               String label = locales.get(labelKey);
-              // if the label is not found, use the item as the label
-              if (label == labelKey) {
+              if (item.contains('_') || item.contains(':')) {
+                label = item;
+              } else if (label.contains('--')) {
+                // if the label is not found, use the item as the label
                 label = item[0].toUpperCase() + item.substring(1);
               }
               return ButtonOptions(
@@ -409,8 +411,10 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
             final item = widget.roles[index];
             String labelKey = 'label--$item';
             String label = locales.get(labelKey);
-            // if the label is not found, use the item as the label
-            if (label == labelKey) {
+            if (item.contains('_') || item.contains(':')) {
+              label = item;
+            } else if (label.contains('--')) {
+              // if the label is not found, use the item as the label
               label = item[0].toUpperCase() + item.substring(1);
             }
             return CheckboxListTile(
