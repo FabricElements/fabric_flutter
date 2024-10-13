@@ -187,10 +187,12 @@ class UserAdmin extends StatelessWidget {
         if (canUpdateUser) {
           trailing.addAll([
             IconButton(
+              key: Key('user-update-${user.id}'),
               onPressed: () async {
                 showDialog<void>(
                   context: context,
                   builder: (context) => UserAddUpdate(
+                    key: Key('user-update-component-${user.id}'),
                     successMessage: 'notification--updated',
                     role: roleUpdate,
                     roles: roles,
@@ -213,6 +215,7 @@ class UserAdmin extends StatelessWidget {
             ),
             space,
             IconButton(
+              key: Key('user-remove-${user.id}'),
               color: Colors.deepOrange,
               onPressed: () => removeUser(user),
               icon: const Icon(Icons.person_remove),
@@ -309,6 +312,7 @@ class UserAdmin extends StatelessWidget {
       },
     );
     Widget userAddWidget = UserAddUpdate(
+      key: const Key('user-add-update'),
       successMessage: 'notification--added',
       roles: roles,
       onConfirm: UserRolesFirebase.onAdd,
