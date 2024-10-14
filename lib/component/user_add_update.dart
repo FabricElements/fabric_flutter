@@ -97,10 +97,12 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
   late UserData data;
   String? error;
 
-  @override
-  void initState() {
+  void reset() {
     /// Set default user data
-    data = widget.user ?? UserData(id: widget.user?.id);
+    final base = widget.user ?? UserData(id: widget.user?.id);
+
+    /// Reset the user data to prevent changes to the original object and missing data
+    data = UserData.fromJson(base.toJson());
 
     /// If the role assigned doesn't match the options, set the first role from the list
     if (!widget.roles.contains(data.role)) {
@@ -109,13 +111,24 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     sending = false;
     backgroundColor = const Color(0xFF161A21);
     error = null;
+  }
+
+  @override
+  void initState() {
+    reset();
     super.initState();
+  }
+
+  @override
+  void didUpdateWidget(UserAddUpdate oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    reset();
+    if (mounted) setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
     final locales = AppLocalizations.of(context);
     final alert = Provider.of<StateAlert>(context, listen: false);
     bool canCall = sending == false;
