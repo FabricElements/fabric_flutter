@@ -84,34 +84,25 @@ UserData _$UserDataFromJson(Map<String, dynamic> json) => UserData(
       os: $enumDecodeNullable(_$UserOSEnumMap, json['os']) ?? UserOS.unknown,
     );
 
-Map<String, dynamic> _$UserDataToJson(UserData instance) {
-  final val = <String, dynamic>{};
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('avatar', instance.avatar);
-  writeNotNull('email', instance.email);
-  writeNotNull('fcm', instance.fcm);
-  writeNotNull('id', instance.id);
-  writeNotNull('firstName', instance.firstName);
-  writeNotNull('lastName', instance.lastName);
-  writeNotNull('language', instance.language);
-  writeNotNull('onboarding', instance.onboarding?.toJson());
-  writeNotNull('links', instance.links?.toJson());
-  val['os'] = _$UserOSEnumMap[instance.os]!;
-  writeNotNull('phone', instance.phone);
-  writeNotNull('password', instance.password);
-  val['role'] = instance.role;
-  val['groups'] = instance.groups;
-  val['roles'] = instance.roles;
-  writeNotNull('username', instance.username);
-  val['theme'] = _$ThemeModeEnumMap[instance.theme]!;
-  return val;
-}
+Map<String, dynamic> _$UserDataToJson(UserData instance) => <String, dynamic>{
+      if (instance.avatar case final value?) 'avatar': value,
+      if (instance.email case final value?) 'email': value,
+      if (instance.fcm case final value?) 'fcm': value,
+      if (instance.id case final value?) 'id': value,
+      if (instance.firstName case final value?) 'firstName': value,
+      if (instance.lastName case final value?) 'lastName': value,
+      if (instance.language case final value?) 'language': value,
+      if (instance.onboarding?.toJson() case final value?) 'onboarding': value,
+      if (instance.links?.toJson() case final value?) 'links': value,
+      'os': _$UserOSEnumMap[instance.os]!,
+      if (instance.phone case final value?) 'phone': value,
+      if (instance.password case final value?) 'password': value,
+      'role': instance.role,
+      'groups': instance.groups,
+      'roles': instance.roles,
+      if (instance.username case final value?) 'username': value,
+      'theme': _$ThemeModeEnumMap[instance.theme]!,
+    };
 
 const _$ThemeModeEnumMap = {
   ThemeMode.system: 'system',
