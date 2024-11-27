@@ -25,22 +25,14 @@ TableData _$TableDataFromJson(Map<String, dynamic> json) {
   );
 }
 
-Map<String, dynamic> _$TableDataToJson(TableData instance) {
-  final val = <String, dynamic>{};
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('header', instance.header?.map((e) => e.toJson()).toList());
-  val['rows'] = instance.rows.map((e) => e.toJson()).toList();
-  writeNotNull('footer', instance.footer);
-  val['active'] = instance.active;
-  val['level'] = instance.level;
-  return val;
-}
+Map<String, dynamic> _$TableDataToJson(TableData instance) => <String, dynamic>{
+      if (instance.header?.map((e) => e.toJson()).toList() case final value?)
+        'header': value,
+      'rows': instance.rows.map((e) => e.toJson()).toList(),
+      if (instance.footer case final value?) 'footer': value,
+      'active': instance.active,
+      'level': instance.level,
+    };
 
 TableColumnData _$TableColumnDataFromJson(Map<String, dynamic> json) {
   $checkKeys(
@@ -56,22 +48,13 @@ TableColumnData _$TableColumnDataFromJson(Map<String, dynamic> json) {
   );
 }
 
-Map<String, dynamic> _$TableColumnDataToJson(TableColumnData instance) {
-  final val = <String, dynamic>{
-    'value': instance.value,
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('label', instance.label);
-  val['type'] = _$TableDataTypeEnumMap[instance.type]!;
-  val['width'] = instance.width;
-  return val;
-}
+Map<String, dynamic> _$TableColumnDataToJson(TableColumnData instance) =>
+    <String, dynamic>{
+      'value': instance.value,
+      if (instance.label case final value?) 'label': value,
+      'type': _$TableDataTypeEnumMap[instance.type]!,
+      'width': instance.width,
+    };
 
 const _$TableDataTypeEnumMap = {
   TableDataType.string: 'string',
@@ -97,18 +80,9 @@ TableRowData _$TableRowDataFromJson(Map<String, dynamic> json) {
   );
 }
 
-Map<String, dynamic> _$TableRowDataToJson(TableRowData instance) {
-  final val = <String, dynamic>{
-    'cells': instance.cells,
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('child', instance.child?.toJson());
-  val['active'] = instance.active;
-  return val;
-}
+Map<String, dynamic> _$TableRowDataToJson(TableRowData instance) =>
+    <String, dynamic>{
+      'cells': instance.cells,
+      if (instance.child?.toJson() case final value?) 'child': value,
+      'active': instance.active,
+    };

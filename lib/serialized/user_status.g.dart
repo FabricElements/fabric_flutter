@@ -20,27 +20,18 @@ UserStatus _$UserStatusFromJson(Map<String, dynamic> json) => UserStatus(
       connectedTo: json['connectedTo'] as String?,
     );
 
-Map<String, dynamic> _$UserStatusToJson(UserStatus instance) {
-  final val = <String, dynamic>{
-    'signedIn': instance.signedIn,
-    'admin': instance.admin,
-    'role': instance.role,
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('uid', instance.uid);
-  val['language'] = instance.language;
-  val['theme'] = _$ThemeModeEnumMap[instance.theme]!;
-  val['connected'] = instance.connected;
-  val['connectionChanged'] = instance.connectionChanged;
-  val['connectedTo'] = instance.connectedTo;
-  return val;
-}
+Map<String, dynamic> _$UserStatusToJson(UserStatus instance) =>
+    <String, dynamic>{
+      'signedIn': instance.signedIn,
+      'admin': instance.admin,
+      'role': instance.role,
+      if (instance.uid case final value?) 'uid': value,
+      'language': instance.language,
+      'theme': _$ThemeModeEnumMap[instance.theme]!,
+      'connected': instance.connected,
+      'connectionChanged': instance.connectionChanged,
+      'connectedTo': instance.connectedTo,
+    };
 
 const _$ThemeModeEnumMap = {
   ThemeMode.system: 'system',

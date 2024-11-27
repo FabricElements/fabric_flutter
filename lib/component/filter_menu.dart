@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 
 import '../helper/app_localizations_delegate.dart';
@@ -32,6 +33,81 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
   void initState() {
     edit = widget.data;
     super.initState();
+  }
+
+  /// Get the value from the clipboard, validating the type, and return a valid list
+  Future<List> pasteValues() async {
+    final clipboardData = await Clipboard.getData('text/plain');
+    if (clipboardData == null) return [];
+    final clipboardText = clipboardData.text ?? '';
+    // values can come on comma-separated values, new lines, tabs, or from a table
+    final valuesFromClipboard =
+        clipboardText.split(RegExp(r'[\n\t,]')).map((e) => e.trim()).toList();
+    // Validate values depending on the type
+    List<dynamic> newValues = [];
+    for (var value in valuesFromClipboard) {
+      try {
+        if (value.isEmpty) continue;
+        dynamic newValue;
+        switch (edit.type) {
+          case InputDataType.email:
+          case InputDataType.currency:
+          case InputDataType.percent:
+          case InputDataType.text:
+          case InputDataType.string:
+          case InputDataType.phone:
+          case InputDataType.url:
+          case InputDataType.secret:
+            newValue = value;
+            break;
+          case InputDataType.int:
+            final base = int.tryParse(value);
+            if (base != null && !base.isNaN && !base.isInfinite) {
+              newValue = base;
+            }
+            break;
+          case InputDataType.double:
+            final base = double.tryParse(value);
+            if (base != null && !base.isNaN && !base.isInfinite) {
+              newValue = base;
+            }
+            break;
+          case InputDataType.date:
+          case InputDataType.dateTime:
+          case InputDataType.timestamp:
+            newValue = DateTime.tryParse(value);
+            break;
+          case InputDataType.time:
+            final base = DateTime.tryParse(value);
+            if (base != null) {
+              newValue = TimeOfDay.fromDateTime(base);
+            }
+            break;
+          case InputDataType.enums:
+            newValue = EnumData.findFromString(
+              enums: edit.enums,
+              value: value,
+            );
+            break;
+          case InputDataType.bool:
+            newValue = bool.tryParse(value.toString().toLowerCase());
+            break;
+          case InputDataType.dropdown:
+          case InputDataType.radio:
+            final option = edit.options.firstWhere(
+              (element) => element.value == value,
+            );
+            newValue = option.value;
+            break;
+        }
+        if (newValue != null && newValue.toString().trim().isNotEmpty) {
+          newValues.add(newValue);
+        }
+      } catch (e) {
+        // Do nothing
+      }
+    }
+    return newValues;
   }
 
   @override
@@ -177,8 +253,6 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
                     edit.value = values;
                     if (mounted) setState(() {});
                   },
-                  // suffixIcon: isMultiple ? removeButton : null,
-                  // suffix: isMultiple ? removeButton : null,
                 );
                 if (isMultiple) {
                   button = Row(
@@ -197,6 +271,14 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
               OutlinedButton.icon(
                 onPressed: () {
                   values.add(null);
+                  edit.value = values;
+                  if (mounted) setState(() {});
+                },
+                onLongPress: () async {
+                  // Paste and Add values without duplicates
+                  final newValues = await pasteValues();
+                  if (newValues.isEmpty) return;
+                  values = <dynamic>{...values, ...newValues}.toList();
                   edit.value = values;
                   if (mounted) setState(() {});
                 },

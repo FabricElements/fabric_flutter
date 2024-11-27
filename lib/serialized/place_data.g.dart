@@ -231,32 +231,23 @@ Place _$PlaceFromJson(Map<String, dynamic> json) => Place(
       placeId: json['place_id'] as String,
     );
 
-Map<String, dynamic> _$PlaceToJson(Place instance) {
-  final val = <String, dynamic>{
-    'plus_code': instance.plusCode?.toJson(),
-    'place_id': instance.placeId,
-    'icon': instance.icon,
-    'geometry': instance.geometry?.toJson(),
-    'name': instance.name,
-    'opening_hours': instance.openingHours?.toJson(),
-    'photos': instance.photos.map((e) => e.toJson()).toList(),
-    'scope': instance.scope,
-    'alt_ids': instance.altIds.map((e) => e.toJson()).toList(),
-    'price_level': instance.priceLevel,
-    'rating': instance.rating,
-    'types': instance.types,
-    'vicinity': instance.vicinity,
-    'formatted_address': instance.formattedAddress,
-    'utc_offset': instance.utcOffset,
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('address_components',
-      instance.addressComponents?.map((e) => e.toJson()).toList());
-  return val;
-}
+Map<String, dynamic> _$PlaceToJson(Place instance) => <String, dynamic>{
+      'plus_code': instance.plusCode?.toJson(),
+      'place_id': instance.placeId,
+      'icon': instance.icon,
+      'geometry': instance.geometry?.toJson(),
+      'name': instance.name,
+      'opening_hours': instance.openingHours?.toJson(),
+      'photos': instance.photos.map((e) => e.toJson()).toList(),
+      'scope': instance.scope,
+      'alt_ids': instance.altIds.map((e) => e.toJson()).toList(),
+      'price_level': instance.priceLevel,
+      'rating': instance.rating,
+      'types': instance.types,
+      'vicinity': instance.vicinity,
+      'formatted_address': instance.formattedAddress,
+      'utc_offset': instance.utcOffset,
+      if (instance.addressComponents?.map((e) => e.toJson()).toList()
+          case final value?)
+        'address_components': value,
+    };

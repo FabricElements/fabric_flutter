@@ -13,19 +13,10 @@ LogsData _$LogsDataFromJson(Map<String, dynamic> json) => LogsData(
       data: json['data'] as Map<String, dynamic>?,
     );
 
-Map<String, dynamic> _$LogsDataToJson(LogsData instance) {
-  final val = <String, dynamic>{
-    'id': instance.id,
-    'text': instance.text,
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('timestamp', Utils.dateToJson(instance.timestamp));
-  val['data'] = instance.data;
-  return val;
-}
+Map<String, dynamic> _$LogsDataToJson(LogsData instance) => <String, dynamic>{
+      'id': instance.id,
+      'text': instance.text,
+      if (Utils.dateToJson(instance.timestamp) case final value?)
+        'timestamp': value,
+      'data': instance.data,
+    };
