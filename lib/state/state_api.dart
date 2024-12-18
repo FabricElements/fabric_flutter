@@ -67,6 +67,44 @@ abstract class StateAPI extends StateShared {
     }).toString();
   }
 
+  /// Response headers
+  Map<String, String> headers = {};
+
+  /// Define the header names to filter for the next call
+  /// Example: [x-header-name] for exact header
+  /// Example: [x-header-*] for wildcard headers
+  /// Example: [x-custom-header-name, x-custom-*] for multiple headers
+  /// Is not case sensitive
+  /// headersToFilter will be used to filter the headers you like to use for the next call
+  List<String> get headersToFilter => [];
+
+  /// Get the headers for the next call
+  Map<String, String> get headersFiltered {
+    Map<String, String> finalHeaders = {};
+    final headersToFilterToUse =
+        headersToFilter.map((e) => e.toLowerCase()).toList();
+    // change all header keys to lowercase
+    final headersToUse = headers.map((key, value) {
+      return MapEntry(key.toLowerCase(), value);
+    });
+    for (String header in headersToFilterToUse) {
+      header = header.toLowerCase();
+      if (header.endsWith('*')) {
+        String headerName = header.replaceAll('*', '');
+        headersToUse.forEach((key, value) {
+          if (key.startsWith(headerName)) {
+            finalHeaders[key] = value;
+          }
+        });
+      } else {
+        if (headersToUse.containsKey(header)) {
+          finalHeaders[header] = headersToUse[header]!;
+        }
+      }
+    }
+    return finalHeaders;
+  }
+
   /// API Call
   @override
   Future<dynamic> call({bool ignoreDuplicatedCalls = true}) async {
@@ -120,16 +158,17 @@ abstract class StateAPI extends StateShared {
       }
       bool willAuthenticate = mustAuthenticate && canAuthenticate;
       Uri url = Uri.parse(endpoint);
-      Map<String, String> headers = {};
+      Map<String, String> requestHeaders = {
+        ...headersFiltered,
+      };
       if (willAuthenticate) {
-        headers.addAll({
-          'Authorization': '${authScheme!.name} $credentials',
-        });
+        requestHeaders['Authorization'] = '${authScheme!.name} $credentials';
       }
       debugPrint(LogColor.info('Calling endpoint: $endpoint'));
       try {
-        final response = await http.get(url, headers: headers);
+        final response = await http.get(url, headers: requestHeaders);
         newData = HTTPRequest.response(response);
+        headers = response.headers;
         final hasTotalHeader = response.headers.containsKey('x-total-count');
         if (hasTotalHeader) {
           final xTotalCountHeader =
@@ -191,6 +230,7 @@ abstract class StateAPI extends StateShared {
   @override
   void clear({bool notify = false}) {
     _lastEndpointCalled = null;
+    headers = {};
     super.clear(notify: notify);
   }
 }
