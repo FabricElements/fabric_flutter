@@ -415,17 +415,231 @@ class FilterHelper {
     return response;
   }
 
+  /// Get filter by id
+  static FilterData? filterById({
+    required List<FilterData> filters,
+    required String id,
+  }) {
+    try {
+      return filter(filters: filters, strict: true)
+          .firstWhere((item) => item.id == id);
+    } catch (e) {
+      return null;
+    }
+  }
+
   /// Get value from id
   static dynamic valueFromId({
     required List<FilterData> filters,
     required String id,
+  }) => filterById(filters: filters, id: id)?.value;
+
+  /// Format data with filters
+  /// This function formats data with filters
+  static List<Map<String, dynamic>> formatJSON({
+    /// Filters to apply
+    required List<FilterData> filters,
+
+    /// Data to filter
+    required List<Map<String, dynamic>> data,
   }) {
-    final matches = filter(filters: filters, strict: true)
-        .where((item) => item.id == id)
-        .toList();
-    if (matches.isNotEmpty) {
-      return matches.first.value;
+    return data.map((item) {
+      Map<String, dynamic> serializedItem = {};
+      for (var key in item.keys) {
+        var value = item[key];
+        final filter = filterById(filters: filters, id: key);
+        if (filter == null) {
+          serializedItem[key] = value;
+        } else if (value is List) {
+          serializedItem[key] = value.map((e) {
+            return parseValueByInputDataType(
+              type: filter.type,
+              value: e,
+              enums: filter.enums,
+            );
+          }).toList();
+        } else {
+          serializedItem[key] = parseValueByInputDataType(
+            type: filter.type,
+            value: value,
+            enums: filter.enums,
+          );
+        }
+      }
+      return serializedItem;
+    }).toList();
+  }
+
+  /// Filter JSON data
+  /// This function filters and sorts JSON data based on the filters provided
+  static List<Map<String, dynamic>> filterJSON({
+    /// Filters to apply
+    required List<FilterData> filters,
+
+    /// Data to filter
+    required List<Map<String, dynamic>> data,
+  }) {
+    List<Map<String, dynamic>> response = [];
+    final activeOptions = filter(filters: filters);
+    if (activeOptions.isEmpty) return data;
+    // Map the data to the filter data type
+    List<Map<String, dynamic>> formattedData = formatJSON(
+      filters: filters,
+      data: data,
+    );
+
+    /// Sort data
+    final sortValue = valueFromId(filters: activeOptions, id: 'sort');
+    if (sortValue != null && sortValue is List && sortValue.isNotEmpty) {
+      final sortBy = sortValue[0];
+      final order = sortValue[1] ?? EnumData.describe(FilterOrder.desc);
+      formattedData.sort((a, b) {
+        var aValue = a[sortBy];
+        var bValue = b[sortBy];
+        if (aValue is String && bValue is String) {
+          return order == EnumData.describe(FilterOrder.asc)
+              ? aValue.compareTo(bValue)
+              : bValue.compareTo(aValue);
+        } else if ((aValue is num && bValue is num) ||
+            (aValue is double && bValue is double) ||
+            (aValue is int && bValue is int)) {
+          return order == EnumData.describe(FilterOrder.asc)
+              ? (aValue as num).compareTo(bValue as num)
+              : (bValue as num).compareTo(aValue as num);
+        } else if (aValue is DateTime && bValue is DateTime) {
+          return order == EnumData.describe(FilterOrder.asc)
+              ? aValue.compareTo(bValue)
+              : bValue.compareTo(aValue);
+        } else {
+          return order == EnumData.describe(FilterOrder.asc)
+              ? aValue.toString().compareTo(bValue.toString())
+              : bValue.toString().compareTo(aValue.toString());
+        }
+      });
     }
-    return null;
+
+    /// Return sorted data when there are no more filters
+    if (sortValue != null && activeOptions.length == 1) return formattedData;
+
+    final activeOptionsWithoutSort = activeOptions.where((element) {
+      return element.operator != FilterOperator.sort;
+    }).toList();
+    final activeOptionsWithoutSortLength = activeOptionsWithoutSort.length;
+    for (var item in formattedData) {
+      int totalMatches = 0;
+      for (var filter in activeOptionsWithoutSort) {
+        bool matches = false;
+        bool compared = false;
+        if (filter.operator == FilterOperator.any) {
+          matches = true;
+          totalMatches++;
+          continue;
+        }
+        final value = item[filter.id];
+        if (filter.value == null || value == null) {
+          matches = false;
+          totalMatches++;
+          continue;
+        }
+        switch (filter.type) {
+          case InputDataType.date:
+          case InputDataType.dateTime:
+          case InputDataType.timestamp:
+            if (value is DateTime) {
+              switch (filter.operator!) {
+                case FilterOperator.whereIn:
+                case FilterOperator.contains:
+                  compared = true;
+                  matches = false;
+                  break;
+                case FilterOperator.greaterThan:
+                  compared = true;
+                  if (value.isAfter(filter.value)) matches = true;
+                  break;
+                case FilterOperator.greaterThanOrEqual:
+                  compared = true;
+                  if (value.isAtSameMomentAs(filter.value) ||
+                      value.isAfter(filter.value)) matches = true;
+                  break;
+                case FilterOperator.lessThan:
+                  compared = true;
+                  if (value.isBefore(filter.value)) matches = true;
+                  break;
+                case FilterOperator.lessThanOrEqual:
+                  compared = true;
+                  if (value.isAtSameMomentAs(filter.value) ||
+                      value.isBefore(filter.value)) matches = true;
+                  break;
+                case FilterOperator.between:
+                  compared = true;
+                  if ((value.isAfter(filter.value[0]) ||
+                          value.isAtSameMomentAs(filter.value[0])) &&
+                      (value.isBefore(filter.value[1]) ||
+                          value.isAtSameMomentAs(filter.value[1]))) {
+                    matches = true;
+                  }
+                  break;
+                case FilterOperator.any:
+                  matches = true;
+                  compared = true;
+                  break;
+                default:
+              }
+            }
+            break;
+          default:
+            break;
+        }
+
+        /// Compare other data types
+        if (!compared) {
+          switch (filter.operator!) {
+            case FilterOperator.sort:
+              // Ignore this one, but don't remove it
+              break;
+            case FilterOperator.equal:
+              if (value == filter.value) matches = true;
+              break;
+            case FilterOperator.notEqual:
+              if (value != filter.value) matches = true;
+              break;
+            case FilterOperator.contains:
+              if (value.toString().contains(filter.value)) {
+                matches = true;
+              }
+              break;
+            case FilterOperator.greaterThan:
+              if (value > filter.value) matches = true;
+              break;
+            case FilterOperator.lessThan:
+              if (value < filter.value) matches = true;
+              break;
+            case FilterOperator.greaterThanOrEqual:
+              if (value >= filter.value) matches = true;
+              break;
+            case FilterOperator.lessThanOrEqual:
+              if (value <= filter.value) matches = true;
+              break;
+            case FilterOperator.whereIn:
+              if (value.toString().contains(filter.value)) {
+                matches = true;
+              }
+              break;
+            case FilterOperator.any:
+              matches = true;
+              break;
+            case FilterOperator.between:
+              if (value >= filter.value[0] && value <= filter.value[1]) {
+                matches = true;
+              }
+              break;
+          }
+        }
+        if (matches) totalMatches++;
+      }
+      if (totalMatches == activeOptionsWithoutSortLength) response.add(item);
+    }
+
+    return response;
   }
 }
