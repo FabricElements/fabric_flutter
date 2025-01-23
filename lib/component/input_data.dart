@@ -96,6 +96,78 @@ IconData inputDataTypeIcon(InputDataType inputDataType) {
   return icon;
 }
 
+/// Parse value by input data type
+/// This function is used to parse the value to the correct type
+dynamic parseValueByInputDataType({
+  required InputDataType type,
+  required dynamic value,
+  enums = const [],
+}) {
+  if (value == null) return null;
+  dynamic baseValueAsString = value?.toString();
+  if (baseValueAsString.isEmpty) return null;
+  dynamic newValue;
+  // Use [baseValue] to parse the value with the correct type similar to [InputData.getValue]
+  switch (type) {
+    case InputDataType.double:
+    case InputDataType.currency:
+    case InputDataType.percent:
+      if (baseValueAsString.endsWith('.')) {
+        baseValueAsString = baseValueAsString.replaceAll('.', '');
+      }
+      newValue = double.tryParse(baseValueAsString);
+      break;
+    case InputDataType.int:
+      newValue = int.tryParse(baseValueAsString);
+      break;
+    case InputDataType.phone:
+      // only accept digits
+      String onlyNumbers = baseValueAsString
+          .replaceAll(RegExp(r'\D'), '')
+          .replaceAll(RegExp(r'\+'), '');
+      // Add plus sign at the beginning if it's missing
+      newValue = onlyNumbers.isEmpty ? null : '+$onlyNumbers';
+      break;
+    // add missing cases
+    case InputDataType.date:
+    case InputDataType.dateTime:
+    case InputDataType.timestamp:
+      newValue = DateTime.tryParse(baseValueAsString);
+      break;
+    case InputDataType.time:
+      final timeBase = DateTime.tryParse(baseValueAsString);
+      newValue = timeBase != null ? TimeOfDay.fromDateTime(timeBase) : null;
+      break;
+    case InputDataType.enums:
+      newValue = EnumData.find(
+        enums: enums,
+        value: value,
+      );
+      break;
+    case InputDataType.dropdown:
+      newValue = value;
+      break;
+    case InputDataType.bool:
+      if (value is bool) {
+        newValue = value;
+      } else {
+        newValue = bool.tryParse(baseValueAsString);
+      }
+      break;
+    case InputDataType.text:
+    case InputDataType.email:
+    case InputDataType.secret:
+    case InputDataType.url:
+    case InputDataType.string:
+      newValue = baseValueAsString;
+      break;
+    case InputDataType.radio:
+      newValue = value;
+  }
+
+  return newValue;
+}
+
 /// InputData provides an useful way to handle data input
 /// It's much faster to use this component because includes all the controllers
 /// you require for multiple data types [InputDataType]
@@ -256,7 +328,7 @@ class _InputDataState extends State<InputData> {
         String onlyNumbers = valueLocalString
             .replaceAll(RegExp(r'\D'), '')
             .replaceAll(RegExp(r'\+'), '');
-        // Add plus sign if it's missing
+        // Add plus sign at the beginning
         return '+$onlyNumbers';
       default:
         return valueLocal;
