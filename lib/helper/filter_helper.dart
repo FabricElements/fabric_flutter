@@ -415,6 +415,19 @@ class FilterHelper {
     return response;
   }
 
+  /// Get filter by id
+  static FilterData? filterById({
+    required List<FilterData> filters,
+    required String id,
+  }) {
+    try {
+      return filter(filters: filters, strict: true)
+          .firstWhere((item) => item.id == id);
+    } catch (e) {
+      return null;
+    }
+  }
+
   /// Get value from id
   static dynamic valueFromId({
     required List<FilterData> filters,
