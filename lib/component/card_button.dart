@@ -79,9 +79,9 @@ class _CardButtonState extends State<CardButton> {
                         end: Alignment.bottomCenter,
                         stops: const [0.0, 0.4, 0.7],
                         colors: [
-                          theme.colorScheme.surface.withOpacity(0.5),
-                          theme.colorScheme.surface.withOpacity(0.9),
-                          theme.colorScheme.surface.withOpacity(0.9),
+                          theme.colorScheme.surface.withValues(alpha: 0.5),
+                          theme.colorScheme.surface.withValues(alpha: 0.9),
+                          theme.colorScheme.surface.withValues(alpha: 0.9),
                         ],
                       ),
                     ),
