@@ -182,16 +182,13 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
             data.username != null || data.email != null || data.phone != null,
             'username, email or phone must not be null');
         await widget.onConfirm(data, group: widget.group);
-        alert
-            .show(AlertData(
+        alert.show(AlertData(
           clear: true,
           body: locales.get(widget.successMessage),
           type: AlertType.success,
           duration: 3,
-        ))
-            .then((value) {
-          Navigator.pop(context);
-        });
+        ));
+        Navigator.of(context).pop();
         await widget.onChanged();
       } on FirebaseFunctionsException catch (e) {
         error = e.message ?? e.details['message'];

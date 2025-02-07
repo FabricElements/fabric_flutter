@@ -432,7 +432,8 @@ class FilterHelper {
   static dynamic valueFromId({
     required List<FilterData> filters,
     required String id,
-  }) => filterById(filters: filters, id: id)?.value;
+  }) =>
+      filterById(filters: filters, id: id)?.value;
 
   /// Format data with filters
   /// This function formats data with filters
@@ -559,7 +560,9 @@ class FilterHelper {
                 case FilterOperator.greaterThanOrEqual:
                   compared = true;
                   if (value.isAtSameMomentAs(filter.value) ||
-                      value.isAfter(filter.value)) matches = true;
+                      value.isAfter(filter.value)) {
+                    matches = true;
+                  }
                   break;
                 case FilterOperator.lessThan:
                   compared = true;
@@ -568,7 +571,9 @@ class FilterHelper {
                 case FilterOperator.lessThanOrEqual:
                   compared = true;
                   if (value.isAtSameMomentAs(filter.value) ||
-                      value.isBefore(filter.value)) matches = true;
+                      value.isBefore(filter.value)) {
+                    matches = true;
+                  }
                   break;
                 case FilterOperator.between:
                   compared = true;

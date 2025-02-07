@@ -465,7 +465,7 @@ class StateAlert implements Listenable {
             context: context!,
             builder: (BuildContext context) => Scaffold(
               primary: false,
-              backgroundColor: theme.colorScheme.surface.withOpacity(0.3),
+              backgroundColor: theme.colorScheme.surface.withValues(alpha: 0.3),
               body: AlertDialog(
                 scrollable: alertData.scrollable,
                 actions: actions,

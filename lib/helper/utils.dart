@@ -114,7 +114,9 @@ class Utils {
   ) {
     if (queryParameters == null ||
         !queryParameters.containsKey(key) ||
-        queryParameters[key]!.isEmpty) return null;
+        queryParameters[key]!.isEmpty) {
+      return null;
+    }
     return queryParameters[key];
   }
 

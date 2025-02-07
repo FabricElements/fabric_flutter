@@ -222,8 +222,6 @@ class UserAdmin extends StatelessWidget {
             ),
           ]);
         }
-
-        /// TODO add edit action
         List<Widget> roleChips = [
           Chip(
             padding: EdgeInsets.zero,
