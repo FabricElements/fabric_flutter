@@ -262,7 +262,7 @@ class _ExpansionTableState extends State<ExpansionTable> {
           Color dataRowColor = widget.dataRowColor ??
               theme.dataTableTheme.dataRowColor?.resolve(states) ??
               Colors.transparent;
-          dataRowColor = dataRowColor.withOpacity(rowOpacity);
+          dataRowColor = dataRowColor.withValues(alpha: rowOpacity);
           Color rowColor = !isFooter
               ? dataRowColor
               : widget.dataFooterColor ?? Colors.transparent;
