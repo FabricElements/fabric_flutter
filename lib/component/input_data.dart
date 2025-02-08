@@ -486,12 +486,21 @@ getValue -------------------------------------
     super.initState();
   }
 
+  /// Close search controller
   void _closeSearch() {
+    searchController.clear();
     try {
       if (searchController.isOpen) searchController.closeView(null);
     } catch (e) {
       // Do nothing
     }
+  }
+
+  /// Clear the input
+  void _clear() {
+    widget.onChanged?.call(null);
+    widget.onComplete?.call(null);
+    widget.onSubmit?.call(null);
   }
 
   @override
@@ -503,10 +512,10 @@ getValue -------------------------------------
 
   @override
   void dispose() {
-    super.dispose();
     _closeSearch();
-    // searchController.dispose();
+    searchController.dispose();
     textController.dispose();
+    super.dispose();
   }
 
   @override
@@ -520,6 +529,13 @@ getValue -------------------------------------
     String? hintTextDefault;
     int? maxLength = widget.maxLength;
     FormFieldValidator<String>? validator = widget.validator;
+    final clearWidget = isDisabled
+        ? null
+        : IconButton(
+            onPressed: _clear,
+            icon: const Icon(Icons.clear),
+            tooltip: locales.get('label--clear'),
+          );
 
     /// Text styles
     String? errorText;
@@ -536,6 +552,20 @@ getValue -------------------------------------
         },
         icon: Icon(obscureText ? Icons.visibility : Icons.visibility_off),
       );
+    }
+
+    /// Add clear button when is not possible to set value to null
+    switch (widget.type) {
+      case InputDataType.date:
+      case InputDataType.dateTime:
+      case InputDataType.timestamp:
+      case InputDataType.time:
+        if (value != null) {
+          inputSuffixIcon = clearWidget;
+        }
+        break;
+      default:
+        break;
     }
 
     Widget endWidget = Text(
@@ -675,9 +705,7 @@ getValue -------------------------------------
             bool sameValue = value == newFormattedValue;
             if (!sameValue) {
               value = newFormattedValue?.toString() ?? '';
-              if (widget.onChanged != null) {
-                widget.onChanged!(newFormattedValue);
-              }
+              widget.onChanged?.call(newFormattedValue);
             }
           },
           onFieldSubmitted: widget.onSubmit == null
@@ -768,9 +796,9 @@ getValue -------------------------------------
                   newDate = DateTime.parse('${newDate.toIso8601String()}Z');
                 }
               }
-              if (widget.onChanged != null) widget.onChanged!(newDate);
-              if (widget.onComplete != null) widget.onComplete!(newDate);
-              if (widget.onSubmit != null) widget.onSubmit!(newDate);
+              widget.onChanged?.call(newDate);
+              widget.onComplete?.call(newDate);
+              widget.onSubmit?.call(newDate);
             }
           },
         );
@@ -795,7 +823,9 @@ getValue -------------------------------------
                     initialTime: time!,
                   );
                   if (picked != null && picked != time) {
-                    if (widget.onChanged != null) widget.onChanged!(picked);
+                    widget.onChanged?.call(picked);
+                    widget.onComplete?.call(picked);
+                    widget.onSubmit?.call(picked);
                   }
                 },
           icon: const Icon(Icons.access_time),
@@ -839,7 +869,8 @@ getValue -------------------------------------
             prefixIcon: inputDecoration.prefixIcon ??
                 inputDecoration.prefixIcon ??
                 Icon(inputDataTypeIcon(widget.type)),
-            suffixIcon: const Icon(Icons.arrow_drop_down),
+            suffixIcon:
+                inputDecoration.suffixIcon ?? const Icon(Icons.arrow_drop_down),
           ),
           onTap: isDisabled
               ? null
@@ -848,11 +879,30 @@ getValue -------------------------------------
                 },
         );
         if (!isDisabled) {
-          // final optionsHash =
-          //     dropdownOptions.map((e) => e.value).toList().toString().hashCode;
           endWidget = SearchAnchor(
+            viewHintText: locales.get('label--search'),
             isFullScreen: false,
-            // key: Key('search-anchor-$optionsHash'),
+            viewLeading: BackButton(
+              onPressed: _closeSearch,
+            ),
+            viewTrailing: [
+              if (value != null && value.toString().isNotEmpty)
+                OutlinedButton.icon(
+                  onPressed: () {
+                    _closeSearch();
+                    _clear();
+                  },
+                  icon: const Icon(Icons.clear),
+                  label: Text(locales.get('label--clear')),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: theme.colorScheme.error,
+                    iconColor: theme.colorScheme.error,
+                    side: BorderSide(
+                        color:
+                            theme.buttonTheme.colorScheme?.error ?? Colors.red),
+                  ),
+                ),
+            ],
             searchController: searchController,
             builder: (BuildContext context, SearchController controller) {
               return PointerInterceptor(child: widgetInput);
@@ -920,14 +970,12 @@ getValue -------------------------------------
                     title: Text(item.label),
                     onTap: () {
                       controller.closeView('');
-                      if (widget.onChanged != null && item.value != value) {
-                        widget.onChanged!(item.value == '' ? null : item.value);
+                      dynamic newValue = item.value == '' ? null : item.value;
+                      if (newValue != value) {
+                        widget.onChanged?.call(newValue);
+                        widget.onComplete?.call(newValue);
+                        widget.onSubmit?.call(newValue);
                       }
-                      if (widget.onComplete != null) {
-                        widget.onComplete!(item.value);
-                      }
-                      if (widget.onSubmit != null) widget.onSubmit!(item.value);
-                      // if (mounted) setState(() {});
                     },
                   ),
                 );
@@ -950,10 +998,9 @@ getValue -------------------------------------
             selected: value == e.value,
             onChanged: (newValue) {
               value = newValue;
-              if (mounted) setState(() {});
-              if (widget.onChanged != null) widget.onChanged!(value);
-              if (widget.onComplete != null) widget.onComplete!(value);
-              if (widget.onSubmit != null) widget.onSubmit!(value);
+              widget.onChanged?.call(value);
+              widget.onComplete?.call(value);
+              widget.onSubmit?.call(value);
             },
           );
         });
@@ -980,18 +1027,17 @@ getValue -------------------------------------
             suffixIcon: Switch(
               value: value,
               onChanged: (newValue) {
-                value = newValue;
-                if (widget.onChanged != null) widget.onChanged!(value);
-                if (widget.onComplete != null) widget.onComplete!(value);
-                if (widget.onSubmit != null) widget.onSubmit!(value);
+                widget.onChanged?.call(newValue);
+                widget.onComplete?.call(newValue);
+                widget.onSubmit?.call(newValue);
               },
             ),
           ),
           onTap: () async {
-            value = !value;
-            if (widget.onChanged != null) widget.onChanged!(value);
-            if (widget.onComplete != null) widget.onComplete!(value);
-            if (widget.onSubmit != null) widget.onSubmit!(value);
+            bool newValue = !value;
+            widget.onChanged?.call(newValue);
+            widget.onComplete?.call(newValue);
+            widget.onSubmit?.call(newValue);
           },
         );
         break;

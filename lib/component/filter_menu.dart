@@ -31,7 +31,7 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
 
   @override
   void initState() {
-    edit = widget.data;
+    edit = FilterData.fromJson(widget.data.toJson());
     super.initState();
   }
 
