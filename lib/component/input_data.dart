@@ -488,8 +488,8 @@ getValue -------------------------------------
 
   /// Close search controller
   void _closeSearch() {
-    searchController.clear();
     try {
+      searchController.clear();
       if (searchController.isOpen) searchController.closeView(null);
     } catch (e) {
       // Do nothing
@@ -505,9 +505,9 @@ getValue -------------------------------------
 
   @override
   void didUpdateWidget(covariant InputData oldWidget) {
-    super.didUpdateWidget(oldWidget);
     _closeSearch();
     getValue(notify: false, newValue: widget.value);
+    super.didUpdateWidget(oldWidget);
   }
 
   @override

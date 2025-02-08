@@ -664,6 +664,7 @@ class _FilterMenuState extends State<FilterMenu> {
 
   void _closeSearch() {
     try {
+      searchController.clear();
       if (searchController.isOpen) searchController.closeView(null);
     } catch (e) {
       // Do nothing
@@ -687,14 +688,15 @@ class _FilterMenuState extends State<FilterMenu> {
 
   @override
   void didUpdateWidget(covariant FilterMenu oldWidget) {
-    super.didUpdateWidget(oldWidget);
     _closeSearch();
     _update();
+    super.didUpdateWidget(oldWidget);
   }
 
   @override
   void dispose() {
     _closeSearch();
+    searchController.dispose();
     super.dispose();
   }
 
