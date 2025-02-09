@@ -682,7 +682,6 @@ class _FilterMenuState extends State<FilterMenu> {
   void didChangeDependencies() {
     _closeSearch();
     _update();
-    if (mounted) setState(() {});
     super.didChangeDependencies();
   }
 
@@ -696,7 +695,11 @@ class _FilterMenuState extends State<FilterMenu> {
   @override
   void dispose() {
     _closeSearch();
-    searchController.dispose();
+    try {
+      searchController.dispose();
+    } catch (e) {
+      // Do nothing
+    }
     super.dispose();
   }
 
@@ -839,7 +842,6 @@ class _FilterMenuState extends State<FilterMenu> {
                   maxLines: 1,
                 ),
                 onTap: () {
-                  controller.closeView(null);
                   int newIndex = activeOptions.length + 1;
                   selected.index = newIndex;
                   if (isSort) {
@@ -853,28 +855,29 @@ class _FilterMenuState extends State<FilterMenu> {
                     // Update index
                     selected.index = 1;
                   }
-                  Future.delayed(const Duration(milliseconds: 50))
-                      .then((value) {
-                    showDialog<void>(
-                      barrierDismissible: false, // user must tap button!
-                      context: context,
-                      builder: (BuildContext ctx) {
-                        return AlertDialog(
-                          scrollable: true,
-                          content: FilterMenuOptionData(
-                            data: selected,
-                            onChange: (newValue) {
-                              Navigator.of(context).pop();
-                              final merged = FilterHelper.merge(
-                                  filters: data, merge: [newValue]);
-                              widget.onChange(merged);
-                            },
-                          ),
-                        );
-                      },
-                    );
-                  });
+                  _closeSearch();
                   // Do not call onChange or it will trigger unwanted calls
+                  showDialog<void>(
+                    barrierDismissible: false, // user must tap button!
+                    context: c,
+                    builder: (BuildContext ctx) {
+                      return AlertDialog(
+                        key: ValueKey(
+                            'filter-menu-option-data-pop-up-${item.id}'),
+                        scrollable: true,
+                        content: FilterMenuOptionData(
+                          key: ValueKey('filter-menu-option-data-${item.id}'),
+                          data: selected,
+                          onChange: (newValue) {
+                            Navigator.of(ctx).pop();
+                            final merged = FilterHelper.merge(
+                                filters: data, merge: [newValue]);
+                            widget.onChange(merged);
+                          },
+                        ),
+                      );
+                    },
+                  );
                 },
               ),
             );
@@ -888,6 +891,7 @@ class _FilterMenuState extends State<FilterMenu> {
           foregroundColor: theme.buttonTheme.colorScheme?.error ?? Colors.red,
           side: BorderSide(
               color: theme.buttonTheme.colorScheme?.error ?? Colors.red),
+          iconColor: theme.buttonTheme.colorScheme?.error ?? Colors.red,
         ),
         onPressed: clear,
         icon: widget.iconClear ?? const Icon(Icons.clear),

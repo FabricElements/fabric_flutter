@@ -513,8 +513,15 @@ getValue -------------------------------------
   @override
   void dispose() {
     _closeSearch();
-    searchController.dispose();
-    textController.dispose();
+    try {
+      textController.dispose();
+      // Dispose the search controller if it's not attached to the widget
+      if (widget.searchController == null && searchController.isAttached) {
+        searchController.dispose();
+      }
+    } catch (e) {
+      // Do nothing
+    }
     super.dispose();
   }
 
@@ -969,8 +976,8 @@ getValue -------------------------------------
                     trailing: trailing,
                     title: Text(item.label),
                     onTap: () {
-                      controller.closeView('');
                       dynamic newValue = item.value == '' ? null : item.value;
+                      _closeSearch();
                       if (newValue != value) {
                         widget.onChanged?.call(newValue);
                         widget.onComplete?.call(newValue);
