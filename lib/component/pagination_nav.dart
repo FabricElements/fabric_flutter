@@ -77,7 +77,7 @@ class PaginationNav extends StatelessWidget {
               type: InputDataType.dropdown,
               options: limitOptions,
               onChanged: (value) {
-                if (value != limit) {
+                if (value != limit && value != null) {
                   limitChange(value ?? limit);
                 }
               },
