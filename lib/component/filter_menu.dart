@@ -288,6 +288,7 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
                 })),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: theme.buttonTheme.colorScheme?.primary,
+                  iconColor: theme.buttonTheme.colorScheme?.primary,
                   side: BorderSide(
                       color: theme.buttonTheme.colorScheme?.primary ??
                           theme.colorScheme.primary),
@@ -802,6 +803,8 @@ class _FilterMenuState extends State<FilterMenu> {
                     color: theme.buttonTheme.colorScheme?.primary ??
                         theme.colorScheme.primary),
                 disabledMouseCursor: SystemMouseCursors.click,
+                iconColor: theme.buttonTheme.colorScheme?.primary ??
+                    theme.colorScheme.primary,
               ),
               onPressed: () {
                 searchController.openView();

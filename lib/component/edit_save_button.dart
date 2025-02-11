@@ -111,6 +111,8 @@ class _EditSaveButtonState extends State<EditSaveButton> {
         style: OutlinedButton.styleFrom(
           foregroundColor:
               theme.buttonTheme.colorScheme?.secondary ?? Colors.deepOrange,
+          iconColor:
+              theme.buttonTheme.colorScheme?.secondary ?? Colors.deepOrange,
         ),
       );
 
