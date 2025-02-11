@@ -185,11 +185,11 @@ class StateAlert implements Listenable {
     Color buttonColorForeground = theme.colorScheme.onPrimary;
     switch (alertData.type) {
       case AlertType.critical:
-        alertData.color = theme.colorScheme.error;
-        alertData.textColor = theme.colorScheme.onError;
+        alertData.color = theme.colorScheme.errorContainer;
+        alertData.textColor = theme.colorScheme.onErrorContainer;
         alertData.duration ??= 15;
-        buttonColor = theme.colorScheme.errorContainer;
-        buttonColorForeground = theme.colorScheme.onErrorContainer;
+        buttonColor = theme.colorScheme.error;
+        buttonColorForeground = theme.colorScheme.onError;
         break;
       case AlertType.warning:
         alertData.duration ??= 15;
@@ -349,7 +349,11 @@ class StateAlert implements Listenable {
     bool hasDismissAction = alertData.dismiss!.onTap != null;
     actions.add(PointerInterceptor(
       child: TextButton.icon(
-        style: TextButton.styleFrom(foregroundColor: buttonColor),
+        style: TextButton.styleFrom(
+          backgroundColor: theme.colorScheme.surface,
+          foregroundColor: theme.colorScheme.onSurface,
+          iconColor: theme.colorScheme.onSurface,
+        ),
         icon: Icon(alertData.dismiss!.icon!),
         label: Text(locales.get(alertData.dismiss!.label).toUpperCase()),
         onPressed: () async {
@@ -368,8 +372,10 @@ class StateAlert implements Listenable {
       actions.add(PointerInterceptor(
         child: FilledButton.icon(
           style: FilledButton.styleFrom(
-              backgroundColor: buttonColor,
-              foregroundColor: buttonColorForeground),
+            iconColor: buttonColorForeground,
+            backgroundColor: buttonColor,
+            foregroundColor: buttonColorForeground,
+          ),
           label: Text(locales.get(alertData.action!.label).toUpperCase()),
           icon: Icon(alertData.action!.icon),
           onPressed: () async {

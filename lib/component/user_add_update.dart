@@ -474,7 +474,10 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
               onPressed: () {
                 Navigator.pop(context, 'cancel');
               },
-              style: TextButton.styleFrom(foregroundColor: Colors.deepOrange),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.deepOrange,
+                iconColor: Colors.deepOrange,
+              ),
             ),
             const Spacer(),
             FilledButton.icon(
