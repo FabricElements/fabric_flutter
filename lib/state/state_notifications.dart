@@ -8,7 +8,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 
 import '../helper/log_color.dart';
+import '../serialized/notification_data.dart';
 import '../serialized/user_data.dart';
+
+enum NotificationOrigin {
+  message,
+  open,
+  resume,
+}
 
 /// This is a change notifier class which keeps track of state within the campaign builder views.
 class StateNotifications extends ChangeNotifier {
@@ -17,10 +24,10 @@ class StateNotifications extends ChangeNotifier {
   bool initialized = Firebase.apps.isNotEmpty;
 
   String? token;
-  Map<String, dynamic> _notification = {};
+  NotificationData? _notification;
   dynamic _uid = '';
   bool _initialized = false;
-  Function(Map<String, dynamic> message)? _callback;
+  Function(NotificationData message)? _callback;
 
   /// Update user token on the firestore user/{uid}
   void _updateUserToken(String? tokenId) async {
@@ -40,15 +47,9 @@ class StateNotifications extends ChangeNotifier {
   }
 
   /// [notification] returns the body oof the notification
-  Map<dynamic, dynamic> get notification {
-    if (_notification.isEmpty) {
-      return {};
-    }
-    Map<dynamic, dynamic> toNotify = _notification;
-    _notification = {};
-    return toNotify;
-  }
+  NotificationData? get notification => _notification;
 
+  /// Get the user messaging token
   Future<String?> getToken() async {
     if (!initialized) throw 'Initialize Firebase app first';
     // You may set the permission requests to "provisional" which allows the user to choose what type
@@ -56,12 +57,13 @@ class StateNotifications extends ChangeNotifier {
     final notificationSettings =
         await FirebaseMessaging.instance.requestPermission(
       alert: true,
-      announcement: false,
+      announcement: true,
       badge: true,
       carPlay: true,
       criticalAlert: true,
-      // provisional: true,
+      provisional: true,
       sound: true,
+      providesAppNotificationSettings: true,
     );
     switch (notificationSettings.authorizationStatus) {
       case AuthorizationStatus.authorized:
@@ -89,7 +91,7 @@ class StateNotifications extends ChangeNotifier {
   }
 
   /// Return notify values
-  _notify({RemoteMessage? message, String origin = 'message'}) async {
+  _notify({RemoteMessage? message, required NotificationOrigin origin}) async {
     if (message == null) return;
     RemoteNotification? notification = message.notification;
     Map<String, dynamic> data = message.data;
@@ -134,12 +136,18 @@ class StateNotifications extends ChangeNotifier {
     }
 
     /// Add valid path by default
-    String path = message0['path'] ?? '';
-    if (path.isNotEmpty && path.startsWith('/')) {
+    String? path = (message0['path'] as String?)?.trim();
+    if (path != null && path.isNotEmpty && path.startsWith('/')) {
       message0['path'] = path;
+      message0['duration'] ??= 10.0;
     } else {
-      message0['path'] = '';
+      message0['path'] = null;
     }
+
+    /// Add duration
+    message0.putIfAbsent('duration', () => 5);
+
+    /// Add clear
     message0.addAll({
       'clear': bool.tryParse(message0['clear']?.toString() ?? 'false',
               caseSensitive: false) ??
@@ -147,34 +155,42 @@ class StateNotifications extends ChangeNotifier {
     });
 
     /// Add data to stream
-    _notification = message0;
+    _notification = NotificationData.fromJson(message0);
     try {
-      if (_callback != null) await _callback!(_notification);
+      if (_callback != null) await _callback!(_notification!);
     } catch (error) {
       debugPrint(LogColor.error('Callback Error: $error'));
     }
   }
 
+  /// Initialize the notifications
   initNotifications() async {
     // Prevent calling this function in debug mode
     if (kDebugMode) return;
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-      await _notify(message: message, origin: 'message');
+      await _notify(message: message, origin: NotificationOrigin.message);
     });
-
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
       await Future.delayed(const Duration(milliseconds: 200));
-      await _notify(message: message, origin: 'resume');
+      await _notify(message: message, origin: NotificationOrigin.resume);
+    });
+    FirebaseMessaging.onBackgroundMessage((RemoteMessage message) async {
+      await Future.delayed(const Duration(milliseconds: 500));
+      await _notify(message: message, origin: NotificationOrigin.open);
     });
   }
 
   /// Initializes the notifications and starts listening
   Future<void> init() async {
+    // Prevent calling this function in debug mode
+    if (kDebugMode) return;
     // Prevent calling this function if not initialized
     if (_initialized) return;
     _initialized = true;
     // Wait for the app assign the callback
-    if (_callback == null) await Future.delayed(const Duration(seconds: 1));
+    if (_callback == null) {
+      await Future.delayed(const Duration(milliseconds: 300));
+    }
     // Any time the token refreshes, store this in the database too.
     // FirebaseMessaging.instance.onTokenRefresh.listen(_updateUserToken);
     initNotifications();
@@ -199,12 +215,12 @@ class StateNotifications extends ChangeNotifier {
   /// Override this function to add custom features for your state.
   void reset() {
     token = '';
-    _notification = {};
+    _notification = null;
     _uid = '';
     _initialized = false;
   }
 
-  set callback(Function(Map<String, dynamic> message) callback) {
+  set callback(Function(NotificationData message) callback) {
     _callback ??= callback;
   }
 
