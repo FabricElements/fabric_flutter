@@ -127,7 +127,9 @@ class StateNotifications extends ChangeNotifier {
       message0['path'] = '';
     }
     message0.addAll({
-      'clear': bool.tryParse(message0['clear'], caseSensitive: false) ?? false,
+      'clear': bool.tryParse(message0['clear']?.toString() ?? 'false',
+              caseSensitive: false) ??
+          false,
     });
 
     /// Add data to stream
