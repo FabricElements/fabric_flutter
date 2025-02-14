@@ -170,8 +170,11 @@ class StateNotifications extends ChangeNotifier {
 
   /// Initializes the notifications and starts listening
   Future<void> init() async {
+    // Prevent calling this function if not initialized
     if (_initialized) return;
     _initialized = true;
+    // Wait for the app assign the callback
+    if (_callback == null) await Future.delayed(const Duration(seconds: 1));
     // Any time the token refreshes, store this in the database too.
     // FirebaseMessaging.instance.onTokenRefresh.listen(_updateUserToken);
     initNotifications();

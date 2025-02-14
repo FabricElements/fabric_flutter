@@ -37,16 +37,11 @@ class _RoutePageNotificationsState extends BaseRoutePageState {
         Provider.of<StateNotifications>(context, listen: false);
     stateNotifications.callback = (Map<String, dynamic> message) {
       int duration = 5;
-      String? path = message['path'];
-      String? origin = message['origin'];
-      if (path != null) {
-        duration = 10;
+      String? path = message['path']?.trim();
+      if (path?.isEmpty ?? true) {
+        path = null;
       } else {
-        path = null;
-      }
-      if (origin == 'resume' && path != null) {
-        Navigator.of(context).popAndPushNamed(path);
-        path = null;
+        duration = 10;
       }
       // Translate title
       String? title = message['title'];
@@ -62,7 +57,7 @@ class _RoutePageNotificationsState extends BaseRoutePageState {
       } else {
         body = null;
       }
-      return alert.show(AlertData(
+      alert.show(AlertData(
         duration: duration,
         title: title,
         body: body,
