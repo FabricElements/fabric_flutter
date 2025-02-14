@@ -68,7 +68,7 @@ class _RoutePageNotificationsState extends BaseRoutePageState {
             ? ButtonOptions(
                 label: locales.get('label--open'),
                 onTap: () {
-                  Navigator.of(context).popAndPushNamed(path!);
+                  Navigator.of(alert.context ?? context).popAndPushNamed(path!);
                 },
               )
             : null,
