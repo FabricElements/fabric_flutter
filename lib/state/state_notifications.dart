@@ -8,6 +8,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 
 import '../helper/log_color.dart';
+import '../serialized/user_data.dart';
 
 /// This is a change notifier class which keeps track of state within the campaign builder views.
 class StateNotifications extends ChangeNotifier {
@@ -98,10 +99,23 @@ class StateNotifications extends ChangeNotifier {
     message0 = _clearObject(message0, 'alert');
     message0 = _clearObject(message0, 'data');
     message0 = _clearObject(message0, 'notification');
-    if (!kIsWeb) {
-      /// Add OS
-      message0.addAll({'os': Platform.operatingSystem});
+
+    /// Get user device
+    UserOS userOs = UserOS.unknown;
+    try {
+      if (kIsWeb) {
+        userOs = UserOS.web;
+      } else {
+        String os = Platform.operatingSystem;
+        userOs = UserOS.values.firstWhere(
+          (e) => e.name == os.toLowerCase(),
+          orElse: () => UserOS.unknown,
+        );
+      }
+    } catch (e) {
+      debugPrint(LogColor.error('Device type error: ${e.toString()}'));
     }
+    message0.addAll({'os': userOs});
 
     /// Add origin
     message0.addAll({'origin': origin});
@@ -143,7 +157,7 @@ class StateNotifications extends ChangeNotifier {
 
   initNotifications() async {
     // Prevent calling this function in debug mode
-    if (kIsWeb && kDebugMode) return;
+    if (kDebugMode) return;
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       await _notify(message: message, origin: 'message');
     });
@@ -167,7 +181,7 @@ class StateNotifications extends ChangeNotifier {
   /// from the main App to prevent blocking call
   Future<void> getUserToken() async {
     // Prevent calling this function in debug mode
-    if (kIsWeb && kDebugMode) return;
+    if (kDebugMode) return;
     if (!_initialized) await init();
     final newToken = await getToken();
     _updateUserToken(newToken);
