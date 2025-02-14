@@ -117,7 +117,7 @@ class StateNotifications extends ChangeNotifier {
     } catch (e) {
       debugPrint(LogColor.error('Device type error: ${e.toString()}'));
     }
-    message0.addAll({'os': userOs});
+    message0.addAll({'os': userOs.name});
 
     /// Add origin
     message0.addAll({'origin': origin});

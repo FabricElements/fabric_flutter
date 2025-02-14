@@ -12,7 +12,8 @@ class NotificationData {
   String? path;
   @JsonKey(includeIfNull: true)
   bool clear;
-  UserOS? os;
+  @JsonKey(includeIfNull: true, unknownEnumValue: UserOS.unknown)
+  UserOS os;
   String? typeString;
   @JsonKey(includeIfNull: true)
   int duration;
@@ -24,7 +25,7 @@ class NotificationData {
     this.type,
     this.path,
     this.clear = false,
-    this.os,
+    this.os = UserOS.unknown,
     this.typeString,
     this.duration = 5,
   });
