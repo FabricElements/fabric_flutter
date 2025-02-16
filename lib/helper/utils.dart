@@ -144,13 +144,24 @@ class Utils {
     DateTime? dateTime,
     bool reverse = false,
   }) {
-    if (utcOffset == null || dateTime == null) return dateTime;
+    if (utcOffset == null || dateTime == null || utcOffset == 0) {
+      return dateTime;
+    }
     DateTime currentDate = dateTime.toUtc();
-    Duration timeZoneOffsetDuration = Duration(minutes: utcOffset);
-    if (reverse) {
-      return currentDate.subtract(timeZoneOffsetDuration);
+    Duration timeZoneOffsetDuration = Duration(minutes: utcOffset.abs());
+    bool offsetIsPositive = utcOffset >= 0;
+    if (offsetIsPositive) {
+      if (reverse) {
+        return currentDate.subtract(timeZoneOffsetDuration);
+      } else {
+        return currentDate.add(timeZoneOffsetDuration);
+      }
     } else {
-      return currentDate.add(timeZoneOffsetDuration);
+      if (reverse) {
+        return currentDate.add(timeZoneOffsetDuration);
+      } else {
+        return currentDate.subtract(timeZoneOffsetDuration);
+      }
     }
   }
 

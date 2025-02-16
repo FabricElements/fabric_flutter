@@ -786,13 +786,6 @@ getValue -------------------------------------
             }
             if (picked != null) {
               DateTime newDate = picked;
-              if (widget.utcOffset != null && widget.utcOffset != 0) {
-                newDate = Utils.dateTimeOffset(
-                  dateTime: picked,
-                  utcOffset: widget.utcOffset,
-                  reverse: true,
-                )!;
-              }
               // Apply local time or utc time
               if (widget.asLocalTime) {
                 newDate = newDate.toLocal();
@@ -802,6 +795,14 @@ getValue -------------------------------------
                 if (!newDate.isUtc) {
                   newDate = DateTime.parse('${newDate.toIso8601String()}Z');
                 }
+                newDate = newDate.toUtc();
+              }
+              if (widget.utcOffset != null && widget.utcOffset != 0) {
+                newDate = Utils.dateTimeOffset(
+                  dateTime: newDate,
+                  utcOffset: widget.utcOffset,
+                  reverse: true,
+                )!;
               }
               widget.onChanged?.call(newDate);
               widget.onComplete?.call(newDate);
