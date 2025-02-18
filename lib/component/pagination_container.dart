@@ -74,10 +74,16 @@ class _PaginationContainerState extends State<PaginationContainer> {
   late String? error;
   List<dynamic> data = [];
 
-  _start() {
+  @override
+  void initState() {
+    /// Initial state
     end = false;
-    loading = false;
     error = null;
+    data = widget.initialData ?? [];
+    // Always set loading to true when the initial data is empty
+    loading = data.isEmpty;
+
+    /// Scroll controller
     _controller.addListener(() async {
       if (end) return;
       bool isBottom =
@@ -96,20 +102,21 @@ class _PaginationContainerState extends State<PaginationContainer> {
       loading = false;
       if (mounted) setState(() {});
     });
-    data = widget.initialData ?? [];
-    // Get data from stream
+
+    /// Get data from stream
     widget.stream.listen((event) {
-      data = event != null ? event as List<dynamic> : widget.initialData ?? [];
+      final eventData = event != null ? event as List<dynamic> : null;
+      data = eventData ?? widget.initialData ?? [];
+      loading = eventData == null;
+      if (widget.initialData != null && widget.initialData!.isNotEmpty) {
+        loading = false;
+      }
       if (mounted) setState(() {});
     }).onError((e) {
       error = e.toString();
+      loading = false;
       if (mounted) setState(() {});
     });
-  }
-
-  @override
-  void initState() {
-    _start();
     super.initState();
   }
 
@@ -122,38 +129,56 @@ class _PaginationContainerState extends State<PaginationContainer> {
 
   @override
   Widget build(BuildContext context) {
-    if (error != null) return widget.error;
     int total = data.length;
-    if (total == 0) return widget.empty;
-    return Scrollbar(
-      thumbVisibility: true,
-      trackVisibility: true,
-      interactive: true,
-      controller: _controller,
-      child: ListView.builder(
-        key: const PageStorageKey('pagination-container-scroll'),
-        restorationId: 'pagination-container',
-        clipBehavior: widget.clipBehavior,
-        primary: widget.primary,
-        cacheExtent: widget.cacheExtent,
+    late Widget content;
+    if (error != null) {
+      content = SingleChildScrollView(
+        child: widget.error,
+      );
+    } else if (loading && data.isEmpty) {
+      content = SingleChildScrollView(
+        child: widget.loading,
+      );
+    } else if (total == 0) {
+      content = SingleChildScrollView(
+        child: widget.empty,
+      );
+    } else {
+      content = Scrollbar(
+        thumbVisibility: true,
+        trackVisibility: true,
+        interactive: true,
         controller: _controller,
-        itemCount: loading ? total + 1 : total,
-        padding: widget.padding,
-        shrinkWrap: widget.shrinkWrap,
-        itemBuilder: (BuildContext context, int index) {
-          if (index < total) {
-            return widget.itemBuilder(
-              context,
-              index,
-              data[index],
-            );
-          } else {
-            return widget.loading;
-          }
-        },
-        reverse: widget.reverse,
-        scrollDirection: widget.scrollDirection,
-      ),
-    );
+        child: ListView.builder(
+          key: const PageStorageKey('pagination-container-scroll'),
+          restorationId: 'pagination-container',
+          clipBehavior: widget.clipBehavior,
+          primary: widget.primary,
+          cacheExtent: widget.cacheExtent,
+          controller: _controller,
+          itemCount: loading ? total + 1 : total,
+          padding: widget.padding,
+          shrinkWrap: widget.shrinkWrap,
+          itemBuilder: (BuildContext context, int index) {
+            if (index < total) {
+              return widget.itemBuilder(
+                context,
+                index,
+                data[index],
+              );
+            } else {
+              return SizedBox(
+                width: double.maxFinite,
+                child: widget.loading,
+              );
+            }
+          },
+          reverse: widget.reverse,
+          scrollDirection: widget.scrollDirection,
+        ),
+      );
+    }
+
+    return content;
   }
 }
