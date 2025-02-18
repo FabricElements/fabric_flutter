@@ -1,4 +1,4 @@
-dynamic defaultLocales = {
+const Map<String, Map<String, String>> defaultLocales = {
   'say--something': {
     'en': 'Say something...',
     'es': 'Di algo...',

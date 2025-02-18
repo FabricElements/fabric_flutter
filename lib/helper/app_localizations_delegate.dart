@@ -1,9 +1,7 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
 
 import '../placeholder/default_locales.dart';
 import 'log_color.dart';
@@ -29,35 +27,30 @@ class AppLocalizations {
   }
 
   /// The keys of the locales
-  Map<String, dynamic> keys = {};
+  /// Assign custom labels to the keys
+  Map<String, Map<String, String>> keys = {};
 
-  /// Load the locales from the assets
+  /// Load custom locales and add add missing labels
   Future<bool> load() async {
-    try {
-      String data = await rootBundle.loadString('assets/locales.json');
-      keys = json.decode(data);
-    } catch (e) {
-      debugPrint(LogColor.error(
-          'AppLocalizations: Unable to load locales file from path assets/locales.json - $e'));
-    }
-
     /// Add missing locales
-    defaultLocales.forEach((key, value) => keys.putIfAbsent(key, () => value));
+    for (var entry in defaultLocales.entries) {
+      keys.putIfAbsent(entry.key, () => entry.value);
+    }
     return true;
   }
 
-  /// Merge the default locales with the asset locales
+  /// Merge the default locales with the custom locales
   String _mergeLocales(String keyPath) {
     RegExp regExp = RegExp(r'([a-zA-Z\d_-]+)');
     String finalResponse = '';
     try {
       assert(regExp.hasMatch(keyPath));
       if (keys.containsKey(keyPath)) {
-        if (keys[keyPath].containsKey('en')) {
-          finalResponse = keys[keyPath]['en'];
+        if (keys[keyPath]!.containsKey('en')) {
+          finalResponse = keys[keyPath]!['en']!;
         }
-        if (keys[keyPath].containsKey(locale.languageCode)) {
-          finalResponse = keys[keyPath][locale.languageCode];
+        if (keys[keyPath]!.containsKey(locale.languageCode)) {
+          finalResponse = keys[keyPath]![locale.languageCode]!;
         }
       }
     } catch (error) {
@@ -133,8 +126,14 @@ class AppLocalizations {
 }
 
 /// The localizations delegate
+/// This class is used to load the localizations
 class AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
-  const AppLocalizationsDelegate();
+  const AppLocalizationsDelegate({
+    required this.locales,
+  });
+
+  /// The locales to load
+  final Map<String, Map<String, String>> locales;
 
   @override
   bool isSupported(Locale locale) => true; // every language is supported
@@ -142,6 +141,7 @@ class AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   @override
   Future<AppLocalizations> load(Locale locale) async {
     AppLocalizations localizations = AppLocalizations(locale);
+    localizations.keys = {...locales};
     await localizations.load();
     return localizations;
   }
