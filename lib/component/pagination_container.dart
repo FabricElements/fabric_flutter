@@ -1,5 +1,7 @@
+import 'package:fabric_flutter/component/content_container.dart';
 import 'package:flutter/material.dart';
 
+import '../helper/app_localizations_delegate.dart';
 import '../helper/log_color.dart';
 
 class PaginationContainer extends StatefulWidget {
@@ -11,31 +13,10 @@ class PaginationContainer extends StatefulWidget {
     this.reverse = false,
     this.padding = EdgeInsets.zero,
     this.scrollDirection = Axis.vertical,
-    this.cacheExtent = 5,
-    this.empty = const Center(
-      child: Padding(
-        padding: EdgeInsets.all(8.0),
-        child: SizedBox.square(
-          dimension: 32,
-          child: Icon(Icons.remove),
-        ),
-      ),
-    ),
-    this.error = const Center(
-      child: Padding(
-        padding: EdgeInsets.all(8.0),
-        child: Text('Error Loading!'),
-      ),
-    ),
-    this.loading = const Center(
-      child: Padding(
-        padding: EdgeInsets.all(8.0),
-        child: SizedBox.square(
-          dimension: 32,
-          child: Icon(Icons.hourglass_bottom),
-        ),
-      ),
-    ),
+    this.cacheExtent = 1000,
+    this.empty,
+    this.loading,
+    this.end,
     required this.stream,
     this.initialData,
     this.clipBehavior = Clip.hardEdge,
@@ -52,9 +33,9 @@ class PaginationContainer extends StatefulWidget {
   final EdgeInsetsGeometry? padding;
   final Axis scrollDirection;
   final double cacheExtent;
-  final Widget empty;
-  final Widget loading;
-  final Widget error;
+  final Widget? empty;
+  final Widget? loading;
+  final Widget? end;
   final Stream<dynamic> stream;
   final List<dynamic>? initialData;
   final Clip clipBehavior;
@@ -85,10 +66,12 @@ class _PaginationContainerState extends State<PaginationContainer> {
 
     /// Scroll controller
     _controller.addListener(() async {
-      if (end) return;
       bool isBottom =
           _controller.position.atEdge && _controller.position.pixels != 0;
+      // Do nothing if any of these conditions are met
       if (!isBottom) return;
+      if (end) return;
+      if (loading) return;
       loading = true;
       if (mounted) setState(() {});
       try {
@@ -111,6 +94,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
       if (widget.initialData != null && widget.initialData!.isNotEmpty) {
         loading = false;
       }
+      end = false;
       if (mounted) setState(() {});
     }).onError((e) {
       error = e.toString();
@@ -129,21 +113,56 @@ class _PaginationContainerState extends State<PaginationContainer> {
 
   @override
   Widget build(BuildContext context) {
+    final locales = AppLocalizations.of(context);
+    final theme = Theme.of(context);
     int total = data.length;
+    final widgetEmpty = widget.empty ??
+        Card(
+          child: ListTile(
+            contentPadding: EdgeInsets.all(16),
+            leading: Icon(Icons.info),
+            title: Text(locales.get('label--nothing-here-yet')),
+          ),
+        );
+    final widgetLoading = widget.loading ??
+        Card(
+          child: ListTile(
+            contentPadding: EdgeInsets.all(16),
+            leading: const CircularProgressIndicator(),
+            title: Text(locales.get('label--loading')),
+          ),
+        );
+    final widgetEnd = widget.end ??
+        Center(
+          child: Padding(
+            padding: EdgeInsets.only(top: kMinInteractiveDimension * 2),
+            child: Icon(
+              Icons.remove,
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+            ),
+          ),
+        );
+
     late Widget content;
-    if (error != null) {
+    if (loading && data.isEmpty) {
       content = SingleChildScrollView(
-        child: widget.error,
-      );
-    } else if (loading && data.isEmpty) {
-      content = SingleChildScrollView(
-        child: widget.loading,
+        primary: false,
+        padding: widget.padding,
+        child: ContentContainer(
+          child: widgetLoading,
+        ),
       );
     } else if (total == 0) {
       content = SingleChildScrollView(
-        child: widget.empty,
+        primary: false,
+        padding: widget.padding,
+        child: ContentContainer(
+          child: widgetEmpty,
+        ),
       );
     } else {
+      int totalCount = total;
+      if (loading || error != null || end) totalCount++;
       content = Scrollbar(
         thumbVisibility: true,
         trackVisibility: true,
@@ -156,7 +175,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
           primary: widget.primary,
           cacheExtent: widget.cacheExtent,
           controller: _controller,
-          itemCount: loading ? total + 1 : total,
+          itemCount: totalCount,
           padding: widget.padding,
           shrinkWrap: widget.shrinkWrap,
           itemBuilder: (BuildContext context, int index) {
@@ -166,11 +185,30 @@ class _PaginationContainerState extends State<PaginationContainer> {
                 index,
                 data[index],
               );
-            } else {
-              return SizedBox(
-                width: double.maxFinite,
-                child: widget.loading,
+            }
+            if (error != null) {
+              return ContentContainer(
+                child: Card(
+                  color: theme.colorScheme.errorContainer,
+                  child: ListTile(
+                    contentPadding: EdgeInsets.all(16),
+                    leading: Icon(Icons.error),
+                    title: Text(error!),
+                    textColor: theme.colorScheme.onErrorContainer,
+                    iconColor: theme.colorScheme.onErrorContainer,
+                  ),
+                ),
               );
+            } else if (loading) {
+              return ContentContainer(
+                child: widgetLoading,
+              );
+            } else if (end) {
+              return ContentContainer(
+                child: widgetEnd,
+              );
+            } else {
+              return SizedBox();
             }
           },
           reverse: widget.reverse,

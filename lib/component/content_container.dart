@@ -26,8 +26,8 @@ class ContentContainer extends StatelessWidget {
 
   /// [size] of the container
   final ContentContainerSize size;
-  final EdgeInsets? padding;
-  final EdgeInsets? margin;
+  final EdgeInsetsGeometry? padding;
+  final EdgeInsetsGeometry? margin;
   final Axis direction;
   final MainAxisSize mainAxisSize;
   final CrossAxisAlignment crossAxisAlignment;

@@ -225,26 +225,6 @@ class StateUser extends StateDocument {
 
   /// Update user status data
   _userStatusUpdate() async {
-    try {
-      final List<ConnectivityResult> connectivityResult =
-          await (Connectivity().checkConnectivity());
-      ConnectivityResult connectivityStatus = ConnectivityResult.none;
-      if (connectivityResult.contains(ConnectivityResult.wifi)) {
-        connectivityStatus = ConnectivityResult.wifi;
-      } else if (connectivityResult.contains(ConnectivityResult.ethernet)) {
-        connectivityStatus = ConnectivityResult.ethernet;
-      } else if (connectivityResult.contains(ConnectivityResult.mobile)) {
-        connectivityStatus = ConnectivityResult.mobile;
-      } else if (connectivityResult.contains(ConnectivityResult.other)) {
-        connectivityStatus = ConnectivityResult.other;
-      }
-      final connectedUpdated = connectivityStatus != ConnectivityResult.none;
-      connectionChanged = connected != connectedUpdated;
-      connected = connectedUpdated;
-      connectedTo = connectivityStatus.name;
-    } catch (e) {
-      debugPrint(LogColor.error('Connectivity error: ${e.toString()}'));
-    }
     _controllerStreamStatus.sink.add(UserStatus.fromJson(userStatus.toJson()));
     notifyListeners();
   }
@@ -289,19 +269,43 @@ class StateUser extends StateDocument {
     Utils.getLanguage()
         .then((value) => _language = value)
         .catchError((error) => '');
-    try {
-      // Check connectivity
-      Connectivity().onConnectivityChanged.listen((results) async {
-        if (results.firstOrNull?.name != connectedTo) await _userStatusUpdate();
-      },
-          onError: (error) =>
-              {debugPrint('Connectivity error: ${error.toString()}')});
-    } catch (error) {
-      debugPrint('Connectivity error: ${error.toString()}');
-    }
+
+    /// Listen to user changes
     _auth
         .userChanges()
         .listen(_refreshAuth, onError: (e) => error = e.toString());
+
+    /// Check connectivity
+    try {
+      Connectivity().onConnectivityChanged.listen(
+            (results) async {
+              if (results.firstOrNull?.name != connectedTo) {
+                ConnectivityResult connectivityStatus = ConnectivityResult.none;
+                if (results.contains(ConnectivityResult.wifi)) {
+                  connectivityStatus = ConnectivityResult.wifi;
+                } else if (results.contains(ConnectivityResult.ethernet)) {
+                  connectivityStatus = ConnectivityResult.ethernet;
+                } else if (results.contains(ConnectivityResult.mobile)) {
+                  connectivityStatus = ConnectivityResult.mobile;
+                } else if (results.contains(ConnectivityResult.other)) {
+                  connectivityStatus = ConnectivityResult.other;
+                }
+                final connectedUpdated =
+                    connectivityStatus != ConnectivityResult.none;
+                connectionChanged = connected != connectedUpdated;
+                connected = connectedUpdated;
+                connectedTo = connectivityStatus.name;
+                if (connectionChanged) await _userStatusUpdate();
+              }
+            },
+            cancelOnError: true,
+            onError: (error) {
+              debugPrint('Connectivity error: ${error.toString()}');
+            },
+          );
+    } catch (error) {
+      debugPrint('Connectivity error: ${error.toString()}');
+    }
   }
 
   bool get initCalled => _init;
