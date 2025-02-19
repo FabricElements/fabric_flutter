@@ -162,7 +162,7 @@ class UserAdmin extends StatelessWidget {
       ),
       stream: state.stream,
       paginate: state.next,
-      empty: empty ?? Container(),
+      empty: empty,
       initialData: state.data,
       shrinkWrap: !primary,
       itemBuilder: (BuildContext c, index, dynamic data) {
