@@ -1170,4 +1170,12 @@ const Map<String, Map<String, String>> defaultLocales = {
     'en': 'Open {label}',
     'es': 'Abrir {label}',
   },
+  'label--nothing-here-yet': {
+    'en': "Looks like there's nothing here yet!",
+    'es': '¡Parece que aún no hay nada aquí!',
+  },
+  'label--loading': {
+    'en': 'Loading',
+    'es': 'Cargando',
+  },
 };
