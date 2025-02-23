@@ -193,8 +193,8 @@ class UserData {
 
   @JsonKey(
     includeIfNull: false,
-    defaultValue: ThemeMode.system,
-    unknownEnumValue: ThemeMode.system,
+    defaultValue: ThemeMode.light,
+    unknownEnumValue: ThemeMode.light,
   )
   final ThemeMode theme;
 
@@ -217,7 +217,7 @@ class UserData {
     this.bcId,
     this.bsId,
     this.bsiId,
-    this.theme = ThemeMode.system,
+    this.theme = ThemeMode.light,
     this.links,
     this.os = UserOS.unknown,
   })  : presence = Utils.getPresence(ping),
