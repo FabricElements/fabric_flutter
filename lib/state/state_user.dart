@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:fabric_flutter/variables.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -36,7 +37,8 @@ class StateUser extends StateDocument {
   bool _ready = false;
 
   @override
-  int get debounceTime => _ready ? super.debounceTime : 3000;
+  int get debounceTime =>
+      _ready && !loading && initialized ? super.debounceTime : 3000;
 
   // Internet connection status
   bool connected = true;
@@ -209,6 +211,8 @@ class StateUser extends StateDocument {
     return roles.contains(roleFromData(group: group));
   }
 
+  UserStatus? _lastUserStatus;
+
   /// User Status
   UserStatus get userStatus => UserStatus(
         role: role,
@@ -220,12 +224,25 @@ class StateUser extends StateDocument {
         connected: connected,
         connectionChanged: connectionChanged,
         connectedTo: connected ? connectedTo : null,
-        ready: _ready && _init && !loading,
+        ready: _ready &&
+            _init &&
+            !loading &&
+            ((!initialized && data == null) ||
+                (initialized && (data?.isNotEmpty ?? false))),
       );
 
   /// Update user status data
   _userStatusUpdate() async {
-    _controllerStreamStatus.sink.add(UserStatus.fromJson(userStatus.toJson()));
+    if (!_ready || !userStatus.ready) return;
+    // Basic comparison
+    if (_lastUserStatus == userStatus) return;
+    Map<String, dynamic> oldUserStatus = _lastUserStatus?.toJson() ?? {};
+    Map<String, dynamic> newUserStatus = userStatus.toJson();
+    if (const DeepCollectionEquality().equals(oldUserStatus, newUserStatus)) {
+      return;
+    }
+    _lastUserStatus = userStatus;
+    _controllerStreamStatus.sink.add(userStatus);
     notifyListeners();
   }
 
@@ -234,7 +251,7 @@ class StateUser extends StateDocument {
     if (!_init) return;
     _ready = false;
     if (userObject == null) {
-      await cancel();
+      await cancel(clear: true);
       clearAuth(notify: true);
       _ready = true;
       await _userStatusUpdate();
@@ -243,8 +260,8 @@ class StateUser extends StateDocument {
     try {
       /// Get User document data
       ref = db.collection('user').doc(userObject.uid);
-      ping('auth');
       await listen();
+      await Future.delayed(const Duration(milliseconds: 500));
     } catch (e) {
       debugPrint(LogColor.error(
           'StateUser - Listen User Document error: ${e.toString()}'));
@@ -328,18 +345,12 @@ class StateUser extends StateDocument {
   @override
   callbackDefault(dynamic data) async {
     _controllerStreamSerialized.sink.add(data != null ? serialized : null);
-    if (loading || data == null) return;
-    loading = true;
-    bool willUpdateStatus = false;
     if ((_language ?? 'en') != serialized.language) {
       _language = serialized.language;
-      willUpdateStatus = true;
     }
     if (theme != serialized.theme) {
       _theme = serialized.theme;
-      willUpdateStatus = true;
     }
-    if (willUpdateStatus && _init && initialized) await _userStatusUpdate();
-    loading = false;
+    await _userStatusUpdate();
   }
 }
