@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:fabric_flutter/variables.dart';
 import 'package:flutter/material.dart';
 
@@ -126,14 +127,23 @@ abstract class StateShared extends ChangeNotifier {
     if (loading) return;
     initialized = false;
     limit = value;
-    data = paginate ? [] : null;
+    data = null;
     page = initialPage;
     return call();
   }
 
   /// Set data
   set data(dynamic dataObject) {
-    if (privateOldData == dataObject) return;
+    /// Basic check to prevent infinite loops
+    if (privateOldData == dataObject && privateOldData != null) return;
+
+    /// Compare data
+    if (dataObject != null && dataObject.isNotEmpty) {
+      if (const DeepCollectionEquality().equals(privateOldData, dataObject)) {
+        return;
+      }
+    }
+    // Set data
     privateOldData = dataObject;
     privateData = dataObject;
     notifyListeners();
@@ -386,13 +396,13 @@ abstract class StateShared extends ChangeNotifier {
     initialized = false;
     pageDefault = initialPage;
     selectedItems = [];
-    privateOldData = paginate ? [] : null;
+    privateOldData = null;
     totalCount = 0;
     loading = false;
     if (notify) {
-      data = paginate ? [] : null;
+      data = null;
     } else {
-      privateData = paginate ? [] : null;
+      privateData = null;
     }
   }
 

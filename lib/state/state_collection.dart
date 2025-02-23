@@ -41,7 +41,7 @@ abstract class StateCollection extends StateShared {
     baseQuery = newQuery;
     _streamSubscription?.cancel();
     super.clear(notify: false);
-    data = [];
+    data = null;
   }
 
   /// Get Collection Reference
@@ -49,7 +49,7 @@ abstract class StateCollection extends StateShared {
 
   _softClear({bool notify = false}) {
     if (notify) {
-      data = [];
+      data = null;
     } else {
       privateData = null;
     }
@@ -70,7 +70,7 @@ abstract class StateCollection extends StateShared {
     await _streamSubscription?.cancel();
     if (query == null) {
       loading = false;
-      data = [];
+      data = null;
       return data;
     }
     initialized = true;
@@ -94,13 +94,11 @@ abstract class StateCollection extends StateShared {
           data = [];
         }
       }, onError: (e) {
-        super.clear();
-        data = [];
+        super.clear(notify: true);
         error = e?.toString();
       });
     } catch (e) {
-      super.clear(notify: false);
-      data = [];
+      super.clear(notify: true);
       error = e.toString();
     }
     return data;
@@ -122,7 +120,7 @@ abstract class StateCollection extends StateShared {
     await _streamSubscription?.cancel();
     if (query == null) {
       loading = false;
-      data = [];
+      data = null;
       return data;
     }
     initialized = true;
@@ -146,7 +144,7 @@ abstract class StateCollection extends StateShared {
       }
     } catch (e) {
       super.clear(notify: false);
-      data = [];
+      data = null;
       error = e.toString();
     }
     return data;
