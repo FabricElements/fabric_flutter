@@ -1,4 +1,5 @@
 import 'package:fabric_flutter/helper/log_color.dart';
+import 'package:fabric_flutter/serialized/user_status.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -10,6 +11,8 @@ import '../state/state_global.dart';
 import '../state/state_notifications.dart';
 import '../state/state_user.dart';
 import '../state/state_users.dart';
+
+final _scaffoldKey = GlobalKey<ScaffoldState>();
 
 class InitApp extends StatelessWidget {
   const InitApp({
@@ -56,13 +59,10 @@ class InitAppChild extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    /// Call App States after MultiProvider is called
-    final stateUser = Provider.of<StateUser>(context);
     final theme = Theme.of(context);
 
-    /// Init User
-    stateUser.init();
-
+    /// Call App States after MultiProvider is called
+    final stateUser = Provider.of<StateUser>(context, listen: false);
     final stateNotifications =
         Provider.of<StateNotifications>(context, listen: false);
     final stateAnalytics = Provider.of<StateAnalytics>(context, listen: false);
@@ -72,44 +72,46 @@ class InitAppChild extends StatelessWidget {
         ? debugPrint(LogColor.error('StateUser.onError: $e'))
         : null;
 
-    /// Set user id for analytics
-    if (stateUser.userStatus.signedIn) {
-      try {
-        stateAnalytics.analytics?.setUserId(id: stateUser.userStatus.uid);
-      } catch (error) {
-        debugPrint(LogColor.error('FirebaseAnalytics error: $error'));
-      }
-    }
-    try {
-      if (stateUser.userStatus.signedIn) {
-        if (notifications) {
-          stateNotifications.token = stateUser.serialized.fcm;
-          stateNotifications.uid = stateUser.userStatus.uid;
-          stateNotifications.init();
-          stateNotifications.getUserToken().catchError((e) {
-            debugPrint(
-                LogColor.error('StateNotifications.getUserToken() Error: $e'));
-          });
-        }
-      } else {
-        if (notifications && !kDebugMode) {
-          // Stop notifications when sign out
-          stateNotifications.clear();
-        }
-      }
-    } catch (error) {
-      debugPrint(LogColor.error('InitAppChild error: $error'));
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      /// Init User
+      stateUser.init();
+    });
 
-    /// Check if user is ready
-    if (!stateUser.userStatus.ready) {
-      debugPrint(LogColor.warning('User not ready'));
-      return Container(
-        color: theme.colorScheme.surface,
-        child: const Center(child: CircularProgressIndicator()),
-      );
-    }
-    debugPrint(LogColor.success('User ready'));
+    stateUser.streamStatus.listen((status) {
+      /// Set user id for analytics
+      if (status.signedIn) {
+        try {
+          stateAnalytics.analytics?.setUserId(id: status.uid);
+        } catch (error) {
+          debugPrint(LogColor.error('FirebaseAnalytics error: $error'));
+        }
+      }
+      try {
+        if (status.signedIn) {
+          if (notifications) {
+            stateNotifications.token = stateUser.serialized.fcm;
+            stateNotifications.uid = status.uid;
+            stateNotifications.init();
+            stateNotifications.getUserToken().catchError((e) {
+              debugPrint(LogColor.error(
+                  'StateNotifications.getUserToken() Error: $e'));
+            });
+          }
+        } else {
+          if (notifications && !kDebugMode) {
+            // Stop notifications when sign out
+            stateNotifications.clear();
+          }
+        }
+      } catch (error) {
+        debugPrint(LogColor.error('InitAppChild error: $error'));
+      }
+    });
+
+    final loadingWidget = Container(
+      color: theme.colorScheme.surface,
+      child: const Center(child: CircularProgressIndicator()),
+    );
 
     /// Return child component
     return GestureDetector(
@@ -120,7 +122,21 @@ class InitAppChild extends StatelessWidget {
           currentFocus.requestFocus(FocusNode());
         }
       },
-      child: child,
+      child: StreamBuilder<UserStatus>(
+        key: _scaffoldKey,
+        stream: stateUser.streamStatus,
+        initialData: stateUser.userStatus,
+        builder: (context, snapshot) {
+          if (snapshot.data == null) {
+            return loadingWidget;
+          }
+          final status = snapshot.data!;
+          if (!status.ready) {
+            return loadingWidget;
+          }
+          return child;
+        },
+      ),
     );
   }
 }
