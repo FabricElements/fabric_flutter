@@ -12,12 +12,13 @@ UserStatus _$UserStatusFromJson(Map<String, dynamic> json) => UserStatus(
       role: json['role'] as String? ?? 'user',
       language: json['language'] as String? ?? 'en',
       theme: $enumDecodeNullable(_$ThemeModeEnumMap, json['theme'],
-              unknownValue: ThemeMode.system) ??
-          ThemeMode.system,
+              unknownValue: ThemeMode.light) ??
+          ThemeMode.light,
       uid: json['uid'],
       connected: json['connected'] as bool? ?? true,
       connectionChanged: json['connectionChanged'] as bool? ?? false,
       connectedTo: json['connectedTo'] as String?,
+      ready: json['ready'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$UserStatusToJson(UserStatus instance) =>
@@ -31,6 +32,7 @@ Map<String, dynamic> _$UserStatusToJson(UserStatus instance) =>
       'connected': instance.connected,
       'connectionChanged': instance.connectionChanged,
       'connectedTo': instance.connectedTo,
+      'ready': instance.ready,
     };
 
 const _$ThemeModeEnumMap = {

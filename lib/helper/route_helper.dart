@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
 /// RouteHelper Enables/Disables routes depending on credentials
 class RouteHelper {
   RouteHelper({
@@ -58,7 +60,11 @@ class RouteHelper {
         endViewSigned0 = routeMap[endUnknownRoute];
       }
       endSignedIn.addAll({
-        key: Scaffold(primary: false, body: endViewSigned0),
+        key: Scaffold(
+          key: _scaffoldKey,
+          primary: false,
+          body: endViewSigned0,
+        ),
       });
     });
 
@@ -75,7 +81,11 @@ class RouteHelper {
         endViewSigned = routeMap[endAuthRoute];
       }
       endPublic.addAll({
-        key: Scaffold(primary: false, body: endViewSigned),
+        key: Scaffold(
+          key: _scaffoldKey,
+          primary: false,
+          body: endViewSigned,
+        ),
       });
     });
     return signed ? endSignedIn : endPublic;

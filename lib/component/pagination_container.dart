@@ -61,8 +61,8 @@ class _PaginationContainerState extends State<PaginationContainer> {
     end = false;
     error = null;
     data = widget.initialData ?? [];
-    // Always set loading to true when the initial data is empty
-    loading = data.isEmpty;
+    // Always set loading to true when the initial data is null
+    loading = widget.initialData == null;
 
     /// Scroll controller
     _controller.addListener(() async {
@@ -76,8 +76,8 @@ class _PaginationContainerState extends State<PaginationContainer> {
       if (mounted) setState(() {});
       try {
         error = null;
-        final data = await widget.paginate();
-        end = data == null || data.isEmpty;
+        final paginationData = await widget.paginate();
+        end = paginationData == null || paginationData.isEmpty;
       } catch (e) {
         error = e.toString();
         debugPrint(LogColor.error(e));
@@ -88,12 +88,9 @@ class _PaginationContainerState extends State<PaginationContainer> {
 
     /// Get data from stream
     widget.stream.listen((event) {
+      loading = false;
       final eventData = event != null ? event as List<dynamic> : null;
       data = eventData ?? widget.initialData ?? [];
-      loading = eventData == null;
-      if (widget.initialData != null && widget.initialData!.isNotEmpty) {
-        loading = false;
-      }
       end = false;
       if (mounted) setState(() {});
     }).onError((e) {
