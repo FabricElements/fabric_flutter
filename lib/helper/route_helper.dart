@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-
 /// RouteHelper Enables/Disables routes depending on credentials
 class RouteHelper {
   RouteHelper({
@@ -61,7 +59,7 @@ class RouteHelper {
       }
       endSignedIn.addAll({
         key: Scaffold(
-          key: _scaffoldKey,
+          key: ValueKey(key),
           primary: false,
           body: endViewSigned0,
         ),
@@ -82,7 +80,7 @@ class RouteHelper {
       }
       endPublic.addAll({
         key: Scaffold(
-          key: _scaffoldKey,
+          key: ValueKey(key),
           primary: false,
           body: endViewSigned,
         ),

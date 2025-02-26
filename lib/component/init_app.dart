@@ -12,8 +12,6 @@ import '../state/state_notifications.dart';
 import '../state/state_user.dart';
 import '../state/state_users.dart';
 
-final _scaffoldKey = GlobalKey<ScaffoldState>();
-
 class InitApp extends StatelessWidget {
   const InitApp({
     super.key,
@@ -123,7 +121,6 @@ class InitAppChild extends StatelessWidget {
         }
       },
       child: StreamBuilder<UserStatus>(
-        key: _scaffoldKey,
         stream: stateUser.streamStatus,
         initialData: stateUser.userStatus,
         builder: (context, snapshot) {

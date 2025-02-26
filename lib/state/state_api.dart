@@ -223,7 +223,6 @@ abstract class StateAPI extends StateShared {
     dataResponse = paginate
         ? (dataResponse ?? []) as List<dynamic>
         : dataResponse as dynamic;
-    privateOldData = null;
     data = dataResponse;
     return dataResponse;
   }
