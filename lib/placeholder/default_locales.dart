@@ -1003,7 +1003,7 @@ const Map<String, Map<String, String>> defaultLocales = {
     'es': 'Error',
   },
   'label--errors': {
-    'en': 'Error',
+    'en': 'Errors',
     'es': 'Errores',
   },
   'label--replace': {
