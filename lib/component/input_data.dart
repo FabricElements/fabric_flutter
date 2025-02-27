@@ -211,6 +211,7 @@ class InputData extends StatefulWidget {
     this.floatingLabelBehavior,
     this.searchController,
     this.asLocalTime = false,
+    this.enableInteractiveSelection,
   });
 
   final dynamic value;
@@ -292,6 +293,8 @@ class InputData extends StatefulWidget {
   /// If true, the time will be shown in the local time zone
   /// if false, the time will be shown in the UTC time zone
   final bool asLocalTime;
+
+  final bool? enableInteractiveSelection;
 
   @override
   State<InputData> createState() => _InputDataState();
@@ -477,12 +480,14 @@ getValue -------------------------------------
     }
     textController = widget.textController ?? TextEditingController();
     searchController = widget.searchController ?? SearchController();
-    getValue(newValue: widget.value);
 
     /// obscure text and show controls
     obscureText = widget.obscureText;
     if (widget.type == InputDataType.secret) obscureText = true;
     obscure = obscureText;
+
+    /// Get value
+    getValue(newValue: widget.value);
     super.initState();
   }
 
@@ -713,6 +718,7 @@ getValue -------------------------------------
           maxLength: maxLength,
           decoration: inputDecoration,
           obscureText: obscureText,
+          enableInteractiveSelection: widget.enableInteractiveSelection,
           onChanged: (newValue) {
             dynamic newFormattedValue = valueChanged(newValue);
             bool sameValue = value == newFormattedValue;
@@ -739,6 +745,7 @@ getValue -------------------------------------
       case InputDataType.dateTime:
       case InputDataType.timestamp:
         endWidget = TextFormField(
+          obscureText: obscureText,
           autofillHints: widget.autofillHints,
           enableSuggestions: false,
           keyboardType: keyboardType,
