@@ -642,6 +642,9 @@ getValue -------------------------------------
         inputFormatters.addAll([
           FilteringTextInputFormatter.singleLineFormatter,
         ]);
+        hintTextDefault = locales.get('label--choose-label', {
+          'label': locales.get('label--date'),
+        });
         break;
       case InputDataType.secret:
         keyboardType = TextInputType.visiblePassword;
@@ -657,9 +660,12 @@ getValue -------------------------------------
     }
 
     String? hintText = widget.hintText ?? hintTextDefault;
+    if (!widget.obscureText) {
+      hintText =
+          (value?.toString() ?? '').isNotEmpty ? value?.toString() : hintText;
+    }
     final inputDecoration = InputDecoration(
-      hintText:
-          (value?.toString() ?? '').isNotEmpty ? value?.toString() : hintText,
+      hintText: hintText,
       isDense: isDense,
       errorText: errorText,
       errorMaxLines: 2,
@@ -740,9 +746,6 @@ getValue -------------------------------------
           controller: textController,
           readOnly: true,
           decoration: inputDecoration.copyWith(
-            hintText: locales.get('label--choose-label', {
-              'label': locales.get('label--date'),
-            }),
             prefixIcon: inputDecoration.prefixIcon ??
                 inputDecoration.prefixIcon ??
                 Icon(inputDataTypeIcon(widget.type)),
@@ -873,7 +876,6 @@ getValue -------------------------------------
           controller: textController,
           readOnly: true,
           decoration: inputDecoration.copyWith(
-            hintText: widget.hintText ?? hintTextDefault,
             prefixIcon: inputDecoration.prefixIcon ??
                 inputDecoration.prefixIcon ??
                 Icon(inputDataTypeIcon(widget.type)),
@@ -1028,7 +1030,6 @@ getValue -------------------------------------
           decoration: inputDecoration.copyWith(
             floatingLabelBehavior:
                 widget.floatingLabelBehavior ?? FloatingLabelBehavior.never,
-            hintText: widget.label ?? widget.hintText,
             labelText: null,
             prefixIcon: inputDecoration.prefixIcon ??
                 Icon(inputDataTypeIcon(widget.type)),
