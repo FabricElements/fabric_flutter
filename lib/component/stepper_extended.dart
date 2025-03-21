@@ -10,6 +10,7 @@ class StepperExtended extends StatelessWidget {
     this.titleTextStyle,
     this.subtitleTextStyle,
     this.scrollable = false,
+    this.padding = EdgeInsets.zero,
   });
 
   final List<Step> steps;
@@ -34,6 +35,9 @@ class StepperExtended extends StatelessWidget {
 
   /// If true, the stepper will be displayed on a [ListView].
   final bool scrollable;
+
+  /// The padding of the stepper.
+  final EdgeInsetsGeometry padding;
 
   @override
   Widget build(BuildContext context) {
@@ -124,14 +128,18 @@ class StepperExtended extends StatelessWidget {
     if (scrollable) {
       return ListView(
         restorationId: key?.toString() ?? 'stepper_extended',
+        padding: padding,
         children: children,
       );
     }
-    return Flex(
-      direction: Axis.vertical,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: children,
+    return Padding(
+      padding: padding,
+      child: Flex(
+        direction: Axis.vertical,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: children,
+      ),
     );
   }
 }
