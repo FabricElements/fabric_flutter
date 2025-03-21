@@ -30,7 +30,7 @@ class PaginationContainer extends StatefulWidget {
   ) itemBuilder;
   final bool primary;
   final bool reverse;
-  final EdgeInsetsGeometry? padding;
+  final EdgeInsetsGeometry padding;
   final Axis scrollDirection;
   final double cacheExtent;
   final Widget? empty;
