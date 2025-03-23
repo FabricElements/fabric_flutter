@@ -576,6 +576,11 @@ getValue -------------------------------------
           inputSuffixIcon = clearWidget;
         }
         break;
+      case InputDataType.phone:
+        inputSuffixIcon = Tooltip(
+          message: locales.get('label--info-phone-number-format'),
+          child: Icon(Icons.info),
+        );
       default:
         break;
     }

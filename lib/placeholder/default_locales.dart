@@ -1178,4 +1178,10 @@ const Map<String, Map<String, String>> defaultLocales = {
     'en': 'Loading',
     'es': 'Cargando',
   },
+  'label--info-phone-number-format': {
+    'en':
+        'Please enter your phone number as: +[Country Code][Phone Number] (e.g., +14155552671, +34912345678, +573001234567).',
+    'es':
+        'Por favor, introduce tu número de teléfono como: +[Código de País][Número de Teléfono] (por ejemplo, +14155552671, +34912345678, +573001234567).',
+  }
 };
