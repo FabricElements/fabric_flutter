@@ -198,6 +198,8 @@ class UserData {
   )
   final ThemeMode theme;
 
+  String? country;
+
   UserData({
     this.onboarding,
     this.phone,
@@ -220,6 +222,7 @@ class UserData {
     this.theme = ThemeMode.light,
     this.links,
     this.os = UserOS.unknown,
+    this.country,
   })  : presence = Utils.getPresence(ping),
         name = Utils.nameFromParts(
           firstName: firstName,
