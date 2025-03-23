@@ -57,6 +57,8 @@ class ViewAuthPage extends StatefulWidget {
     this.logoHeight = 150,
     this.logoWidth = 150,
     this.logoCircle = false,
+    this.title,
+    this.description,
   });
 
   final Widget? loader;
@@ -80,6 +82,8 @@ class ViewAuthPage extends StatefulWidget {
   final double logoHeight;
   final double logoWidth;
   final bool logoCircle;
+  final String? title;
+  final String? description;
 
   @override
   State<ViewAuthPage> createState() => _ViewAuthPageState();
@@ -622,7 +626,8 @@ class _ViewAuthPageState extends State<ViewAuthPage>
                                 SizedBox(
                                   width: double.infinity,
                                   child: Text(
-                                    locales.get('page-auth--title'),
+                                    widget.title ??
+                                        locales.get('page-auth--title'),
                                     style: textTheme.displayMedium?.copyWith(
                                       color: theme.colorScheme.onSurface,
                                     ),
@@ -632,7 +637,8 @@ class _ViewAuthPageState extends State<ViewAuthPage>
                                 SizedBox(
                                   width: double.infinity,
                                   child: Text(
-                                    locales.get('page-auth--description'),
+                                    widget.description ??
+                                        locales.get('page-auth--description'),
                                     style: textTheme.titleMedium?.copyWith(
                                       color: theme.colorScheme.onSurface,
                                     ),
