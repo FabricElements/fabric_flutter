@@ -339,6 +339,12 @@ class StateUser extends StateDocument {
   /// Get User or Device language
   String get language => _language ?? 'en';
 
+  /// Set User or Device language
+  set language(String value) {
+    _language = value;
+    notifyListeners();
+  }
+
   /// Get User or Device language
   ThemeMode get theme => _theme ?? ThemeMode.system;
 
