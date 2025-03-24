@@ -541,6 +541,8 @@ getValue -------------------------------------
     String? hintTextDefault;
     int? maxLength = widget.maxLength;
     FormFieldValidator<String>? validator = widget.validator;
+    final width = MediaQuery.of(context).size.width;
+    final isSmallScreen = width < 600;
     final clearWidget = isDisabled
         ? null
         : IconButton(
@@ -903,7 +905,7 @@ getValue -------------------------------------
         if (!isDisabled) {
           endWidget = SearchAnchor(
             viewHintText: locales.get('label--search'),
-            isFullScreen: false,
+            isFullScreen: isSmallScreen,
             viewLeading: BackButton(
               onPressed: _closeSearch,
             ),

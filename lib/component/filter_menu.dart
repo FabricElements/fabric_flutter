@@ -712,6 +712,8 @@ class _FilterMenuState extends State<FilterMenu> {
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final width = MediaQuery.of(context).size.width;
+    final isSmallScreen = width < 600;
 
     /// Ignore options that are included on the filters data
     List<FilterData> pendingOptions =
@@ -788,7 +790,7 @@ class _FilterMenuState extends State<FilterMenu> {
     /// Add popUp button
     if (pendingOptions.isNotEmpty) {
       menuOptions.add(SearchAnchor(
-        isFullScreen: false,
+        isFullScreen: isSmallScreen,
         searchController: searchController,
         builder: (BuildContext context, SearchController controller) {
           return PointerInterceptor(
