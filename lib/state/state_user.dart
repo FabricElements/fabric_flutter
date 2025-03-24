@@ -342,7 +342,6 @@ class StateUser extends StateDocument {
   /// Set User or Device language
   set language(String value) {
     _language = value;
-    notifyListeners();
   }
 
   /// Get User or Device language
