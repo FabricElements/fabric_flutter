@@ -995,11 +995,9 @@ getValue -------------------------------------
                     onTap: () {
                       dynamic newValue = item.value == '' ? null : item.value;
                       _closeSearch();
-                      if (newValue != value) {
-                        widget.onChanged?.call(newValue);
-                        widget.onComplete?.call(newValue);
-                        widget.onSubmit?.call(newValue);
-                      }
+                      widget.onChanged?.call(newValue);
+                      widget.onComplete?.call(newValue);
+                      widget.onSubmit?.call(newValue);
                     },
                   ),
                 );
