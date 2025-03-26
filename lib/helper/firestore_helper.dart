@@ -40,4 +40,8 @@ class FirestoreHelper {
 
   /// Return null value or delete field
   static dynamic notNullToJson(dynamic value) => value ?? FieldValue.delete();
+
+  /// Ignore value if it is FieldValue
+  static dynamic ignoreFieldValue(dynamic value) =>
+      value is FieldValue ? null : value;
 }
