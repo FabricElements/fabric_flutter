@@ -37,6 +37,8 @@ class UserAddUpdate extends StatefulWidget {
     this.groups,
     this.successMessage = 'notification--request-success',
     this.size = ContentContainerSize.medium,
+    this.passwordRegex,
+    this.passwordError,
   });
 
   /// Array of roles
@@ -86,6 +88,12 @@ class UserAddUpdate extends StatefulWidget {
   /// Size of the container
   final ContentContainerSize size;
 
+  /// Password Regex expression
+  final RegExp? passwordRegex;
+
+  /// Password Validation Error
+  final String? passwordError;
+
   @override
   State<UserAddUpdate> createState() => _UserAddUpdateState();
 }
@@ -131,6 +139,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     final theme = Theme.of(context);
     final locales = AppLocalizations.of(context);
     final alert = Provider.of<StateAlert>(context, listen: false);
+    final passwordRegex = widget.passwordRegex ?? RegexHelper.password;
     bool canCall = sending == false;
     bool validPhone = data.phone != null && data.phone!.isNotEmpty;
     bool validEmail = data.email != null && data.email!.isNotEmpty;
@@ -145,7 +154,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     }
     if (widget.password) {
       canCall = canCall && data.password != null && data.password!.isNotEmpty;
-      bool newPasswordOk = RegexHelper.password.hasMatch(data.password ?? '');
+      bool newPasswordOk = passwordRegex.hasMatch(data.password ?? '');
       canCall = canCall && newPasswordOk;
     }
     const spacer = SizedBox(height: 16, width: 16);
@@ -273,13 +282,18 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     );
     final inputValidation = InputValidation(locales: locales);
 
+    /// Password input
     Widget passwordInput = InputData(
       prefixIcon: const Icon(Icons.lock),
       label: locales.get('label--password'),
       isExpanded: true,
       value: data.password,
       type: InputDataType.secret,
-      validator: inputValidation.validatePassword,
+      validator: (value) => inputValidation.validateMatch(
+        regex: passwordRegex,
+        value: value,
+        message: widget.passwordError ?? locales.get('alert--invalid-password'),
+      ),
       onChanged: (value) {
         error = null;
         data.password = value;

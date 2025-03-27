@@ -44,6 +44,8 @@ class UserAdmin extends StatelessWidget {
     this.password = false,
     this.size = ContentContainerSize.medium,
     this.prefix,
+    this.passwordError,
+    this.passwordRegex,
   });
 
   final Widget? empty;
@@ -70,6 +72,12 @@ class UserAdmin extends StatelessWidget {
   final bool multipleRoles;
   final bool multipleRolesUpdate;
   final ContentContainerSize size;
+
+  /// Password Regex expression
+  final RegExp? passwordRegex;
+
+  /// Password Validation Error
+  final String? passwordError;
 
   @override
   Widget build(BuildContext context) {
@@ -205,6 +213,8 @@ class UserAdmin extends StatelessWidget {
                     onChanged: () {},
                     user: user,
                     group: group,
+                    passwordError: passwordError,
+                    passwordRegex: passwordRegex,
                   ),
                 );
               },
@@ -323,6 +333,8 @@ class UserAdmin extends StatelessWidget {
       password: password,
       group: group,
       multipleRoles: multipleRoles,
+      passwordError: passwordError,
+      passwordRegex: passwordRegex,
     );
 
     if (primary) {
