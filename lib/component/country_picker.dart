@@ -56,6 +56,7 @@ class CountryPicker extends StatelessWidget {
       );
     });
     return InputData(
+      autofillHints: const [],
       prefixIcon: const Icon(Icons.flag),
       label: label ?? locales.get('label--country'),
       hintText: hintText ??

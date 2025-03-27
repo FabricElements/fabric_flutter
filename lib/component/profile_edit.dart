@@ -271,6 +271,9 @@ class _ProfileEditState extends State<ProfileEdit> {
           size: ContentContainerSize.small,
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: InputData(
+            autofillHints: const [
+              AutofillHints.givenName,
+            ],
             disabled: loading,
             maxLength: 35,
             type: InputDataType.string,
@@ -292,6 +295,9 @@ class _ProfileEditState extends State<ProfileEdit> {
           size: ContentContainerSize.small,
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: InputData(
+            autofillHints: const [
+              AutofillHints.familyName,
+            ],
             disabled: loading,
             maxLength: 35,
             type: InputDataType.string,

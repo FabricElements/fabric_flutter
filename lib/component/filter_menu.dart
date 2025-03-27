@@ -190,6 +190,7 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
       case FilterOperator.greaterThanOrEqual:
       case FilterOperator.lessThanOrEqual:
         optionInput = InputData(
+          autofillHints: const [],
           label: locales.get('label--value'),
           type: widget.data.type,
           value: edit.value,

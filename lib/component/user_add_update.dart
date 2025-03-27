@@ -211,6 +211,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     Widget phoneInput = SizedBox(
       width: double.maxFinite,
       child: InputData(
+        autofillHints: const [],
         prefixIcon: const Icon(Icons.phone),
         label: locales.get('label--phone-number'),
         isExpanded: true,
@@ -226,6 +227,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     Widget emailInput = SizedBox(
       width: double.maxFinite,
       child: InputData(
+        autofillHints: const [],
         prefixIcon: const Icon(Icons.email),
         label: locales.get('label--email'),
         isExpanded: true,
@@ -242,6 +244,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     Widget usernameInput = SizedBox(
       width: double.maxFinite,
       child: InputData(
+        autofillHints: const [],
         prefixIcon: const Icon(Icons.alternate_email),
         label: locales.get('label--username'),
         isExpanded: true,
@@ -257,6 +260,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     );
 
     Widget firstNameInput = InputData(
+      autofillHints: const [],
       label: locales.get('label--first-name'),
       isExpanded: true,
       value: data.firstName,
@@ -269,6 +273,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       maxLength: 20,
     );
     Widget lastNameInput = InputData(
+      autofillHints: const [],
       label: locales.get('label--last-name'),
       isExpanded: true,
       value: data.lastName,
@@ -284,6 +289,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
 
     /// Password input
     Widget passwordInput = InputData(
+      autofillHints: const [],
       prefixIcon: const Icon(Icons.lock),
       label: locales.get('label--password'),
       isExpanded: true,
@@ -344,6 +350,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     if (widget.role) {
       inviteWidgets.addAll([
         InputData(
+          autofillHints: const [],
           label: locales.get('label--role'),
           value: data.role,
           type: InputDataType.dropdown,
@@ -382,6 +389,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
         final groupsRoles = item.value;
         inviteWidgets.addAll([
           InputData(
+            autofillHints: const [],
             label: locales.get('label--role-for-label',
                 {'label': locales.get('label--${item.key}')}),
             value: data.groups[item.key],

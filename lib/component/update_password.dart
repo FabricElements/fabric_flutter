@@ -64,6 +64,7 @@ class _UpdatePasswordState extends State<UpdatePassword> {
 
     List<Widget> sections = [];
     sections.add(InputData(
+      autofillHints: const [],
       label: locales.get('label--current-password'),
       hintText: locales.get('label--password'),
       type: InputDataType.secret,
@@ -87,6 +88,9 @@ class _UpdatePasswordState extends State<UpdatePassword> {
           password2 = '';
           if (mounted) setState(() {});
         },
+        autofillHints: const [
+          AutofillHints.newPassword,
+        ],
       ));
     }
     if (password1.isNotEmpty && errorValidation == null) {
@@ -101,6 +105,9 @@ class _UpdatePasswordState extends State<UpdatePassword> {
           password2 = value ?? '';
           if (mounted) setState(() {});
         },
+        autofillHints: const [
+          AutofillHints.newPassword,
+        ],
       ));
     }
 
