@@ -405,6 +405,10 @@ const Map<String, Map<String, String>> defaultLocales = {
     'es':
         'Debe contener al menos 8 caracteres, 1 mayúscula, 1 minúscula, 1 símbolo y 1 número.',
   },
+  'alert--invalid-value': {
+    'en': 'Invalid value',
+    'es': 'Valor inválido',
+  },
   'alert--password-do-not-match': {
     'en': 'Password don\'t match',
     'es': 'La contraseña no coincide',

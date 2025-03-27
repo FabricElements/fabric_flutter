@@ -41,6 +41,21 @@ class InputValidation {
     }
   }
 
+  /// Validate RegEx match
+  /// Returns null if contains a valid password or message if not
+  String? validateMatch({
+    required RegExp regex,
+    required String? value,
+    String? message,
+  }) {
+    final isValid = regex.hasMatch(value ?? '');
+    if (isValid) {
+      return null;
+    } else {
+      return message ?? locales?.get('alert--invalid-value') ?? 'Invalid value';
+    }
+  }
+
   /// Returns true if contains a valid phone number
   static bool isPhoneValid(String? phone) {
     if (phone == null || phone.isEmpty) return false;
