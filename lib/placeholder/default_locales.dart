@@ -681,6 +681,10 @@ const Map<String, Map<String, String>> defaultLocales = {
     'en': 'Are you sure you want to delete?',
     'es': '¿Seguro que quieres eliminar?'
   },
+  'label--confirm-are-you-sure-delete-label': {
+    'en': 'Are you sure you want to delete {label}?',
+    'es': '¿Seguro que quieres eliminar {label}?'
+  },
   'label--confirm-are-you-sure-update': {
     'en': 'Are you sure you want to update?',
     'es': '¿Seguro que quieres actualizar?'
