@@ -840,10 +840,6 @@ const Map<String, Map<String, String>> defaultLocales = {
     'en': 'Type here...',
     'es': 'Escribe aquí...',
   },
-  'label--hour': {
-    'en': 'Hora',
-    'es': 'Hora',
-  },
   'label--time': {
     'en': 'Time',
     'es': 'Tiempo',
@@ -1191,5 +1187,61 @@ const Map<String, Map<String, String>> defaultLocales = {
         'Please enter your phone number as: +[Country Code][Phone Number] (e.g., +14155552671, +34912345678, +573001234567).',
     'es':
         'Por favor, introduce tu número de teléfono como: +[Código de País][Número de Teléfono] (por ejemplo, +14155552671, +34912345678, +573001234567).',
-  }
+  },
+  'label--seconds': {
+    'en': 'Seconds',
+    'es': 'Segundos',
+  },
+  'label--minutes': {
+    'en': 'Minutes',
+    'es': 'Minutos',
+  },
+  'label--hours': {
+    'en': 'Hours',
+    'es': 'Horas',
+  },
+  'label--days': {
+    'en': 'Days',
+    'es': 'Días',
+  },
+  'label--weeks': {
+    'en': 'Weeks',
+    'es': 'Semanas',
+  },
+  'label--months': {
+    'en': 'Months',
+    'es': 'Meses',
+  },
+  'label--years': {
+    'en': 'Years',
+    'es': 'Años',
+  },
+  'label--second': {
+    'en': 'Second',
+    'es': 'Segundo',
+  },
+  'label--minute': {
+    'en': 'Minute',
+    'es': 'Minuto',
+  },
+  'label--hour': {
+    'en': 'Hour',
+    'es': 'Hora',
+  },
+  'label--day': {
+    'en': 'Day',
+    'es': 'Día',
+  },
+  'label--week': {
+    'en': 'Week',
+    'es': 'Semana',
+  },
+  'label--month': {
+    'en': 'Month',
+    'es': 'Mes',
+  },
+  'label--year': {
+    'en': 'Year',
+    'es': 'Año',
+  },
 };
