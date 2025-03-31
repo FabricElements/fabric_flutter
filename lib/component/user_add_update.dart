@@ -113,7 +113,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     data = UserData.fromJson(base.toJson());
 
     /// If the role assigned doesn't match the options, set the first role from the list
-    if (!widget.roles.contains(data.role)) {
+    if (widget.roles.isNotEmpty && !widget.roles.contains(data.role)) {
       data.role = widget.roles.first;
     }
     sending = false;
@@ -186,7 +186,9 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       error = null;
       if (mounted) setState(() {});
       try {
-        assert(data.role.isNotEmpty, 'You must select a user role');
+        if (widget.role) {
+          assert(data.role.isNotEmpty, 'You must select a user role');
+        }
         assert(
             data.username != null || data.email != null || data.phone != null,
             'username, email or phone must not be null');
