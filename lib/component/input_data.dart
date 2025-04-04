@@ -185,7 +185,6 @@ class InputData extends StatefulWidget {
     this.hintText,
     this.isDense = false,
     this.maxLength,
-    this.isExpanded = false,
     this.padding = const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
     this.margin = EdgeInsets.zero,
     this.utcOffset,
@@ -212,6 +211,7 @@ class InputData extends StatefulWidget {
     this.searchController,
     this.asLocalTime = false,
     this.enableInteractiveSelection,
+    this.inputFormatters = const [],
   });
 
   final dynamic value;
@@ -222,7 +222,6 @@ class InputData extends StatefulWidget {
   final String? hintText;
   final int? maxLength;
   final bool isDense;
-  final bool isExpanded;
   final EdgeInsets padding;
   final EdgeInsets margin;
   final int? utcOffset;
@@ -295,6 +294,8 @@ class InputData extends StatefulWidget {
   final bool asLocalTime;
 
   final bool? enableInteractiveSelection;
+
+  final List<TextInputFormatter> inputFormatters;
 
   @override
   State<InputData> createState() => _InputDataState();
@@ -593,7 +594,7 @@ getValue -------------------------------------
     );
     TextInputType keyboardType = TextInputType.text;
     TextInputAction? textInputAction = widget.textInputAction;
-    List<TextInputFormatter> inputFormatters = [];
+    List<TextInputFormatter> inputFormatters = [...widget.inputFormatters];
     final inputValidation = InputValidation(locales: locales);
     switch (widget.type) {
       case InputDataType.text:
