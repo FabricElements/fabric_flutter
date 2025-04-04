@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 
 import '../component/content_container.dart';
 import '../component/input_data.dart';
+import '../component/phone_input.dart';
 import '../component/smart_image.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/log_color.dart';
@@ -702,18 +703,24 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     List<Widget> sectionsPhoneNumber = [
       SizedBox(
         width: double.maxFinite,
-        child: InputData(
+        // child: InputData(
+        //   value: dataAuth.phone,
+        //   type: InputDataType.phone,
+        //   prefixIcon: const Icon(Icons.phone),
+        //   label: locales.get('label--phone-number'),
+        //   maxLength: 14,
+        //   onChanged: (value) {
+        //     dataAuth.phone = (value ?? '').toString();
+        //     if (mounted) setState(() {});
+        //   },
+        //   onComplete: (value) {
+        //     dataAuth.phone = (value ?? '').toString();
+        //     if (mounted) setState(() {});
+        //   },
+        // ),
+        child: PhoneInput(
           value: dataAuth.phone,
-          type: InputDataType.phone,
-          prefixIcon: const Icon(Icons.phone),
-          label: locales.get('label--phone-number'),
-          isExpanded: true,
-          maxLength: 14,
           onChanged: (value) {
-            dataAuth.phone = (value ?? '').toString();
-            if (mounted) setState(() {});
-          },
-          onComplete: (value) {
             dataAuth.phone = (value ?? '').toString();
             if (mounted) setState(() {});
           },
@@ -739,7 +746,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       SizedBox(
         width: double.maxFinite,
         child: InputData(
-          isExpanded: true,
           value: dataAuth.phoneVerificationCode,
           type: InputDataType.int,
           hintText: locales.get('page-auth--input--verification-code'),

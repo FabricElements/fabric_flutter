@@ -216,7 +216,6 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
         autofillHints: const [],
         prefixIcon: const Icon(Icons.phone),
         label: locales.get('label--phone-number'),
-        isExpanded: true,
         value: data.phone,
         type: InputDataType.phone,
         onChanged: (value) {
@@ -232,7 +231,6 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
         autofillHints: const [],
         prefixIcon: const Icon(Icons.email),
         label: locales.get('label--email'),
-        isExpanded: true,
         value: data.email,
         type: InputDataType.email,
         onChanged: (value) {
@@ -249,7 +247,6 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
         autofillHints: const [],
         prefixIcon: const Icon(Icons.alternate_email),
         label: locales.get('label--username'),
-        isExpanded: true,
         value: data.username,
         type: InputDataType.string,
         maxLength: 20,
@@ -264,7 +261,6 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     Widget firstNameInput = InputData(
       autofillHints: const [],
       label: locales.get('label--first-name'),
-      isExpanded: true,
       value: data.firstName,
       type: InputDataType.string,
       onChanged: (value) {
@@ -277,7 +273,6 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     Widget lastNameInput = InputData(
       autofillHints: const [],
       label: locales.get('label--last-name'),
-      isExpanded: true,
       value: data.lastName,
       type: InputDataType.string,
       onChanged: (value) {
@@ -294,7 +289,6 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       autofillHints: const [],
       prefixIcon: const Icon(Icons.lock),
       label: locales.get('label--password'),
-      isExpanded: true,
       value: data.password,
       type: InputDataType.secret,
       validator: (value) => inputValidation.validateMatch(

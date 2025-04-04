@@ -66,7 +66,6 @@ class CountryPicker extends StatelessWidget {
       type: InputDataType.dropdown,
       options: options,
       onChanged: (dynamic value) => onChange(value as String?),
-      isExpanded: true,
       disabled: disabled,
     );
   }
