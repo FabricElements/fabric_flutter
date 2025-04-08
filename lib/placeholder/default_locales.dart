@@ -323,6 +323,10 @@ const Map<String, Map<String, String>> defaultLocales = {
     'en': 'Country',
     'es': 'País',
   },
+  'label--country-code': {
+    'en': 'Country Code',
+    'es': 'Código de país',
+  },
   'label--continue': {
     'en': 'Continue',
     'es': 'Continuar',
