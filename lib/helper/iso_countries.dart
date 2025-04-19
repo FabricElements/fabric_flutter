@@ -72,6 +72,23 @@ class ISOCountries {
       'currencySymbol': 'DZD'
     },
     {
+      'capital': 'Washington DC',
+      'citizenship': 'American',
+      'countryCode': '840',
+      'currency': 'US dollar',
+      'currencyCode': 'USD',
+      'currencySubUnit': 'cent',
+      'fullName': 'United States of America',
+      'alpha2': 'US',
+      'alpha3': 'USA',
+      'name': 'United States',
+      'regionCode': '019',
+      'subRegionCode': '021',
+      'eea': false,
+      'callingCode': '1',
+      'currencySymbol': '\$'
+    },
+    {
       'capital': 'Pago Pago',
       'citizenship': 'American Samoan',
       'countryCode': '016',
@@ -4047,23 +4064,6 @@ class ISOCountries {
       'eea': false,
       'callingCode': '255',
       'currencySymbol': 'TZS'
-    },
-    {
-      'capital': 'Washington DC',
-      'citizenship': 'American',
-      'countryCode': '840',
-      'currency': 'US dollar',
-      'currencyCode': 'USD',
-      'currencySubUnit': 'cent',
-      'fullName': 'United States of America',
-      'alpha2': 'US',
-      'alpha3': 'USA',
-      'name': 'United States',
-      'regionCode': '019',
-      'subRegionCode': '021',
-      'eea': false,
-      'callingCode': '1',
-      'currencySymbol': '\$'
     },
     {
       'capital': 'Charlotte Amalie',
