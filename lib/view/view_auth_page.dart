@@ -25,7 +25,7 @@ final FirebaseAuth _auth = FirebaseAuth.instance;
 
 /// View Auth parameters
 class ViewAuthValues {
-  String phone = '';
+  String? phone;
   int? phoneVerificationCode;
   String? verificationId;
 
@@ -33,7 +33,7 @@ class ViewAuthValues {
   String? phoneValid;
 
   ViewAuthValues({
-    this.phone = '',
+    this.phone,
     this.phoneVerificationCode,
     this.verificationId,
     this.phoneValid,
@@ -156,7 +156,9 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     }
 
     /// Get phone number
-    dataAuth.phoneValid = dataAuth.phone.isNotEmpty && dataAuth.phone.length > 4
+    dataAuth.phoneValid = dataAuth.phone != null &&
+            dataAuth.phone!.isNotEmpty &&
+            dataAuth.phone!.length > 4
         ? dataAuth.phone
         : null;
 
@@ -209,12 +211,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         if (kIsWeb || Platform.isMacOS) {
           final confirmationResult = await _auth.signInWithPhoneNumber(
             dataAuth.phoneValid!,
-            // RecaptchaVerifier(
-            //   container: 'recaptcha',
-            //   size: RecaptchaVerifierSize.compact,
-            //   theme: RecaptchaVerifierTheme.dark,
-            //   auth: _auth.app,
-            // ),
           );
           dataAuth.verificationId = confirmationResult.verificationId;
           webConfirmationResult = confirmationResult;
@@ -703,25 +699,10 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     List<Widget> sectionsPhoneNumber = [
       SizedBox(
         width: double.maxFinite,
-        // child: InputData(
-        //   value: dataAuth.phone,
-        //   type: InputDataType.phone,
-        //   prefixIcon: const Icon(Icons.phone),
-        //   label: locales.get('label--phone-number'),
-        //   maxLength: 14,
-        //   onChanged: (value) {
-        //     dataAuth.phone = (value ?? '').toString();
-        //     if (mounted) setState(() {});
-        //   },
-        //   onComplete: (value) {
-        //     dataAuth.phone = (value ?? '').toString();
-        //     if (mounted) setState(() {});
-        //   },
-        // ),
         child: PhoneInput(
           value: dataAuth.phone,
           onChanged: (value) {
-            dataAuth.phone = (value ?? '').toString();
+            dataAuth.phone = value;
             if (mounted) setState(() {});
           },
         ),
