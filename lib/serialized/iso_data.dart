@@ -33,10 +33,10 @@ class ISOCountry {
   final String? currency;
   final String? currencyCode;
   final String? currencySubUnit;
-  final String? fullName;
-  final String alpha2;
+  String? fullName;
+  String alpha2;
   final String alpha3;
-  final String name;
+  String name;
   final String? regionCode;
   final String? subRegionCode;
   final bool eea;
