@@ -152,29 +152,26 @@ class MediaHelper {
       late Uint8List encodedImage;
       switch (imageType) {
         case 'gif':
-          if (needsResize) {
-            encodedImage = imageByes;
-            // img.Animation? gifAnimation = img.decodeGifAnimation(imageByes);
-            // img.Animation copyGif = img.Animation();
-            // for (var element in gifAnimation!.frames) {
-            //   copyGif.addFrame(_resize(element));
-            // }
-            // encodedImage = img.encodeGifAnimation(copyGif, samplingFactor: 20)
-            //     as Uint8List;
-          } else {
-            /// Return same image if don't need to resize
-            /// Gif doesn't perform right on flutter
-            encodedImage = imageByes;
-          }
+          // Return same image if don't need to resize
+          // Gif doesn't perform right on flutter
+          encodedImage = imageByes;
           break;
         case 'png':
-          baseImage = resizeSrc(baseImage);
+          try {
+            baseImage = resizeSrc(baseImage);
+          } catch (error) {
+            debugPrint(LogColor.error('Resizing PNG: $error'));
+          }
           encodedImage = img.encodePng(baseImage, level: 10);
           break;
         case 'jpeg':
         case 'jpg':
         default:
-          baseImage = resizeSrc(baseImage);
+          try {
+            baseImage = resizeSrc(baseImage);
+          } catch (error) {
+            debugPrint(LogColor.error('Resizing PNG: $error'));
+          }
           encodedImage = img.encodeJpg(baseImage, quality: 95);
           break;
       }
