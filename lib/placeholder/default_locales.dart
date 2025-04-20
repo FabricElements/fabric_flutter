@@ -1248,4 +1248,8 @@ const Map<String, Map<String, String>> defaultLocales = {
     'en': 'Year',
     'es': 'Año',
   },
+  'alert--unsupported-image-format': {
+    'en': 'The image format is not supported',
+    'es': 'El formato de imagen no es compatible',
+  },
 };

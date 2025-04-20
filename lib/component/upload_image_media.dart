@@ -58,16 +58,19 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
           onPressed: () async {
             loading = true;
             if (mounted) setState(() {});
-            await Future.delayed(const Duration(milliseconds: 100));
-            await firebaseStorageHelper.uploadImageMedia(
-              origin: MediaOrigin.gallery,
-              callback: widget.callback,
-              path: widget.path,
-              maxDimensions: widget.maxDimensions,
-              autoId: widget.autoId,
-            );
-            loading = false;
-            if (mounted) setState(() {});
+            try {
+              await Future.delayed(const Duration(seconds: 2));
+              await firebaseStorageHelper.uploadImageMedia(
+                origin: MediaOrigin.gallery,
+                callback: widget.callback,
+                path: widget.path,
+                maxDimensions: widget.maxDimensions,
+                autoId: widget.autoId,
+              );
+            } finally {
+              loading = false;
+              if (mounted) setState(() {});
+            }
           },
         ),
         IconButton(
@@ -78,16 +81,19 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
           onPressed: () async {
             loading = true;
             if (mounted) setState(() {});
-            await Future.delayed(const Duration(milliseconds: 100));
-            await firebaseStorageHelper.uploadImageMedia(
-              origin: MediaOrigin.files,
-              callback: widget.callback,
-              path: widget.path,
-              maxDimensions: widget.maxDimensions,
-              autoId: widget.autoId,
-            );
-            loading = false;
-            if (mounted) setState(() {});
+            try {
+              await Future.delayed(const Duration(seconds: 2));
+              await firebaseStorageHelper.uploadImageMedia(
+                origin: MediaOrigin.files,
+                callback: widget.callback,
+                path: widget.path,
+                maxDimensions: widget.maxDimensions,
+                autoId: widget.autoId,
+              );
+            } finally {
+              loading = false;
+              if (mounted) setState(() {});
+            }
           },
         ),
         !kIsWeb
@@ -99,16 +105,19 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
                 onPressed: () async {
                   loading = true;
                   if (mounted) setState(() {});
-                  await Future.delayed(const Duration(milliseconds: 100));
-                  await firebaseStorageHelper.uploadImageMedia(
-                    origin: MediaOrigin.camera,
-                    callback: widget.callback,
-                    path: widget.path,
-                    maxDimensions: widget.maxDimensions,
-                    autoId: widget.autoId,
-                  );
-                  loading = false;
-                  if (mounted) setState(() {});
+                  try {
+                    await Future.delayed(const Duration(seconds: 2));
+                    await firebaseStorageHelper.uploadImageMedia(
+                      origin: MediaOrigin.camera,
+                      callback: widget.callback,
+                      path: widget.path,
+                      maxDimensions: widget.maxDimensions,
+                      autoId: widget.autoId,
+                    );
+                  } finally {
+                    loading = false;
+                    if (mounted) setState(() {});
+                  }
                 },
               )
             : const SizedBox(),
