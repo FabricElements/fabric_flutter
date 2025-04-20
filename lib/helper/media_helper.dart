@@ -38,8 +38,7 @@ class MediaHelper {
       switch (origin) {
         case MediaOrigin.gallery:
           FilePickerResult? result = await FilePicker.platform.pickFiles(
-            type: FileType.custom,
-            allowedExtensions: supportedExtensions,
+            type: FileType.image,
             withData: true,
           );
           if (result == null || result.files.isEmpty) {
@@ -92,7 +91,7 @@ class MediaHelper {
       if (fileData != null && maxDimensions != null) {
         fileData = await resize(
           imageByes: fileData,
-          imageType: extension?.toString(),
+          imageType: extension.toString(),
           maxWidth: maxDimensions,
           maxHeight: maxDimensions,
         );
@@ -112,7 +111,7 @@ class MediaHelper {
     final encodeData = base64Encode(fileData!);
     return MediaData(
       data: encodeData,
-      extension: extension!,
+      extension: extension,
       contentType: contentType!,
       fileName: fileName,
       width: width,
