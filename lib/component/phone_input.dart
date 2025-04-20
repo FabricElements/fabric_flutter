@@ -234,80 +234,82 @@ class _PhoneInputState extends State<PhoneInput> {
         isValid || InputValidation.isPhoneValid(formattedNumber);
     final locales = AppLocalizations.of(context);
     final inputValidation = InputValidation(locales: locales);
+    List<ButtonOptions> options = List.generate(items.length, (index) {
+      final item = items[index];
+      return ButtonOptions(
+        label: '${item.name} (+${item.callingCode})',
+        labelAlt: '${item.fullName} ${item.alpha2}',
+        value: int.tryParse(item.callingCode!),
+      );
+    });
+    final countryPicker = InputData(
+      key: const Key('country-picker'),
+      autofillHints: const [],
+      prefixIcon: widget.prefixIcon ?? const Icon(Icons.phone_iphone),
+      label: locales.get('label--country-code'),
+      hintText: locales
+          .get('label--choose-label', {'label': locales.get('label--country')}),
+      value: callingCode,
+      type: InputDataType.dropdown,
+      options: options,
+      onChanged: (dynamic value) {
+        callingCode = value as int?;
+        country = items.firstWhere(
+            (element) => element.callingCode == callingCode.toString());
+        formatNumber();
+        if (mounted) setState(() {});
+        widget.onChanged?.call(formattedNumber);
+        widget.onComplete?.call(formattedNumber);
+        widget.onSubmit?.call(formattedNumber);
+      },
+      disabled: widget.disabled,
+    );
+    final phoneInput = InputData(
+      key: const Key('phone-input'),
+      disabled: widget.disabled || callingCode == null,
+      // prefix: widget.prefix,
+      prefix: country != null
+          ? Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: Text('+${country!.callingCode}'),
+            )
+          : null,
+      // prefixIcon: widget.prefixIcon ?? const Icon(Icons.phone_iphone),
+      prefixText: widget.prefixText,
+      suffix: !isValidMatch ? null : widget.suffix,
+      suffixText: !isValidMatch ? null : widget.suffixText,
+      suffixIcon: !isValidMatch ? null : widget.suffixIcon,
+      prefixStyle: widget.prefixStyle,
+      suffixStyle: widget.suffixStyle,
+      autofillHints: const [],
+      label: widget.label ?? locales.get('label--phone-number'),
+      hintText: '(234) 123-4567',
+      value: phoneNumber,
+      type: InputDataType.string,
+      onChanged: (dynamic value) {
+        _updatePhoneNumber(value);
+        if (mounted) setState(() {});
+        widget.onChanged?.call(formattedNumber);
+      },
+      onComplete: (dynamic value) {
+        _updatePhoneNumber(value);
+        if (isValidMatch) widget.onComplete?.call(formattedNumber);
+      },
+      onSubmit: (dynamic value) {
+        _updatePhoneNumber(value);
+        if (isValidMatch) widget.onSubmit?.call(formattedNumber);
+      },
+      validator: inputValidation.validatePhone,
+      inputFormatters: [
+        FilteringTextInputFormatter.deny(RegExp(r'[\s()-+]')),
+        FilteringTextInputFormatter.allow(RegExp(r'[\d{0,15}]')),
+        FilteringTextInputFormatter.singleLineFormatter,
+      ],
+      maxLength: 10,
+    );
     return LayoutBuilder(builder: (context, constraints) {
       final width = constraints.maxWidth;
       final small = width < 400;
-      List<ButtonOptions> options = List.generate(items.length, (index) {
-        final item = items[index];
-        return ButtonOptions(
-          label: '${item.name} (+${item.callingCode})',
-          labelAlt: '${item.fullName} ${item.alpha2}',
-          value: int.tryParse(item.callingCode!),
-        );
-      });
-      final countryPicker = InputData(
-        autofillHints: const [],
-        prefixIcon: widget.prefixIcon ?? const Icon(Icons.phone_iphone),
-        label: locales.get('label--country-code'),
-        hintText: locales.get(
-            'label--choose-label', {'label': locales.get('label--country')}),
-        value: callingCode,
-        type: InputDataType.dropdown,
-        options: options,
-        onChanged: (dynamic value) {
-          callingCode = value as int?;
-          country = items.firstWhere(
-              (element) => element.callingCode == callingCode.toString());
-          formatNumber();
-          if (mounted) setState(() {});
-          widget.onChanged?.call(formattedNumber);
-          widget.onComplete?.call(formattedNumber);
-          widget.onSubmit?.call(formattedNumber);
-        },
-        disabled: widget.disabled,
-      );
-      final phoneInput = InputData(
-        disabled: widget.disabled || callingCode == null,
-        // prefix: widget.prefix,
-        prefix: country != null
-            ? Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: Text('+${country!.callingCode}'),
-              )
-            : null,
-        // prefixIcon: widget.prefixIcon ?? const Icon(Icons.phone_iphone),
-        prefixText: widget.prefixText,
-        suffix: !isValidMatch ? null : widget.suffix,
-        suffixText: !isValidMatch ? null : widget.suffixText,
-        suffixIcon: !isValidMatch ? null : widget.suffixIcon,
-        prefixStyle: widget.prefixStyle,
-        suffixStyle: widget.suffixStyle,
-        autofillHints: const [],
-        label: widget.label ?? locales.get('label--phone-number'),
-        hintText: '(234) 123-4567',
-        value: phoneNumber,
-        type: InputDataType.string,
-        onChanged: (dynamic value) {
-          _updatePhoneNumber(value);
-          if (mounted) setState(() {});
-          widget.onChanged?.call(formattedNumber);
-        },
-        onComplete: (dynamic value) {
-          _updatePhoneNumber(value);
-          if (isValidMatch) widget.onComplete?.call(formattedNumber);
-        },
-        onSubmit: (dynamic value) {
-          _updatePhoneNumber(value);
-          if (isValidMatch) widget.onSubmit?.call(formattedNumber);
-        },
-        validator: inputValidation.validatePhone,
-        inputFormatters: [
-          FilteringTextInputFormatter.deny(RegExp(r'[\s()-+]')),
-          FilteringTextInputFormatter.allow(RegExp(r'[\d{0,15}]')),
-          FilteringTextInputFormatter.singleLineFormatter,
-        ],
-        maxLength: 10,
-      );
       if (small) {
         return Column(
           children: [

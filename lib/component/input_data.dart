@@ -511,7 +511,6 @@ getValue -------------------------------------
 
   @override
   void didUpdateWidget(covariant InputData oldWidget) {
-    _closeSearch();
     getValue(notify: false, newValue: widget.value);
     super.didUpdateWidget(oldWidget);
   }
