@@ -71,6 +71,7 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
     if (kIsWeb) return uploadFromFile;
     return Wrap(
       spacing: 16,
+      runSpacing: 16,
       children: [
         ActionChip(
           label: Text(locales.get('label--upload-from-label',
