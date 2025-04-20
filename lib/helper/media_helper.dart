@@ -31,13 +31,15 @@ class MediaHelper {
     String? extension;
     String? contentType;
     String fileName = 'unknown';
-    int width = 0;
-    int height = 0;
+    int? width;
+    int? height;
+    final supportedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
     try {
       switch (origin) {
         case MediaOrigin.gallery:
           FilePickerResult? result = await FilePicker.platform.pickFiles(
-            type: FileType.image,
+            type: FileType.custom,
+            allowedExtensions: supportedExtensions,
             withData: true,
           );
           if (result == null || result.files.isEmpty) {
@@ -70,7 +72,7 @@ class MediaHelper {
           break;
         case MediaOrigin.files:
           final dataFromFiles = await getFile(
-            allowedExtensions: ['png', 'jpg', 'jpeg', 'gif'],
+            allowedExtensions: supportedExtensions,
           );
           fileData = base64Decode(dataFromFiles.data);
           extension = dataFromFiles.extension;
@@ -80,6 +82,11 @@ class MediaHelper {
     } catch (error) {
       debugPrint(LogColor.error('Getting the image: $error'));
       rethrow;
+    }
+    extension = extension?.toLowerCase();
+    if (extension == null || !supportedExtensions.contains(extension)) {
+      debugPrint(LogColor.error('Unsupported image format: $extension'));
+      throw 'alert--unsupported-image-format';
     }
     try {
       if (fileData != null && maxDimensions != null) {
@@ -91,13 +98,16 @@ class MediaHelper {
         );
       }
     } catch (error) {
-      debugPrint(LogColor.error('Resizing the image: $error'));
-      rethrow;
+      debugPrint(LogColor.warning('Resizing the image but continued: $error'));
     }
-    if (fileData != null) {
-      final decodedImage = await decodeImageFromList(fileData);
-      width = decodedImage.width;
-      height = decodedImage.height;
+    try {
+      if (fileData != null) {
+        final decodedImage = await decodeImageFromList(fileData);
+        width = decodedImage.width;
+        height = decodedImage.height;
+      }
+    } catch (e) {
+      debugPrint(LogColor.warning('Decoding image to get dimensions: $e'));
     }
     final encodeData = base64Encode(fileData!);
     return MediaData(
@@ -121,6 +131,17 @@ class MediaHelper {
     int maxHeight = 1000,
     int maxWidth = 1000,
   }) async {
+    switch (imageType) {
+      case 'jpeg':
+      case 'jpg':
+        imageType = 'jpeg';
+        break;
+      case 'png':
+        imageType = 'png';
+        break;
+      default:
+        throw 'alert--unsupported-image-format';
+    }
     try {
       img.Image baseImage = img.decodeImage(imageByes)!;
       int height = baseImage.height;
@@ -151,18 +172,13 @@ class MediaHelper {
 
       late Uint8List encodedImage;
       switch (imageType) {
-        case 'gif':
-          // Return same image if don't need to resize
-          // Gif doesn't perform right on flutter
-          encodedImage = imageByes;
-          break;
         case 'png':
           try {
             baseImage = resizeSrc(baseImage);
           } catch (error) {
             debugPrint(LogColor.error('Resizing PNG: $error'));
           }
-          encodedImage = img.encodePng(baseImage, level: 10);
+          encodedImage = img.encodePng(baseImage);
           break;
         case 'jpeg':
         case 'jpg':
@@ -170,7 +186,7 @@ class MediaHelper {
           try {
             baseImage = resizeSrc(baseImage);
           } catch (error) {
-            debugPrint(LogColor.error('Resizing PNG: $error'));
+            debugPrint(LogColor.error('Resizing $imageType: $error'));
           }
           encodedImage = img.encodeJpg(baseImage, quality: 95);
           break;
