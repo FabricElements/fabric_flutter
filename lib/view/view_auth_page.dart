@@ -23,7 +23,11 @@ import '../state/state_global.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
+/// Use this key to access the state of the ViewAuthPage without loosing context with recaptcha
+final GlobalKey<ViewAuthPageState> authPageKey = GlobalKey<ViewAuthPageState>();
+
 /// View Auth parameters
+/// IMPORTANT: [key] Use [authPageKey] to access the state of the ViewAuthPage without loosing context with recaptcha
 class ViewAuthValues {
   String? phone;
   int? phoneVerificationCode;
@@ -87,14 +91,13 @@ class ViewAuthPage extends StatefulWidget {
   final String? description;
 
   @override
-  State<ViewAuthPage> createState() => _ViewAuthPageState();
+  State<ViewAuthPage> createState() => ViewAuthPageState();
 }
 
-class _ViewAuthPageState extends State<ViewAuthPage>
-    with WidgetsBindingObserver {
+class ViewAuthPageState extends State<ViewAuthPage> {
   late bool loading;
-  late int section;
-  late ViewAuthValues dataAuth;
+  int section = 0;
+  ViewAuthValues dataAuth = ViewAuthValues();
   ConfirmationResult? webConfirmationResult;
   bool policiesAccepted = false;
 
@@ -108,8 +111,6 @@ class _ViewAuthPageState extends State<ViewAuthPage>
   @override
   void initState() {
     loading = false;
-    section = 0;
-    dataAuth = ViewAuthValues();
     webConfirmationResult = null;
     policiesAccepted = false;
     googleSignInAccount = GoogleSignIn(
@@ -117,22 +118,7 @@ class _ViewAuthPageState extends State<ViewAuthPage>
       scopes: ['email'],
       forceCodeForRefreshToken: true,
     );
-    WidgetsBinding.instance.addObserver(this);
     super.initState();
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) async {
-    if (state == AppLifecycleState.resumed) {
-      if (mounted) setState(() {});
-    }
-    super.didChangeAppLifecycleState(state);
   }
 
   @override
@@ -188,6 +174,8 @@ class _ViewAuthPageState extends State<ViewAuthPage>
     /// SMS auth code sent
     codeSent(String verificationId, [int? forceResendingToken]) {
       dataAuth.verificationId = verificationId;
+      section = 2;
+      if (mounted) setState(() {});
       alert.show(AlertData(
         title: locales.get('alert--check-phone-verification-code'),
         type: AlertType.success,
@@ -392,9 +380,9 @@ class _ViewAuthPageState extends State<ViewAuthPage>
         var appleProvider = AppleAuthProvider();
         appleProvider.addScope('email'); //this scope is required
         if (kIsWeb) {
-          await FirebaseAuth.instance.signInWithPopup(appleProvider);
+          await _auth.signInWithPopup(appleProvider);
         } else {
-          await FirebaseAuth.instance.signInWithProvider(appleProvider);
+          await _auth.signInWithProvider(appleProvider);
         }
         resetView();
       } on FirebaseAuthException catch (error) {
