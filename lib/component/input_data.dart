@@ -212,6 +212,7 @@ class InputData extends StatefulWidget {
     this.asLocalTime = false,
     this.enableInteractiveSelection,
     this.inputFormatters = const [],
+    this.keyboardType,
   });
 
   final dynamic value;
@@ -296,6 +297,9 @@ class InputData extends StatefulWidget {
   final bool? enableInteractiveSelection;
 
   final List<TextInputFormatter> inputFormatters;
+
+  /// {@macro flutter.widgets.editableText.keyboardType}
+  final TextInputType? keyboardType;
 
   @override
   State<InputData> createState() => _InputDataState();
@@ -669,6 +673,11 @@ getValue -------------------------------------
         hintTextDefault = defaultTextOptions;
         break;
       default:
+    }
+
+    /// Override keyboard type using parameter
+    if (widget.keyboardType != null) {
+      keyboardType = widget.keyboardType!;
     }
 
     String? hintText = widget.hintText ?? hintTextDefault;
