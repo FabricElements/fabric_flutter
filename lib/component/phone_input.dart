@@ -216,15 +216,7 @@ class _PhoneInputState extends State<PhoneInput> {
   }
 
   _updatePhoneNumber(dynamic value) {
-    if (value == null || value == '') {
-      phoneNumber = null;
-    } else {
-      if ((value as String).startsWith('+')) {
-        formatInput(widget.value!);
-      } else {
-        phoneNumber = int.tryParse(value);
-      }
-    }
+    phoneNumber = value as int?;
     formatNumber();
   }
 
@@ -285,7 +277,8 @@ class _PhoneInputState extends State<PhoneInput> {
       label: widget.label ?? locales.get('label--phone-number'),
       hintText: '(234) 123-4567',
       value: phoneNumber,
-      type: InputDataType.string,
+      type: InputDataType.int,
+      keyboardType: TextInputType.number,
       onChanged: (dynamic value) {
         _updatePhoneNumber(value);
         if (mounted) setState(() {});
