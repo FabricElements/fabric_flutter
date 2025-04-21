@@ -717,6 +717,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
         child: InputData(
           value: dataAuth.phoneVerificationCode,
           type: InputDataType.int,
+          keyboardType: TextInputType.number,
           hintText: locales.get('page-auth--input--verification-code'),
           maxLength: 6,
           onChanged: (value) {
