@@ -23,11 +23,10 @@ import '../state/state_global.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
-/// Use this key to access the state of the ViewAuthPage without loosing context with recaptcha
-final GlobalKey<ViewAuthPageState> authPageKey = GlobalKey<ViewAuthPageState>();
-
 /// View Auth parameters
 /// IMPORTANT: [key] Use [authPageKey] to access the state of the ViewAuthPage without loosing context with recaptcha
+/// Create a global key to access the state of the ViewAuthPage without loosing context with recaptcha
+/// final GlobalKey<ViewAuthPageState> authPageKey = GlobalKey<ViewAuthPageState>();
 class ViewAuthValues {
   String? phone;
   int? phoneVerificationCode;
