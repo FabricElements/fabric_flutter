@@ -507,4 +507,13 @@ abstract class StateShared extends ChangeNotifier {
       super.notifyListeners();
     });
   }
+
+  /// Dispose streams and cancel timer
+  @override
+  void dispose() {
+    _controllerStream.close();
+    _controllerStreamError.close();
+    _timer?.cancel();
+    super.dispose();
+  }
 }
