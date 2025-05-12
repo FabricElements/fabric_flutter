@@ -1,4 +1,6 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:convert' show LineSplitter, Utf8Codec, jsonDecode;
+
+import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth;
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
@@ -166,13 +168,46 @@ abstract class StateAPI extends StateShared {
       }
       debugPrint(LogColor.info('Calling endpoint: $endpoint'));
       try {
-        final response = await http.get(url, headers: requestHeaders);
-        newData = HTTPRequest.response(response);
+        final request = http.Request('GET', url);
+        request.headers.addAll(requestHeaders);
+        final response = await http.Client().send(request);
         headers = response.headers;
-        final hasTotalHeader = response.headers.containsKey('x-total-count');
+        final contentType = headers['content-type'];
+        if (contentType == null) {
+          throw 'No content type found for endpoint: $endpoint';
+        }
+        final hasTotalHeader = headers.containsKey('x-total-count');
+
+        /// Handle json streaming data
+        if (contentType.contains('application/x-json-stream')) {
+          /// Get stream
+          final stream = response.stream
+              .transform(Utf8Codec(allowMalformed: true).decoder)
+              .transform(const LineSplitter())
+              // add line break for every }{ match
+              .expand((line) => line.split('}{').map(
+                  (chunk) => '{${chunk.replaceAll(RegExp(r'^\{|\}$'), '')}}'));
+          await for (final line in stream) {
+            final formatedResponse = http.Response(line, response.statusCode);
+
+            /// Check for errors
+            HTTPRequest.error(formatedResponse);
+            if (line.isNotEmpty) {
+              newData = jsonDecode(line);
+              initialized = true;
+
+              /// Wait to avoid ui freeze
+              await Future.delayed(const Duration(milliseconds: 300));
+              data = newData;
+            }
+          }
+        } else {
+          final convertedResponse = await http.Response.fromStream(response);
+          newData = HTTPRequest.response(convertedResponse);
+        }
         if (hasTotalHeader) {
           final xTotalCountHeader =
-              int.tryParse(response.headers['x-total-count'] ?? '0') ?? 0;
+              int.tryParse(headers['x-total-count'] ?? '0') ?? 0;
           totalCount = xTotalCountHeader;
         } else if (paginate && !hasTotalHeader) {
           /// Default totalCount depending on the page
@@ -195,7 +230,6 @@ abstract class StateAPI extends StateShared {
         error = e.toString();
       }
       initialized = true;
-      loading = false;
 
       /// pagination
       if (incrementalPagination) {
@@ -215,9 +249,10 @@ abstract class StateAPI extends StateShared {
     } catch (e) {
       debugPrint(LogColor.error('------ ERROR API CALL : Parent catch ------'));
       initialized = false;
-      loading = false;
       errorCount++;
       error = e.toString();
+    } finally {
+      loading = false;
     }
     // Set data with default value when needed
     dataResponse = paginate
