@@ -111,7 +111,16 @@ class HTTPRequest {
     /// Check for errors
     error(response);
 
-    /// Get response
-    return jsonDecode(response.body);
+    /// Check for empty response
+    if (response.body.isEmpty) {
+      return null;
+    }
+
+    /// Get response depending on content type
+    final contentType = response.headers['content-type'];
+    if (contentType != null && contentType.contains('application/json')) {
+      return jsonDecode(response.body);
+    }
+    return response.body;
   }
 }
