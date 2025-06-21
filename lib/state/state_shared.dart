@@ -495,6 +495,11 @@ abstract class StateShared extends ChangeNotifier {
       super.notifyListeners();
       return;
     }
+    // Do not debounce if debounceTime is 0
+    if (debounceTime <= 0) {
+      super.notifyListeners();
+      return;
+    }
     // Make custom debounce effective only after the first call otherwise use 10ms as minimum
     int finalDebounceTime = debounceCount > 0 ? debounceTime : 100;
     // If the first call is not initialized, use minimum debounce time
