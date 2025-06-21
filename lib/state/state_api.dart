@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert' show LineSplitter, Utf8Codec, jsonDecode;
 
 import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth;
@@ -180,26 +181,70 @@ abstract class StateAPI extends StateShared {
 
         /// Handle json streaming data
         if (contentType.contains('application/x-json-stream')) {
-          /// Get stream
+          String staticBuffer = '';
           final stream = response.stream
               .transform(Utf8Codec(allowMalformed: true).decoder)
-              .transform(const LineSplitter())
-              // add line break for every }{ match
-              .expand((line) => line.split('}{').map(
-                  (chunk) => '{${chunk.replaceAll(RegExp(r'^\{|\}$'), '')}}'));
-          await for (final line in stream) {
-            final formatedResponse = http.Response(line, response.statusCode);
+              .transform(StreamTransformer<String, String>.fromHandlers(
+            handleData: (bufferData, sink) {
+              for (int i = 0; i < bufferData.length; i++) {
+                final char = bufferData[i];
+                // Check for newline character to split the buffer
+                staticBuffer += char;
+                // Trim the staticBuffer to remove any leading or trailing whitespace
+                staticBuffer = staticBuffer.trim();
+                // If there is no data in the staticBuffer, continue to the next character
+                if (staticBuffer.isEmpty) continue;
+                int totalOpenBraces = staticBuffer.split('{').length - 1;
+                int totalCloseBraces = staticBuffer.split('}').length - 1;
+                bool hasOpenBraces = (totalOpenBraces - totalCloseBraces) != 0;
+                // If we have an open brace, we need to keep the buffer
+                if (hasOpenBraces) continue;
 
-            /// Check for errors
-            HTTPRequest.error(formatedResponse);
-            if (line.isNotEmpty) {
-              newData = jsonDecode(line);
-              initialized = true;
-
-              /// Wait to avoid ui freeze
-              await Future.delayed(const Duration(milliseconds: 300));
-              data = newData;
-            }
+                // If multiple JSON objects are in the buffer, split them and return the last one
+                final parts = staticBuffer.split('}{');
+                if (parts.isNotEmpty) {
+                  String lastPart = parts.last;
+                  // add missing opening brace if needed
+                  if (!lastPart.startsWith('{')) {
+                    lastPart = '{$lastPart';
+                  }
+                  // If the last part is a valid JSON object, return it
+                  try {
+                    jsonDecode(lastPart);
+                    sink.add(lastPart);
+                    staticBuffer = '';
+                  } catch (_) {
+                    // If it fails to decode, keep it for the next chunk
+                    continue; // Keep this line in case new features are added
+                  }
+                } else {
+                  // If parts is empty, it means the staticBuffer is a single JSON object
+                  // Try to decode it and add it to the sink
+                  try {
+                    debugPrint(LogColor.success(
+                        ('Single object detected on buffer: $staticBuffer')));
+                    jsonDecode(staticBuffer);
+                    sink.add(staticBuffer);
+                    staticBuffer = '';
+                  } catch (_) {
+                    // If it fails to decode, keep it for the next chunk
+                    continue; // Keep this line in case new features are added
+                  }
+                }
+              }
+            },
+          ));
+          await for (final chunk in stream) {
+            if (chunk.isEmpty) continue;
+            final formattedResponse = http.Response(
+              chunk.trim(),
+              response.statusCode,
+              request: response.request,
+              headers: response.headers,
+            );
+            newData = HTTPRequest.response(formattedResponse);
+            initialized = true;
+            data = newData;
           }
         } else {
           final convertedResponse = await http.Response.fromStream(response);
