@@ -9,33 +9,42 @@ import '../helper/log_color.dart';
 class IframeMinimal extends StatelessWidget {
   const IframeMinimal({
     super.key,
-    required this.src,
+    this.src,
+    this.rawHtml,
     this.title = 'Iframe',
     this.alt = 'Iframe',
-  });
+  }) : assert(
+          (src != null && rawHtml == null) || (src == null && rawHtml != null),
+          'Either src or rawHtml must be provided, but not both.',
+        );
 
   final String? src;
+  final String? rawHtml;
   final String alt;
   final String title;
 
   @override
   Widget build(BuildContext context) {
-    if (src == null) return const SizedBox();
-    final id = '#iframe-${src.hashCode}';
+    final id = '#iframe-${(src ?? rawHtml).hashCode}';
     final iframeElement = IFrameElement();
-    // TODO: verify if everything can be added to allow and add it as custom attributes if can be implemented
-    iframeElement.attributes = {
-      'src': src!,
-      'allowtransparency': 'true',
-      'allowfullscreen': 'true',
-      'allow': 'fullscreen',
-      'height': '100%',
-      'width': '100%',
-      'alt': alt,
-      'style':
-          'border: none; height: 100%; width: 100%; background-color: transparent;',
-      'title': title,
-    };
+
+    if (rawHtml != null) {
+      iframeElement.setAttribute('srcdoc', rawHtml!);
+    } else if (src != null) {
+      iframeElement.setAttribute('src', src!);
+    }
+
+    iframeElement
+      ..setAttribute('allowtransparency', 'true')
+      ..setAttribute('allowfullscreen', 'true')
+      ..setAttribute('allow', 'fullscreen')
+      ..setAttribute('height', '100%')
+      ..setAttribute('width', '100%')
+      ..setAttribute('alt', alt)
+      ..setAttribute('style',
+          'border: none; height: 100%; width: 100%; background-color: transparent;')
+      ..setAttribute('title', title);
+
     try {
       // ignore: undefined_prefixed_name
       ui.platformViewRegistry.registerViewFactory(
@@ -47,7 +56,7 @@ class IframeMinimal extends StatelessWidget {
     }
 
     return HtmlElementView(
-      key: Key(src.hashCode.toString()),
+      key: Key((src ?? rawHtml).hashCode.toString()),
       viewType: id,
     );
   }
