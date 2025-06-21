@@ -118,7 +118,9 @@ class HTTPRequest {
 
     /// Get response depending on content type
     final contentType = response.headers['content-type'];
-    if (contentType != null && contentType.contains('application/json')) {
+    if (contentType != null &&
+        (contentType.contains('application/json') ||
+            contentType.contains('application/x-json-stream'))) {
       return jsonDecode(response.body);
     }
     return response.body;
