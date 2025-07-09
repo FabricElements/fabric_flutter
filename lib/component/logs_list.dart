@@ -1,16 +1,12 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:json_view/json_view.dart';
 import 'package:provider/provider.dart';
 
-import '../helper/app_localizations_delegate.dart';
 import '../helper/options.dart';
 import '../helper/utils.dart';
 import '../serialized/logs_data.dart';
 import '../state/state_alert.dart';
+import 'json_explorer_search.dart';
 import 'user_chip.dart';
 
 /// Displays a list of logs from an array of [logs]
@@ -46,18 +42,8 @@ class LogsList extends StatelessWidget {
     Widget container = const SizedBox(height: 0);
     if (logs == null || logs!.isEmpty) return container;
     RegExp regExp = RegExp(r'{.*?}', multiLine: true);
-    final locales = AppLocalizations.of(context);
     final alert = Provider.of<StateAlert>(context, listen: false);
     alert.context = context;
-    void copyText(dynamic text) {
-      if (text == null || text.toString().isEmpty) return;
-      Clipboard.setData(ClipboardData(text: text.toString()));
-      alert.show(AlertData(
-        body: '${locales.get('alert--copy-clipboard')}: $text',
-        duration: 1,
-        // clear: true,
-      ));
-    }
 
     Widget getItem(LogsData item) {
       DateTime? timestamp = item.timestamp ?? DateTime.now();
@@ -68,7 +54,7 @@ class LogsList extends StatelessWidget {
       TextStyle? textThemeBase =
           textTheme.bodyLarge?.copyWith(height: !minimal ? 1.7 : null);
       TextStyle? textThemeColor = textThemeBase?.copyWith(
-        color: highlightColor ?? Colors.black,
+        color: highlightColor ?? textThemeBase.color ?? Colors.black,
         fontWeight: FontWeight.w600,
       );
       Iterable matches = regExp.allMatches(text);
@@ -149,42 +135,20 @@ class LogsList extends StatelessWidget {
                 scrollable: false,
                 // 5 minutes in milliseconds
                 duration: 300000,
-                child: Stack(
-                  children: [
-                    Container(
-                      height: 600,
-                      width: 600,
-                      constraints: const BoxConstraints(
-                        maxWidth: 600,
-                        maxHeight: 600,
-                        minWidth: 300,
-                        minHeight: 300,
-                      ),
-                      child: AspectRatio(
-                        aspectRatio: 1,
-                        child: Card(
-                          elevation: 0,
-                          child: JsonView(
-                            padding: const EdgeInsets.all(16),
-                            json: item.data,
-                            styleScheme: const JsonStyleScheme(
-                              openAtStart: true,
-                            ),
-                          ),
-                        ),
-                      ),
+                child: Container(
+                  height: 600,
+                  constraints: const BoxConstraints(
+                    maxHeight: 600,
+                    minWidth: 300,
+                    minHeight: 300,
+                  ),
+                  child: Card(
+                    elevation: 0,
+                    clipBehavior: Clip.antiAlias,
+                    child: JsonExplorerSearch(
+                      json: item.data,
                     ),
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: IconButton(
-                        icon: const Icon(Icons.copy),
-                        color: theme.colorScheme.onSurface,
-                        tooltip: locales.get('label--copy'),
-                        onPressed: () => copyText(jsonEncode(item.data)),
-                      ),
-                    )
-                  ],
+                  ),
                 ),
               ));
             },
