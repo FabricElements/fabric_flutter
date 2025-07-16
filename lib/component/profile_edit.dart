@@ -15,11 +15,7 @@ import 'content_container.dart';
 import 'input_data.dart';
 
 class ProfileEdit extends StatefulWidget {
-  const ProfileEdit({
-    super.key,
-    this.loader,
-    this.prefix,
-  });
+  const ProfileEdit({super.key, this.loader, this.prefix});
 
   final Widget? loader;
   final String? prefix;
@@ -89,35 +85,41 @@ class _ProfileEditState extends State<ProfileEdit> {
       assert(nameLast != null, 'Last Name must be defined');
       assert(changed, 'No changes detected');
       loading = true;
-      alert.show(AlertData(
-        body: locales.get('notification--please-wait'),
-        duration: 4,
-        clear: true,
-      ));
+      alert.show(
+        AlertData(
+          body: locales.get('notification--please-wait'),
+          duration: 4,
+          clear: true,
+        ),
+      );
       if (nameFirst!.isEmpty) {
         loading = false;
         if (mounted) setState(() {});
-        alert.show(AlertData(
-          body: locales.get('label--too-short', {
-            'label': locales.get('label--first-name'),
-            'number': '3',
-          }),
-          type: AlertType.critical,
-          clear: true,
-        ));
+        alert.show(
+          AlertData(
+            body: locales.get('label--too-short', {
+              'label': locales.get('label--first-name'),
+              'number': '3',
+            }),
+            type: AlertType.critical,
+            clear: true,
+          ),
+        );
         return;
       }
       if (nameLast!.isEmpty) {
         loading = false;
         if (mounted) setState(() {});
-        alert.show(AlertData(
-          body: locales.get('label--too-short', {
-            'label': locales.get('label--last-name'),
-            'number': '3',
-          }),
-          type: AlertType.critical,
-          clear: true,
-        ));
+        alert.show(
+          AlertData(
+            body: locales.get('label--too-short', {
+              'label': locales.get('label--last-name'),
+              'number': '3',
+            }),
+            type: AlertType.critical,
+            clear: true,
+          ),
+        );
         return;
       }
       Map<String, dynamic> newData = {
@@ -128,33 +130,38 @@ class _ProfileEditState extends State<ProfileEdit> {
         if (_temporalImageBytes != null) {
           String base64Image = base64Encode(_temporalImageBytes!);
           String photoURL = base64Image;
-          newData.addAll({
-            'avatar': photoURL,
-          });
+          newData.addAll({'avatar': photoURL});
         }
-        final HttpsCallable callable =
-            FirebaseFunctions.instance.httpsCallable('user-actions-update');
+        final HttpsCallable callable = FirebaseFunctions.instance.httpsCallable(
+          'user-actions-update',
+        );
         await callable.call(newData);
         _temporalImageBytes = null;
         changed = false;
-        alert.show(AlertData(
-          body: locales.get('page-profile--alert--profile-updated'),
-          type: AlertType.success,
-          clear: true,
-        ));
+        alert.show(
+          AlertData(
+            body: locales.get('page-profile--alert--profile-updated'),
+            type: AlertType.success,
+            clear: true,
+          ),
+        );
         refreshImage();
       } on FirebaseFunctionsException catch (error) {
-        alert.show(AlertData(
-          body: error.message ?? error.details['message'],
-          type: AlertType.critical,
-          clear: true,
-        ));
+        alert.show(
+          AlertData(
+            body: error.message ?? error.details['message'],
+            type: AlertType.critical,
+            clear: true,
+          ),
+        );
       } catch (error) {
-        alert.show(AlertData(
-          body: error.toString(),
-          type: AlertType.critical,
-          clear: true,
-        ));
+        alert.show(
+          AlertData(
+            body: error.toString(),
+            type: AlertType.critical,
+            clear: true,
+          ),
+        );
       }
       loading = false;
       if (mounted) setState(() {});
@@ -174,18 +181,21 @@ class _ProfileEditState extends State<ProfileEdit> {
         final errorType = errorMessage == 'alert--no-chosen-files'
             ? AlertType.warning
             : AlertType.critical;
-        alert.show(AlertData(
-          body: locales.get(errorMessage),
-          type: errorType,
-          duration: 5,
-          clear: true,
-        ));
+        alert.show(
+          AlertData(
+            body: locales.get(errorMessage),
+            type: errorType,
+            duration: 5,
+            clear: true,
+          ),
+        );
       }
       loading = false;
       if (mounted) setState(() {});
     }
 
-    final readyToSave = changed &&
+    final readyToSave =
+        changed &&
         !loading &&
         ((nameFirst ?? '').length > 1 && (nameLast ?? '').length > 1);
     return ListView(
@@ -205,13 +215,18 @@ class _ProfileEditState extends State<ProfileEdit> {
                     hoverColor: Colors.transparent,
                     onPressed: _temporalImageBytes == null
                         ? () async {
-                            Navigator.pushNamed(context, '/hero',
-                                arguments: {'url': userImage});
+                            Navigator.pushNamed(
+                              context,
+                              '/hero',
+                              arguments: {'url': userImage},
+                            );
                           }
                         : null,
                     child: Container(
-                      constraints:
-                          const BoxConstraints(minWidth: 100, maxWidth: 300),
+                      constraints: const BoxConstraints(
+                        minWidth: 100,
+                        maxWidth: 300,
+                      ),
                       child: AspectRatio(
                         aspectRatio: 1 / 1,
                         child: CircleAvatar(
@@ -229,12 +244,14 @@ class _ProfileEditState extends State<ProfileEdit> {
                                       ? null
                                       : () async {
                                           await getImageFromOrigin(
-                                              MediaOrigin.gallery);
+                                            MediaOrigin.gallery,
+                                          );
                                         },
                                   child: Icon(
                                     Icons.image,
-                                    color:
-                                        Theme.of(context).colorScheme.secondary,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.secondary,
                                   ),
                                 ),
                               ),
@@ -249,7 +266,8 @@ class _ProfileEditState extends State<ProfileEdit> {
                                             ? null
                                             : () async {
                                                 await getImageFromOrigin(
-                                                    MediaOrigin.camera);
+                                                  MediaOrigin.camera,
+                                                );
                                               },
                                         child: const Icon(Icons.photo_camera),
                                       ),
@@ -271,9 +289,7 @@ class _ProfileEditState extends State<ProfileEdit> {
           size: ContentContainerSize.small,
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: InputData(
-            autofillHints: const [
-              AutofillHints.givenName,
-            ],
+            autofillHints: const [AutofillHints.givenName],
             disabled: loading,
             maxLength: 35,
             type: InputDataType.string,
@@ -295,9 +311,7 @@ class _ProfileEditState extends State<ProfileEdit> {
           size: ContentContainerSize.small,
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: InputData(
-            autofillHints: const [
-              AutofillHints.familyName,
-            ],
+            autofillHints: const [AutofillHints.familyName],
             disabled: loading,
             maxLength: 35,
             type: InputDataType.string,

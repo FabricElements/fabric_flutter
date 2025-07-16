@@ -13,11 +13,7 @@ import 'package:video_player/video_player.dart';
 import '../serialized/media_data.dart';
 import 'log_color.dart';
 
-enum MediaOrigin {
-  camera,
-  gallery,
-  files,
-}
+enum MediaOrigin { camera, gallery, files }
 
 /// Image helper class
 class MediaHelper {
@@ -162,11 +158,7 @@ class MediaHelper {
       img.Image resizeSrc(img.Image src) {
         /// Return same data if doesn't require resize
         if (!needsResize) return src;
-        return img.copyResize(
-          src,
-          height: height,
-          width: width,
-        );
+        return img.copyResize(src, height: height, width: width);
       }
 
       late Uint8List encodedImage;
@@ -199,9 +191,7 @@ class MediaHelper {
   }
 
   /// Basic file selection
-  static Future<MediaData> getFile({
-    List<String>? allowedExtensions,
-  }) async {
+  static Future<MediaData> getFile({List<String>? allowedExtensions}) async {
     Uint8List? fileData;
     String? extension;
     String? contentType;

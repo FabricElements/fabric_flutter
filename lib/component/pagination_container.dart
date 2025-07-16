@@ -23,11 +23,8 @@ class PaginationContainer extends StatefulWidget {
     this.shrinkWrap = false,
   });
 
-  final Widget Function(
-    BuildContext context,
-    int index,
-    dynamic data,
-  ) itemBuilder;
+  final Widget Function(BuildContext context, int index, dynamic data)
+  itemBuilder;
   final bool primary;
   final bool reverse;
   final EdgeInsetsGeometry padding;
@@ -87,17 +84,19 @@ class _PaginationContainerState extends State<PaginationContainer> {
     });
 
     /// Get data from stream
-    widget.stream.listen((event) {
-      loading = false;
-      final eventData = event != null ? event as List<dynamic> : null;
-      data = eventData ?? widget.initialData ?? [];
-      end = false;
-      if (mounted) setState(() {});
-    }).onError((e) {
-      error = e.toString();
-      loading = false;
-      if (mounted) setState(() {});
-    });
+    widget.stream
+        .listen((event) {
+          loading = false;
+          final eventData = event != null ? event as List<dynamic> : null;
+          data = eventData ?? widget.initialData ?? [];
+          end = false;
+          if (mounted) setState(() {});
+        })
+        .onError((e) {
+          error = e.toString();
+          loading = false;
+          if (mounted) setState(() {});
+        });
     super.initState();
   }
 
@@ -113,7 +112,8 @@ class _PaginationContainerState extends State<PaginationContainer> {
     final locales = AppLocalizations.of(context);
     final theme = Theme.of(context);
     int total = data.length;
-    final widgetEmpty = widget.empty ??
+    final widgetEmpty =
+        widget.empty ??
         Card(
           child: ListTile(
             contentPadding: EdgeInsets.all(16),
@@ -121,7 +121,8 @@ class _PaginationContainerState extends State<PaginationContainer> {
             title: Text(locales.get('label--nothing-here-yet')),
           ),
         );
-    final widgetLoading = widget.loading ??
+    final widgetLoading =
+        widget.loading ??
         Card(
           child: ListTile(
             contentPadding: EdgeInsets.all(16),
@@ -129,7 +130,8 @@ class _PaginationContainerState extends State<PaginationContainer> {
             title: Text(locales.get('label--loading')),
           ),
         );
-    final widgetEnd = widget.end ??
+    final widgetEnd =
+        widget.end ??
         Center(
           child: Padding(
             padding: EdgeInsets.only(top: kMinInteractiveDimension * 2),
@@ -145,17 +147,13 @@ class _PaginationContainerState extends State<PaginationContainer> {
       content = SingleChildScrollView(
         primary: false,
         padding: widget.padding,
-        child: ContentContainer(
-          child: widgetLoading,
-        ),
+        child: ContentContainer(child: widgetLoading),
       );
     } else if (total == 0) {
       content = SingleChildScrollView(
         primary: false,
         padding: widget.padding,
-        child: ContentContainer(
-          child: widgetEmpty,
-        ),
+        child: ContentContainer(child: widgetEmpty),
       );
     } else {
       int totalCount = total;
@@ -177,11 +175,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
           shrinkWrap: widget.shrinkWrap,
           itemBuilder: (BuildContext context, int index) {
             if (index < total) {
-              return widget.itemBuilder(
-                context,
-                index,
-                data[index],
-              );
+              return widget.itemBuilder(context, index, data[index]);
             }
             if (error != null) {
               return ContentContainer(
@@ -197,13 +191,9 @@ class _PaginationContainerState extends State<PaginationContainer> {
                 ),
               );
             } else if (loading) {
-              return ContentContainer(
-                child: widgetLoading,
-              );
+              return ContentContainer(child: widgetLoading);
             } else if (end) {
-              return ContentContainer(
-                child: widgetEnd,
-              );
+              return ContentContainer(child: widgetEnd);
             } else {
               return SizedBox();
             }

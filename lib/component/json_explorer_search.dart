@@ -24,11 +24,7 @@ class JsonExplorerSearch extends StatefulWidget {
   final Map<dynamic, dynamic>? json;
   final Widget? empty;
 
-  const JsonExplorerSearch({
-    super.key,
-    required this.json,
-    this.empty,
-  });
+  const JsonExplorerSearch({super.key, required this.json, this.empty});
 
   @override
   State<JsonExplorerSearch> createState() => _JsonExplorerSearchState();
@@ -60,7 +56,8 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
     final textTheme = theme.textTheme;
     final locales = AppLocalizations.of(context);
     final alert = Provider.of<StateAlert>(context, listen: false);
-    final widgetEmpty = widget.empty ??
+    final widgetEmpty =
+        widget.empty ??
         ListTile(
           contentPadding: EdgeInsets.all(16),
           leading: Icon(Icons.info),
@@ -107,9 +104,7 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
       indentationLineColor: theme.colorScheme.outline,
       indentationPadding: 8,
       propertyIndentationPaddingFactor: 4,
-      highlightColor: theme.colorScheme.primaryContainer.withValues(
-        alpha: 0.2,
-      ),
+      highlightColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.2),
     );
 
     /// Copies the given text to the clipboard and shows a snackbar
@@ -121,11 +116,7 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
       if (text.toString().length <= 100) {
         message += ': $text';
       }
-      alert.show(AlertData(
-        body: message,
-        duration: 1,
-        clear: true,
-      ));
+      alert.show(AlertData(body: message, duration: 1, clear: true));
     }
 
     /// Wraps the store in a ChangeNotifierProvider and rebuilds the widget
@@ -161,10 +152,7 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
                             )
                           : null,
                       suffix: state.searchResults.isNotEmpty
-                          ? Text(
-                              _searchFocusText(),
-                              style: textTheme.bodySmall,
-                            )
+                          ? Text(_searchFocusText(), style: textTheme.bodySmall)
                           : null,
                     ),
                   ),
@@ -197,15 +185,15 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
               Row(
                 children: [
                   TextButton.icon(
-                    onPressed:
-                        state.areAllExpanded() ? null : state.expandAll,
+                    onPressed: state.areAllExpanded() ? null : state.expandAll,
                     label: Text(locales.get('label--expand-all')),
                     icon: const Icon(Icons.expand),
                   ),
                   const Gap(8),
                   TextButton.icon(
-                    onPressed:
-                        state.areAllCollapsed() ? null : state.collapseAll,
+                    onPressed: state.areAllCollapsed()
+                        ? null
+                        : state.collapseAll,
                     label: Text(locales.get('label--collapse-all')),
                     icon: const Icon(Icons.expand_less),
                   ),
@@ -246,8 +234,9 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
                             node.isClass
                                 ? '{${node.childrenCount}}'
                                 : '[${node.childrenCount}]',
-                            style: textTheme.bodySmall
-                                ?.copyWith(color: theme.colorScheme.onSurface),
+                            style: textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurface,
+                            ),
                           ),
                         ),
                       ),
@@ -257,10 +246,10 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
                       /// [NodeViewModelState.isCollapsed] changes.
                       collapsableToggleBuilder: (context, node) =>
                           AnimatedRotation(
-                        turns: node.isCollapsed ? -0.25 : 0,
-                        duration: const Duration(milliseconds: 300),
-                        child: const Icon(Icons.arrow_drop_down),
-                      ),
+                            turns: node.isCollapsed ? -0.25 : 0,
+                            duration: const Duration(milliseconds: 300),
+                            child: const Icon(Icons.arrow_drop_down),
+                          ),
 
                       /// Builds a trailing widget that copies the node key: value
                       ///
@@ -335,8 +324,9 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
                                   decoration: TextDecoration.underline,
                                 )
                               : style,
-                          onTap:
-                              isUrl ? () => _launchUrl(value as String) : null,
+                          onTap: isUrl
+                              ? () => _launchUrl(value as String)
+                              : null,
                         );
                       },
                       theme: jsonExplorerTheme,

@@ -11,11 +11,7 @@ import '../helper/log_color.dart';
 import '../serialized/notification_data.dart';
 import '../serialized/user_data.dart';
 
-enum NotificationOrigin {
-  message,
-  open,
-  resume,
-}
+enum NotificationOrigin { message, open, resume }
 
 /// This is a change notifier class which keeps track of state within the campaign builder views.
 class StateNotifications extends ChangeNotifier {
@@ -40,7 +36,8 @@ class StateNotifications extends ChangeNotifier {
       }, SetOptions(merge: true));
     } catch (error) {
       debugPrint(
-          LogColor.error('error saving user token: ${error.toString()}'));
+        LogColor.error('error saving user token: ${error.toString()}'),
+      );
     }
     token = tokenId;
     notifyListeners();
@@ -54,22 +51,23 @@ class StateNotifications extends ChangeNotifier {
     if (!initialized) throw 'Initialize Firebase app first';
     // You may set the permission requests to "provisional" which allows the user to choose what type
     // of notifications they would like to receive once the user receives a notification.
-    final notificationSettings =
-        await FirebaseMessaging.instance.requestPermission(
-      alert: true,
-      announcement: true,
-      badge: true,
-      carPlay: true,
-      criticalAlert: true,
-      provisional: true,
-      sound: true,
-      providesAppNotificationSettings: true,
-    );
+    final notificationSettings = await FirebaseMessaging.instance
+        .requestPermission(
+          alert: true,
+          announcement: true,
+          badge: true,
+          carPlay: true,
+          criticalAlert: true,
+          provisional: true,
+          sound: true,
+          providesAppNotificationSettings: true,
+        );
     switch (notificationSettings.authorizationStatus) {
       case AuthorizationStatus.authorized:
       case AuthorizationStatus.provisional:
         debugPrint(
-            'User granted permission: ${notificationSettings.authorizationStatus}');
+          'User granted permission: ${notificationSettings.authorizationStatus}',
+        );
         break;
       default:
         return null;
@@ -91,7 +89,7 @@ class StateNotifications extends ChangeNotifier {
   }
 
   /// Return notify values
-  _notify({RemoteMessage? message, required NotificationOrigin origin}) async {
+  Future<void> _notify({RemoteMessage? message, required NotificationOrigin origin}) async {
     if (message == null) return;
     RemoteNotification? notification = message.notification;
     Map<String, dynamic> data = message.data;
@@ -130,9 +128,9 @@ class StateNotifications extends ChangeNotifier {
     if ((notification?.apple?.imageUrl ?? notification?.android?.imageUrl) !=
         null) {
       message0.putIfAbsent(
-          'imageUrl',
-          () =>
-              notification?.apple?.imageUrl ?? notification?.android?.imageUrl);
+        'imageUrl',
+        () => notification?.apple?.imageUrl ?? notification?.android?.imageUrl,
+      );
     }
 
     /// Add valid path by default
@@ -149,8 +147,11 @@ class StateNotifications extends ChangeNotifier {
 
     /// Add clear
     message0.addAll({
-      'clear': bool.tryParse(message0['clear']?.toString() ?? 'false',
-              caseSensitive: false) ??
+      'clear':
+          bool.tryParse(
+            message0['clear']?.toString() ?? 'false',
+            caseSensitive: false,
+          ) ??
           false,
     });
 
@@ -164,7 +165,7 @@ class StateNotifications extends ChangeNotifier {
   }
 
   /// Initialize the notifications
-  initNotifications() async {
+  Future<void> initNotifications() async {
     // Prevent calling this function in debug mode
     if (kDebugMode) return;
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {

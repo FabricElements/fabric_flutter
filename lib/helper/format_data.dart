@@ -13,8 +13,7 @@ class FormatData {
   static NumberFormat currencyFormat({
     String locale = 'en_US',
     String symbol = '\$',
-  }) =>
-      NumberFormat.currency(locale: locale, symbol: symbol);
+  }) => NumberFormat.currency(locale: locale, symbol: symbol);
 
   static NumberFormat percentFormat({String locale = 'en_US'}) =>
       NumberFormat.percentPattern(locale);

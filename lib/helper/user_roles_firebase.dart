@@ -4,39 +4,31 @@ import 'package:cloud_functions/cloud_functions.dart';
 import '../serialized/user_data.dart';
 
 class UserRolesFirebase {
-  static onAdd(UserData user, {String? group}) {
-    final callable =
-        FirebaseFunctions.instance.httpsCallable('user-actions-add');
-    Map<String, dynamic> dataFinal = {
-      ...user.toJson(),
-      'group': group,
-    };
+  static Future<HttpsCallableResult> onAdd(UserData user, {String? group}) {
+    final callable = FirebaseFunctions.instance.httpsCallable(
+      'user-actions-add',
+    );
+    Map<String, dynamic> dataFinal = {...user.toJson(), 'group': group};
     return callable.call(dataFinal);
   }
 
-  static onRemove(UserData user, {String? group}) {
-    final callable =
-        FirebaseFunctions.instance.httpsCallable('user-actions-remove');
-    Map<String, dynamic> dataFinal = {
-      ...user.toJson(),
-      'group': group,
-    };
+  static Future<HttpsCallableResult> onRemove(UserData user, {String? group}) {
+    final callable = FirebaseFunctions.instance.httpsCallable(
+      'user-actions-remove',
+    );
+    Map<String, dynamic> dataFinal = {...user.toJson(), 'group': group};
     return callable.call(dataFinal);
   }
 
-  static onUpdate(UserData user, {String? group}) {
-    final callable =
-        FirebaseFunctions.instance.httpsCallable('user-actions-role');
-    Map<String, dynamic> dataFinal = {
-      ...user.toJson(),
-      'group': group,
-    };
+  static Future<HttpsCallableResult> onUpdate(UserData user, {String? group}) {
+    final callable = FirebaseFunctions.instance.httpsCallable(
+      'user-actions-role',
+    );
+    Map<String, dynamic> dataFinal = {...user.toJson(), 'group': group};
     return callable.call(dataFinal);
   }
 
-  static Future<List<Map<String, dynamic>>> getUsers({
-    String? group,
-  }) async {
+  static Future<List<Map<String, dynamic>>> getUsers({String? group}) async {
     if (group != null) {
       assert(group.isNotEmpty, 'group can\'t be empty');
     }

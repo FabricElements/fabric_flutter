@@ -155,28 +155,28 @@ class _ViewFeaturedState extends State<ViewFeatured> {
     final textTheme = Theme.of(context).textTheme;
     List<Widget> options = [];
     if (widget.description != null) {
-      options.add(AnimatedOpacity(
-        duration: Duration(milliseconds: _animationDuration),
-        opacity: _descriptionOpacityLevel,
-        child: SafeArea(
-          top: false,
-          bottom: widget.actionLabel == null && widget.child == null,
-          child: Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: Text(
-              widget.description!,
-              style: textTheme.titleLarge,
-              textAlign: TextAlign.left,
+      options.add(
+        AnimatedOpacity(
+          duration: Duration(milliseconds: _animationDuration),
+          opacity: _descriptionOpacityLevel,
+          child: SafeArea(
+            top: false,
+            bottom: widget.actionLabel == null && widget.child == null,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                widget.description!,
+                style: textTheme.titleLarge,
+                textAlign: TextAlign.left,
+              ),
             ),
           ),
         ),
-      ));
+      );
     }
     if (widget.child != null) {
       options.addAll([
-        Container(
-          height: 32,
-        ),
+        Container(height: 32),
         AnimatedOpacity(
           opacity: _childOpacityLevel,
           duration: Duration(milliseconds: _animationDuration),
@@ -186,9 +186,7 @@ class _ViewFeaturedState extends State<ViewFeatured> {
     }
     if (widget.actionLabel != null) {
       options.addAll([
-        Container(
-          height: 32,
-        ),
+        Container(height: 32),
         AnimatedOpacity(
           opacity: _actionOpacityLevel,
           duration: Duration(milliseconds: _animationDuration),

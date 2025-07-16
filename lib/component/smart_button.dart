@@ -65,22 +65,23 @@ class _SmartButtonState extends State<SmartButton> {
           }
           if (item.important) {
             textStyle0 = textStyle?.copyWith(
-                color: colorBaseImportant, fontWeight: FontWeight.w700);
+              color: colorBaseImportant,
+              fontWeight: FontWeight.w700,
+            );
           }
-          Widget content = Text(
-            item.label,
-            style: textStyle0,
+          Widget content = Text(item.label, style: textStyle0);
+          buttons.add(
+            PopupMenuItem<String>(
+              height: height,
+              enabled: enabled,
+              value: item.path ?? item.label,
+              textStyle: textStyle,
+              onTap: () {
+                if (item.onTap != null) item.onTap!();
+              },
+              child: content,
+            ),
           );
-          buttons.add(PopupMenuItem<String>(
-            height: height,
-            enabled: enabled,
-            value: item.path ?? item.label,
-            textStyle: textStyle,
-            onTap: () {
-              if (item.onTap != null) item.onTap!();
-            },
-            child: content,
-          ));
         } else if (item is PopupMenuDivider) {
           buttons.add(item);
         } else if (item is PopupMenuEntry<String>) {
@@ -91,17 +92,15 @@ class _SmartButtonState extends State<SmartButton> {
     // final double scale = MediaQuery.maybeOf(context)?.textScaleFactor ?? 1;
     // TODO: Implement scale when possible
     const double scale = 1;
-    final double gap =
-        scale <= 1 ? 8 : lerpDouble(8, 4, math.min(scale - 1, 1))!;
+    final double gap = scale <= 1
+        ? 8
+        : lerpDouble(8, 4, math.min(scale - 1, 1))!;
 
     /// Main Button
     List<Widget> mainButtonWidgets = [];
     if (widget.button.icon != null) {
       mainButtonWidgets.addAll([
-        Icon(
-          widget.button.icon,
-          color: colorIcon,
-        ),
+        Icon(widget.button.icon, color: colorIcon),
         SizedBox(width: gap),
       ]);
     }
@@ -116,19 +115,13 @@ class _SmartButtonState extends State<SmartButton> {
     if (widget.children != null) {
       mainButtonWidgets.addAll([
         SizedBox(width: gap),
-        Icon(
-          Icons.arrow_drop_down,
-          color: colorBase,
-        ),
+        Icon(Icons.arrow_drop_down, color: colorBase),
       ]);
     }
     Widget mainButton = TextButton(
       child: Padding(
         padding: const EdgeInsets.all(8),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: mainButtonWidgets,
-        ),
+        child: Row(mainAxisSize: MainAxisSize.min, children: mainButtonWidgets),
       ),
       onPressed: () {
         if (widget.button.path != null) {

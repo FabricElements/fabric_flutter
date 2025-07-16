@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:convert' show LineSplitter, Utf8Codec, jsonDecode;
+import 'dart:convert' show Utf8Codec, jsonDecode;
 
 import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth;
 import 'package:flutter/foundation.dart';
@@ -43,8 +43,9 @@ abstract class StateAPI extends StateShared {
     if (value == baseEndpoint && data != null) return;
     baseEndpoint = value;
     if (errorCount > 1) {
-      debugPrint(LogColor.warning(
-          '$errorCount errors calls to endpoint: $baseEndpoint'));
+      debugPrint(
+        LogColor.warning('$errorCount errors calls to endpoint: $baseEndpoint'),
+      );
       return;
     }
     call();
@@ -62,12 +63,10 @@ abstract class StateAPI extends StateShared {
   /// Clear URL from pagination queries
   String? urlClear(String? url) {
     if (url == null) return null;
-    return Utils.uriMergeQuery(uri: Uri.parse(url), queryParameters: {
-      'page': [],
-      'limit': [],
-      'sql': [],
-      'viewAs': [],
-    }).toString();
+    return Utils.uriMergeQuery(
+      uri: Uri.parse(url),
+      queryParameters: {'page': [], 'limit': [], 'sql': [], 'viewAs': []},
+    ).toString();
   }
 
   /// Response headers
@@ -84,8 +83,9 @@ abstract class StateAPI extends StateShared {
   /// Get the headers for the next call
   Map<String, String> get headersFiltered {
     Map<String, String> finalHeaders = {};
-    final headersToFilterToUse =
-        headersToFilter.map((e) => e.toLowerCase()).toList();
+    final headersToFilterToUse = headersToFilter
+        .map((e) => e.toLowerCase())
+        .toList();
     // change all header keys to lowercase
     final headersToUse = headers.map((key, value) {
       return MapEntry(key.toLowerCase(), value);
@@ -136,8 +136,9 @@ abstract class StateAPI extends StateShared {
     }
     _lastEndpointCalled = endpoint;
     if (errorCount > 1) {
-      debugPrint(LogColor.warning(
-          '$errorCount errors calls to endpoint: $baseEndpoint'));
+      debugPrint(
+        LogColor.warning('$errorCount errors calls to endpoint: $baseEndpoint'),
+      );
       loading = false;
       return data;
     }
@@ -161,9 +162,7 @@ abstract class StateAPI extends StateShared {
       }
       bool willAuthenticate = mustAuthenticate && canAuthenticate;
       Uri url = Uri.parse(endpoint);
-      Map<String, String> requestHeaders = {
-        ...headersFiltered,
-      };
+      Map<String, String> requestHeaders = {...headersFiltered};
       if (willAuthenticate) {
         requestHeaders['Authorization'] = '${authScheme!.name} $credentials';
       }
@@ -184,56 +183,62 @@ abstract class StateAPI extends StateShared {
           String staticBuffer = '';
           final stream = response.stream
               .transform(Utf8Codec(allowMalformed: true).decoder)
-              .transform(StreamTransformer<String, String>.fromHandlers(
-            handleData: (bufferData, sink) {
-              for (int i = 0; i < bufferData.length; i++) {
-                final char = bufferData[i];
-                // Check for newline character to split the buffer
-                staticBuffer += char;
-                // Trim the staticBuffer to remove any leading or trailing whitespace
-                staticBuffer = staticBuffer.trim();
-                // If there is no data in the staticBuffer, continue to the next character
-                if (staticBuffer.isEmpty) continue;
-                int totalOpenBraces = staticBuffer.split('{').length - 1;
-                int totalCloseBraces = staticBuffer.split('}').length - 1;
-                bool hasOpenBraces = (totalOpenBraces - totalCloseBraces) != 0;
-                // If we have an open brace, we need to keep the buffer
-                if (hasOpenBraces) continue;
+              .transform(
+                StreamTransformer<String, String>.fromHandlers(
+                  handleData: (bufferData, sink) {
+                    for (int i = 0; i < bufferData.length; i++) {
+                      final char = bufferData[i];
+                      // Check for newline character to split the buffer
+                      staticBuffer += char;
+                      // Trim the staticBuffer to remove any leading or trailing whitespace
+                      staticBuffer = staticBuffer.trim();
+                      // If there is no data in the staticBuffer, continue to the next character
+                      if (staticBuffer.isEmpty) continue;
+                      int totalOpenBraces = staticBuffer.split('{').length - 1;
+                      int totalCloseBraces = staticBuffer.split('}').length - 1;
+                      bool hasOpenBraces =
+                          (totalOpenBraces - totalCloseBraces) != 0;
+                      // If we have an open brace, we need to keep the buffer
+                      if (hasOpenBraces) continue;
 
-                // If multiple JSON objects are in the buffer, split them and return the last one
-                final parts = staticBuffer.split('}{');
-                if (parts.isNotEmpty) {
-                  String lastPart = parts.last;
-                  // add missing opening brace if needed
-                  if (!lastPart.startsWith('{')) {
-                    lastPart = '{$lastPart';
-                  }
-                  // If the last part is a valid JSON object, return it
-                  try {
-                    jsonDecode(lastPart);
-                    sink.add(lastPart);
-                    staticBuffer = '';
-                  } catch (_) {
-                    // If it fails to decode, keep it for the next chunk
-                    continue; // Keep this line in case new features are added
-                  }
-                } else {
-                  // If parts is empty, it means the staticBuffer is a single JSON object
-                  // Try to decode it and add it to the sink
-                  try {
-                    debugPrint(LogColor.success(
-                        ('Single object detected on buffer: $staticBuffer')));
-                    jsonDecode(staticBuffer);
-                    sink.add(staticBuffer);
-                    staticBuffer = '';
-                  } catch (_) {
-                    // If it fails to decode, keep it for the next chunk
-                    continue; // Keep this line in case new features are added
-                  }
-                }
-              }
-            },
-          ));
+                      // If multiple JSON objects are in the buffer, split them and return the last one
+                      final parts = staticBuffer.split('}{');
+                      if (parts.isNotEmpty) {
+                        String lastPart = parts.last;
+                        // add missing opening brace if needed
+                        if (!lastPart.startsWith('{')) {
+                          lastPart = '{$lastPart';
+                        }
+                        // If the last part is a valid JSON object, return it
+                        try {
+                          jsonDecode(lastPart);
+                          sink.add(lastPart);
+                          staticBuffer = '';
+                        } catch (_) {
+                          // If it fails to decode, keep it for the next chunk
+                          continue; // Keep this line in case new features are added
+                        }
+                      } else {
+                        // If parts is empty, it means the staticBuffer is a single JSON object
+                        // Try to decode it and add it to the sink
+                        try {
+                          debugPrint(
+                            LogColor.success(
+                              ('Single object detected on buffer: $staticBuffer'),
+                            ),
+                          );
+                          jsonDecode(staticBuffer);
+                          sink.add(staticBuffer);
+                          staticBuffer = '';
+                        } catch (_) {
+                          // If it fails to decode, keep it for the next chunk
+                          continue; // Keep this line in case new features are added
+                        }
+                      }
+                    }
+                  },
+                ),
+              );
           await for (final chunk in stream) {
             if (chunk.isEmpty) continue;
             final formattedResponse = http.Response(
@@ -268,9 +273,12 @@ abstract class StateAPI extends StateShared {
         error = null;
       } catch (e) {
         debugPrint(
-            LogColor.error('------------ ERROR API CALL ::::::::::::::::::::'
-                'Endpoint: $endpoint'
-                '////////////// ERROR API CALL -------------'));
+          LogColor.error(
+            '------------ ERROR API CALL ::::::::::::::::::::'
+            'Endpoint: $endpoint'
+            '////////////// ERROR API CALL -------------',
+          ),
+        );
         errorCount++;
         error = e.toString();
       }

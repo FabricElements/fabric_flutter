@@ -563,7 +563,9 @@ class GSM {
         for (var i = 0; i < smsCount; i++) {
           bool isLastPart = i == smsCount - 1;
           String partText = content.substring(
-              i * maxLength, !isLastPart ? i * maxLength + maxLength : null);
+            i * maxLength,
+            !isLastPart ? i * maxLength + maxLength : null,
+          );
           parts.add(partText);
         }
         return GSMData(

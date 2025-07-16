@@ -5,7 +5,7 @@ part 'gsm_data.g.dart';
 enum CharSet {
   unicode,
   // "GSM 03.38"
-  gsm
+  gsm,
 }
 
 @JsonSerializable(explicitToJson: true)

@@ -3,10 +3,7 @@ import 'package:flutter/material.dart';
 import '../helper/options.dart';
 
 class Tabs extends StatefulWidget {
-  const Tabs({
-    super.key,
-    required this.tabs,
-  });
+  const Tabs({super.key, required this.tabs});
 
   final List<ButtonOptions> tabs;
 

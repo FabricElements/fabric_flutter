@@ -12,13 +12,16 @@ class StateGlobal extends ChangeNotifier {
   PackageInfo get packageInfo {
     if (_packageInfo == null) {
       WidgetsFlutterBinding.ensureInitialized();
-      PackageInfo.fromPlatform().then((value) {
-        _packageInfo = value;
-        Future.delayed(const Duration(seconds: 1))
-            .then((value) => notifyListeners());
-      }).catchError((e) {
-        // Ignore error, it's usually an issue with the test environment
-      });
+      PackageInfo.fromPlatform()
+          .then((value) {
+            _packageInfo = value;
+            Future.delayed(
+              const Duration(seconds: 1),
+            ).then((value) => notifyListeners());
+          })
+          .catchError((e) {
+            // Ignore error, it's usually an issue with the test environment
+          });
       return PackageInfo(
         appName: '',
         packageName: '',

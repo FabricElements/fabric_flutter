@@ -29,13 +29,7 @@ class LogsData {
   @JsonKey(includeToJson: false, includeFromJson: false)
   Widget? child;
 
-  LogsData({
-    this.id,
-    this.text,
-    this.timestamp,
-    this.data,
-    this.child,
-  });
+  LogsData({this.id, this.text, this.timestamp, this.data, this.child});
 
   factory LogsData.fromJson(Map<String, dynamic>? json) =>
       _$LogsDataFromJson(json ?? {});

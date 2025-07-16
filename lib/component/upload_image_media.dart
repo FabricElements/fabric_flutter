@@ -39,16 +39,17 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
       return const SizedBox(
         height: 40,
         width: 40,
-        child: CircularProgressIndicator(
-          semanticsLabel: 'Loading',
-        ),
+        child: CircularProgressIndicator(semanticsLabel: 'Loading'),
       );
     }
     final firebaseStorageHelper = FirebaseStorageHelper(context);
     final locales = AppLocalizations.of(context);
     final uploadFromFile = ActionChip(
-      label: Text(locales.get(
-          'label--upload-from-label', {'label': locales.get('label--file')})),
+      label: Text(
+        locales.get('label--upload-from-label', {
+          'label': locales.get('label--file'),
+        }),
+      ),
       avatar: const Icon(Icons.image_search),
       onPressed: () async {
         loading = true;
@@ -74,8 +75,11 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
       runSpacing: 16,
       children: [
         ActionChip(
-          label: Text(locales.get('label--upload-from-label',
-              {'label': locales.get('label--gallery')})),
+          label: Text(
+            locales.get('label--upload-from-label', {
+              'label': locales.get('label--gallery'),
+            }),
+          ),
           avatar: const Icon(Icons.image),
           onPressed: () async {
             loading = true;
@@ -97,8 +101,11 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
         ),
         uploadFromFile,
         ActionChip(
-          label: Text(locales.get('label--upload-from-label',
-              {'label': locales.get('label--camera')})),
+          label: Text(
+            locales.get('label--upload-from-label', {
+              'label': locales.get('label--camera'),
+            }),
+          ),
           avatar: const Icon(Icons.photo_camera),
           onPressed: () async {
             loading = true;

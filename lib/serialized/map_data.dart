@@ -17,10 +17,7 @@ class MapLatLng {
   @JsonKey(includeIfNull: true, defaultValue: 0.0)
   final double? longitude;
 
-  MapLatLng(
-    this.latitude,
-    this.longitude,
-  );
+  MapLatLng(this.latitude, this.longitude);
 
   factory MapLatLng.fromJson(Map<String, dynamic>? json) =>
       _$MapLatLngFromJson(json ?? {});
@@ -42,11 +39,7 @@ class MapMarker {
   @JsonKey(includeIfNull: true, defaultValue: '')
   final String description;
 
-  MapMarker(
-    this.position,
-    this.name,
-    this.description,
-  );
+  MapMarker(this.position, this.name, this.description);
 
   factory MapMarker.fromJson(Map<String, dynamic>? json) =>
       _$MapMarkerFromJson(json ?? {});
@@ -63,10 +56,7 @@ class MapCircle {
   @JsonKey(includeIfNull: true, defaultValue: 0)
   final double radius;
 
-  MapCircle(
-    this.center,
-    this.radius,
-  );
+  MapCircle(this.center, this.radius);
 
   factory MapCircle.fromJson(Map<String, dynamic>? json) =>
       _$MapCircleFromJson(json ?? {});
@@ -83,10 +73,7 @@ class MapPolygon {
   @JsonKey(includeIfNull: true, defaultValue: [])
   final List<List<MapLatLng>> holes;
 
-  MapPolygon(
-    this.points,
-    this.holes,
-  );
+  MapPolygon(this.points, this.holes);
 
   factory MapPolygon.fromJson(Map<String, dynamic>? json) =>
       _$MapPolygonFromJson(json ?? {});
@@ -103,10 +90,7 @@ class MapPolyline {
   @JsonKey(includeIfNull: true, defaultValue: [])
   final List<MapPatternItem> patterns;
 
-  MapPolyline(
-    this.points,
-    this.patterns,
-  );
+  MapPolyline(this.points, this.patterns);
 
   factory MapPolyline.fromJson(Map<String, dynamic>? json) =>
       _$MapPolylineFromJson(json ?? {});
@@ -138,10 +122,7 @@ class MapPatternItem {
   @JsonKey(includeIfNull: true, defaultValue: 0)
   final double length;
 
-  MapPatternItem(
-    this.pattern,
-    this.length,
-  );
+  MapPatternItem(this.pattern, this.length);
 
   factory MapPatternItem.fromJson(Map<String, dynamic>? json) =>
       _$MapPatternItemFromJson(json ?? {});
@@ -160,12 +141,7 @@ class MapData {
   @JsonKey(includeIfNull: true, defaultValue: [])
   final List<MapPolyline>? polylines;
 
-  MapData(
-    this.markers,
-    this.circles,
-    this.polygons,
-    this.polylines,
-  );
+  MapData(this.markers, this.circles, this.polygons, this.polylines);
 
   factory MapData.fromJson(Map<String, dynamic>? json) =>
       _$MapDataFromJson(json ?? {});

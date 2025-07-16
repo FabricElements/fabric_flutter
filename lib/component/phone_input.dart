@@ -73,18 +73,23 @@ class _PhoneInputState extends State<PhoneInput> {
   bool isValid = false;
 
   /// Format the input string to extract the country code and phone number
-  formatInput(String input) {
+  void formatInput(String input) {
     try {
       PhoneNumber parsedNumber = phoneUtil.parseAndKeepRawInput(
-          input, widget.country?.toUpperCase() ?? 'US');
+        input,
+        widget.country?.toUpperCase() ?? 'US',
+      );
       isValid = phoneUtil.isValidNumber(parsedNumber);
       callingCode = parsedNumber.countryCode;
       phoneNumber = parsedNumber.nationalNumber.toInt();
       country = items.firstWhere(
-          (element) => element.callingCode == callingCode.toString());
+        (element) => element.callingCode == callingCode.toString(),
+      );
       if (isValid) {
-        formattedNumber =
-            phoneUtil.format(parsedNumber, PhoneNumberFormat.e164);
+        formattedNumber = phoneUtil.format(
+          parsedNumber,
+          PhoneNumberFormat.e164,
+        );
       } else if (callingCode != null && phoneNumber != null) {
         formattedNumber = '+$callingCode$phoneNumber';
       }
@@ -116,10 +121,11 @@ class _PhoneInputState extends State<PhoneInput> {
     if (mounted) setState(() {});
   }
 
-  getCountryData() {
+  void getCountryData() {
     if (country == null && widget.country != null) {
-      final match = ISOCountries.countries
-          .where((element) => element.alpha2 == widget.country!.toUpperCase());
+      final match = ISOCountries.countries.where(
+        (element) => element.alpha2 == widget.country!.toUpperCase(),
+      );
       if (match.isNotEmpty) {
         country = match.first;
         callingCode = int.tryParse(country?.callingCode ?? '');
@@ -127,7 +133,7 @@ class _PhoneInputState extends State<PhoneInput> {
     }
   }
 
-  formatNumber() {
+  void formatNumber() {
     isValid = false;
     try {
       if (callingCode != null && phoneNumber != null) {
@@ -138,8 +144,10 @@ class _PhoneInputState extends State<PhoneInput> {
               countryCode: callingCode!,
               nationalNumber: number,
             );
-            formattedNumber =
-                phoneUtil.format(newNumber, PhoneNumberFormat.e164);
+            formattedNumber = phoneUtil.format(
+              newNumber,
+              PhoneNumberFormat.e164,
+            );
             isValid = phoneUtil.isValidNumber(newNumber);
           } catch (e) {
             debugPrint('Error formatting number: $e');
@@ -157,7 +165,7 @@ class _PhoneInputState extends State<PhoneInput> {
     }
   }
 
-  _reset() {
+  void _reset() {
     callingCode = null;
     country = null;
     phoneNumber = null;
@@ -176,8 +184,9 @@ class _PhoneInputState extends State<PhoneInput> {
       if (!items.any((item) => item.callingCode == element.callingCode)) {
         items.add(element);
       } else {
-        final index =
-            items.indexWhere((item) => item.callingCode == element.callingCode);
+        final index = items.indexWhere(
+          (item) => item.callingCode == element.callingCode,
+        );
         items[index].name = '${items[index].name}, ${element.name}';
         items[index].alpha2 = '${items[index].alpha2}, ${element.alpha2}';
         items[index].fullName = '${items[index].fullName}, ${element.fullName}';
@@ -215,7 +224,7 @@ class _PhoneInputState extends State<PhoneInput> {
     super.dispose();
   }
 
-  _updatePhoneNumber(dynamic value) {
+  void _updatePhoneNumber(dynamic value) {
     phoneNumber = value as int?;
     formatNumber();
   }
@@ -239,15 +248,17 @@ class _PhoneInputState extends State<PhoneInput> {
       autofillHints: const [],
       prefixIcon: widget.prefixIcon ?? const Icon(Icons.phone_iphone),
       label: locales.get('label--country-code'),
-      hintText: locales
-          .get('label--choose-label', {'label': locales.get('label--country')}),
+      hintText: locales.get('label--choose-label', {
+        'label': locales.get('label--country'),
+      }),
       value: callingCode,
       type: InputDataType.dropdown,
       options: options,
       onChanged: (dynamic value) {
         callingCode = value as int?;
         country = items.firstWhere(
-            (element) => element.callingCode == callingCode.toString());
+          (element) => element.callingCode == callingCode.toString(),
+        );
         formatNumber();
         if (mounted) setState(() {});
         widget.onChanged?.call(formattedNumber);
@@ -300,33 +311,27 @@ class _PhoneInputState extends State<PhoneInput> {
       ],
       maxLength: 10,
     );
-    return LayoutBuilder(builder: (context, constraints) {
-      final width = constraints.maxWidth;
-      final small = width < 400;
-      if (small) {
-        return Column(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final small = width < 400;
+        if (small) {
+          return Column(
+            children: [countryPicker, const SizedBox(height: 16), phoneInput],
+          );
+        }
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            countryPicker,
-            const SizedBox(height: 16),
-            phoneInput,
+            ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: 210),
+              child: countryPicker,
+            ),
+            const SizedBox(width: 16),
+            Expanded(child: phoneInput),
           ],
         );
-      }
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: 210,
-            ),
-            child: countryPicker,
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: phoneInput,
-          ),
-        ],
-      );
-    });
+      },
+    );
   }
 }

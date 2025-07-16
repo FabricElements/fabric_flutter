@@ -54,49 +54,58 @@ abstract class StateDocument extends StateShared {
     initialized = true;
     data = null;
     try {
-      _streamSubscription = baseRef!.snapshots().listen((snapshot) {
-        loading = false;
-        if (snapshot.exists) {
-          /// Compare data
-          final newData = {
-            ...snapshot.data() as Map<String, dynamic>,
-            'id': snapshot.id,
-          };
-          if (privateData != null) {
-            Map<String, dynamic> dataObjectMap =
-                Map<String, dynamic>.from(newData);
-            Map<String, dynamic> privateDataMap =
-                Map<String, dynamic>.from(privateData);
-            const keysToIgnoreFromNotification = [
-              'updated',
-              'created',
-              'ping',
-              'os',
-              'backup',
-              'fcm'
-            ];
-            // Remove keys that match with [keysToIgnoreFromNotification]
-            dataObjectMap.removeWhere(
-                (key, value) => keysToIgnoreFromNotification.contains(key));
-            privateDataMap.removeWhere(
-                (key, value) => keysToIgnoreFromNotification.contains(key));
-            // Basic comparison
-            if (dataObjectMap == privateDataMap) return;
-            if (const DeepCollectionEquality()
-                .equals(dataObjectMap, privateDataMap)) {
-              return;
+      _streamSubscription = baseRef!.snapshots().listen(
+        (snapshot) {
+          loading = false;
+          if (snapshot.exists) {
+            /// Compare data
+            final newData = {
+              ...snapshot.data() as Map<String, dynamic>,
+              'id': snapshot.id,
+            };
+            if (privateData != null) {
+              Map<String, dynamic> dataObjectMap = Map<String, dynamic>.from(
+                newData,
+              );
+              Map<String, dynamic> privateDataMap = Map<String, dynamic>.from(
+                privateData,
+              );
+              const keysToIgnoreFromNotification = [
+                'updated',
+                'created',
+                'ping',
+                'os',
+                'backup',
+                'fcm',
+              ];
+              // Remove keys that match with [keysToIgnoreFromNotification]
+              dataObjectMap.removeWhere(
+                (key, value) => keysToIgnoreFromNotification.contains(key),
+              );
+              privateDataMap.removeWhere(
+                (key, value) => keysToIgnoreFromNotification.contains(key),
+              );
+              // Basic comparison
+              if (dataObjectMap == privateDataMap) return;
+              if (const DeepCollectionEquality().equals(
+                dataObjectMap,
+                privateDataMap,
+              )) {
+                return;
+              }
             }
-          }
 
-          /// Assign new data
-          data = newData;
-        } else {
-          data = null;
-        }
-      }, onError: (e) {
-        super.clear(notify: true);
-        error = e?.toString();
-      });
+            /// Assign new data
+            data = newData;
+          } else {
+            data = null;
+          }
+        },
+        onError: (e) {
+          super.clear(notify: true);
+          error = e?.toString();
+        },
+      );
     } catch (e) {
       super.clear(notify: true);
       error = e.toString();
@@ -121,10 +130,7 @@ abstract class StateDocument extends StateShared {
       initialized = true;
       final snapshot = await baseRef!.get();
       loading = false;
-      data = {
-        ...snapshot.data() as Map<String, dynamic>,
-        'id': snapshot.id,
-      };
+      data = {...snapshot.data() as Map<String, dynamic>, 'id': snapshot.id};
     } catch (e) {
       super.clear(notify: true);
       error = e.toString();

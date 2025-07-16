@@ -30,10 +30,7 @@ class SectionTitle extends StatelessWidget {
     TextStyle? defaultDescriptionStyle =
         descriptionStyle ?? textTheme.bodyMedium;
 
-    RegExp regExp = RegExp(
-      r'{.*?}',
-      multiLine: true,
-    );
+    RegExp regExp = RegExp(r'{.*?}', multiLine: true);
     List<TextSpan> importantData(String textConvert, TextStyle? textStyle) {
       List<TextSpan> text = [];
       String textFinal = textConvert;
@@ -44,10 +41,10 @@ class SectionTitle extends StatelessWidget {
           if (match.start > initialHelper) {
             text.add(
               TextSpan(
-                text: (textFinal.substring(initialHelper!, match.start))
-                    .replaceAll('_', ' ')
-                    .replaceAll('{', '')
-                    .replaceAll('}', ''),
+                text: (textFinal.substring(
+                  initialHelper!,
+                  match.start,
+                )).replaceAll('_', ' ').replaceAll('{', '').replaceAll('}', ''),
                 style: textStyle,
               ),
             );
@@ -55,31 +52,26 @@ class SectionTitle extends StatelessWidget {
           }
           text.add(
             TextSpan(
-              text: (textFinal.substring(match.start, match.end))
-                  .replaceAll('_', ' ')
-                  .replaceAll('{', '')
-                  .replaceAll('}', ''),
-              style: textStyle?.copyWith(
-                color: theme.colorScheme.primary,
-              ),
+              text: (textFinal.substring(
+                match.start,
+                match.end,
+              )).replaceAll('_', ' ').replaceAll('{', '').replaceAll('}', ''),
+              style: textStyle?.copyWith(color: theme.colorScheme.primary),
             ),
           );
           initialHelper = match.end;
         }
         text.add(
           TextSpan(
-            text: (textFinal.substring(initialHelper!, textFinal.length))
-                .replaceAll('_', ' ')
-                .replaceAll('{', ' ')
-                .replaceAll('}', ' '),
+            text: (textFinal.substring(
+              initialHelper!,
+              textFinal.length,
+            )).replaceAll('_', ' ').replaceAll('{', ' ').replaceAll('}', ' '),
             style: textStyle,
           ),
         );
       } else {
-        text.add(TextSpan(
-          text: textFinal,
-          style: textStyle,
-        ));
+        text.add(TextSpan(text: textFinal, style: textStyle));
       }
       return text;
     }
@@ -88,21 +80,21 @@ class SectionTitle extends StatelessWidget {
       Padding(
         padding: const EdgeInsets.only(bottom: 16),
         child: Text.rich(
-          TextSpan(
-            children: importantData(headline, defaultHeadlineStyle),
-          ),
+          TextSpan(children: importantData(headline, defaultHeadlineStyle)),
         ),
       ),
     ];
     if (description != null) {
-      items.add(Padding(
-        padding: const EdgeInsets.only(bottom: 4),
-        child: Text.rich(
-          TextSpan(
-            children: importantData(description!, defaultDescriptionStyle),
+      items.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: Text.rich(
+            TextSpan(
+              children: importantData(description!, defaultDescriptionStyle),
+            ),
           ),
         ),
-      ));
+      );
     }
     return SafeArea(
       bottom: false,

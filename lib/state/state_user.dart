@@ -72,7 +72,7 @@ class StateUser extends StateDocument {
   String? _token;
 
   /// Gets the authenticated user token and retrieves costume claims
-  _getToken(User? userObject) async {
+  Future<void> _getToken(User? userObject) async {
     _claims = null;
     _token = null;
     if (userObject != null) {
@@ -172,13 +172,10 @@ class StateUser extends StateDocument {
 
     /// Save ping data
     try {
-      await ref?.set(
-        {
-          'ping': FieldValue.serverTimestamp(),
-          'os': userOs.name,
-        },
-        SetOptions(merge: true),
-      );
+      await ref?.set({
+        'ping': FieldValue.serverTimestamp(),
+        'os': userOs.name,
+      }, SetOptions(merge: true));
     } catch (error) {
       debugPrint(LogColor.error('User ping error: ${error.toString()}'));
     }
@@ -189,12 +186,9 @@ class StateUser extends StateDocument {
     await cancel();
     try {
       /// Ping user before sign out to change the status
-      await ref?.set(
-        {
-          'ping': DateTime.timestamp().subtract(const Duration(minutes: 5)),
-        },
-        SetOptions(merge: true),
-      );
+      await ref?.set({
+        'ping': DateTime.timestamp().subtract(const Duration(minutes: 5)),
+      }, SetOptions(merge: true));
     } catch (error) {
       debugPrint(LogColor.error('User ping error: ${error.toString()}'));
     }
@@ -204,10 +198,7 @@ class StateUser extends StateDocument {
   }
 
   /// Displays content only if the the role matches for current user
-  bool accessByRole({
-    String? group,
-    List<String> roles = const ['admin'],
-  }) {
+  bool accessByRole({String? group, List<String> roles = const ['admin']}) {
     return roles.contains(roleFromData(group: group));
   }
 
@@ -215,24 +206,25 @@ class StateUser extends StateDocument {
 
   /// User Status
   UserStatus get userStatus => UserStatus(
-        role: role,
-        admin: admin,
-        signedIn: signedIn,
-        uid: object?.uid,
-        language: language,
-        theme: theme,
-        connected: connected,
-        connectionChanged: connectionChanged,
-        connectedTo: connected ? connectedTo : null,
-        ready: _ready &&
-            _init &&
-            !loading &&
-            ((!initialized && data == null) ||
-                (initialized && (data?.isNotEmpty ?? false))),
-      );
+    role: role,
+    admin: admin,
+    signedIn: signedIn,
+    uid: object?.uid,
+    language: language,
+    theme: theme,
+    connected: connected,
+    connectionChanged: connectionChanged,
+    connectedTo: connected ? connectedTo : null,
+    ready:
+        _ready &&
+        _init &&
+        !loading &&
+        ((!initialized && data == null) ||
+            (initialized && (data?.isNotEmpty ?? false))),
+  );
 
   /// Update user status data
-  _userStatusUpdate() async {
+  Future<void> _userStatusUpdate() async {
     if (!_ready || !userStatus.ready) return;
     // Basic comparison
     if (_lastUserStatus == userStatus) return;
@@ -247,7 +239,7 @@ class StateUser extends StateDocument {
   }
 
   /// Refresh auth state
-  _refreshAuth(User? userObject) async {
+  Future<void> _refreshAuth(User? userObject) async {
     if (!_init) return;
     _ready = false;
     if (userObject == null) {
@@ -263,8 +255,11 @@ class StateUser extends StateDocument {
       await listen();
       await Future.delayed(const Duration(milliseconds: 500));
     } catch (e) {
-      debugPrint(LogColor.error(
-          'StateUser - Listen User Document error: ${e.toString()}'));
+      debugPrint(
+        LogColor.error(
+          'StateUser - Listen User Document error: ${e.toString()}',
+        ),
+      );
     }
     try {
       /// Get user token
@@ -272,7 +267,8 @@ class StateUser extends StateDocument {
       await _getToken(userObject);
     } catch (e) {
       debugPrint(
-          LogColor.error('StateUser - Refresh auth error: ${e.toString()}'));
+        LogColor.error('StateUser - Refresh auth error: ${e.toString()}'),
+      );
     }
     object = userObject;
     _ready = true;
@@ -288,38 +284,39 @@ class StateUser extends StateDocument {
         .catchError((error) => '');
 
     /// Listen to user changes
-    _auth
-        .userChanges()
-        .listen(_refreshAuth, onError: (e) => error = e.toString());
+    _auth.userChanges().listen(
+      _refreshAuth,
+      onError: (e) => error = e.toString(),
+    );
 
     /// Check connectivity
     try {
       Connectivity().onConnectivityChanged.listen(
-            (results) async {
-              if (results.firstOrNull?.name != connectedTo) {
-                ConnectivityResult connectivityStatus = ConnectivityResult.none;
-                if (results.contains(ConnectivityResult.wifi)) {
-                  connectivityStatus = ConnectivityResult.wifi;
-                } else if (results.contains(ConnectivityResult.ethernet)) {
-                  connectivityStatus = ConnectivityResult.ethernet;
-                } else if (results.contains(ConnectivityResult.mobile)) {
-                  connectivityStatus = ConnectivityResult.mobile;
-                } else if (results.contains(ConnectivityResult.other)) {
-                  connectivityStatus = ConnectivityResult.other;
-                }
-                final connectedUpdated =
-                    connectivityStatus != ConnectivityResult.none;
-                connectionChanged = connected != connectedUpdated;
-                connected = connectedUpdated;
-                connectedTo = connectivityStatus.name;
-                if (connectionChanged) await _userStatusUpdate();
-              }
-            },
-            cancelOnError: true,
-            onError: (error) {
-              debugPrint('Connectivity error: ${error.toString()}');
-            },
-          );
+        (results) async {
+          if (results.firstOrNull?.name != connectedTo) {
+            ConnectivityResult connectivityStatus = ConnectivityResult.none;
+            if (results.contains(ConnectivityResult.wifi)) {
+              connectivityStatus = ConnectivityResult.wifi;
+            } else if (results.contains(ConnectivityResult.ethernet)) {
+              connectivityStatus = ConnectivityResult.ethernet;
+            } else if (results.contains(ConnectivityResult.mobile)) {
+              connectivityStatus = ConnectivityResult.mobile;
+            } else if (results.contains(ConnectivityResult.other)) {
+              connectivityStatus = ConnectivityResult.other;
+            }
+            final connectedUpdated =
+                connectivityStatus != ConnectivityResult.none;
+            connectionChanged = connected != connectedUpdated;
+            connected = connectedUpdated;
+            connectedTo = connectivityStatus.name;
+            if (connectionChanged) await _userStatusUpdate();
+          }
+        },
+        cancelOnError: true,
+        onError: (error) {
+          debugPrint('Connectivity error: ${error.toString()}');
+        },
+      );
     } catch (error) {
       debugPrint('Connectivity error: ${error.toString()}');
     }

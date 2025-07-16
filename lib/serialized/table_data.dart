@@ -78,11 +78,7 @@ class TableRowData {
   final TableData? child;
   bool active;
 
-  TableRowData({
-    this.cells = const [],
-    this.child,
-    this.active = false,
-  });
+  TableRowData({this.cells = const [], this.child, this.active = false});
 
   factory TableRowData.fromJson(Map<String, dynamic>? json) =>
       _$TableRowDataFromJson(json ?? {});

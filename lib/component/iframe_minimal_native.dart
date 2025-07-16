@@ -67,10 +67,7 @@ class _IframeMinimalState extends State<IframeMinimal> {
       ),
       width: double.maxFinite,
       height: double.maxFinite,
-      child: WebViewWidget(
-        controller: controller,
-        key: Key(id),
-      ),
+      child: WebViewWidget(controller: controller, key: Key(id)),
     );
   }
 }

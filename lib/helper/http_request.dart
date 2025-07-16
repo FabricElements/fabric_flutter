@@ -15,14 +15,13 @@ enum AuthScheme {
 }
 
 class HTTPRequest {
-  const HTTPRequest({
-    this.credentials,
-    this.authScheme,
-  }) : assert(
-            credentials != null || authScheme != null
-                ? credentials != null && authScheme != null
-                : true,
-            'token and authScheme are required for Authentication');
+  const HTTPRequest({this.credentials, this.authScheme})
+    : assert(
+        credentials != null || authScheme != null
+            ? credentials != null && authScheme != null
+            : true,
+        'token and authScheme are required for Authentication',
+      );
 
   /// [credentials]
   /// https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication
@@ -48,14 +47,14 @@ class HTTPRequest {
   }
 
   /// Throw an error if response return a Forbidden or Unauthorized
-  static authenticated(Response response) {
+  static void authenticated(Response response) {
     if (response.statusCode == 401 || response.statusCode == 403) {
       throw 'error--${response.statusCode}';
     }
   }
 
   /// Throw an error if it's found or null if it's ok
-  static error(Response response) {
+  static void error(Response response) {
     /// Accept status code from 200 to 299
     if (response.statusCode >= 200 && response.statusCode <= 299) {
       return;
@@ -80,8 +79,10 @@ class HTTPRequest {
         final errors = responseObject['errors'] as List<dynamic>;
         if (errors.isNotEmpty) {
           if (errors.first.containsKey('description')) {
-            errorResponse =
-                errors.map((e) => e['description']).toList().join(', ');
+            errorResponse = errors
+                .map((e) => e['description'])
+                .toList()
+                .join(', ');
           }
         }
       } else {
@@ -95,8 +96,8 @@ class HTTPRequest {
     /// Get default reasonPhrase
     errorResponse =
         response.reasonPhrase != null && response.reasonPhrase!.isNotEmpty
-            ? response.reasonPhrase
-            : null;
+        ? response.reasonPhrase
+        : null;
     if (errorResponse != null) throw errorResponse;
 
     /// Use status code if error is null

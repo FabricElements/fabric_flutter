@@ -34,20 +34,24 @@ class StateUsers extends StateCollection {
       return _usersMap[uid]!;
     }
     _usersMap.addAll({
-      uid: UserData.fromJson({'id': uid, 'name': 'Unknown'})
+      uid: UserData.fromJson({'id': uid, 'name': 'Unknown'}),
     });
     final userDocRef = db.collection('user').doc(uid);
-    userDocRef.get().then((snapshot) async {
-      if (snapshot.exists) {
-        Map<String, dynamic> itemData = snapshot.data() as Map<String, dynamic>;
-        itemData.addAll({'id': uid});
-        _usersMap.addAll({uid: UserData.fromJson(itemData)});
-        await Future.delayed(const Duration(milliseconds: 500));
-        notifyListeners();
-      }
-    }).onError((error, stackTrace) {
-      debugPrint(LogColor.error('StateUsers.getUser: ${error.toString()}'));
-    });
+    userDocRef
+        .get()
+        .then((snapshot) async {
+          if (snapshot.exists) {
+            Map<String, dynamic> itemData =
+                snapshot.data() as Map<String, dynamic>;
+            itemData.addAll({'id': uid});
+            _usersMap.addAll({uid: UserData.fromJson(itemData)});
+            await Future.delayed(const Duration(milliseconds: 500));
+            notifyListeners();
+          }
+        })
+        .onError((error, stackTrace) {
+          debugPrint(LogColor.error('StateUsers.getUser: ${error.toString()}'));
+        });
     return _usersMap[uid]!;
   }
 

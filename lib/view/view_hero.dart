@@ -6,8 +6,9 @@ class ViewHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final args = Map.from(
-        ModalRoute.of(context)!.settings.arguments as Map<dynamic, dynamic>? ??
-            {});
+      ModalRoute.of(context)!.settings.arguments as Map<dynamic, dynamic>? ??
+          {},
+    );
     String? mediaUrl = args['url'];
     Widget content = const Padding(
       padding: EdgeInsets.all(16),
@@ -19,18 +20,13 @@ class ViewHero extends StatelessWidget {
           tag: 'hero-media',
           child: InteractiveViewer(
             boundaryMargin: const EdgeInsets.all(16),
-            child: Image.network(
-              mediaUrl,
-              fit: BoxFit.contain,
-            ),
+            child: Image.network(mediaUrl, fit: BoxFit.contain),
           ),
         ),
       );
     }
     return Scaffold(
-      appBar: AppBar(
-        leading: const CloseButton(),
-      ),
+      appBar: AppBar(leading: const CloseButton()),
       body: content,
     );
   }

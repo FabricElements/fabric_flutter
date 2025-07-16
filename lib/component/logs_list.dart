@@ -18,8 +18,12 @@ class LogsList extends StatelessWidget {
     this.minimal = false,
     this.highlightColor,
     this.scrollable = false,
-    this.padding =
-        const EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 8),
+    this.padding = const EdgeInsets.only(
+      top: 16,
+      left: 16,
+      right: 16,
+      bottom: 8,
+    ),
     this.margin = const EdgeInsets.symmetric(vertical: 8),
   });
 
@@ -51,8 +55,9 @@ class LogsList extends StatelessWidget {
       if (text == null || text.isEmpty) return container;
       List<InlineSpan> textFormatted = [];
       int? initialPosition = 0;
-      TextStyle? textThemeBase =
-          textTheme.bodyLarge?.copyWith(height: !minimal ? 1.7 : null);
+      TextStyle? textThemeBase = textTheme.bodyLarge?.copyWith(
+        height: !minimal ? 1.7 : null,
+      );
       TextStyle? textThemeColor = textThemeBase?.copyWith(
         color: highlightColor ?? textThemeBase.color ?? Colors.black,
         fontWeight: FontWeight.w600,
@@ -60,19 +65,23 @@ class LogsList extends StatelessWidget {
       Iterable matches = regExp.allMatches(text);
       final timestampWidget = Padding(
         padding: const EdgeInsets.only(bottom: 4.0),
-        child: Text(DateFormat.yMd().add_jm().format(timestamp),
-            style: textTheme.bodySmall),
+        child: Text(
+          DateFormat.yMd().add_jm().format(timestamp),
+          style: textTheme.bodySmall,
+        ),
       );
       if (matches.isNotEmpty) {
         for (var match in matches) {
           /// First part
           if (match.start > initialPosition) {
-            textFormatted.add(TextSpan(
-              text: (text.substring(initialPosition!, match.start))
-                  .replaceAll('_', ' ')
-                  .replaceAll('{', '')
-                  .replaceAll('}', ''),
-            ));
+            textFormatted.add(
+              TextSpan(
+                text: (text.substring(
+                  initialPosition!,
+                  match.start,
+                )).replaceAll('_', ' ').replaceAll('{', '').replaceAll('}', ''),
+              ),
+            );
             initialPosition = match.end;
           }
 
@@ -84,29 +93,34 @@ class LogsList extends StatelessWidget {
               .replaceAll('{', '')
               .replaceAll('}', '');
           if ((match.group(0)).toString().startsWith('{@')) {
-            textFormatted.add(WidgetSpan(
-              baseline: TextBaseline.alphabetic,
-              alignment: PlaceholderAlignment.middle,
-              child: UserChip(
-                uid: cleanMatch,
-                minimal: minimal,
-                labelStyle: minimal ? textThemeColor : null,
+            textFormatted.add(
+              WidgetSpan(
+                baseline: TextBaseline.alphabetic,
+                alignment: PlaceholderAlignment.middle,
+                child: UserChip(
+                  uid: cleanMatch,
+                  minimal: minimal,
+                  labelStyle: minimal ? textThemeColor : null,
+                ),
               ),
-            ));
+            );
           } else {
-            textFormatted
-                .add(TextSpan(text: cleanMatch, style: textThemeColor));
+            textFormatted.add(
+              TextSpan(text: cleanMatch, style: textThemeColor),
+            );
           }
           initialPosition = match.end;
         }
 
         /// Last part
-        textFormatted.add(TextSpan(
-          text: (text.substring(initialPosition!, text.length))
-              .replaceAll('_', ' ')
-              .replaceAll('{', ' ')
-              .replaceAll('}', ' '),
-        ));
+        textFormatted.add(
+          TextSpan(
+            text: (text.substring(
+              initialPosition!,
+              text.length,
+            )).replaceAll('_', ' ').replaceAll('{', ' ').replaceAll('}', ' '),
+          ),
+        );
       } else {
         textFormatted.add(TextSpan(text: text));
       }
@@ -115,10 +129,12 @@ class LogsList extends StatelessWidget {
       Widget? actionsWidgets;
       if (actions != null) {
         for (ButtonOptions option in actions!) {
-          buttons.add(PopupMenuItem<String>(
-            onTap: option.onTap != null ? () => option.onTap!(id) : null,
-            child: Text(option.label),
-          ));
+          buttons.add(
+            PopupMenuItem<String>(
+              onTap: option.onTap != null ? () => option.onTap!(id) : null,
+              child: Text(option.label),
+            ),
+          );
         }
       }
       Widget? dataIcon;
@@ -129,28 +145,28 @@ class LogsList extends StatelessWidget {
             icon: const Icon(Icons.account_tree),
             color: theme.colorScheme.onSurface,
             onPressed: () {
-              alert.show(AlertData(
-                widget: AlertWidget.dialog,
-                type: AlertType.basic,
-                scrollable: false,
-                // 5 minutes in milliseconds
-                duration: 300000,
-                child: Container(
-                  height: 600,
-                  constraints: const BoxConstraints(
-                    maxHeight: 600,
-                    minWidth: 300,
-                    minHeight: 300,
-                  ),
-                  child: Card(
-                    elevation: 0,
-                    clipBehavior: Clip.antiAlias,
-                    child: JsonExplorerSearch(
-                      json: item.data,
+              alert.show(
+                AlertData(
+                  widget: AlertWidget.dialog,
+                  type: AlertType.basic,
+                  scrollable: false,
+                  // 5 minutes in milliseconds
+                  duration: 300000,
+                  child: Container(
+                    height: 600,
+                    constraints: const BoxConstraints(
+                      maxHeight: 600,
+                      minWidth: 300,
+                      minHeight: 300,
+                    ),
+                    child: Card(
+                      elevation: 0,
+                      clipBehavior: Clip.antiAlias,
+                      child: JsonExplorerSearch(json: item.data),
                     ),
                   ),
                 ),
-              ));
+              );
             },
           ),
         );
@@ -167,16 +183,12 @@ class LogsList extends StatelessWidget {
 
       List<Widget> vertical = [
         timestampWidget,
-        Text.rich(
-          TextSpan(children: textFormatted),
-          style: textThemeBase,
-        ),
+        Text.rich(TextSpan(children: textFormatted), style: textThemeBase),
       ];
       if (item.child != null) {
-        vertical.add(Padding(
-          padding: const EdgeInsets.only(top: 8),
-          child: item.child!,
-        ));
+        vertical.add(
+          Padding(padding: const EdgeInsets.only(top: 8), child: item.child!),
+        );
       }
       List<Widget> horizontal = [
         Expanded(
@@ -207,8 +219,10 @@ class LogsList extends StatelessWidget {
         padding: margin,
       );
     } else {
-      final cellsBase =
-          List.generate(logs!.length, (index) => getItem(logs![index]));
+      final cellsBase = List.generate(
+        logs!.length,
+        (index) => getItem(logs![index]),
+      );
       return Padding(
         padding: margin,
         child: Flex(direction: Axis.vertical, children: cellsBase),

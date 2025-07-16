@@ -60,9 +60,11 @@ class LanguagePicker extends StatelessWidget {
     return InputData(
       prefixIcon: const Icon(Icons.language),
       label: label ?? locales.get('label--language'),
-      hintText: hintText ??
-          locales.get(
-              'label--choose-label', {'label': locales.get('label--language')}),
+      hintText:
+          hintText ??
+          locales.get('label--choose-label', {
+            'label': locales.get('label--language'),
+          }),
       value: value,
       type: InputDataType.dropdown,
       options: options,

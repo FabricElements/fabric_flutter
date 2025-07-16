@@ -146,7 +146,8 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     bool validUsername = data.username != null && data.username!.isNotEmpty;
     canCall = canCall && (validPhone || validEmail || validUsername);
     if (widget.name) {
-      canCall = canCall &&
+      canCall =
+          canCall &&
           data.firstName != null &&
           data.firstName!.length > 1 &&
           data.lastName != null &&
@@ -158,10 +159,10 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       canCall = canCall && newPasswordOk;
     }
     const spacer = SizedBox(height: 16, width: 16);
-    String title = locales
-        .get(data.id == null ? 'label--add-label' : 'label--update-label', {
-      'label': locales.get('label--user'),
-    });
+    String title = locales.get(
+      data.id == null ? 'label--add-label' : 'label--update-label',
+      {'label': locales.get('label--user')},
+    );
     String actionLabel = title;
     // Get name for title
     String? nameForTitle;
@@ -190,15 +191,18 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
           assert(data.role.isNotEmpty, 'You must select a user role');
         }
         assert(
-            data.username != null || data.email != null || data.phone != null,
-            'username, email or phone must not be null');
+          data.username != null || data.email != null || data.phone != null,
+          'username, email or phone must not be null',
+        );
         await widget.onConfirm(data, group: widget.group);
-        alert.show(AlertData(
-          clear: true,
-          body: locales.get(widget.successMessage),
-          type: AlertType.success,
-          duration: 3,
-        ));
+        alert.show(
+          AlertData(
+            clear: true,
+            body: locales.get(widget.successMessage),
+            type: AlertType.success,
+            duration: 3,
+          ),
+        );
         Navigator.of(context).pop();
         await widget.onChanged();
       } on FirebaseFunctionsException catch (e) {
@@ -304,9 +308,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       maxLength: 20,
     );
 
-    List<Widget> inviteWidgets = [
-      spacer,
-    ];
+    List<Widget> inviteWidgets = [spacer];
     if (widget.name) {
       inviteWidgets.addAll([
         Row(
@@ -320,28 +322,16 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       ]);
     }
     if (widget.email) {
-      inviteWidgets.addAll([
-        emailInput,
-        spacer,
-      ]);
+      inviteWidgets.addAll([emailInput, spacer]);
     }
     if (widget.phone) {
-      inviteWidgets.addAll([
-        phoneInput,
-        spacer,
-      ]);
+      inviteWidgets.addAll([phoneInput, spacer]);
     }
     if (widget.username) {
-      inviteWidgets.addAll([
-        usernameInput,
-        spacer,
-      ]);
+      inviteWidgets.addAll([usernameInput, spacer]);
     }
     if (widget.password) {
-      inviteWidgets.addAll([
-        passwordInput,
-        spacer,
-      ]);
+      inviteWidgets.addAll([passwordInput, spacer]);
     }
     if (widget.role) {
       inviteWidgets.addAll([
@@ -386,8 +376,9 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
         inviteWidgets.addAll([
           InputData(
             autofillHints: const [],
-            label: locales.get('label--role-for-label',
-                {'label': locales.get('label--${item.key}')}),
+            label: locales.get('label--role-for-label', {
+              'label': locales.get('label--${item.key}'),
+            }),
             value: data.groups[item.key],
             type: InputDataType.dropdown,
             options: List.generate(groupsRoles.length, (index) {
@@ -400,10 +391,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
                 // if the label is not found, use the item as the label
                 label = item[0].toUpperCase() + item.substring(1);
               }
-              return ButtonOptions(
-                value: item,
-                label: label,
-              );
+              return ButtonOptions(value: item, label: label);
             }),
             onChanged: (value) {
               error = null;
@@ -452,8 +440,9 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
                 if (value == true) {
                   data.roles = [...data.roles, item];
                 } else {
-                  data.roles =
-                      data.roles.where((element) => element != item).toList();
+                  data.roles = data.roles
+                      .where((element) => element != item)
+                      .toList();
                 }
                 if (mounted) setState(() {});
               },
@@ -473,9 +462,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
           iconColor: theme.colorScheme.onErrorContainer,
           title: Text(locales.get(error)),
           leading: const Icon(Icons.error),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
         spacer,
       ]);
@@ -505,7 +492,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
             ),
           ],
         ),
-      )
+      ),
     ]);
 
     return ContentContainer(

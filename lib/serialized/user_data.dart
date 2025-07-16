@@ -6,23 +6,10 @@ import '../helper/utils.dart';
 
 part 'user_data.g.dart';
 
-enum UserPresence {
-  active,
-  inactive,
-  away,
-}
+enum UserPresence { active, inactive, away }
 
 /// User Device OS
-enum UserOS {
-  android,
-  ios,
-  macos,
-  linux,
-  web,
-  fuchsia,
-  windows,
-  unknown,
-}
+enum UserOS { android, ios, macos, linux, web, fuchsia, windows, unknown }
 
 /// Onboarding Object
 @JsonSerializable(explicitToJson: true)
@@ -223,15 +210,9 @@ class UserData {
     this.links,
     this.os = UserOS.unknown,
     this.country,
-  })  : presence = Utils.getPresence(ping),
-        name = Utils.nameFromParts(
-          firstName: firstName,
-          lastName: lastName,
-        ),
-        abbr = Utils.nameAbbreviation(
-          firstName: firstName,
-          lastName: lastName,
-        );
+  }) : presence = Utils.getPresence(ping),
+       name = Utils.nameFromParts(firstName: firstName, lastName: lastName),
+       abbr = Utils.nameAbbreviation(firstName: firstName, lastName: lastName);
 
   factory UserData.fromJson(Map<String, dynamic>? json) =>
       _$UserDataFromJson(json ?? {});

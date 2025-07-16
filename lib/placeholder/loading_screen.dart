@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 
 /// LoadingScreen is a preview screen when is loading any content.
 class LoadingScreen extends StatelessWidget {
-  const LoadingScreen({
-    super.key,
-    this.parent = false,
-  });
+  const LoadingScreen({super.key, this.parent = false});
 
   final bool parent;
 
@@ -16,9 +13,7 @@ class LoadingScreen extends StatelessWidget {
       body: const Padding(
         padding: EdgeInsets.all(20.0),
         child: Center(
-          child: CircularProgressIndicator(
-            semanticsLabel: 'Loading',
-          ),
+          child: CircularProgressIndicator(semanticsLabel: 'Loading'),
         ),
       ),
     );

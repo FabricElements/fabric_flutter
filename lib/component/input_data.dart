@@ -139,10 +139,7 @@ dynamic parseValueByInputDataType({
       newValue = timeBase != null ? TimeOfDay.fromDateTime(timeBase) : null;
       break;
     case InputDataType.enums:
-      newValue = EnumData.find(
-        enums: enums,
-        value: value,
-      );
+      newValue = EnumData.find(enums: enums, value: value);
       break;
     case InputDataType.dropdown:
       newValue = value;
@@ -309,8 +306,9 @@ class _InputDataState extends State<InputData> {
   late TextEditingController textController;
   late SearchController searchController;
   DateFormat formatDate = DateFormat.yMd('en_US');
-  DateFormat formatDateTime =
-      DateFormat.yMd('en_US').addPattern(' - ').add_jm();
+  DateFormat formatDateTime = DateFormat.yMd(
+    'en_US',
+  ).addPattern(' - ').add_jm();
   String? prefixText;
   dynamic value;
   late bool obscureText;
@@ -367,8 +365,10 @@ class _InputDataState extends State<InputData> {
         case InputDataType.phone:
           dynamic newFormattedValue = valueChanged(newValue)?.toString() ?? '';
           // remove plus sign to avoid double plus sign on the input
-          final valueWithoutPlusSign =
-              newFormattedValue.replaceAll(RegExp(r'\+'), '');
+          final valueWithoutPlusSign = newFormattedValue.replaceAll(
+            RegExp(r'\+'),
+            '',
+          );
           bool sameValue = value == newFormattedValue;
           if (!sameValue) {
             value = newFormattedValue;
@@ -387,8 +387,9 @@ class _InputDataState extends State<InputData> {
             );
           }
           // Set the text
-          baseValue =
-              widget.asLocalTime ? baseValue?.toLocal() : baseValue?.toUtc();
+          baseValue = widget.asLocalTime
+              ? baseValue?.toLocal()
+              : baseValue?.toUtc();
           if (baseValue != null) {
             if (widget.type == InputDataType.date) {
               textController.text = formatDate.format(baseValue);
@@ -408,10 +409,7 @@ class _InputDataState extends State<InputData> {
           if (notify && mounted) setState(() {});
           break;
         case InputDataType.enums:
-          value = EnumData.find(
-            enums: widget.enums,
-            value: newValue,
-          );
+          value = EnumData.find(enums: widget.enums, value: newValue);
           dynamic newFormattedValue = valueChanged(newValue)?.toString() ?? '';
           bool sameValue = value == newFormattedValue;
           if (!sameValue) {
@@ -459,11 +457,13 @@ class _InputDataState extends State<InputData> {
           break;
       }
     } catch (e) {
-      debugPrint(LogColor.error('''
+      debugPrint(
+        LogColor.error('''
 ----------------------------------------------
 getValue -------------------------------------
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-'''));
+'''),
+      );
       rethrow;
     }
   }
@@ -473,8 +473,10 @@ getValue -------------------------------------
     /// Validate required parameters on init
     switch (widget.type) {
       case InputDataType.enums:
-        assert(widget.enums.isNotEmpty,
-            'enums is required for InputDataType.enums');
+        assert(
+          widget.enums.isNotEmpty,
+          'enums is required for InputDataType.enums',
+        );
         break;
       case InputDataType.dropdown:
         if (widget.options.isEmpty) {
@@ -637,8 +639,10 @@ getValue -------------------------------------
       case InputDataType.double:
       case InputDataType.currency:
       case InputDataType.percent:
-        keyboardType =
-            const TextInputType.numberWithOptions(decimal: true, signed: true);
+        keyboardType = const TextInputType.numberWithOptions(
+          decimal: true,
+          signed: true,
+        );
         inputFormatters.addAll([
           FilteringTextInputFormatter.singleLineFormatter,
           FilteringTextInputFormatter.allow(RegExp(r'[\d.-]')),
@@ -682,8 +686,9 @@ getValue -------------------------------------
 
     String? hintText = widget.hintText ?? hintTextDefault;
     if (!widget.obscureText) {
-      hintText =
-          (value?.toString() ?? '').isNotEmpty ? value?.toString() : hintText;
+      hintText = (value?.toString() ?? '').isNotEmpty
+          ? value?.toString()
+          : hintText;
     }
     final inputDecoration = InputDecoration(
       hintText: hintText,
@@ -769,14 +774,16 @@ getValue -------------------------------------
           controller: textController,
           readOnly: true,
           decoration: inputDecoration.copyWith(
-            prefixIcon: inputDecoration.prefixIcon ??
+            prefixIcon:
+                inputDecoration.prefixIcon ??
                 inputDecoration.prefixIcon ??
                 Icon(inputDataTypeIcon(widget.type)),
           ),
           onTap: () async {
             // Apply format depending on [showAsLocalTime]
-            DateTime now =
-                widget.asLocalTime ? DateTime.now() : DateTime.timestamp();
+            DateTime now = widget.asLocalTime
+                ? DateTime.now()
+                : DateTime.timestamp();
             DateTime date = value ?? now;
             date = widget.asLocalTime ? date.toLocal() : date.toUtc();
             // If the date is in the future, use the current date
@@ -787,8 +794,9 @@ getValue -------------------------------------
               dateAfter = date.isAfter(now) ? date : now;
             }
             late DateTime? picked;
-            final minDate =
-                dateBefore.subtract(const Duration(days: 365 * 101));
+            final minDate = dateBefore.subtract(
+              const Duration(days: 365 * 101),
+            );
             final maxDate = dateAfter.add(const Duration(days: 365 * 101));
             if (widget.type == InputDataType.date) {
               picked = await showDatePicker(
@@ -843,7 +851,8 @@ getValue -------------------------------------
         String? dateString = time != null
             ? formatTime.format(DateTime(1, 1, 1, time.hour, time.minute))
             : null;
-        String label = dateString ??
+        String label =
+            dateString ??
             locales.get('label--choose-label', {
               'label': locales.get('label--time'),
             });
@@ -899,7 +908,8 @@ getValue -------------------------------------
           controller: textController,
           readOnly: true,
           decoration: inputDecoration.copyWith(
-            prefixIcon: inputDecoration.prefixIcon ??
+            prefixIcon:
+                inputDecoration.prefixIcon ??
                 inputDecoration.prefixIcon ??
                 Icon(inputDataTypeIcon(widget.type)),
             suffixIcon:
@@ -915,9 +925,7 @@ getValue -------------------------------------
           endWidget = SearchAnchor(
             viewHintText: locales.get('label--search'),
             isFullScreen: isSmallScreen,
-            viewLeading: BackButton(
-              onPressed: _closeSearch,
-            ),
+            viewLeading: BackButton(onPressed: _closeSearch),
             viewTrailing: [
               if (value != null && value.toString().isNotEmpty)
                 OutlinedButton.icon(
@@ -931,8 +939,8 @@ getValue -------------------------------------
                     foregroundColor: theme.colorScheme.error,
                     iconColor: theme.colorScheme.error,
                     side: BorderSide(
-                        color:
-                            theme.buttonTheme.colorScheme?.error ?? Colors.red),
+                      color: theme.buttonTheme.colorScheme?.error ?? Colors.red,
+                    ),
                   ),
                 ),
             ],
@@ -942,84 +950,91 @@ getValue -------------------------------------
             },
             suggestionsBuilder:
                 (BuildContext context, SearchController controller) {
-              final value = controller.text;
-              List<ButtonOptions> recommendations = dropdownOptions;
-              if (value.isNotEmpty) {
-                recommendations = recommendations.where((element) {
-                  final labelMatch =
-                      element.label.toLowerCase().contains(value.toLowerCase());
-                  final labelAltMatch = element.labelAlt
-                          ?.toLowerCase()
-                          .contains(value.toLowerCase()) ??
-                      false;
-                  final valueMatch = element.value.toString().contains(value);
-                  return labelMatch || valueMatch || labelAltMatch;
-                }).toList();
-              }
-              return List.generate(recommendations.length, (int index) {
-                final item = recommendations[index];
+                  final value = controller.text;
+                  List<ButtonOptions> recommendations = dropdownOptions;
+                  if (value.isNotEmpty) {
+                    recommendations = recommendations.where((element) {
+                      final labelMatch = element.label.toLowerCase().contains(
+                        value.toLowerCase(),
+                      );
+                      final labelAltMatch =
+                          element.labelAlt?.toLowerCase().contains(
+                            value.toLowerCase(),
+                          ) ??
+                          false;
+                      final valueMatch = element.value.toString().contains(
+                        value,
+                      );
+                      return labelMatch || valueMatch || labelAltMatch;
+                    }).toList();
+                  }
+                  return List.generate(recommendations.length, (int index) {
+                    final item = recommendations[index];
 
-                /// Leading
-                Widget? leading = item.leading;
-                if (item.icon != null) {
-                  leading = Icon(item.icon);
-                }
-                if (item.image != null) {
-                  leading = Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: CircleAvatar(
-                      backgroundColor:
-                          theme.colorScheme.surfaceContainerHighest,
-                      child: AspectRatio(
-                        aspectRatio: 1 / 1,
-                        child: ClipOval(
-                          child: SmartImage(
-                            url: item.image,
-                            format: AvailableOutputFormats.png,
+                    /// Leading
+                    Widget? leading = item.leading;
+                    if (item.icon != null) {
+                      leading = Icon(item.icon);
+                    }
+                    if (item.image != null) {
+                      leading = Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: CircleAvatar(
+                          backgroundColor:
+                              theme.colorScheme.surfaceContainerHighest,
+                          child: AspectRatio(
+                            aspectRatio: 1 / 1,
+                            child: ClipOval(
+                              child: SmartImage(
+                                url: item.image,
+                                format: AvailableOutputFormats.png,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                  );
-                }
+                      );
+                    }
 
-                /// Trailing
-                Widget? trailing = item.trailing;
-                if (item.trailingIcon != null) {
-                  trailing = Icon(item.trailingIcon);
-                }
-                if (item.trailingImage != null) {
-                  trailing = AspectRatio(
-                    aspectRatio: 1 / 1,
-                    child: CircleAvatar(
-                      backgroundImage: NetworkImage(item.trailingImage!),
-                    ),
-                  );
-                }
-                return PointerInterceptor(
-                  child: ListTile(
-                    leading: leading,
-                    trailing: trailing,
-                    title: Text(item.label),
-                    onTap: () {
-                      dynamic newValue = item.value == '' ? null : item.value;
-                      _closeSearch();
-                      widget.onChanged?.call(newValue);
-                      widget.onComplete?.call(newValue);
-                      widget.onSubmit?.call(newValue);
-                    },
-                  ),
-                );
-              });
-            },
+                    /// Trailing
+                    Widget? trailing = item.trailing;
+                    if (item.trailingIcon != null) {
+                      trailing = Icon(item.trailingIcon);
+                    }
+                    if (item.trailingImage != null) {
+                      trailing = AspectRatio(
+                        aspectRatio: 1 / 1,
+                        child: CircleAvatar(
+                          backgroundImage: NetworkImage(item.trailingImage!),
+                        ),
+                      );
+                    }
+                    return PointerInterceptor(
+                      child: ListTile(
+                        leading: leading,
+                        trailing: trailing,
+                        title: Text(item.label),
+                        onTap: () {
+                          dynamic newValue = item.value == ''
+                              ? null
+                              : item.value;
+                          _closeSearch();
+                          widget.onChanged?.call(newValue);
+                          widget.onComplete?.call(newValue);
+                          widget.onSubmit?.call(newValue);
+                        },
+                      ),
+                    );
+                  });
+                },
           );
         } else {
           endWidget = widgetInput;
         }
         break;
       case InputDataType.radio:
-        List<Widget> radioOptions =
-            List.generate(widget.options.length, (index) {
+        List<Widget> radioOptions = List.generate(widget.options.length, (
+          index,
+        ) {
           final e = widget.options[index];
           return RadioListTile(
             title: Text(e.label),
@@ -1052,7 +1067,8 @@ getValue -------------------------------------
             floatingLabelBehavior:
                 widget.floatingLabelBehavior ?? FloatingLabelBehavior.never,
             labelText: null,
-            prefixIcon: inputDecoration.prefixIcon ??
+            prefixIcon:
+                inputDecoration.prefixIcon ??
                 Icon(inputDataTypeIcon(widget.type)),
             suffixIcon: Switch(
               value: value,
@@ -1072,9 +1088,6 @@ getValue -------------------------------------
         );
         break;
     }
-    return Container(
-      margin: widget.margin,
-      child: endWidget,
-    );
+    return Container(margin: widget.margin, child: endWidget);
   }
 }

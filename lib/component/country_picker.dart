@@ -59,9 +59,11 @@ class CountryPicker extends StatelessWidget {
       autofillHints: const [],
       prefixIcon: const Icon(Icons.flag),
       label: label ?? locales.get('label--country'),
-      hintText: hintText ??
-          locales.get(
-              'label--choose-label', {'label': locales.get('label--country')}),
+      hintText:
+          hintText ??
+          locales.get('label--choose-label', {
+            'label': locales.get('label--country'),
+          }),
       value: value,
       type: InputDataType.dropdown,
       options: options,

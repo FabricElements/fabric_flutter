@@ -37,10 +37,7 @@ class InitApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => StateNotifications()),
         ChangeNotifierProvider(create: (context) => StateUsers()),
       ],
-      child: InitAppChild(
-        notifications: notifications,
-        child: child,
-      ),
+      child: InitAppChild(notifications: notifications, child: child),
     );
   }
 }
@@ -61,8 +58,10 @@ class InitAppChild extends StatelessWidget {
 
     /// Call App States after MultiProvider is called
     final stateUser = Provider.of<StateUser>(context, listen: false);
-    final stateNotifications =
-        Provider.of<StateNotifications>(context, listen: false);
+    final stateNotifications = Provider.of<StateNotifications>(
+      context,
+      listen: false,
+    );
     final stateAnalytics = Provider.of<StateAnalytics>(context, listen: false);
 
     /// Define default error message
@@ -91,8 +90,9 @@ class InitAppChild extends StatelessWidget {
             stateNotifications.uid = status.uid;
             stateNotifications.init();
             stateNotifications.getUserToken().catchError((e) {
-              debugPrint(LogColor.error(
-                  'StateNotifications.getUserToken() Error: $e'));
+              debugPrint(
+                LogColor.error('StateNotifications.getUserToken() Error: $e'),
+              );
             });
           }
         } else {

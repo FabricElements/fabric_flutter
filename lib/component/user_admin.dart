@@ -94,18 +94,20 @@ class UserAdmin extends StatelessWidget {
     if (!primary) state.limitDefault = 100;
     // Catch errors
     apiError(String? e) => (e != null)
-        ? alert.show(AlertData(
-            title: locales.get(e),
-            type: AlertType.critical,
-            clear: true,
-          ))
+        ? alert.show(
+            AlertData(
+              title: locales.get(e),
+              type: AlertType.critical,
+              clear: true,
+            ),
+          )
         : null;
     stateUser.onError = apiError;
     state.onError = apiError;
 
     /// User collection
-    Query<Map<String, dynamic>> baseQuery =
-        FirebaseFirestore.instance.collection('user');
+    Query<Map<String, dynamic>> baseQuery = FirebaseFirestore.instance
+        .collection('user');
     Query<Map<String, dynamic>> query = baseQuery;
 
     /// Order By role for global users, the role key is only available for parent users
@@ -122,43 +124,53 @@ class UserAdmin extends StatelessWidget {
     /// Deletes the related user listed user, the documentId is the users uid
     removeUser(UserData data) {
       String? name = data.name.trim().length > 4 ? data.name : null;
-      name ??= data.firstName ??
+      name ??=
+          data.firstName ??
           data.username ??
           data.phone ??
           data.email ??
           data.id;
-      alert.show(AlertData(
-        title: locales.get(
-          'label--confirm-are-you-sure-remove-label',
-          {'label': '${locales.get('label--user').toLowerCase()}: $name'},
+      alert.show(
+        AlertData(
+          title: locales.get('label--confirm-are-you-sure-remove-label', {
+            'label': '${locales.get('label--user').toLowerCase()}: $name',
+          }),
+          action: ButtonOptions(
+            onTap: () async {
+              try {
+                await UserRolesFirebase.onRemove(data, group: group);
+                // Type indicates the data field to use in the function, admin level or collection.
+                alert.show(
+                  AlertData(
+                    clear: true,
+                    body: locales.get('alert--user-removed'),
+                    type: AlertType.success,
+                    duration: 3,
+                  ),
+                );
+              } on FirebaseFunctionsException catch (error) {
+                alert.show(
+                  AlertData(
+                    clear: true,
+                    body: error.message ?? error.details['message'],
+                    type: AlertType.critical,
+                  ),
+                );
+              } catch (error) {
+                alert.show(
+                  AlertData(
+                    clear: true,
+                    body: error.toString(),
+                    type: AlertType.critical,
+                  ),
+                );
+              }
+            },
+          ),
+          type: AlertType.warning,
+          widget: AlertWidget.dialog,
         ),
-        action: ButtonOptions(onTap: () async {
-          try {
-            await UserRolesFirebase.onRemove(data, group: group);
-            // Type indicates the data field to use in the function, admin level or collection.
-            alert.show(AlertData(
-              clear: true,
-              body: locales.get('alert--user-removed'),
-              type: AlertType.success,
-              duration: 3,
-            ));
-          } on FirebaseFunctionsException catch (error) {
-            alert.show(AlertData(
-              clear: true,
-              body: error.message ?? error.details['message'],
-              type: AlertType.critical,
-            ));
-          } catch (error) {
-            alert.show(AlertData(
-              clear: true,
-              body: error.toString(),
-              type: AlertType.critical,
-            ));
-          }
-        }),
-        type: AlertType.warning,
-        widget: AlertWidget.dialog,
-      ));
+      );
     }
 
     final content = PaginationContainer(
@@ -189,9 +201,7 @@ class UserAdmin extends StatelessWidget {
             clean: true, // Use clean: true to reduce the role locales
           );
         }
-        List<Widget> trailing = [
-          const Spacer(),
-        ];
+        List<Widget> trailing = [const Spacer()];
         if (canUpdateUser) {
           trailing.addAll([
             IconButton(
@@ -218,10 +228,7 @@ class UserAdmin extends StatelessWidget {
                   ),
                 );
               },
-              icon: Icon(
-                Icons.edit,
-                color: theme.colorScheme.primary,
-              ),
+              icon: Icon(Icons.edit, color: theme.colorScheme.primary),
             ),
             space,
             IconButton(
@@ -240,36 +247,44 @@ class UserAdmin extends StatelessWidget {
         ];
         String name = user.name.isNotEmpty ? user.name : '';
         if (user.phone != null) {
-          roleChips.add(Chip(
-            avatar: Icon(Icons.phone, color: Colors.grey.shade600),
-            backgroundColor: Colors.transparent,
-            padding: const EdgeInsets.all(0),
-            label: SelectableText(user.phone!),
-          ));
+          roleChips.add(
+            Chip(
+              avatar: Icon(Icons.phone, color: Colors.grey.shade600),
+              backgroundColor: Colors.transparent,
+              padding: const EdgeInsets.all(0),
+              label: SelectableText(user.phone!),
+            ),
+          );
         }
         if (user.email != null) {
-          roleChips.add(Chip(
-            avatar: Icon(Icons.email, color: Colors.grey.shade600),
-            backgroundColor: Colors.transparent,
-            padding: const EdgeInsets.all(0),
-            label: SelectableText(user.email!),
-          ));
+          roleChips.add(
+            Chip(
+              avatar: Icon(Icons.email, color: Colors.grey.shade600),
+              backgroundColor: Colors.transparent,
+              padding: const EdgeInsets.all(0),
+              label: SelectableText(user.email!),
+            ),
+          );
         }
         if (user.username != null && user.username!.isNotEmpty) {
-          roleChips.add(Chip(
-            avatar: Icon(Icons.alternate_email, color: Colors.grey.shade600),
-            backgroundColor: Colors.transparent,
-            padding: const EdgeInsets.all(0),
-            label: SelectableText(user.username!),
-          ));
+          roleChips.add(
+            Chip(
+              avatar: Icon(Icons.alternate_email, color: Colors.grey.shade600),
+              backgroundColor: Colors.transparent,
+              padding: const EdgeInsets.all(0),
+              label: SelectableText(user.username!),
+            ),
+          );
         }
         if (stateUser.admin) {
-          roleChips.add(Chip(
-            avatar: Icon(Icons.person, color: Colors.grey.shade600),
-            backgroundColor: Colors.transparent,
-            padding: const EdgeInsets.all(0),
-            label: SelectableText(user.id),
-          ));
+          roleChips.add(
+            Chip(
+              avatar: Icon(Icons.person, color: Colors.grey.shade600),
+              backgroundColor: Colors.transparent,
+              padding: const EdgeInsets.all(0),
+              label: SelectableText(user.id),
+            ),
+          );
         }
         return SizedBox(
           key: ValueKey(user.id),
@@ -346,9 +361,11 @@ class UserAdmin extends StatelessWidget {
             ? null
             : FloatingActionButton.extended(
                 icon: const Icon(Icons.person_add),
-                label: Text(locales.get('label--add-label', {
-                  'label': locales.get('label--user'),
-                }).toUpperCase()),
+                label: Text(
+                  locales.get('label--add-label', {
+                    'label': locales.get('label--user'),
+                  }).toUpperCase(),
+                ),
                 onPressed: () {
                   showDialog<void>(
                     context: context,
@@ -360,9 +377,7 @@ class UserAdmin extends StatelessWidget {
       );
     }
 
-    List<Widget> items = [
-      content,
-    ];
+    List<Widget> items = [content];
     if (!disabled) {
       items.addAll([
         const SizedBox(height: 16),
@@ -370,23 +385,19 @@ class UserAdmin extends StatelessWidget {
           alignment: Alignment.center,
           child: FilledButton.icon(
             icon: const Icon(Icons.person_add),
-            label: Text(locales.get('label--add-label', {
-              'label': locales.get('label--user'),
-            }).toUpperCase()),
+            label: Text(
+              locales.get('label--add-label', {
+                'label': locales.get('label--user'),
+              }).toUpperCase(),
+            ),
             onPressed: () {
-              showDialog<void>(
-                context: context,
-                builder: (c) => userAddWidget,
-              );
+              showDialog<void>(context: context, builder: (c) => userAddWidget);
             },
           ),
         ),
       ]);
     }
 
-    return Flex(
-      direction: Axis.vertical,
-      children: items,
-    );
+    return Flex(direction: Axis.vertical, children: items);
   }
 }
