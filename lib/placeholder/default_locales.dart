@@ -1,3 +1,4 @@
+// @formatter:off
 const Map<String, Map<String, String>> defaultLocales = {
   'say--something': {
     'en': 'Say something...',
@@ -1261,3 +1262,4 @@ const Map<String, Map<String, String>> defaultLocales = {
     'es': 'Expandir todo',
   },
 };
+// @formatter:on
