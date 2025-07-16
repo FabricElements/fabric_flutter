@@ -14,8 +14,12 @@ NotificationData _$NotificationDataFromJson(Map<String, dynamic> json) =>
       type: json['type'] as String?,
       path: json['path'] as String?,
       clear: json['clear'] as bool? ?? false,
-      os: $enumDecodeNullable(_$UserOSEnumMap, json['os'],
-              unknownValue: UserOS.unknown) ??
+      os:
+          $enumDecodeNullable(
+            _$UserOSEnumMap,
+            json['os'],
+            unknownValue: UserOS.unknown,
+          ) ??
           UserOS.unknown,
       typeString: json['typeString'] as String?,
       duration: (json['duration'] as num?)?.toInt() ?? 5,

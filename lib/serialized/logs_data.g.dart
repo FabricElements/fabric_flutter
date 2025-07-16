@@ -7,16 +7,16 @@ part of 'logs_data.dart';
 // **************************************************************************
 
 LogsData _$LogsDataFromJson(Map<String, dynamic> json) => LogsData(
-      id: json['id'],
-      text: json['text'] as String?,
-      timestamp: Utils.dateTimeFromJson(json['timestamp'] as String?),
-      data: json['data'] as Map<String, dynamic>?,
-    );
+  id: json['id'],
+  text: json['text'] as String?,
+  timestamp: Utils.dateTimeFromJson(json['timestamp'] as String?),
+  data: json['data'] as Map<String, dynamic>?,
+);
 
 Map<String, dynamic> _$LogsDataToJson(LogsData instance) => <String, dynamic>{
-      'id': instance.id,
-      'text': instance.text,
-      if (Utils.dateToJson(instance.timestamp) case final value?)
-        'timestamp': value,
-      'data': instance.data,
-    };
+  'id': instance.id,
+  'text': instance.text,
+  if (Utils.dateToJson(instance.timestamp) case final value?)
+    'timestamp': value,
+  'data': instance.data,
+};

@@ -7,10 +7,7 @@ part of 'base_db.dart';
 // **************************************************************************
 
 BaseFirestore _$BaseFirestoreFromJson(Map<String, dynamic> json) {
-  $checkKeys(
-    json,
-    requiredKeys: const ['id'],
-  );
+  $checkKeys(json, requiredKeys: const ['id']);
   return BaseFirestore(
     id: json['id'] as String,
     created: FirestoreHelper.timestampFromJsonDefault(json['created']),

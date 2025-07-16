@@ -7,15 +7,14 @@ part of 'table_data.dart';
 // **************************************************************************
 
 TableData _$TableDataFromJson(Map<String, dynamic> json) {
-  $checkKeys(
-    json,
-    disallowNullValues: const ['rows'],
-  );
+  $checkKeys(json, disallowNullValues: const ['rows']);
   return TableData(
-    header: (json['header'] as List<dynamic>?)
-        ?.map((e) => TableColumnData.fromJson(e as Map<String, dynamic>?))
-        .toList(),
-    rows: (json['rows'] as List<dynamic>?)
+    header:
+        (json['header'] as List<dynamic>?)
+            ?.map((e) => TableColumnData.fromJson(e as Map<String, dynamic>?))
+            .toList(),
+    rows:
+        (json['rows'] as List<dynamic>?)
             ?.map((e) => TableRowData.fromJson(e as Map<String, dynamic>?))
             .toList() ??
         const [],
@@ -26,22 +25,20 @@ TableData _$TableDataFromJson(Map<String, dynamic> json) {
 }
 
 Map<String, dynamic> _$TableDataToJson(TableData instance) => <String, dynamic>{
-      if (instance.header?.map((e) => e.toJson()).toList() case final value?)
-        'header': value,
-      'rows': instance.rows.map((e) => e.toJson()).toList(),
-      if (instance.footer case final value?) 'footer': value,
-      'active': instance.active,
-      'level': instance.level,
-    };
+  if (instance.header?.map((e) => e.toJson()).toList() case final value?)
+    'header': value,
+  'rows': instance.rows.map((e) => e.toJson()).toList(),
+  if (instance.footer case final value?) 'footer': value,
+  'active': instance.active,
+  'level': instance.level,
+};
 
 TableColumnData _$TableColumnDataFromJson(Map<String, dynamic> json) {
-  $checkKeys(
-    json,
-    disallowNullValues: const ['value', 'label'],
-  );
+  $checkKeys(json, disallowNullValues: const ['value', 'label']);
   return TableColumnData(
     value: json['value'] as String? ?? '',
-    type: $enumDecodeNullable(_$TableDataTypeEnumMap, json['type']) ??
+    type:
+        $enumDecodeNullable(_$TableDataTypeEnumMap, json['type']) ??
         TableDataType.string,
     width: (json['width'] as num?)?.toDouble() ?? 50,
     label: json['label'] as String?,
@@ -67,15 +64,13 @@ const _$TableDataTypeEnumMap = {
 };
 
 TableRowData _$TableRowDataFromJson(Map<String, dynamic> json) {
-  $checkKeys(
-    json,
-    disallowNullValues: const ['cells'],
-  );
+  $checkKeys(json, disallowNullValues: const ['cells']);
   return TableRowData(
     cells: json['cells'] as List<dynamic>? ?? const [],
-    child: json['child'] == null
-        ? null
-        : TableData.fromJson(json['child'] as Map<String, dynamic>?),
+    child:
+        json['child'] == null
+            ? null
+            : TableData.fromJson(json['child'] as Map<String, dynamic>?),
     active: json['active'] as bool? ?? false,
   );
 }
