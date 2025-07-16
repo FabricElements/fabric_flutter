@@ -40,10 +40,7 @@ class UserAvatar extends StatelessWidget {
     );
     Widget avatarContainer = CircleAvatar(
       backgroundColor: backgroundColor,
-      child: Icon(
-        Icons.person,
-        color: color,
-      ),
+      child: Icon(Icons.person, color: color),
     );
     if (avatar != null) {
       avatarContainer = CircleAvatar(
@@ -51,10 +48,7 @@ class UserAvatar extends StatelessWidget {
         child: AspectRatio(
           aspectRatio: 1 / 1,
           child: ClipOval(
-            child: SmartImage(
-              url: avatar,
-              format: AvailableOutputFormats.png,
-            ),
+            child: SmartImage(url: avatar, format: AvailableOutputFormats.png),
           ),
         ),
       );
@@ -96,10 +90,7 @@ class UserAvatar extends StatelessWidget {
       decoration: BoxDecoration(
         color: statusColor,
         shape: BoxShape.circle,
-        border: Border.all(
-          color: Colors.white,
-          width: 1,
-        ),
+        border: Border.all(color: Colors.white, width: 1),
       ),
     );
     return AspectRatio(
@@ -111,11 +102,7 @@ class UserAvatar extends StatelessWidget {
             message: firstName ?? lastName ?? name ?? abbreviation,
             child: avatarContainer,
           ),
-          Positioned(
-            right: 0,
-            top: 0,
-            child: presenceWidget,
-          ),
+          Positioned(right: 0, top: 0, child: presenceWidget),
         ],
       ),
     );

@@ -76,23 +76,15 @@ class StepperExtended extends StatelessWidget {
           leadingColor = Colors.red;
           break;
         default:
-          leadingContent = Text(
-            (index + 1).toString(),
-            style: leadingStyle,
-          );
+          leadingContent = Text((index + 1).toString(), style: leadingStyle);
           break;
       }
 
       Widget leading = Container(
         width: 32.0,
         height: 32.0,
-        decoration: BoxDecoration(
-          color: leadingColor,
-          shape: BoxShape.circle,
-        ),
-        child: Center(
-          child: leadingContent,
-        ),
+        decoration: BoxDecoration(color: leadingColor, shape: BoxShape.circle),
+        child: Center(child: leadingContent),
       );
       return ContentContainer(
         margin: const EdgeInsets.only(top: 16, bottom: 32, left: 0, right: 16),
@@ -114,12 +106,10 @@ class StepperExtended extends StatelessWidget {
               padding: const EdgeInsets.only(left: 32),
               margin: const EdgeInsets.only(left: 32),
               decoration: const BoxDecoration(
-                border: Border(
-                  left: BorderSide(color: Colors.grey, width: 1),
-                ),
+                border: Border(left: BorderSide(color: Colors.grey, width: 1)),
               ),
               child: step.content,
-            )
+            ),
           ],
         ),
       );

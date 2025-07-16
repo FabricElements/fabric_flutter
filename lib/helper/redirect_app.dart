@@ -15,10 +15,7 @@ class RedirectApp {
   final BuildContext context;
 
   /// Redirect page
-  void toView({
-    String? path,
-    Map<String, dynamic>? arguments,
-  }) {
+  void toView({String? path, Map<String, dynamic>? arguments}) {
     final stateUser = Provider.of<StateUser>(context, listen: false);
     try {
       if (path != null && path.isNotEmpty && path.startsWith('/')) {
@@ -30,14 +27,9 @@ class RedirectApp {
     }
   }
 
-  void link({
-    Uri? link,
-  }) {
+  void link({Uri? link}) {
     if (link != null) {
-      toView(
-        path: link.path,
-        arguments: link.queryParameters,
-      );
+      toView(path: link.path, arguments: link.queryParameters);
     }
   }
 }

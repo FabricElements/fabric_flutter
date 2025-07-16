@@ -1,7 +1,8 @@
 import 'dart:ui' if (dart.library.html) 'dart:ui_web' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:universal_html/html.dart' if (dart.library.html) 'dart:html'
+import 'package:universal_html/html.dart'
+    if (dart.library.html) 'dart:html'
     show IFrameElement;
 
 import '../helper/log_color.dart';
@@ -14,9 +15,9 @@ class IframeMinimal extends StatelessWidget {
     this.title = 'Iframe',
     this.alt = 'Iframe',
   }) : assert(
-          (src != null && rawHtml == null) || (src == null && rawHtml != null),
-          'Either src or rawHtml must be provided, but not both.',
-        );
+         (src != null && rawHtml == null) || (src == null && rawHtml != null),
+         'Either src or rawHtml must be provided, but not both.',
+       );
 
   final String? src;
   final String? rawHtml;
@@ -41,8 +42,10 @@ class IframeMinimal extends StatelessWidget {
       ..setAttribute('height', '100%')
       ..setAttribute('width', '100%')
       ..setAttribute('alt', alt)
-      ..setAttribute('style',
-          'border: none; height: 100%; width: 100%; background-color: transparent;')
+      ..setAttribute(
+        'style',
+        'border: none; height: 100%; width: 100%; background-color: transparent;',
+      )
       ..setAttribute('title', title);
 
     try {

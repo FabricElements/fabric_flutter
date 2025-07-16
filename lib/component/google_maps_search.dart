@@ -72,11 +72,7 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
   late bool loading;
   double? latitude;
   double? longitude;
-  List<String> searchFields = [
-    'formatted_address',
-    'name',
-    'place_id',
-  ];
+  List<String> searchFields = ['formatted_address', 'name', 'place_id'];
   late List<String> requiredFields;
 
   void resetDefaultValues() {
@@ -137,7 +133,8 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
       final placeResponse = PlaceResponse.fromJson(newData);
       if (newData != null) {
         debugPrint(
-            'Serialized PlaceResponse Data: ${jsonEncode(placeResponse.toJson())}');
+          'Serialized PlaceResponse Data: ${jsonEncode(placeResponse.toJson())}',
+        );
       }
       if (placeResponse.errorMessage != null) {
         throw placeResponse.errorMessage!;
@@ -161,12 +158,14 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
       try {
         await getPlaceById(result.placeId);
       } catch (error) {
-        alert.show(AlertData(
-          title: error.toString(),
-          type: AlertType.warning,
-          duration: 5,
-          clear: true,
-        ));
+        alert.show(
+          AlertData(
+            title: error.toString(),
+            type: AlertType.warning,
+            duration: 5,
+            clear: true,
+          ),
+        );
         if (widget.onError != null) widget.onError!(error.toString());
       }
     }
@@ -174,155 +173,161 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
     return AspectRatio(
       aspectRatio: widget.aspectRatio,
       child: LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints constraints) {
-        double width = constraints.maxWidth.floorToDouble();
-        double height = constraints.maxHeight.floorToDouble();
-        mapComponents.clear();
-        mapComponents.addAll([
-          SafeArea(
-            child: SizedBox(
-              height: 50,
-              child: TextField(
-                controller: textController,
-                autofocus: widget.autofocus,
-                keyboardType: TextInputType.text,
-                textInputAction: TextInputAction.search,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
+        builder: (BuildContext context, BoxConstraints constraints) {
+          double width = constraints.maxWidth.floorToDouble();
+          double height = constraints.maxHeight.floorToDouble();
+          mapComponents.clear();
+          mapComponents.addAll([
+            SafeArea(
+              child: SizedBox(
+                height: 50,
+                child: TextField(
+                  controller: textController,
+                  autofocus: widget.autofocus,
+                  keyboardType: TextInputType.text,
+                  textInputAction: TextInputAction.search,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    contentPadding: const EdgeInsets.all(16),
+                    filled: true,
+                    hintText: name ?? locales.get('label--search'),
+                    suffixIcon: const Icon(Icons.search),
                   ),
-                  contentPadding: const EdgeInsets.all(16),
-                  filled: true,
-                  hintText: name ?? locales.get('label--search'),
-                  suffixIcon: const Icon(Icons.search),
-                ),
-                onChanged: (val) async {
-                  if (val.length < 2) {
-                    results = [];
-                    totalItems = 0;
-                    if (mounted) setState(() {});
-                    return;
-                  }
-                  try {
-                    Map<String, dynamic>? queryParameters = {
-                      'key': widget.apiKey,
-                      'input': val,
-                      'inputtype': 'textquery',
-                      'type':
-                          widget.types.isEmpty ? null : widget.types.join(','),
-                      'fields': searchFields.join(',')
-                    };
-                    Uri url = Uri.parse(
-                        '${widget.baseUrl}/place/findplacefromtext/json');
-                    url = url.replace(queryParameters: queryParameters);
-                    final response = await http.get(url);
-                    dynamic newData = HTTPRequest.response(response);
-                    final search = PlacesResponse.fromJson(newData);
-                    if (search.errorMessage != null) {
-                      throw search.errorMessage!;
+                  onChanged: (val) async {
+                    if (val.length < 2) {
+                      results = [];
+                      totalItems = 0;
+                      if (mounted) setState(() {});
+                      return;
                     }
-                    results = search.candidates;
-                    totalItems = results.length;
-                    if (mounted) setState(() {});
-                  } catch (error) {
-                    alert.show(AlertData(
-                      title: error.toString(),
-                      type: AlertType.warning,
-                      duration: 5,
-                      clear: true,
-                    ));
-                  }
-                },
+                    try {
+                      Map<String, dynamic>? queryParameters = {
+                        'key': widget.apiKey,
+                        'input': val,
+                        'inputtype': 'textquery',
+                        'type': widget.types.isEmpty
+                            ? null
+                            : widget.types.join(','),
+                        'fields': searchFields.join(','),
+                      };
+                      Uri url = Uri.parse(
+                        '${widget.baseUrl}/place/findplacefromtext/json',
+                      );
+                      url = url.replace(queryParameters: queryParameters);
+                      final response = await http.get(url);
+                      dynamic newData = HTTPRequest.response(response);
+                      final search = PlacesResponse.fromJson(newData);
+                      if (search.errorMessage != null) {
+                        throw search.errorMessage!;
+                      }
+                      results = search.candidates;
+                      totalItems = results.length;
+                      if (mounted) setState(() {});
+                    } catch (error) {
+                      alert.show(
+                        AlertData(
+                          title: error.toString(),
+                          type: AlertType.warning,
+                          duration: 5,
+                          clear: true,
+                        ),
+                      );
+                    }
+                  },
+                ),
               ),
             ),
-          ),
-        ]);
+          ]);
 
-        if (totalItems > 0) {
-          mapComponents.add(
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
-                child: Material(
-                  clipBehavior: Clip.hardEdge,
-                  color: theme.colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(8),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: width,
-                      minHeight: height / 3,
-                      maxHeight: height / 2,
-                    ),
-                    child: SingleChildScrollView(
-                      child: Flex(
-                        direction: Axis.vertical,
-                        mainAxisSize: MainAxisSize.min,
-                        children: List.generate(results.length, (index) {
-                          final item = results[index];
-                          String formattedAddress = item.formattedAddress;
-                          return Flex(
-                            direction: Axis.vertical,
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              ListTile(
-                                dense: true,
-                                leading: Icon(
-                                  Icons.location_on,
-                                  color: theme.colorScheme.secondary,
-                                ),
-                                title: Text(formattedAddress),
-                                trailing: Icon(
-                                  Icons.arrow_forward,
-                                  color: theme.colorScheme.primary,
-                                ),
-                                onTap: () {
-                                  selectLocation(item);
+          if (totalItems > 0) {
+            mapComponents.add(
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16.0),
+                  child: Material(
+                    clipBehavior: Clip.hardEdge,
+                    color: theme.colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(8),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: width,
+                        minHeight: height / 3,
+                        maxHeight: height / 2,
+                      ),
+                      child: SingleChildScrollView(
+                        child: Flex(
+                          direction: Axis.vertical,
+                          mainAxisSize: MainAxisSize.min,
+                          children: List.generate(results.length, (index) {
+                            final item = results[index];
+                            String formattedAddress = item.formattedAddress;
+                            return Flex(
+                              direction: Axis.vertical,
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                ListTile(
+                                  dense: true,
+                                  leading: Icon(
+                                    Icons.location_on,
+                                    color: theme.colorScheme.secondary,
+                                  ),
+                                  title: Text(formattedAddress),
+                                  trailing: Icon(
+                                    Icons.arrow_forward,
+                                    color: theme.colorScheme.primary,
+                                  ),
+                                  onTap: () {
+                                    selectLocation(item);
 
-                                  /// Close keyboard
-                                  FocusScope.of(context)
-                                      .requestFocus(FocusNode());
-                                },
-                              ),
-                              const Divider(height: 1),
-                            ],
-                          );
-                        }),
+                                    /// Close keyboard
+                                    FocusScope.of(
+                                      context,
+                                    ).requestFocus(FocusNode());
+                                  },
+                                ),
+                                const Divider(height: 1),
+                              ],
+                            );
+                          }),
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
+            );
+          }
+          Widget preview = GoogleMapsPreview(
+            latitude: latitude,
+            longitude: longitude,
+            mapType: widget.mapType,
+            aspectRatio: widget.aspectRatio,
+            minMaxZoomPreference: widget.minMaxZoomPreference,
+            zoom: widget.zoom,
+            name: name,
+            apiKey: widget.apiKey,
           );
-        }
-        Widget preview = GoogleMapsPreview(
-          latitude: latitude,
-          longitude: longitude,
-          mapType: widget.mapType,
-          aspectRatio: widget.aspectRatio,
-          minMaxZoomPreference: widget.minMaxZoomPreference,
-          zoom: widget.zoom,
-          name: name,
-          apiKey: widget.apiKey,
-        );
 
-        return Stack(
-          children: <Widget>[
-            preview,
-            Positioned(
-              top: 16,
-              right: 16,
-              left: 16,
-              bottom: 16,
-              child: Flex(
-                direction: Axis.vertical,
-                mainAxisSize: MainAxisSize.min,
-                children: mapComponents,
+          return Stack(
+            children: <Widget>[
+              preview,
+              Positioned(
+                top: 16,
+                right: 16,
+                left: 16,
+                bottom: 16,
+                child: Flex(
+                  direction: Axis.vertical,
+                  mainAxisSize: MainAxisSize.min,
+                  children: mapComponents,
+                ),
               ),
-            ),
-          ],
-        );
-      }),
+            ],
+          );
+        },
+      ),
     );
   }
 }

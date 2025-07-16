@@ -50,10 +50,11 @@ class Breadcrumbs extends StatelessWidget {
           iconButton = CircleAvatar(
             backgroundColor: Colors.grey.shade100,
             child: ClipOval(
-                child: SmartImage(
-              url: button.image,
-              format: AvailableOutputFormats.png,
-            )),
+              child: SmartImage(
+                url: button.image,
+                format: AvailableOutputFormats.png,
+              ),
+            ),
           );
         }
         items.add(

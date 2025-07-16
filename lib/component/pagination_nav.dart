@@ -42,10 +42,7 @@ class PaginationNav extends StatelessWidget {
     final textTheme = theme.textTheme;
     final limitOptions = List.generate(limits.length, (index) {
       final item = limits[index];
-      return ButtonOptions(
-        label: item.toString(),
-        value: item,
-      );
+      return ButtonOptions(label: item.toString(), value: item);
     });
     int defaultLimit = 10;
     if (limitOptions.where((element) => element.value == limit).isNotEmpty) {
@@ -62,10 +59,7 @@ class PaginationNav extends StatelessWidget {
             '${locales.get('label--page')}: $page',
             style: pageStyle?.copyWith(fontWeight: FontWeight.bold),
           ),
-          Text(
-            '/ $totalPages',
-            style: pageStyle,
-          ),
+          Text('/ $totalPages', style: pageStyle),
           space,
           SizedBox(
             width: 152,
@@ -85,10 +79,7 @@ class PaginationNav extends StatelessWidget {
           ),
         ];
         if (children.isNotEmpty) {
-          actions.addAll([
-            space,
-            ...children,
-          ]);
+          actions.addAll([space, ...children]);
         }
         if (mobileBreakpoint) {
           actions.add(const Spacer());

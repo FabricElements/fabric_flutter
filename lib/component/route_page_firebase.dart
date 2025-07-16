@@ -34,26 +34,31 @@ class _RoutePageNotificationsState extends BaseRoutePageState {
     alert.context = context;
 
     /// Assign notification callback
-    final stateNotifications =
-        Provider.of<StateNotifications>(context, listen: false);
+    final stateNotifications = Provider.of<StateNotifications>(
+      context,
+      listen: false,
+    );
     stateNotifications.callback = (NotificationData message) {
-      alert.show(AlertData(
-        duration: message.duration,
-        title: message.title,
-        body: message.body,
-        image: message.imageUrl,
-        typeString: message.type,
-        clear: message.clear,
-        action: (message.path != null)
-            ? ButtonOptions(
-                label: locales.get('label--open'),
-                onTap: () {
-                  Navigator.of(alert.context ?? context)
-                      .popAndPushNamed(message.path!);
-                },
-              )
-            : null,
-      ));
+      alert.show(
+        AlertData(
+          duration: message.duration,
+          title: message.title,
+          body: message.body,
+          image: message.imageUrl,
+          typeString: message.type,
+          clear: message.clear,
+          action: (message.path != null)
+              ? ButtonOptions(
+                  label: locales.get('label--open'),
+                  onTap: () {
+                    Navigator.of(
+                      alert.context ?? context,
+                    ).popAndPushNamed(message.path!);
+                  },
+                )
+              : null,
+        ),
+      );
     };
 
     /// Return the parent build method

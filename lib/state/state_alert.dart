@@ -25,11 +25,7 @@ enum AlertType {
 }
 
 /// AlertWidget are used to defined behavior and colors for the alerts
-enum AlertWidget {
-  snackBar,
-  banner,
-  dialog,
-}
+enum AlertWidget { snackBar, banner, dialog }
 
 /// Alert Data Object
 class AlertData {
@@ -121,10 +117,7 @@ class StateAlert implements Listenable {
 
   /// Dismiss action
   /// Dismiss current alert or all alerts with the same widget type
-  void dismissAlerts({
-    bool dismissAll = false,
-    required AlertWidget widget,
-  }) {
+  void dismissAlerts({bool dismissAll = false, required AlertWidget widget}) {
     if (context == null) return;
     switch (widget) {
       case AlertWidget.banner:
@@ -245,99 +238,106 @@ class StateAlert implements Listenable {
 
     /// Title
     if (alertData.title != null) {
-      onColumn.add(Container(
-        constraints: BoxConstraints(minWidth: 50, maxWidth: contentWidth),
-        margin: const EdgeInsets.only(bottom: 8),
-        child: RawMaterialButton(
-          onPressed: () {
-            Clipboard.setData(ClipboardData(text: alertData.title!));
-          },
-          child: Text(
-            alertData.title!,
-            style: alertData.titleStyle,
-            maxLines: 4,
-            overflow: TextOverflow.ellipsis,
-            softWrap: true,
+      onColumn.add(
+        Container(
+          constraints: BoxConstraints(minWidth: 50, maxWidth: contentWidth),
+          margin: const EdgeInsets.only(bottom: 8),
+          child: RawMaterialButton(
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: alertData.title!));
+            },
+            child: Text(
+              alertData.title!,
+              style: alertData.titleStyle,
+              maxLines: 4,
+              overflow: TextOverflow.ellipsis,
+              softWrap: true,
+            ),
           ),
         ),
-      ));
+      );
     }
     if (alertData.body != null) {
-      onColumn.add(Container(
-        constraints: BoxConstraints(minWidth: 50, maxWidth: contentWidth),
-        margin: const EdgeInsets.only(bottom: 8),
-        child: RawMaterialButton(
-          onPressed: () {
-            Clipboard.setData(ClipboardData(text: alertData.body!));
-          },
-          child: Text(
-            alertData.body!,
-            style: alertData.bodyStyle,
-            maxLines: 10,
-            overflow: TextOverflow.ellipsis,
-            softWrap: true,
+      onColumn.add(
+        Container(
+          constraints: BoxConstraints(minWidth: 50, maxWidth: contentWidth),
+          margin: const EdgeInsets.only(bottom: 8),
+          child: RawMaterialButton(
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: alertData.body!));
+            },
+            child: Text(
+              alertData.body!,
+              style: alertData.bodyStyle,
+              maxLines: 10,
+              overflow: TextOverflow.ellipsis,
+              softWrap: true,
+            ),
           ),
         ),
-      ));
+      );
     }
 
     /// Image
     if (alertData.icon != null) {
-      mainItems.add(Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        width: double.maxFinite,
-        height: 48,
-        color: alertData.color,
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: AspectRatio(
-            aspectRatio: 1 / 1,
-            child: CircleAvatar(
-              backgroundColor: buttonColor,
-              child: Icon(
-                alertData.icon,
-                color: buttonColorForeground,
+      mainItems.add(
+        Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          width: double.maxFinite,
+          height: 48,
+          color: alertData.color,
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: AspectRatio(
+              aspectRatio: 1 / 1,
+              child: CircleAvatar(
+                backgroundColor: buttonColor,
+                child: Icon(alertData.icon, color: buttonColorForeground),
               ),
             ),
           ),
         ),
-      ));
+      );
     }
 
     /// Image
     if (alertData.image != null) {
-      mainItems.add(Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        width: double.maxFinite,
-        height: 200,
-        constraints: const BoxConstraints(
-          minHeight: 50,
-          minWidth: 50,
-          maxHeight: 300,
-          maxWidth: double.maxFinite,
-        ),
-        color: alertData.color,
-        child: AspectRatio(
-          aspectRatio: 3 / 1,
-          child: SmartImage(
-            url: alertData.image!,
-            format: AvailableOutputFormats.jpeg,
+      mainItems.add(
+        Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          width: double.maxFinite,
+          height: 200,
+          constraints: const BoxConstraints(
+            minHeight: 50,
+            minWidth: 50,
+            maxHeight: 300,
+            maxWidth: double.maxFinite,
+          ),
+          color: alertData.color,
+          child: AspectRatio(
+            aspectRatio: 3 / 1,
+            child: SmartImage(
+              url: alertData.image!,
+              format: AvailableOutputFormats.jpeg,
+            ),
           ),
         ),
-      ));
+      );
     }
 
     /// Add child widget before actions
     if (alertData.child != null) {
-      onColumn.add(Container(
-        margin: const EdgeInsets.only(bottom: 16, top: 16),
-        constraints: BoxConstraints(
-          minHeight: 50,
-          maxHeight: 900,
-          maxWidth: contentWidth,
+      onColumn.add(
+        Container(
+          margin: const EdgeInsets.only(bottom: 16, top: 16),
+          constraints: BoxConstraints(
+            minHeight: 50,
+            maxHeight: 900,
+            maxWidth: contentWidth,
+          ),
+          child: alertData.child!,
         ),
-        child: alertData.child!,
-      ));
+      );
     }
 
     /// Actions
@@ -347,81 +347,86 @@ class StateAlert implements Listenable {
     bool hasAction = alertData.action!.onTap != null;
     bool showAction = hasAction || hasValidPath;
     bool hasDismissAction = alertData.dismiss!.onTap != null;
-    actions.add(PointerInterceptor(
-      child: TextButton.icon(
-        style: TextButton.styleFrom(
-          backgroundColor: theme.colorScheme.surface,
-          foregroundColor: theme.colorScheme.onSurface,
-          iconColor: theme.colorScheme.onSurface,
-        ),
-        icon: Icon(alertData.dismiss!.icon!),
-        label: Text(locales.get(alertData.dismiss!.label).toUpperCase()),
-        onPressed: () async {
-          try {
-            if (hasDismissAction) {
-              await alertData.dismiss!.onTap!();
-            }
-            dismissAlerts(widget: alertData.widget);
-          } catch (e) {
-            debugPrint(LogColor.error('Dismiss click: $e'));
-          }
-        },
-      ),
-    ));
-    if (showAction) {
-      actions.add(PointerInterceptor(
-        child: FilledButton.icon(
-          style: FilledButton.styleFrom(
-            iconColor: buttonColorForeground,
-            backgroundColor: buttonColor,
-            foregroundColor: buttonColorForeground,
+    actions.add(
+      PointerInterceptor(
+        child: TextButton.icon(
+          style: TextButton.styleFrom(
+            backgroundColor: theme.colorScheme.surface,
+            foregroundColor: theme.colorScheme.onSurface,
+            iconColor: theme.colorScheme.onSurface,
           ),
-          label: Text(locales.get(alertData.action!.label).toUpperCase()),
-          icon: Icon(alertData.action!.icon),
+          icon: Icon(alertData.dismiss!.icon!),
+          label: Text(locales.get(alertData.dismiss!.label).toUpperCase()),
           onPressed: () async {
             try {
-              if (hasAction) {
-                await alertData.action!.onTap!();
+              if (hasDismissAction) {
+                await alertData.dismiss!.onTap!();
               }
               dismissAlerts(widget: alertData.widget);
-              if (context!.mounted) {
-                if (hasValidPath) {
-                  final path = alertData.action!.path!;
-                  if (alertData.action!.queryParameters != null) {
-                    final uri = Uri(path: path);
-                    Utils.pushNamedFromQuery(
-                      context: context!,
-                      uri: uri,
-                      queryParameters: alertData.action!.queryParameters!,
-                    );
-                  } else {
-                    Navigator.of(context!).pushNamed(path);
-                  }
-                }
-              }
             } catch (e) {
-              debugPrint(LogColor.error('Action click: $e'));
+              debugPrint(LogColor.error('Dismiss click: $e'));
             }
           },
         ),
-      ));
+      ),
+    );
+    if (showAction) {
+      actions.add(
+        PointerInterceptor(
+          child: FilledButton.icon(
+            style: FilledButton.styleFrom(
+              iconColor: buttonColorForeground,
+              backgroundColor: buttonColor,
+              foregroundColor: buttonColorForeground,
+            ),
+            label: Text(locales.get(alertData.action!.label).toUpperCase()),
+            icon: Icon(alertData.action!.icon),
+            onPressed: () async {
+              try {
+                if (hasAction) {
+                  await alertData.action!.onTap!();
+                }
+                dismissAlerts(widget: alertData.widget);
+                if (context!.mounted) {
+                  if (hasValidPath) {
+                    final path = alertData.action!.path!;
+                    if (alertData.action!.queryParameters != null) {
+                      final uri = Uri(path: path);
+                      Utils.pushNamedFromQuery(
+                        context: context!,
+                        uri: uri,
+                        queryParameters: alertData.action!.queryParameters!,
+                      );
+                    } else {
+                      Navigator.of(context!).pushNamed(path);
+                    }
+                  }
+                }
+              } catch (e) {
+                debugPrint(LogColor.error('Action click: $e'));
+              }
+            },
+          ),
+        ),
+      );
     }
 
     if (showAction && alertData.widget == AlertWidget.snackBar) {
-      onColumn.add(Container(
-        margin: const EdgeInsets.only(top: 16),
-        child: Wrap(
-          spacing: 16,
-          children: actions,
+      onColumn.add(
+        Container(
+          margin: const EdgeInsets.only(top: 16),
+          child: Wrap(spacing: 16, children: actions),
         ),
-      ));
+      );
     }
-    mainItems.add(Flex(
-      direction: Axis.vertical,
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: onColumn,
-    ));
+    mainItems.add(
+      Flex(
+        direction: Axis.vertical,
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: onColumn,
+      ),
+    );
     Widget content = Container(
       padding: EdgeInsets.all(basePadding),
       color: alertData.color,

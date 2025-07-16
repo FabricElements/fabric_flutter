@@ -7,9 +7,9 @@ part of 'password_data.dart';
 // **************************************************************************
 
 PasswordData _$PasswordDataFromJson(Map<String, dynamic> json) => PasswordData(
-      currentPassword: json['currentPassword'] as String,
-      newPassword: json['newPassword'] as String,
-    );
+  currentPassword: json['currentPassword'] as String,
+  newPassword: json['newPassword'] as String,
+);
 
 Map<String, dynamic> _$PasswordDataToJson(PasswordData instance) =>
     <String, dynamic>{

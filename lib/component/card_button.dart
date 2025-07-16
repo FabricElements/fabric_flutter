@@ -90,7 +90,8 @@ class _CardButtonState extends State<CardButton> {
                           ? Text(
                               widget.headline!,
                               style: textTheme.titleMedium?.copyWith(
-                                  color: theme.colorScheme.onSurface),
+                                color: theme.colorScheme.onSurface,
+                              ),
                               overflow: TextOverflow.ellipsis,
                               softWrap: true,
                             )
@@ -101,7 +102,8 @@ class _CardButtonState extends State<CardButton> {
                               child: Text(
                                 widget.description!,
                                 style: textTheme.bodyMedium?.copyWith(
-                                    color: theme.colorScheme.onSurface),
+                                  color: theme.colorScheme.onSurface,
+                                ),
                                 softWrap: true,
                               ),
                             )

@@ -7,10 +7,7 @@ class PasswordData {
   String currentPassword;
   String newPassword;
 
-  PasswordData({
-    required this.currentPassword,
-    required this.newPassword,
-  });
+  PasswordData({required this.currentPassword, required this.newPassword});
 
   factory PasswordData.fromJson(Map<String, dynamic>? json) =>
       _$PasswordDataFromJson(json ?? {});

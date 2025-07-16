@@ -25,10 +25,7 @@ enum FilterOperator {
 }
 
 /// Filter Order
-enum FilterOrder {
-  asc,
-  desc,
-}
+enum FilterOrder { asc, desc }
 
 /// Filter Data
 @JsonSerializable(explicitToJson: true)
@@ -208,14 +205,11 @@ class FilterData {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> base = _$FilterDataToJson(this);
-    return {
-      ...base,
-      'value': _valueToJson(),
-    };
+    return {...base, 'value': _valueToJson()};
   }
 
   /// clear filter data
-  clear() {
+  void clear() {
     index = 0;
     operator = null;
     value = null;

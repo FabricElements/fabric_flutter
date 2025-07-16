@@ -102,9 +102,7 @@ class Utils {
   }) {
     final qp = mergeQueryParameters(uri.queryParametersAll, queryParameters);
     Uri baseUri = uri;
-    baseUri = baseUri.replace(
-      queryParameters: qp,
-    );
+    baseUri = baseUri.replace(queryParameters: qp);
     return baseUri;
   }
 
@@ -167,11 +165,12 @@ class Utils {
 
   static void setPageTitle(String title) {
     SystemChrome.setApplicationSwitcherDescription(
-        ApplicationSwitcherDescription(
-      label: title,
-      // primaryColor:
-      //     Theme.of(context).primaryColor.value, // This line is required
-    ));
+      ApplicationSwitcherDescription(
+        label: title,
+        // primaryColor:
+        //     Theme.of(context).primaryColor.value, // This line is required
+      ),
+    );
   }
 
   /// Redirects to [path] when the value is null or empty
@@ -220,16 +219,11 @@ class Utils {
     // Parameters to merge
     Map<String, List<String>> toReplace,
   ) {
-    Map<String, List<String>> qp = {
-      ...base,
-    };
+    Map<String, List<String>> qp = {...base};
     // Remove key and value if exist
     qp.removeWhere((key, value) => toReplace.containsKey(key));
     // Merge filters
-    qp = {
-      ...qp,
-      ...toReplace,
-    };
+    qp = {...qp, ...toReplace};
     // Remove empty values
     qp.removeWhere((key, value) {
       return value.isEmpty || (value.isNotEmpty && value.first.isEmpty);

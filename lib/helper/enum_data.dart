@@ -5,9 +5,7 @@ import 'log_color.dart';
 
 /// EnumData provides extended support for enums
 class EnumData {
-  const EnumData({
-    this.locales,
-  });
+  const EnumData({this.locales});
 
   final AppLocalizations? locales;
 
@@ -64,11 +62,7 @@ class EnumData {
     required dynamic value,
     dynamic unknown,
   }) {
-    final findMatch = match(
-      enums: enums,
-      value: value,
-      unknown: unknown,
-    );
+    final findMatch = match(enums: enums, value: value, unknown: unknown);
     if (findMatch == null) return null;
     return describe(findMatch);
   }
@@ -88,20 +82,13 @@ class EnumData {
     return null;
   }
 
-  static dynamic find({
-    required List<dynamic> enums,
-    required dynamic value,
-  }) {
+  static dynamic find({required List<dynamic> enums, required dynamic value}) {
     if (value == null) return null;
     dynamic finalValue;
     String? error;
     try {
       /// Find from enum
-      finalValue = match(
-        enums: enums,
-        value: value,
-        unknown: null,
-      );
+      finalValue = match(enums: enums, value: value, unknown: null);
     } catch (e) {
       error = '!!!! Find from enum: $e';
     }

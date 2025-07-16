@@ -7,52 +7,56 @@ part of 'place_data.dart';
 // **************************************************************************
 
 Location _$LocationFromJson(Map<String, dynamic> json) => Location(
-      lat: (json['lat'] as num).toDouble(),
-      lng: (json['lng'] as num).toDouble(),
-    );
+  lat: (json['lat'] as num).toDouble(),
+  lng: (json['lng'] as num).toDouble(),
+);
 
 Map<String, dynamic> _$LocationToJson(Location instance) => <String, dynamic>{
-      'lat': instance.lat,
-      'lng': instance.lng,
-    };
+  'lat': instance.lat,
+  'lng': instance.lng,
+};
 
 Geometry _$GeometryFromJson(Map<String, dynamic> json) => Geometry(
-      location: Location.fromJson(json['location'] as Map<String, dynamic>),
-      locationType: json['location_type'] as String?,
-      viewport: json['viewport'] == null
+  location: Location.fromJson(json['location'] as Map<String, dynamic>),
+  locationType: json['location_type'] as String?,
+  viewport:
+      json['viewport'] == null
           ? null
           : Bounds.fromJson(json['viewport'] as Map<String, dynamic>),
-      bounds: json['bounds'] == null
+  bounds:
+      json['bounds'] == null
           ? null
           : Bounds.fromJson(json['bounds'] as Map<String, dynamic>),
-    );
+);
 
 Map<String, dynamic> _$GeometryToJson(Geometry instance) => <String, dynamic>{
-      'location': instance.location.toJson(),
-      'location_type': instance.locationType,
-      'viewport': instance.viewport?.toJson(),
-      'bounds': instance.bounds?.toJson(),
-    };
+  'location': instance.location.toJson(),
+  'location_type': instance.locationType,
+  'viewport': instance.viewport?.toJson(),
+  'bounds': instance.bounds?.toJson(),
+};
 
 Bounds _$BoundsFromJson(Map<String, dynamic> json) => Bounds(
-      northeast: Location.fromJson(json['northeast'] as Map<String, dynamic>),
-      southwest: Location.fromJson(json['southwest'] as Map<String, dynamic>),
-    );
+  northeast: Location.fromJson(json['northeast'] as Map<String, dynamic>),
+  southwest: Location.fromJson(json['southwest'] as Map<String, dynamic>),
+);
 
 Map<String, dynamic> _$BoundsToJson(Bounds instance) => <String, dynamic>{
-      'northeast': instance.northeast.toJson(),
-      'southwest': instance.southwest.toJson(),
-    };
+  'northeast': instance.northeast.toJson(),
+  'southwest': instance.southwest.toJson(),
+};
 
 PlacesResponse _$PlacesResponseFromJson(Map<String, dynamic> json) =>
     PlacesResponse(
       status: json['status'] as String,
       errorMessage: json['error_message'] as String?,
-      candidates: (json['candidates'] as List<dynamic>?)
+      candidates:
+          (json['candidates'] as List<dynamic>?)
               ?.map((e) => Place.fromJson(e as Map<String, dynamic>?))
               .toList() ??
           const [],
-      htmlAttributions: (json['html_attributions'] as List<dynamic>?)
+      htmlAttributions:
+          (json['html_attributions'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           const [],
@@ -71,10 +75,12 @@ Map<String, dynamic> _$PlacesResponseToJson(PlacesResponse instance) =>
 PlaceResponse _$PlaceResponseFromJson(Map<String, dynamic> json) =>
     PlaceResponse(
       errorMessage: json['error_message'] as String?,
-      result: json['result'] == null
-          ? null
-          : Place.fromJson(json['result'] as Map<String, dynamic>?),
-      htmlAttributions: (json['html_attributions'] as List<dynamic>?)
+      result:
+          json['result'] == null
+              ? null
+              : Place.fromJson(json['result'] as Map<String, dynamic>?),
+      htmlAttributions:
+          (json['html_attributions'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           const [],
@@ -88,24 +94,27 @@ Map<String, dynamic> _$PlaceResponseToJson(PlaceResponse instance) =>
     };
 
 PlusCode _$PlusCodeFromJson(Map<String, dynamic> json) => PlusCode(
-      globalCode: json['global_code'] as String,
-      compoundCode: json['compound_code'] as String?,
-    );
+  globalCode: json['global_code'] as String,
+  compoundCode: json['compound_code'] as String?,
+);
 
 Map<String, dynamic> _$PlusCodeToJson(PlusCode instance) => <String, dynamic>{
-      'global_code': instance.globalCode,
-      'compound_code': instance.compoundCode,
-    };
+  'global_code': instance.globalCode,
+  'compound_code': instance.compoundCode,
+};
 
 OpeningHoursDetail _$OpeningHoursDetailFromJson(Map<String, dynamic> json) =>
     OpeningHoursDetail(
       openNow: json['openNow'] as bool? ?? false,
-      periods: (json['periods'] as List<dynamic>?)
+      periods:
+          (json['periods'] as List<dynamic>?)
               ?.map(
-                  (e) => OpeningHoursPeriod.fromJson(e as Map<String, dynamic>))
+                (e) => OpeningHoursPeriod.fromJson(e as Map<String, dynamic>),
+              )
               .toList() ??
           const <OpeningHoursPeriod>[],
-      weekdayText: (json['weekdayText'] as List<dynamic>?)
+      weekdayText:
+          (json['weekdayText'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           const <String>[],
@@ -119,29 +128,30 @@ Map<String, dynamic> _$OpeningHoursDetailToJson(OpeningHoursDetail instance) =>
     };
 
 OpeningHoursPeriodDate _$OpeningHoursPeriodDateFromJson(
-        Map<String, dynamic> json) =>
-    OpeningHoursPeriodDate(
-      day: (json['day'] as num).toInt(),
-      time: json['time'] as String,
-    );
+  Map<String, dynamic> json,
+) => OpeningHoursPeriodDate(
+  day: (json['day'] as num).toInt(),
+  time: json['time'] as String,
+);
 
 Map<String, dynamic> _$OpeningHoursPeriodDateToJson(
-        OpeningHoursPeriodDate instance) =>
-    <String, dynamic>{
-      'day': instance.day,
-      'time': instance.time,
-    };
+  OpeningHoursPeriodDate instance,
+) => <String, dynamic>{'day': instance.day, 'time': instance.time};
 
 OpeningHoursPeriod _$OpeningHoursPeriodFromJson(Map<String, dynamic> json) =>
     OpeningHoursPeriod(
-      open: json['open'] == null
-          ? null
-          : OpeningHoursPeriodDate.fromJson(
-              json['open'] as Map<String, dynamic>),
-      close: json['close'] == null
-          ? null
-          : OpeningHoursPeriodDate.fromJson(
-              json['close'] as Map<String, dynamic>),
+      open:
+          json['open'] == null
+              ? null
+              : OpeningHoursPeriodDate.fromJson(
+                json['open'] as Map<String, dynamic>,
+              ),
+      close:
+          json['close'] == null
+              ? null
+              : OpeningHoursPeriodDate.fromJson(
+                json['close'] as Map<String, dynamic>,
+              ),
     );
 
 Map<String, dynamic> _$OpeningHoursPeriodToJson(OpeningHoursPeriod instance) =>
@@ -151,21 +161,22 @@ Map<String, dynamic> _$OpeningHoursPeriodToJson(OpeningHoursPeriod instance) =>
     };
 
 Photo _$PhotoFromJson(Map<String, dynamic> json) => Photo(
-      photoReference: json['photo_reference'] as String,
-      height: json['height'] as num,
-      width: json['width'] as num,
-      htmlAttributions: (json['html_attributions'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList() ??
-          const <String>[],
-    );
+  photoReference: json['photo_reference'] as String,
+  height: json['height'] as num,
+  width: json['width'] as num,
+  htmlAttributions:
+      (json['html_attributions'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const <String>[],
+);
 
 Map<String, dynamic> _$PhotoToJson(Photo instance) => <String, dynamic>{
-      'photo_reference': instance.photoReference,
-      'height': instance.height,
-      'width': instance.width,
-      'html_attributions': instance.htmlAttributions,
-    };
+  'photo_reference': instance.photoReference,
+  'height': instance.height,
+  'width': instance.width,
+  'html_attributions': instance.htmlAttributions,
+};
 
 AlternativeId _$AlternativeIdFromJson(Map<String, dynamic> json) =>
     AlternativeId(
@@ -174,16 +185,13 @@ AlternativeId _$AlternativeIdFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$AlternativeIdToJson(AlternativeId instance) =>
-    <String, dynamic>{
-      'place_id': instance.placeId,
-      'scope': instance.scope,
-    };
+    <String, dynamic>{'place_id': instance.placeId, 'scope': instance.scope};
 
 AddressComponent _$AddressComponentFromJson(Map<String, dynamic> json) =>
     AddressComponent(
       types:
           (json['types'] as List<dynamic>?)?.map((e) => e as String).toList() ??
-              [],
+          [],
       longName: json['long_name'] as String,
       shortName: json['short_name'] as String,
     );
@@ -196,58 +204,65 @@ Map<String, dynamic> _$AddressComponentToJson(AddressComponent instance) =>
     };
 
 Place _$PlaceFromJson(Map<String, dynamic> json) => Place(
-      addressComponents: (json['address_components'] as List<dynamic>?)
+  addressComponents:
+      (json['address_components'] as List<dynamic>?)
           ?.map((e) => AddressComponent.fromJson(e as Map<String, dynamic>))
           .toList(),
-      icon: json['icon'] as String?,
-      geometry: json['geometry'] == null
+  icon: json['icon'] as String?,
+  geometry:
+      json['geometry'] == null
           ? null
           : Geometry.fromJson(json['geometry'] as Map<String, dynamic>),
-      openingHours: json['opening_hours'] == null
+  openingHours:
+      json['opening_hours'] == null
           ? null
           : OpeningHoursDetail.fromJson(
-              json['opening_hours'] as Map<String, dynamic>),
-      photos: (json['photos'] as List<dynamic>?)
-              ?.map((e) => Photo.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          const [],
-      scope: json['scope'] as String?,
-      altIds: (json['alt_ids'] as List<dynamic>?)
-              ?.map((e) => AlternativeId.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          const [],
-      priceLevel: (json['price_level'] as num?)?.toInt(),
-      rating: json['rating'] as num?,
-      types:
-          (json['types'] as List<dynamic>?)?.map((e) => e as String).toList() ??
-              const [],
-      vicinity: json['vicinity'] as String?,
-      formattedAddress: json['formatted_address'] as String,
-      plusCode: json['plus_code'] == null
+            json['opening_hours'] as Map<String, dynamic>,
+          ),
+  photos:
+      (json['photos'] as List<dynamic>?)
+          ?.map((e) => Photo.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
+  scope: json['scope'] as String?,
+  altIds:
+      (json['alt_ids'] as List<dynamic>?)
+          ?.map((e) => AlternativeId.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
+  priceLevel: (json['price_level'] as num?)?.toInt(),
+  rating: json['rating'] as num?,
+  types:
+      (json['types'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+      const [],
+  vicinity: json['vicinity'] as String?,
+  formattedAddress: json['formatted_address'] as String,
+  plusCode:
+      json['plus_code'] == null
           ? null
           : PlusCode.fromJson(json['plus_code'] as Map<String, dynamic>?),
-      utcOffset: (json['utc_offset'] as num?)?.toInt(),
-      name: json['name'] as String,
-      placeId: json['place_id'] as String,
-    );
+  utcOffset: (json['utc_offset'] as num?)?.toInt(),
+  name: json['name'] as String,
+  placeId: json['place_id'] as String,
+);
 
 Map<String, dynamic> _$PlaceToJson(Place instance) => <String, dynamic>{
-      'plus_code': instance.plusCode?.toJson(),
-      'place_id': instance.placeId,
-      'icon': instance.icon,
-      'geometry': instance.geometry?.toJson(),
-      'name': instance.name,
-      'opening_hours': instance.openingHours?.toJson(),
-      'photos': instance.photos.map((e) => e.toJson()).toList(),
-      'scope': instance.scope,
-      'alt_ids': instance.altIds.map((e) => e.toJson()).toList(),
-      'price_level': instance.priceLevel,
-      'rating': instance.rating,
-      'types': instance.types,
-      'vicinity': instance.vicinity,
-      'formatted_address': instance.formattedAddress,
-      'utc_offset': instance.utcOffset,
-      if (instance.addressComponents?.map((e) => e.toJson()).toList()
-          case final value?)
-        'address_components': value,
-    };
+  'plus_code': instance.plusCode?.toJson(),
+  'place_id': instance.placeId,
+  'icon': instance.icon,
+  'geometry': instance.geometry?.toJson(),
+  'name': instance.name,
+  'opening_hours': instance.openingHours?.toJson(),
+  'photos': instance.photos.map((e) => e.toJson()).toList(),
+  'scope': instance.scope,
+  'alt_ids': instance.altIds.map((e) => e.toJson()).toList(),
+  'price_level': instance.priceLevel,
+  'rating': instance.rating,
+  'types': instance.types,
+  'vicinity': instance.vicinity,
+  'formatted_address': instance.formattedAddress,
+  'utc_offset': instance.utcOffset,
+  if (instance.addressComponents?.map((e) => e.toJson()).toList()
+      case final value?)
+    'address_components': value,
+};

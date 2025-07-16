@@ -58,11 +58,7 @@ class RouteHelper {
         endViewSigned0 = routeMap[endUnknownRoute];
       }
       endSignedIn.addAll({
-        key: Scaffold(
-          key: ValueKey(key),
-          primary: false,
-          body: endViewSigned0,
-        ),
+        key: Scaffold(key: ValueKey(key), primary: false, body: endViewSigned0),
       });
     });
 
@@ -79,11 +75,7 @@ class RouteHelper {
         endViewSigned = routeMap[endAuthRoute];
       }
       endPublic.addAll({
-        key: Scaffold(
-          key: ValueKey(key),
-          primary: false,
-          body: endViewSigned,
-        ),
+        key: Scaffold(key: ValueKey(key), primary: false, body: endViewSigned),
       });
     });
     return signed ? endSignedIn : endPublic;

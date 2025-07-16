@@ -18,7 +18,7 @@ class ISOCountries {
       'subRegionCode': '034',
       'eea': false,
       'callingCode': '93',
-      'currencySymbol': '؋'
+      'currencySymbol': '؋',
     },
     {
       'capital': 'Tirana',
@@ -35,7 +35,7 @@ class ISOCountries {
       'subRegionCode': '039',
       'eea': false,
       'callingCode': '355',
-      'currencySymbol': 'Lek'
+      'currencySymbol': 'Lek',
     },
     {
       'capital': 'Antartica',
@@ -52,7 +52,7 @@ class ISOCountries {
       'subRegionCode': '',
       'eea': false,
       'callingCode': '672',
-      'currencySymbol': ''
+      'currencySymbol': '',
     },
     {
       'capital': 'Algiers',
@@ -69,7 +69,7 @@ class ISOCountries {
       'subRegionCode': '015',
       'eea': false,
       'callingCode': '213',
-      'currencySymbol': 'DZD'
+      'currencySymbol': 'DZD',
     },
     {
       'capital': 'Washington DC',
@@ -86,7 +86,7 @@ class ISOCountries {
       'subRegionCode': '021',
       'eea': false,
       'callingCode': '1',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Pago Pago',
@@ -103,7 +103,7 @@ class ISOCountries {
       'subRegionCode': '061',
       'eea': false,
       'callingCode': '1',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Andorra la Vella',
@@ -120,7 +120,7 @@ class ISOCountries {
       'subRegionCode': '039',
       'eea': false,
       'callingCode': '376',
-      'currencySymbol': '€'
+      'currencySymbol': '€',
     },
     {
       'capital': 'Luanda',
@@ -137,7 +137,7 @@ class ISOCountries {
       'subRegionCode': '017',
       'eea': false,
       'callingCode': '244',
-      'currencySymbol': 'Kz'
+      'currencySymbol': 'Kz',
     },
     {
       'capital': 'St John’s',
@@ -154,7 +154,7 @@ class ISOCountries {
       'subRegionCode': '029',
       'eea': false,
       'callingCode': '1',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Baku',
@@ -171,7 +171,7 @@ class ISOCountries {
       'subRegionCode': '145',
       'eea': false,
       'callingCode': '994',
-      'currencySymbol': 'ман'
+      'currencySymbol': 'ман',
     },
     {
       'capital': 'Buenos Aires',
@@ -188,7 +188,7 @@ class ISOCountries {
       'subRegionCode': '005',
       'eea': false,
       'callingCode': '54',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Canberra',
@@ -205,7 +205,7 @@ class ISOCountries {
       'subRegionCode': '053',
       'eea': false,
       'callingCode': '61',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Vienna',
@@ -222,7 +222,7 @@ class ISOCountries {
       'subRegionCode': '155',
       'eea': true,
       'callingCode': '43',
-      'currencySymbol': '€'
+      'currencySymbol': '€',
     },
     {
       'capital': 'Nassau',
@@ -239,7 +239,7 @@ class ISOCountries {
       'subRegionCode': '029',
       'eea': false,
       'callingCode': '1',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Manama',
@@ -256,7 +256,7 @@ class ISOCountries {
       'subRegionCode': '145',
       'eea': false,
       'callingCode': '973',
-      'currencySymbol': 'BHD'
+      'currencySymbol': 'BHD',
     },
     {
       'capital': 'Dhaka',
@@ -273,7 +273,7 @@ class ISOCountries {
       'subRegionCode': '034',
       'eea': false,
       'callingCode': '880',
-      'currencySymbol': 'BDT'
+      'currencySymbol': 'BDT',
     },
     {
       'capital': 'Yerevan',
@@ -290,7 +290,7 @@ class ISOCountries {
       'subRegionCode': '145',
       'eea': false,
       'callingCode': '374',
-      'currencySymbol': 'AMD'
+      'currencySymbol': 'AMD',
     },
     {
       'capital': 'Bridgetown',
@@ -307,7 +307,7 @@ class ISOCountries {
       'subRegionCode': '029',
       'eea': false,
       'callingCode': '1',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Brussels',
@@ -324,7 +324,7 @@ class ISOCountries {
       'subRegionCode': '155',
       'eea': true,
       'callingCode': '32',
-      'currencySymbol': '€'
+      'currencySymbol': '€',
     },
     {
       'capital': 'Hamilton',
@@ -341,7 +341,7 @@ class ISOCountries {
       'subRegionCode': '021',
       'eea': false,
       'callingCode': '1',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Thimphu',
@@ -358,7 +358,7 @@ class ISOCountries {
       'subRegionCode': '034',
       'eea': false,
       'callingCode': '975',
-      'currencySymbol': 'BTN'
+      'currencySymbol': 'BTN',
     },
     {
       'capital': 'Sucre (BO1)',
@@ -375,7 +375,7 @@ class ISOCountries {
       'subRegionCode': '005',
       'eea': false,
       'callingCode': '591',
-      'currencySymbol': '\$b'
+      'currencySymbol': '\$b',
     },
     {
       'capital': 'Sarajevo',
@@ -392,7 +392,7 @@ class ISOCountries {
       'subRegionCode': '039',
       'eea': false,
       'callingCode': '387',
-      'currencySymbol': 'KM'
+      'currencySymbol': 'KM',
     },
     {
       'capital': 'Gaborone',
@@ -409,7 +409,7 @@ class ISOCountries {
       'subRegionCode': '018',
       'eea': false,
       'callingCode': '267',
-      'currencySymbol': 'P'
+      'currencySymbol': 'P',
     },
     {
       'capital': 'Bouvet island',
@@ -426,7 +426,7 @@ class ISOCountries {
       'subRegionCode': '',
       'eea': false,
       'callingCode': '47',
-      'currencySymbol': 'kr'
+      'currencySymbol': 'kr',
     },
     {
       'capital': 'Brasilia',
@@ -443,7 +443,7 @@ class ISOCountries {
       'subRegionCode': '005',
       'eea': false,
       'callingCode': '55',
-      'currencySymbol': 'R\$'
+      'currencySymbol': 'R\$',
     },
     {
       'capital': 'Belmopan',
@@ -460,7 +460,7 @@ class ISOCountries {
       'subRegionCode': '013',
       'eea': false,
       'callingCode': '501',
-      'currencySymbol': 'BZ\$'
+      'currencySymbol': 'BZ\$',
     },
     {
       'capital': 'Diego Garcia',
@@ -477,7 +477,7 @@ class ISOCountries {
       'subRegionCode': '',
       'eea': false,
       'callingCode': '246',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Honiara',
@@ -494,7 +494,7 @@ class ISOCountries {
       'subRegionCode': '054',
       'eea': false,
       'callingCode': '677',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Road Town',
@@ -511,7 +511,7 @@ class ISOCountries {
       'subRegionCode': '029',
       'eea': false,
       'callingCode': '1',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Bandar Seri Begawan',
@@ -528,7 +528,7 @@ class ISOCountries {
       'subRegionCode': '035',
       'eea': false,
       'callingCode': '673',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Sofia',
@@ -545,7 +545,7 @@ class ISOCountries {
       'subRegionCode': '151',
       'eea': true,
       'callingCode': '359',
-      'currencySymbol': 'лв'
+      'currencySymbol': 'лв',
     },
     {
       'capital': 'Yangon',
@@ -562,7 +562,7 @@ class ISOCountries {
       'subRegionCode': '035',
       'eea': false,
       'callingCode': '95',
-      'currencySymbol': 'K'
+      'currencySymbol': 'K',
     },
     {
       'capital': 'Bujumbura',
@@ -579,7 +579,7 @@ class ISOCountries {
       'subRegionCode': '014',
       'eea': false,
       'callingCode': '257',
-      'currencySymbol': 'BIF'
+      'currencySymbol': 'BIF',
     },
     {
       'capital': 'Minsk',
@@ -596,7 +596,7 @@ class ISOCountries {
       'subRegionCode': '151',
       'eea': false,
       'callingCode': '375',
-      'currencySymbol': 'p.'
+      'currencySymbol': 'p.',
     },
     {
       'capital': 'Phnom Penh',
@@ -613,7 +613,7 @@ class ISOCountries {
       'subRegionCode': '035',
       'eea': false,
       'callingCode': '855',
-      'currencySymbol': '៛'
+      'currencySymbol': '៛',
     },
     {
       'capital': 'Yaoundé',
@@ -630,7 +630,7 @@ class ISOCountries {
       'subRegionCode': '017',
       'eea': false,
       'callingCode': '237',
-      'currencySymbol': 'FCF'
+      'currencySymbol': 'FCF',
     },
     {
       'capital': 'Ottawa',
@@ -647,7 +647,7 @@ class ISOCountries {
       'subRegionCode': '021',
       'eea': false,
       'callingCode': '1',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Praia',
@@ -664,7 +664,7 @@ class ISOCountries {
       'subRegionCode': '011',
       'eea': false,
       'callingCode': '238',
-      'currencySymbol': 'CVE'
+      'currencySymbol': 'CVE',
     },
     {
       'capital': 'George Town',
@@ -681,7 +681,7 @@ class ISOCountries {
       'subRegionCode': '029',
       'eea': false,
       'callingCode': '1',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Bangui',
@@ -698,7 +698,7 @@ class ISOCountries {
       'subRegionCode': '017',
       'eea': false,
       'callingCode': '236',
-      'currencySymbol': 'FCF'
+      'currencySymbol': 'FCF',
     },
     {
       'capital': 'Colombo',
@@ -715,7 +715,7 @@ class ISOCountries {
       'subRegionCode': '034',
       'eea': false,
       'callingCode': '94',
-      'currencySymbol': '₨'
+      'currencySymbol': '₨',
     },
     {
       'capital': 'N’Djamena',
@@ -732,7 +732,7 @@ class ISOCountries {
       'subRegionCode': '017',
       'eea': false,
       'callingCode': '235',
-      'currencySymbol': 'XAF'
+      'currencySymbol': 'XAF',
     },
     {
       'capital': 'Santiago',
@@ -749,7 +749,7 @@ class ISOCountries {
       'subRegionCode': '005',
       'eea': false,
       'callingCode': '56',
-      'currencySymbol': 'CLP'
+      'currencySymbol': 'CLP',
     },
     {
       'capital': 'Beijing',
@@ -766,7 +766,7 @@ class ISOCountries {
       'subRegionCode': '030',
       'eea': false,
       'callingCode': '86',
-      'currencySymbol': '¥'
+      'currencySymbol': '¥',
     },
     {
       'capital': 'Taipei',
@@ -783,7 +783,7 @@ class ISOCountries {
       'subRegionCode': '030',
       'eea': false,
       'callingCode': '886',
-      'currencySymbol': 'NT\$'
+      'currencySymbol': 'NT\$',
     },
     {
       'capital': 'Flying Fish Cove',
@@ -800,7 +800,7 @@ class ISOCountries {
       'subRegionCode': '',
       'eea': false,
       'callingCode': '61',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Bantam',
@@ -817,7 +817,7 @@ class ISOCountries {
       'subRegionCode': '',
       'eea': false,
       'callingCode': '61',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Santa Fe de Bogotá',
@@ -834,7 +834,7 @@ class ISOCountries {
       'subRegionCode': '005',
       'eea': false,
       'callingCode': '57',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Moroni',
@@ -851,7 +851,7 @@ class ISOCountries {
       'subRegionCode': '014',
       'eea': false,
       'callingCode': '269',
-      'currencySymbol': 'KMF'
+      'currencySymbol': 'KMF',
     },
     {
       'capital': 'Mamoudzou',
@@ -868,7 +868,7 @@ class ISOCountries {
       'subRegionCode': '014',
       'eea': false,
       'callingCode': '262',
-      'currencySymbol': '€'
+      'currencySymbol': '€',
     },
     {
       'capital': 'Brazzaville',
@@ -885,7 +885,7 @@ class ISOCountries {
       'subRegionCode': '017',
       'eea': false,
       'callingCode': '242',
-      'currencySymbol': 'FCF'
+      'currencySymbol': 'FCF',
     },
     {
       'capital': 'Kinshasa',
@@ -902,7 +902,7 @@ class ISOCountries {
       'subRegionCode': '017',
       'eea': false,
       'callingCode': '243',
-      'currencySymbol': 'CDF'
+      'currencySymbol': 'CDF',
     },
     {
       'capital': 'Avarua',
@@ -919,7 +919,7 @@ class ISOCountries {
       'subRegionCode': '061',
       'eea': false,
       'callingCode': '682',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'San José',
@@ -936,7 +936,7 @@ class ISOCountries {
       'subRegionCode': '013',
       'eea': false,
       'callingCode': '506',
-      'currencySymbol': '₡'
+      'currencySymbol': '₡',
     },
     {
       'capital': 'Zagreb',
@@ -953,7 +953,7 @@ class ISOCountries {
       'subRegionCode': '039',
       'eea': true,
       'callingCode': '385',
-      'currencySymbol': 'kn'
+      'currencySymbol': 'kn',
     },
     {
       'capital': 'Havana',
@@ -970,7 +970,7 @@ class ISOCountries {
       'subRegionCode': '029',
       'eea': false,
       'callingCode': '53',
-      'currencySymbol': '₱'
+      'currencySymbol': '₱',
     },
     {
       'capital': 'Nicosia',
@@ -987,7 +987,7 @@ class ISOCountries {
       'subRegionCode': '145',
       'eea': true,
       'callingCode': '357',
-      'currencySymbol': 'CYP'
+      'currencySymbol': 'CYP',
     },
     {
       'capital': 'Prague',
@@ -1004,7 +1004,7 @@ class ISOCountries {
       'subRegionCode': '151',
       'eea': true,
       'callingCode': '420',
-      'currencySymbol': 'Kč'
+      'currencySymbol': 'Kč',
     },
     {
       'capital': 'Porto Novo (BJ1)',
@@ -1021,7 +1021,7 @@ class ISOCountries {
       'subRegionCode': '011',
       'eea': false,
       'callingCode': '229',
-      'currencySymbol': 'XOF'
+      'currencySymbol': 'XOF',
     },
     {
       'capital': 'Copenhagen',
@@ -1038,7 +1038,7 @@ class ISOCountries {
       'subRegionCode': '154',
       'eea': true,
       'callingCode': '45',
-      'currencySymbol': 'kr'
+      'currencySymbol': 'kr',
     },
     {
       'capital': 'Roseau',
@@ -1055,7 +1055,7 @@ class ISOCountries {
       'subRegionCode': '029',
       'eea': false,
       'callingCode': '1',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Santo Domingo',
@@ -1072,7 +1072,7 @@ class ISOCountries {
       'subRegionCode': '029',
       'eea': false,
       'callingCode': '1',
-      'currencySymbol': 'RD\$'
+      'currencySymbol': 'RD\$',
     },
     {
       'capital': 'Quito',
@@ -1089,7 +1089,7 @@ class ISOCountries {
       'subRegionCode': '005',
       'eea': false,
       'callingCode': '593',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'San Salvador',
@@ -1106,7 +1106,7 @@ class ISOCountries {
       'subRegionCode': '013',
       'eea': false,
       'callingCode': '503',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Malabo',
@@ -1123,7 +1123,7 @@ class ISOCountries {
       'subRegionCode': '017',
       'eea': false,
       'callingCode': '240',
-      'currencySymbol': 'FCF'
+      'currencySymbol': 'FCF',
     },
     {
       'capital': 'Addis Ababa',
@@ -1140,7 +1140,7 @@ class ISOCountries {
       'subRegionCode': '014',
       'eea': false,
       'callingCode': '251',
-      'currencySymbol': 'ETB'
+      'currencySymbol': 'ETB',
     },
     {
       'capital': 'Asmara',
@@ -1157,7 +1157,7 @@ class ISOCountries {
       'subRegionCode': '014',
       'eea': false,
       'callingCode': '291',
-      'currencySymbol': 'Nfk'
+      'currencySymbol': 'Nfk',
     },
     {
       'capital': 'Tallinn',
@@ -1174,7 +1174,7 @@ class ISOCountries {
       'subRegionCode': '154',
       'eea': true,
       'callingCode': '372',
-      'currencySymbol': 'kr'
+      'currencySymbol': 'kr',
     },
     {
       'capital': 'Tórshavn',
@@ -1191,7 +1191,7 @@ class ISOCountries {
       'subRegionCode': '154',
       'eea': false,
       'callingCode': '298',
-      'currencySymbol': 'kr'
+      'currencySymbol': 'kr',
     },
     {
       'capital': 'Stanley',
@@ -1208,7 +1208,7 @@ class ISOCountries {
       'subRegionCode': '005',
       'eea': false,
       'callingCode': '500',
-      'currencySymbol': '£'
+      'currencySymbol': '£',
     },
     {
       'capital': 'King Edward Point (Grytviken)',
@@ -1225,7 +1225,7 @@ class ISOCountries {
       'subRegionCode': '',
       'eea': false,
       'callingCode': '44',
-      'currencySymbol': '£'
+      'currencySymbol': '£',
     },
     {
       'capital': 'Suva',
@@ -1242,7 +1242,7 @@ class ISOCountries {
       'subRegionCode': '054',
       'eea': false,
       'callingCode': '679',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Helsinki',
@@ -1259,7 +1259,7 @@ class ISOCountries {
       'subRegionCode': '154',
       'eea': true,
       'callingCode': '358',
-      'currencySymbol': '€'
+      'currencySymbol': '€',
     },
     {
       'capital': 'Mariehamn',
@@ -1275,7 +1275,7 @@ class ISOCountries {
       'regionCode': '150',
       'subRegionCode': '154',
       'eea': false,
-      'callingCode': '358'
+      'callingCode': '358',
     },
     {
       'capital': 'Paris',
@@ -1292,7 +1292,7 @@ class ISOCountries {
       'subRegionCode': '155',
       'eea': true,
       'callingCode': '33',
-      'currencySymbol': '€'
+      'currencySymbol': '€',
     },
     {
       'capital': 'Cayenne',
@@ -1309,7 +1309,7 @@ class ISOCountries {
       'subRegionCode': '005',
       'eea': false,
       'callingCode': '594',
-      'currencySymbol': '€'
+      'currencySymbol': '€',
     },
     {
       'capital': 'Papeete',
@@ -1326,7 +1326,7 @@ class ISOCountries {
       'subRegionCode': '061',
       'eea': false,
       'callingCode': '689',
-      'currencySymbol': 'XPF'
+      'currencySymbol': 'XPF',
     },
     {
       'capital': 'Port_aux_Francais',
@@ -1343,7 +1343,7 @@ class ISOCountries {
       'subRegionCode': '',
       'eea': false,
       'callingCode': '33',
-      'currencySymbol': '€'
+      'currencySymbol': '€',
     },
     {
       'capital': 'Djibouti',
@@ -1360,7 +1360,7 @@ class ISOCountries {
       'subRegionCode': '014',
       'eea': false,
       'callingCode': '253',
-      'currencySymbol': 'DJF'
+      'currencySymbol': 'DJF',
     },
     {
       'capital': 'Libreville',
@@ -1377,7 +1377,7 @@ class ISOCountries {
       'subRegionCode': '017',
       'eea': false,
       'callingCode': '241',
-      'currencySymbol': 'FCF'
+      'currencySymbol': 'FCF',
     },
     {
       'capital': 'Tbilisi',
@@ -1394,7 +1394,7 @@ class ISOCountries {
       'subRegionCode': '145',
       'eea': false,
       'callingCode': '995',
-      'currencySymbol': 'GEL'
+      'currencySymbol': 'GEL',
     },
     {
       'capital': 'Banjul',
@@ -1411,7 +1411,7 @@ class ISOCountries {
       'subRegionCode': '011',
       'eea': false,
       'callingCode': '220',
-      'currencySymbol': 'D'
+      'currencySymbol': 'D',
     },
     {
       'citizenship': 'Palestinian',
@@ -1423,7 +1423,7 @@ class ISOCountries {
       'subRegionCode': '145',
       'eea': false,
       'callingCode': '970',
-      'currencySymbol': '₪'
+      'currencySymbol': '₪',
     },
     {
       'capital': 'Berlin',
@@ -1440,7 +1440,7 @@ class ISOCountries {
       'subRegionCode': '155',
       'eea': true,
       'callingCode': '49',
-      'currencySymbol': '€'
+      'currencySymbol': '€',
     },
     {
       'capital': 'Accra',
@@ -1457,7 +1457,7 @@ class ISOCountries {
       'subRegionCode': '011',
       'eea': false,
       'callingCode': '233',
-      'currencySymbol': '¢'
+      'currencySymbol': '¢',
     },
     {
       'capital': 'Gibraltar',
@@ -1474,7 +1474,7 @@ class ISOCountries {
       'subRegionCode': '039',
       'eea': false,
       'callingCode': '350',
-      'currencySymbol': '£'
+      'currencySymbol': '£',
     },
     {
       'capital': 'Tarawa',
@@ -1491,7 +1491,7 @@ class ISOCountries {
       'subRegionCode': '057',
       'eea': false,
       'callingCode': '686',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Athens',
@@ -1508,7 +1508,7 @@ class ISOCountries {
       'subRegionCode': '039',
       'eea': true,
       'callingCode': '30',
-      'currencySymbol': '€'
+      'currencySymbol': '€',
     },
     {
       'capital': 'Nuuk',
@@ -1525,7 +1525,7 @@ class ISOCountries {
       'subRegionCode': '021',
       'eea': false,
       'callingCode': '299',
-      'currencySymbol': 'kr'
+      'currencySymbol': 'kr',
     },
     {
       'capital': 'St George’s',
@@ -1542,7 +1542,7 @@ class ISOCountries {
       'subRegionCode': '029',
       'eea': false,
       'callingCode': '1',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Basse Terre',
@@ -1559,7 +1559,7 @@ class ISOCountries {
       'subRegionCode': '029',
       'eea': false,
       'callingCode': '590',
-      'currencySymbol': '€'
+      'currencySymbol': '€',
     },
     {
       'capital': 'Agaña (Hagåtña)',
@@ -1576,7 +1576,7 @@ class ISOCountries {
       'subRegionCode': '057',
       'eea': false,
       'callingCode': '1',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Guatemala City',
@@ -1593,7 +1593,7 @@ class ISOCountries {
       'subRegionCode': '013',
       'eea': false,
       'callingCode': '502',
-      'currencySymbol': 'Q'
+      'currencySymbol': 'Q',
     },
     {
       'capital': 'Conakry',
@@ -1610,7 +1610,7 @@ class ISOCountries {
       'subRegionCode': '011',
       'eea': false,
       'callingCode': '224',
-      'currencySymbol': 'GNF'
+      'currencySymbol': 'GNF',
     },
     {
       'capital': 'Georgetown',
@@ -1627,7 +1627,7 @@ class ISOCountries {
       'subRegionCode': '005',
       'eea': false,
       'callingCode': '592',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Port_au_Prince',
@@ -1644,7 +1644,7 @@ class ISOCountries {
       'subRegionCode': '029',
       'eea': false,
       'callingCode': '509',
-      'currencySymbol': 'G'
+      'currencySymbol': 'G',
     },
     {
       'capital': 'Territory of Heard Island and McDonald Islands',
@@ -1661,7 +1661,7 @@ class ISOCountries {
       'subRegionCode': '',
       'eea': false,
       'callingCode': '61',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Vatican City',
@@ -1678,7 +1678,7 @@ class ISOCountries {
       'subRegionCode': '039',
       'eea': false,
       'callingCode': '39',
-      'currencySymbol': '€'
+      'currencySymbol': '€',
     },
     {
       'capital': 'Tegucigalpa',
@@ -1695,7 +1695,7 @@ class ISOCountries {
       'subRegionCode': '013',
       'eea': false,
       'callingCode': '504',
-      'currencySymbol': 'L'
+      'currencySymbol': 'L',
     },
     {
       'capital': '(HK3)',
@@ -1713,7 +1713,7 @@ class ISOCountries {
       'subRegionCode': '030',
       'eea': false,
       'callingCode': '852',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Budapest',
@@ -1730,7 +1730,7 @@ class ISOCountries {
       'subRegionCode': '151',
       'eea': true,
       'callingCode': '36',
-      'currencySymbol': 'Ft'
+      'currencySymbol': 'Ft',
     },
     {
       'capital': 'Reykjavik',
@@ -1747,7 +1747,7 @@ class ISOCountries {
       'subRegionCode': '154',
       'eea': true,
       'callingCode': '354',
-      'currencySymbol': 'kr'
+      'currencySymbol': 'kr',
     },
     {
       'capital': 'New Delhi',
@@ -1764,7 +1764,7 @@ class ISOCountries {
       'subRegionCode': '034',
       'eea': false,
       'callingCode': '91',
-      'currencySymbol': '₹'
+      'currencySymbol': '₹',
     },
     {
       'capital': 'Jakarta',
@@ -1781,7 +1781,7 @@ class ISOCountries {
       'subRegionCode': '035',
       'eea': false,
       'callingCode': '62',
-      'currencySymbol': 'Rp'
+      'currencySymbol': 'Rp',
     },
     {
       'capital': 'Tehran',
@@ -1798,7 +1798,7 @@ class ISOCountries {
       'subRegionCode': '034',
       'eea': false,
       'callingCode': '98',
-      'currencySymbol': '﷼'
+      'currencySymbol': '﷼',
     },
     {
       'capital': 'Baghdad',
@@ -1815,7 +1815,7 @@ class ISOCountries {
       'subRegionCode': '145',
       'eea': false,
       'callingCode': '964',
-      'currencySymbol': 'IQD'
+      'currencySymbol': 'IQD',
     },
     {
       'capital': 'Dublin',
@@ -1832,7 +1832,7 @@ class ISOCountries {
       'subRegionCode': '154',
       'eea': true,
       'callingCode': '353',
-      'currencySymbol': '€'
+      'currencySymbol': '€',
     },
     {
       'capital': '(IL1)',
@@ -1849,7 +1849,7 @@ class ISOCountries {
       'subRegionCode': '145',
       'eea': false,
       'callingCode': '972',
-      'currencySymbol': '₪'
+      'currencySymbol': '₪',
     },
     {
       'capital': 'Rome',
@@ -1866,7 +1866,7 @@ class ISOCountries {
       'subRegionCode': '039',
       'eea': true,
       'callingCode': '39',
-      'currencySymbol': '€'
+      'currencySymbol': '€',
     },
     {
       'capital': 'Yamoussoukro (CI1)',
@@ -1883,7 +1883,7 @@ class ISOCountries {
       'subRegionCode': '011',
       'eea': false,
       'callingCode': '225',
-      'currencySymbol': 'XOF'
+      'currencySymbol': 'XOF',
     },
     {
       'capital': 'Kingston',
@@ -1900,7 +1900,7 @@ class ISOCountries {
       'subRegionCode': '029',
       'eea': false,
       'callingCode': '1',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Tokyo',
@@ -1917,7 +1917,7 @@ class ISOCountries {
       'subRegionCode': '030',
       'eea': false,
       'callingCode': '81',
-      'currencySymbol': '¥'
+      'currencySymbol': '¥',
     },
     {
       'capital': 'Astana',
@@ -1934,7 +1934,7 @@ class ISOCountries {
       'subRegionCode': '143',
       'eea': false,
       'callingCode': '7',
-      'currencySymbol': 'лв'
+      'currencySymbol': 'лв',
     },
     {
       'capital': 'Amman',
@@ -1951,7 +1951,7 @@ class ISOCountries {
       'subRegionCode': '145',
       'eea': false,
       'callingCode': '962',
-      'currencySymbol': 'JOD'
+      'currencySymbol': 'JOD',
     },
     {
       'capital': 'Nairobi',
@@ -1968,7 +1968,7 @@ class ISOCountries {
       'subRegionCode': '014',
       'eea': false,
       'callingCode': '254',
-      'currencySymbol': 'KES'
+      'currencySymbol': 'KES',
     },
     {
       'capital': 'Pyongyang',
@@ -1985,7 +1985,7 @@ class ISOCountries {
       'subRegionCode': '030',
       'eea': false,
       'callingCode': '850',
-      'currencySymbol': '₩'
+      'currencySymbol': '₩',
     },
     {
       'capital': 'Seoul',
@@ -2002,7 +2002,7 @@ class ISOCountries {
       'subRegionCode': '030',
       'eea': false,
       'callingCode': '82',
-      'currencySymbol': '₩'
+      'currencySymbol': '₩',
     },
     {
       'capital': 'Kuwait City',
@@ -2019,7 +2019,7 @@ class ISOCountries {
       'subRegionCode': '145',
       'eea': false,
       'callingCode': '965',
-      'currencySymbol': 'KWD'
+      'currencySymbol': 'KWD',
     },
     {
       'capital': 'Bishkek',
@@ -2036,7 +2036,7 @@ class ISOCountries {
       'subRegionCode': '143',
       'eea': false,
       'callingCode': '996',
-      'currencySymbol': 'лв'
+      'currencySymbol': 'лв',
     },
     {
       'capital': 'Vientiane',
@@ -2053,7 +2053,7 @@ class ISOCountries {
       'subRegionCode': '035',
       'eea': false,
       'callingCode': '856',
-      'currencySymbol': '₭'
+      'currencySymbol': '₭',
     },
     {
       'capital': 'Beirut',
@@ -2070,7 +2070,7 @@ class ISOCountries {
       'subRegionCode': '145',
       'eea': false,
       'callingCode': '961',
-      'currencySymbol': '£'
+      'currencySymbol': '£',
     },
     {
       'capital': 'Maseru',
@@ -2087,7 +2087,7 @@ class ISOCountries {
       'subRegionCode': '018',
       'eea': false,
       'callingCode': '266',
-      'currencySymbol': 'L'
+      'currencySymbol': 'L',
     },
     {
       'capital': 'Riga',
@@ -2104,7 +2104,7 @@ class ISOCountries {
       'subRegionCode': '154',
       'eea': true,
       'callingCode': '371',
-      'currencySymbol': 'Ls'
+      'currencySymbol': 'Ls',
     },
     {
       'capital': 'Monrovia',
@@ -2121,7 +2121,7 @@ class ISOCountries {
       'subRegionCode': '011',
       'eea': false,
       'callingCode': '231',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Tripoli',
@@ -2138,7 +2138,7 @@ class ISOCountries {
       'subRegionCode': '015',
       'eea': false,
       'callingCode': '218',
-      'currencySymbol': 'LYD'
+      'currencySymbol': 'LYD',
     },
     {
       'capital': 'Vaduz',
@@ -2155,7 +2155,7 @@ class ISOCountries {
       'subRegionCode': '155',
       'eea': true,
       'callingCode': '423',
-      'currencySymbol': 'CHF'
+      'currencySymbol': 'CHF',
     },
     {
       'capital': 'Vilnius',
@@ -2172,7 +2172,7 @@ class ISOCountries {
       'subRegionCode': '154',
       'eea': true,
       'callingCode': '370',
-      'currencySymbol': 'Lt'
+      'currencySymbol': 'Lt',
     },
     {
       'capital': 'Luxembourg',
@@ -2189,7 +2189,7 @@ class ISOCountries {
       'subRegionCode': '155',
       'eea': true,
       'callingCode': '352',
-      'currencySymbol': '€'
+      'currencySymbol': '€',
     },
     {
       'capital': 'Macao (MO3)',
@@ -2207,7 +2207,7 @@ class ISOCountries {
       'subRegionCode': '030',
       'eea': false,
       'callingCode': '853',
-      'currencySymbol': 'MOP'
+      'currencySymbol': 'MOP',
     },
     {
       'capital': 'Antananarivo',
@@ -2224,7 +2224,7 @@ class ISOCountries {
       'subRegionCode': '014',
       'eea': false,
       'callingCode': '261',
-      'currencySymbol': 'MGA'
+      'currencySymbol': 'MGA',
     },
     {
       'capital': 'Lilongwe',
@@ -2241,7 +2241,7 @@ class ISOCountries {
       'subRegionCode': '014',
       'eea': false,
       'callingCode': '265',
-      'currencySymbol': 'MK'
+      'currencySymbol': 'MK',
     },
     {
       'capital': 'Kuala Lumpur (MY1)',
@@ -2258,7 +2258,7 @@ class ISOCountries {
       'subRegionCode': '035',
       'eea': false,
       'callingCode': '60',
-      'currencySymbol': 'RM'
+      'currencySymbol': 'RM',
     },
     {
       'capital': 'Malé',
@@ -2275,7 +2275,7 @@ class ISOCountries {
       'subRegionCode': '034',
       'eea': false,
       'callingCode': '960',
-      'currencySymbol': 'Rf'
+      'currencySymbol': 'Rf',
     },
     {
       'capital': 'Bamako',
@@ -2292,7 +2292,7 @@ class ISOCountries {
       'subRegionCode': '011',
       'eea': false,
       'callingCode': '223',
-      'currencySymbol': 'XOF'
+      'currencySymbol': 'XOF',
     },
     {
       'capital': 'Valletta',
@@ -2309,7 +2309,7 @@ class ISOCountries {
       'subRegionCode': '039',
       'eea': true,
       'callingCode': '356',
-      'currencySymbol': 'MTL'
+      'currencySymbol': 'MTL',
     },
     {
       'capital': 'Fort_de_France',
@@ -2326,7 +2326,7 @@ class ISOCountries {
       'subRegionCode': '029',
       'eea': false,
       'callingCode': '596',
-      'currencySymbol': '€'
+      'currencySymbol': '€',
     },
     {
       'capital': 'Nouakchott',
@@ -2343,7 +2343,7 @@ class ISOCountries {
       'subRegionCode': '011',
       'eea': false,
       'callingCode': '222',
-      'currencySymbol': 'UM'
+      'currencySymbol': 'UM',
     },
     {
       'capital': 'Port Louis',
@@ -2360,7 +2360,7 @@ class ISOCountries {
       'subRegionCode': '014',
       'eea': false,
       'callingCode': '230',
-      'currencySymbol': '₨'
+      'currencySymbol': '₨',
     },
     {
       'capital': 'Mexico City',
@@ -2377,7 +2377,7 @@ class ISOCountries {
       'subRegionCode': '013',
       'eea': false,
       'callingCode': '52',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Monaco',
@@ -2394,7 +2394,7 @@ class ISOCountries {
       'subRegionCode': '155',
       'eea': false,
       'callingCode': '377',
-      'currencySymbol': '€'
+      'currencySymbol': '€',
     },
     {
       'capital': 'Ulan Bator',
@@ -2411,7 +2411,7 @@ class ISOCountries {
       'subRegionCode': '030',
       'eea': false,
       'callingCode': '976',
-      'currencySymbol': '₮'
+      'currencySymbol': '₮',
     },
     {
       'capital': 'Chisinau',
@@ -2428,7 +2428,7 @@ class ISOCountries {
       'subRegionCode': '151',
       'eea': false,
       'callingCode': '373',
-      'currencySymbol': 'MDL'
+      'currencySymbol': 'MDL',
     },
     {
       'capital': 'Podgorica',
@@ -2444,7 +2444,7 @@ class ISOCountries {
       'regionCode': '150',
       'subRegionCode': '039',
       'eea': false,
-      'callingCode': '382'
+      'callingCode': '382',
     },
     {
       'capital': 'Plymouth (MS2)',
@@ -2461,7 +2461,7 @@ class ISOCountries {
       'subRegionCode': '029',
       'eea': false,
       'callingCode': '1',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Rabat',
@@ -2478,7 +2478,7 @@ class ISOCountries {
       'subRegionCode': '015',
       'eea': false,
       'callingCode': '212',
-      'currencySymbol': 'MAD'
+      'currencySymbol': 'MAD',
     },
     {
       'capital': 'Maputo',
@@ -2495,7 +2495,7 @@ class ISOCountries {
       'subRegionCode': '014',
       'eea': false,
       'callingCode': '258',
-      'currencySymbol': 'MT'
+      'currencySymbol': 'MT',
     },
     {
       'capital': 'Muscat',
@@ -2512,7 +2512,7 @@ class ISOCountries {
       'subRegionCode': '145',
       'eea': false,
       'callingCode': '968',
-      'currencySymbol': '﷼'
+      'currencySymbol': '﷼',
     },
     {
       'capital': 'Windhoek',
@@ -2529,7 +2529,7 @@ class ISOCountries {
       'subRegionCode': '018',
       'eea': false,
       'callingCode': '264',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Yaren',
@@ -2546,7 +2546,7 @@ class ISOCountries {
       'subRegionCode': '057',
       'eea': false,
       'callingCode': '674',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Kathmandu',
@@ -2563,7 +2563,7 @@ class ISOCountries {
       'subRegionCode': '034',
       'eea': false,
       'callingCode': '977',
-      'currencySymbol': '₨'
+      'currencySymbol': '₨',
     },
     {
       'capital': 'Amsterdam (NL2)',
@@ -2580,7 +2580,7 @@ class ISOCountries {
       'subRegionCode': '155',
       'eea': true,
       'callingCode': '31',
-      'currencySymbol': '€'
+      'currencySymbol': '€',
     },
     {
       'capital': 'Willemstad',
@@ -2596,7 +2596,7 @@ class ISOCountries {
       'regionCode': '019',
       'subRegionCode': '029',
       'eea': false,
-      'callingCode': '599'
+      'callingCode': '599',
     },
     {
       'capital': 'Oranjestad',
@@ -2613,7 +2613,7 @@ class ISOCountries {
       'subRegionCode': '029',
       'eea': false,
       'callingCode': '297',
-      'currencySymbol': 'ƒ'
+      'currencySymbol': 'ƒ',
     },
     {
       'capital': 'Philipsburg',
@@ -2629,7 +2629,7 @@ class ISOCountries {
       'regionCode': '019',
       'subRegionCode': '029',
       'eea': false,
-      'callingCode': '721'
+      'callingCode': '721',
     },
     {
       'citizenship': 'of Bonaire, Sint Eustatius and Saba',
@@ -2643,7 +2643,7 @@ class ISOCountries {
       'regionCode': '019',
       'subRegionCode': '029',
       'eea': false,
-      'callingCode': '599'
+      'callingCode': '599',
     },
     {
       'capital': 'Nouméa',
@@ -2660,7 +2660,7 @@ class ISOCountries {
       'subRegionCode': '054',
       'eea': false,
       'callingCode': '687',
-      'currencySymbol': 'XPF'
+      'currencySymbol': 'XPF',
     },
     {
       'capital': 'Port Vila',
@@ -2677,7 +2677,7 @@ class ISOCountries {
       'subRegionCode': '054',
       'eea': false,
       'callingCode': '678',
-      'currencySymbol': 'Vt'
+      'currencySymbol': 'Vt',
     },
     {
       'capital': 'Wellington',
@@ -2694,7 +2694,7 @@ class ISOCountries {
       'subRegionCode': '053',
       'eea': false,
       'callingCode': '64',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Managua',
@@ -2711,7 +2711,7 @@ class ISOCountries {
       'subRegionCode': '013',
       'eea': false,
       'callingCode': '505',
-      'currencySymbol': 'C\$'
+      'currencySymbol': 'C\$',
     },
     {
       'capital': 'Niamey',
@@ -2728,7 +2728,7 @@ class ISOCountries {
       'subRegionCode': '011',
       'eea': false,
       'callingCode': '227',
-      'currencySymbol': 'XOF'
+      'currencySymbol': 'XOF',
     },
     {
       'capital': 'Abuja',
@@ -2745,7 +2745,7 @@ class ISOCountries {
       'subRegionCode': '011',
       'eea': false,
       'callingCode': '234',
-      'currencySymbol': '₦'
+      'currencySymbol': '₦',
     },
     {
       'capital': 'Alofi',
@@ -2762,7 +2762,7 @@ class ISOCountries {
       'subRegionCode': '061',
       'eea': false,
       'callingCode': '683',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Kingston',
@@ -2779,7 +2779,7 @@ class ISOCountries {
       'subRegionCode': '053',
       'eea': false,
       'callingCode': '672',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Oslo',
@@ -2796,7 +2796,7 @@ class ISOCountries {
       'subRegionCode': '154',
       'eea': true,
       'callingCode': '47',
-      'currencySymbol': 'kr'
+      'currencySymbol': 'kr',
     },
     {
       'capital': 'Saipan',
@@ -2813,7 +2813,7 @@ class ISOCountries {
       'subRegionCode': '057',
       'eea': false,
       'callingCode': '1',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'United States Minor Outlying Islands',
@@ -2830,7 +2830,7 @@ class ISOCountries {
       'subRegionCode': '',
       'eea': false,
       'callingCode': '1',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Palikir',
@@ -2847,7 +2847,7 @@ class ISOCountries {
       'subRegionCode': '057',
       'eea': false,
       'callingCode': '691',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Majuro',
@@ -2864,7 +2864,7 @@ class ISOCountries {
       'subRegionCode': '057',
       'eea': false,
       'callingCode': '692',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Melekeok',
@@ -2881,7 +2881,7 @@ class ISOCountries {
       'subRegionCode': '057',
       'eea': false,
       'callingCode': '680',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Islamabad',
@@ -2898,7 +2898,7 @@ class ISOCountries {
       'subRegionCode': '034',
       'eea': false,
       'callingCode': '92',
-      'currencySymbol': '₨'
+      'currencySymbol': '₨',
     },
     {
       'capital': 'Panama City',
@@ -2915,7 +2915,7 @@ class ISOCountries {
       'subRegionCode': '013',
       'eea': false,
       'callingCode': '507',
-      'currencySymbol': 'B/.'
+      'currencySymbol': 'B/.',
     },
     {
       'capital': 'Port Moresby',
@@ -2932,7 +2932,7 @@ class ISOCountries {
       'subRegionCode': '054',
       'eea': false,
       'callingCode': '675',
-      'currencySymbol': 'PGK'
+      'currencySymbol': 'PGK',
     },
     {
       'capital': 'Asunción',
@@ -2949,7 +2949,7 @@ class ISOCountries {
       'subRegionCode': '005',
       'eea': false,
       'callingCode': '595',
-      'currencySymbol': 'Gs'
+      'currencySymbol': 'Gs',
     },
     {
       'capital': 'Lima',
@@ -2966,7 +2966,7 @@ class ISOCountries {
       'subRegionCode': '005',
       'eea': false,
       'callingCode': '51',
-      'currencySymbol': 'S/.'
+      'currencySymbol': 'S/.',
     },
     {
       'capital': 'Manila',
@@ -2983,7 +2983,7 @@ class ISOCountries {
       'subRegionCode': '035',
       'eea': false,
       'callingCode': '63',
-      'currencySymbol': 'Php'
+      'currencySymbol': 'Php',
     },
     {
       'capital': 'Adamstown',
@@ -3000,7 +3000,7 @@ class ISOCountries {
       'subRegionCode': '061',
       'eea': false,
       'callingCode': '649',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Warsaw',
@@ -3017,7 +3017,7 @@ class ISOCountries {
       'subRegionCode': '151',
       'eea': true,
       'callingCode': '48',
-      'currencySymbol': 'zł'
+      'currencySymbol': 'zł',
     },
     {
       'capital': 'Lisbon',
@@ -3034,7 +3034,7 @@ class ISOCountries {
       'subRegionCode': '039',
       'eea': true,
       'callingCode': '351',
-      'currencySymbol': '€'
+      'currencySymbol': '€',
     },
     {
       'capital': 'Bissau',
@@ -3051,7 +3051,7 @@ class ISOCountries {
       'subRegionCode': '011',
       'eea': false,
       'callingCode': '245',
-      'currencySymbol': 'XOF'
+      'currencySymbol': 'XOF',
     },
     {
       'capital': 'Dili',
@@ -3068,7 +3068,7 @@ class ISOCountries {
       'subRegionCode': '035',
       'eea': false,
       'callingCode': '670',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'San Juan',
@@ -3085,7 +3085,7 @@ class ISOCountries {
       'subRegionCode': '029',
       'eea': false,
       'callingCode': '1',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Doha',
@@ -3102,7 +3102,7 @@ class ISOCountries {
       'subRegionCode': '145',
       'eea': false,
       'callingCode': '974',
-      'currencySymbol': '﷼'
+      'currencySymbol': '﷼',
     },
     {
       'capital': 'Saint_Denis',
@@ -3119,7 +3119,7 @@ class ISOCountries {
       'subRegionCode': '014',
       'eea': false,
       'callingCode': '262',
-      'currencySymbol': '€'
+      'currencySymbol': '€',
     },
     {
       'capital': 'Bucharest',
@@ -3136,7 +3136,7 @@ class ISOCountries {
       'subRegionCode': '151',
       'eea': true,
       'callingCode': '40',
-      'currencySymbol': 'lei'
+      'currencySymbol': 'lei',
     },
     {
       'capital': 'Moscow',
@@ -3153,7 +3153,7 @@ class ISOCountries {
       'subRegionCode': '151',
       'eea': false,
       'callingCode': '7',
-      'currencySymbol': 'руб'
+      'currencySymbol': 'руб',
     },
     {
       'capital': 'Kigali',
@@ -3170,7 +3170,7 @@ class ISOCountries {
       'subRegionCode': '014',
       'eea': false,
       'callingCode': '250',
-      'currencySymbol': 'RWF'
+      'currencySymbol': 'RWF',
     },
     {
       'capital': 'Gustavia',
@@ -3186,7 +3186,7 @@ class ISOCountries {
       'regionCode': '019',
       'subRegionCode': '029',
       'eea': false,
-      'callingCode': '590'
+      'callingCode': '590',
     },
     {
       'capital': 'Jamestown',
@@ -3203,7 +3203,7 @@ class ISOCountries {
       'subRegionCode': '011',
       'eea': false,
       'callingCode': '290',
-      'currencySymbol': '£'
+      'currencySymbol': '£',
     },
     {
       'capital': 'Basseterre',
@@ -3220,7 +3220,7 @@ class ISOCountries {
       'subRegionCode': '029',
       'eea': false,
       'callingCode': '1',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'The Valley',
@@ -3237,7 +3237,7 @@ class ISOCountries {
       'subRegionCode': '029',
       'eea': false,
       'callingCode': '1',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Castries',
@@ -3254,7 +3254,7 @@ class ISOCountries {
       'subRegionCode': '029',
       'eea': false,
       'callingCode': '1',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Marigot',
@@ -3270,7 +3270,7 @@ class ISOCountries {
       'regionCode': '019',
       'subRegionCode': '029',
       'eea': false,
-      'callingCode': '590'
+      'callingCode': '590',
     },
     {
       'capital': 'Saint_Pierre',
@@ -3287,7 +3287,7 @@ class ISOCountries {
       'subRegionCode': '021',
       'eea': false,
       'callingCode': '508',
-      'currencySymbol': '€'
+      'currencySymbol': '€',
     },
     {
       'capital': 'Kingstown',
@@ -3304,7 +3304,7 @@ class ISOCountries {
       'subRegionCode': '029',
       'eea': false,
       'callingCode': '1',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'San Marino',
@@ -3321,7 +3321,7 @@ class ISOCountries {
       'subRegionCode': '039',
       'eea': false,
       'callingCode': '378',
-      'currencySymbol': '€'
+      'currencySymbol': '€',
     },
     {
       'capital': 'São Tomé',
@@ -3338,7 +3338,7 @@ class ISOCountries {
       'subRegionCode': '017',
       'eea': false,
       'callingCode': '239',
-      'currencySymbol': 'Db'
+      'currencySymbol': 'Db',
     },
     {
       'capital': 'Riyadh',
@@ -3355,7 +3355,7 @@ class ISOCountries {
       'subRegionCode': '145',
       'eea': false,
       'callingCode': '966',
-      'currencySymbol': '﷼'
+      'currencySymbol': '﷼',
     },
     {
       'capital': 'Dakar',
@@ -3372,7 +3372,7 @@ class ISOCountries {
       'subRegionCode': '011',
       'eea': false,
       'callingCode': '221',
-      'currencySymbol': 'XOF'
+      'currencySymbol': 'XOF',
     },
     {
       'capital': 'Belgrade',
@@ -3388,7 +3388,7 @@ class ISOCountries {
       'regionCode': '150',
       'subRegionCode': '039',
       'eea': false,
-      'callingCode': '381'
+      'callingCode': '381',
     },
     {
       'capital': 'Victoria',
@@ -3405,7 +3405,7 @@ class ISOCountries {
       'subRegionCode': '014',
       'eea': false,
       'callingCode': '248',
-      'currencySymbol': '₨'
+      'currencySymbol': '₨',
     },
     {
       'capital': 'Freetown',
@@ -3422,7 +3422,7 @@ class ISOCountries {
       'subRegionCode': '011',
       'eea': false,
       'callingCode': '232',
-      'currencySymbol': 'Le'
+      'currencySymbol': 'Le',
     },
     {
       'capital': 'Singapore',
@@ -3439,7 +3439,7 @@ class ISOCountries {
       'subRegionCode': '035',
       'eea': false,
       'callingCode': '65',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Bratislava',
@@ -3456,7 +3456,7 @@ class ISOCountries {
       'subRegionCode': '151',
       'eea': true,
       'callingCode': '421',
-      'currencySymbol': 'Sk'
+      'currencySymbol': 'Sk',
     },
     {
       'capital': 'Hanoi',
@@ -3473,7 +3473,7 @@ class ISOCountries {
       'subRegionCode': '035',
       'eea': false,
       'callingCode': '84',
-      'currencySymbol': '₫'
+      'currencySymbol': '₫',
     },
     {
       'capital': 'Ljubljana',
@@ -3490,7 +3490,7 @@ class ISOCountries {
       'subRegionCode': '039',
       'eea': true,
       'callingCode': '386',
-      'currencySymbol': '€'
+      'currencySymbol': '€',
     },
     {
       'capital': 'Mogadishu',
@@ -3507,7 +3507,7 @@ class ISOCountries {
       'subRegionCode': '014',
       'eea': false,
       'callingCode': '252',
-      'currencySymbol': 'S'
+      'currencySymbol': 'S',
     },
     {
       'capital': 'Pretoria (ZA1)',
@@ -3524,7 +3524,7 @@ class ISOCountries {
       'subRegionCode': '018',
       'eea': false,
       'callingCode': '27',
-      'currencySymbol': 'R'
+      'currencySymbol': 'R',
     },
     {
       'capital': 'Harare',
@@ -3541,7 +3541,7 @@ class ISOCountries {
       'subRegionCode': '014',
       'eea': false,
       'callingCode': '263',
-      'currencySymbol': 'Z\$'
+      'currencySymbol': 'Z\$',
     },
     {
       'capital': 'Madrid',
@@ -3558,7 +3558,7 @@ class ISOCountries {
       'subRegionCode': '039',
       'eea': true,
       'callingCode': '34',
-      'currencySymbol': '€'
+      'currencySymbol': '€',
     },
     {
       'capital': 'Juba',
@@ -3574,7 +3574,7 @@ class ISOCountries {
       'regionCode': '002',
       'subRegionCode': '015',
       'eea': false,
-      'callingCode': '211'
+      'callingCode': '211',
     },
     {
       'capital': 'Khartoum',
@@ -3590,7 +3590,7 @@ class ISOCountries {
       'regionCode': '002',
       'subRegionCode': '015',
       'eea': false,
-      'callingCode': '249'
+      'callingCode': '249',
     },
     {
       'capital': 'Al aaiun',
@@ -3607,7 +3607,7 @@ class ISOCountries {
       'subRegionCode': '015',
       'eea': false,
       'callingCode': '212',
-      'currencySymbol': 'MAD'
+      'currencySymbol': 'MAD',
     },
     {
       'capital': 'Paramaribo',
@@ -3624,7 +3624,7 @@ class ISOCountries {
       'subRegionCode': '005',
       'eea': false,
       'callingCode': '597',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Longyearbyen',
@@ -3641,7 +3641,7 @@ class ISOCountries {
       'subRegionCode': '154',
       'eea': false,
       'callingCode': '47',
-      'currencySymbol': 'kr'
+      'currencySymbol': 'kr',
     },
     {
       'capital': 'Mbabane',
@@ -3658,7 +3658,7 @@ class ISOCountries {
       'subRegionCode': '018',
       'eea': false,
       'callingCode': '268',
-      'currencySymbol': 'SZL'
+      'currencySymbol': 'SZL',
     },
     {
       'capital': 'Stockholm',
@@ -3675,7 +3675,7 @@ class ISOCountries {
       'subRegionCode': '154',
       'eea': true,
       'callingCode': '46',
-      'currencySymbol': 'kr'
+      'currencySymbol': 'kr',
     },
     {
       'capital': 'Berne',
@@ -3692,7 +3692,7 @@ class ISOCountries {
       'subRegionCode': '155',
       'eea': true,
       'callingCode': '41',
-      'currencySymbol': 'CHF'
+      'currencySymbol': 'CHF',
     },
     {
       'capital': 'Damascus',
@@ -3709,7 +3709,7 @@ class ISOCountries {
       'subRegionCode': '145',
       'eea': false,
       'callingCode': '963',
-      'currencySymbol': '£'
+      'currencySymbol': '£',
     },
     {
       'capital': 'Dushanbe',
@@ -3726,7 +3726,7 @@ class ISOCountries {
       'subRegionCode': '143',
       'eea': false,
       'callingCode': '992',
-      'currencySymbol': 'TJS'
+      'currencySymbol': 'TJS',
     },
     {
       'capital': 'Bangkok',
@@ -3743,7 +3743,7 @@ class ISOCountries {
       'subRegionCode': '035',
       'eea': false,
       'callingCode': '66',
-      'currencySymbol': '฿'
+      'currencySymbol': '฿',
     },
     {
       'capital': 'Lomé',
@@ -3760,7 +3760,7 @@ class ISOCountries {
       'subRegionCode': '011',
       'eea': false,
       'callingCode': '228',
-      'currencySymbol': 'XOF'
+      'currencySymbol': 'XOF',
     },
     {
       'capital': '(TK2)',
@@ -3777,7 +3777,7 @@ class ISOCountries {
       'subRegionCode': '061',
       'eea': false,
       'callingCode': '690',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Nuku’alofa',
@@ -3794,7 +3794,7 @@ class ISOCountries {
       'subRegionCode': '061',
       'eea': false,
       'callingCode': '676',
-      'currencySymbol': 'T\$'
+      'currencySymbol': 'T\$',
     },
     {
       'capital': 'Port of Spain',
@@ -3811,7 +3811,7 @@ class ISOCountries {
       'subRegionCode': '029',
       'eea': false,
       'callingCode': '1',
-      'currencySymbol': 'TT\$'
+      'currencySymbol': 'TT\$',
     },
     {
       'capital': 'Abu Dhabi',
@@ -3828,7 +3828,7 @@ class ISOCountries {
       'subRegionCode': '145',
       'eea': false,
       'callingCode': '971',
-      'currencySymbol': 'AED'
+      'currencySymbol': 'AED',
     },
     {
       'capital': 'Tunis',
@@ -3845,7 +3845,7 @@ class ISOCountries {
       'subRegionCode': '015',
       'eea': false,
       'callingCode': '216',
-      'currencySymbol': 'TND'
+      'currencySymbol': 'TND',
     },
     {
       'capital': 'Ankara',
@@ -3862,7 +3862,7 @@ class ISOCountries {
       'subRegionCode': '145',
       'eea': false,
       'callingCode': '90',
-      'currencySymbol': 'YTL'
+      'currencySymbol': 'YTL',
     },
     {
       'capital': 'Ashgabat',
@@ -3879,7 +3879,7 @@ class ISOCountries {
       'subRegionCode': '143',
       'eea': false,
       'callingCode': '993',
-      'currencySymbol': 'm'
+      'currencySymbol': 'm',
     },
     {
       'capital': 'Cockburn Town',
@@ -3896,7 +3896,7 @@ class ISOCountries {
       'subRegionCode': '029',
       'eea': false,
       'callingCode': '1',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Funafuti',
@@ -3913,7 +3913,7 @@ class ISOCountries {
       'subRegionCode': '061',
       'eea': false,
       'callingCode': '688',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Kampala',
@@ -3930,7 +3930,7 @@ class ISOCountries {
       'subRegionCode': '014',
       'eea': false,
       'callingCode': '256',
-      'currencySymbol': 'UGX'
+      'currencySymbol': 'UGX',
     },
     {
       'capital': 'Kiev',
@@ -3947,7 +3947,7 @@ class ISOCountries {
       'subRegionCode': '151',
       'eea': false,
       'callingCode': '380',
-      'currencySymbol': '₴'
+      'currencySymbol': '₴',
     },
     {
       'capital': 'Skopje',
@@ -3964,7 +3964,7 @@ class ISOCountries {
       'subRegionCode': '039',
       'eea': false,
       'callingCode': '389',
-      'currencySymbol': 'ден'
+      'currencySymbol': 'ден',
     },
     {
       'capital': 'Cairo',
@@ -3981,7 +3981,7 @@ class ISOCountries {
       'subRegionCode': '015',
       'eea': false,
       'callingCode': '20',
-      'currencySymbol': '£'
+      'currencySymbol': '£',
     },
     {
       'capital': 'London',
@@ -3998,7 +3998,7 @@ class ISOCountries {
       'subRegionCode': '154',
       'eea': true,
       'callingCode': '44',
-      'currencySymbol': '£'
+      'currencySymbol': '£',
     },
     {
       'capital': 'St Peter Port',
@@ -4014,7 +4014,7 @@ class ISOCountries {
       'regionCode': '150',
       'subRegionCode': '154',
       'eea': false,
-      'callingCode': '44'
+      'callingCode': '44',
     },
     {
       'capital': 'St Helier',
@@ -4030,7 +4030,7 @@ class ISOCountries {
       'regionCode': '150',
       'subRegionCode': '154',
       'eea': false,
-      'callingCode': '44'
+      'callingCode': '44',
     },
     {
       'capital': 'Douglas',
@@ -4046,7 +4046,7 @@ class ISOCountries {
       'regionCode': '150',
       'subRegionCode': '154',
       'eea': false,
-      'callingCode': '44'
+      'callingCode': '44',
     },
     {
       'capital': 'Dodoma (TZ1)',
@@ -4063,7 +4063,7 @@ class ISOCountries {
       'subRegionCode': '014',
       'eea': false,
       'callingCode': '255',
-      'currencySymbol': 'TZS'
+      'currencySymbol': 'TZS',
     },
     {
       'capital': 'Charlotte Amalie',
@@ -4080,7 +4080,7 @@ class ISOCountries {
       'subRegionCode': '029',
       'eea': false,
       'callingCode': '1',
-      'currencySymbol': '\$'
+      'currencySymbol': '\$',
     },
     {
       'capital': 'Ouagadougou',
@@ -4097,7 +4097,7 @@ class ISOCountries {
       'subRegionCode': '011',
       'eea': false,
       'callingCode': '226',
-      'currencySymbol': 'XOF'
+      'currencySymbol': 'XOF',
     },
     {
       'capital': 'Montevideo',
@@ -4114,7 +4114,7 @@ class ISOCountries {
       'subRegionCode': '005',
       'eea': false,
       'callingCode': '598',
-      'currencySymbol': '\$U'
+      'currencySymbol': '\$U',
     },
     {
       'capital': 'Tashkent',
@@ -4131,7 +4131,7 @@ class ISOCountries {
       'subRegionCode': '143',
       'eea': false,
       'callingCode': '998',
-      'currencySymbol': 'лв'
+      'currencySymbol': 'лв',
     },
     {
       'capital': 'Caracas',
@@ -4148,7 +4148,7 @@ class ISOCountries {
       'subRegionCode': '005',
       'eea': false,
       'callingCode': '58',
-      'currencySymbol': 'Bs'
+      'currencySymbol': 'Bs',
     },
     {
       'capital': 'Mata_Utu',
@@ -4165,7 +4165,7 @@ class ISOCountries {
       'subRegionCode': '061',
       'eea': false,
       'callingCode': '681',
-      'currencySymbol': 'XPF'
+      'currencySymbol': 'XPF',
     },
     {
       'capital': 'Apia',
@@ -4182,7 +4182,7 @@ class ISOCountries {
       'subRegionCode': '061',
       'eea': false,
       'callingCode': '685',
-      'currencySymbol': 'WS\$'
+      'currencySymbol': 'WS\$',
     },
     {
       'capital': 'San’a',
@@ -4199,7 +4199,7 @@ class ISOCountries {
       'subRegionCode': '145',
       'eea': false,
       'callingCode': '967',
-      'currencySymbol': '﷼'
+      'currencySymbol': '﷼',
     },
     {
       'capital': 'Lusaka',
@@ -4216,8 +4216,8 @@ class ISOCountries {
       'subRegionCode': '014',
       'eea': false,
       'callingCode': '260',
-      'currencySymbol': 'ZK'
-    }
+      'currencySymbol': 'ZK',
+    },
   ];
 
   /// List of countries

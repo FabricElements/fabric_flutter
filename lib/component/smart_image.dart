@@ -37,14 +37,7 @@ enum AvailableOutputFormats {
 /// * `standard` - standard size 1200x1200
 /// * `high` - high size 1400x1400
 /// * `max` - max size 1600x1600
-enum ImageSize {
-  thumbnail,
-  small,
-  medium,
-  standard,
-  high,
-  max,
-}
+enum ImageSize { thumbnail, small, medium, standard, high, max }
 
 /// SmartImage can be used to display an image for basic Imgix or Internal implementation.
 ///
@@ -140,12 +133,7 @@ class _SmartImageState extends State<SmartImage> {
       width: double.infinity,
       height: double.infinity,
       color: theme.colorScheme.surfaceContainerHighest,
-      child: Center(
-        child: Icon(
-          Icons.image_not_supported,
-          color: iconColor,
-        ),
-      ),
+      child: Center(child: Icon(Icons.image_not_supported, color: iconColor)),
     );
 
     /// Return placeholder image if path is not valid
@@ -167,12 +155,7 @@ class _SmartImageState extends State<SmartImage> {
       width: double.infinity,
       height: double.infinity,
       color: background,
-      child: Center(
-        child: Icon(
-          Icons.downloading,
-          color: iconColor,
-        ),
-      ),
+      child: Center(child: Icon(Icons.downloading, color: iconColor)),
     );
     Uri uri = Uri.parse(widget.url!);
 
@@ -239,35 +222,48 @@ class _SmartImageState extends State<SmartImage> {
       ).toString();
 
       /// Image
-      children.add(SizedBox.expand(
-        child: Image.network(
-          path,
-          fit: BoxFit.cover,
-          isAntiAlias: true,
-          errorBuilder:
-              (BuildContext context, Object exception, StackTrace? stackTrace) {
-            return errorPlaceholder;
-          },
-          loadingBuilder: (BuildContext context, Widget child,
-              ImageChunkEvent? loadingProgress) {
-            if (loadingProgress == null) return child;
-            return loadingPlaceholder;
-          },
-          frameBuilder: (BuildContext context, Widget child, int? frame,
-              bool wasSynchronouslyLoaded) {
-            if (wasSynchronouslyLoaded) return child;
-            return AnimatedOpacity(
-              opacity: frame == null ? 0 : 1,
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeOut,
-              child: child,
-            );
-          },
+      children.add(
+        SizedBox.expand(
+          child: Image.network(
+            path,
+            fit: BoxFit.cover,
+            isAntiAlias: true,
+            errorBuilder:
+                (
+                  BuildContext context,
+                  Object exception,
+                  StackTrace? stackTrace,
+                ) {
+                  return errorPlaceholder;
+                },
+            loadingBuilder:
+                (
+                  BuildContext context,
+                  Widget child,
+                  ImageChunkEvent? loadingProgress,
+                ) {
+                  if (loadingProgress == null) return child;
+                  return loadingPlaceholder;
+                },
+            frameBuilder:
+                (
+                  BuildContext context,
+                  Widget child,
+                  int? frame,
+                  bool wasSynchronouslyLoaded,
+                ) {
+                  if (wasSynchronouslyLoaded) return child;
+                  return AnimatedOpacity(
+                    opacity: frame == null ? 0 : 1,
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeOut,
+                    child: child,
+                  );
+                },
+          ),
         ),
-      ));
+      );
     }
-    return Stack(
-      children: children,
-    );
+    return Stack(children: children);
   }
 }

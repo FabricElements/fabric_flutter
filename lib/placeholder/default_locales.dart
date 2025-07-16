@@ -1,3 +1,4 @@
+// @formatter:off
 const Map<String, Map<String, String>> defaultLocales = {
   'say--something': {
     'en': 'Say something...',
@@ -213,7 +214,7 @@ const Map<String, Map<String, String>> defaultLocales = {
   },
   'alert--no-photo-was-taken': {
     'en': 'No photo was taken',
-    'es': 'No se tomó una foto'
+    'es': 'No se tomó una foto',
   },
   'alert--not-implemented': {
     'en': 'Not Implemented',
@@ -397,7 +398,7 @@ const Map<String, Map<String, String>> defaultLocales = {
   },
   'alert--copy-clipboard': {
     'en': 'Copied to clipboard',
-    'es': 'Popiado al portapapeles'
+    'es': 'Popiado al portapapeles',
   },
   'alert--password-must-be-different': {
     'en': 'The new password must be different.',
@@ -683,47 +684,47 @@ const Map<String, Map<String, String>> defaultLocales = {
   },
   'label--confirm-are-you-sure-delete': {
     'en': 'Are you sure you want to delete?',
-    'es': '¿Seguro que quieres eliminar?'
+    'es': '¿Seguro que quieres eliminar?',
   },
   'label--confirm-are-you-sure-delete-label': {
     'en': 'Are you sure you want to delete {label}?',
-    'es': '¿Seguro que quieres eliminar {label}?'
+    'es': '¿Seguro que quieres eliminar {label}?',
   },
   'label--confirm-are-you-sure-update': {
     'en': 'Are you sure you want to update?',
-    'es': '¿Seguro que quieres actualizar?'
+    'es': '¿Seguro que quieres actualizar?',
   },
   'label--confirm-are-you-sure-replace': {
     'en': 'Are you sure you want to replace?',
-    'es': '¿Seguro que quieres reemplazar?'
+    'es': '¿Seguro que quieres reemplazar?',
   },
   'label--confirm-are-you-sure-replace-label': {
     'en': 'Are you sure you want to replace {label}?',
-    'es': '¿Seguro que quieres reemplazar {label}?'
+    'es': '¿Seguro que quieres reemplazar {label}?',
   },
   'label--confirm-are-you-sure-add-label': {
     'en': 'Are you sure you want to add a new {label}?',
-    'es': '¿Seguro que quieres agregar un nuevo {label}?'
+    'es': '¿Seguro que quieres agregar un nuevo {label}?',
   },
   'label--confirm-are-you-sure-cancel': {
     'en': "Are you sure you want to cancel?. Your changes won't be saved",
-    'es': '¿Estas seguro que quieres cancelar?. Tus cambios no se guardarán'
+    'es': '¿Estas seguro que quieres cancelar?. Tus cambios no se guardarán',
   },
   'label--confirm-are-you-sure-remove-label': {
     'en': 'Are you sure you want to remove {label}?',
-    'es': '¿Seguro que quieres eliminar {label}?'
+    'es': '¿Seguro que quieres eliminar {label}?',
   },
   'label--confirm-are-you-sure-remove': {
     'en': 'Are you sure you want to remove?',
-    'es': '¿Seguro que quieres eliminar?'
+    'es': '¿Seguro que quieres eliminar?',
   },
   'label--confirm-are-you-sure-update-label': {
     'en': 'Are you sure you want to update {label}?',
-    'es': '¿Seguro que quieres actualizar {label}?'
+    'es': '¿Seguro que quieres actualizar {label}?',
   },
   'label--confirm-are-you-sure-label': {
     'en': 'Are you sure you want to {label}?',
-    'es': '¿Seguro que quieres {label}?'
+    'es': '¿Seguro que quieres {label}?',
   },
   'label--confirm-are-you-sure-update-label-to': {
     'en': "Are you sure you want to update '{label}' to '{to}'?",
@@ -858,19 +859,19 @@ const Map<String, Map<String, String>> defaultLocales = {
   },
   'validation--email-address': {
     'en': 'Enter a valid email address',
-    'es': 'Introduzca una dirección de correo electrónico válida'
+    'es': 'Introduzca una dirección de correo electrónico válida',
   },
   'validation--phone': {
     'en': 'Enter a valid phone number',
-    'es': 'Introduce un número de teléfono válido'
+    'es': 'Introduce un número de teléfono válido',
   },
   'validation--url': {
     'en': 'Enter a valid URL',
-    'es': 'Introduce una URL válida'
+    'es': 'Introduce una URL válida',
   },
   'validation--not-empty': {
     'en': 'This field can\'t be empty',
-    'es': 'Este campo no puede estar vacío'
+    'es': 'Este campo no puede estar vacío',
   },
   'label--activity': {
     'en': 'Activity',
@@ -1077,15 +1078,15 @@ const Map<String, Map<String, String>> defaultLocales = {
   },
   'lorem--m': {
     'en':
-        'Donec nec justo eget felis facilisis fermentum. Aliquam porttitor mauris sit amet orci.'
+        'Donec nec justo eget felis facilisis fermentum. Aliquam porttitor mauris sit amet orci.',
   },
   'lorem--l': {
     'en':
-        'Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec odio. Quisque volutpat mattis eros. Nullam malesuada erat ut turpis. Suspendisse urna nibh, viverra non, semper suscipit, posuere a, pede.'
+        'Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec odio. Quisque volutpat mattis eros. Nullam malesuada erat ut turpis. Suspendisse urna nibh, viverra non, semper suscipit, posuere a, pede.',
   },
   'lorem--block': {
     'en':
-        'Praesent dapibus, neque id cursus faucibus, tortor neque egestas auguae, eu vulputate magna eros eu erat. Aliquam erat volutpat. Nam dui mi, tincidunt quis, accumsan porttitor, facilisis luctus, metus. \nPhasellus ultrices nulla quis nibh. Quisque a lectus. Donec consectetuer ligula vulputate sem tristique cursus. Nam nulla quam, gravida non, commodo a, sodales sit amet, nisi.'
+        'Praesent dapibus, neque id cursus faucibus, tortor neque egestas auguae, eu vulputate magna eros eu erat. Aliquam erat volutpat. Nam dui mi, tincidunt quis, accumsan porttitor, facilisis luctus, metus. \nPhasellus ultrices nulla quis nibh. Quisque a lectus. Donec consectetuer ligula vulputate sem tristique cursus. Nam nulla quam, gravida non, commodo a, sodales sit amet, nisi.',
   },
   'label--is': {
     'en': 'Is',
@@ -1261,3 +1262,4 @@ const Map<String, Map<String, String>> defaultLocales = {
     'es': 'Expandir todo',
   },
 };
+// @formatter:on

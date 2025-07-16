@@ -3,9 +3,7 @@ import 'regex_helper.dart';
 
 /// Use InputValidation for any form input or the custom InputData component
 class InputValidation {
-  const InputValidation({
-    this.locales,
-  });
+  const InputValidation({this.locales});
 
   final AppLocalizations? locales;
 

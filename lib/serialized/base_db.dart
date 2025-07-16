@@ -47,8 +47,10 @@ class BaseFirestore {
 
   /// Update document
   Future<void> update({required String collection}) {
-    assert(id.isNotEmpty && collection.isNotEmpty,
-        'collection and document id are required');
+    assert(
+      id.isNotEmpty && collection.isNotEmpty,
+      'collection and document id are required',
+    );
     Map<String, dynamic> jsonData = toJson();
     jsonData.remove('id');
     jsonData.remove('created');
@@ -60,15 +62,19 @@ class BaseFirestore {
 
   /// Update document
   Future<void> delete({required String collection}) {
-    assert(id.isNotEmpty && collection.isNotEmpty,
-        'collection and document id are required');
+    assert(
+      id.isNotEmpty && collection.isNotEmpty,
+      'collection and document id are required',
+    );
     return FirebaseFirestore.instance.collection(collection).doc(id).delete();
   }
 
   /// Set document
   Future<void> set({required String collection, bool merge = false}) {
-    assert(id.isNotEmpty && collection.isNotEmpty,
-        'collection and document id are required');
+    assert(
+      id.isNotEmpty && collection.isNotEmpty,
+      'collection and document id are required',
+    );
     Map<String, dynamic> jsonData = toJson();
     jsonData.remove('id');
     return FirebaseFirestore.instance
@@ -92,8 +98,10 @@ class BaseFirestore {
     /// Handle incremental id's
     if (numerical) {
       // Get last document id
-      final last =
-          await ref.orderBy('created', descending: true).limit(1).get();
+      final last = await ref
+          .orderBy('created', descending: true)
+          .limit(1)
+          .get();
       late int lastId;
       if (last.size == 0) {
         // Set to '0' if collection is empty

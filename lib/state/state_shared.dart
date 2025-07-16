@@ -40,7 +40,7 @@ abstract class StateShared extends ChangeNotifier {
   dynamic get data => privateData;
 
   /// Default Callback function
-  callbackDefault(dynamic data) {}
+  void callbackDefault(dynamic data) {}
 
   /// Callback function
   Function(dynamic data)? _callback;
@@ -52,8 +52,10 @@ abstract class StateShared extends ChangeNotifier {
   set callback(Function(dynamic data) f) => _callback = f;
 
   /// Merge List data
-  List<dynamic> merge(
-      {required List<dynamic> base, required List<dynamic> toMerge}) {
+  List<dynamic> merge({
+    required List<dynamic> base,
+    required List<dynamic> toMerge,
+  }) {
     List<dynamic> newData = base;
     for (final item in toMerge) {
       dynamic itemID = item['id'];
@@ -158,7 +160,7 @@ abstract class StateShared extends ChangeNotifier {
   String? get error => _error;
 
   /// Default onError function
-  onErrorDefault(String? error) {
+  void onErrorDefault(String? error) {
     if (error != null) debugPrint(LogColor.error(error));
   }
 
@@ -305,20 +307,23 @@ abstract class StateShared extends ChangeNotifier {
 
     /// Get page from query
     final pageFromQuery = passingQueryParameters['page'];
-    final newPage =
-        pageFromQuery != null ? int.tryParse(pageFromQuery.first) : null;
+    final newPage = pageFromQuery != null
+        ? int.tryParse(pageFromQuery.first)
+        : null;
     pageDefault = newPage ?? page;
 
     /// Get limit from query
     final limitFromQuery = passingQueryParameters['limit'];
-    final newLimit =
-        limitFromQuery != null ? int.tryParse(limitFromQuery.first) : null;
+    final newLimit = limitFromQuery != null
+        ? int.tryParse(limitFromQuery.first)
+        : null;
     if (newLimit != null) limit = newLimit;
 
     try {
       /// Get filters
       final queryFilters = passingQueryParameters['filters'];
-      final queryFilter = queryFilters != null &&
+      final queryFilter =
+          queryFilters != null &&
               (queryFilters.isNotEmpty && queryFilters.first.isNotEmpty)
           ? queryFilters.first
           : null;
@@ -326,7 +331,8 @@ abstract class StateShared extends ChangeNotifier {
     } catch (e) {
       _filters = [];
       debugPrint(
-          LogColor.error('!!! decode filters from query: ${e.toString()}'));
+        LogColor.error('!!! decode filters from query: ${e.toString()}'),
+      );
     }
 
     // Remove filter parameters
@@ -447,10 +453,7 @@ abstract class StateShared extends ChangeNotifier {
     bool merge = false,
   }) {
     List<FilterData> baseFilters = merge
-        ? FilterHelper.merge(
-            filters: filters,
-            merge: newFilters,
-          )
+        ? FilterHelper.merge(filters: filters, merge: newFilters)
         : newFilters;
     baseFilters = FilterHelper.filter(filters: baseFilters, strict: true);
     _filters = baseFilters;

@@ -39,8 +39,13 @@ class FirebaseStorageHelper {
   ///    );
   /// ```
   @Deprecated('use [FirebaseStorageHelper.save]')
-  static Future<TaskSnapshot> upload(File file, String path, String name,
-      [String? contentType, Map<String, dynamic>? metadata]) async {
+  static Future<TaskSnapshot> upload(
+    File file,
+    String path,
+    String name, [
+    String? contentType,
+    Map<String, dynamic>? metadata,
+  ]) async {
     final storageRef = FirebaseStorage.instance.ref();
     final ref = storageRef.child(path).child(name);
     final uploadTask = ref.putFile(
@@ -83,14 +88,12 @@ class FirebaseStorageHelper {
       path: path,
       autoId: autoId,
       format: PutStringFormat.base64,
-      metadata: SettableMetadata(
-        contentType: contentType,
-      ),
+      metadata: SettableMetadata(contentType: contentType),
     );
     return fileSaved.ref.fullPath;
   }
 
-  uploadImageMedia({
+  Future uploadImageMedia({
     required MediaOrigin origin,
     required Function(String, MediaData) callback,
     required String path,
@@ -116,16 +119,18 @@ class FirebaseStorageHelper {
       final errorType = errorMessage == 'alert--no-chosen-files'
           ? AlertType.warning
           : AlertType.critical;
-      alert.show(AlertData(
-        body: locales.get(errorMessage),
-        type: errorType,
-        duration: 5,
-        clear: true,
-      ));
+      alert.show(
+        AlertData(
+          body: locales.get(errorMessage),
+          type: errorType,
+          duration: 5,
+          clear: true,
+        ),
+      );
     }
   }
 
-  uploadMedia({
+  Future uploadMedia({
     required Function(String, MediaData) callback,
     required String path,
     required List<String> fileExtensions,
@@ -134,8 +139,9 @@ class FirebaseStorageHelper {
     final alert = Provider.of<StateAlert>(context, listen: false);
     final locales = AppLocalizations.of(context);
     try {
-      final selectedFile =
-          await MediaHelper.getFile(allowedExtensions: fileExtensions);
+      final selectedFile = await MediaHelper.getFile(
+        allowedExtensions: fileExtensions,
+      );
       final finalPath = await saveFile(
         file: selectedFile.data,
         contentType: selectedFile.contentType,
@@ -148,12 +154,14 @@ class FirebaseStorageHelper {
       final errorType = errorMessage == 'alert--no-chosen-files'
           ? AlertType.warning
           : AlertType.critical;
-      alert.show(AlertData(
-        body: locales.get(errorMessage),
-        type: errorType,
-        duration: 5,
-        clear: true,
-      ));
+      alert.show(
+        AlertData(
+          body: locales.get(errorMessage),
+          type: errorType,
+          duration: 5,
+          clear: true,
+        ),
+      );
     }
   }
 }

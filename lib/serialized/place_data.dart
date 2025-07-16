@@ -5,7 +5,8 @@ part 'place_data.g.dart';
 DateTime dayTimeToDateTime(int day, String time) {
   if (time.length < 4) {
     throw ArgumentError(
-        "'time' is not a valid string. It must be four integers.");
+      "'time' is not a valid string. It must be four integers.",
+    );
   }
 
   day = day == 0 ? DateTime.sunday : day;
@@ -25,10 +26,7 @@ class Location {
   final double lat;
   final double lng;
 
-  Location({
-    required this.lat,
-    required this.lng,
-  });
+  Location({required this.lat, required this.lng});
 
   factory Location.fromJson(Map<String, dynamic> json) =>
       _$LocationFromJson(json);
@@ -66,10 +64,7 @@ class Bounds {
   final Location northeast;
   final Location southwest;
 
-  Bounds({
-    required this.northeast,
-    required this.southwest,
-  });
+  Bounds({required this.northeast, required this.southwest});
 
   @override
   String toString() =>

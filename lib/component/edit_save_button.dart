@@ -59,16 +59,15 @@ class _EditSaveButtonState extends State<EditSaveButton> {
         widget.save();
         return;
       }
-      alert.show(AlertData(
-        title: locales.get('label--confirm-are-you-sure-update'),
-        action: ButtonOptions(
-          onTap: widget.save,
-          label: 'label--update',
+      alert.show(
+        AlertData(
+          title: locales.get('label--confirm-are-you-sure-update'),
+          action: ButtonOptions(onTap: widget.save, label: 'label--update'),
+          type: widget.alertType,
+          widget: widget.alertWidget,
+          clear: true,
         ),
-        type: widget.alertType,
-        widget: widget.alertWidget,
-        clear: true,
-      ));
+      );
     }
 
     void cancel() async {
@@ -76,16 +75,15 @@ class _EditSaveButtonState extends State<EditSaveButton> {
         widget.cancel();
         return;
       }
-      alert.show(AlertData(
-        type: widget.alertType,
-        widget: widget.alertWidget,
-        title: locales.get('label--confirm-are-you-sure-cancel'),
-        action: ButtonOptions(
-          onTap: widget.cancel,
-          label: 'label--cancel',
+      alert.show(
+        AlertData(
+          type: widget.alertType,
+          widget: widget.alertWidget,
+          title: locales.get('label--confirm-are-you-sure-cancel'),
+          action: ButtonOptions(onTap: widget.cancel, label: 'label--cancel'),
+          clear: true,
         ),
-        clear: true,
-      ));
+      );
     }
 
     Widget cancelButton = IconButton(
@@ -132,11 +130,7 @@ class _EditSaveButtonState extends State<EditSaveButton> {
     List<Widget> buttons = [];
 
     if (widget.active) {
-      buttons = [
-        cancelButton,
-        const SizedBox(width: 8),
-        updateButton,
-      ];
+      buttons = [cancelButton, const SizedBox(width: 8), updateButton];
     } else {
       buttons = [editButton];
     }

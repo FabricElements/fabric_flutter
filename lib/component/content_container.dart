@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum ContentContainerSize {
-  small,
-  medium,
-  large,
-  xLarge,
-}
+enum ContentContainerSize { small, medium, large, xLarge }
 
 class ContentContainer extends StatelessWidget {
   const ContentContainer({
@@ -19,8 +14,10 @@ class ContentContainer extends StatelessWidget {
     this.mainAxisSize = MainAxisSize.max,
     this.crossAxisAlignment = CrossAxisAlignment.start,
     this.mainAxisAlignment = MainAxisAlignment.start,
-  }) : assert(child != null || children != null,
-            'child or children must be specified');
+  }) : assert(
+         child != null || children != null,
+         'child or children must be specified',
+       );
   final Widget? child;
   final List<Widget>? children;
 
@@ -50,7 +47,8 @@ class ContentContainer extends StatelessWidget {
         maxSize = 1700;
         break;
     }
-    Widget content = child ??
+    Widget content =
+        child ??
         Flex(
           direction: direction,
           mainAxisSize: mainAxisSize,
@@ -63,10 +61,7 @@ class ContentContainer extends StatelessWidget {
         constraints: BoxConstraints(maxWidth: maxSize),
         margin: margin,
         padding: padding,
-        child: SizedBox(
-          width: double.maxFinite,
-          child: content,
-        ),
+        child: SizedBox(width: double.maxFinite, child: content),
       ),
     );
   }

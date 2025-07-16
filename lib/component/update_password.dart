@@ -43,7 +43,8 @@ class _UpdatePasswordState extends State<UpdatePassword> {
     String? errorValidation;
     String? errorValidation2;
     bool newPasswordOk = RegexHelper.password.hasMatch(password1);
-    ok = current.isNotEmpty &&
+    ok =
+        current.isNotEmpty &&
         password1.length > 5 &&
         password2.length > 5 &&
         current != password1 &&
@@ -63,88 +64,98 @@ class _UpdatePasswordState extends State<UpdatePassword> {
     }
 
     List<Widget> sections = [];
-    sections.add(InputData(
-      autofillHints: const [],
-      label: locales.get('label--current-password'),
-      hintText: locales.get('label--password'),
-      type: InputDataType.secret,
-      obscureText: true,
-      value: current,
-      onChanged: (value) {
-        current = value ?? '';
-        if (mounted) setState(() {});
-      },
-    ));
-    if (current.isNotEmpty) {
-      sections.add(InputData(
-        label: locales.get('label--new-password'),
+    sections.add(
+      InputData(
+        autofillHints: const [],
+        label: locales.get('label--current-password'),
         hintText: locales.get('label--password'),
         type: InputDataType.secret,
         obscureText: true,
-        value: password1,
-        error: errorValidation,
+        value: current,
         onChanged: (value) {
-          password1 = value ?? '';
-          password2 = '';
+          current = value ?? '';
           if (mounted) setState(() {});
         },
-        autofillHints: const [
-          AutofillHints.newPassword,
-        ],
-      ));
+      ),
+    );
+    if (current.isNotEmpty) {
+      sections.add(
+        InputData(
+          label: locales.get('label--new-password'),
+          hintText: locales.get('label--password'),
+          type: InputDataType.secret,
+          obscureText: true,
+          value: password1,
+          error: errorValidation,
+          onChanged: (value) {
+            password1 = value ?? '';
+            password2 = '';
+            if (mounted) setState(() {});
+          },
+          autofillHints: const [AutofillHints.newPassword],
+        ),
+      );
     }
     if (password1.isNotEmpty && errorValidation == null) {
-      sections.add(InputData(
-        label: locales.get('label--repeat-new-password'),
-        hintText: locales.get('label--password'),
-        type: InputDataType.secret,
-        obscureText: true,
-        value: password2,
-        error: errorValidation2,
-        onChanged: (value) {
-          password2 = value ?? '';
-          if (mounted) setState(() {});
-        },
-        autofillHints: const [
-          AutofillHints.newPassword,
-        ],
-      ));
+      sections.add(
+        InputData(
+          label: locales.get('label--repeat-new-password'),
+          hintText: locales.get('label--password'),
+          type: InputDataType.secret,
+          obscureText: true,
+          value: password2,
+          error: errorValidation2,
+          onChanged: (value) {
+            password2 = value ?? '';
+            if (mounted) setState(() {});
+          },
+          autofillHints: const [AutofillHints.newPassword],
+        ),
+      );
     }
 
     if (ok) {
-      sections.add(FilledButton(
-        onPressed: () {
-          alert.show(AlertData(
-            title: locales.get('label--confirm-are-you-sure-update-label', {
-              'label': locales.get('label--password'),
-            }),
-            body: locales.get('alert--action-permanent'),
-            action: ButtonOptions(
-              onTap: () {
-                widget.callback(PasswordData(
-                  currentPassword: current,
-                  newPassword: password1,
-                ));
-                reset();
-                if (mounted) setState(() {});
-              },
-              label: 'label--update',
-            ),
-            type: AlertType.warning,
-            widget: AlertWidget.dialog,
-          ));
-        },
-        child: Text(locales.get('label--update')),
-      ));
+      sections.add(
+        FilledButton(
+          onPressed: () {
+            alert.show(
+              AlertData(
+                title: locales.get('label--confirm-are-you-sure-update-label', {
+                  'label': locales.get('label--password'),
+                }),
+                body: locales.get('alert--action-permanent'),
+                action: ButtonOptions(
+                  onTap: () {
+                    widget.callback(
+                      PasswordData(
+                        currentPassword: current,
+                        newPassword: password1,
+                      ),
+                    );
+                    reset();
+                    if (mounted) setState(() {});
+                  },
+                  label: 'label--update',
+                ),
+                type: AlertType.warning,
+                widget: AlertWidget.dialog,
+              ),
+            );
+          },
+          child: Text(locales.get('label--update')),
+        ),
+      );
     }
 
     /// Add BoxConstraints
     sections = sections
-        .map((e) => Container(
-              constraints: const BoxConstraints(maxWidth: 500),
-              margin: const EdgeInsets.only(bottom: 16),
-              child: e,
-            ))
+        .map(
+          (e) => Container(
+            constraints: const BoxConstraints(maxWidth: 500),
+            margin: const EdgeInsets.only(bottom: 16),
+            child: e,
+          ),
+        )
         .toList();
     return Flex(
       direction: Axis.vertical,

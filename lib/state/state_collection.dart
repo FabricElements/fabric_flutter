@@ -47,7 +47,7 @@ abstract class StateCollection extends StateShared {
   /// Get Collection Reference
   Query? get query => baseQuery?.limit(limit * page);
 
-  _softClear({bool notify = false}) {
+  void _softClear({bool notify = false}) {
     if (notify) {
       data = null;
     } else {
@@ -75,28 +75,31 @@ abstract class StateCollection extends StateShared {
     }
     initialized = true;
     try {
-      _streamSubscription = query!.snapshots().listen((snapshot) {
-        loading = false;
+      _streamSubscription = query!.snapshots().listen(
+        (snapshot) {
+          loading = false;
 
-        /// Default totalCount depending on the page
-        totalCount = snapshot.size;
-        if (totalCount > 0) {
-          List<Map<String, dynamic>> items = [];
-          for (var doc in snapshot.docs) {
-            final item = doc;
-            items.add({
-              ...item.data() as Map<String, dynamic>,
-              'id': item.id,
-            });
+          /// Default totalCount depending on the page
+          totalCount = snapshot.size;
+          if (totalCount > 0) {
+            List<Map<String, dynamic>> items = [];
+            for (var doc in snapshot.docs) {
+              final item = doc;
+              items.add({
+                ...item.data() as Map<String, dynamic>,
+                'id': item.id,
+              });
+            }
+            data = items;
+          } else {
+            data = [];
           }
-          data = items;
-        } else {
-          data = [];
-        }
-      }, onError: (e) {
-        super.clear(notify: true);
-        error = e?.toString();
-      });
+        },
+        onError: (e) {
+          super.clear(notify: true);
+          error = e?.toString();
+        },
+      );
     } catch (e) {
       super.clear(notify: true);
       error = e.toString();
@@ -133,10 +136,7 @@ abstract class StateCollection extends StateShared {
         List<Map<String, dynamic>> items = [];
         for (var doc in snapshot.docs) {
           final item = doc;
-          items.add({
-            ...item.data() as Map<String, dynamic>,
-            'id': item.id,
-          });
+          items.add({...item.data() as Map<String, dynamic>, 'id': item.id});
         }
         data = items;
       } else {

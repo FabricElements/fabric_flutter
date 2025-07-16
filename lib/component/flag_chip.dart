@@ -46,13 +46,15 @@ class FlagChip extends StatelessWidget {
       ),
     );
     if (total != null) {
-      items.add(Text(
-        formatDecimal.format(total),
-        style: TextStyle(
-          color: theme.colorScheme.primary,
-          fontWeight: FontWeight.bold,
+      items.add(
+        Text(
+          formatDecimal.format(total),
+          style: TextStyle(
+            color: theme.colorScheme.primary,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-      ));
+      );
     }
 
     return Chip(

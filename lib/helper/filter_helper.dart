@@ -9,11 +9,7 @@ import 'enum_data.dart';
 import 'log_color.dart';
 
 /// Supported SQL Query outputs
-enum SQLQueryType {
-  sql,
-  openSearch,
-  bigQuery,
-}
+enum SQLQueryType { sql, openSearch, bigQuery }
 
 /// FilterHelper are used by StateShared
 class FilterHelper {
@@ -29,8 +25,11 @@ class FilterHelper {
       case InputDataType.date:
         final baseDate = (value as DateTime).toUtc();
         final DateFormat formatter = DateFormat('yyyy-MM-dd');
-        final endDateFormatted =
-            DateTime.utc(baseDate.year, baseDate.month, baseDate.day);
+        final endDateFormatted = DateTime.utc(
+          baseDate.year,
+          baseDate.month,
+          baseDate.day,
+        );
         final formatted = formatter.format(endDateFormatted);
         response = '"$formatted"';
         break;
@@ -182,7 +181,7 @@ class FilterHelper {
 
   /// Returns a SQL query string from a list of filters
   static String? toSQL({
-    required table,
+    required String table,
     required List<FilterData> filterData,
     int? limit,
     SQLQueryType sqlQueryType = SQLQueryType.sql,
@@ -296,7 +295,7 @@ class FilterHelper {
 
   /// Filters to SQL encoded value
   static String? toSQLEncoded({
-    required table,
+    required String table,
     required List<FilterData> filterData,
     SQLQueryType sqlQueryType = SQLQueryType.sql,
     int? limit,
@@ -332,15 +331,17 @@ class FilterHelper {
       FilterData toMerge = merge[i];
 
       /// Add filter if doesn't exists
-      bool filterExists =
-          filters.where((element) => element.id == toMerge.id).isNotEmpty;
+      bool filterExists = filters
+          .where((element) => element.id == toMerge.id)
+          .isNotEmpty;
       if (!filterExists) {
         filterDataUpdated.add(toMerge);
       }
 
       /// Update existing filter
-      FilterData item =
-          filterDataUpdated.firstWhere((element) => element.id == toMerge.id);
+      FilterData item = filterDataUpdated.firstWhere(
+        (element) => element.id == toMerge.id,
+      );
       item.operator = toMerge.operator;
       item.value = toMerge.value;
 
@@ -362,10 +363,12 @@ class FilterHelper {
     bool strict = false,
   }) {
     return filters
-        .where((element) =>
-            // element.value != null &&
-            element.operator != null &&
-            (strict ? element.operator != FilterOperator.any : true))
+        .where(
+          (element) =>
+              // element.value != null &&
+              element.operator != null &&
+              (strict ? element.operator != FilterOperator.any : true),
+        )
         .toList();
   }
 
@@ -421,8 +424,10 @@ class FilterHelper {
     required String id,
   }) {
     try {
-      return filter(filters: filters, strict: true)
-          .firstWhere((item) => item.id == id);
+      return filter(
+        filters: filters,
+        strict: true,
+      ).firstWhere((item) => item.id == id);
     } catch (e) {
       return null;
     }
@@ -432,8 +437,7 @@ class FilterHelper {
   static dynamic valueFromId({
     required List<FilterData> filters,
     required String id,
-  }) =>
-      filterById(filters: filters, id: id)?.value;
+  }) => filterById(filters: filters, id: id)?.value;
 
   /// Format data with filters
   /// This function formats data with filters

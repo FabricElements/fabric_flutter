@@ -106,8 +106,10 @@ class AppLocalizations {
     try {
       // Handle camelCase
       RegExp exp = RegExp(r'(?<=[a-z])[A-Z]');
-      keyFinal =
-          keyFinal.replaceAllMapped(exp, (Match m) => ('-${m.group(0)!}'));
+      keyFinal = keyFinal.replaceAllMapped(
+        exp,
+        (Match m) => ('-${m.group(0)!}'),
+      );
     } catch (e) {
       //
     }
@@ -118,8 +120,9 @@ class AppLocalizations {
     }
     // Check if the key is not found
     if (kDebugMode && finalLocalization == keyFinal) {
-      debugPrint(LogColor.warning(
-          'AppLocalizations: Missing Localization - $keyFinal'));
+      debugPrint(
+        LogColor.warning('AppLocalizations: Missing Localization - $keyFinal'),
+      );
     }
     return finalLocalization;
   }
@@ -128,9 +131,7 @@ class AppLocalizations {
 /// The localizations delegate
 /// This class is used to load the localizations
 class AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
-  const AppLocalizationsDelegate({
-    required this.locales,
-  });
+  const AppLocalizationsDelegate({required this.locales});
 
   /// The locales to load
   final Map<String, Map<String, String>> locales;
@@ -147,6 +148,5 @@ class AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   }
 
   @override
-  bool shouldReload(AppLocalizationsDelegate old) =>
-      false; // false to prevent loading every time a widget is build
+  bool shouldReload(AppLocalizationsDelegate old) => false; // false to prevent loading every time a widget is build
 }
