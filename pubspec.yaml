@@ -1,9 +1,9 @@
 name: fabric_flutter
 description: Native components and helpers
-version: 1.7.9
+version: 1.8.0
 
 environment:
-  sdk: ^3.6.2
+  sdk: ^3.8.1
 
 dependencies:
   flutter:
@@ -28,7 +28,7 @@ dependencies:
   image: ^4.5.4
   google_sign_in: ^6.3.0
   http: ^1.4.0
-  url_launcher: ^6.3.1
+  url_launcher: ^6.3.2
   google_maps_flutter: ^2.12.3
   package_info_plus: ^8.3.0
   mime: ^2.0.0
@@ -46,7 +46,7 @@ dependencies:
   google_fonts: ^6.2.1
   pointer_interceptor: ^0.10.1+2
   omni_datetime_picker: ^2.1.1
-  collection: ^1.19.0
+  collection: ^1.19.1
   dlibphonenumber: ^1.1.42
   scrollable_positioned_list: ^0.3.8
   gap: ^3.0.1
@@ -55,8 +55,8 @@ dev_dependencies:
     sdk: flutter
   flutter_test:
     sdk: flutter
-  flutter_lints: ^5.0.0
-  build_runner: ^2.4.15
+  flutter_lints: ^6.0.0
+  build_runner: ^2.5.4
 
 dependency_overrides:
   intl: ^0.20.2
