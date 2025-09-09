@@ -30,7 +30,7 @@ Map<String, dynamic> _$UserStatusToJson(UserStatus instance) =>
       'signedIn': instance.signedIn,
       'admin': instance.admin,
       'role': instance.role,
-      if (instance.uid case final value?) 'uid': value,
+      'uid': ?instance.uid,
       'language': instance.language,
       'theme': _$ThemeModeEnumMap[instance.theme]!,
       'connected': instance.connected,

@@ -49,12 +49,11 @@ Map<String, dynamic> _$InterfaceLinksToJson(InterfaceLinks instance) =>
     };
 
 UserData _$UserDataFromJson(Map<String, dynamic> json) => UserData(
-  onboarding:
-      json['onboarding'] == null
-          ? null
-          : UserDataOnboarding.fromJson(
-            json['onboarding'] as Map<String, dynamic>?,
-          ),
+  onboarding: json['onboarding'] == null
+      ? null
+      : UserDataOnboarding.fromJson(
+          json['onboarding'] as Map<String, dynamic>?,
+        ),
   phone: json['phone'] as String?,
   ping: FirestoreHelper.timestampFromJson(json['ping']),
   username: json['username'] as String?,
@@ -85,31 +84,30 @@ UserData _$UserDataFromJson(Map<String, dynamic> json) => UserData(
         unknownValue: ThemeMode.light,
       ) ??
       ThemeMode.light,
-  links:
-      json['links'] == null
-          ? null
-          : InterfaceLinks.fromJson(json['links'] as Map<String, dynamic>?),
+  links: json['links'] == null
+      ? null
+      : InterfaceLinks.fromJson(json['links'] as Map<String, dynamic>?),
   os: $enumDecodeNullable(_$UserOSEnumMap, json['os']) ?? UserOS.unknown,
   country: json['country'] as String?,
 );
 
 Map<String, dynamic> _$UserDataToJson(UserData instance) => <String, dynamic>{
-  if (instance.avatar case final value?) 'avatar': value,
-  if (instance.email case final value?) 'email': value,
-  if (instance.fcm case final value?) 'fcm': value,
-  if (instance.id case final value?) 'id': value,
-  if (instance.firstName case final value?) 'firstName': value,
-  if (instance.lastName case final value?) 'lastName': value,
-  if (instance.language case final value?) 'language': value,
-  if (instance.onboarding?.toJson() case final value?) 'onboarding': value,
-  if (instance.links?.toJson() case final value?) 'links': value,
+  'avatar': ?instance.avatar,
+  'email': ?instance.email,
+  'fcm': ?instance.fcm,
+  'id': ?instance.id,
+  'firstName': ?instance.firstName,
+  'lastName': ?instance.lastName,
+  'language': ?instance.language,
+  'onboarding': ?instance.onboarding?.toJson(),
+  'links': ?instance.links?.toJson(),
   'os': _$UserOSEnumMap[instance.os]!,
-  if (instance.phone case final value?) 'phone': value,
-  if (instance.password case final value?) 'password': value,
+  'phone': ?instance.phone,
+  'password': ?instance.password,
   'role': instance.role,
   'groups': instance.groups,
   'roles': instance.roles,
-  if (instance.username case final value?) 'username': value,
+  'username': ?instance.username,
   'theme': _$ThemeModeEnumMap[instance.theme]!,
   'country': instance.country,
 };

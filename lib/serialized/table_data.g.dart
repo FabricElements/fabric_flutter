@@ -9,10 +9,9 @@ part of 'table_data.dart';
 TableData _$TableDataFromJson(Map<String, dynamic> json) {
   $checkKeys(json, disallowNullValues: const ['rows']);
   return TableData(
-    header:
-        (json['header'] as List<dynamic>?)
-            ?.map((e) => TableColumnData.fromJson(e as Map<String, dynamic>?))
-            .toList(),
+    header: (json['header'] as List<dynamic>?)
+        ?.map((e) => TableColumnData.fromJson(e as Map<String, dynamic>?))
+        .toList(),
     rows:
         (json['rows'] as List<dynamic>?)
             ?.map((e) => TableRowData.fromJson(e as Map<String, dynamic>?))
@@ -25,10 +24,9 @@ TableData _$TableDataFromJson(Map<String, dynamic> json) {
 }
 
 Map<String, dynamic> _$TableDataToJson(TableData instance) => <String, dynamic>{
-  if (instance.header?.map((e) => e.toJson()).toList() case final value?)
-    'header': value,
+  'header': ?instance.header?.map((e) => e.toJson()).toList(),
   'rows': instance.rows.map((e) => e.toJson()).toList(),
-  if (instance.footer case final value?) 'footer': value,
+  'footer': ?instance.footer,
   'active': instance.active,
   'level': instance.level,
 };
@@ -48,7 +46,7 @@ TableColumnData _$TableColumnDataFromJson(Map<String, dynamic> json) {
 Map<String, dynamic> _$TableColumnDataToJson(TableColumnData instance) =>
     <String, dynamic>{
       'value': instance.value,
-      if (instance.label case final value?) 'label': value,
+      'label': ?instance.label,
       'type': _$TableDataTypeEnumMap[instance.type]!,
       'width': instance.width,
     };
@@ -67,10 +65,9 @@ TableRowData _$TableRowDataFromJson(Map<String, dynamic> json) {
   $checkKeys(json, disallowNullValues: const ['cells']);
   return TableRowData(
     cells: json['cells'] as List<dynamic>? ?? const [],
-    child:
-        json['child'] == null
-            ? null
-            : TableData.fromJson(json['child'] as Map<String, dynamic>?),
+    child: json['child'] == null
+        ? null
+        : TableData.fromJson(json['child'] as Map<String, dynamic>?),
     active: json['active'] as bool? ?? false,
   );
 }
@@ -78,6 +75,6 @@ TableRowData _$TableRowDataFromJson(Map<String, dynamic> json) {
 Map<String, dynamic> _$TableRowDataToJson(TableRowData instance) =>
     <String, dynamic>{
       'cells': instance.cells,
-      if (instance.child?.toJson() case final value?) 'child': value,
+      'child': ?instance.child?.toJson(),
       'active': instance.active,
     };

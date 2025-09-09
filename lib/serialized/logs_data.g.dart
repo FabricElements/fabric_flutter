@@ -16,7 +16,6 @@ LogsData _$LogsDataFromJson(Map<String, dynamic> json) => LogsData(
 Map<String, dynamic> _$LogsDataToJson(LogsData instance) => <String, dynamic>{
   'id': instance.id,
   'text': instance.text,
-  if (Utils.dateToJson(instance.timestamp) case final value?)
-    'timestamp': value,
+  'timestamp': ?Utils.dateToJson(instance.timestamp),
   'data': instance.data,
 };
