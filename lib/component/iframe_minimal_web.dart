@@ -3,7 +3,7 @@ import 'dart:ui' if (dart.library.html) 'dart:ui_web' as ui;
 import 'package:flutter/material.dart';
 import 'package:universal_html/html.dart'
     if (dart.library.html) 'dart:html'
-    show IFrameElement;
+    show IFrameElement, document;
 
 import '../helper/log_color.dart';
 
@@ -44,8 +44,10 @@ class IframeMinimal extends StatelessWidget {
       ..setAttribute('alt', alt)
       ..setAttribute(
         'style',
-        'border: none; height: 100%; width: 100%; background-color: transparent;',
+        'border: none; height: 100%; width: 100%; background-color: transparent; pointer-events: auto;',
       )
+      // disable scrolling
+      ..setAttribute('scrolling', 'auto')
       ..setAttribute('title', title);
 
     try {
@@ -55,7 +57,7 @@ class IframeMinimal extends StatelessWidget {
         (int viewId) => iframeElement,
       );
     } catch (e) {
-      debugPrint(LogColor.error('Error IframeMinimal: $e'));
+      debugPrint(LogColor.error('Error IframeMinimal web: $e'));
     }
 
     return HtmlElementView(
