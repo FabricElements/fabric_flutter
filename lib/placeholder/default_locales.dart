@@ -1261,5 +1261,13 @@ const Map<String, Map<String, String>> defaultLocales = {
     'en': 'Expand All',
     'es': 'Expandir todo',
   },
+  'label--chart-no-data': {
+    'en': 'No data available for chart',
+    'es': 'No hay datos disponibles para el gráfico',
+  },
+  'label--chart-no-data-description': {
+    'en': 'There is no data available to display the chart. Please adjust your filters or add data to see the chart.',
+    'es': 'No hay datos disponibles para mostrar el gráfico. Ajusta tus filtros o agrega datos para ver el gráfico.',
+  },
 };
 // @formatter:on
