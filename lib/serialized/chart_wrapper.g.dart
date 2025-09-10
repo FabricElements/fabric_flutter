@@ -62,6 +62,9 @@ ChartWrapperOptions _$ChartWrapperOptionsFromJson(Map<String, dynamic> json) =>
       histogram:
           json['histogram'] as Map<String, dynamic>? ??
           const {'minValue': 0, 'showItemDividers': true},
+      colors: (json['colors'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
     );
 
 Map<String, dynamic> _$ChartWrapperOptionsToJson(
@@ -73,6 +76,7 @@ Map<String, dynamic> _$ChartWrapperOptionsToJson(
   'seriesType': instance.seriesType,
   'series': instance.series?.map((k, e) => MapEntry(k.toString(), e)),
   'histogram': instance.histogram,
+  'colors': instance.colors,
 };
 
 ChartWrapper _$ChartWrapperFromJson(Map<String, dynamic> json) {
@@ -119,6 +123,7 @@ const _$ChartTypeEnumMap = {
   ChartType.Histogram: 'Histogram',
   ChartType.ComboChart: 'ComboChart',
   ChartType.ScatterChart: 'ScatterChart',
+  ChartType.Timeline: 'Timeline',
 };
 
 const _$ChartWrapperOrientationEnumMap = {

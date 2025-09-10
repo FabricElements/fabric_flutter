@@ -15,6 +15,7 @@ enum ChartType {
   Histogram,
   ComboChart,
   ScatterChart,
+  Timeline,
 }
 
 /// Legend position options
@@ -82,6 +83,7 @@ class ChartWrapperOptions {
   @JsonKey(includeIfNull: true)
   final Map<int, Map<String, String>>? series;
   final Map<String, dynamic> histogram;
+  final List<String>? colors;
 
   ChartWrapperOptions({
     this.title,
@@ -90,6 +92,7 @@ class ChartWrapperOptions {
     this.seriesType,
     this.series,
     this.histogram = const {'minValue': 0, 'showItemDividers': true},
+    this.colors,
   });
 
   factory ChartWrapperOptions.fromJson(Map<String, dynamic>? json) =>
