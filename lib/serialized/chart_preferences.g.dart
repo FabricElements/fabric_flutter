@@ -41,4 +41,5 @@ const _$ChartTypeEnumMap = {
   ChartType.Histogram: 'Histogram',
   ChartType.ComboChart: 'ComboChart',
   ChartType.ScatterChart: 'ScatterChart',
+  ChartType.Timeline: 'Timeline',
 };
