@@ -84,6 +84,9 @@ class ChartWrapperOptions {
   final Map<int, Map<String, String>>? series;
   final Map<String, dynamic> histogram;
   final List<String>? colors;
+  final Map<String, dynamic>? timeline;
+  final Map<String, dynamic>? chartArea;
+
 
   ChartWrapperOptions({
     this.title,
@@ -93,6 +96,8 @@ class ChartWrapperOptions {
     this.series,
     this.histogram = const {'minValue': 0, 'showItemDividers': true},
     this.colors,
+    this.timeline,
+    this.chartArea,
   });
 
   factory ChartWrapperOptions.fromJson(Map<String, dynamic>? json) =>
@@ -144,7 +149,9 @@ class ChartWrapper {
     if (dataTable.isEmpty) throw Exception('dataTable is empty');
 
     /// Handle header row
-    dataTable[0] = dataTable[0].map((e) => e.toString()).toList();
+    dataTable[0] = dataTable[0]
+        .map((e) => e is Map ? e : e.toString())
+        .toList();
 
     /// Handle numerical values
     /// First element of each row is string, the rest are int
@@ -157,12 +164,17 @@ class ChartWrapper {
         if (numValue != null) {
           // Convert to int, if infinite or NaN set to 0
           dataTable[i][j] = (numValue.isFinite && !numValue.isNaN)
-              ? numValue.floor()
+              ? numValue
               : null;
         } else {
           // If not a number, convert to string
           dataTable[i][j] = value.toString();
         }
+        // // if value is a date string, convert to this format: new Date(YYYY, MM, DD, HH, mm, ss)
+        // final date = DateTime.tryParse(value.toString());
+        // if (date != null) {
+        //   dataTable[i][j] = 'new Date(${date.millisecondsSinceEpoch})';
+        // }
       }
     }
     // Update the baseData with the validated dataTable
@@ -197,10 +209,10 @@ class ChartWrapper {
 
   /// Validate if the chart is valid
   bool isValid() {
-    return options != null &&
-        (options!.hAxis?.values.isNotEmpty ?? false) &&
-        (options!.vAxis?.values.isNotEmpty ?? false) &&
-        dataTable.isNotEmpty &&
+    // return options != null &&
+    //     (options!.hAxis?.values.isNotEmpty ?? false) &&
+    //     (options!.vAxis?.values.isNotEmpty ?? false) &&
+    return dataTable.isNotEmpty &&
         dataTable.length >= 2 &&
         dataTable[0].isNotEmpty &&
         dataTable[1].isNotEmpty &&

@@ -65,6 +65,8 @@ ChartWrapperOptions _$ChartWrapperOptionsFromJson(Map<String, dynamic> json) =>
       colors: (json['colors'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
+      timeline: json['timeline'] as Map<String, dynamic>?,
+      chartArea: json['chartArea'] as Map<String, dynamic>?,
     );
 
 Map<String, dynamic> _$ChartWrapperOptionsToJson(
@@ -77,6 +79,8 @@ Map<String, dynamic> _$ChartWrapperOptionsToJson(
   'series': instance.series?.map((k, e) => MapEntry(k.toString(), e)),
   'histogram': instance.histogram,
   'colors': instance.colors,
+  'timeline': instance.timeline,
+  'chartArea': instance.chartArea,
 };
 
 ChartWrapper _$ChartWrapperFromJson(Map<String, dynamic> json) {
