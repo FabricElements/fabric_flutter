@@ -9,13 +9,29 @@ part 'chart_wrapper.g.dart';
 /// Chart types supported by Google Charts
 /// See: https://developers.google.com/chart/interactive/docs/gallery
 enum ChartType {
-  Table,
-  PieChart,
+  AreaChart,
+  BarChart,
+  BubbleChart,
+  Calendar,
   ColumnChart,
-  Histogram,
   ComboChart,
+  Gauge,
+  GeoChart,
+  LineChart,
+  PieChart,
   ScatterChart,
+  SteppedAreaChart,
+  Table,
+  TreeMap,
+  AnnotationChart,
+  CandlestickChart,
+  Gantt,
+  Histogram,
+  OrgChart,
+  Sankey,
   Timeline,
+  WordTree,
+  // WaterfallChart,
 }
 
 /// Legend position options
@@ -87,7 +103,6 @@ class ChartWrapperOptions {
   final Map<String, dynamic>? timeline;
   final Map<String, dynamic>? chartArea;
 
-
   ChartWrapperOptions({
     this.title,
     this.vAxis,
@@ -111,7 +126,7 @@ class ChartWrapperOptions {
 /// See: https://developers.google.com/chart/interactive/docs/reference#chartwrapperobject
 @JsonSerializable(explicitToJson: true)
 class ChartWrapper {
-  @JsonKey(disallowNullValue: true)
+  @JsonKey(disallowNullValue: true, unknownEnumValue: ChartType.ColumnChart, defaultValue: ChartType.ColumnChart)
   final ChartType chartType;
   @JsonKey(disallowNullValue: true)
   final ChartWrapperOptions? options;

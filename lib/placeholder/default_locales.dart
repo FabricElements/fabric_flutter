@@ -1269,5 +1269,69 @@ const Map<String, Map<String, String>> defaultLocales = {
     'en': 'There is no data available to display the chart. Please adjust your filters or add data to see the chart.',
     'es': 'No hay datos disponibles para mostrar el gráfico. Ajusta tus filtros o agrega datos para ver el gráfico.',
   },
+  'label--area-chart': {
+    'en': 'Area Chart',
+    'es': 'Gráfico de Área',
+  },
+  'label--bar-chart': {
+    'en': 'Bar Chart',
+    'es': 'Gráfico de Barras',
+  },
+  'label--bubble-chart': {
+    'en': 'Bubble Chart',
+    'es': 'Gráfico de Burbujas',
+  },
+  'label--calendar': {
+    'en': 'Calendar',
+    'es': 'Calendario',
+  },
+  'label--gauge': {
+    'en': 'Gauge',
+    'es': 'Medidor',
+  },
+  'label--geo-chart': {
+    'en': 'Geo Chart',
+    'es': 'Gráfico Geográfico',
+  },
+  'label--line-chart': {
+    'en': 'Line Chart',
+    'es': 'Gráfico de Líneas',
+  },
+  'label--stepped-area-chart': {
+    'en': 'Stepped Area Chart',
+    'es': 'Gráfico de Área Escalonada',
+  },
+  'label--tree-map': {
+    'en': 'Tree Map',
+    'es': 'Mapa de Árbol',
+  },
+  'label--annotation-chart': {
+    'en': 'Annotation Chart',
+    'es': 'Gráfico de Anotaciones',
+  },
+  'label--candlestick-chart': {
+    'en': 'Candlestick Chart',
+    'es': 'Gráfico de Velas',
+  },
+  'label--gantt': {
+    'en': 'Gantt Chart',
+    'es': 'Gráfico de Gantt',
+  },
+  'label--org-chart': {
+    'en': 'Org Chart',
+    'es': 'Gráfico Organizacional',
+  },
+  'label--sankey': {
+    'en': 'Sankey Diagram',
+    'es': 'Diagrama de Sankey',
+  },
+  'label--timeline': {
+    'en': 'Timeline',
+    'es': 'Línea de Tiempo',
+  },
+  'label--word-tree': {
+    'en': 'Word Tree',
+    'es': 'Árbol de Palabras',
+  },
 };
 // @formatter:on

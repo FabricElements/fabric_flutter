@@ -31,10 +31,11 @@ class GoogleChart extends StatelessWidget {
     if (!isValid) {
       return infoWidget;
     }
-    final baseJson = data.toJson();
-    final jsonString = jsonEncode(baseJson);
-    final chartUrl = Uri.dataFromString(
-      '''
+    try {
+      final baseJson = data.toJson();
+      final jsonString = jsonEncode(baseJson);
+      final chartUrl = Uri.dataFromString(
+        '''
       <!DOCTYPE html>
       <html lang="en">
       <head>
@@ -55,7 +56,8 @@ class GoogleChart extends StatelessWidget {
         </style>
         <script src="https://www.gstatic.com/charts/loader.js"></script>
         <script>
-          google.charts.load('current');
+          // google.charts.load('current');
+          google.charts.load('current', {'packages': ['corechart']});
           google.charts.setOnLoadCallback(drawVisualization);
           function drawVisualization() {
             var wrap = new google.visualization.ChartWrapper($jsonString);
@@ -68,10 +70,12 @@ class GoogleChart extends StatelessWidget {
       </body>
       </html>
       ''',
-      mimeType: 'text/html',
-      encoding: Encoding.getByName('utf-8'),
-    ).toString();
-
-    return IframeMinimal(src: chartUrl);
+        mimeType: 'text/html',
+        encoding: Encoding.getByName('utf-8'),
+      ).toString();
+      return IframeMinimal(src: chartUrl);
+    } catch (e) {
+      return infoWidget;
+    }
   }
 }

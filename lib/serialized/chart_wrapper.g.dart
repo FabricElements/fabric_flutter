@@ -86,7 +86,13 @@ Map<String, dynamic> _$ChartWrapperOptionsToJson(
 ChartWrapper _$ChartWrapperFromJson(Map<String, dynamic> json) {
   $checkKeys(json, disallowNullValues: const ['chartType', 'options']);
   return ChartWrapper(
-    chartType: $enumDecode(_$ChartTypeEnumMap, json['chartType']),
+    chartType:
+        $enumDecodeNullable(
+          _$ChartTypeEnumMap,
+          json['chartType'],
+          unknownValue: ChartType.ColumnChart,
+        ) ??
+        ChartType.ColumnChart,
     options: json['options'] == null
         ? null
         : ChartWrapperOptions.fromJson(
@@ -121,13 +127,28 @@ Map<String, dynamic> _$ChartWrapperToJson(ChartWrapper instance) =>
     };
 
 const _$ChartTypeEnumMap = {
-  ChartType.Table: 'Table',
-  ChartType.PieChart: 'PieChart',
+  ChartType.AreaChart: 'AreaChart',
+  ChartType.BarChart: 'BarChart',
+  ChartType.BubbleChart: 'BubbleChart',
+  ChartType.Calendar: 'Calendar',
   ChartType.ColumnChart: 'ColumnChart',
-  ChartType.Histogram: 'Histogram',
   ChartType.ComboChart: 'ComboChart',
+  ChartType.Gauge: 'Gauge',
+  ChartType.GeoChart: 'GeoChart',
+  ChartType.LineChart: 'LineChart',
+  ChartType.PieChart: 'PieChart',
   ChartType.ScatterChart: 'ScatterChart',
+  ChartType.SteppedAreaChart: 'SteppedAreaChart',
+  ChartType.Table: 'Table',
+  ChartType.TreeMap: 'TreeMap',
+  ChartType.AnnotationChart: 'AnnotationChart',
+  ChartType.CandlestickChart: 'CandlestickChart',
+  ChartType.Gantt: 'Gantt',
+  ChartType.Histogram: 'Histogram',
+  ChartType.OrgChart: 'OrgChart',
+  ChartType.Sankey: 'Sankey',
   ChartType.Timeline: 'Timeline',
+  ChartType.WordTree: 'WordTree',
 };
 
 const _$ChartWrapperOrientationEnumMap = {
