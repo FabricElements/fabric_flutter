@@ -56,7 +56,6 @@ class GoogleChart extends StatelessWidget {
         </style>
         <script src="https://www.gstatic.com/charts/loader.js"></script>
         <script>
-          // google.charts.load('current');
           google.charts.load('current', {'packages': ['corechart']});
           google.charts.setOnLoadCallback(drawVisualization);
           function drawVisualization() {
