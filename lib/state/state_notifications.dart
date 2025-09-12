@@ -89,7 +89,10 @@ class StateNotifications extends ChangeNotifier {
   }
 
   /// Return notify values
-  Future<void> _notify({RemoteMessage? message, required NotificationOrigin origin}) async {
+  Future<void> _notify({
+    RemoteMessage? message,
+    required NotificationOrigin origin,
+  }) async {
     if (message == null) return;
     RemoteNotification? notification = message.notification;
     Map<String, dynamic> data = message.data;

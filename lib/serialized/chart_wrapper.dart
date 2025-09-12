@@ -126,7 +126,11 @@ class ChartWrapperOptions {
 /// See: https://developers.google.com/chart/interactive/docs/reference#chartwrapperobject
 @JsonSerializable(explicitToJson: true)
 class ChartWrapper {
-  @JsonKey(disallowNullValue: true, unknownEnumValue: ChartType.ColumnChart, defaultValue: ChartType.ColumnChart)
+  @JsonKey(
+    disallowNullValue: true,
+    unknownEnumValue: ChartType.ColumnChart,
+    defaultValue: ChartType.ColumnChart,
+  )
   final ChartType chartType;
   @JsonKey(disallowNullValue: true)
   final ChartWrapperOptions? options;
