@@ -82,6 +82,7 @@ class _GoogleChartContainerState extends State<GoogleChartContainer> {
     showRange =
         widget.min != null &&
         widget.max != null &&
+        widget.min! < widget.max! &&
         preferencesCopy.vAxis != null;
     // minValue should be less than maxValue
     min = widget.min != null ? widget.min!.floorToDouble() : 0;
