@@ -1,10 +1,10 @@
-import 'package:fabric_flutter/helper/log_color.dart';
-import 'package:fabric_flutter/serialized/user_status.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
+import '../helper/log_color.dart';
+import '../serialized/user_status.dart';
 import '../state/state_alert.dart';
 import '../state/state_analytics.dart';
 import '../state/state_global.dart';

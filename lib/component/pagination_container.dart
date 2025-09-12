@@ -1,8 +1,8 @@
-import 'package:fabric_flutter/component/content_container.dart';
 import 'package:flutter/material.dart';
 
 import '../helper/app_localizations_delegate.dart';
 import '../helper/log_color.dart';
+import 'content_container.dart';
 
 class PaginationContainer extends StatefulWidget {
   const PaginationContainer({
