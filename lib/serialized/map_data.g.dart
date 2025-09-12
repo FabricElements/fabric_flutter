@@ -45,10 +45,9 @@ MapPolygon _$MapPolygonFromJson(Map<String, dynamic> json) => MapPolygon(
       [],
   (json['holes'] as List<dynamic>?)
           ?.map(
-            (e) =>
-                (e as List<dynamic>)
-                    .map((e) => MapLatLng.fromJson(e as Map<String, dynamic>?))
-                    .toList(),
+            (e) => (e as List<dynamic>)
+                .map((e) => MapLatLng.fromJson(e as Map<String, dynamic>?))
+                .toList(),
           )
           .toList() ??
       [],
@@ -57,8 +56,9 @@ MapPolygon _$MapPolygonFromJson(Map<String, dynamic> json) => MapPolygon(
 Map<String, dynamic> _$MapPolygonToJson(MapPolygon instance) =>
     <String, dynamic>{
       'points': instance.points.map((e) => e.toJson()).toList(),
-      'holes':
-          instance.holes.map((e) => e.map((e) => e.toJson()).toList()).toList(),
+      'holes': instance.holes
+          .map((e) => e.map((e) => e.toJson()).toList())
+          .toList(),
     };
 
 MapPolyline _$MapPolylineFromJson(Map<String, dynamic> json) => MapPolyline(
