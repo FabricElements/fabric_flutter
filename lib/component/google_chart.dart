@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../helper/app_localizations_delegate.dart';
 import '../serialized/chart_wrapper.dart';
-import 'iframe_minimal_native.dart';
+import 'iframe_minimal.dart';
 
 /// Google Chart
 /// This widget uses Google Charts to render charts within an iframe.
