@@ -237,7 +237,7 @@ class ChartWrapper {
   /// Validate if the chart is valid
   bool isValid() {
     // Chart types that do not require at lest 2 columns
-    final chartTypesDoNotRequire2x2 = {ChartType.Histogram};
+    final chartTypesDoNotRequire2x2 = {ChartType.Histogram, ChartType.Table};
     int totalColumns = dataTable.isNotEmpty ? dataTable[0].length : 0;
     return dataTable.isNotEmpty &&
         dataTable.length >= 2 &&
