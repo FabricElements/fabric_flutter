@@ -207,8 +207,11 @@ class ChartWrapper {
         uniqueValues.add(dataTable[i][1]);
       }
     }
-    // If more than 20 unique values, hide histogram hAxis labels
-    if (uniqueValues.length > 15) {
+    // Chart Types that don't have enough space for hAxis labels
+    final chartTypesNoHAxisLabels = {ChartType.Histogram};
+    // If more than 15 unique values, hide histogram hAxis labels unless chart type is not in the list
+    if (uniqueValues.length > 15 &&
+        !chartTypesNoHAxisLabels.contains(chartType)) {
       baseData['options']['hAxis'] ??= {};
       baseData['options']['hAxis']['textPosition'] = 'none';
     }
@@ -233,11 +236,12 @@ class ChartWrapper {
 
   /// Validate if the chart is valid
   bool isValid() {
+    // Chart types that do not require at lest 2 columns
+    final chartTypesDoNotRequire2x2 = {ChartType.Histogram};
+    int totalColumns = dataTable.isNotEmpty ? dataTable[0].length : 0;
     return dataTable.isNotEmpty &&
         dataTable.length >= 2 &&
         dataTable[0].isNotEmpty &&
-        dataTable[1].isNotEmpty &&
-        dataTable[0].length >= 2 &&
-        dataTable[1].length >= 2;
+        (chartTypesDoNotRequire2x2.contains(chartType) || (totalColumns >= 2));
   }
 }
