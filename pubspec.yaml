@@ -24,19 +24,19 @@ dependencies:
   firebase_database: ^12.0.1
   json_annotation: ^4.9.0
   image_picker: ^1.2.0
-  file_picker: ^10.3.2
+  file_picker: ^10.3.3
   image: ^4.5.4
   google_sign_in: ^6.3.0
   http: ^1.5.0
   url_launcher: ^6.3.2
   google_maps_flutter: ^2.13.1
-  package_info_plus: ^8.3.1
+  package_info_plus: ^9.0.0
   mime: ^2.0.0
   universal_html: ^2.2.4
   video_player: ^2.10.0
   webview_flutter: ^4.13.0
   flutter_markdown: ^0.7.7+1
-  connectivity_plus: ^6.1.5
+  connectivity_plus: ^7.0.0
   json_explorer: ^0.1.2
   web: ^1.1.1
   intl: ^0.20.2
