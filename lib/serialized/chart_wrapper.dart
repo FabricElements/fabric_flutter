@@ -97,11 +97,12 @@ class ChartWrapperOptions {
   @JsonKey(includeIfNull: true)
   final String? seriesType;
   @JsonKey(includeIfNull: true)
-  final Map<int, Map<String, String>>? series;
+  final Map<int, Map<String, dynamic>>? series;
   final Map<String, dynamic> histogram;
   final List<String>? colors;
   final Map<String, dynamic>? timeline;
   final Map<String, dynamic>? chartArea;
+  final Map<int, Map<String, dynamic>>? trendlines;
 
   ChartWrapperOptions({
     this.title,
@@ -113,6 +114,7 @@ class ChartWrapperOptions {
     this.colors,
     this.timeline,
     this.chartArea,
+    this.trendlines,
   });
 
   factory ChartWrapperOptions.fromJson(Map<String, dynamic>? json) =>
@@ -219,6 +221,11 @@ class ChartWrapper {
 
     /// Convert the ChartWrapper to a Map
     Map<String, dynamic> baseData = toJson();
+
+    /// Take only the first 50 rows of dataTable to avoid too large data
+    if (dataTable.length > 51) {
+      baseData['dataTable'] = [dataTable[0], ...dataTable.sublist(1, 51)];
+    }
     // Convert the baseData to JSON string
     final jsonString = jsonEncode(baseData);
     // Base 64 encode the JSON string
