@@ -218,13 +218,11 @@ class ChartWrapper {
   /// Encode the chart as a JSON string base64 encoded
   String encode() {
     if (options == null) return '';
-
-    /// Convert the ChartWrapper to a Map
+    // Convert the ChartWrapper to a Map
     Map<String, dynamic> baseData = toJson();
-
-    /// Take only the first 50 rows of dataTable to avoid too large data
-    if (dataTable.length > 51) {
-      baseData['dataTable'] = [dataTable[0], ...dataTable.sublist(1, 51)];
+    // Take only the first 50 rows of dataTable to avoid too large data
+    if (dataTable.length > 50) {
+      baseData['dataTable'] = dataTable.take(51).toList();
     }
     // Convert the baseData to JSON string
     final jsonString = jsonEncode(baseData);
@@ -235,9 +233,6 @@ class ChartWrapper {
 
   /// Validate if the chart is valid
   bool isValid() {
-    // return options != null &&
-    //     (options!.hAxis?.values.isNotEmpty ?? false) &&
-    //     (options!.vAxis?.values.isNotEmpty ?? false) &&
     return dataTable.isNotEmpty &&
         dataTable.length >= 2 &&
         dataTable[0].isNotEmpty &&
