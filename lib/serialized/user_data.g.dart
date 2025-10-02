@@ -89,6 +89,7 @@ UserData _$UserDataFromJson(Map<String, dynamic> json) => UserData(
       : InterfaceLinks.fromJson(json['links'] as Map<String, dynamic>?),
   os: $enumDecodeNullable(_$UserOSEnumMap, json['os']) ?? UserOS.unknown,
   country: json['country'] as String?,
+  account: json['account'] as String?,
 );
 
 Map<String, dynamic> _$UserDataToJson(UserData instance) => <String, dynamic>{
@@ -110,6 +111,7 @@ Map<String, dynamic> _$UserDataToJson(UserData instance) => <String, dynamic>{
   'username': ?instance.username,
   'theme': _$ThemeModeEnumMap[instance.theme]!,
   'country': instance.country,
+  'account': instance.account,
 };
 
 const _$ThemeModeEnumMap = {
