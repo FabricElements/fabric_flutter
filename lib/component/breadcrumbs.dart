@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../helper/app_localizations_delegate.dart';
 import '../helper/options.dart';
 import 'smart_image.dart';
 
@@ -24,6 +25,7 @@ class Breadcrumbs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locales = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     List<Widget> items = [];
@@ -31,6 +33,7 @@ class Breadcrumbs extends StatelessWidget {
     TextStyle? dividerStyleDefault = dividerStyle ?? textTheme.bodySmall;
     for (int i = 0; i < buttons.length; i++) {
       ButtonOptions button = buttons[i];
+      String label = locales.get(button.label);
       bool clickable = button.path != null || button.onTap != null;
       VoidCallback? onPressed;
       if (clickable) {
@@ -61,7 +64,7 @@ class Breadcrumbs extends StatelessWidget {
           TextButton.icon(
             icon: iconButton,
             onPressed: onPressed,
-            label: Text(button.label, style: textStyleDefault),
+            label: Text(label, style: textStyleDefault),
             style: buttonStyle,
           ),
         );
@@ -70,7 +73,7 @@ class Breadcrumbs extends StatelessWidget {
           TextButton(
             onPressed: onPressed,
             style: buttonStyle,
-            child: Text(button.label, style: textStyleDefault),
+            child: Text(label, style: textStyleDefault),
           ),
         );
       }
