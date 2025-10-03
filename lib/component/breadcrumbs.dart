@@ -38,7 +38,7 @@ class Breadcrumbs extends StatelessWidget {
       VoidCallback? onPressed;
       if (clickable) {
         onPressed = () {
-          if (button.onTap != null) button.onTap!;
+          if (button.onTap != null) button.onTap!();
           if (button.path != null) {
             Navigator.of(context).popAndPushNamed(button.path!);
           }
