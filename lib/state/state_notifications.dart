@@ -11,7 +11,47 @@ import '../helper/log_color.dart';
 import '../serialized/notification_data.dart';
 import '../serialized/user_data.dart';
 
+/// Enum to define the origin of the notification
 enum NotificationOrigin { message, open, resume }
+
+/// A global key is often needed to navigate from non-widget/non-context code
+/// Is essential to have this key in order to navigate from background notifications:
+/// MaterialApp(
+///   navigatorKey: navigatorKey,
+///   ...
+/// )
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+/// Navigate to a specific view based on the path and arguments
+/// Example path: /product?id=123&account=abc
+void navigateToView({
+  required String path,
+  required Map<String, dynamic> args,
+}) {
+  // 1. Parse the path and extract necessary arguments (e.g., from a URL-like format)
+  final uri = Uri.parse(path);
+  final route = uri.path; // e.g., /product
+  final String? id = uri.queryParameters['id'];
+  final String? account = uri.queryParameters['account'];
+  Map<String, dynamic> argsFinal = {};
+
+  if (id != null && id.isNotEmpty) {
+    argsFinal['id'] = id;
+  }
+  if (account != null && account.isNotEmpty) {
+    argsFinal['account'] = account;
+  }
+
+  /// Merge with provided args
+  argsFinal = {...argsFinal, ...args};
+  // --- Example Navigation Logic ---
+  if (route.isNotEmpty && route.startsWith('/')) {
+    navigatorKey.currentState?.pushNamed(route, arguments: argsFinal);
+  } else {
+    // Default or home
+    navigatorKey.currentState?.pushNamed('/', arguments: argsFinal);
+  }
+}
 
 /// This is a change notifier class which keeps track of state within the campaign builder views.
 class StateNotifications extends ChangeNotifier {
@@ -89,11 +129,11 @@ class StateNotifications extends ChangeNotifier {
   }
 
   /// Return notify values
-  Future<void> _notify({
+  Future<NotificationData?> _notify({
     RemoteMessage? message,
     required NotificationOrigin origin,
   }) async {
-    if (message == null) return;
+    if (message == null) return null;
     RemoteNotification? notification = message.notification;
     Map<String, dynamic> data = message.data;
     Map<String, dynamic> messageData = data;
@@ -173,6 +213,7 @@ class StateNotifications extends ChangeNotifier {
     } catch (error) {
       debugPrint(LogColor.error('Callback Error: $error'));
     }
+    return _notification;
   }
 
   /// Initialize the notifications
@@ -182,13 +223,37 @@ class StateNotifications extends ChangeNotifier {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       await _notify(message: message, origin: NotificationOrigin.message);
     });
+
+    /// When the app is opened from a terminated state
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
-      await Future.delayed(const Duration(milliseconds: 200));
-      await _notify(message: message, origin: NotificationOrigin.resume);
-    });
-    FirebaseMessaging.onBackgroundMessage((RemoteMessage message) async {
+      // Wait a bit for the app to be ready
       await Future.delayed(const Duration(milliseconds: 500));
-      await _notify(message: message, origin: NotificationOrigin.open);
+      final formatted = await _notify(
+        message: message,
+        origin: NotificationOrigin.resume,
+      );
+      if (formatted != null && formatted.path != null) {
+        navigateToView(
+          path: formatted.path!,
+          args: {...message.data, 'account': formatted.account},
+        );
+      }
+    });
+
+    /// When the app is opened from a background state
+    FirebaseMessaging.onBackgroundMessage((RemoteMessage message) async {
+      // Wait a bit for the app to be ready
+      await Future.delayed(const Duration(milliseconds: 500));
+      final formatted = await _notify(
+        message: message,
+        origin: NotificationOrigin.open,
+      );
+      if (formatted != null && formatted.path != null) {
+        navigateToView(
+          path: formatted.path!,
+          args: {...message.data, 'account': formatted.account},
+        );
+      }
     });
   }
 
