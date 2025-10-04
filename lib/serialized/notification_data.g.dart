@@ -23,6 +23,7 @@ NotificationData _$NotificationDataFromJson(Map<String, dynamic> json) =>
           UserOS.unknown,
       typeString: json['typeString'] as String?,
       duration: (json['duration'] as num?)?.toInt() ?? 5,
+      account: json['account'] as String?,
     );
 
 Map<String, dynamic> _$NotificationDataToJson(NotificationData instance) =>
@@ -36,6 +37,7 @@ Map<String, dynamic> _$NotificationDataToJson(NotificationData instance) =>
       'os': _$UserOSEnumMap[instance.os]!,
       'typeString': instance.typeString,
       'duration': instance.duration,
+      'account': ?instance.account,
     };
 
 const _$UserOSEnumMap = {

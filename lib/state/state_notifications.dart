@@ -96,12 +96,12 @@ class StateNotifications extends ChangeNotifier {
     if (message == null) return;
     RemoteNotification? notification = message.notification;
     Map<String, dynamic> data = message.data;
-    Map<String, dynamic> message0 = data;
-    message0 = _clearObject(message0, 'fcm_options');
-    message0 = _clearObject(message0, 'aps');
-    message0 = _clearObject(message0, 'alert');
-    message0 = _clearObject(message0, 'data');
-    message0 = _clearObject(message0, 'notification');
+    Map<String, dynamic> messageData = data;
+    messageData = _clearObject(messageData, 'fcm_options');
+    messageData = _clearObject(messageData, 'aps');
+    messageData = _clearObject(messageData, 'alert');
+    messageData = _clearObject(messageData, 'data');
+    messageData = _clearObject(messageData, 'notification');
 
     /// Get user device
     UserOS userOs = UserOS.unknown;
@@ -118,48 +118,56 @@ class StateNotifications extends ChangeNotifier {
     } catch (e) {
       debugPrint(LogColor.error('Device type error: ${e.toString()}'));
     }
-    message0.addAll({'os': userOs.name});
+    messageData.addAll({'os': userOs.name});
 
     /// Add origin
-    message0.addAll({'origin': origin});
+    messageData.addAll({'origin': origin});
     if (notification?.title != null) {
-      message0.putIfAbsent('title', () => notification?.title);
+      messageData.putIfAbsent('title', () => notification?.title);
     }
     if (notification?.body != null) {
-      message0.putIfAbsent('body', () => notification?.body);
+      messageData.putIfAbsent('body', () => notification?.body);
     }
     if ((notification?.apple?.imageUrl ?? notification?.android?.imageUrl) !=
         null) {
-      message0.putIfAbsent(
+      messageData.putIfAbsent(
         'imageUrl',
         () => notification?.apple?.imageUrl ?? notification?.android?.imageUrl,
       );
     }
 
     /// Add valid path by default
-    String? path = (message0['path'] as String?)?.trim();
+    String? path = (messageData['path'] as String?)?.trim();
     if (path != null && path.isNotEmpty && path.startsWith('/')) {
-      message0['path'] = path;
-      message0['duration'] ??= 10.0;
+      messageData['path'] = path;
+      messageData['duration'] ??= 10.0;
     } else {
-      message0['path'] = null;
+      messageData['path'] = null;
     }
 
     /// Add duration
-    message0.putIfAbsent('duration', () => 5);
+    messageData.putIfAbsent('duration', () => 5);
 
     /// Add clear
-    message0.addAll({
+    messageData.addAll({
       'clear':
           bool.tryParse(
-            message0['clear']?.toString() ?? 'false',
+            messageData['clear']?.toString() ?? 'false',
             caseSensitive: false,
           ) ??
           false,
     });
 
+    /// Add account
+    String? account = (messageData['account'] as String?)?.trim();
+    if (account != null && account.isNotEmpty) {
+      messageData['account'] = account;
+    } else {
+      messageData['account'] = null;
+    }
+
     /// Add data to stream
-    _notification = NotificationData.fromJson(message0);
+    _notification = NotificationData.fromJson(messageData);
     try {
       if (_callback != null) await _callback!(_notification!);
     } catch (error) {
