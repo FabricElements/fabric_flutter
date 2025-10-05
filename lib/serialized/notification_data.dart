@@ -19,6 +19,8 @@ class NotificationData {
   int duration;
   @JsonKey(includeIfNull: false)
   String? account;
+  @JsonKey(includeIfNull: false)
+  String? id;
 
   NotificationData({
     this.title,
@@ -31,6 +33,7 @@ class NotificationData {
     this.typeString,
     this.duration = 5,
     this.account,
+    this.id,
   });
 
   factory NotificationData.fromJson(Map<String, dynamic>? json) =>

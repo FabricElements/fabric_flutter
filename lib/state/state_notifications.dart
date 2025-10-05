@@ -98,10 +98,10 @@ class StateNotifications extends ChangeNotifier {
   }
 
   /// Return notify values
-  Future<NotificationData?> _notify({
+  NotificationData? formatMessage({
     RemoteMessage? message,
     required NotificationOrigin origin,
-  }) async {
+  }) {
     if (message == null) return null;
     RemoteNotification? notification = message.notification;
     Map<String, dynamic> data = message.data;
@@ -177,11 +177,6 @@ class StateNotifications extends ChangeNotifier {
 
     /// Add data to stream
     _notification = NotificationData.fromJson(messageData);
-    try {
-      if (_callback != null) await _callback!(_notification!);
-    } catch (error) {
-      debugPrint(LogColor.error('Callback Error: $error'));
-    }
     return _notification;
   }
 
@@ -190,35 +185,43 @@ class StateNotifications extends ChangeNotifier {
     // Prevent calling this function in debug mode
     if (kDebugMode) return;
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-      await _notify(message: message, origin: NotificationOrigin.message);
+      final formatted = formatMessage(
+        message: message,
+        origin: NotificationOrigin.message,
+      );
+      try {
+        if (_callback != null) await _callback!(formatted!);
+      } catch (error) {
+        debugPrint(LogColor.error('Callback Error: $error'));
+      }
     });
 
     /// When the app is opened from a terminated state
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
-      final formatted = await _notify(
+      await Future.delayed(const Duration(milliseconds: 1500));
+      final formatted = formatMessage(
         message: message,
         origin: NotificationOrigin.resume,
       );
       if (formatted != null && formatted.path != null) {
-        await Future.delayed(const Duration(seconds: 1));
         _navigateToView(
           path: formatted.path!,
-          args: {...message.data, 'account': formatted.account},
+          args: {'account': formatted.account, 'id': formatted.id},
         );
       }
     });
 
     /// When the app is opened from a background state
     FirebaseMessaging.onBackgroundMessage((RemoteMessage message) async {
-      final formatted = await _notify(
+      await Future.delayed(const Duration(milliseconds: 1500));
+      final formatted = formatMessage(
         message: message,
         origin: NotificationOrigin.open,
       );
       if (formatted != null && formatted.path != null) {
-        await Future.delayed(const Duration(seconds: 1));
         _navigateToView(
           path: formatted.path!,
-          args: {...message.data, 'account': formatted.account},
+          args: {'account': formatted.account, 'id': formatted.id},
         );
       }
     });
