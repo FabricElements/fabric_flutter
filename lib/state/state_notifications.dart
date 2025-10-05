@@ -28,6 +28,13 @@ void navigateToView({
   required String path,
   required Map<String, dynamic> args,
 }) {
+  // Wait for the navigator to be ready
+  if (navigatorKey.currentState == null) {
+    Timer(const Duration(milliseconds: 300), () {
+      navigateToView(path: path, args: args);
+    });
+    return;
+  }
   // 1. Parse the path and extract necessary arguments (e.g., from a URL-like format)
   final uri = Uri.parse(path);
   final route = uri.path; // e.g., /product
@@ -44,14 +51,12 @@ void navigateToView({
 
   /// Merge with provided args
   argsFinal = {...argsFinal, ...args};
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    if (route.isNotEmpty && route.startsWith('/')) {
-      navigatorKey.currentState?.pushNamed(route, arguments: argsFinal);
-    } else {
-      // Default or home
-      navigatorKey.currentState?.pushNamed('/', arguments: argsFinal);
-    }
-  });
+  if (route.isNotEmpty && route.startsWith('/')) {
+    navigatorKey.currentState?.pushNamed(route, arguments: argsFinal);
+  } else {
+    // Default or home
+    navigatorKey.currentState?.pushNamed('/', arguments: argsFinal);
+  }
 }
 
 /// This is a change notifier class which keeps track of state within the campaign builder views.
@@ -227,6 +232,8 @@ class StateNotifications extends ChangeNotifier {
 
     /// When the app is opened from a terminated state
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
+      // Wait a bit for the app to be ready
+      await Future.delayed(const Duration(seconds: 1));
       final formatted = await _notify(
         message: message,
         origin: NotificationOrigin.resume,
@@ -241,6 +248,8 @@ class StateNotifications extends ChangeNotifier {
 
     /// When the app is opened from a background state
     FirebaseMessaging.onBackgroundMessage((RemoteMessage message) async {
+      // Wait a bit for the app to be ready
+      await Future.delayed(const Duration(seconds: 1));
       final formatted = await _notify(
         message: message,
         origin: NotificationOrigin.open,
