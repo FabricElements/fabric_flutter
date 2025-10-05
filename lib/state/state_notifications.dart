@@ -22,43 +22,6 @@ enum NotificationOrigin { message, open, resume }
 /// )
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-/// Navigate to a specific view based on the path and arguments
-/// Example path: /product?id=123&account=abc
-void navigateToView({
-  required String path,
-  required Map<String, dynamic> args,
-}) {
-  // Wait for the navigator to be ready
-  if (navigatorKey.currentState == null) {
-    Timer(const Duration(milliseconds: 300), () {
-      navigateToView(path: path, args: args);
-    });
-    return;
-  }
-  // 1. Parse the path and extract necessary arguments (e.g., from a URL-like format)
-  final uri = Uri.parse(path);
-  final route = uri.path; // e.g., /product
-  final String? id = uri.queryParameters['id'];
-  final String? account = uri.queryParameters['account'];
-  Map<String, dynamic> argsFinal = {};
-
-  if (id != null && id.isNotEmpty) {
-    argsFinal['id'] = id;
-  }
-  if (account != null && account.isNotEmpty) {
-    argsFinal['account'] = account;
-  }
-
-  /// Merge with provided args
-  argsFinal = {...argsFinal, ...args};
-  if (route.isNotEmpty && route.startsWith('/')) {
-    navigatorKey.currentState?.pushNamed(route, arguments: argsFinal);
-  } else {
-    // Default or home
-    navigatorKey.currentState?.pushNamed('/', arguments: argsFinal);
-  }
-}
-
 /// This is a change notifier class which keeps track of state within the campaign builder views.
 class StateNotifications extends ChangeNotifier {
   StateNotifications();
@@ -232,14 +195,13 @@ class StateNotifications extends ChangeNotifier {
 
     /// When the app is opened from a terminated state
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
-      // Wait a bit for the app to be ready
-      await Future.delayed(const Duration(seconds: 1));
       final formatted = await _notify(
         message: message,
         origin: NotificationOrigin.resume,
       );
       if (formatted != null && formatted.path != null) {
-        navigateToView(
+        await Future.delayed(const Duration(seconds: 1));
+        _navigateToView(
           path: formatted.path!,
           args: {...message.data, 'account': formatted.account},
         );
@@ -248,14 +210,13 @@ class StateNotifications extends ChangeNotifier {
 
     /// When the app is opened from a background state
     FirebaseMessaging.onBackgroundMessage((RemoteMessage message) async {
-      // Wait a bit for the app to be ready
-      await Future.delayed(const Duration(seconds: 1));
       final formatted = await _notify(
         message: message,
         origin: NotificationOrigin.open,
       );
       if (formatted != null && formatted.path != null) {
-        navigateToView(
+        await Future.delayed(const Duration(seconds: 1));
+        _navigateToView(
           path: formatted.path!,
           args: {...message.data, 'account': formatted.account},
         );
@@ -292,6 +253,36 @@ class StateNotifications extends ChangeNotifier {
   /// Define user id
   set uid(dynamic id) {
     _uid = id ?? '';
+  }
+
+  /// Navigate to a specific view based on the path and arguments
+  /// Example path: /product?id=123&account=abc
+  void _navigateToView({
+    required String path,
+    required Map<String, dynamic> args,
+  }) {
+    // 1. Parse the path and extract necessary arguments (e.g., from a URL-like format)
+    final uri = Uri.parse(path);
+    final route = uri.path; // e.g., /product
+    final String? id = uri.queryParameters['id'];
+    final String? account = uri.queryParameters['account'];
+    Map<String, dynamic> argsFinal = {};
+
+    if (id != null && id.isNotEmpty) {
+      argsFinal['id'] = id;
+    }
+    if (account != null && account.isNotEmpty) {
+      argsFinal['account'] = account;
+    }
+
+    /// Merge with provided args
+    argsFinal = {...argsFinal, ...args};
+    if (route.isNotEmpty && route.startsWith('/')) {
+      navigatorKey.currentState?.pushNamed(route, arguments: argsFinal);
+    } else {
+      // Default or home
+      navigatorKey.currentState?.pushNamed('/', arguments: argsFinal);
+    }
   }
 
   /// Default function call every time the id changes.
