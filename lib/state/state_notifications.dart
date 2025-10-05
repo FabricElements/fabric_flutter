@@ -198,33 +198,50 @@ class StateNotifications extends ChangeNotifier {
 
     /// When the app is opened from a terminated state
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
-      await Future.delayed(const Duration(milliseconds: 1500));
-      final formatted = formatMessage(
+      await Future.delayed(const Duration(seconds: 2));
+      await _handleBackgroundMessage(
         message: message,
-        origin: NotificationOrigin.resume,
+        origin: NotificationOrigin.open,
       );
-      if (formatted != null && formatted.path != null) {
-        _navigateToView(
-          path: formatted.path!,
-          args: {'account': formatted.account, 'id': formatted.id},
-        );
-      }
     });
 
     /// When the app is opened from a background state
     FirebaseMessaging.onBackgroundMessage((RemoteMessage message) async {
-      await Future.delayed(const Duration(milliseconds: 1500));
-      final formatted = formatMessage(
+      await Future.delayed(const Duration(milliseconds: 500));
+      await _handleBackgroundMessage(
         message: message,
-        origin: NotificationOrigin.open,
+        origin: NotificationOrigin.resume,
       );
-      if (formatted != null && formatted.path != null) {
-        _navigateToView(
-          path: formatted.path!,
-          args: {'account': formatted.account, 'id': formatted.id},
-        );
-      }
     });
+  }
+
+  /// Handle background message when the app is opened from a terminated or background state
+  Future<void> _handleBackgroundMessage({
+    required RemoteMessage message,
+    required NotificationOrigin origin,
+  }) async {
+    final formatted = formatMessage(
+      message: message,
+      origin: NotificationOrigin.resume,
+    );
+    if (formatted != null && formatted.path != null) {
+      _navigateToView(
+        path: formatted.path!,
+        args: {
+          'account': formatted.account,
+          'id': formatted.id,
+          'origin': origin.name,
+        },
+      );
+    }
+    // Verify navigatorKey is ready. If not, run the callback
+    if (navigatorKey.currentState == null) {
+      try {
+        if (_callback != null) await _callback!(formatted!);
+      } catch (error) {
+        debugPrint(LogColor.error('Callback Error: $error'));
+      }
+    }
   }
 
   /// Initializes the notifications and starts listening
