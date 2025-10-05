@@ -44,13 +44,14 @@ void navigateToView({
 
   /// Merge with provided args
   argsFinal = {...argsFinal, ...args};
-  // --- Example Navigation Logic ---
-  if (route.isNotEmpty && route.startsWith('/')) {
-    navigatorKey.currentState?.pushNamed(route, arguments: argsFinal);
-  } else {
-    // Default or home
-    navigatorKey.currentState?.pushNamed('/', arguments: argsFinal);
-  }
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (route.isNotEmpty && route.startsWith('/')) {
+      navigatorKey.currentState?.pushNamed(route, arguments: argsFinal);
+    } else {
+      // Default or home
+      navigatorKey.currentState?.pushNamed('/', arguments: argsFinal);
+    }
+  });
 }
 
 /// This is a change notifier class which keeps track of state within the campaign builder views.
@@ -226,8 +227,6 @@ class StateNotifications extends ChangeNotifier {
 
     /// When the app is opened from a terminated state
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
-      // Wait a bit for the app to be ready
-      await Future.delayed(const Duration(milliseconds: 500));
       final formatted = await _notify(
         message: message,
         origin: NotificationOrigin.resume,
@@ -242,8 +241,6 @@ class StateNotifications extends ChangeNotifier {
 
     /// When the app is opened from a background state
     FirebaseMessaging.onBackgroundMessage((RemoteMessage message) async {
-      // Wait a bit for the app to be ready
-      await Future.delayed(const Duration(milliseconds: 500));
       final formatted = await _notify(
         message: message,
         origin: NotificationOrigin.open,
