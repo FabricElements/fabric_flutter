@@ -18,4 +18,13 @@ class AppGlobal {
   ///  ...
   ///  )
   static final scaffoldKey = GlobalKey<ScaffoldState>();
+
+  /// A global key is often needed to access the ScaffoldMessengerState
+  /// Is essential to have this key in order to show SnackBars from non-widget/non-context code:
+  /// ScaffoldMessenger(
+  /// key: AppGlobal.snackbarKey,
+  /// ...
+  /// )
+  static final GlobalKey<ScaffoldMessengerState> snackbarKey =
+      GlobalKey<ScaffoldMessengerState>();
 }
