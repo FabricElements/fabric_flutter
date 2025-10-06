@@ -281,27 +281,22 @@ class StateNotifications extends ChangeNotifier {
     required String path,
     required Map<String, dynamic> args,
   }) {
-    // 1. Parse the path and extract necessary arguments (e.g., from a URL-like format)
-    final uri = Uri.parse(path);
-    final route = uri.path; // e.g., /product
-    final String? id = uri.queryParameters['id'];
-    final String? account = uri.queryParameters['account'];
-    Map<String, dynamic> argsFinal = {};
-
-    if (id != null && id.isNotEmpty) {
-      argsFinal['id'] = id;
-    }
-    if (account != null && account.isNotEmpty) {
-      argsFinal['account'] = account;
-    }
-
-    /// Merge with provided args
-    argsFinal = {...argsFinal, ...args};
-    if (route.isNotEmpty && route.startsWith('/')) {
-      navigatorKey.currentState?.pushNamed(route, arguments: argsFinal);
+    // Remove empty, null, or whitespace-only args
+    final queryParams = <String, dynamic>{};
+    args.forEach((key, value) {
+      if (value != null &&
+          ((value is String && value.trim().isNotEmpty) ||
+              (value is num) ||
+              (value is bool))) {
+        queryParams[key] = value;
+      }
+    });
+    // Merge queryParams and args, with args taking precedence
+    if (path.isNotEmpty && path.startsWith('/')) {
+      navigatorKey.currentState?.pushNamed(path, arguments: queryParams);
     } else {
       // Default or home
-      navigatorKey.currentState?.pushNamed('/', arguments: argsFinal);
+      navigatorKey.currentState?.pushNamed('/', arguments: queryParams);
     }
   }
 
