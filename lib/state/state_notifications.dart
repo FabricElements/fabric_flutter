@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import '../helper/app_global.dart';
 import '../helper/log_color.dart';
@@ -93,7 +93,7 @@ class StateNotifications extends ChangeNotifier {
   /// Return notify values
   NotificationData? formatMessage({
     RemoteMessage? message,
-    required NotificationOrigin origin,
+    required String origin,
   }) {
     if (message == null) return null;
     RemoteNotification? notification = message.notification;
@@ -175,12 +175,10 @@ class StateNotifications extends ChangeNotifier {
 
   /// Initialize the notifications
   Future<void> initNotifications() async {
-    // Prevent calling this function in debug mode
-    if (kDebugMode) return;
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       final formatted = formatMessage(
         message: message,
-        origin: NotificationOrigin.message,
+        origin: NotificationOrigin.message.name,
       );
       if (_callback != null && formatted != null) {
         await Future.delayed(const Duration(milliseconds: 500));
@@ -207,17 +205,37 @@ class StateNotifications extends ChangeNotifier {
         origin: NotificationOrigin.resume,
       );
     });
+
+    /// Check if the app was opened from a terminated state
+    final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+    if (initialMessage != null) {
+      await _handleBackgroundMessage(
+        message: initialMessage,
+        origin: NotificationOrigin.open,
+      );
+    }
   }
 
   /// Handle background message when the app is opened from a terminated or background state
+  @pragma('vm:entry-point')
   Future<void> _handleBackgroundMessage({
     required RemoteMessage message,
     required NotificationOrigin origin,
   }) async {
+    // Try to initialize Firebase
+    if (Firebase.apps.isEmpty) {
+      try {
+        await Firebase.initializeApp();
+      } catch (error) {
+        debugPrint(LogColor.error('Firebase initialization error: $error'));
+        return;
+      }
+    }
+    // Wait for the navigatorKey to be ready
     await Future.delayed(const Duration(seconds: 1));
     final formatted = formatMessage(
       message: message,
-      origin: NotificationOrigin.resume,
+      origin: NotificationOrigin.resume.name,
     );
     // Verify navigatorKey is ready. If not, run the callback
     if (AppGlobal.navigatorKey.currentState == null) {
@@ -249,8 +267,6 @@ class StateNotifications extends ChangeNotifier {
 
   /// Initializes the notifications and starts listening
   Future<void> init() async {
-    // Prevent calling this function in debug mode
-    if (kDebugMode) return;
     // Prevent calling this function if not initialized
     if (_initialized) return;
     _initialized = true;
@@ -266,8 +282,6 @@ class StateNotifications extends ChangeNotifier {
   /// Get user token for notifications
   /// from the main App to prevent blocking call
   Future<void> getUserToken() async {
-    // Prevent calling this function in debug mode
-    if (kDebugMode) return;
     if (!_initialized) await init();
     final newToken = await getToken();
     _updateUserToken(newToken);
@@ -301,6 +315,12 @@ class StateNotifications extends ChangeNotifier {
     });
     // Merge queryParams and args, with args taking precedence
     await currentState.popAndPushNamed(path, arguments: queryParams);
+    // Check if the navigation was successful
+    if (currentState.canPop() || currentState.widget.initialRoute == path) {
+      // Successfully navigated
+    } else {
+      throw 'Navigation to $path failed';
+    }
   }
 
   /// Default function call every time the id changes.
