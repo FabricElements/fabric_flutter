@@ -10,4 +10,12 @@ class AppGlobal {
   ///   ...
   /// )
   static GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+  /// A global key is often needed to access the ScaffoldState
+  /// Is essential to have this key in order to open the drawer from non-widget/non-context code:
+  /// Scaffold(
+  ///  key: AppGlobal.scaffoldKey,
+  ///  ...
+  ///  )
+  static final scaffoldKey = GlobalKey<ScaffoldState>();
 }
