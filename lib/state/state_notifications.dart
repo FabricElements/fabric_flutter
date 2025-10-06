@@ -7,20 +7,13 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 
+import '../helper/app_global.dart';
 import '../helper/log_color.dart';
 import '../serialized/notification_data.dart';
 import '../serialized/user_data.dart';
 
 /// Enum to define the origin of the notification
 enum NotificationOrigin { message, open, resume }
-
-/// A global key is often needed to navigate from non-widget/non-context code
-/// Is essential to have this key in order to navigate from background notifications:
-/// MaterialApp(
-///   navigatorKey: navigatorKey,
-///   ...
-/// )
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 /// This is a change notifier class which keeps track of state within the campaign builder views.
 class StateNotifications extends ChangeNotifier {
@@ -189,16 +182,18 @@ class StateNotifications extends ChangeNotifier {
         message: message,
         origin: NotificationOrigin.message,
       );
-      try {
-        if (_callback != null) await _callback!(formatted!);
-      } catch (error) {
-        debugPrint(LogColor.error('Callback Error: $error'));
+      if (_callback != null && formatted != null) {
+        await Future.delayed(const Duration(milliseconds: 500));
+        try {
+          await _callback!(formatted);
+        } catch (error) {
+          debugPrint(LogColor.error('Callback Error: $error'));
+        }
       }
     });
 
     /// When the app is opened from a terminated state
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
-      await Future.delayed(const Duration(seconds: 2));
       await _handleBackgroundMessage(
         message: message,
         origin: NotificationOrigin.open,
@@ -207,7 +202,6 @@ class StateNotifications extends ChangeNotifier {
 
     /// When the app is opened from a background state
     FirebaseMessaging.onBackgroundMessage((RemoteMessage message) async {
-      await Future.delayed(const Duration(milliseconds: 500));
       await _handleBackgroundMessage(
         message: message,
         origin: NotificationOrigin.resume,
@@ -220,26 +214,35 @@ class StateNotifications extends ChangeNotifier {
     required RemoteMessage message,
     required NotificationOrigin origin,
   }) async {
+    await Future.delayed(const Duration(seconds: 1));
     final formatted = formatMessage(
       message: message,
       origin: NotificationOrigin.resume,
     );
-    if (formatted != null && formatted.path != null) {
-      _navigateToView(
-        path: formatted.path!,
-        args: {
-          'account': formatted.account,
-          'id': formatted.id,
-          'origin': origin.name,
-        },
-      );
-    }
     // Verify navigatorKey is ready. If not, run the callback
-    if (navigatorKey.currentState == null) {
+    if (AppGlobal.navigatorKey.currentState == null) {
+      await Future.delayed(const Duration(seconds: 1));
+    }
+    if (formatted != null) {
       try {
-        if (_callback != null) await _callback!(formatted!);
+        await _navigateToView(
+          path: formatted.path,
+          args: {
+            'account': formatted.account,
+            'id': formatted.id,
+            'origin': origin.name,
+          },
+        );
       } catch (error) {
-        debugPrint(LogColor.error('Callback Error: $error'));
+        debugPrint(LogColor.error('Notification Navigation Error: $error'));
+        if (_callback != null) {
+          await Future.delayed(const Duration(seconds: 1));
+          try {
+            await _callback!(formatted);
+          } catch (error) {
+            debugPrint(LogColor.error('Notification Callback Error: $error'));
+          }
+        }
       }
     }
   }
@@ -277,10 +280,15 @@ class StateNotifications extends ChangeNotifier {
 
   /// Navigate to a specific view based on the path and arguments
   /// Example path: /product?id=123&account=abc
-  void _navigateToView({
-    required String path,
+  Future<void> _navigateToView({
+    required String? path,
     required Map<String, dynamic> args,
-  }) {
+  }) async {
+    if (path == null || path.isEmpty || !path.startsWith('/')) return;
+    final currentState = AppGlobal.navigatorKey.currentState;
+    if (currentState == null) {
+      throw 'Navigator state is not ready';
+    }
     // Remove empty, null, or whitespace-only args
     final queryParams = <String, dynamic>{};
     args.forEach((key, value) {
@@ -292,12 +300,7 @@ class StateNotifications extends ChangeNotifier {
       }
     });
     // Merge queryParams and args, with args taking precedence
-    if (path.isNotEmpty && path.startsWith('/')) {
-      navigatorKey.currentState?.pushNamed(path, arguments: queryParams);
-    } else {
-      // Default or home
-      navigatorKey.currentState?.pushNamed('/', arguments: queryParams);
-    }
+    await currentState.popAndPushNamed(path, arguments: queryParams);
   }
 
   /// Default function call every time the id changes.
