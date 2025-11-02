@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:fabric_flutter/variables.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -119,7 +120,7 @@ class AppLocalizations {
       finalLocalization = _replaceOptions(finalLocalization, options);
     }
     // Check if the key is not found
-    if (kDebugMode && finalLocalization == keyFinal) {
+    if (!kIsTest && kDebugMode && finalLocalization == keyFinal) {
       debugPrint(
         LogColor.warning('AppLocalizations: Missing Localization - $keyFinal'),
       );
