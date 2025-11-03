@@ -724,6 +724,7 @@ getValue -------------------------------------
       case InputDataType.secret:
       case InputDataType.url:
         endWidget = TextFormField(
+          key: ValueKey('input-data-${widget.type}'),
           controller: textController,
           autofillHints: widget.autofillHints,
           autofocus: widget.autofocus,
@@ -766,6 +767,7 @@ getValue -------------------------------------
       case InputDataType.dateTime:
       case InputDataType.timestamp:
         endWidget = TextFormField(
+          key: ValueKey('input-data-${widget.type}'),
           obscureText: obscureText,
           autofillHints: widget.autofillHints,
           enableSuggestions: false,
@@ -857,6 +859,7 @@ getValue -------------------------------------
               'label': locales.get('label--time'),
             });
         endWidget = FilledButton.icon(
+          key: ValueKey('input-data-${widget.type}'),
           onPressed: isDisabled
               ? null
               : () async {
@@ -901,6 +904,7 @@ getValue -------------------------------------
           });
         }
         final widgetInput = TextFormField(
+          key: ValueKey('input-data-${widget.type}'),
           autofillHints: widget.autofillHints,
           enableSuggestions: false,
           keyboardType: keyboardType,
@@ -923,6 +927,7 @@ getValue -------------------------------------
         );
         if (!isDisabled) {
           endWidget = SearchAnchor(
+            key: ValueKey('input-data-${widget.type}'),
             viewHintText: locales.get('label--search'),
             isFullScreen: isSmallScreen,
             viewLeading: BackButton(onPressed: _closeSearch),
@@ -1058,6 +1063,7 @@ getValue -------------------------------------
         break;
       case InputDataType.bool:
         endWidget = TextFormField(
+          key: ValueKey('input-data-${widget.type}'),
           controller: textController,
           initialValue: null,
           mouseCursor: MouseCursor.uncontrolled,
