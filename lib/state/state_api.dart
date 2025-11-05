@@ -144,6 +144,8 @@ abstract class StateAPI extends StateShared {
     }
     dynamic newData;
     dynamic dataResponse;
+    String? contentType;
+    bool isJsonStream = false;
     try {
       bool mustAuthenticate = false;
       bool canAuthenticate = false;
@@ -172,19 +174,24 @@ abstract class StateAPI extends StateShared {
         request.headers.addAll(requestHeaders);
         final response = await http.Client().send(request);
         headers = response.headers;
-        final contentType = headers['content-type'];
+        contentType = headers['content-type'];
         if (contentType == null) {
           throw 'No content type found for endpoint: $endpoint';
         }
         final hasTotalHeader = headers.containsKey('x-total-count');
+        isJsonStream = contentType.contains('application/x-json-stream');
 
         /// Handle json streaming data
-        if (contentType.contains('application/x-json-stream')) {
+        if (isJsonStream) {
+          if (!incrementalPagination) {
+            newData = [];
+            data = [];
+          }
           String staticBuffer = '';
           final stream = response.stream
               .transform(Utf8Codec(allowMalformed: true).decoder)
               .transform(
-                StreamTransformer<String, String>.fromHandlers(
+                StreamTransformer<String, Map<String, dynamic>>.fromHandlers(
                   handleData: (bufferData, sink) {
                     for (int i = 0; i < bufferData.length; i++) {
                       final char = bufferData[i];
@@ -211,8 +218,8 @@ abstract class StateAPI extends StateShared {
                         }
                         // If the last part is a valid JSON object, return it
                         try {
-                          jsonDecode(lastPart);
-                          sink.add(lastPart);
+                          final decoded = jsonDecode(lastPart);
+                          sink.add(decoded);
                           staticBuffer = '';
                         } catch (_) {
                           // If it fails to decode, keep it for the next chunk
@@ -227,8 +234,8 @@ abstract class StateAPI extends StateShared {
                               ('Single object detected on buffer: $staticBuffer'),
                             ),
                           );
-                          jsonDecode(staticBuffer);
-                          sink.add(staticBuffer);
+                          final decoded = jsonDecode(staticBuffer);
+                          sink.add(decoded);
                           staticBuffer = '';
                         } catch (_) {
                           // If it fails to decode, keep it for the next chunk
@@ -241,16 +248,19 @@ abstract class StateAPI extends StateShared {
               );
           await for (final chunk in stream) {
             if (chunk.isEmpty) continue;
-            final formattedResponse = http.Response(
-              chunk.trim(),
-              response.statusCode,
-              request: response.request,
-              headers: response.headers,
-            );
-            newData = HTTPRequest.response(formattedResponse);
+            final originalData = data ?? [];
+            // verify if item['id'] is present or add to data without merge method
+            if (chunk.containsKey('id')) {
+              final baseNewData = [chunk];
+              dataResponse = merge(base: originalData, toMerge: baseNewData);
+            } else {
+              dataResponse = [...originalData, chunk];
+            }
+            newData = dataResponse;
+            data = dataResponse;
             initialized = true;
-            data = newData;
           }
+          newData ??= [];
         } else {
           final convertedResponse = await http.Response.fromStream(response);
           newData = HTTPRequest.response(convertedResponse);
