@@ -13,7 +13,11 @@ import 'state_shared.dart';
 /// Base State for API calls
 /// Use this state to fetch updated data every time an endpoint is updated
 abstract class StateAPI extends StateShared {
-  StateAPI();
+  http.Client httpClient;
+
+  StateAPI({http.Client? httpClient})
+    : httpClient = httpClient ?? http.Client(),
+      super();
 
   /// [initialized] after [endpoint] is set the first time
 
@@ -172,7 +176,7 @@ abstract class StateAPI extends StateShared {
       try {
         final request = http.Request('GET', url);
         request.headers.addAll(requestHeaders);
-        final response = await http.Client().send(request);
+        final response = await httpClient.send(request);
         headers = response.headers;
         contentType = headers['content-type'];
         if (contentType == null) {
@@ -329,6 +333,8 @@ abstract class StateAPI extends StateShared {
   void clear({bool notify = false}) {
     _lastEndpointCalled = null;
     headers = {};
+    httpClient.close();
+    httpClient = http.Client();
     super.clear(notify: notify);
   }
 }
