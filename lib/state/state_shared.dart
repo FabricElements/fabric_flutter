@@ -139,18 +139,16 @@ abstract class StateShared extends ChangeNotifier {
     /// Basic check to prevent infinite loops
     if (privateOldData == dataObject && privateOldData != null) return;
 
-    /// Compare data
-    if (dataObject != null && dataObject.isNotEmpty) {
-      if (const DeepCollectionEquality().equals(privateOldData, dataObject)) {
-        return;
-      }
-    }
+    // Compare data
+    // if (dataObject != null && dataObject.isNotEmpty) {
+    //   if (const DeepCollectionEquality().equals(privateOldData, dataObject)) {
+    //     return;
+    //   }
+    // }
     // Set data
     privateOldData = dataObject;
     privateData = dataObject;
-    notifyListeners();
-    _controllerStream.sink.add(dataObject);
-    callback(dataObject);
+    _notifyData();
   }
 
   /// More at [error]
@@ -405,6 +403,7 @@ abstract class StateShared extends ChangeNotifier {
     privateOldData = null;
     totalCount = 0;
     loading = false;
+    _timer?.cancel();
     if (notify) {
       data = null;
     } else {
@@ -485,10 +484,44 @@ abstract class StateShared extends ChangeNotifier {
   dynamic get serialized;
 
   Timer? _timer;
+  Timer? _notifyDataTimer;
   int debounceCount = 0;
 
   /// Debounce time in milliseconds
-  int debounceTime = 10;
+  int debounceTime = 300;
+
+  /// Notify data with debounce
+  void _notifyData() {
+    // Do not debounce in test mode
+    if (kIsTest) {
+      _controllerStream.sink.add(privateData);
+      notifyListeners();
+      callback(privateData);
+      return;
+    }
+    // Do not debounce if debounceTime is 0
+    if (debounceTime <= 0) {
+      _controllerStream.sink.add(privateData);
+      notifyListeners();
+      callback(privateData);
+      return;
+    }
+
+    // Make custom debounce effective only after the first call otherwise use 100ms as minimum
+    int finalDebounceTime = debounceCount > 0 ? debounceTime : 300;
+    // If the first call is not initialized, use minimum debounce time
+    if (!initialized) finalDebounceTime = 500;
+
+    // Increment shared debounce count, cancel shared timer and start a new one
+    debounceCount++;
+    _timer?.cancel();
+    _timer = Timer(Duration(milliseconds: finalDebounceTime), () {
+      debounceCount = 0;
+      _controllerStream.sink.add(privateData);
+      notifyListeners();
+      callback(privateData);
+    });
+  }
 
   /// Notify listeners with debounce
   @override
