@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:convert' show Utf8Codec, jsonDecode;
+import 'dart:convert' show Utf8Codec;
 
 import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth;
 import 'package:flutter/foundation.dart';
@@ -10,6 +10,67 @@ import '../helper/http_request.dart';
 import '../helper/log_color.dart';
 import '../helper/utils.dart';
 import 'state_shared.dart';
+
+// Top-level parser that runs inside an isolate via compute().
+// It receives a Map with keys 's' (the new chunk string) and
+// 'staticBuffer' (previous leftover). It returns a Map with
+// keys 'items' (List of parsed Map<String,dynamic>) and 'buffer' (leftover string).
+Map<String, dynamic> _parseJsonBuffer(Map<String, dynamic> args) {
+  final String chunk = (args['s'] as String?) ?? '';
+  final String prevBuffer = (args['staticBuffer'] as String?) ?? '';
+  final String s = '$prevBuffer$chunk';
+
+  final List<Map<String, dynamic>> items = [];
+  int depth = 0;
+  bool inString = false;
+  bool escape = false;
+  int startIndex = 0;
+
+  for (int i = 0; i < s.length; i++) {
+    final String ch = s[i];
+
+    if (escape) {
+      escape = false;
+      continue;
+    }
+    if (ch == '\\') {
+      escape = true;
+      continue;
+    }
+    if (ch == '"') {
+      inString = !inString;
+      continue;
+    }
+    if (inString) continue;
+
+    if (ch == '{') {
+      depth++;
+    } else if (ch == '}') {
+      depth--;
+      if (depth == 0) {
+        final candidate = s.substring(startIndex, i + 1).trim();
+        if (candidate.isNotEmpty) {
+          try {
+            final decoded = HTTPRequest.jsonDecodeAndClean(candidate);
+            if (decoded is Map<String, dynamic>) {
+              // Remove keys with null values
+              decoded.removeWhere((key, value) => value == null);
+              // Successfully decoded a JSON object
+              items.add(decoded);
+            }
+          } catch (_) {
+            // If decoding fails, keep the candidate for the next chunk.
+            break;
+          }
+        }
+        startIndex = i + 1;
+      }
+    }
+  }
+
+  final String buffer = startIndex < s.length ? s.substring(startIndex) : '';
+  return {'items': items, 'buffer': buffer};
+}
 
 /// Base State for API calls
 /// Use this state to fetch updated data every time an endpoint is updated
@@ -198,93 +259,72 @@ abstract class StateAPI extends StateShared {
             // Wait for animation to complete
             await Future.delayed(const Duration(milliseconds: 500));
           }
+
+          // We'll keep a staticBuffer in this scope and parse chunks on a background isolate
           String staticBuffer = '';
 
-          // Build the transformed stream (maps chunks into Map\<String,dynamic\>)
+          // Build the transformed stream (maps chunks into Map<String,dynamic>)
           Stream<Map<String, dynamic>> stream = response.stream
               // insert ByteCountTransformer before decoding to UTF-8
               .transform(ByteCountTransformer(maxResponseBytes))
               .transform(Utf8Codec(allowMalformed: true).decoder)
-              .transform(
-                StreamTransformer<String, Map<String, dynamic>>.fromHandlers(
-                  handleData: (bufferData, sink) {
-                    final combined = StringBuffer();
-                    combined.write(staticBuffer);
-                    combined.write(bufferData);
-                    final s = combined.toString();
-
-                    int depth = 0;
-                    bool inString = false;
-                    bool escape = false;
-                    int startIndex = 0;
-
-                    for (int i = 0; i < s.length; i++) {
-                      final ch = s[i];
-
-                      if (escape) {
-                        escape = false;
-                        continue;
-                      }
-                      if (ch == r'\') {
-                        escape = true;
-                        continue;
-                      }
-                      if (ch == '"') {
-                        inString = !inString;
-                        continue;
-                      }
-                      if (inString) continue;
-
-                      if (ch == '{') {
-                        depth++;
-                      } else if (ch == '}') {
-                        depth--;
-                        if (depth == 0) {
-                          final candidate = s
-                              .substring(startIndex, i + 1)
-                              .trim();
-                          if (candidate.isNotEmpty) {
-                            try {
-                              final decoded = jsonDecode(candidate);
-                              if (decoded is Map<String, dynamic>) {
-                                sink.add(decoded);
-                              }
-                            } catch (_) {
-                              // Preserve candidate for next chunks by breaking
-                              break;
-                            }
-                          }
-                          startIndex = i + 1;
-                        }
-                      }
-                    }
-
-                    if (startIndex < s.length) {
-                      staticBuffer = s.substring(startIndex);
-                    } else {
-                      staticBuffer = '';
-                    }
-                  },
-                ),
-              );
+              .asyncExpand((bufferData) async* {
+                // Parse the combined buffer + incoming chunk in a background isolate
+                final Map<String, dynamic> args = {
+                  's': bufferData,
+                  'staticBuffer': staticBuffer,
+                };
+                Map<String, dynamic> result;
+                try {
+                  if (kIsWeb) {
+                    // On web, compute() is not supported; fallback to main-isolate parse
+                    result = await Future.microtask(
+                      () => _parseJsonBuffer(args),
+                    );
+                  } else {
+                    result = await compute(_parseJsonBuffer, args);
+                  }
+                } catch (e) {
+                  // On isolate failure, fallback to main-isolate parse (best-effort)
+                  result = _parseJsonBuffer(args);
+                }
+                staticBuffer = result['buffer'] as String? ?? '';
+                final List items = result['items'] as List? ?? [];
+                for (final item in items) {
+                  if (item is Map<String, dynamic>) {
+                    yield item;
+                  }
+                }
+              });
           // Cancel any existing subscription
           await _streamSubscription?.cancel();
           // Subscribe and process chunks; wait until stream completes
           _streamSubscription = stream.listen(
-            (chunk) {
+            (chunk) async {
               if (chunk.isEmpty) return;
               final originalData = data ?? [];
               // verify if item['id'] is present or add to data without merge method
               if (chunk.containsKey('id')) {
                 final baseNewData = [chunk];
-                streamResponse = merge(
-                  base: streamResponse,
-                  toMerge: baseNewData,
-                );
-                streamResponseFull = merge(
-                  base: originalData,
-                  toMerge: baseNewData,
-                );
+                try {
+                  // Use isolate for merging data if possible
+                  streamResponse = await Future.microtask(
+                    () => merge(base: streamResponse, toMerge: baseNewData),
+                  );
+                  streamResponseFull = await Future.microtask(
+                    () => merge(base: originalData, toMerge: baseNewData),
+                  );
+                } catch (e) {
+                  // Fallback to main-isolate merge on failure
+                  streamResponse = merge(
+                    base: streamResponse,
+                    toMerge: baseNewData,
+                  );
+                  streamResponseFull = merge(
+                    base: originalData,
+                    toMerge: baseNewData,
+                  );
+                }
               } else {
                 streamResponse = [...streamResponse, chunk];
                 streamResponseFull = [...originalData, chunk];
