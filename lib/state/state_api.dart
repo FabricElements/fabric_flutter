@@ -112,7 +112,9 @@ abstract class StateAPI extends StateShared {
     return finalHeaders;
   }
 
-  /// API Call
+  /// Stream subscription for handling JSON stream responses
+  StreamSubscription<Map<String, dynamic>>? _streamSubscription;
+
   @override
   Future<dynamic> call({bool ignoreDuplicatedCalls = true}) async {
     // Check for empty baseEndpoint
@@ -192,78 +194,99 @@ abstract class StateAPI extends StateShared {
             data = [];
           }
           String staticBuffer = '';
-          final stream = response.stream
+
+          // Build the transformed stream (maps chunks into Map\<String,dynamic\>)
+          Stream<Map<String, dynamic>> stream = response.stream
               .transform(Utf8Codec(allowMalformed: true).decoder)
               .transform(
                 StreamTransformer<String, Map<String, dynamic>>.fromHandlers(
                   handleData: (bufferData, sink) {
-                    for (int i = 0; i < bufferData.length; i++) {
-                      final char = bufferData[i];
-                      // Check for newline character to split the buffer
-                      staticBuffer += char;
-                      // Trim the staticBuffer to remove any leading or trailing whitespace
-                      staticBuffer = staticBuffer.trim();
-                      // If there is no data in the staticBuffer, continue to the next character
-                      if (staticBuffer.isEmpty) continue;
-                      int totalOpenBraces = staticBuffer.split('{').length - 1;
-                      int totalCloseBraces = staticBuffer.split('}').length - 1;
-                      bool hasOpenBraces =
-                          (totalOpenBraces - totalCloseBraces) != 0;
-                      // If we have an open brace, we need to keep the buffer
-                      if (hasOpenBraces) continue;
+                    final combined = StringBuffer();
+                    combined.write(staticBuffer);
+                    combined.write(bufferData);
+                    final s = combined.toString();
 
-                      // If multiple JSON objects are in the buffer, split them and return the last one
-                      final parts = staticBuffer.split('}{');
-                      if (parts.isNotEmpty) {
-                        String lastPart = parts.last;
-                        // add missing opening brace if needed
-                        if (!lastPart.startsWith('{')) {
-                          lastPart = '{$lastPart';
-                        }
-                        // If the last part is a valid JSON object, return it
-                        try {
-                          final decoded = jsonDecode(lastPart);
-                          sink.add(decoded);
-                          staticBuffer = '';
-                        } catch (_) {
-                          // If it fails to decode, keep it for the next chunk
-                          continue; // Keep this line in case new features are added
-                        }
-                      } else {
-                        // If parts is empty, it means the staticBuffer is a single JSON object
-                        // Try to decode it and add it to the sink
-                        try {
-                          debugPrint(
-                            LogColor.success(
-                              ('Single object detected on buffer: $staticBuffer'),
-                            ),
-                          );
-                          final decoded = jsonDecode(staticBuffer);
-                          sink.add(decoded);
-                          staticBuffer = '';
-                        } catch (_) {
-                          // If it fails to decode, keep it for the next chunk
-                          continue; // Keep this line in case new features are added
+                    int depth = 0;
+                    bool inString = false;
+                    bool escape = false;
+                    int startIndex = 0;
+
+                    for (int i = 0; i < s.length; i++) {
+                      final ch = s[i];
+
+                      if (escape) {
+                        escape = false;
+                        continue;
+                      }
+                      if (ch == r'\') {
+                        escape = true;
+                        continue;
+                      }
+                      if (ch == '"') {
+                        inString = !inString;
+                        continue;
+                      }
+                      if (inString) continue;
+
+                      if (ch == '{') {
+                        depth++;
+                      } else if (ch == '}') {
+                        depth--;
+                        if (depth == 0) {
+                          final candidate = s
+                              .substring(startIndex, i + 1)
+                              .trim();
+                          if (candidate.isNotEmpty) {
+                            try {
+                              final decoded = jsonDecode(candidate);
+                              if (decoded is Map<String, dynamic>) {
+                                sink.add(decoded);
+                              }
+                            } catch (_) {
+                              // Preserve candidate for next chunks by breaking
+                              break;
+                            }
+                          }
+                          startIndex = i + 1;
                         }
                       }
+                    }
+
+                    if (startIndex < s.length) {
+                      staticBuffer = s.substring(startIndex);
+                    } else {
+                      staticBuffer = '';
                     }
                   },
                 ),
               );
-          await for (final chunk in stream) {
-            if (chunk.isEmpty) continue;
-            final originalData = data ?? [];
-            // verify if item['id'] is present or add to data without merge method
-            if (chunk.containsKey('id')) {
-              final baseNewData = [chunk];
-              dataResponse = merge(base: originalData, toMerge: baseNewData);
-            } else {
-              dataResponse = [...originalData, chunk];
-            }
-            newData = dataResponse;
-            data = dataResponse;
-            initialized = true;
-          }
+          // Cancel any existing subscription
+          await _streamSubscription?.cancel();
+          // Subscribe and process chunks; wait until stream completes
+          _streamSubscription = stream.listen(
+            (chunk) {
+              if (chunk.isEmpty) return;
+              final originalData = data ?? [];
+              // verify if item['id'] is present or add to data without merge method
+              if (chunk.containsKey('id')) {
+                final baseNewData = [chunk];
+                dataResponse = merge(base: originalData, toMerge: baseNewData);
+              } else {
+                dataResponse = [...originalData, chunk];
+              }
+              newData = dataResponse;
+              data = dataResponse;
+              initialized = true;
+            },
+            onError: (e) {
+              // propagate to error handling below by setting error
+              errorCount++;
+              error = e.toString();
+            },
+          );
+
+          // Wait for the subscription to finish (stream done)
+          await _streamSubscription!.asFuture();
           newData ??= [];
         } else {
           final convertedResponse = await http.Response.fromStream(response);
@@ -287,11 +310,14 @@ abstract class StateAPI extends StateShared {
         error = null;
       } catch (e) {
         debugPrint(
-          LogColor.error(
-            '------------ ERROR API CALL ::::::::::::::::::::'
-            'Endpoint: $endpoint'
-            '////////////// ERROR API CALL -------------',
-          ),
+          LogColor.error('''
+***
+////////////// ERROR API CALL ////////////////////
+Endpoint: $endpoint
+Error: $e
+//////////////////////////////////////////////////
+***
+'''),
         );
         errorCount++;
         error = e.toString();
@@ -320,8 +346,9 @@ abstract class StateAPI extends StateShared {
       error = e.toString();
     } finally {
       loading = false;
+      await _resetHttpClient();
     }
-    // Set data with default value when needed
+
     dataResponse = paginate
         ? (dataResponse ?? []) as List<dynamic>
         : dataResponse as dynamic;
@@ -329,12 +356,20 @@ abstract class StateAPI extends StateShared {
     return dataResponse;
   }
 
+  /// Reset the HTTP client and cancel any existing stream subscription
+  Future<void> _resetHttpClient() async {
+    // Close existing client and subscription
+    await _streamSubscription?.cancel();
+    httpClient.close();
+    // Create a new HTTP client
+    httpClient = http.Client();
+  }
+
   @override
   void clear({bool notify = false}) {
     _lastEndpointCalled = null;
     headers = {};
-    httpClient.close();
-    httpClient = http.Client();
+    _resetHttpClient();
     super.clear(notify: notify);
   }
 }
