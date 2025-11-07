@@ -15,6 +15,9 @@ abstract class StateShared extends ChangeNotifier {
   /// errorCount to prevent infinite loops
   int errorCount = 0;
 
+  /// Max response size in bytes
+  int maxResponseBytes = 3 * 1024 * 1024; // 3 MiB
+
   /// More at [stream]
   /// ignore: close_sinks
   final _controllerStream = StreamController<dynamic>.broadcast();
@@ -196,7 +199,7 @@ abstract class StateShared extends ChangeNotifier {
     pageDefault = value ?? initialPage;
     initialized = false;
     loading = false;
-    super.notifyListeners();
+    notifyListeners();
     onPageChange(pageDefault);
   }
 
@@ -209,7 +212,7 @@ abstract class StateShared extends ChangeNotifier {
   /// Set the [limit] number and trigger filter
   set limit(int? value) {
     _limit = value ?? limitDefault;
-    super.notifyListeners();
+    notifyListeners();
   }
 
   /// Returns the trade
@@ -352,7 +355,7 @@ abstract class StateShared extends ChangeNotifier {
       selectedItems.removeWhere((item) => item == id);
     }
     selectedItems = selectedItems.toSet().toList();
-    super.notifyListeners();
+    notifyListeners();
   }
 
   /// isSelected returns true if the id is selected
@@ -366,7 +369,7 @@ abstract class StateShared extends ChangeNotifier {
   /// Set selected items with a list of id's or an empty array to reset the value
   set selected(List<dynamic>? items) {
     selectedItems = items ?? [];
-    super.notifyListeners();
+    notifyListeners();
   }
 
   /// selectAll select all available items on [data]
@@ -376,7 +379,7 @@ abstract class StateShared extends ChangeNotifier {
     for (final item in data) {
       if (item['id'] != null) selectedItems.add(item['id']);
     }
-    super.notifyListeners();
+    notifyListeners();
   }
 
   /// async function to process request
@@ -486,7 +489,7 @@ abstract class StateShared extends ChangeNotifier {
   int debounceCountData = 0;
 
   /// Debounce time in milliseconds
-  int debounceTime = 300;
+  int debounceTime = 10;
 
   /// Notify data with debounce
   void _notifyData() {
@@ -499,17 +502,13 @@ abstract class StateShared extends ChangeNotifier {
     }
     // Do not debounce if debounceTime is 0
     if (debounceTime <= 0) {
-      _controllerStream.sink.add(privateData);
       super.notifyListeners();
-      callback(privateData);
       return;
     }
-
-    // Make custom debounce effective only after the first call otherwise use 100ms as minimum
-    int finalDebounceTime = debounceCountData > 0 ? debounceTime : 300;
+    // Make custom debounce effective only after the first call otherwise use 10ms as minimum
+    int finalDebounceTime = debounceCountData > 0 ? debounceTime : 50;
     // If the first call is not initialized, use minimum debounce time
     if (!initialized) finalDebounceTime = 500;
-
     // Increment shared debounce count, cancel shared timer and start a new one
     debounceCountData++;
     _timerData?.cancel();
@@ -535,7 +534,7 @@ abstract class StateShared extends ChangeNotifier {
       return;
     }
     // Make custom debounce effective only after the first call otherwise use 10ms as minimum
-    int finalDebounceTime = debounceCountNotify > 0 ? debounceTime : 100;
+    int finalDebounceTime = debounceCountNotify > 0 ? debounceTime : 50;
     // If the first call is not initialized, use minimum debounce time
     if (!initialized) finalDebounceTime = 500;
     // Increment debounce count, cancel timer and start a new one
