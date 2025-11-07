@@ -16,7 +16,7 @@ abstract class StateShared extends ChangeNotifier {
   int errorCount = 0;
 
   /// Max response size in bytes
-  int maxResponseBytes = 3 * 1024 * 1024; // 3 MiB
+  int maxResponseBytes = 1 * 1024 * 1024; // 2 MiB
 
   /// More at [stream]
   /// ignore: close_sinks
