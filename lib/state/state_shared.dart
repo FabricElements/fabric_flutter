@@ -137,13 +137,6 @@ abstract class StateShared extends ChangeNotifier {
   set data(dynamic dataObject) {
     /// Basic check to prevent infinite loops
     if (privateOldData == dataObject && privateOldData != null) return;
-
-    // Compare data
-    // if (dataObject != null && dataObject.isNotEmpty) {
-    //   if (const DeepCollectionEquality().equals(privateOldData, dataObject)) {
-    //     return;
-    //   }
-    // }
     // Set data
     privateOldData = dataObject;
     privateData = dataObject;
@@ -203,7 +196,7 @@ abstract class StateShared extends ChangeNotifier {
     pageDefault = value ?? initialPage;
     initialized = false;
     loading = false;
-    notifyListeners();
+    super.notifyListeners();
     onPageChange(pageDefault);
   }
 
@@ -216,7 +209,7 @@ abstract class StateShared extends ChangeNotifier {
   /// Set the [limit] number and trigger filter
   set limit(int? value) {
     _limit = value ?? limitDefault;
-    notifyListeners();
+    super.notifyListeners();
   }
 
   /// Returns the trade
@@ -359,7 +352,7 @@ abstract class StateShared extends ChangeNotifier {
       selectedItems.removeWhere((item) => item == id);
     }
     selectedItems = selectedItems.toSet().toList();
-    notifyListeners();
+    super.notifyListeners();
   }
 
   /// isSelected returns true if the id is selected
@@ -373,7 +366,7 @@ abstract class StateShared extends ChangeNotifier {
   /// Set selected items with a list of id's or an empty array to reset the value
   set selected(List<dynamic>? items) {
     selectedItems = items ?? [];
-    notifyListeners();
+    super.notifyListeners();
   }
 
   /// selectAll select all available items on [data]
@@ -383,7 +376,7 @@ abstract class StateShared extends ChangeNotifier {
     for (final item in data) {
       if (item['id'] != null) selectedItems.add(item['id']);
     }
-    notifyListeners();
+    super.notifyListeners();
   }
 
   /// async function to process request
@@ -423,6 +416,7 @@ abstract class StateShared extends ChangeNotifier {
   /// get filters from query
   List<FilterData> get filters => _filters;
 
+  /// set filters and notify listeners
   set filters(List<FilterData> newFilters) {
     _filters = newFilters;
     notifyListeners();
@@ -456,15 +450,17 @@ abstract class StateShared extends ChangeNotifier {
         ? FilterHelper.merge(filters: filters, merge: newFilters)
         : newFilters;
     baseFilters = FilterHelper.filter(filters: baseFilters, strict: true);
-    _filters = baseFilters;
+    filters = baseFilters;
     if (fetch) {
-      call();
+      Future.delayed(const Duration(milliseconds: 400)).whenComplete(() {
+        call();
+      });
     }
     if (redirect) {
       assert(context != null, 'context can\'t be null for if redirect is true');
       assert(uri != null, 'uri can\'t be null for if redirect is true');
       // Use 300+ milliseconds to ensure animations completes
-      Future.delayed(const Duration(milliseconds: 300)).then((time) {
+      Future.delayed(const Duration(milliseconds: 400)).whenComplete(() {
         Utils.pushNamedFromQuery(
           context: context!,
           uri: uri!,
@@ -477,7 +473,6 @@ abstract class StateShared extends ChangeNotifier {
         );
       });
     }
-    notifyListeners();
     return filters;
   }
 
