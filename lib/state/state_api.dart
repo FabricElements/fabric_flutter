@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth;
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
+import '../helper/byte_count_transformer.dart';
 import '../helper/http_request.dart';
 import '../helper/log_color.dart';
 import '../helper/utils.dart';
@@ -175,6 +176,9 @@ abstract class StateAPI extends StateShared {
         requestHeaders['Authorization'] = '${authScheme!.name} $credentials';
       }
       debugPrint(LogColor.info('Calling endpoint: $endpoint'));
+      final originalData = data;
+      List<dynamic> streamResponse = [];
+      List<dynamic> streamResponseFull = [];
       try {
         final request = http.Request('GET', url);
         request.headers.addAll(requestHeaders);
@@ -184,7 +188,6 @@ abstract class StateAPI extends StateShared {
         if (contentType == null) {
           throw 'No content type found for endpoint: $endpoint';
         }
-        final hasTotalHeader = headers.containsKey('x-total-count');
         isJsonStream = contentType.contains('application/x-json-stream');
 
         /// Handle json streaming data
@@ -192,11 +195,15 @@ abstract class StateAPI extends StateShared {
           if (!incrementalPagination) {
             newData = [];
             data = [];
+            // Wait for animation to complete
+            await Future.delayed(const Duration(milliseconds: 500));
           }
           String staticBuffer = '';
 
           // Build the transformed stream (maps chunks into Map\<String,dynamic\>)
           Stream<Map<String, dynamic>> stream = response.stream
+              // insert ByteCountTransformer before decoding to UTF-8
+              .transform(ByteCountTransformer(maxResponseBytes))
               .transform(Utf8Codec(allowMalformed: true).decoder)
               .transform(
                 StreamTransformer<String, Map<String, dynamic>>.fromHandlers(
@@ -270,13 +277,20 @@ abstract class StateAPI extends StateShared {
               // verify if item['id'] is present or add to data without merge method
               if (chunk.containsKey('id')) {
                 final baseNewData = [chunk];
-                dataResponse = merge(base: originalData, toMerge: baseNewData);
+                streamResponse = merge(
+                  base: streamResponse,
+                  toMerge: baseNewData,
+                );
+                streamResponseFull = merge(
+                  base: originalData,
+                  toMerge: baseNewData,
+                );
               } else {
-                dataResponse = [...originalData, chunk];
+                streamResponse = [...streamResponse, chunk];
+                streamResponseFull = [...originalData, chunk];
               }
-              newData = dataResponse;
-              data = dataResponse;
-              initialized = true;
+              newData = streamResponse;
+              data = streamResponseFull;
             },
             onError: (e) {
               // propagate to error handling below by setting error
@@ -292,21 +306,6 @@ abstract class StateAPI extends StateShared {
           final convertedResponse = await http.Response.fromStream(response);
           newData = HTTPRequest.response(convertedResponse);
         }
-        if (hasTotalHeader) {
-          final xTotalCountHeader =
-              int.tryParse(headers['x-total-count'] ?? '0') ?? 0;
-          totalCount = xTotalCountHeader;
-        } else if (paginate && !hasTotalHeader) {
-          /// Default totalCount depending on the page
-          int newTotal = (newData as List<dynamic>).length;
-          if (page > initialPage) {
-            int basePage = page;
-            if (basePage == 0) basePage = 1;
-            totalCount = ((basePage - 1) * limit) + newTotal;
-          } else {
-            totalCount = newTotal;
-          }
-        }
         error = null;
       } catch (e) {
         final isAbort =
@@ -314,7 +313,7 @@ abstract class StateAPI extends StateShared {
             e.toString().contains('abortTrigger');
         if (isAbort) {
           debugPrint(LogColor.warning('API call aborted: $endpoint'));
-          return dataResponse;
+          return data;
         }
         debugPrint(
           LogColor.error('''
@@ -329,36 +328,58 @@ Error: $e
         errorCount++;
         error = e.toString();
       }
-      initialized = true;
 
       /// pagination
       if (incrementalPagination) {
-        bool hasOldData = data != null && data.isNotEmpty;
+        bool hasOldData = originalData != null && originalData.isNotEmpty;
         bool hasNewData = newData != null && newData.isNotEmpty;
         // Merge data or return same data as last request
         if (hasOldData && hasNewData) {
-          dataResponse = merge(base: data, toMerge: newData);
+          dataResponse = merge(base: originalData, toMerge: newData);
         } else if (hasOldData && !hasNewData) {
-          dataResponse = data;
+          dataResponse = originalData;
         } else {
           dataResponse = newData;
         }
       } else {
         dataResponse = newData;
       }
+
+      /// Set initialized only if no error
+      initialized = true;
     } catch (e) {
       debugPrint(LogColor.error('------ ERROR API CALL : Parent catch ------'));
       initialized = false;
       errorCount++;
       error = e.toString();
     } finally {
+      // Finalize data response depending on pagination
+      dataResponse = paginate
+          ? (dataResponse ?? []) as List<dynamic>
+          : dataResponse as dynamic;
+      // Set totalCount from headers if present or from data length
+      final hasTotalHeader = headers.containsKey('x-total-count');
+      if (hasTotalHeader) {
+        final xTotalCountHeader =
+            int.tryParse(headers['x-total-count'] ?? '0') ?? 0;
+        totalCount = xTotalCountHeader;
+      } else if (paginate && !hasTotalHeader) {
+        /// Default totalCount depending on the page
+        int newTotal = (newData as List<dynamic>).length;
+        if (page > initialPage) {
+          int basePage = page;
+          if (basePage == 0) basePage = 1;
+          totalCount = ((basePage - 1) * limit) + newTotal;
+        } else {
+          totalCount = newTotal;
+        }
+      }
+      // Reset loading state
       loading = false;
+      // Reset HTTP client to prevent issues with persistent connections
       await _resetHttpClient();
     }
 
-    dataResponse = paginate
-        ? (dataResponse ?? []) as List<dynamic>
-        : dataResponse as dynamic;
     data = dataResponse;
     return dataResponse;
   }
