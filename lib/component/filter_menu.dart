@@ -626,6 +626,7 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
           ];
         },
         child: Chip(
+          mouseCursor: SystemMouseCursors.click,
           label: Text(label),
           avatar: Icon(icon, color: theme.colorScheme.onSurface),
           onDeleted: widget.onDelete,

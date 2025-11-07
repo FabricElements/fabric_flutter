@@ -1,19 +1,85 @@
 import 'dart:async';
-import 'dart:convert' show Utf8Codec, jsonDecode;
+import 'dart:convert' show Utf8Codec;
 
 import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth;
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
+import '../helper/byte_count_transformer.dart';
 import '../helper/http_request.dart';
 import '../helper/log_color.dart';
 import '../helper/utils.dart';
 import 'state_shared.dart';
 
+// Top-level parser that runs inside an isolate via compute().
+// It receives a Map with keys 's' (the new chunk string) and
+// 'staticBuffer' (previous leftover). It returns a Map with
+// keys 'items' (List of parsed Map<String,dynamic>) and 'buffer' (leftover string).
+Map<String, dynamic> _parseJsonBuffer(Map<String, dynamic> args) {
+  final String chunk = (args['s'] as String?) ?? '';
+  final String prevBuffer = (args['staticBuffer'] as String?) ?? '';
+  final String s = '$prevBuffer$chunk';
+
+  final List<Map<String, dynamic>> items = [];
+  int depth = 0;
+  bool inString = false;
+  bool escape = false;
+  int startIndex = 0;
+
+  for (int i = 0; i < s.length; i++) {
+    final String ch = s[i];
+
+    if (escape) {
+      escape = false;
+      continue;
+    }
+    if (ch == '\\') {
+      escape = true;
+      continue;
+    }
+    if (ch == '"') {
+      inString = !inString;
+      continue;
+    }
+    if (inString) continue;
+
+    if (ch == '{') {
+      depth++;
+    } else if (ch == '}') {
+      depth--;
+      if (depth == 0) {
+        final candidate = s.substring(startIndex, i + 1).trim();
+        if (candidate.isNotEmpty) {
+          try {
+            final decoded = HTTPRequest.jsonDecodeAndClean(candidate);
+            if (decoded is Map<String, dynamic>) {
+              // Remove keys with null values
+              decoded.removeWhere((key, value) => value == null);
+              // Successfully decoded a JSON object
+              items.add(decoded);
+            }
+          } catch (_) {
+            // If decoding fails, keep the candidate for the next chunk.
+            break;
+          }
+        }
+        startIndex = i + 1;
+      }
+    }
+  }
+
+  final String buffer = startIndex < s.length ? s.substring(startIndex) : '';
+  return {'items': items, 'buffer': buffer};
+}
+
 /// Base State for API calls
 /// Use this state to fetch updated data every time an endpoint is updated
 abstract class StateAPI extends StateShared {
-  StateAPI();
+  http.Client httpClient;
+
+  StateAPI({http.Client? httpClient})
+    : httpClient = httpClient ?? http.Client(),
+      super();
 
   /// [initialized] after [endpoint] is set the first time
 
@@ -108,7 +174,9 @@ abstract class StateAPI extends StateShared {
     return finalHeaders;
   }
 
-  /// API Call
+  /// Stream subscription for handling JSON stream responses
+  StreamSubscription<Map<String, dynamic>>? _streamSubscription;
+
   @override
   Future<dynamic> call({bool ignoreDuplicatedCalls = true}) async {
     // Check for empty baseEndpoint
@@ -169,16 +237,18 @@ abstract class StateAPI extends StateShared {
         requestHeaders['Authorization'] = '${authScheme!.name} $credentials';
       }
       debugPrint(LogColor.info('Calling endpoint: $endpoint'));
+      final originalData = data;
+      List<dynamic> streamResponse = [];
+      List<dynamic> streamResponseFull = [];
       try {
         final request = http.Request('GET', url);
         request.headers.addAll(requestHeaders);
-        final response = await http.Client().send(request);
+        final response = await httpClient.send(request);
         headers = response.headers;
         contentType = headers['content-type'];
         if (contentType == null) {
           throw 'No content type found for endpoint: $endpoint';
         }
-        final hasTotalHeader = headers.containsKey('x-total-count');
         isJsonStream = contentType.contains('application/x-json-stream');
 
         /// Handle json streaming data
@@ -186,149 +256,198 @@ abstract class StateAPI extends StateShared {
           if (!incrementalPagination) {
             newData = [];
             data = [];
+            // Wait for animation to complete
+            await Future.delayed(const Duration(milliseconds: 500));
           }
-          String staticBuffer = '';
-          final stream = response.stream
-              .transform(Utf8Codec(allowMalformed: true).decoder)
-              .transform(
-                StreamTransformer<String, Map<String, dynamic>>.fromHandlers(
-                  handleData: (bufferData, sink) {
-                    for (int i = 0; i < bufferData.length; i++) {
-                      final char = bufferData[i];
-                      // Check for newline character to split the buffer
-                      staticBuffer += char;
-                      // Trim the staticBuffer to remove any leading or trailing whitespace
-                      staticBuffer = staticBuffer.trim();
-                      // If there is no data in the staticBuffer, continue to the next character
-                      if (staticBuffer.isEmpty) continue;
-                      int totalOpenBraces = staticBuffer.split('{').length - 1;
-                      int totalCloseBraces = staticBuffer.split('}').length - 1;
-                      bool hasOpenBraces =
-                          (totalOpenBraces - totalCloseBraces) != 0;
-                      // If we have an open brace, we need to keep the buffer
-                      if (hasOpenBraces) continue;
 
-                      // If multiple JSON objects are in the buffer, split them and return the last one
-                      final parts = staticBuffer.split('}{');
-                      if (parts.isNotEmpty) {
-                        String lastPart = parts.last;
-                        // add missing opening brace if needed
-                        if (!lastPart.startsWith('{')) {
-                          lastPart = '{$lastPart';
-                        }
-                        // If the last part is a valid JSON object, return it
-                        try {
-                          final decoded = jsonDecode(lastPart);
-                          sink.add(decoded);
-                          staticBuffer = '';
-                        } catch (_) {
-                          // If it fails to decode, keep it for the next chunk
-                          continue; // Keep this line in case new features are added
-                        }
-                      } else {
-                        // If parts is empty, it means the staticBuffer is a single JSON object
-                        // Try to decode it and add it to the sink
-                        try {
-                          debugPrint(
-                            LogColor.success(
-                              ('Single object detected on buffer: $staticBuffer'),
-                            ),
-                          );
-                          final decoded = jsonDecode(staticBuffer);
-                          sink.add(decoded);
-                          staticBuffer = '';
-                        } catch (_) {
-                          // If it fails to decode, keep it for the next chunk
-                          continue; // Keep this line in case new features are added
-                        }
-                      }
-                    }
-                  },
-                ),
-              );
-          await for (final chunk in stream) {
-            if (chunk.isEmpty) continue;
-            final originalData = data ?? [];
-            // verify if item['id'] is present or add to data without merge method
-            if (chunk.containsKey('id')) {
-              final baseNewData = [chunk];
-              dataResponse = merge(base: originalData, toMerge: baseNewData);
-            } else {
-              dataResponse = [...originalData, chunk];
-            }
-            newData = dataResponse;
-            data = dataResponse;
-            initialized = true;
-          }
+          // We'll keep a staticBuffer in this scope and parse chunks on a background isolate
+          String staticBuffer = '';
+
+          // Build the transformed stream (maps chunks into Map<String,dynamic>)
+          Stream<Map<String, dynamic>> stream = response.stream
+              // insert ByteCountTransformer before decoding to UTF-8
+              .transform(ByteCountTransformer(maxResponseBytes))
+              .transform(Utf8Codec(allowMalformed: true).decoder)
+              .asyncExpand((bufferData) async* {
+                // Parse the combined buffer + incoming chunk in a background isolate
+                final Map<String, dynamic> args = {
+                  's': bufferData,
+                  'staticBuffer': staticBuffer,
+                };
+                Map<String, dynamic> result;
+                try {
+                  if (kIsWeb) {
+                    // On web, compute() is not supported; fallback to main-isolate parse
+                    result = await Future.microtask(
+                      () => _parseJsonBuffer(args),
+                    );
+                  } else {
+                    result = await compute(_parseJsonBuffer, args);
+                  }
+                } catch (e) {
+                  // On isolate failure, fallback to main-isolate parse (best-effort)
+                  result = _parseJsonBuffer(args);
+                }
+                staticBuffer = result['buffer'] as String? ?? '';
+                final List items = result['items'] as List? ?? [];
+                for (final item in items) {
+                  if (item is Map<String, dynamic>) {
+                    yield item;
+                  }
+                }
+              });
+          // Cancel any existing subscription
+          await _streamSubscription?.cancel();
+          // Subscribe and process chunks; wait until stream completes
+          _streamSubscription = stream.listen(
+            (chunk) async {
+              if (chunk.isEmpty) return;
+              final originalData = data ?? [];
+              // verify if item['id'] is present or add to data without merge method
+              if (chunk.containsKey('id')) {
+                final baseNewData = [chunk];
+                try {
+                  // Use isolate for merging data if possible
+                  streamResponse = await Future.microtask(
+                    () => merge(base: streamResponse, toMerge: baseNewData),
+                  );
+                  streamResponseFull = await Future.microtask(
+                    () => merge(base: originalData, toMerge: baseNewData),
+                  );
+                } catch (e) {
+                  // Fallback to main-isolate merge on failure
+                  streamResponse = merge(
+                    base: streamResponse,
+                    toMerge: baseNewData,
+                  );
+                  streamResponseFull = merge(
+                    base: originalData,
+                    toMerge: baseNewData,
+                  );
+                }
+              } else {
+                streamResponse = [...streamResponse, chunk];
+                streamResponseFull = [...originalData, chunk];
+              }
+              newData = streamResponse;
+              data = streamResponseFull;
+            },
+            onError: (e) {
+              // propagate to error handling below by setting error
+              errorCount++;
+              error = e.toString();
+            },
+          );
+
+          // Wait for the subscription to finish (stream done)
+          await _streamSubscription!.asFuture();
           newData ??= [];
         } else {
           final convertedResponse = await http.Response.fromStream(response);
           newData = HTTPRequest.response(convertedResponse);
         }
-        if (hasTotalHeader) {
-          final xTotalCountHeader =
-              int.tryParse(headers['x-total-count'] ?? '0') ?? 0;
-          totalCount = xTotalCountHeader;
-        } else if (paginate && !hasTotalHeader) {
-          /// Default totalCount depending on the page
-          int newTotal = (newData as List<dynamic>).length;
-          if (page > initialPage) {
-            int basePage = page;
-            if (basePage == 0) basePage = 1;
-            totalCount = ((basePage - 1) * limit) + newTotal;
-          } else {
-            totalCount = newTotal;
-          }
-        }
         error = null;
       } catch (e) {
+        final isAbort =
+            (e is http.ClientException && e.message.contains('abortTrigger')) ||
+            e.toString().contains('abortTrigger');
+        if (isAbort) {
+          debugPrint(LogColor.warning('API call aborted: $endpoint'));
+          return data;
+        }
         debugPrint(
-          LogColor.error(
-            '------------ ERROR API CALL ::::::::::::::::::::'
-            'Endpoint: $endpoint'
-            '////////////// ERROR API CALL -------------',
-          ),
+          LogColor.error('''
+***
+////////////// ERROR API CALL ////////////////////
+Endpoint: $endpoint
+Error: $e
+//////////////////////////////////////////////////
+***
+'''),
         );
         errorCount++;
         error = e.toString();
       }
-      initialized = true;
 
       /// pagination
       if (incrementalPagination) {
-        bool hasOldData = data != null && data.isNotEmpty;
+        bool hasOldData = originalData != null && originalData.isNotEmpty;
         bool hasNewData = newData != null && newData.isNotEmpty;
         // Merge data or return same data as last request
         if (hasOldData && hasNewData) {
-          dataResponse = merge(base: data, toMerge: newData);
+          dataResponse = merge(base: originalData, toMerge: newData);
         } else if (hasOldData && !hasNewData) {
-          dataResponse = data;
+          dataResponse = originalData;
         } else {
           dataResponse = newData;
         }
       } else {
         dataResponse = newData;
       }
+
+      /// Set initialized only if no error
+      initialized = true;
     } catch (e) {
       debugPrint(LogColor.error('------ ERROR API CALL : Parent catch ------'));
       initialized = false;
       errorCount++;
       error = e.toString();
     } finally {
+      // Finalize data response depending on pagination
+      dataResponse = paginate
+          ? (dataResponse ?? []) as List<dynamic>
+          : dataResponse as dynamic;
+      // Set totalCount from headers if present or from data length
+      final hasTotalHeader = headers.containsKey('x-total-count');
+      if (hasTotalHeader) {
+        final xTotalCountHeader =
+            int.tryParse(headers['x-total-count'] ?? '0') ?? 0;
+        totalCount = xTotalCountHeader;
+      } else if (paginate && !hasTotalHeader) {
+        /// Default totalCount depending on the page
+        int newTotal = (newData as List<dynamic>).length;
+        if (page > initialPage) {
+          int basePage = page;
+          if (basePage == 0) basePage = 1;
+          totalCount = ((basePage - 1) * limit) + newTotal;
+        } else {
+          totalCount = newTotal;
+        }
+      }
+      // Reset loading state
       loading = false;
+      // Reset HTTP client to prevent issues with persistent connections
+      await _resetHttpClient();
     }
-    // Set data with default value when needed
-    dataResponse = paginate
-        ? (dataResponse ?? []) as List<dynamic>
-        : dataResponse as dynamic;
+
     data = dataResponse;
     return dataResponse;
+  }
+
+  /// Reset the HTTP client and cancel any existing stream subscription
+  /// Reset the HTTP client and cancel any existing stream subscription
+  Future<void> _resetHttpClient() async {
+    // Cancel and clear existing subscription
+    try {
+      await _streamSubscription?.cancel();
+    } finally {
+      _streamSubscription = null;
+    }
+
+    // Close existing client (http.Client.close is synchronous but keep pattern)
+    try {
+      httpClient.close();
+    } catch (_) {}
+    // Create a fresh client
+    httpClient = http.Client();
   }
 
   @override
   void clear({bool notify = false}) {
     _lastEndpointCalled = null;
     headers = {};
-    super.clear(notify: notify);
+    _resetHttpClient().whenComplete(() {
+      super.clear(notify: notify);
+    });
   }
 }

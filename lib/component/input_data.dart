@@ -213,7 +213,7 @@ class InputData extends StatefulWidget {
   });
 
   final dynamic value;
-  final List<dynamic> enums;
+  final List<Enum> enums;
   final List<ButtonOptions> options;
   final InputDataType type;
   final bool disabled;

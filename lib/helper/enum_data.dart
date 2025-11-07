@@ -42,7 +42,7 @@ class EnumData {
   /// [value] expected to find
   /// [unknown] is used if there is no match
   static dynamic match({
-    required List<dynamic> enums,
+    required List<Enum> enums,
     required dynamic value,
     dynamic unknown,
   }) {
@@ -58,7 +58,7 @@ class EnumData {
   /// [value] expected to find
   /// [unknown] is used if there is no match
   static String? matchString({
-    required List<dynamic> enums,
+    required List<Enum> enums,
     required dynamic value,
     dynamic unknown,
   }) {
@@ -68,8 +68,8 @@ class EnumData {
   }
 
   /// Find and return enum from a given string value
-  static dynamic findFromString({
-    required List<dynamic> enums,
+  static Enum? findFromString({
+    required List<Enum> enums,
     required String? value,
   }) {
     assert(enums.isNotEmpty, 'enums can\'t be empty');
@@ -82,7 +82,7 @@ class EnumData {
     return null;
   }
 
-  static dynamic find({required List<dynamic> enums, required dynamic value}) {
+  static Enum? find({required List<Enum> enums, required dynamic value}) {
     if (value == null) return null;
     dynamic finalValue;
     String? error;
@@ -107,7 +107,7 @@ class EnumData {
   }
 
   /// List of enums to string values
-  static List<String> toList(List<dynamic> enums) {
+  static List<String> toList(List<Enum> enums) {
     return enums.map((e) => describe(e)!).toList();
   }
 }

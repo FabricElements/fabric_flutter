@@ -185,6 +185,8 @@ class StateAlert implements Listenable {
         buttonColorForeground = theme.colorScheme.onError;
         break;
       case AlertType.warning:
+        alertData.color = theme.colorScheme.surface;
+        alertData.textColor = theme.colorScheme.onSurface;
         alertData.duration ??= 15;
         buttonColor = theme.colorScheme.error;
         buttonColorForeground = theme.colorScheme.onError;

@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:collection/collection.dart';
 import 'package:fabric_flutter/variables.dart';
 import 'package:flutter/material.dart';
 
@@ -15,6 +14,9 @@ abstract class StateShared extends ChangeNotifier {
 
   /// errorCount to prevent infinite loops
   int errorCount = 0;
+
+  /// Max response size in bytes
+  int maxResponseBytes = 1 * 1024 * 1024; // 1 MiB
 
   /// More at [stream]
   /// ignore: close_sinks
@@ -138,19 +140,10 @@ abstract class StateShared extends ChangeNotifier {
   set data(dynamic dataObject) {
     /// Basic check to prevent infinite loops
     if (privateOldData == dataObject && privateOldData != null) return;
-
-    /// Compare data
-    if (dataObject != null && dataObject.isNotEmpty) {
-      if (const DeepCollectionEquality().equals(privateOldData, dataObject)) {
-        return;
-      }
-    }
     // Set data
     privateOldData = dataObject;
     privateData = dataObject;
-    notifyListeners();
-    _controllerStream.sink.add(dataObject);
-    callback(dataObject);
+    _notifyData();
   }
 
   /// More at [error]
@@ -405,6 +398,8 @@ abstract class StateShared extends ChangeNotifier {
     privateOldData = null;
     totalCount = 0;
     loading = false;
+    _timerNotify?.cancel();
+    _timerData?.cancel();
     if (notify) {
       data = null;
     } else {
@@ -424,6 +419,7 @@ abstract class StateShared extends ChangeNotifier {
   /// get filters from query
   List<FilterData> get filters => _filters;
 
+  /// set filters and notify listeners
   set filters(List<FilterData> newFilters) {
     _filters = newFilters;
     notifyListeners();
@@ -452,19 +448,22 @@ abstract class StateShared extends ChangeNotifier {
     Uri? uri,
     bool merge = false,
   }) {
+    clear();
     List<FilterData> baseFilters = merge
         ? FilterHelper.merge(filters: filters, merge: newFilters)
         : newFilters;
     baseFilters = FilterHelper.filter(filters: baseFilters, strict: true);
-    _filters = baseFilters;
+    filters = baseFilters;
     if (fetch) {
-      call();
+      Future.delayed(const Duration(milliseconds: 400)).whenComplete(() {
+        call();
+      });
     }
     if (redirect) {
       assert(context != null, 'context can\'t be null for if redirect is true');
       assert(uri != null, 'uri can\'t be null for if redirect is true');
       // Use 300+ milliseconds to ensure animations completes
-      Future.delayed(const Duration(milliseconds: 1)).then((time) {
+      Future.delayed(const Duration(milliseconds: 400)).whenComplete(() {
         Utils.pushNamedFromQuery(
           context: context!,
           uri: uri!,
@@ -477,18 +476,49 @@ abstract class StateShared extends ChangeNotifier {
         );
       });
     }
-    notifyListeners();
     return filters;
   }
 
   /// Get serialized data
   dynamic get serialized;
 
-  Timer? _timer;
-  int debounceCount = 0;
+  /// Debounce timers and counters
+  Timer? _timerNotify;
+  int debounceCountNotify = 0;
+  Timer? _timerData;
+  int debounceCountData = 0;
 
   /// Debounce time in milliseconds
   int debounceTime = 10;
+
+  /// Notify data with debounce
+  void _notifyData() {
+    // Do not debounce in test mode
+    if (kIsTest) {
+      _controllerStream.sink.add(privateData);
+      super.notifyListeners();
+      callback(privateData);
+      return;
+    }
+    // Do not debounce if debounceTime is 0
+    if (debounceTime <= 0) {
+      super.notifyListeners();
+      return;
+    }
+    // Make custom debounce effective only after the first call otherwise use 10ms as minimum
+    int finalDebounceTime = debounceCountData > 0 ? debounceTime : 50;
+    // If the first call is not initialized, use minimum debounce time
+    if (!initialized) finalDebounceTime = 500;
+    // Increment shared debounce count, cancel shared timer and start a new one
+    debounceCountData++;
+    _timerData?.cancel();
+    _timerData = Timer(Duration(milliseconds: finalDebounceTime), () {
+      debounceCountData = 0;
+      _controllerStream.sink.add(privateData);
+      super.notifyListeners();
+      callback(privateData);
+    });
+  }
 
   /// Notify listeners with debounce
   @override
@@ -504,14 +534,14 @@ abstract class StateShared extends ChangeNotifier {
       return;
     }
     // Make custom debounce effective only after the first call otherwise use 10ms as minimum
-    int finalDebounceTime = debounceCount > 0 ? debounceTime : 100;
+    int finalDebounceTime = debounceCountNotify > 0 ? debounceTime : 50;
     // If the first call is not initialized, use minimum debounce time
     if (!initialized) finalDebounceTime = 500;
     // Increment debounce count, cancel timer and start a new one
-    debounceCount++;
-    _timer?.cancel();
-    _timer = Timer(Duration(milliseconds: finalDebounceTime), () {
-      debounceCount = 0;
+    debounceCountNotify++;
+    _timerNotify?.cancel();
+    _timerNotify = Timer(Duration(milliseconds: finalDebounceTime), () {
+      debounceCountNotify = 0;
       super.notifyListeners();
     });
   }
@@ -521,7 +551,7 @@ abstract class StateShared extends ChangeNotifier {
   void dispose() {
     _controllerStream.close();
     _controllerStreamError.close();
-    _timer?.cancel();
+    _timerNotify?.cancel();
     super.dispose();
   }
 }

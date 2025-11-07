@@ -65,7 +65,7 @@ class HTTPRequest {
 
     /// Catch Error Message from JSON response
     try {
-      final responseObject = jsonDecode(response.body);
+      final responseObject = jsonDecodeAndClean(response.body);
       errorResponse = responseObject['message']?.toString();
     } catch (e) {
       //--
@@ -74,7 +74,7 @@ class HTTPRequest {
 
     /// Catch Error Message List from JSON response
     try {
-      Map<String, dynamic> responseObject = jsonDecode(response.body);
+      Map<String, dynamic> responseObject = jsonDecodeAndClean(response.body);
       if (responseObject.containsKey('errors')) {
         final errors = responseObject['errors'] as List<dynamic>;
         if (errors.isNotEmpty) {
@@ -107,6 +107,23 @@ class HTTPRequest {
     throw errorResponse;
   }
 
+  /// Decode JSON and remove null or empty values
+  static dynamic jsonDecodeAndClean(dynamic data) {
+    final decoded = jsonDecode(data);
+    if (decoded is Map<String, dynamic>) {
+      decoded.removeWhere(
+        (key, value) => value == null || (value is String && value.isEmpty),
+      );
+      return decoded;
+    }
+    if (decoded is List) {
+      return decoded
+          .where((e) => !(e == null || (e is String && e.isEmpty)))
+          .toList();
+    }
+    return decoded;
+  }
+
   /// Return decoded request response
   static dynamic response(Response response) {
     /// Check for errors
@@ -122,7 +139,7 @@ class HTTPRequest {
     if (contentType != null &&
         (contentType.contains('application/json') ||
             contentType.contains('application/x-json-stream'))) {
-      return jsonDecode(response.body);
+      return jsonDecodeAndClean(response.body);
     }
     return response.body;
   }

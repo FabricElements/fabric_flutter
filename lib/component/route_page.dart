@@ -42,12 +42,13 @@ abstract class BaseRoutePageState extends State<BaseRoutePage> {
   void _onInit() async {
     if (widget.onInit != null) {
       try {
-        await widget.onInit!().then((value) {
-          loading = false;
-        });
+        await widget.onInit!();
       } catch (e) {
-        loading = false;
         debugPrint(LogColor.error('$e'));
+      } finally {
+        // Wait for all streams to cancel and complete animation
+        await Future.delayed(const Duration(milliseconds: 300));
+        loading = false;
       }
     } else {
       loading = false;
