@@ -43,7 +43,7 @@ class FilterData {
 
   /// Enums List
   @JsonKey(includeToJson: false, includeFromJson: false)
-  List<dynamic> enums;
+  List<Enum> enums;
 
   /// Options List
   /// @see [ButtonOptions]
