@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:collection/collection.dart';
 import 'package:fabric_flutter/variables.dart';
 import 'package:flutter/material.dart';
 
@@ -403,7 +402,8 @@ abstract class StateShared extends ChangeNotifier {
     privateOldData = null;
     totalCount = 0;
     loading = false;
-    _timer?.cancel();
+    _timerNotify?.cancel();
+    _timerData?.cancel();
     if (notify) {
       data = null;
     } else {
@@ -451,6 +451,7 @@ abstract class StateShared extends ChangeNotifier {
     Uri? uri,
     bool merge = false,
   }) {
+    clear();
     List<FilterData> baseFilters = merge
         ? FilterHelper.merge(filters: filters, merge: newFilters)
         : newFilters;
@@ -463,7 +464,7 @@ abstract class StateShared extends ChangeNotifier {
       assert(context != null, 'context can\'t be null for if redirect is true');
       assert(uri != null, 'uri can\'t be null for if redirect is true');
       // Use 300+ milliseconds to ensure animations completes
-      Future.delayed(const Duration(milliseconds: 1)).then((time) {
+      Future.delayed(const Duration(milliseconds: 300)).then((time) {
         Utils.pushNamedFromQuery(
           context: context!,
           uri: uri!,
@@ -483,9 +484,11 @@ abstract class StateShared extends ChangeNotifier {
   /// Get serialized data
   dynamic get serialized;
 
-  Timer? _timer;
-  Timer? _notifyDataTimer;
-  int debounceCount = 0;
+  /// Debounce timers and counters
+  Timer? _timerNotify;
+  int debounceCountNotify = 0;
+  Timer? _timerData;
+  int debounceCountData = 0;
 
   /// Debounce time in milliseconds
   int debounceTime = 300;
@@ -495,30 +498,30 @@ abstract class StateShared extends ChangeNotifier {
     // Do not debounce in test mode
     if (kIsTest) {
       _controllerStream.sink.add(privateData);
-      notifyListeners();
+      super.notifyListeners();
       callback(privateData);
       return;
     }
     // Do not debounce if debounceTime is 0
     if (debounceTime <= 0) {
       _controllerStream.sink.add(privateData);
-      notifyListeners();
+      super.notifyListeners();
       callback(privateData);
       return;
     }
 
     // Make custom debounce effective only after the first call otherwise use 100ms as minimum
-    int finalDebounceTime = debounceCount > 0 ? debounceTime : 300;
+    int finalDebounceTime = debounceCountData > 0 ? debounceTime : 300;
     // If the first call is not initialized, use minimum debounce time
     if (!initialized) finalDebounceTime = 500;
 
     // Increment shared debounce count, cancel shared timer and start a new one
-    debounceCount++;
-    _timer?.cancel();
-    _timer = Timer(Duration(milliseconds: finalDebounceTime), () {
-      debounceCount = 0;
+    debounceCountData++;
+    _timerData?.cancel();
+    _timerData = Timer(Duration(milliseconds: finalDebounceTime), () {
+      debounceCountData = 0;
       _controllerStream.sink.add(privateData);
-      notifyListeners();
+      super.notifyListeners();
       callback(privateData);
     });
   }
@@ -537,14 +540,14 @@ abstract class StateShared extends ChangeNotifier {
       return;
     }
     // Make custom debounce effective only after the first call otherwise use 10ms as minimum
-    int finalDebounceTime = debounceCount > 0 ? debounceTime : 100;
+    int finalDebounceTime = debounceCountNotify > 0 ? debounceTime : 100;
     // If the first call is not initialized, use minimum debounce time
     if (!initialized) finalDebounceTime = 500;
     // Increment debounce count, cancel timer and start a new one
-    debounceCount++;
-    _timer?.cancel();
-    _timer = Timer(Duration(milliseconds: finalDebounceTime), () {
-      debounceCount = 0;
+    debounceCountNotify++;
+    _timerNotify?.cancel();
+    _timerNotify = Timer(Duration(milliseconds: finalDebounceTime), () {
+      debounceCountNotify = 0;
       super.notifyListeners();
     });
   }
@@ -554,7 +557,7 @@ abstract class StateShared extends ChangeNotifier {
   void dispose() {
     _controllerStream.close();
     _controllerStreamError.close();
-    _timer?.cancel();
+    _timerNotify?.cancel();
     super.dispose();
   }
 }
