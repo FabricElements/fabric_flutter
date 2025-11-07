@@ -309,6 +309,13 @@ abstract class StateAPI extends StateShared {
         }
         error = null;
       } catch (e) {
+        final isAbort =
+            (e is http.ClientException && e.message.contains('abortTrigger')) ||
+            e.toString().contains('abortTrigger');
+        if (isAbort) {
+          debugPrint(LogColor.warning('API call aborted: $endpoint'));
+          return dataResponse;
+        }
         debugPrint(
           LogColor.error('''
 ***
@@ -357,11 +364,20 @@ Error: $e
   }
 
   /// Reset the HTTP client and cancel any existing stream subscription
+  /// Reset the HTTP client and cancel any existing stream subscription
   Future<void> _resetHttpClient() async {
-    // Close existing client and subscription
-    await _streamSubscription?.cancel();
-    httpClient.close();
-    // Create a new HTTP client
+    // Cancel and clear existing subscription
+    try {
+      await _streamSubscription?.cancel();
+    } finally {
+      _streamSubscription = null;
+    }
+
+    // Close existing client (http.Client.close is synchronous but keep pattern)
+    try {
+      httpClient.close();
+    } catch (_) {}
+    // Create a fresh client
     httpClient = http.Client();
   }
 
@@ -369,7 +385,8 @@ Error: $e
   void clear({bool notify = false}) {
     _lastEndpointCalled = null;
     headers = {};
-    _resetHttpClient();
-    super.clear(notify: notify);
+    _resetHttpClient().whenComplete(() {
+      super.clear(notify: notify);
+    });
   }
 }
