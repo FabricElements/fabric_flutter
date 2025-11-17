@@ -204,8 +204,11 @@ abstract class StateAPI extends StateShared {
     }
     _lastEndpointCalled = endpoint;
     if (errorCount > 1) {
+      final String iconWarning = '⚠️';
       debugPrint(
-        LogColor.warning('$errorCount errors calls to endpoint: $baseEndpoint'),
+        LogColor.warning(
+          '$iconWarning $errorCount errors calls to endpoint: $baseEndpoint',
+        ),
       );
       loading = false;
       return data;
@@ -236,7 +239,6 @@ abstract class StateAPI extends StateShared {
       if (willAuthenticate) {
         requestHeaders['Authorization'] = '${authScheme!.name} $credentials';
       }
-      debugPrint(LogColor.info('Calling endpoint: $endpoint'));
       final originalData = data;
       List<dynamic> streamResponse = [];
       List<dynamic> streamResponseFull = [];
@@ -355,16 +357,6 @@ abstract class StateAPI extends StateShared {
           debugPrint(LogColor.warning('API call aborted: $endpoint'));
           return data;
         }
-        debugPrint(
-          LogColor.error('''
-***
-////////////// ERROR API CALL ////////////////////
-Endpoint: $endpoint
-Error: $e
-//////////////////////////////////////////////////
-***
-'''),
-        );
         errorCount++;
         error = e.toString();
       }
@@ -388,7 +380,6 @@ Error: $e
       /// Set initialized only if no error
       initialized = true;
     } catch (e) {
-      debugPrint(LogColor.error('------ ERROR API CALL : Parent catch ------'));
       initialized = false;
       errorCount++;
       error = e.toString();
@@ -416,6 +407,19 @@ Error: $e
       }
       // Reset loading state
       loading = false;
+      if (error == null) {
+        debugPrint(LogColor.info('✅ Endpoint: $endpoint'));
+      } else {
+        debugPrint(
+          LogColor.error('''
+/////////////////////////////////
+❌ Endpoint: $endpoint
+Error: $error
+/////////////////////////////////
+'''),
+        );
+      }
+
       // Reset HTTP client to prevent issues with persistent connections
       await _resetHttpClient();
     }
