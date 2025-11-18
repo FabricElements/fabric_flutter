@@ -70,7 +70,10 @@ class FirebaseStorageHelper {
     final storageRef = FirebaseStorage.instance.ref();
     String finalPath = path;
     if (autoId) {
-      finalPath += DateTime.now().millisecondsSinceEpoch.toString();
+      finalPath += DateTime
+          .now()
+          .millisecondsSinceEpoch
+          .toString();
     }
     final imagesRef = storageRef.child(finalPath);
     return imagesRef.putString(data, format: format, metadata: metadata);
@@ -135,12 +138,16 @@ class FirebaseStorageHelper {
     required String path,
     required List<String> fileExtensions,
     bool autoId = false,
+
+    /// Optional maximum file size in bytes
+    int? maxFileSize,
   }) async {
     final alert = Provider.of<StateAlert>(context, listen: false);
     final locales = AppLocalizations.of(context);
     try {
       final selectedFile = await MediaHelper.getFile(
         allowedExtensions: fileExtensions,
+        maxFileSize: maxFileSize,
       );
       final finalPath = await saveFile(
         file: selectedFile.data,

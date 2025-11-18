@@ -37,8 +37,8 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
   Widget build(BuildContext context) {
     if (loading) {
       return const SizedBox(
-        height: 40,
-        width: 40,
+        height: 24,
+        width: 24,
         child: CircularProgressIndicator(semanticsLabel: 'Loading'),
       );
     }
@@ -46,7 +46,7 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
     final locales = AppLocalizations.of(context);
     final uploadFromFile = ActionChip(
       label: Text(
-        locales.get('label--upload-from-label', {
+        locales.get('label--upload-image-from-label', {
           'label': locales.get('label--file'),
         }),
       ),
@@ -54,14 +54,16 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
       onPressed: () async {
         loading = true;
         if (mounted) setState(() {});
+        await Future.delayed(const Duration(milliseconds: 300));
         try {
-          await Future.delayed(const Duration(seconds: 2));
-          await firebaseStorageHelper.uploadImageMedia(
-            origin: MediaOrigin.files,
-            callback: widget.callback,
-            path: widget.path,
-            maxDimensions: widget.maxDimensions,
-            autoId: widget.autoId,
+          await Future.microtask(
+            () => firebaseStorageHelper.uploadImageMedia(
+              origin: MediaOrigin.files,
+              callback: widget.callback,
+              path: widget.path,
+              maxDimensions: widget.maxDimensions,
+              autoId: widget.autoId,
+            ),
           );
         } finally {
           loading = false;
@@ -76,7 +78,7 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
       children: [
         ActionChip(
           label: Text(
-            locales.get('label--upload-from-label', {
+            locales.get('label--upload-image-from-label', {
               'label': locales.get('label--gallery'),
             }),
           ),
@@ -84,14 +86,16 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
           onPressed: () async {
             loading = true;
             if (mounted) setState(() {});
+            await Future.delayed(const Duration(milliseconds: 300));
             try {
-              await Future.delayed(const Duration(seconds: 2));
-              await firebaseStorageHelper.uploadImageMedia(
-                origin: MediaOrigin.gallery,
-                callback: widget.callback,
-                path: widget.path,
-                maxDimensions: widget.maxDimensions,
-                autoId: widget.autoId,
+              await Future.microtask(
+                () => firebaseStorageHelper.uploadImageMedia(
+                  origin: MediaOrigin.gallery,
+                  callback: widget.callback,
+                  path: widget.path,
+                  maxDimensions: widget.maxDimensions,
+                  autoId: widget.autoId,
+                ),
               );
             } finally {
               loading = false;
@@ -102,7 +106,7 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
         uploadFromFile,
         ActionChip(
           label: Text(
-            locales.get('label--upload-from-label', {
+            locales.get('label--upload-image-from-label', {
               'label': locales.get('label--camera'),
             }),
           ),
@@ -110,14 +114,16 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
           onPressed: () async {
             loading = true;
             if (mounted) setState(() {});
+            await Future.delayed(const Duration(milliseconds: 300));
             try {
-              await Future.delayed(const Duration(seconds: 2));
-              await firebaseStorageHelper.uploadImageMedia(
-                origin: MediaOrigin.camera,
-                callback: widget.callback,
-                path: widget.path,
-                maxDimensions: widget.maxDimensions,
-                autoId: widget.autoId,
+              await Future.microtask(
+                () => firebaseStorageHelper.uploadImageMedia(
+                  origin: MediaOrigin.camera,
+                  callback: widget.callback,
+                  path: widget.path,
+                  maxDimensions: widget.maxDimensions,
+                  autoId: widget.autoId,
+                ),
               );
             } finally {
               loading = false;

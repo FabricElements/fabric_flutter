@@ -506,9 +506,9 @@ const Map<String, Map<String, String>> defaultLocales = {
     'en': 'Upload',
     'es': 'Subir',
   },
-  'label--upload-from-label': {
-    'en': 'Upload from {label}',
-    'es': 'Subir desde {label}',
+  'label--upload-image-from-label': {
+    'en': 'Upload image from {label}',
+    'es': 'Subir imagen desde {label}',
   },
   'label--schedule': {
     'en': 'Schedule',
@@ -1333,5 +1333,9 @@ const Map<String, Map<String, String>> defaultLocales = {
     'en': 'Word Tree',
     'es': 'Árbol de Palabras',
   },
+  'label--warning-file-is-too-large': {
+    'en': 'Warning: The file is too large.',
+    'es': 'Advertencia: El archivo es demasiado grande.',
+  }
 };
 // @formatter:on

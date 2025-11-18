@@ -22,6 +22,9 @@ class MediaHelper {
   static Future<MediaData> getImage({
     required MediaOrigin origin,
     int? maxDimensions,
+
+    /// Optional maximum file size in bytes
+    int? maxFileSize,
   }) async {
     Uint8List? fileData;
     String? extension;
@@ -104,6 +107,13 @@ class MediaHelper {
     } catch (e) {
       debugPrint(LogColor.warning('Decoding image to get dimensions: $e'));
     }
+    final fileSize = fileData?.lengthInBytes ?? 0;
+    if (maxFileSize != null && fileData != null) {
+      if (fileSize > maxFileSize) {
+        throw 'label--warning-file-is-too-large';
+      }
+    }
+
     final encodeData = base64Encode(fileData!);
     return MediaData(
       data: encodeData,
@@ -112,7 +122,7 @@ class MediaHelper {
       fileName: fileName,
       width: width,
       height: height,
-      size: fileData.lengthInBytes,
+      size: fileSize,
     );
   }
 
@@ -191,7 +201,13 @@ class MediaHelper {
   }
 
   /// Basic file selection
-  static Future<MediaData> getFile({List<String>? allowedExtensions}) async {
+  static Future<MediaData> getFile({
+    /// Optional allowed extensions
+    List<String>? allowedExtensions,
+
+    /// Optional maximum file size in bytes
+    int? maxFileSize,
+  }) async {
     Uint8List? fileData;
     String? extension;
     String? contentType;
@@ -230,6 +246,11 @@ class MediaHelper {
       } catch (e) {
         debugPrint(LogColor.error(e));
       }
+    }
+
+    final fileSize = file.size;
+    if (maxFileSize != null && fileSize > maxFileSize) {
+      throw 'label--warning-file-is-too-large';
     }
 
     return MediaData(
