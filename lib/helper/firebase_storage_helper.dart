@@ -66,14 +66,16 @@ class FirebaseStorageHelper {
     bool autoId = false,
     SettableMetadata? metadata,
     PutStringFormat format = PutStringFormat.raw,
+    bool expiry = false,
   }) async {
     final storageRef = FirebaseStorage.instance.ref();
     String finalPath = path;
     if (autoId) {
-      finalPath += DateTime
-          .now()
-          .millisecondsSinceEpoch
-          .toString();
+      final time = DateTime.now().millisecondsSinceEpoch.toString();
+      finalPath += '_$time';
+    }
+    if (expiry) {
+      finalPath += '_expiry';
     }
     final imagesRef = storageRef.child(finalPath);
     return imagesRef.putString(data, format: format, metadata: metadata);
@@ -85,6 +87,7 @@ class FirebaseStorageHelper {
     required String contentType,
     required String path,
     bool autoId = false,
+    bool expiry = false,
   }) async {
     final fileSaved = await save(
       data: file,
@@ -92,6 +95,7 @@ class FirebaseStorageHelper {
       autoId: autoId,
       format: PutStringFormat.base64,
       metadata: SettableMetadata(contentType: contentType),
+      expiry: expiry,
     );
     return fileSaved.ref.fullPath;
   }
@@ -102,6 +106,7 @@ class FirebaseStorageHelper {
     required String path,
     required int maxDimensions,
     bool autoId = false,
+    bool expiry = false,
   }) async {
     final alert = Provider.of<StateAlert>(context, listen: false);
     final locales = AppLocalizations.of(context);
@@ -115,6 +120,7 @@ class FirebaseStorageHelper {
         contentType: selectedFile.contentType,
         path: path,
         autoId: autoId,
+        expiry: expiry,
       );
       return callback(finalPath, selectedFile);
     } catch (error) {
@@ -138,6 +144,7 @@ class FirebaseStorageHelper {
     required String path,
     required List<String> fileExtensions,
     bool autoId = false,
+    bool expiry = false,
 
     /// Optional maximum file size in bytes
     int? maxFileSize,
@@ -154,6 +161,7 @@ class FirebaseStorageHelper {
         contentType: selectedFile.contentType,
         path: path,
         autoId: autoId,
+        expiry: expiry,
       );
       return callback(finalPath, selectedFile);
     } catch (error) {

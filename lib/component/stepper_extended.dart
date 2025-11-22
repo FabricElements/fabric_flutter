@@ -105,8 +105,8 @@ class StepperExtended extends StatelessWidget {
             Container(
               padding: const EdgeInsets.only(left: 32),
               margin: const EdgeInsets.only(left: 32),
-              decoration: const BoxDecoration(
-                border: Border(left: BorderSide(color: Colors.grey, width: 1)),
+              decoration: BoxDecoration(
+                border: Border(left: BorderSide(color: theme.colorScheme.surfaceContainerHigh, width: 1)),
               ),
               child: step.content,
             ),
