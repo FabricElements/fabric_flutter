@@ -506,6 +506,10 @@ const Map<String, Map<String, String>> defaultLocales = {
     'en': 'Upload',
     'es': 'Subir',
   },
+  'label--upload-label': {
+    'en': 'Upload {label}',
+    'es': 'Subir {label}',
+  },
   'label--upload-image-from-label': {
     'en': 'Upload image from {label}',
     'es': 'Subir imagen desde {label}',

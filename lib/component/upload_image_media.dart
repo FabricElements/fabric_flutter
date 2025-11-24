@@ -6,6 +6,8 @@ import '../helper/firebase_storage_helper.dart';
 import '../helper/media_helper.dart';
 import '../serialized/media_data.dart';
 
+enum UploadImageMediaSize { compact, normal }
+
 class UploadImageMedia extends StatefulWidget {
   const UploadImageMedia({
     super.key,
@@ -13,12 +15,14 @@ class UploadImageMedia extends StatefulWidget {
     required this.path,
     this.maxDimensions = 1200,
     this.autoId = false,
+    this.expiry = false,
   });
 
   final Function(String, MediaData) callback;
   final String path;
   final int maxDimensions;
   final bool autoId;
+  final bool expiry;
 
   @override
   State<UploadImageMedia> createState() => _UploadImageMediaState();
@@ -35,103 +39,109 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
 
   @override
   Widget build(BuildContext context) {
+    final double effectiveIconSize = IconTheme.of(context).size ?? 24.0;
+    final double boxSize = effectiveIconSize + 16;
+
     if (loading) {
-      return const SizedBox(
-        height: 24,
-        width: 24,
+      return SizedBox(
+        height: boxSize,
+        width: boxSize,
         child: CircularProgressIndicator(semanticsLabel: 'Loading'),
       );
     }
+    final theme = Theme.of(context);
     final firebaseStorageHelper = FirebaseStorageHelper(context);
     final locales = AppLocalizations.of(context);
-    final uploadFromFile = ActionChip(
-      label: Text(
-        locales.get('label--upload-image-from-label', {
+
+    /// Upload function
+    /// origin: MediaOrigin
+    Future<void> uploadFromOrigin(origin) async {
+      if (loading) return;
+      loading = true;
+      if (mounted) setState(() {});
+      await Future.delayed(const Duration(milliseconds: 300));
+      try {
+        await Future.microtask(
+          () => firebaseStorageHelper.uploadImageMedia(
+            origin: origin,
+            callback: widget.callback,
+            path: widget.path,
+            maxDimensions: widget.maxDimensions,
+            autoId: widget.autoId,
+            expiry: widget.expiry,
+          ),
+        );
+      } finally {
+        loading = false;
+        if (mounted) setState(() {});
+      }
+    }
+
+    /// Web platform
+    if (kIsWeb) {
+      return IconButton(
+        tooltip: locales.get('label--upload-image-from-label', {
           'label': locales.get('label--file'),
         }),
-      ),
-      avatar: const Icon(Icons.image_search),
-      onPressed: () async {
-        loading = true;
-        if (mounted) setState(() {});
-        await Future.delayed(const Duration(milliseconds: 300));
-        try {
-          await Future.microtask(
-            () => firebaseStorageHelper.uploadImageMedia(
-              origin: MediaOrigin.files,
-              callback: widget.callback,
-              path: widget.path,
-              maxDimensions: widget.maxDimensions,
-              autoId: widget.autoId,
-            ),
-          );
-        } finally {
-          loading = false;
-          if (mounted) setState(() {});
-        }
-      },
-    );
-    if (kIsWeb) return uploadFromFile;
-    return Wrap(
-      spacing: 16,
-      runSpacing: 16,
-      children: [
-        ActionChip(
-          label: Text(
-            locales.get('label--upload-image-from-label', {
-              'label': locales.get('label--gallery'),
-            }),
+        icon: const Icon(Icons.image_search),
+        iconSize: effectiveIconSize,
+        color: theme.colorScheme.primary,
+        onPressed: () => uploadFromOrigin(MediaOrigin.files),
+      );
+    }
+
+    /// Mobile platform
+    return PopupMenuButton<MediaOrigin>(
+      padding: EdgeInsets.zero,
+      icon: Icon(Icons.image_search, color: theme.colorScheme.primary),
+      tooltip: locales.get('label--upload-label', {
+        'label': locales.get('label--image'),
+      }),
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: MediaOrigin.gallery,
+          child: Row(
+            spacing: 16,
+            children: [
+              const Icon(Icons.image),
+              Text(
+                locales.get('label--upload-image-from-label', {
+                  'label': locales.get('label--gallery'),
+                }),
+              ),
+            ],
           ),
-          avatar: const Icon(Icons.image),
-          onPressed: () async {
-            loading = true;
-            if (mounted) setState(() {});
-            await Future.delayed(const Duration(milliseconds: 300));
-            try {
-              await Future.microtask(
-                () => firebaseStorageHelper.uploadImageMedia(
-                  origin: MediaOrigin.gallery,
-                  callback: widget.callback,
-                  path: widget.path,
-                  maxDimensions: widget.maxDimensions,
-                  autoId: widget.autoId,
-                ),
-              );
-            } finally {
-              loading = false;
-              if (mounted) setState(() {});
-            }
-          },
         ),
-        uploadFromFile,
-        ActionChip(
-          label: Text(
-            locales.get('label--upload-image-from-label', {
-              'label': locales.get('label--camera'),
-            }),
+        PopupMenuItem(
+          value: MediaOrigin.files,
+          child: Row(
+            spacing: 16,
+            children: [
+              const Icon(Icons.image_search),
+              Text(
+                locales.get('label--upload-image-from-label', {
+                  'label': locales.get('label--file'),
+                }),
+              ),
+            ],
           ),
-          avatar: const Icon(Icons.photo_camera),
-          onPressed: () async {
-            loading = true;
-            if (mounted) setState(() {});
-            await Future.delayed(const Duration(milliseconds: 300));
-            try {
-              await Future.microtask(
-                () => firebaseStorageHelper.uploadImageMedia(
-                  origin: MediaOrigin.camera,
-                  callback: widget.callback,
-                  path: widget.path,
-                  maxDimensions: widget.maxDimensions,
-                  autoId: widget.autoId,
-                ),
-              );
-            } finally {
-              loading = false;
-              if (mounted) setState(() {});
-            }
-          },
+        ),
+        PopupMenuItem(
+          value: MediaOrigin.camera,
+          child: Row(
+            spacing: 16,
+            children: [
+              const Icon(Icons.photo_camera),
+              Text(
+                locales.get('label--upload-image-from-label', {
+                  'label': locales.get('label--camera'),
+                }),
+              ),
+            ],
+          ),
         ),
       ],
+      onSelected: uploadFromOrigin,
     );
   }
 }
