@@ -38,7 +38,8 @@ class IframeMinimal extends StatelessWidget {
     iframeElement
       ..setAttribute('allowtransparency', 'true')
       ..setAttribute('allowfullscreen', 'true')
-      ..setAttribute('allow', 'fullscreen')
+      // disable autoplay
+      ..setAttribute('allow', "autoplay 'none'; fullscreen")
       ..setAttribute('height', '100%')
       ..setAttribute('width', '100%')
       ..setAttribute('alt', alt)
