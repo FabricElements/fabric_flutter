@@ -6,8 +6,6 @@ import '../helper/firebase_storage_helper.dart';
 import '../helper/media_helper.dart';
 import '../serialized/media_data.dart';
 
-enum UploadImageMediaSize { compact, normal }
-
 class UploadImageMedia extends StatefulWidget {
   const UploadImageMedia({
     super.key,
