@@ -88,3 +88,8 @@ ignore-*.*
 **/android/app/release/
 **/local.properties
 /package-lock.json
+
+# Ignore all github worflows by default
+.github/workflows
+# Do not ignore specific approved workflows
+#!.github/workflows/
