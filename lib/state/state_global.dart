@@ -47,4 +47,16 @@ class StateGlobal extends ChangeNotifier {
     if (finalVersion.isEmpty) return null;
     return finalVersion;
   }
+
+  /// Current Account ID
+  String? _account;
+
+  /// Current Account ID
+  String? get account => _account;
+
+  /// Current Account ID
+  set account(String? value) {
+    _account = value;
+    notifyListeners();
+  }
 }

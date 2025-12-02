@@ -187,9 +187,6 @@ class UserData {
   /// Country code
   String? country;
 
-  /// Current Account ID
-  String? account;
-
   UserData({
     this.onboarding,
     this.phone,
@@ -213,7 +210,6 @@ class UserData {
     this.links,
     this.os = UserOS.unknown,
     this.country,
-    this.account,
   }) : presence = Utils.getPresence(ping),
        name = Utils.nameFromParts(firstName: firstName, lastName: lastName),
        abbr = Utils.nameAbbreviation(firstName: firstName, lastName: lastName);
