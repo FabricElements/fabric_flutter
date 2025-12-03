@@ -92,6 +92,7 @@ class StepperExtended extends StatelessWidget {
         child: Flex(
           direction: Axis.vertical,
           crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 16,
           children: [
             ListTile(
               leading: leading,
