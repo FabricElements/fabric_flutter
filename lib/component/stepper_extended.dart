@@ -98,7 +98,12 @@ class StepperExtended extends StatelessWidget {
               leading: leading,
               title: step.title,
               titleTextStyle: titleTextStyle,
-              subtitle: step.subtitle,
+              subtitle: step.subtitle != null
+                  ? Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: step.subtitle,
+                    )
+                  : null,
               subtitleTextStyle: subtitleTextStyle,
               minLeadingWidth: 32,
               isThreeLine: step.subtitle != null,
@@ -107,7 +112,12 @@ class StepperExtended extends StatelessWidget {
               padding: const EdgeInsets.only(left: 32),
               margin: const EdgeInsets.only(left: 32),
               decoration: BoxDecoration(
-                border: Border(left: BorderSide(color: theme.colorScheme.surfaceContainerHigh, width: 1)),
+                border: Border(
+                  left: BorderSide(
+                    color: theme.colorScheme.surfaceContainerHigh,
+                    width: 1,
+                  ),
+                ),
               ),
               child: step.content,
             ),
