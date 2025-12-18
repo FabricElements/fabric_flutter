@@ -7,12 +7,17 @@ import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 class IframeMinimal extends StatefulWidget {
   const IframeMinimal({
     super.key,
-    required this.src,
+    this.src,
+    this.rawHtml,
     this.title = 'Iframe',
     this.alt = 'Iframe',
-  });
+  }) : assert(
+         (src != null && rawHtml == null) || (src == null && rawHtml != null),
+         'Either src or rawHtml must be provided, but not both.',
+       );
 
   final String? src;
+  final String? rawHtml;
   final String alt;
   final String title;
 
@@ -172,6 +177,7 @@ class _IframeMinimalState extends State<IframeMinimal>
 
   @override
   Widget build(BuildContext context) {
+    // TODO: Add support for rawHtml when needed
     if (widget.src == null) return const SizedBox();
     final id = '#iframe-${widget.src.hashCode}';
     final theme = Theme.of(context);
