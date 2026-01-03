@@ -22,6 +22,8 @@ import '../state/state_analytics.dart';
 import '../state/state_global.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
+final GoogleSignIn googleSignIn = GoogleSignIn.instance;
+GoogleAuthProvider googleProvider = GoogleAuthProvider();
 
 /// View Auth parameters
 /// IMPORTANT: [key] Use [authPageKey] to access the state of the ViewAuthPage without loosing context with recaptcha
@@ -70,6 +72,27 @@ class ViewAuthPage extends StatefulWidget {
   final bool google;
   final bool apple;
   final bool anonymous;
+
+  /// @deprecated Google Sign-In Client ID is now set globally
+  /// On index.html for web, set the client ID in the meta tag and the script tag:
+  /// <meta name="google-signin-client_id" content="YOUR_CLIENT_ID.apps.googleusercontent.com">
+  /// <script async defer src="https://accounts.google.com/gsi/client"></script>
+  ///
+  /// Use [GoogleSignIn.initialize] before running the app on main()
+  /// final GoogleSignIn googleSignIn = GoogleSignIn.instance;
+  ///
+  /// void main() async {
+  ///   WidgetsFlutterBinding.ensureInitialized();
+  ///   try {
+  ///     // initialize returns a Future; we don't need to await it here.
+  ///     await googleSignIn.initialize(
+  ///       clientId: kIsWeb ? EnvironmentConfig.GOOGLE_SIGNIN_CLIENT_ID : null,
+  ///     );
+  ///   } catch (e) {
+  ///     debugPrint("Google Init Error: $e");
+  ///   }
+  ///  ...
+  ///
   final String? googleClientId;
 
   /// The Android package name of the application to open when the URL is pressed.
@@ -98,22 +121,13 @@ class ViewAuthPageState extends State<ViewAuthPage> {
   ViewAuthValues dataAuth = ViewAuthValues();
   ConfirmationResult? webConfirmationResult;
   bool policiesAccepted = false;
-
-  late GoogleSignIn googleSignInAccount;
-  final List<String> googleScopes = <String>['email'];
-
-  bool initGoogle = false;
+  final List<String> googleScopes = <String>['openid', 'email'];
 
   @override
   void initState() {
     loading = false;
     webConfirmationResult = null;
     policiesAccepted = false;
-    googleSignInAccount = GoogleSignIn(
-      clientId: kIsWeb ? widget.googleClientId : null,
-      scopes: ['email'],
-      forceCodeForRefreshToken: true,
-    );
     super.initState();
   }
 
@@ -308,24 +322,42 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       // if (mounted) setState(() {});
       try {
         // Sign out if signed in
-        if (googleSignInAccount.currentUser != null) {
-          await googleSignInAccount.signOut();
+        // The new API exposes a singleton without a `currentUser` getter.
+        // Always attempt signOut first to ensure a fresh sign-in.
+        try {
+          await googleSignIn.signOut();
+        } catch (e) {
+          // ignore sign out errors
         }
       } catch (error) {
         //
       }
       try {
-        final authenticated = await googleSignInAccount.signIn();
-        if (authenticated == null) {
-          throw locales.get('notification--please-try-again');
+        if (kIsWeb) {
+          for (var scope in googleScopes) {
+            googleProvider.addScope(scope);
+          }
+          await _auth.signInWithPopup(googleProvider);
+        } else {
+          // Use `authenticate` from the new API which performs an interactive sign-in.
+          final authenticated = await googleSignIn.authenticate(
+            scopeHint: googleScopes,
+          );
+          // `authenticate` in google_sign_in >=7.x returns a non-null
+          // GoogleSignInAccount on success or throws on failure, so no null
+          // check is necessary here.
+          // Get ID token from the authentication object.
+          final GoogleSignInAuthentication googleAuth =
+              authenticated.authentication;
+          // Access token is obtained via the authorization client for the account.
+          final clientAuth = await authenticated.authorizationClient
+              .authorizationForScopes(googleScopes);
+          final credential = GoogleAuthProvider.credential(
+            accessToken: clientAuth?.accessToken,
+            idToken: googleAuth.idToken,
+          );
+          await _auth.signInWithCredential(credential);
         }
-        final GoogleSignInAuthentication googleAuth =
-            await authenticated.authentication;
-        final credential = GoogleAuthProvider.credential(
-          accessToken: googleAuth.accessToken,
-          idToken: googleAuth.idToken,
-        );
-        await _auth.signInWithCredential(credential);
       } on FirebaseAuthException catch (error) {
         alert.show(
           AlertData(
