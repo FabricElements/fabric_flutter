@@ -59,12 +59,12 @@ class StateUser extends StateDocument {
 
   /// Independent function to clear all credential data
   void clearAuth({bool notify = false}) {
-    clear(notify: false);
     _theme = null;
     _userObject = null;
     _claims = null;
     _token = null;
     error = null;
+    clear(notify: notify);
     if (notify) notifyListeners();
   }
 
@@ -162,7 +162,7 @@ class StateUser extends StateDocument {
       } else {
         String os = Platform.operatingSystem;
         userOs = UserOS.values.firstWhere(
-          (e) => e.name == os.toLowerCase(),
+              (e) => e.name == os.toLowerCase(),
           orElse: () => UserOS.unknown,
         );
       }
@@ -183,7 +183,6 @@ class StateUser extends StateDocument {
 
   /// Sign Out user
   void signOut() async {
-    await cancel();
     try {
       /// Ping user before sign out to change the status
       await ref?.set({
@@ -192,6 +191,7 @@ class StateUser extends StateDocument {
     } catch (error) {
       debugPrint(LogColor.error('User ping error: ${error.toString()}'));
     }
+    await cancel();
     clearAuth(notify: false);
     await _auth.signOut();
     notifyListeners();
@@ -216,7 +216,7 @@ class StateUser extends StateDocument {
     connectionChanged: connectionChanged,
     connectedTo: connected ? connectedTo : null,
     ready:
-        _ready &&
+    _ready &&
         _init &&
         !loading &&
         ((!initialized && data == null) ||
@@ -292,7 +292,7 @@ class StateUser extends StateDocument {
     /// Check connectivity
     try {
       Connectivity().onConnectivityChanged.listen(
-        (results) async {
+            (results) async {
           if (results.firstOrNull?.name != connectedTo) {
             ConnectivityResult connectivityStatus = ConnectivityResult.none;
             if (results.contains(ConnectivityResult.wifi)) {
