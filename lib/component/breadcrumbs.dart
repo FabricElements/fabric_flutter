@@ -30,7 +30,9 @@ class Breadcrumbs extends StatelessWidget {
     final textTheme = theme.textTheme;
     List<Widget> items = [];
     TextStyle? textStyleDefault = textStyle ?? textTheme.bodySmall;
-    TextStyle? dividerStyleDefault = dividerStyle ?? textTheme.bodySmall;
+    TextStyle? dividerStyleDefault =
+        dividerStyle ??
+        textTheme.bodySmall?.copyWith(color: theme.dividerTheme.color);
     for (int i = 0; i < buttons.length; i++) {
       ButtonOptions button = buttons[i];
       String label = locales.get(button.label);
@@ -44,36 +46,53 @@ class Breadcrumbs extends StatelessWidget {
           }
         };
       }
-      if (button.icon != null || button.image != null) {
-        late Widget iconButton;
-        if (button.icon != null) {
-          iconButton = Icon(button.icon);
-        }
-        if (button.image != null) {
-          iconButton = CircleAvatar(
-            backgroundColor: Colors.grey.shade100,
-            child: ClipOval(
-              child: SmartImage(
-                url: button.image,
-                format: AvailableOutputFormats.png,
-              ),
+      Widget? iconButton;
+      if (button.icon != null) {
+        iconButton = Icon(button.icon);
+      }
+      if (button.image != null) {
+        iconButton = CircleAvatar(
+          backgroundColor: Colors.grey.shade100,
+          child: ClipOval(
+            child: SmartImage(
+              url: button.image,
+              format: AvailableOutputFormats.png,
             ),
-          );
-        }
+          ),
+        );
+      }
+      if (onPressed != null) {
         items.add(
-          TextButton.icon(
-            icon: iconButton,
+          ActionChip(
+            avatar: iconButton,
             onPressed: onPressed,
             label: Text(label, style: textStyleDefault),
-            style: buttonStyle,
+            // Force transparent background
+            color: WidgetStateProperty.resolveWith<Color?>(
+              (states) => Colors.transparent,
+            ),
+            elevation: 0,
+            pressElevation: 0,
+            shadowColor: Colors.transparent,
+            surfaceTintColor: Colors.transparent,
+            side: BorderSide.none,
+            backgroundColor: Colors.transparent,
           ),
         );
       } else {
         items.add(
-          TextButton(
-            onPressed: onPressed,
-            style: buttonStyle,
-            child: Text(label, style: textStyleDefault),
+          Chip(
+            avatar: iconButton,
+            label: Text(label, style: textStyleDefault),
+            // Force transparent background
+            color: WidgetStateProperty.resolveWith<Color?>(
+              (states) => Colors.transparent,
+            ),
+            elevation: 0,
+            shadowColor: Colors.transparent,
+            surfaceTintColor: Colors.transparent,
+            side: BorderSide.none,
+            backgroundColor: Colors.transparent,
           ),
         );
       }
