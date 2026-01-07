@@ -11,6 +11,7 @@ import '../state/state_global.dart';
 import '../state/state_notifications.dart';
 import '../state/state_user.dart';
 import '../state/state_users.dart';
+import '../state/state_view_auth.dart';
 
 class InitApp extends StatelessWidget {
   const InitApp({
@@ -36,6 +37,7 @@ class InitApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => StateAnalytics()),
         ChangeNotifierProvider(create: (context) => StateNotifications()),
         ChangeNotifierProvider(create: (context) => StateUsers()),
+        ChangeNotifierProvider(create: (context) => StateViewAuth()),
       ],
       child: InitAppChild(notifications: notifications, child: child),
     );
