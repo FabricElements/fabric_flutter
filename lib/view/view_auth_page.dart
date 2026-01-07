@@ -20,30 +20,19 @@ import '../placeholder/loading_screen.dart';
 import '../state/state_alert.dart';
 import '../state/state_analytics.dart';
 import '../state/state_global.dart';
+import '../state/state_view_auth.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 final GoogleSignIn googleSignIn = GoogleSignIn.instance;
 GoogleAuthProvider googleProvider = GoogleAuthProvider();
 
-/// View Auth parameters
-/// IMPORTANT: [key] Use [authPageKey] to access the state of the ViewAuthPage without loosing context with recaptcha
-/// Create a global key to access the state of the ViewAuthPage without loosing context with recaptcha
-class ViewAuthValues {
-  String? phone;
-  int? phoneVerificationCode;
-  String? verificationId;
-
-  /// Complete phone number +12233334
-  String? phoneValid;
-
-  ViewAuthValues({
-    this.phone,
-    this.phoneVerificationCode,
-    this.verificationId,
-    this.phoneValid,
-  });
-}
-
+/// ViewAuthPage
+/// A full screen authentication page with multiple sign-in options
+/// Supports:
+/// - Phone number authentication
+/// - Google Sign-In
+/// - Apple Sign-In
+/// - Anonymous Sign-In
 class ViewAuthPage extends StatefulWidget {
   const ViewAuthPage({
     super.key,
@@ -117,8 +106,6 @@ class ViewAuthPage extends StatefulWidget {
 
 class ViewAuthPageState extends State<ViewAuthPage> {
   late bool loading;
-  int section = 0;
-  ViewAuthValues dataAuth = ViewAuthValues();
   ConfirmationResult? webConfirmationResult;
   bool policiesAccepted = false;
   final List<String> googleScopes = <String>['openid', 'email'];
@@ -140,23 +127,22 @@ class ViewAuthPageState extends State<ViewAuthPage> {
     final textTheme = Theme.of(context).textTheme;
     final alert = Provider.of<StateAlert>(context, listen: false);
     final height = MediaQuery.of(context).size.height;
-
+    final state = Provider.of<StateViewAuth>(context);
     stateAnalytics.screenName = 'auth';
 
+    /// Reset view to initial state
     void resetView() {
       // Close Keyboard
       FocusScope.of(context).requestFocus(FocusNode());
-      section = 0;
-      dataAuth = ViewAuthValues();
-      if (mounted) setState(() {});
+      state.clear();
     }
 
     /// Get phone number
-    dataAuth.phoneValid =
-        dataAuth.phone != null &&
-            dataAuth.phone!.isNotEmpty &&
-            dataAuth.phone!.length > 4
-        ? dataAuth.phone
+    state.phoneValid =
+        state.phone != null &&
+            state.phone!.isNotEmpty &&
+            state.phone!.length > 4
+        ? state.phone
         : null;
 
     if (loading) {
@@ -188,9 +174,8 @@ class ViewAuthPageState extends State<ViewAuthPage> {
 
     /// SMS auth code sent
     codeSent(String verificationId, [int? forceResendingToken]) {
-      dataAuth.verificationId = verificationId;
-      section = 2;
-      if (mounted) setState(() {});
+      state.verificationId = verificationId;
+      state.section = 2;
       alert.show(
         AlertData(
           title: locales.get('alert--check-phone-verification-code'),
@@ -203,26 +188,26 @@ class ViewAuthPageState extends State<ViewAuthPage> {
 
     /// SMS auth code retrieval timeout
     codeAutoRetrievalTimeout(String verificationId) {
-      dataAuth.verificationId = verificationId;
+      state.verificationId = verificationId;
     }
 
     /// Verify phone number
     void verifyPhoneNumber() async {
-      assert(dataAuth.phoneValid != null, 'Phone number can\'t be null');
+      assert(state.phoneValid != null, 'Phone number can\'t be null');
       loading = true;
       bool success = false;
       if (mounted) setState(() {});
       try {
         if (kIsWeb || Platform.isMacOS) {
           final confirmationResult = await _auth.signInWithPhoneNumber(
-            dataAuth.phoneValid!,
+            state.phoneValid!,
           );
-          dataAuth.verificationId = confirmationResult.verificationId;
+          state.verificationId = confirmationResult.verificationId;
           webConfirmationResult = confirmationResult;
         } else {
           await _auth.verifyPhoneNumber(
             forceResendingToken: 3,
-            phoneNumber: dataAuth.phoneValid!,
+            phoneNumber: state.phoneValid!,
             timeout: const Duration(minutes: 2),
             verificationCompleted: verificationCompleted,
             verificationFailed: verificationFailed,
@@ -244,7 +229,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       }
       loading = false;
       if (success) {
-        section = 2;
+        state.section = 2;
       }
       if (mounted) setState(() {});
     }
@@ -254,8 +239,8 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       if (mounted) setState(() {});
       try {
         assert(
-          dataAuth.phoneVerificationCode != null &&
-              dataAuth.phoneVerificationCode.toString().length == 6,
+          state.phoneVerificationCode != null &&
+              state.phoneVerificationCode.toString().length == 6,
           'Enter valid confirmation code',
         );
         assert(
@@ -263,7 +248,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
           'Please input sms code received after verifying phone number',
         );
         final UserCredential credential = await webConfirmationResult!.confirm(
-          dataAuth.phoneVerificationCode.toString(),
+          state.phoneVerificationCode.toString(),
         );
         final User user = credential.user!;
         final User currentUser = _auth.currentUser!;
@@ -288,15 +273,15 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       loading = true;
       if (mounted) setState(() {});
       try {
-        assert(dataAuth.verificationId != null, 'VerificationId missing');
+        assert(state.verificationId != null, 'VerificationId missing');
         assert(
-          dataAuth.phoneVerificationCode != null &&
-              dataAuth.phoneVerificationCode.toString().length == 6,
+          state.phoneVerificationCode != null &&
+              state.phoneVerificationCode.toString().length == 6,
           'Enter valid confirmation code',
         );
         final AuthCredential credential = PhoneAuthProvider.credential(
-          verificationId: dataAuth.verificationId!,
-          smsCode: dataAuth.phoneVerificationCode.toString(),
+          verificationId: state.verificationId!,
+          smsCode: state.phoneVerificationCode.toString(),
         );
         final User user = (await _auth.signInWithCredential(credential)).user!;
         final User currentUser = _auth.currentUser!;
@@ -509,8 +494,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
           text = locales.get('label--not-supported');
           text = locales.get('label--sign-in-mobile');
           action = () {
-            section = 1;
-            if (mounted) setState(() {});
+            state.section = 1;
           };
           break;
         case 'google':
@@ -603,7 +587,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
     }
     if (widget.anonymous) homeButtonOptions.add(authButton('anonymous'));
     Widget home = AnimatedOpacity(
-      opacity: section == 0 ? 1 : 0,
+      opacity: state.section == 0 ? 1 : 0,
       duration: const Duration(milliseconds: 300),
       child: Flex(
         direction: Axis.vertical,
@@ -725,7 +709,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
 
     Widget baseContainer({children = List}) {
       return AnimatedOpacity(
-        opacity: section == 0 ? 0 : 1,
+        opacity: state.section == 0 ? 0 : 1,
         duration: const Duration(milliseconds: 300),
         child: Center(
           child: Container(
@@ -756,9 +740,9 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       SizedBox(
         width: double.maxFinite,
         child: PhoneInput(
-          value: dataAuth.phone,
+          value: state.phone,
           onChanged: (value) {
-            dataAuth.phone = value;
+            state.phone = value;
             if (mounted) setState(() {});
           },
         ),
@@ -766,7 +750,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       spacerLarge,
     ];
 
-    if (dataAuth.phoneValid != null) {
+    if (state.phoneValid != null) {
       sectionsPhoneNumber.add(
         actionButton(
           icon: Icons.send_rounded,
@@ -783,23 +767,23 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       SizedBox(
         width: double.maxFinite,
         child: InputData(
-          value: dataAuth.phoneVerificationCode,
+          value: state.phoneVerificationCode,
           type: InputDataType.int,
           keyboardType: TextInputType.number,
           hintText: locales.get('page-auth--input--verification-code'),
           maxLength: 6,
           onChanged: (value) {
-            dataAuth.phoneVerificationCode = value;
+            state.phoneVerificationCode = value;
             if (mounted) setState(() {});
           },
           onComplete: (value) {
-            dataAuth.phoneVerificationCode = value;
+            state.phoneVerificationCode = value;
             if (mounted) setState(() {});
           },
           onSubmit: (value) {
-            dataAuth.phoneVerificationCode = value;
-            if (!(dataAuth.phoneVerificationCode != null &&
-                dataAuth.phoneVerificationCode.toString().length == 6)) {
+            state.phoneVerificationCode = value;
+            if (!(state.phoneVerificationCode != null &&
+                state.phoneVerificationCode.toString().length == 6)) {
               return;
             }
             if (mounted) setState(() {});
@@ -813,8 +797,8 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       ),
       spacerLarge,
     ];
-    if (dataAuth.phoneVerificationCode != null &&
-        dataAuth.phoneVerificationCode.toString().length == 6) {
+    if (state.phoneVerificationCode != null &&
+        state.phoneVerificationCode.toString().length == 6) {
       sectionsPhoneVerification.add(
         actionButton(
           label: locales.get('label--sign-in-with-phone'),
@@ -840,7 +824,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       backgroundColor: theme.colorScheme.surface,
       body: SizedBox.expand(
         child: IndexedStack(
-          index: section,
+          index: state.section,
           children: <Widget>[
             home,
             sectionPhoneNumber,
