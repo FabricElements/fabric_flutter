@@ -270,6 +270,7 @@ class StateNotifications extends ChangeNotifier {
     // Prevent calling this function if not initialized
     if (_initialized) return;
     _initialized = true;
+    await Future.delayed(const Duration(milliseconds: 500));
     // Wait for the app assign the callback
     if (_callback == null) {
       await Future.delayed(const Duration(milliseconds: 300));
