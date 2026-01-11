@@ -33,10 +33,10 @@ class InitApp extends StatelessWidget {
         ...providers,
         ChangeNotifierProvider(create: (context) => StateViewAuth()),
         ChangeNotifierProvider(create: (context) => StateGlobal()),
-        ChangeNotifierProvider(create: (context) => StateUser()),
         ListenableProvider(create: (context) => StateAlert()),
-        ChangeNotifierProvider(create: (context) => StateAnalytics()),
         ChangeNotifierProvider(create: (context) => StateNotifications()),
+        ChangeNotifierProvider(create: (context) => StateUser()),
+        ChangeNotifierProvider(create: (context) => StateAnalytics()),
         ChangeNotifierProvider(create: (context) => StateUsers()),
       ],
       child: InitAppChild(notifications: notifications, child: child),
@@ -76,7 +76,7 @@ class InitAppChild extends StatelessWidget {
       stateUser.init();
     });
 
-    stateUser.streamStatus.listen((status) {
+    stateUser.streamStatus.listen((status) async {
       /// Set user id for analytics
       if (status.signedIn) {
         try {
@@ -85,9 +85,13 @@ class InitAppChild extends StatelessWidget {
           debugPrint(LogColor.error('FirebaseAnalytics error: $error'));
         }
       }
-      try {
-        if (status.signedIn) {
-          if (notifications) {
+
+      /// Init Notifications
+      if (notifications) {
+        try {
+          if (status.signedIn) {
+            /// Wait 3 seconds to ensure FCM token is ready
+            await Future.delayed(const Duration(seconds: 3));
             stateNotifications.token = stateUser.serialized.fcm;
             stateNotifications.uid = status.uid;
             stateNotifications.init();
@@ -96,15 +100,15 @@ class InitAppChild extends StatelessWidget {
                 LogColor.error('StateNotifications.getUserToken() Error: $e'),
               );
             });
+          } else {
+            if (!kDebugMode) {
+              // Stop notifications when sign out
+              stateNotifications.clear();
+            }
           }
-        } else {
-          if (notifications && !kDebugMode) {
-            // Stop notifications when sign out
-            stateNotifications.clear();
-          }
+        } catch (error) {
+          debugPrint(LogColor.error('InitAppChild error: $error'));
         }
-      } catch (error) {
-        debugPrint(LogColor.error('InitAppChild error: $error'));
       }
     });
 
