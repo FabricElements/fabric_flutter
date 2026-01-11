@@ -31,13 +31,13 @@ class InitApp extends StatelessWidget {
       /// Init Providers
       providers: [
         ...providers,
+        ChangeNotifierProvider(create: (context) => StateViewAuth()),
         ChangeNotifierProvider(create: (context) => StateGlobal()),
         ChangeNotifierProvider(create: (context) => StateUser()),
         ListenableProvider(create: (context) => StateAlert()),
         ChangeNotifierProvider(create: (context) => StateAnalytics()),
         ChangeNotifierProvider(create: (context) => StateNotifications()),
         ChangeNotifierProvider(create: (context) => StateUsers()),
-        ChangeNotifierProvider(create: (context) => StateViewAuth()),
       ],
       child: InitAppChild(notifications: notifications, child: child),
     );

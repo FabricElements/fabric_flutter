@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
-/// [StateViewAuth]
+/// StateViewAuth
 ///
 /// This is a change notifier class which keeps track of state within the widgets.
 class StateViewAuth extends ChangeNotifier {
@@ -35,16 +35,8 @@ class StateViewAuth extends ChangeNotifier {
   }
 
   /// Complete phone number +12233334
-  String? _phoneValid;
-
-  /// Complete phone number +12233334
-  String? get phoneValid => _phoneValid;
-
-  /// Complete phone number +12233334
-  set phoneValid(String? value) {
-    _phoneValid = value;
-    notifyListeners();
-  }
+  String? get phoneValid =>
+      phone != null && phone!.isNotEmpty && phone!.length > 4 ? phone : null;
 
   /// Section
   int _section = 0;
@@ -61,7 +53,6 @@ class StateViewAuth extends ChangeNotifier {
   /// Clear all data
   void clear() {
     _phone = null;
-    _phoneValid = null;
     _phoneVerificationCode = null;
     _verificationId = null;
     _section = 0;

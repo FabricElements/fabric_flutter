@@ -109,6 +109,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
   ConfirmationResult? webConfirmationResult;
   bool policiesAccepted = false;
   final List<String> googleScopes = <String>['openid', 'email'];
+  bool initialized = false;
 
   @override
   void initState() {
@@ -121,32 +122,37 @@ class ViewAuthPageState extends State<ViewAuthPage> {
   @override
   Widget build(BuildContext context) {
     final stateGlobal = Provider.of<StateGlobal>(context);
-    final theme = Theme.of(context);
     final stateAnalytics = Provider.of<StateAnalytics>(context, listen: false);
+    final state = Provider.of<StateViewAuth>(context);
+    final alert = Provider.of<StateAlert>(context, listen: false);
+    final theme = Theme.of(context);
     final locales = AppLocalizations.of(context);
     final textTheme = Theme.of(context).textTheme;
-    final alert = Provider.of<StateAlert>(context, listen: false);
     final height = MediaQuery.of(context).size.height;
-    final state = Provider.of<StateViewAuth>(context);
     stateAnalytics.screenName = 'auth';
+    // Initialize after first build
+    if (!initialized) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        await Future.delayed(const Duration(milliseconds: 500));
+        initialized = true;
+        if (mounted) setState(() {});
+      });
+    }
+
+    if (loading || !initialized) {
+      return widget.loader ?? const LoadingScreen();
+    }
 
     /// Reset view to initial state
-    void resetView() {
+    Future<void> resetView() async {
+      loading = true;
+      if (mounted) setState(() {});
       // Close Keyboard
       FocusScope.of(context).requestFocus(FocusNode());
       state.clear();
-    }
-
-    /// Get phone number
-    state.phoneValid =
-        state.phone != null &&
-            state.phone!.isNotEmpty &&
-            state.phone!.length > 4
-        ? state.phone
-        : null;
-
-    if (loading) {
-      return widget.loader ?? const LoadingScreen();
+      await Future.delayed(const Duration(seconds: 1));
+      loading = false;
+      if (mounted) setState(() {});
     }
 
     /// Verification completed: Sign in with credentials
@@ -154,7 +160,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       await _auth.signInWithCredential(phoneAuthCredential);
       alert.show(
         AlertData(
-          title: locales.get('alert--received-phone-auth-credential'),
+          body: locales.get('alert--received-phone-auth-credential'),
           clear: true,
         ),
       );
@@ -164,7 +170,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
     verificationFailed(FirebaseAuthException authException) {
       alert.show(
         AlertData(
-          title:
+          body:
               '${locales.get('alert--phone-number-verification-failed')}. ${authException.message} -- Code: ${authException.code}',
           type: AlertType.critical,
           clear: true,
@@ -178,7 +184,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       state.section = 2;
       alert.show(
         AlertData(
-          title: locales.get('alert--check-phone-verification-code'),
+          body: locales.get('alert--check-phone-verification-code'),
           type: AlertType.success,
           duration: 3,
           clear: true,
@@ -399,7 +405,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
             break;
         }
         alert.show(
-          AlertData(title: errorMessage, type: AlertType.critical, clear: true),
+          AlertData(body: errorMessage, type: AlertType.critical, clear: true),
         );
       } on FirebaseException catch (error) {
         alert.show(
