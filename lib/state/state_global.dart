@@ -56,6 +56,7 @@ class StateGlobal extends ChangeNotifier {
 
   /// Current Account ID
   set account(String? value) {
+    if (value == _account) return;
     _account = value;
     notifyListeners();
   }
