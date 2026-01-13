@@ -101,10 +101,13 @@ class _SmartImageState extends State<SmartImage> {
   /// [newWidth] New width
   void _resizeImage({int newHeight = 0, int newWidth = 0}) {
     if (width == newWidth && height == newHeight) return;
-    if (newHeight > 0) height = newHeight;
-    if (newWidth > 0) width = newWidth;
-    resizedTimes++;
-    if (mounted) setState(() {});
+    if (mounted) {
+      setState(() {
+        if (newHeight > 0) height = newHeight;
+        if (newWidth > 0) width = newWidth;
+        resizedTimes++;
+      });
+    }
   }
 
   /// Resize image with debounce
@@ -118,7 +121,7 @@ class _SmartImageState extends State<SmartImage> {
     if (newHeight <= 0 && newWidth <= 0) return;
     if (width == newWidth && height == newHeight) return;
     _timer?.cancel();
-    _timer = Timer(Duration(milliseconds: resizedTimes > 0 ? 2000 : 200), () {
+    _timer = Timer(Duration(milliseconds: resizedTimes > 0 ? 2000 : 500), () {
       _resizeImage(newHeight: newHeight, newWidth: newWidth);
     });
   }
@@ -255,7 +258,7 @@ class _SmartImageState extends State<SmartImage> {
                   if (wasSynchronouslyLoaded) return child;
                   return AnimatedOpacity(
                     opacity: frame == null ? 0 : 1,
-                    duration: const Duration(milliseconds: 200),
+                    duration: const Duration(milliseconds: 300),
                     curve: Curves.easeOut,
                     child: child,
                   );
