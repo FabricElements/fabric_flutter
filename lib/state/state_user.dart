@@ -162,7 +162,7 @@ class StateUser extends StateDocument {
       } else {
         String os = Platform.operatingSystem;
         userOs = UserOS.values.firstWhere(
-              (e) => e.name == os.toLowerCase(),
+          (e) => e.name == os.toLowerCase(),
           orElse: () => UserOS.unknown,
         );
       }
@@ -216,7 +216,7 @@ class StateUser extends StateDocument {
     connectionChanged: connectionChanged,
     connectedTo: connected ? connectedTo : null,
     ready:
-    _ready &&
+        _ready &&
         _init &&
         !loading &&
         ((!initialized && data == null) ||
@@ -292,7 +292,7 @@ class StateUser extends StateDocument {
     /// Check connectivity
     try {
       Connectivity().onConnectivityChanged.listen(
-            (results) async {
+        (results) async {
           if (results.firstOrNull?.name != connectedTo) {
             ConnectivityResult connectivityStatus = ConnectivityResult.none;
             if (results.contains(ConnectivityResult.wifi)) {
