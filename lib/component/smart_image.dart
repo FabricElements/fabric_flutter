@@ -89,10 +89,13 @@ class _SmartImageState extends State<SmartImage> {
   void didUpdateWidget(SmartImage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.url != widget.url) {
-      width = 0;
-      height = 0;
-      resizedTimes = 0;
-      if (mounted) setState(() {});
+      if (mounted) {
+        setState(() {
+          width = 0;
+          height = 0;
+          resizedTimes = 0;
+        });
+      }
     }
   }
 
