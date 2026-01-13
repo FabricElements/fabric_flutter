@@ -168,6 +168,7 @@ abstract class StateShared extends ChangeNotifier {
 
   /// [error] message
   set error(String? errorMessage) {
+    if (_error == errorMessage) return;
     _error = errorMessage;
     notifyListeners();
     onError(errorMessage);
@@ -176,7 +177,19 @@ abstract class StateShared extends ChangeNotifier {
 
   /// Loading state
   /// Some processes are running
-  bool loading = false;
+  bool _loading = false;
+
+  /// Loading state
+  /// Some processes are running
+  bool get loading => _loading;
+
+  /// Loading state
+  /// Some processes are running
+  set loading(bool value) {
+    if (_loading == value) return;
+    _loading = value;
+    notifyListeners();
+  }
 
   /// Pagination
   /// More at [page]
@@ -196,6 +209,7 @@ abstract class StateShared extends ChangeNotifier {
 
   /// Set the page number and trigger filter
   set page(int? value) {
+    if (value == pageDefault) return;
     pageDefault = value ?? initialPage;
     initialized = false;
     loading = false;
@@ -211,6 +225,7 @@ abstract class StateShared extends ChangeNotifier {
 
   /// Set the [limit] number and trigger filter
   set limit(int? value) {
+    if (value == _limit) return;
     _limit = value ?? limitDefault;
     notifyListeners();
   }
