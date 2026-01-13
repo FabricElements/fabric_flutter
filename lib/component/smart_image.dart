@@ -228,51 +228,56 @@ class _SmartImageState extends State<SmartImage> {
       ).toString();
 
       /// Image
-      children.add(
-        SizedBox.expand(
-          child: Image.network(
-            path,
-            fit: BoxFit.cover,
-            isAntiAlias: true,
-            key: ValueKey<String>(path),
-            // This tells the browser to request the image with CORS headers
-            // even though it's on the same domain.
-            headers: {'Access-Control-Allow-Origin': '*'},
-            errorBuilder:
-                (
-                  BuildContext context,
-                  Object exception,
-                  StackTrace? stackTrace,
-                ) {
-                  return errorPlaceholder;
-                },
-            loadingBuilder:
-                (
-                  BuildContext context,
-                  Widget child,
-                  ImageChunkEvent? loadingProgress,
-                ) {
-                  if (loadingProgress == null) return child;
-                  return loadingPlaceholder;
-                },
-            frameBuilder:
-                (
-                  BuildContext context,
-                  Widget child,
-                  int? frame,
-                  bool wasSynchronouslyLoaded,
-                ) {
-                  if (wasSynchronouslyLoaded) return child;
-                  return AnimatedOpacity(
-                    opacity: frame == null ? 0 : 1,
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeOut,
-                    child: child,
-                  );
-                },
+      /// Only load image if width and height are greater than 10
+      if (!(width > 10 && height > 10)) {
+        children.add(
+          SizedBox.expand(
+            child: Image.network(
+              path,
+              fit: BoxFit.cover,
+              isAntiAlias: true,
+              width: width.toDouble(),
+              height: height.toDouble(),
+              key: ValueKey<String>(path),
+              // This tells the browser to request the image with CORS headers
+              // even though it's on the same domain.
+              headers: {'Access-Control-Allow-Origin': '*'},
+              errorBuilder:
+                  (
+                    BuildContext context,
+                    Object exception,
+                    StackTrace? stackTrace,
+                  ) {
+                    return errorPlaceholder;
+                  },
+              loadingBuilder:
+                  (
+                    BuildContext context,
+                    Widget child,
+                    ImageChunkEvent? loadingProgress,
+                  ) {
+                    if (loadingProgress == null) return child;
+                    return loadingPlaceholder;
+                  },
+              frameBuilder:
+                  (
+                    BuildContext context,
+                    Widget child,
+                    int? frame,
+                    bool wasSynchronouslyLoaded,
+                  ) {
+                    if (wasSynchronouslyLoaded) return child;
+                    return AnimatedOpacity(
+                      opacity: frame == null ? 0 : 1,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeOut,
+                      child: child,
+                    );
+                  },
+            ),
           ),
-        ),
-      );
+        );
+      }
     }
     return Stack(children: children);
   }
