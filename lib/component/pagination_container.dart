@@ -21,6 +21,8 @@ class PaginationContainer extends StatefulWidget {
     this.initialData,
     this.clipBehavior = Clip.hardEdge,
     this.shrinkWrap = false,
+    this.initialScrollOffset = 0.0,
+    this.onScrollOffsetChanged,
   });
 
   final Widget Function(BuildContext context, int index, dynamic data)
@@ -37,6 +39,10 @@ class PaginationContainer extends StatefulWidget {
   final List<dynamic>? initialData;
   final Clip clipBehavior;
   final bool shrinkWrap;
+  final double initialScrollOffset;
+
+  /// Callback when scroll offset changes
+  final Function(double offset)? onScrollOffsetChanged;
 
   /// Returns the page
   final Future<dynamic> Function() paginate;
@@ -48,7 +54,9 @@ class PaginationContainer extends StatefulWidget {
 class _PaginationContainerState extends State<PaginationContainer> {
   late bool end;
   late bool loading;
-  final ScrollController _controller = ScrollController();
+
+  // Inside your Widget
+  late ScrollController _controller;
   late String? error;
   List<dynamic> data = [];
 
@@ -60,9 +68,13 @@ class _PaginationContainerState extends State<PaginationContainer> {
     data = widget.initialData ?? [];
     // Always set loading to true when the initial data is null
     loading = widget.initialData == null;
+    _controller = ScrollController(
+      initialScrollOffset: widget.initialScrollOffset,
+    );
 
     /// Scroll controller
     _controller.addListener(() async {
+      widget.onScrollOffsetChanged?.call(_controller.offset);
       bool isBottom =
           _controller.position.atEdge && _controller.position.pixels != 0;
       // Do nothing if any of these conditions are met
@@ -102,6 +114,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
 
   @override
   void dispose() {
+    // Do not dispose controller to allow reuse and preserve scroll position
     _controller.dispose();
     widget.stream.drain();
     super.dispose();
