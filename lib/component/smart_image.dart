@@ -235,6 +235,9 @@ class _SmartImageState extends State<SmartImage> {
             fit: BoxFit.cover,
             isAntiAlias: true,
             key: ValueKey<String>(path),
+            // This tells the browser to request the image with CORS headers
+            // even though it's on the same domain.
+            headers: {'Access-Control-Allow-Origin': '*'},
             errorBuilder:
                 (
                   BuildContext context,
