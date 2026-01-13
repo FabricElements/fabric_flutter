@@ -234,6 +234,7 @@ class _SmartImageState extends State<SmartImage> {
             path,
             fit: BoxFit.cover,
             isAntiAlias: true,
+            key: ValueKey<String>(path),
             errorBuilder:
                 (
                   BuildContext context,
