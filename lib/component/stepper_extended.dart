@@ -43,6 +43,7 @@ class StepperExtended extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final controller = ScrollController();
     List<Widget> children = List.generate(steps.length, (index) {
       Step step = steps[index];
       TextStyle? leadingStyle = textTheme.titleMedium?.copyWith(
@@ -87,6 +88,7 @@ class StepperExtended extends StatelessWidget {
         child: Center(child: leadingContent),
       );
       return ContentContainer(
+        key: ValueKey('stepper_extended_step_$index'),
         margin: const EdgeInsets.only(top: 16, bottom: 32, left: 0, right: 16),
         size: size,
         child: Flex(
@@ -126,21 +128,27 @@ class StepperExtended extends StatelessWidget {
       );
     });
 
+    final content = Flex(
+      direction: Axis.vertical,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: children,
+    );
+
     if (scrollable) {
-      return ListView(
-        restorationId: key?.toString() ?? 'stepper_extended',
-        padding: padding,
-        children: children,
+      return Scrollbar(
+        thumbVisibility: true,
+        trackVisibility: true,
+        interactive: true,
+        controller: controller,
+        child: SingleChildScrollView(
+          controller: controller,
+          padding: padding,
+          restorationId: key?.toString() ?? 'stepper_extended',
+          child: content,
+        ),
       );
     }
-    return Padding(
-      padding: padding,
-      child: Flex(
-        direction: Axis.vertical,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: children,
-      ),
-    );
+    return Padding(padding: padding, child: content);
   }
 }
