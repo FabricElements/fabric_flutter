@@ -229,7 +229,7 @@ class _SmartImageState extends State<SmartImage> {
 
       /// Image
       /// Only load image if width and height are greater than 10
-      if (!(width > 10 && height > 10)) {
+      if (width > 10 && height > 10) {
         children.add(
           SizedBox.expand(
             child: Image.network(
