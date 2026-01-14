@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../helper/utils.dart';
@@ -223,13 +224,13 @@ class _SmartImageState extends State<SmartImage> {
 
       /// Image
       /// Only load image if width and height are greater than 10
-      if (width > 10 && height > 10) {
+      if (width > 10 && height > 10 && resizedTimes > 0 && path.isNotEmpty) {
         children.add(
           Positioned.fill(
             child: Image.network(
               path,
               fit: BoxFit.cover,
-              isAntiAlias: true,
+              isAntiAlias: !kIsWeb,
               width: width.toDouble(),
               height: height.toDouble(),
               cacheHeight: (height * devicePixelRatio).round(),
