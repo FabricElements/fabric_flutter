@@ -43,9 +43,9 @@ dependencies:
   web: ^1.1.1
   intl: ^0.20.2
   ansicolor: ^2.0.3
-  json_serializable: ^6.11.3
+  json_serializable: ^6.11.4
   cupertino_icons: ^1.0.8
-  google_fonts: ^7.0.1
+  google_fonts: ^7.0.2
   pointer_interceptor: ^0.10.1+2
   omni_datetime_picker: ^2.3.1
   collection: ^1.19.1
