@@ -232,6 +232,8 @@ class _SmartImageState extends State<SmartImage> {
               isAntiAlias: true,
               width: width.toDouble(),
               height: height.toDouble(),
+              cacheHeight: height,
+              cacheWidth: width,
               key: ValueKey<String>(path),
               // This tells the browser to request the image with CORS headers
               // even though it's on the same domain.
