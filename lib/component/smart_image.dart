@@ -167,36 +167,30 @@ class _SmartImageState extends State<SmartImage> {
 
     /// List of children
     List<Widget> children = [
-      LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-          final queryData = MediaQuery.of(context);
-          devicePixelRatio = queryData.devicePixelRatio.floorToDouble();
-          if (devicePixelRatio < 1) devicePixelRatio = 1;
-          int newWidth = constraints.maxWidth.floor();
-          int newHeight = constraints.maxHeight.floor();
+      Positioned.fill(
+        child: LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+            final queryData = MediaQuery.of(context);
+            devicePixelRatio = queryData.devicePixelRatio.floorToDouble();
+            if (devicePixelRatio < 1) devicePixelRatio = 1;
+            int newWidth = constraints.maxWidth.floor();
+            int newHeight = constraints.maxHeight.floor();
 
-          /// Get dimensions in multiples of [divisor]
-          /// This is to prevent too many requests do to small changes in dimensions
-          int divisor = 100; // Total pixels to divide by to get new dimensions
-          int widthBasedOnDivisor = (newWidth / divisor).floor() * divisor;
-          int heightBasedOnDivisor = (newHeight / divisor).floor() * divisor;
-          if (widthBasedOnDivisor < divisor) widthBasedOnDivisor = divisor;
-          if (heightBasedOnDivisor < divisor) heightBasedOnDivisor = divisor;
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (resizedTimes > 0) {
-              _resizeImageDebounce(
-                newHeight: heightBasedOnDivisor,
-                newWidth: widthBasedOnDivisor,
-              );
-            } else {
-              _resizeImage(
-                newHeight: heightBasedOnDivisor,
-                newWidth: widthBasedOnDivisor,
-              );
-            }
-          });
-          return loadingPlaceholder;
-        },
+            /// Get dimensions in multiples of [divisor]
+            /// This is to prevent too many requests do to small changes in dimensions
+            int divisor =
+                100; // Total pixels to divide by to get new dimensions
+            int widthBasedOnDivisor = (newWidth / divisor).floor() * divisor;
+            int heightBasedOnDivisor = (newHeight / divisor).floor() * divisor;
+            if (widthBasedOnDivisor < divisor) widthBasedOnDivisor = divisor;
+            if (heightBasedOnDivisor < divisor) heightBasedOnDivisor = divisor;
+            _resizeImageDebounce(
+              newHeight: heightBasedOnDivisor,
+              newWidth: widthBasedOnDivisor,
+            );
+            return loadingPlaceholder;
+          },
+        ),
       ),
     ];
     if (width > 0 && height > 0 && resizedTimes > 0) {
@@ -231,7 +225,7 @@ class _SmartImageState extends State<SmartImage> {
       /// Only load image if width and height are greater than 10
       if (width > 10 && height > 10) {
         children.add(
-          SizedBox.expand(
+          Positioned.fill(
             child: Image.network(
               path,
               fit: BoxFit.cover,
@@ -282,6 +276,6 @@ class _SmartImageState extends State<SmartImage> {
         );
       }
     }
-    return Stack(children: children);
+    return Stack(alignment: AlignmentDirectional.center, children: children);
   }
 }
