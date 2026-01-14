@@ -241,7 +241,10 @@ class _SmartImageState extends State<SmartImage> {
               key: ValueKey<String>(path),
               // This tells the browser to request the image with CORS headers
               // even though it's on the same domain.
-              headers: {'Access-Control-Allow-Origin': '*'},
+              headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Accept': 'image/*',
+              },
               errorBuilder:
                   (
                     BuildContext context,
