@@ -443,14 +443,14 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
 
   @override
   void didUpdateWidget(covariant FilterMenuOption oldWidget) {
-    _update();
     super.didUpdateWidget(oldWidget);
+    _update();
   }
 
   @override
   void didChangeDependencies() {
-    _update();
     super.didChangeDependencies();
+    _update();
   }
 
   @override
@@ -693,16 +693,16 @@ class _FilterMenuState extends State<FilterMenu> {
 
   @override
   void didChangeDependencies() {
+    super.didChangeDependencies();
     _closeSearch();
     _update();
-    super.didChangeDependencies();
   }
 
   @override
   void didUpdateWidget(covariant FilterMenu oldWidget) {
+    super.didUpdateWidget(oldWidget);
     _closeSearch();
     _update();
-    super.didUpdateWidget(oldWidget);
   }
 
   @override

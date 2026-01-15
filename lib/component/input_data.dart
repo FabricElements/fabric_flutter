@@ -518,8 +518,8 @@ getValue -------------------------------------
 
   @override
   void didUpdateWidget(covariant InputData oldWidget) {
-    getValue(notify: false, newValue: widget.value);
     super.didUpdateWidget(oldWidget);
+    getValue(notify: false, newValue: widget.value);
   }
 
   @override

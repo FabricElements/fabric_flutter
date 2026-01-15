@@ -112,9 +112,9 @@ class _GoogleChartContainerState extends State<GoogleChartContainer> {
 
   @override
   void didUpdateWidget(covariant GoogleChartContainer oldWidget) {
+    super.didUpdateWidget(oldWidget);
     reset();
     if (mounted) setState(() {});
-    super.didUpdateWidget(oldWidget);
   }
 
   @override

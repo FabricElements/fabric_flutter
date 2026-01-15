@@ -85,10 +85,10 @@ class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
 
   @override
   void didUpdateWidget(covariant GoogleMapsPreview oldWidget) {
+    super.didUpdateWidget(oldWidget);
     if (widget.latitude != latitude || widget.longitude != longitude) {
       getLocation(notify: true);
     }
-    super.didUpdateWidget(oldWidget);
   }
 
   @override

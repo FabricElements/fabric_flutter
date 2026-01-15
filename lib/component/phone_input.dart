@@ -202,6 +202,7 @@ class _PhoneInputState extends State<PhoneInput> {
 
   @override
   void didUpdateWidget(covariant PhoneInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
     if (widget.value != null) {
       formatInput(widget.value!);
     } else {
@@ -211,7 +212,6 @@ class _PhoneInputState extends State<PhoneInput> {
     }
     getCountryData();
     setState(() {});
-    super.didUpdateWidget(oldWidget);
   }
 
   @override

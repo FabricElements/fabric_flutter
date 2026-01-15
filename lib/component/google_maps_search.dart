@@ -105,10 +105,10 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
 
   @override
   void didUpdateWidget(covariant GoogleMapsSearch oldWidget) {
+    super.didUpdateWidget(oldWidget);
     textController.text = '';
     getParentValues();
     if (mounted) setState(() {});
-    super.didUpdateWidget(oldWidget);
   }
 
   @override

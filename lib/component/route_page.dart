@@ -67,12 +67,12 @@ abstract class BaseRoutePageState extends State<BaseRoutePage> {
 
   @override
   void didUpdateWidget(BaseRoutePage oldWidget) {
+    super.didUpdateWidget(oldWidget);
     if (oldWidget.uri != widget.uri) {
       loading = true;
       if (mounted) setState(() {});
       _onInit();
     }
-    super.didUpdateWidget(oldWidget);
   }
 
   @override

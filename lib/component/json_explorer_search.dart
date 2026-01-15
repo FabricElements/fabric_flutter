@@ -44,10 +44,10 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
 
   @override
   void didUpdateWidget(covariant JsonExplorerSearch oldWidget) {
+    super.didUpdateWidget(oldWidget);
     isEmpty = widget.json == null || widget.json!.isEmpty;
     if (mounted) setState(() {});
     store.buildNodes(widget.json, areAllCollapsed: true);
-    super.didUpdateWidget(oldWidget);
   }
 
   @override
