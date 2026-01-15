@@ -413,6 +413,7 @@ abstract class StateShared extends ChangeNotifier {
     privateOldData = null;
     totalCount = 0;
     loading = false;
+    scrollOffset = 0.0;
     _timerNotify?.cancel();
     _timerData?.cancel();
     if (notify) {
@@ -560,6 +561,10 @@ abstract class StateShared extends ChangeNotifier {
       super.notifyListeners();
     });
   }
+
+  /// Scroll offset for the current section
+  /// Used to restore scroll position when navigating back
+  double scrollOffset = 0.0;
 
   /// Dispose streams and cancel timer
   @override
