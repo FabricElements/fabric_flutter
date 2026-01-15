@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 /// This is a change notifier class which keeps track of state within the widgets.
@@ -58,6 +58,19 @@ class StateGlobal extends ChangeNotifier {
   set account(String? value) {
     if (value == _account) return;
     _account = value;
+    notifyListeners();
+  }
+
+  /// Visual density for the app
+  VisualDensity _visualDensity = VisualDensity.adaptivePlatformDensity;
+
+  /// Visual density for the app
+  VisualDensity get visualDensity => _visualDensity;
+
+  /// Visual density for the app
+  set visualDensity(VisualDensity value) {
+    if (value == _visualDensity) return;
+    _visualDensity = value;
     notifyListeners();
   }
 }
