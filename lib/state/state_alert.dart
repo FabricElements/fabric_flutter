@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 
+import '../component/content_container.dart';
 import '../component/smart_image.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/log_color.dart';
@@ -479,15 +480,17 @@ class StateAlert implements Listenable {
             builder: (BuildContext context) => Scaffold(
               primary: false,
               backgroundColor: theme.colorScheme.surface.withValues(alpha: 0.3),
-              body: AlertDialog(
-                scrollable: alertData.scrollable,
-                actions: actions,
-                content: content,
-                backgroundColor: alertData.color,
-                contentPadding: EdgeInsets.zero,
-                clipBehavior: Clip.hardEdge,
-                actionsPadding: const EdgeInsets.all(16),
-                buttonPadding: const EdgeInsets.all(16),
+              body: ContentContainer(
+                child: AlertDialog(
+                  scrollable: alertData.scrollable,
+                  actions: actions,
+                  content: content,
+                  backgroundColor: alertData.color,
+                  contentPadding: EdgeInsets.zero,
+                  clipBehavior: Clip.hardEdge,
+                  actionsPadding: const EdgeInsets.all(16),
+                  buttonPadding: const EdgeInsets.all(16),
+                ),
               ),
             ),
           );
