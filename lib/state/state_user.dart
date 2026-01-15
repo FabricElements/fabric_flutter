@@ -347,6 +347,30 @@ class StateUser extends StateDocument {
   /// Get User or Device language
   ThemeMode get theme => _theme ?? ThemeMode.system;
 
+  /// Visual density for the app
+  CustomVisualDensity? _visualDensity;
+
+  /// Visual density for the app
+  CustomVisualDensity get visualDensity =>
+      _visualDensity ?? serialized.visualDensity;
+
+  /// Visual density for the app
+  VisualDensity get visualDensityValue {
+    switch (visualDensity) {
+      case CustomVisualDensity.compact:
+        return VisualDensity.compact;
+      case CustomVisualDensity.comfortable:
+        return VisualDensity.comfortable;
+      case CustomVisualDensity.standard:
+        return VisualDensity.standard;
+      case CustomVisualDensity.large:
+        return VisualDensity(horizontal: 2, vertical: 2);
+      // case CustomVisualDensity.adaptive:
+      default:
+        return VisualDensity.adaptivePlatformDensity;
+    }
+  }
+
   @override
   callbackDefault(dynamic data) async {
     _controllerStreamSerialized.sink.add(data != null ? serialized : null);
@@ -355,6 +379,9 @@ class StateUser extends StateDocument {
     }
     if (theme != serialized.theme) {
       _theme = serialized.theme;
+    }
+    if (visualDensity != serialized.visualDensity) {
+      _visualDensity = serialized.visualDensity;
     }
     await _userStatusUpdate();
   }

@@ -11,6 +11,9 @@ enum UserPresence { active, inactive, away }
 /// User Device OS
 enum UserOS { android, ios, macos, linux, web, fuchsia, windows, unknown }
 
+/// Custom visual density options
+enum CustomVisualDensity { adaptive, compact, comfortable, standard, large }
+
 /// Onboarding Object
 @JsonSerializable(explicitToJson: true)
 class UserDataOnboarding {
@@ -187,6 +190,11 @@ class UserData {
   /// Country code
   String? country;
 
+  /// Visual Density
+  /// Custom visual density for the user interface
+  @JsonKey(includeIfNull: false, unknownEnumValue: CustomVisualDensity.adaptive)
+  final CustomVisualDensity visualDensity;
+
   UserData({
     this.onboarding,
     this.phone,
@@ -210,6 +218,7 @@ class UserData {
     this.links,
     this.os = UserOS.unknown,
     this.country,
+    this.visualDensity = CustomVisualDensity.adaptive,
   }) : presence = Utils.getPresence(ping),
        name = Utils.nameFromParts(firstName: firstName, lastName: lastName),
        abbr = Utils.nameAbbreviation(firstName: firstName, lastName: lastName);

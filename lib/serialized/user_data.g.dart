@@ -89,6 +89,13 @@ UserData _$UserDataFromJson(Map<String, dynamic> json) => UserData(
       : InterfaceLinks.fromJson(json['links'] as Map<String, dynamic>?),
   os: $enumDecodeNullable(_$UserOSEnumMap, json['os']) ?? UserOS.unknown,
   country: json['country'] as String?,
+  visualDensity:
+      $enumDecodeNullable(
+        _$CustomVisualDensityEnumMap,
+        json['visualDensity'],
+        unknownValue: CustomVisualDensity.adaptive,
+      ) ??
+      CustomVisualDensity.adaptive,
 );
 
 Map<String, dynamic> _$UserDataToJson(UserData instance) => <String, dynamic>{
@@ -110,6 +117,7 @@ Map<String, dynamic> _$UserDataToJson(UserData instance) => <String, dynamic>{
   'username': ?instance.username,
   'theme': _$ThemeModeEnumMap[instance.theme]!,
   'country': instance.country,
+  'visualDensity': _$CustomVisualDensityEnumMap[instance.visualDensity]!,
 };
 
 const _$ThemeModeEnumMap = {
@@ -127,4 +135,12 @@ const _$UserOSEnumMap = {
   UserOS.fuchsia: 'fuchsia',
   UserOS.windows: 'windows',
   UserOS.unknown: 'unknown',
+};
+
+const _$CustomVisualDensityEnumMap = {
+  CustomVisualDensity.adaptive: 'adaptive',
+  CustomVisualDensity.compact: 'compact',
+  CustomVisualDensity.comfortable: 'comfortable',
+  CustomVisualDensity.standard: 'standard',
+  CustomVisualDensity.large: 'large',
 };

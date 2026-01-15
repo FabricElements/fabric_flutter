@@ -1340,6 +1340,30 @@ const Map<String, Map<String, String>> defaultLocales = {
   'label--warning-file-is-too-large': {
     'en': 'Warning: The file is too large.',
     'es': 'Advertencia: El archivo es demasiado grande.',
-  }
+  },
+  'label--visual-density': {
+    'en': 'Visual Density',
+    'es': 'Densidad Visual',
+  },
+  'label--adaptive': {
+    'en': 'Adaptive',
+    'es': 'Adaptativo',
+  },
+  'label--compact': {
+    'en': 'Compact',
+    'es': 'Compacto',
+  },
+  'label--comfortable': {
+    'en': 'Comfortable',
+    'es': 'Cómodo',
+  },
+  'label--standard': {
+    'en': 'Standard',
+    'es': 'Estándar',
+  },
+  'label--large': {
+    'en': 'Large',
+    'es': 'Grande',
+  },
 };
 // @formatter:on
