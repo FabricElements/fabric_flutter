@@ -108,7 +108,10 @@ class StateUser extends StateDocument {
   bool get admin => role == 'admin';
 
   /// [role] Returns user role
-  String get role => claims['role'] ?? serialized.role;
+  String get role =>
+      (serialized.role != 'unknown' ? serialized.role : null) ??
+      claims['role'] ??
+      'unknown';
 
   /// [object] Returns a [User] object
   User? get object => _userObject;
