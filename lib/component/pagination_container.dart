@@ -39,6 +39,8 @@ class PaginationContainer extends StatefulWidget {
   final List<dynamic>? initialData;
   final Clip clipBehavior;
   final bool shrinkWrap;
+
+  /// Initial scroll offset
   final double initialScrollOffset;
 
   /// Callback when scroll offset changes
@@ -114,7 +116,6 @@ class _PaginationContainerState extends State<PaginationContainer> {
 
   @override
   void dispose() {
-    // Do not dispose controller to allow reuse and preserve scroll position
     _controller.dispose();
     widget.stream.drain();
     super.dispose();

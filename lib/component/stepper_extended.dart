@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'content_container.dart';
 
-class StepperExtended extends StatelessWidget {
+class StepperExtended extends StatefulWidget {
   const StepperExtended({
     super.key,
     required this.steps,
@@ -11,6 +11,8 @@ class StepperExtended extends StatelessWidget {
     this.subtitleTextStyle,
     this.scrollable = false,
     this.padding = EdgeInsets.zero,
+    this.initialScrollOffset = 0.0,
+    this.onScrollOffsetChanged,
   });
 
   final List<Step> steps;
@@ -39,13 +41,46 @@ class StepperExtended extends StatelessWidget {
   /// The padding of the stepper.
   final EdgeInsetsGeometry padding;
 
+  /// Initial scroll offset
+  final double initialScrollOffset;
+
+  /// Callback when scroll offset changes
+  final Function(double offset)? onScrollOffsetChanged;
+
+  @override
+  State<StepperExtended> createState() => _StepperExtendedState();
+}
+
+class _StepperExtendedState extends State<StepperExtended> {
+  late ScrollController _controller;
+
+  @override
+  void initState() {
+    _controller = ScrollController(
+      initialScrollOffset: widget.initialScrollOffset,
+    );
+
+    /// Scroll controller
+    _controller.addListener(() async {
+      widget.onScrollOffsetChanged?.call(_controller.offset);
+    });
+
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final controller = ScrollController();
-    List<Widget> children = List.generate(steps.length, (index) {
-      Step step = steps[index];
+    List<Widget> children = List.generate(widget.steps.length, (index) {
+      Step step = widget.steps[index];
       TextStyle? leadingStyle = textTheme.titleMedium?.copyWith(
         color: Colors.white,
         fontWeight: FontWeight.w700,
@@ -90,7 +125,7 @@ class StepperExtended extends StatelessWidget {
       return ContentContainer(
         key: ValueKey('stepper_extended_step_$index'),
         margin: const EdgeInsets.only(top: 16, bottom: 32, left: 0, right: 16),
-        size: size,
+        size: widget.size,
         child: Flex(
           direction: Axis.vertical,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -99,14 +134,14 @@ class StepperExtended extends StatelessWidget {
             ListTile(
               leading: leading,
               title: step.title,
-              titleTextStyle: titleTextStyle,
+              titleTextStyle: widget.titleTextStyle,
               subtitle: step.subtitle != null
                   ? Padding(
                       padding: const EdgeInsets.only(top: 8),
                       child: step.subtitle,
                     )
                   : null,
-              subtitleTextStyle: subtitleTextStyle,
+              subtitleTextStyle: widget.subtitleTextStyle,
               minLeadingWidth: 32,
               isThreeLine: step.subtitle != null,
             ),
@@ -135,7 +170,7 @@ class StepperExtended extends StatelessWidget {
       children: children,
     );
 
-    if (scrollable) {
+    if (widget.scrollable) {
       return Scrollbar(
         thumbVisibility: true,
         trackVisibility: true,
@@ -143,12 +178,12 @@ class StepperExtended extends StatelessWidget {
         controller: controller,
         child: SingleChildScrollView(
           controller: controller,
-          padding: padding,
-          restorationId: key?.toString() ?? 'stepper_extended',
+          padding: widget.padding,
+          restorationId: widget.key?.toString() ?? 'stepper_extended',
           child: content,
         ),
       );
     }
-    return Padding(padding: padding, child: content);
+    return Padding(padding: widget.padding, child: content);
   }
 }
