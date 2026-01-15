@@ -37,12 +37,12 @@ class _ProfileEditState extends State<ProfileEdit> {
 
   @override
   void initState() {
+    super.initState();
     loading = false;
     changed = false;
     defaultImage = const AssetImage('assets/placeholder.jpg');
     nameFirst = null;
     nameLast = null;
-    super.initState();
   }
 
   @override

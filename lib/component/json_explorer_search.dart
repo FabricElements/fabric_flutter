@@ -37,9 +37,9 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
 
   @override
   void initState() {
+    super.initState();
     isEmpty = widget.json == null || widget.json!.isEmpty;
     store.buildNodes(widget.json, areAllCollapsed: true);
-    super.initState();
   }
 
   @override

@@ -177,11 +177,11 @@ class Utils {
   /// Sample:
   /// @override
   /// void initState() {
+  ///   super.initState();
   ///   Utils.missingValueRedirect(
   ///     context: context,
   ///     value: widget.uri.queryParameters['client'],
   ///   );
-  ///   super.initState();
   /// }
   static void missingValueRedirect({
     required String? value,

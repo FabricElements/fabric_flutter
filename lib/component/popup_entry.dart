@@ -26,8 +26,8 @@ class _PopupEntryState extends State<PopupEntry> {
 
   @override
   void initState() {
-    child = widget.child;
     super.initState();
+    child = widget.child;
   }
 
   @override

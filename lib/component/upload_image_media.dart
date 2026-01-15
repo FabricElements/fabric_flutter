@@ -31,8 +31,8 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
 
   @override
   void initState() {
-    loading = false;
     super.initState();
+    loading = false;
   }
 
   @override

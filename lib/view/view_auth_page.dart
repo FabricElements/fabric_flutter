@@ -113,10 +113,10 @@ class ViewAuthPageState extends State<ViewAuthPage> {
 
   @override
   void initState() {
+    super.initState();
     loading = false;
     webConfirmationResult = null;
     policiesAccepted = false;
-    super.initState();
   }
 
   @override

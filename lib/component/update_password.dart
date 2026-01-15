@@ -32,8 +32,8 @@ class _UpdatePasswordState extends State<UpdatePassword> {
 
   @override
   void initState() {
-    reset();
     super.initState();
+    reset();
   }
 
   @override

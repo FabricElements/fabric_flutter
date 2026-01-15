@@ -96,11 +96,11 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
 
   @override
   void initState() {
+    super.initState();
     resetDefaultValues();
     getParentValues();
     loading = false;
     requiredFields = [...searchFields, 'geometry/location', ...widget.fields];
-    super.initState();
   }
 
   @override

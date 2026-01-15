@@ -64,6 +64,8 @@ class _PaginationContainerState extends State<PaginationContainer> {
 
   @override
   void initState() {
+    super.initState();
+
     /// Initial state
     end = false;
     error = null;
@@ -111,7 +113,6 @@ class _PaginationContainerState extends State<PaginationContainer> {
           loading = false;
           if (mounted) setState(() {});
         });
-    super.initState();
   }
 
   @override

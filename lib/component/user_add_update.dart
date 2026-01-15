@@ -123,8 +123,8 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
 
   @override
   void initState() {
-    reset();
     super.initState();
+    reset();
   }
 
   @override

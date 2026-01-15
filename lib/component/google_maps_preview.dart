@@ -70,11 +70,11 @@ class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
 
   @override
   void initState() {
+    super.initState();
     latitude = widget.latitude;
     longitude = widget.longitude;
     name = widget.name;
     description = widget.description;
-    super.initState();
   }
 
   @override

@@ -56,6 +56,7 @@ class _StepperExtendedState extends State<StepperExtended> {
 
   @override
   void initState() {
+    super.initState();
     _controller = ScrollController(
       initialScrollOffset: widget.initialScrollOffset,
     );
@@ -64,8 +65,6 @@ class _StepperExtendedState extends State<StepperExtended> {
     _controller.addListener(() async {
       widget.onScrollOffsetChanged?.call(_controller.offset);
     });
-
-    super.initState();
   }
 
   @override

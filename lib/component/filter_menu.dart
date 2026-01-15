@@ -31,8 +31,8 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
 
   @override
   void initState() {
-    edit = FilterData.fromJson(widget.data.toJson());
     super.initState();
+    edit = FilterData.fromJson(widget.data.toJson());
   }
 
   /// Get the value from the clipboard, validating the type, and return a valid list
@@ -437,8 +437,8 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
 
   @override
   void initState() {
-    data = widget.data;
     super.initState();
+    data = widget.data;
   }
 
   @override
@@ -686,9 +686,9 @@ class _FilterMenuState extends State<FilterMenu> {
 
   @override
   void initState() {
+    super.initState();
     searchController = SearchController();
     data = widget.data;
-    super.initState();
   }
 
   @override

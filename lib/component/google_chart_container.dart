@@ -106,8 +106,8 @@ class _GoogleChartContainerState extends State<GoogleChartContainer> {
 
   @override
   void initState() {
-    reset();
     super.initState();
+    reset();
   }
 
   @override

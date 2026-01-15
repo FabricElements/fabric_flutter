@@ -175,6 +175,7 @@ class _PhoneInputState extends State<PhoneInput> {
 
   @override
   void initState() {
+    super.initState();
     final baseCountries = ISOCountries.countries
         .where((element) => element.callingCode != null)
         .toList();
@@ -197,7 +198,6 @@ class _PhoneInputState extends State<PhoneInput> {
       formatInput(widget.value!);
     }
     getCountryData();
-    super.initState();
   }
 
   @override

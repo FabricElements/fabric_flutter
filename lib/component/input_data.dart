@@ -470,6 +470,8 @@ getValue -------------------------------------
 
   @override
   void initState() {
+    super.initState();
+
     /// Validate required parameters on init
     switch (widget.type) {
       case InputDataType.enums:
@@ -495,7 +497,6 @@ getValue -------------------------------------
 
     /// Get value
     getValue(newValue: widget.value);
-    super.initState();
   }
 
   /// Close search controller
