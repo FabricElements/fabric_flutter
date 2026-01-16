@@ -64,8 +64,7 @@ class StateUser extends StateDocument {
     _claims = null;
     _token = null;
     error = null;
-    clear(notify: notify);
-    if (notify) notifyListeners();
+    return clear(notify: notify);
   }
 
   /// More at [token]
@@ -194,10 +193,11 @@ class StateUser extends StateDocument {
     } catch (error) {
       debugPrint(LogColor.error('User ping error: ${error.toString()}'));
     }
-    await cancel();
-    clearAuth(notify: false);
+    await cancel(notify: false);
     await _auth.signOut();
-    notifyListeners();
+    clearAuth(notify: false);
+    await _userStatusUpdate();
+    // notifyListeners();
   }
 
   /// Displays content only if the the role matches for current user
@@ -246,34 +246,41 @@ class StateUser extends StateDocument {
     if (!_init) return;
     _ready = false;
     if (userObject == null) {
-      await cancel(clear: true);
+      await cancel(notify: true);
       clearAuth(notify: true);
-      _ready = true;
-      await _userStatusUpdate();
-      return;
+    } else {
+      try {
+        /// Get User document data
+        ref = db.collection('user').doc(userObject.uid);
+        await listen();
+      } catch (e) {
+        debugPrint(
+          LogColor.error(
+            'StateUser - Listen User Document error: ${e.toString()}',
+          ),
+        );
+      }
+      try {
+        /// Get user token
+        // Call before _controllerStreamStatus to prevent unauthenticated calls
+        await _getToken(userObject);
+      } catch (e) {
+        debugPrint(
+          LogColor.error('StateUser - Refresh auth error: ${e.toString()}'),
+        );
+      }
     }
-    try {
-      /// Get User document data
-      ref = db.collection('user').doc(userObject.uid);
-      await listen();
-      await Future.delayed(const Duration(milliseconds: 500));
-    } catch (e) {
-      debugPrint(
-        LogColor.error(
-          'StateUser - Listen User Document error: ${e.toString()}',
-        ),
-      );
-    }
-    try {
-      /// Get user token
-      // Call before _controllerStreamStatus to prevent unauthenticated calls
-      await _getToken(userObject);
-    } catch (e) {
-      debugPrint(
-        LogColor.error('StateUser - Refresh auth error: ${e.toString()}'),
-      );
-    }
+
+    /// Set user object
     object = userObject;
+
+    /// Small delay to ensure all streams are updated
+    await Future.delayed(Duration(milliseconds: debounceTimeNotInitialized));
+    await _userStatusUpdate();
+    if (userObject != null) {
+      /// Wait 3 seconds to ensure everything is ready and avoid flickering
+      await Future.delayed(const Duration(seconds: 3));
+    }
     _ready = true;
     await _userStatusUpdate();
   }

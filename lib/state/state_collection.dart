@@ -18,7 +18,7 @@ abstract class StateCollection extends StateShared {
   Query? baseQuery;
 
   /// Stop listening for changes
-  Future<void> cancel({bool clear = false}) async {
+  Future<void> cancel({bool notify = false}) async {
     baseQuery = null;
     if (_streamSubscription != null) {
       try {
@@ -27,7 +27,7 @@ abstract class StateCollection extends StateShared {
         //
       }
     }
-    if (clear) this.clear(notify: true);
+    return clear(notify: notify);
   }
 
   /// Collection Reference

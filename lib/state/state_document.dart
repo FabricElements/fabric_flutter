@@ -13,7 +13,7 @@ abstract class StateDocument extends StateShared {
   DocumentReference? baseRef;
 
   /// Stop listening for changes
-  Future<void> cancel({bool clear = false}) async {
+  Future<void> cancel({bool notify = false}) async {
     baseRef = null;
     if (_streamSubscription != null) {
       try {
@@ -22,7 +22,7 @@ abstract class StateDocument extends StateShared {
         //
       }
     }
-    if (clear) this.clear(notify: true);
+    return clear(notify: notify);
   }
 
   /// Collection Reference

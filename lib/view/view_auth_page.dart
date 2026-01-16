@@ -146,7 +146,6 @@ class ViewAuthPageState extends State<ViewAuthPage> {
     /// Reset view to initial state
     Future<void> resetView() async {
       loading = true;
-      if (mounted) setState(() {});
       // Close Keyboard
       FocusScope.of(context).requestFocus(FocusNode());
       state.clear();
@@ -259,6 +258,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
         final User user = credential.user!;
         final User currentUser = _auth.currentUser!;
         assert(user.uid == currentUser.uid);
+        await Future.delayed(const Duration(seconds: 3));
         resetView();
       } catch (error) {
         alert.show(
@@ -269,9 +269,10 @@ class ViewAuthPageState extends State<ViewAuthPage> {
             clear: true,
           ),
         );
+      } finally {
+        loading = false;
+        if (mounted) setState(() {});
       }
-      loading = false;
-      if (mounted) setState(() {});
     }
 
     /// Example code of how to sign in with phone.
@@ -292,6 +293,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
         final User user = (await _auth.signInWithCredential(credential)).user!;
         final User currentUser = _auth.currentUser!;
         assert(user.uid == currentUser.uid);
+        await Future.delayed(const Duration(seconds: 3));
         resetView();
       } catch (error) {
         alert.show(
@@ -302,9 +304,10 @@ class ViewAuthPageState extends State<ViewAuthPage> {
             clear: true,
           ),
         );
+      } finally {
+        loading = false;
+        if (mounted) setState(() {});
       }
-      loading = false;
-      if (mounted) setState(() {});
     }
 
     /// Sign in with google function
@@ -422,6 +425,8 @@ class ViewAuthPageState extends State<ViewAuthPage> {
     /// Sign in with Apple
     signInWithApple() async {
       try {
+        loading = true;
+        if (mounted) setState(() {});
         var appleProvider = AppleAuthProvider();
         appleProvider.addScope('email'); //this scope is required
         if (kIsWeb) {
@@ -429,7 +434,6 @@ class ViewAuthPageState extends State<ViewAuthPage> {
         } else {
           await _auth.signInWithProvider(appleProvider);
         }
-        resetView();
       } on FirebaseAuthException catch (error) {
         alert.show(
           AlertData(
@@ -457,6 +461,8 @@ class ViewAuthPageState extends State<ViewAuthPage> {
             clear: true,
           ),
         );
+      } finally {
+        resetView();
       }
     }
 

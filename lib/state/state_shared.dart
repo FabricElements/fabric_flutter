@@ -507,6 +507,9 @@ abstract class StateShared extends ChangeNotifier {
   /// Debounce time in milliseconds
   int debounceTime = 10;
 
+  /// Debounce time in milliseconds when not initialized
+  int get debounceTimeNotInitialized => 500;
+
   /// Notify data with debounce
   void _notifyData() {
     // Do not debounce in test mode
@@ -524,7 +527,7 @@ abstract class StateShared extends ChangeNotifier {
     // Make custom debounce effective only after the first call otherwise use 10ms as minimum
     int finalDebounceTime = debounceCountData > 0 ? debounceTime : 50;
     // If the first call is not initialized, use minimum debounce time
-    if (!initialized) finalDebounceTime = 500;
+    if (!initialized) finalDebounceTime = debounceTimeNotInitialized;
     // Increment shared debounce count, cancel shared timer and start a new one
     debounceCountData++;
     _timerData?.cancel();
@@ -552,7 +555,7 @@ abstract class StateShared extends ChangeNotifier {
     // Make custom debounce effective only after the first call otherwise use 10ms as minimum
     int finalDebounceTime = debounceCountNotify > 0 ? debounceTime : 50;
     // If the first call is not initialized, use minimum debounce time
-    if (!initialized) finalDebounceTime = 500;
+    if (!initialized) finalDebounceTime = debounceTimeNotInitialized;
     // Increment debounce count, cancel timer and start a new one
     debounceCountNotify++;
     _timerNotify?.cancel();

@@ -71,11 +71,6 @@ class InitAppChild extends StatelessWidget {
         ? debugPrint(LogColor.error('StateUser.onError: $e'))
         : null;
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      /// Init User
-      stateUser.init();
-    });
-
     stateUser.streamStatus.listen((status) async {
       /// Set user id for analytics
       if (status.signedIn) {
@@ -111,6 +106,9 @@ class InitAppChild extends StatelessWidget {
         }
       }
     });
+
+    /// Init User
+    stateUser.init();
 
     final loadingWidget = Container(
       color: theme.colorScheme.surface,
