@@ -44,7 +44,11 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
       return SizedBox(
         height: boxSize,
         width: boxSize,
-        child: CircularProgressIndicator(semanticsLabel: 'Loading'),
+        child: RefreshProgressIndicator(
+          indicatorPadding: EdgeInsets.all(4.0),
+          elevation: 1,
+          semanticsLabel: 'Loading',
+        ),
       );
     }
     final theme = Theme.of(context);
@@ -91,6 +95,7 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
     /// Mobile platform
     return PopupMenuButton<MediaOrigin>(
       padding: EdgeInsets.zero,
+      iconSize: effectiveIconSize,
       icon: Icon(Icons.image_search, color: theme.colorScheme.primary),
       tooltip: locales.get('label--upload-label', {
         'label': locales.get('label--image'),
