@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:omni_datetime_picker/omni_datetime_picker.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
+import 'package:provider/provider.dart';
 
 import '../helper/app_localizations_delegate.dart';
 import '../helper/enum_data.dart';
@@ -10,6 +11,7 @@ import '../helper/input_validation.dart';
 import '../helper/log_color.dart';
 import '../helper/options.dart';
 import '../helper/utils.dart';
+import '../state/state_alert.dart';
 import 'smart_image.dart';
 
 /// InputDataType defines the supported types for the [InputData] component
@@ -539,9 +541,11 @@ getValue -------------------------------------
 
   @override
   Widget build(BuildContext context) {
+    final alert = Provider.of<StateAlert>(context, listen: false);
     final locales = AppLocalizations.of(context);
     final enumData = EnumData(locales: locales);
     final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
     bool isDense = widget.isDense || theme.inputDecorationTheme.isDense;
     bool isDisabled = widget.disabled;
     String defaultTextOptions = locales.get('label--choose-option');
@@ -696,7 +700,7 @@ getValue -------------------------------------
       isDense: isDense,
       errorText: errorText,
       errorMaxLines: 2,
-      enabled: !widget.disabled,
+      enabled: !isDisabled,
       prefix: widget.prefix,
       suffix: widget.suffix,
       prefixIcon: widget.prefixIcon,
@@ -711,6 +715,7 @@ getValue -------------------------------------
       contentPadding: isDense
           ? const EdgeInsets.symmetric(horizontal: 4, vertical: 4)
           : widget.padding,
+      border: theme.inputDecorationTheme.border,
     );
 
     switch (widget.type) {
@@ -726,7 +731,8 @@ getValue -------------------------------------
       case InputDataType.url:
         endWidget = TextFormField(
           key: ValueKey('input-data-${widget.type}'),
-          controller: textController,
+          initialValue: isDisabled ? value?.toString() : null,
+          controller: !isDisabled ? textController : null,
           autofillHints: widget.autofillHints,
           autofocus: widget.autofocus,
           autocorrect: widget.autocorrect,
@@ -740,16 +746,25 @@ getValue -------------------------------------
           minLines: 1,
           maxLength: maxLength,
           decoration: inputDecoration,
+          mouseCursor: isDisabled && (value?.toString().isNotEmpty ?? false)
+              ? SystemMouseCursors.click
+              : null,
           obscureText: obscureText,
-          enableInteractiveSelection: widget.enableInteractiveSelection,
-          onChanged: (newValue) {
-            dynamic newFormattedValue = valueChanged(newValue);
-            bool sameValue = value == newFormattedValue;
-            if (!sameValue) {
-              value = newFormattedValue?.toString() ?? '';
-              widget.onChanged?.call(newFormattedValue);
-            }
-          },
+          enableInteractiveSelection: isDisabled
+              ? true
+              : widget.enableInteractiveSelection,
+          readOnly: isDisabled,
+          // Force focus capability
+          onChanged: isDisabled
+              ? null
+              : (newValue) {
+                  dynamic newFormattedValue = valueChanged(newValue);
+                  bool sameValue = value == newFormattedValue;
+                  if (!sameValue) {
+                    value = newFormattedValue?.toString() ?? '';
+                    widget.onChanged?.call(newFormattedValue);
+                  }
+                },
           onFieldSubmitted: widget.onSubmit == null
               ? null
               : (newValue) {
@@ -775,77 +790,84 @@ getValue -------------------------------------
           keyboardType: keyboardType,
           textInputAction: textInputAction,
           controller: textController,
+          enableInteractiveSelection: widget.enableInteractiveSelection,
           readOnly: true,
+          mouseCursor: isDisabled ? SystemMouseCursors.click : null,
           decoration: inputDecoration.copyWith(
             prefixIcon:
                 inputDecoration.prefixIcon ??
-                inputDecoration.prefixIcon ??
                 Icon(inputDataTypeIcon(widget.type)),
           ),
-          onTap: () async {
-            // Apply format depending on [showAsLocalTime]
-            DateTime now = widget.asLocalTime
-                ? DateTime.now()
-                : DateTime.timestamp();
-            DateTime date = value ?? now;
-            date = widget.asLocalTime ? date.toLocal() : date.toUtc();
-            // If the date is in the future, use the current date
-            DateTime dateBefore = now;
-            DateTime dateAfter = now;
-            if (value != null) {
-              dateBefore = date.isBefore(now) ? date : now;
-              dateAfter = date.isAfter(now) ? date : now;
-            }
-            late DateTime? picked;
-            final minDate = dateBefore.subtract(
-              const Duration(days: 365 * 101),
-            );
-            final maxDate = dateAfter.add(const Duration(days: 365 * 101));
-            if (widget.type == InputDataType.date) {
-              picked = await showDatePicker(
-                context: context,
-                initialDate: date,
-                firstDate: minDate,
-                lastDate: maxDate,
-              );
-            } else if (widget.type == InputDataType.dateTime ||
-                widget.type == InputDataType.timestamp) {
-              picked = await showOmniDateTimePicker(
-                context: context,
-                initialDate: date,
-                constraints: const BoxConstraints(
-                  maxHeight: 800,
-                  minHeight: 500,
-                  minWidth: 400,
-                  maxWidth: 800,
-                ),
-              );
-            }
-            if (picked != null) {
-              DateTime newDate = picked;
-              // Apply local time or utc time
-              if (widget.asLocalTime) {
-                newDate = newDate.toLocal();
-              } else {
-                // add Z to the end of the date to indicate it's UTC
-                // if it's not already UTC
-                if (!newDate.isUtc) {
-                  newDate = DateTime.parse('${newDate.toIso8601String()}Z');
-                }
-                newDate = newDate.toUtc();
-              }
-              if (widget.utcOffset != null && widget.utcOffset != 0) {
-                newDate = Utils.dateTimeOffset(
-                  dateTime: newDate,
-                  utcOffset: widget.utcOffset,
-                  reverse: true,
-                )!;
-              }
-              widget.onChanged?.call(newDate);
-              widget.onComplete?.call(newDate);
-              widget.onSubmit?.call(newDate);
-            }
-          },
+          onTap: isDisabled
+              ? null
+              : () async {
+                  // Apply format depending on [showAsLocalTime]
+                  DateTime now = widget.asLocalTime
+                      ? DateTime.now()
+                      : DateTime.timestamp();
+                  DateTime date = value ?? now;
+                  date = widget.asLocalTime ? date.toLocal() : date.toUtc();
+                  // If the date is in the future, use the current date
+                  DateTime dateBefore = now;
+                  DateTime dateAfter = now;
+                  if (value != null) {
+                    dateBefore = date.isBefore(now) ? date : now;
+                    dateAfter = date.isAfter(now) ? date : now;
+                  }
+                  late DateTime? picked;
+                  final minDate = dateBefore.subtract(
+                    const Duration(days: 365 * 101),
+                  );
+                  final maxDate = dateAfter.add(
+                    const Duration(days: 365 * 101),
+                  );
+                  if (widget.type == InputDataType.date) {
+                    picked = await showDatePicker(
+                      context: context,
+                      initialDate: date,
+                      firstDate: minDate,
+                      lastDate: maxDate,
+                    );
+                  } else if (widget.type == InputDataType.dateTime ||
+                      widget.type == InputDataType.timestamp) {
+                    picked = await showOmniDateTimePicker(
+                      context: context,
+                      initialDate: date,
+                      constraints: const BoxConstraints(
+                        maxHeight: 800,
+                        minHeight: 500,
+                        minWidth: 400,
+                        maxWidth: 800,
+                      ),
+                    );
+                  }
+                  if (picked != null) {
+                    DateTime newDate = picked;
+                    // Apply local time or utc time
+                    if (widget.asLocalTime) {
+                      newDate = newDate.toLocal();
+                    } else {
+                      // add Z to the end of the date to indicate it's UTC
+                      // if it's not already UTC
+                      if (!newDate.isUtc) {
+                        newDate = DateTime.parse(
+                          '${newDate.toIso8601String()}Z',
+                        );
+                      }
+                      newDate = newDate.toUtc();
+                    }
+                    if (widget.utcOffset != null && widget.utcOffset != 0) {
+                      newDate = Utils.dateTimeOffset(
+                        dateTime: newDate,
+                        utcOffset: widget.utcOffset,
+                        reverse: true,
+                      )!;
+                    }
+                    widget.onChanged?.call(newDate);
+                    widget.onComplete?.call(newDate);
+                    widget.onSubmit?.call(newDate);
+                  }
+                },
         );
         break;
       case InputDataType.time:
@@ -910,8 +932,12 @@ getValue -------------------------------------
           enableSuggestions: false,
           keyboardType: keyboardType,
           textInputAction: textInputAction,
+          enableInteractiveSelection: isDisabled
+              ? true
+              : widget.enableInteractiveSelection,
+          readOnly: isDisabled,
+          mouseCursor: isDisabled ? SystemMouseCursors.click : null,
           controller: textController,
-          readOnly: true,
           decoration: inputDecoration.copyWith(
             prefixIcon:
                 inputDecoration.prefixIcon ??
@@ -1063,38 +1089,78 @@ getValue -------------------------------------
         );
         break;
       case InputDataType.bool:
-        endWidget = TextFormField(
-          key: ValueKey('input-data-${widget.type}'),
-          controller: textController,
-          initialValue: null,
-          mouseCursor: MouseCursor.uncontrolled,
-          autofillHints: widget.autofillHints,
-          readOnly: true,
-          decoration: inputDecoration.copyWith(
-            floatingLabelBehavior:
-                widget.floatingLabelBehavior ?? FloatingLabelBehavior.never,
-            labelText: null,
-            prefixIcon:
+        endWidget = InputDecorator(
+          decoration: InputDecoration(
+            contentPadding: EdgeInsets.zero,
+            isDense: isDense,
+            errorText: errorText,
+            enabled: !isDisabled,
+            floatingLabelBehavior: FloatingLabelBehavior.always,
+            border: theme.inputDecorationTheme.border,
+          ),
+          child: SwitchListTile(
+            title: widget.label != null ? Text(widget.label!) : null,
+            value: value ?? false,
+            dense: isDense,
+            contentPadding: inputDecoration.contentPadding,
+            onChanged: isDisabled
+                ? null
+                : (newValue) {
+                    widget.onChanged?.call(newValue);
+                    widget.onComplete?.call(newValue);
+                    widget.onSubmit?.call(newValue);
+                  },
+            secondary:
                 inputDecoration.prefixIcon ??
                 Icon(inputDataTypeIcon(widget.type)),
-            suffixIcon: Switch(
-              value: value,
-              onChanged: (newValue) {
-                widget.onChanged?.call(newValue);
-                widget.onComplete?.call(newValue);
-                widget.onSubmit?.call(newValue);
-              },
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(4),
             ),
           ),
-          onTap: () async {
-            bool newValue = !value;
-            widget.onChanged?.call(newValue);
-            widget.onComplete?.call(newValue);
-            widget.onSubmit?.call(newValue);
-          },
         );
         break;
     }
-    return Container(margin: widget.margin, child: endWidget);
+    if (isDisabled &&
+        value != null &&
+        value.toString().isNotEmpty &&
+        !widget.obscureText &&
+        !obscure) {
+      String copyValue = value.toString();
+      switch (widget.type) {
+        case InputDataType.secret:
+          copyValue = '••••••••';
+          break;
+        case InputDataType.enums:
+          copyValue = enumData.localesFromEnum(value);
+          break;
+        default:
+      }
+      endWidget = RawMaterialButton(
+        mouseCursor: MouseCursor.uncontrolled,
+        onPressed: () {
+          Clipboard.setData(ClipboardData(text: copyValue));
+          alert.show(
+            AlertData(
+              body: '${locales.get('alert--copy-clipboard')}: ${copyValue}',
+              duration: 1,
+              clear: true,
+            ),
+          );
+        },
+        child: endWidget,
+      );
+    }
+    return Theme(
+      data: theme.copyWith(
+        // disabledColor: theme.colorScheme.onSurface.withValues(alpha: 0.8),
+        // disabledColor: textTheme.bodyLarge?.color,
+        disabledColor: Colors.green,
+        inputDecorationTheme: theme.inputDecorationTheme.copyWith(
+          disabledBorder: theme.inputDecorationTheme.enabledBorder,
+          hoverColor: textTheme.bodyLarge?.color,
+        ),
+      ),
+      child: Container(margin: widget.margin, child: endWidget),
+    );
   }
 }
