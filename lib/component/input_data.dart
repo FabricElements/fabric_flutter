@@ -1095,12 +1095,14 @@ getValue -------------------------------------
             isDense: isDense,
             errorText: errorText,
             enabled: !isDisabled,
+            labelText: widget.label,
+            labelStyle: theme.textTheme.bodyMedium,
             floatingLabelBehavior: FloatingLabelBehavior.always,
             border: theme.inputDecorationTheme.border,
           ),
           child: SwitchListTile(
-            title: widget.label != null
-                ? Text(widget.label!, style: textTheme.bodyLarge)
+            title: widget.hintText != null
+                ? Text(widget.hintText!, style: textTheme.bodyLarge)
                 : null,
             value: value ?? false,
             dense: isDense,
