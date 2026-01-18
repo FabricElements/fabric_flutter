@@ -1139,6 +1139,12 @@ getValue -------------------------------------
         default:
       }
       endWidget = RawMaterialButton(
+        highlightColor: Colors.transparent,
+        hoverColor: Colors.transparent,
+        hoverElevation: 0,
+        focusElevation: 0,
+        shape: RoundedRectangleBorder(),
+        enableFeedback: false,
         mouseCursor: MouseCursor.uncontrolled,
         onPressed: () {
           Clipboard.setData(ClipboardData(text: copyValue));
