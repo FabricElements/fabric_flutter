@@ -1150,7 +1150,7 @@ getValue -------------------------------------
           Clipboard.setData(ClipboardData(text: copyValue));
           alert.show(
             AlertData(
-              body: '${locales.get('alert--copy-clipboard')}: ${copyValue}',
+              body: '${locales.get('alert--copy-clipboard')}: $copyValue',
               duration: 1,
               clear: true,
             ),
