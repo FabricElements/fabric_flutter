@@ -1099,7 +1099,9 @@ getValue -------------------------------------
             border: theme.inputDecorationTheme.border,
           ),
           child: SwitchListTile(
-            title: widget.label != null ? Text(widget.label!) : null,
+            title: widget.label != null
+                ? Text(widget.label!, style: textTheme.bodyLarge)
+                : null,
             value: value ?? false,
             dense: isDense,
             contentPadding: inputDecoration.contentPadding,
@@ -1153,7 +1155,7 @@ getValue -------------------------------------
     }
     return Theme(
       data: theme.copyWith(
-        disabledColor: theme.colorScheme.onSurface.withValues(alpha: 0.8),
+        disabledColor: textTheme.bodyMedium?.color,
         inputDecorationTheme: theme.inputDecorationTheme.copyWith(
           disabledBorder: theme.inputDecorationTheme.enabledBorder,
           hoverColor: textTheme.bodyLarge?.color,
