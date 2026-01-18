@@ -1124,7 +1124,8 @@ getValue -------------------------------------
         value != null &&
         value.toString().isNotEmpty &&
         !widget.obscureText &&
-        !obscure) {
+        !obscure &&
+        widget.type != InputDataType.bool) {
       String copyValue = value.toString();
       switch (widget.type) {
         case InputDataType.secret:
@@ -1152,9 +1153,7 @@ getValue -------------------------------------
     }
     return Theme(
       data: theme.copyWith(
-        // disabledColor: theme.colorScheme.onSurface.withValues(alpha: 0.8),
-        // disabledColor: textTheme.bodyLarge?.color,
-        disabledColor: Colors.green,
+        disabledColor: theme.colorScheme.onSurface.withValues(alpha: 0.8),
         inputDecorationTheme: theme.inputDecorationTheme.copyWith(
           disabledBorder: theme.inputDecorationTheme.enabledBorder,
           hoverColor: textTheme.bodyLarge?.color,
