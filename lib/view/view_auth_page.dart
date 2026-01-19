@@ -166,11 +166,16 @@ class ViewAuthPageState extends State<ViewAuthPage> {
     }
 
     /// Verification Failed
-    verificationFailed(FirebaseAuthException authException) {
+    verificationFailed(FirebaseAuthException error) {
+      bool authCanceled = error.code == 'canceled';
+      if (authCanceled) {
+        debugPrint(LogColor.error(error.message ?? error.code));
+        return;
+      }
       alert.show(
         AlertData(
           body:
-              '${locales.get('alert--phone-number-verification-failed')}. ${authException.message} -- Code: ${authException.code}',
+              '${locales.get('alert--phone-number-verification-failed')}. ${error.message} -- Code: ${error.code}',
           type: AlertType.critical,
           clear: true,
         ),
@@ -222,7 +227,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
         }
         success = true;
       } catch (error) {
-        debugPrint('confirmationResult failed ----------');
+        debugPrint(LogColor.error('ConfirmationResult Error: $error'));
         alert.show(
           AlertData(
             title: locales.get('alert--sign-in-failed'),
@@ -353,14 +358,17 @@ class ViewAuthPageState extends State<ViewAuthPage> {
           await _auth.signInWithCredential(credential);
         }
       } on FirebaseAuthException catch (error) {
-        alert.show(
-          AlertData(
-            title: locales.get('alert--sign-in-failed'),
-            body: error.message,
-            type: AlertType.critical,
-            clear: true,
-          ),
-        );
+        bool authCanceled = error.code == 'canceled';
+        if (!authCanceled) {
+          alert.show(
+            AlertData(
+              title: locales.get('alert--sign-in-failed'),
+              body: error.message,
+              type: AlertType.critical,
+              clear: true,
+            ),
+          );
+        }
       } on FirebaseException catch (error) {
         alert.show(
           AlertData(
@@ -407,9 +415,16 @@ class ViewAuthPageState extends State<ViewAuthPage> {
                 'Anonymous auth hasn\'t been enabled for this project.';
             break;
         }
-        alert.show(
-          AlertData(body: errorMessage, type: AlertType.critical, clear: true),
-        );
+        bool authCanceled = e.code == 'canceled';
+        if (!authCanceled) {
+          alert.show(
+            AlertData(
+              body: errorMessage,
+              type: AlertType.critical,
+              clear: true,
+            ),
+          );
+        }
       } on FirebaseException catch (error) {
         alert.show(
           AlertData(
@@ -435,14 +450,17 @@ class ViewAuthPageState extends State<ViewAuthPage> {
           await _auth.signInWithProvider(appleProvider);
         }
       } on FirebaseAuthException catch (error) {
-        alert.show(
-          AlertData(
-            title: locales.get('alert--sign-in-failed'),
-            body: error.message,
-            type: AlertType.critical,
-            clear: true,
-          ),
-        );
+        bool authCanceled = error.code == 'canceled';
+        if (!authCanceled) {
+          alert.show(
+            AlertData(
+              title: locales.get('alert--sign-in-failed'),
+              body: error.message,
+              type: AlertType.critical,
+              clear: true,
+            ),
+          );
+        }
       } on FirebaseException catch (error) {
         alert.show(
           AlertData(

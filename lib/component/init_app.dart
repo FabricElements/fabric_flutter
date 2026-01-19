@@ -56,7 +56,14 @@ class InitAppChild extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    ThemeData theme = Theme.of(context);
+    // Use system theme colors
+    final brightness = MediaQuery.of(context).platformBrightness;
+    if (brightness == Brightness.dark) {
+      theme.copyWith(colorScheme: ThemeData.dark().colorScheme);
+    } else {
+      theme.copyWith(colorScheme: ThemeData.light().colorScheme);
+    }
 
     /// Call App States after MultiProvider is called
     final stateUser = Provider.of<StateUser>(context, listen: false);
