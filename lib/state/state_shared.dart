@@ -412,7 +412,7 @@ abstract class StateShared extends ChangeNotifier {
     selectedItems = [];
     privateOldData = null;
     totalCount = 0;
-    loading = false;
+    _loading = false;
     scrollOffset = 0.0;
     _timerNotify?.cancel();
     _timerData?.cancel();
@@ -421,6 +421,14 @@ abstract class StateShared extends ChangeNotifier {
     } else {
       privateData = null;
     }
+  }
+
+  /// Soft clear without resetting pagination and selected items
+  void softClear({bool notify = false}) {
+    privateData = null;
+    _loading = false;
+    initialized = false;
+    if (notify) notifyListeners();
   }
 
   /// Filters

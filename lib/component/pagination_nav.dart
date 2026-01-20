@@ -5,7 +5,7 @@ import '../helper/options.dart';
 import 'input_data.dart';
 
 /// Defines the pagination component with controls
-class PaginationNav extends StatelessWidget {
+class PaginationNav extends StatefulWidget {
   const PaginationNav({
     super.key,
     required this.page,
@@ -36,17 +36,26 @@ class PaginationNav extends StatelessWidget {
   final List<Widget> children;
 
   @override
+  State<PaginationNav> createState() => _PaginationNavState();
+}
+
+class _PaginationNavState extends State<PaginationNav> {
+  bool loading = false;
+
+  @override
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
-    final limitOptions = List.generate(limits.length, (index) {
-      final item = limits[index];
+    final limitOptions = List.generate(widget.limits.length, (index) {
+      final item = widget.limits[index];
       return ButtonOptions(label: item.toString(), value: item);
     });
     int defaultLimit = 10;
-    if (limitOptions.where((element) => element.value == limit).isNotEmpty) {
-      defaultLimit = limit;
+    if (limitOptions
+        .where((element) => element.value == widget.limit)
+        .isNotEmpty) {
+      defaultLimit = widget.limit;
     }
     final pageStyle = textTheme.bodyMedium;
     const space = SizedBox(width: 16, height: 16);
@@ -56,10 +65,10 @@ class PaginationNav extends StatelessWidget {
         bool mobileBreakpoint = width >= 800;
         List<Widget> actions = [
           Text(
-            '${locales.get('label--page')}: $page',
+            '${locales.get('label--page')}: ${widget.page}',
             style: pageStyle?.copyWith(fontWeight: FontWeight.bold),
           ),
-          Text('/ $totalPages', style: pageStyle),
+          Text('/ ${widget.totalPages}', style: pageStyle),
           space,
           SizedBox(
             width: 152,
@@ -70,26 +79,47 @@ class PaginationNav extends StatelessWidget {
               value: defaultLimit,
               type: InputDataType.dropdown,
               options: limitOptions,
-              onChanged: (value) {
-                if (value != limit && value != null) {
-                  limitChange(value ?? limit);
+              disabled: loading,
+              onChanged: (value) async {
+                try {
+                  loading = true;
+                  if (mounted) setState(() {});
+
+                  if (value != widget.limit && value != null) {
+                    widget.limitChange(value ?? widget.limit);
+                  }
+                } finally {
+                  loading = false;
+                  if (mounted) setState(() {});
                 }
               },
             ),
           ),
         ];
-        if (children.isNotEmpty) {
-          actions.addAll([space, ...children]);
+        if (widget.children.isNotEmpty) {
+          actions.addAll([space, ...widget.children]);
         }
         if (mobileBreakpoint) {
           actions.add(const Spacer());
         } else {
           actions.add(space);
         }
-        if (first != null) {
+        if (widget.first != null) {
           actions.addAll([
             TextButton.icon(
-              onPressed: page > initialPage ? () => first!() : null,
+              onPressed: widget.page > widget.initialPage && !loading
+                  ? () async {
+                      try {
+                        loading = true;
+                        if (mounted) setState(() {});
+
+                        await widget.first!();
+                      } finally {
+                        loading = false;
+                        if (mounted) setState(() {});
+                      }
+                    }
+                  : null,
               icon: const Icon(Icons.first_page),
               label: Text(locales.get('label--first').toUpperCase()),
             ),
@@ -98,31 +128,71 @@ class PaginationNav extends StatelessWidget {
         }
         actions.addAll([
           OutlinedButton.icon(
-            onPressed: page > initialPage ? () => previous() : null,
+            onPressed: widget.page > widget.initialPage && !loading
+                ? () async {
+                    try {
+                      loading = true;
+                      if (mounted) setState(() {});
+
+                      await widget.previous();
+                    } finally {
+                      loading = false;
+                      if (mounted) setState(() {});
+                    }
+                  }
+                : null,
             icon: const Icon(Icons.arrow_back),
             label: Text(locales.get('label--previous').toUpperCase()),
           ),
           space,
           OutlinedButton.icon(
-            onPressed: canPaginate ? () => next() : null,
+            onPressed: widget.canPaginate && !loading
+                ? () async {
+                    try {
+                      loading = true;
+                      if (mounted) setState(() {});
+
+                      await widget.next();
+                    } finally {
+                      loading = false;
+                      if (mounted) setState(() {});
+                    }
+                  }
+                : null,
             icon: const Icon(Icons.arrow_forward),
             label: Text(locales.get('label--next').toUpperCase()),
           ),
         ]);
-        if (last != null) {
+        if (widget.last != null) {
           actions.addAll([
             space,
             TextButton.icon(
-              onPressed: page < totalPages ? () => last!() : null,
+              onPressed: widget.page < widget.totalPages && !loading
+                  ? () async {
+                      try {
+                        loading = true;
+                        if (mounted) setState(() {});
+
+                        await widget.last!();
+                      } finally {
+                        loading = false;
+                        if (mounted) setState(() {});
+                      }
+                    }
+                  : null,
               icon: const Icon(Icons.last_page),
               label: Text(locales.get('label--last').toUpperCase()),
             ),
           ]);
         }
         if (mobileBreakpoint) {
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: actions,
+          return Container(
+            constraints: BoxConstraints(minHeight: kMinInteractiveDimension),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: actions,
+            ),
           );
         }
         return Wrap(

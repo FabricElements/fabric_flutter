@@ -47,16 +47,6 @@ abstract class StateCollection extends StateShared {
   /// Get Collection Reference
   Query? get query => baseQuery?.limit(limit * page);
 
-  void _softClear({bool notify = false}) {
-    if (notify) {
-      data = null;
-    } else {
-      privateData = null;
-    }
-    loading = false;
-    initialized = false;
-  }
-
   /// Firestore Document Stream Reference
   StreamSubscription<QuerySnapshot<Object?>>? _streamSubscription;
 
@@ -65,7 +55,7 @@ abstract class StateCollection extends StateShared {
   Future<dynamic> listen() async {
     if (loading) return data;
     if (initialized) return data;
-    _softClear(notify: false);
+    super.softClear(notify: false);
     loading = true;
     await _streamSubscription?.cancel();
     if (query == null) {
@@ -110,7 +100,7 @@ abstract class StateCollection extends StateShared {
   /// On page change
   @override
   void onPageChange(int newPage) async {
-    _softClear(notify: false);
+    super.softClear(notify: false);
   }
 
   @override
@@ -118,7 +108,7 @@ abstract class StateCollection extends StateShared {
     if (_streamSubscription != null) return listen();
     if (loading) return data;
     if (initialized) return data;
-    _softClear(notify: false);
+    super.softClear(notify: false);
     loading = true;
     await _streamSubscription?.cancel();
     if (query == null) {
@@ -129,7 +119,6 @@ abstract class StateCollection extends StateShared {
     initialized = true;
     try {
       final snapshot = await query!.get();
-      loading = false;
       // Default totalCount depending on the page
       totalCount = snapshot.size;
       if (totalCount > 0) {
@@ -147,6 +136,7 @@ abstract class StateCollection extends StateShared {
       data = null;
       error = e.toString();
     }
+    loading = false;
     return data;
   }
 
