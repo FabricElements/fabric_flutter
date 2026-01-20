@@ -179,21 +179,20 @@ abstract class StateAPI extends StateShared {
 
   @override
   Future<dynamic> call({bool ignoreDuplicatedCalls = true}) async {
-    // Check for empty baseEndpoint
+    /// Prevents duplicate calls with a delay and check for loading call again
+    if (loading) return;
+
+    /// Check for empty baseEndpoint
     if (baseEndpoint.isEmpty) {
       data = null;
       error = 'Endpoint path is empty';
       return null;
     }
 
-    /// Prevents duplicate calls with a delay and check for loading call again
-    if (loading) return;
-    loading = true;
-    // Check for duplicated calls
+    /// Check for duplicated calls
     if (ignoreDuplicatedCalls &&
         _lastEndpointCalled == endpoint &&
         data != null) {
-      loading = false;
       return data;
     }
     bool isSameClearPath = urlClear(_lastEndpointCalled) == urlClear(endpoint);
@@ -210,9 +209,10 @@ abstract class StateAPI extends StateShared {
           '$iconWarning $errorCount errors calls to endpoint: $baseEndpoint',
         ),
       );
-      loading = false;
       return data;
     }
+    // Start loading
+    loading = true;
     dynamic newData;
     dynamic dataResponse;
     String? contentType;
@@ -405,8 +405,6 @@ abstract class StateAPI extends StateShared {
           totalCount = newTotal;
         }
       }
-      // Reset loading state
-      loading = false;
       if (error == null) {
         debugPrint(LogColor.info('✅ Endpoint: $endpoint'));
       } else {
@@ -420,11 +418,15 @@ Error: $error
         );
       }
 
-      // Reset HTTP client to prevent issues with persistent connections
+      /// Reset HTTP client to prevent issues with persistent connections
       await _resetHttpClient();
     }
 
+    /// Set data
     data = dataResponse;
+
+    /// Reset loading state
+    loading = false;
     return dataResponse;
   }
 
