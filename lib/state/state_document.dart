@@ -45,13 +45,12 @@ abstract class StateDocument extends StateShared {
     loading = true;
     await _streamSubscription?.cancel();
     super.clear(notify: false);
-    loading = true;
     if (baseRef == null) {
-      loading = false;
-      data = null;
+      super.notifyListeners();
       return data;
     }
     initialized = true;
+    loading = true;
     data = null;
     try {
       _streamSubscription = baseRef!.snapshots().listen(
@@ -120,21 +119,20 @@ abstract class StateDocument extends StateShared {
     loading = true;
     await _streamSubscription?.cancel();
     super.clear(notify: false);
-    loading = true;
     if (baseRef == null) {
-      loading = false;
       data = null;
       return data;
     }
+    loading = true;
     try {
       initialized = true;
       final snapshot = await baseRef!.get();
-      loading = false;
       data = {...snapshot.data() as Map<String, dynamic>, 'id': snapshot.id};
     } catch (e) {
       super.clear(notify: true);
       error = e.toString();
     }
+    loading = false;
     return data;
   }
 
