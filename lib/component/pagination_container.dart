@@ -111,6 +111,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
         .onError((e) {
           error = e.toString();
           loading = false;
+          end = false;
           if (mounted) setState(() {});
         });
   }
@@ -149,7 +150,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
         widget.end ??
         Center(
           child: Padding(
-            padding: EdgeInsets.only(top: kMinInteractiveDimension * 2),
+            padding: EdgeInsets.only(top: kToolbarHeight),
             child: Icon(
               Icons.remove,
               color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
@@ -210,7 +211,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
             } else if (end) {
               return ContentContainer(child: widgetEnd);
             } else {
-              return SizedBox();
+              return SizedBox(height: kToolbarHeight);
             }
           },
           reverse: widget.reverse,
