@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:image_network/image_network.dart';
 
 import '../helper/utils.dart';
 
@@ -79,6 +80,8 @@ class _SmartImageState extends State<SmartImage> {
   int height = 0;
   double devicePixelRatio = 1;
   int resizedTimes = 0;
+  double realWidth = 0;
+  double realHeight = 0;
 
   @override
   void dispose() {
@@ -174,15 +177,16 @@ class _SmartImageState extends State<SmartImage> {
             final queryData = MediaQuery.of(context);
             devicePixelRatio = queryData.devicePixelRatio.floorToDouble();
             if (devicePixelRatio < 1) devicePixelRatio = 1;
-            int newWidth = constraints.maxWidth.floor();
-            int newHeight = constraints.maxHeight.floor();
+            realHeight = constraints.maxHeight;
+            realWidth = constraints.maxWidth;
 
             /// Get dimensions in multiples of [divisor]
             /// This is to prevent too many requests do to small changes in dimensions
             int divisor =
                 100; // Total pixels to divide by to get new dimensions
-            int widthBasedOnDivisor = (newWidth / divisor).floor() * divisor;
-            int heightBasedOnDivisor = (newHeight / divisor).floor() * divisor;
+            int widthBasedOnDivisor = ((realWidth / divisor) * divisor).floor();
+            int heightBasedOnDivisor = ((realHeight / divisor) * divisor)
+                .floor();
             if (widthBasedOnDivisor < divisor) widthBasedOnDivisor = divisor;
             if (heightBasedOnDivisor < divisor) heightBasedOnDivisor = divisor;
             _resizeImageDebounce(
@@ -225,59 +229,76 @@ class _SmartImageState extends State<SmartImage> {
       /// Image
       /// Only load image if width and height are greater than 10
       if (width > 10 && height > 10 && resizedTimes > 0 && path.isNotEmpty) {
-        children.add(
-          Positioned.fill(
-            child: Image.network(
-              path,
-              fit: BoxFit.cover,
-              isAntiAlias: !kIsWeb,
-              width: width.toDouble(),
-              height: height.toDouble(),
-              cacheHeight: (height * devicePixelRatio).round(),
-              cacheWidth: (width * devicePixelRatio).round(),
-              filterQuality: FilterQuality.high,
-              key: ValueKey<String>(path),
-              // This tells the browser to request the image with CORS headers
-              // even though it's on the same domain.
-              headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Accept': 'image/*',
-              },
-              errorBuilder:
-                  (
-                    BuildContext context,
-                    Object exception,
-                    StackTrace? stackTrace,
-                  ) {
-                    return errorPlaceholder;
-                  },
-              loadingBuilder:
-                  (
-                    BuildContext context,
-                    Widget child,
-                    ImageChunkEvent? loadingProgress,
-                  ) {
-                    if (loadingProgress == null) return child;
-                    return loadingPlaceholder;
-                  },
-              frameBuilder:
-                  (
-                    BuildContext context,
-                    Widget child,
-                    int? frame,
-                    bool wasSynchronouslyLoaded,
-                  ) {
-                    if (wasSynchronouslyLoaded) return child;
-                    return AnimatedOpacity(
-                      opacity: frame == null ? 0 : 1,
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeOut,
-                      child: child,
-                    );
-                  },
+        if (!kIsWeb) {
+          children.add(
+            Positioned.fill(
+              child: Image.network(
+                path,
+                fit: BoxFit.cover,
+                isAntiAlias: !kIsWeb,
+                width: width.toDouble(),
+                height: height.toDouble(),
+                cacheHeight: (height * devicePixelRatio).round(),
+                cacheWidth: (width * devicePixelRatio).round(),
+                filterQuality: FilterQuality.high,
+                key: ValueKey<String>(path),
+                // This tells the browser to request the image with CORS headers
+                // even though it's on the same domain.
+                headers: {
+                  'Access-Control-Allow-Origin': '*',
+                  'Accept': 'image/*',
+                },
+                errorBuilder:
+                    (
+                      BuildContext context,
+                      Object exception,
+                      StackTrace? stackTrace,
+                    ) {
+                      return errorPlaceholder;
+                    },
+                loadingBuilder:
+                    (
+                      BuildContext context,
+                      Widget child,
+                      ImageChunkEvent? loadingProgress,
+                    ) {
+                      if (loadingProgress == null) return child;
+                      return loadingPlaceholder;
+                    },
+                frameBuilder:
+                    (
+                      BuildContext context,
+                      Widget child,
+                      int? frame,
+                      bool wasSynchronouslyLoaded,
+                    ) {
+                      if (wasSynchronouslyLoaded) return child;
+                      return AnimatedOpacity(
+                        opacity: frame == null ? 0 : 1,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeOut,
+                        child: child,
+                      );
+                    },
+              ),
             ),
-          ),
-        );
+          );
+        } else {
+          children.add(
+            Positioned.fill(
+              child: ImageNetwork(
+                image: path,
+                width: realWidth,
+                height: realHeight,
+                key: ValueKey<String>(path),
+                onError: errorPlaceholder,
+                onLoading: loadingPlaceholder,
+                fitWeb: BoxFitWeb.cover,
+                fitAndroidIos: BoxFit.cover,
+              ),
+            ),
+          );
+        }
       }
     }
     return Stack(alignment: AlignmentDirectional.center, children: children);

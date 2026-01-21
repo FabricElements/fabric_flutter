@@ -611,10 +611,10 @@ packages:
     dependency: "direct main"
     description:
       name: google_fonts
-      sha256: ca1cc501704c47e478f69a667d7f2d882755ddf7baad3f60c3b1256594467022
+      sha256: "6996212014b996eaa17074e02b1b925b212f5e053832d9048970dc27255a8fb3"
       url: "https://pub.dev"
     source: hosted
-    version: "7.0.2"
+    version: "7.1.0"
   google_identity_services_web:
     dependency: transitive
     description:
@@ -759,6 +759,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.7.2"
+  image_network:
+    dependency: "direct main"
+    description:
+      name: image_network
+      sha256: "8d691f6a5b17bb7383a3da4ac340de0f3c39e949cf59a13eec84e932942babfe"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.6.0"
   image_picker:
     dependency: "direct main"
     description:
@@ -1377,6 +1385,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.4"
+  uuid:
+    dependency: transitive
+    description:
+      name: uuid
+      sha256: a11b666489b1954e01d992f3d601b1804a33937b5a8fe677bd26b8a9f96f96e8
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.5.2"
   vector_math:
     dependency: transitive
     description:
@@ -1505,6 +1521,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.23.5"
+  webviewimage:
+    dependency: transitive
+    description:
+      name: webviewimage
+      sha256: "7e120a76ed6ea1549168c8402f51bd55a64e274f1515b88884b831366e417148"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.6"
   win32:
     dependency: transitive
     description:

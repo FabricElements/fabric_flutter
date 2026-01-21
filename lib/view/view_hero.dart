@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../component/smart_image.dart';
+
 class ViewHero extends StatelessWidget {
   const ViewHero({super.key});
 
@@ -20,7 +22,7 @@ class ViewHero extends StatelessWidget {
           tag: 'hero-media',
           child: InteractiveViewer(
             boundaryMargin: const EdgeInsets.all(16),
-            child: Image.network(mediaUrl, fit: BoxFit.contain),
+            child: SmartImage(url: mediaUrl),
           ),
         ),
       );

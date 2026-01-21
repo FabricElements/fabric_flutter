@@ -1,6 +1,6 @@
 name: fabric_flutter
 description: Native components and helpers
-version: 1.9.1
+version: 1.9.2
 
 environment:
   sdk: ^3.10.7
@@ -45,7 +45,7 @@ dependencies:
   ansicolor: ^2.0.3
   json_serializable: ^6.11.4
   cupertino_icons: ^1.0.8
-  google_fonts: ^7.0.2
+  google_fonts: ^7.1.0
   pointer_interceptor: ^0.10.1+2
   omni_datetime_picker: ^2.3.1
   collection: ^1.19.1
@@ -53,6 +53,7 @@ dependencies:
   scrollable_positioned_list: ^0.3.8
   gap: ^3.0.1
   google_sign_in_web: ^1.1.0
+  image_network: ^2.6.0
 dev_dependencies:
   integration_test:
     sdk: flutter
