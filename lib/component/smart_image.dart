@@ -286,15 +286,17 @@ class _SmartImageState extends State<SmartImage> {
         } else {
           children.add(
             Positioned.fill(
-              child: ImageNetwork(
-                image: path,
-                width: realWidth,
-                height: realHeight,
-                key: ValueKey<String>(path),
-                onError: errorPlaceholder,
-                onLoading: loadingPlaceholder,
-                fitWeb: BoxFitWeb.cover,
-                fitAndroidIos: BoxFit.cover,
+              child: IgnorePointer(
+                child: ImageNetwork(
+                  image: path,
+                  width: realWidth,
+                  height: realHeight,
+                  key: ValueKey<String>(path),
+                  onError: errorPlaceholder,
+                  onLoading: loadingPlaceholder,
+                  fitWeb: BoxFitWeb.cover,
+                  fitAndroidIos: BoxFit.cover,
+                ),
               ),
             ),
           );
