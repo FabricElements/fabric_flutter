@@ -60,19 +60,7 @@ abstract class BaseRoutePageState extends State<BaseRoutePage> {
   void initState() {
     super.initState();
     loading = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      _onInit();
-    });
-  }
-
-  @override
-  void didUpdateWidget(BaseRoutePage oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.uri != widget.uri) {
-      loading = true;
-      if (mounted) setState(() {});
-      _onInit();
-    }
+    _onInit();
   }
 
   @override
