@@ -1,6 +1,6 @@
 name: fabric_flutter
 description: Native components and helpers
-version: 1.9.2
+version: 1.9.3
 
 environment:
   sdk: ^3.10.7
@@ -45,7 +45,7 @@ dependencies:
   ansicolor: ^2.0.3
   json_serializable: ^6.11.4
   cupertino_icons: ^1.0.8
-  google_fonts: ^7.1.0
+  google_fonts: ^8.0.0
   pointer_interceptor: ^0.10.1+2
   omni_datetime_picker: ^2.3.1
   collection: ^1.19.1
