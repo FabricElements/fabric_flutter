@@ -40,8 +40,7 @@ abstract class StateCollection extends StateShared {
     if (oldReference == newReference) return;
     baseQuery = newQuery;
     _streamSubscription?.cancel();
-    super.clear(notify: false);
-    data = null;
+    super.clear(notify: true);
   }
 
   /// Get Collection Reference
