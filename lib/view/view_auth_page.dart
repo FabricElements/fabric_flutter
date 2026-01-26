@@ -181,8 +181,8 @@ class ViewAuthPageState extends State<ViewAuthPage> {
 
     /// SMS auth code sent
     codeSent(String verificationId, [int? forceResendingToken]) {
-      state.verificationId = verificationId;
-      state.section = 2;
+      loading = true;
+      if (mounted) setState(() {});
       alertData(
         context: context,
         body: locales.get('alert--check-phone-verification-code'),
@@ -190,6 +190,10 @@ class ViewAuthPageState extends State<ViewAuthPage> {
         duration: 3,
         clear: true,
       );
+      state.verificationId = verificationId;
+      state.section = 2;
+      loading = false;
+      if (mounted) setState(() {});
     }
 
     /// SMS auth code retrieval timeout
