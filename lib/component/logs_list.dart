@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 
 import '../helper/options.dart';
 import '../helper/utils.dart';
 import '../serialized/logs_data.dart';
-import '../state/state_alert.dart';
+import 'alert_data.dart';
 import 'json_explorer_search.dart';
 import 'user_chip.dart';
 
@@ -46,9 +45,8 @@ class LogsList extends StatelessWidget {
     Widget container = const SizedBox(height: 0);
     if (logs == null || logs!.isEmpty) return container;
     RegExp regExp = RegExp(r'{.*?}', multiLine: true);
-    final alert = Provider.of<StateAlert>(context, listen: false);
-    alert.context = context;
 
+    /// Get item widget
     Widget getItem(LogsData item) {
       DateTime? timestamp = item.timestamp ?? DateTime.now();
       String? text = item.text?.isNotEmpty == true ? item.text : null;
@@ -145,25 +143,24 @@ class LogsList extends StatelessWidget {
             icon: const Icon(Icons.account_tree),
             color: theme.colorScheme.onSurface,
             onPressed: () {
-              alert.show(
-                AlertData(
-                  widget: AlertWidget.dialog,
-                  type: AlertType.basic,
-                  scrollable: false,
-                  // 5 minutes in milliseconds
-                  duration: 300000,
-                  child: Container(
-                    height: 600,
-                    constraints: const BoxConstraints(
-                      maxHeight: 600,
-                      minWidth: 300,
-                      minHeight: 300,
-                    ),
-                    child: Card(
-                      elevation: 0,
-                      clipBehavior: Clip.antiAlias,
-                      child: JsonExplorerSearch(json: item.data),
-                    ),
+              alertData(
+                context: context,
+                widget: AlertWidget.dialog,
+                type: AlertType.basic,
+                scrollable: false,
+                // 5 minutes in milliseconds
+                duration: 300000,
+                child: Container(
+                  height: 600,
+                  constraints: const BoxConstraints(
+                    maxHeight: 600,
+                    minWidth: 300,
+                    minHeight: 300,
+                  ),
+                  child: Card(
+                    elevation: 0,
+                    clipBehavior: Clip.antiAlias,
+                    child: JsonExplorerSearch(json: item.data),
                   ),
                 ),
               );

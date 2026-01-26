@@ -5,8 +5,8 @@ import '../helper/app_localizations_delegate.dart';
 import '../helper/options.dart';
 import '../placeholder/loading_screen.dart';
 import '../serialized/notification_data.dart';
-import '../state/state_alert.dart';
 import '../state/state_notifications.dart';
+import 'alert_data.dart';
 import 'route_page.dart';
 
 /// RoutePageFirebase
@@ -30,8 +30,6 @@ class _RoutePageNotificationsState extends BaseRoutePageState {
   @override
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context);
-    final alert = Provider.of<StateAlert>(context, listen: false);
-    alert.context = context;
 
     /// Assign notification callback
     final stateNotifications = Provider.of<StateNotifications>(
@@ -39,25 +37,22 @@ class _RoutePageNotificationsState extends BaseRoutePageState {
       listen: false,
     );
     stateNotifications.callback = (NotificationData message) {
-      alert.show(
-        AlertData(
-          duration: message.duration,
-          title: message.title,
-          body: message.body,
-          image: message.imageUrl,
-          typeString: message.type,
-          clear: message.clear,
-          action: (message.path != null)
-              ? ButtonOptions(
-                  label: locales.get('label--open'),
-                  onTap: () {
-                    Navigator.of(
-                      alert.context ?? context,
-                    ).popAndPushNamed(message.path!);
-                  },
-                )
-              : null,
-        ),
+      alertData(
+        context: context,
+        duration: message.duration,
+        title: message.title,
+        body: message.body,
+        image: message.imageUrl,
+        typeString: message.type,
+        clear: message.clear,
+        action: (message.path != null)
+            ? ButtonOptions(
+                label: locales.get('label--open'),
+                onTap: () {
+                  Navigator.of(context).popAndPushNamed(message.path!);
+                },
+              )
+            : null,
       );
     };
 

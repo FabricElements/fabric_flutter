@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 import '../helper/app_localizations_delegate.dart';
 import '../helper/options.dart';
 import '../helper/regex_helper.dart';
 import '../serialized/password_data.dart';
-import '../state/state_alert.dart';
 import './input_data.dart';
+import 'alert_data.dart';
 
 class UpdatePassword extends StatefulWidget {
   const UpdatePassword({super.key, required this.callback});
@@ -39,7 +38,7 @@ class _UpdatePasswordState extends State<UpdatePassword> {
   @override
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context);
-    final alert = Provider.of<StateAlert>(context, listen: false);
+
     String? errorValidation;
     String? errorValidation2;
     bool newPasswordOk = RegexHelper.password.hasMatch(password1);
@@ -118,28 +117,27 @@ class _UpdatePasswordState extends State<UpdatePassword> {
       sections.add(
         FilledButton(
           onPressed: () {
-            alert.show(
-              AlertData(
-                title: locales.get('label--confirm-are-you-sure-update-label', {
-                  'label': locales.get('label--password'),
-                }),
-                body: locales.get('alert--action-permanent'),
-                action: ButtonOptions(
-                  onTap: () {
-                    widget.callback(
-                      PasswordData(
-                        currentPassword: current,
-                        newPassword: password1,
-                      ),
-                    );
-                    reset();
-                    if (mounted) setState(() {});
-                  },
-                  label: 'label--update',
-                ),
-                type: AlertType.warning,
-                widget: AlertWidget.dialog,
+            alertData(
+              context: context,
+              title: locales.get('label--confirm-are-you-sure-update-label', {
+                'label': locales.get('label--password'),
+              }),
+              body: locales.get('alert--action-permanent'),
+              action: ButtonOptions(
+                onTap: () {
+                  widget.callback(
+                    PasswordData(
+                      currentPassword: current,
+                      newPassword: password1,
+                    ),
+                  );
+                  reset();
+                  if (mounted) setState(() {});
+                },
+                label: 'label--update',
               ),
+              type: AlertType.warning,
+              widget: AlertWidget.dialog,
             );
           },
           child: Text(locales.get('label--update')),

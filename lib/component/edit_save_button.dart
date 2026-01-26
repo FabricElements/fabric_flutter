@@ -1,9 +1,8 @@
+import 'package:fabric_flutter/component/alert_data.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 import '../helper/app_localizations_delegate.dart';
 import '../helper/options.dart';
-import '../state/state_alert.dart';
 
 /// EditSaveButton displays a simple way to show/hide edit buttons
 class EditSaveButton extends StatefulWidget {
@@ -51,7 +50,6 @@ class _EditSaveButtonState extends State<EditSaveButton> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final alert = Provider.of<StateAlert>(context, listen: false);
     final locales = AppLocalizations.of(context);
 
     void update() async {
@@ -59,14 +57,13 @@ class _EditSaveButtonState extends State<EditSaveButton> {
         widget.save();
         return;
       }
-      alert.show(
-        AlertData(
-          title: locales.get('label--confirm-are-you-sure-update'),
-          action: ButtonOptions(onTap: widget.save, label: 'label--update'),
-          type: widget.alertType,
-          widget: widget.alertWidget,
-          clear: true,
-        ),
+      alertData(
+        context: context,
+        title: locales.get('label--confirm-are-you-sure-update'),
+        action: ButtonOptions(onTap: widget.save, label: 'label--update'),
+        type: widget.alertType,
+        widget: widget.alertWidget,
+        clear: true,
       );
     }
 
@@ -75,14 +72,13 @@ class _EditSaveButtonState extends State<EditSaveButton> {
         widget.cancel();
         return;
       }
-      alert.show(
-        AlertData(
-          type: widget.alertType,
-          widget: widget.alertWidget,
-          title: locales.get('label--confirm-are-you-sure-cancel'),
-          action: ButtonOptions(onTap: widget.cancel, label: 'label--cancel'),
-          clear: true,
-        ),
+      alertData(
+        context: context,
+        type: widget.alertType,
+        widget: widget.alertWidget,
+        title: locales.get('label--confirm-are-you-sure-cancel'),
+        action: ButtonOptions(onTap: widget.cancel, label: 'label--cancel'),
+        clear: true,
       );
     }
 

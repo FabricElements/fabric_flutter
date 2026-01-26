@@ -3,12 +3,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
-import 'package:provider/provider.dart';
 
 import '../../serialized/place_data.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/http_request.dart';
-import '../state/state_alert.dart';
+import 'alert_data.dart';
 import 'google_maps_preview.dart';
 
 /// This view has a map and allow choose a specific location
@@ -115,7 +114,6 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final locales = AppLocalizations.of(context);
-    final alert = Provider.of<StateAlert>(context, listen: false);
 
     /// Get place object by id
     getPlaceById(String placeId) async {
@@ -158,13 +156,12 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
       try {
         await getPlaceById(result.placeId);
       } catch (error) {
-        alert.show(
-          AlertData(
-            title: error.toString(),
-            type: AlertType.warning,
-            duration: 5,
-            clear: true,
-          ),
+        alertData(
+          context: context,
+          title: error.toString(),
+          type: AlertType.warning,
+          duration: 5,
+          clear: true,
         );
         if (widget.onError != null) widget.onError!(error.toString());
       }
@@ -226,13 +223,12 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
                       totalItems = results.length;
                       if (mounted) setState(() {});
                     } catch (error) {
-                      alert.show(
-                        AlertData(
-                          title: error.toString(),
-                          type: AlertType.warning,
-                          duration: 5,
-                          clear: true,
-                        ),
+                      alertData(
+                        context: context,
+                        title: error.toString(),
+                        type: AlertType.warning,
+                        duration: 5,
+                        clear: true,
                       );
                     }
                   },

@@ -2,10 +2,9 @@ import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
+import '../component/alert_data.dart';
 import '../serialized/media_data.dart';
-import '../state/state_alert.dart';
 import 'app_localizations_delegate.dart';
 import 'media_helper.dart';
 
@@ -100,6 +99,7 @@ class FirebaseStorageHelper {
     return fileSaved.ref.fullPath;
   }
 
+  /// Upload image media
   Future uploadImageMedia({
     required MediaOrigin origin,
     required Function(String, MediaData) callback,
@@ -108,7 +108,6 @@ class FirebaseStorageHelper {
     bool autoId = false,
     bool expiry = false,
   }) async {
-    final alert = Provider.of<StateAlert>(context, listen: false);
     final locales = AppLocalizations.of(context);
     try {
       final selectedFile = await MediaHelper.getImage(
@@ -128,13 +127,12 @@ class FirebaseStorageHelper {
       final errorType = errorMessage == 'alert--no-chosen-files'
           ? AlertType.warning
           : AlertType.critical;
-      alert.show(
-        AlertData(
-          body: locales.get(errorMessage),
-          type: errorType,
-          duration: 5,
-          clear: true,
-        ),
+      alertData(
+        context: context,
+        body: locales.get(errorMessage),
+        type: errorType,
+        duration: 5,
+        clear: true,
       );
     }
   }
@@ -149,7 +147,6 @@ class FirebaseStorageHelper {
     /// Optional maximum file size in bytes
     int? maxFileSize,
   }) async {
-    final alert = Provider.of<StateAlert>(context, listen: false);
     final locales = AppLocalizations.of(context);
     try {
       final selectedFile = await MediaHelper.getFile(
@@ -169,13 +166,12 @@ class FirebaseStorageHelper {
       final errorType = errorMessage == 'alert--no-chosen-files'
           ? AlertType.warning
           : AlertType.critical;
-      alert.show(
-        AlertData(
-          body: locales.get(errorMessage),
-          type: errorType,
-          duration: 5,
-          clear: true,
-        ),
+      alertData(
+        context: context,
+        body: locales.get(errorMessage),
+        type: errorType,
+        duration: 5,
+        clear: true,
       );
     }
   }

@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 import '../helper/app_localizations_delegate.dart';
 import '../helper/log_color.dart';
 import '../helper/route_helper.dart';
 import '../placeholder/loading_screen.dart';
 import '../serialized/user_status.dart';
-import '../state/state_alert.dart';
+import 'alert_data.dart';
 
 /// BaseRoutePage
 /// Use it to structure your route page class.
@@ -68,28 +67,25 @@ abstract class BaseRoutePageState extends State<BaseRoutePage> {
     final notReady = widget.status == null || !widget.status!.ready;
     if (loading || notReady) return widget.loading;
     final locales = AppLocalizations.of(context);
-    final alert = Provider.of<StateAlert>(context, listen: false);
-    alert.context = context;
+
     try {
       if (widget.status?.connectionChanged ?? false) {
         if (widget.status?.connected ?? false) {
-          alert.show(
-            AlertData(
-              icon: Icons.wifi,
-              body: locales.get('notification--you-are-back-online'),
-              clear: true,
-              duration: 2,
-            ),
+          alertData(
+            context: context,
+            icon: Icons.wifi,
+            body: locales.get('notification--you-are-back-online'),
+            clear: true,
+            duration: 2,
           );
         } else {
-          alert.show(
-            AlertData(
-              icon: Icons.wifi_off,
-              body: locales.get('notification--you-are--offline'),
-              clear: true,
-              duration: 2,
-              type: AlertType.warning,
-            ),
+          alertData(
+            context: context,
+            icon: Icons.wifi_off,
+            body: locales.get('notification--you-are--offline'),
+            clear: true,
+            duration: 2,
+            type: AlertType.warning,
           );
         }
       }
