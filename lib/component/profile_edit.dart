@@ -9,8 +9,8 @@ import 'package:provider/provider.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/log_color.dart';
 import '../helper/media_helper.dart';
-import '../state/state_alert.dart';
 import '../state/state_user.dart';
+import 'alert_data.dart';
 import 'content_container.dart';
 import 'input_data.dart';
 
@@ -47,7 +47,6 @@ class _ProfileEditState extends State<ProfileEdit> {
 
   @override
   Widget build(BuildContext context) {
-    final alert = Provider.of<StateAlert>(context, listen: false);
     final locales = AppLocalizations.of(context);
     final stateUser = Provider.of<StateUser>(context, listen: false);
     userImage = widget.prefix != null && stateUser.serialized.avatar != null
@@ -85,40 +84,37 @@ class _ProfileEditState extends State<ProfileEdit> {
       assert(nameLast != null, 'Last Name must be defined');
       assert(changed, 'No changes detected');
       loading = true;
-      alert.show(
-        AlertData(
-          body: locales.get('notification--please-wait'),
-          duration: 4,
-          clear: true,
-        ),
+      alertData(
+        context: context,
+        body: locales.get('notification--please-wait'),
+        duration: 4,
+        clear: true,
       );
       if (nameFirst!.isEmpty) {
         loading = false;
         if (mounted) setState(() {});
-        alert.show(
-          AlertData(
-            body: locales.get('label--too-short', {
-              'label': locales.get('label--first-name'),
-              'number': '3',
-            }),
-            type: AlertType.critical,
-            clear: true,
-          ),
+        alertData(
+          context: context,
+          body: locales.get('label--too-short', {
+            'label': locales.get('label--first-name'),
+            'number': '3',
+          }),
+          type: AlertType.critical,
+          clear: true,
         );
         return;
       }
       if (nameLast!.isEmpty) {
         loading = false;
         if (mounted) setState(() {});
-        alert.show(
-          AlertData(
-            body: locales.get('label--too-short', {
-              'label': locales.get('label--last-name'),
-              'number': '3',
-            }),
-            type: AlertType.critical,
-            clear: true,
-          ),
+        alertData(
+          context: context,
+          body: locales.get('label--too-short', {
+            'label': locales.get('label--last-name'),
+            'number': '3',
+          }),
+          type: AlertType.critical,
+          clear: true,
         );
         return;
       }
@@ -138,29 +134,28 @@ class _ProfileEditState extends State<ProfileEdit> {
         await callable.call(newData);
         _temporalImageBytes = null;
         changed = false;
-        alert.show(
-          AlertData(
-            body: locales.get('page-profile--alert--profile-updated'),
-            type: AlertType.success,
-            clear: true,
-          ),
-        );
         refreshImage();
+        // Check if the widget is still 'alive' before using the context
+        if (!context.mounted) return;
+        alertData(
+          context: context,
+          body: locales.get('page-profile--alert--profile-updated'),
+          type: AlertType.success,
+          clear: true,
+        );
       } on FirebaseFunctionsException catch (error) {
-        alert.show(
-          AlertData(
-            body: error.message ?? error.details['message'],
-            type: AlertType.critical,
-            clear: true,
-          ),
+        alertData(
+          context: context,
+          body: error.message ?? error.details['message'],
+          type: AlertType.critical,
+          clear: true,
         );
       } catch (error) {
-        alert.show(
-          AlertData(
-            body: error.toString(),
-            type: AlertType.critical,
-            clear: true,
-          ),
+        alertData(
+          context: context,
+          body: error.toString(),
+          type: AlertType.critical,
+          clear: true,
         );
       }
       loading = false;
@@ -181,13 +176,12 @@ class _ProfileEditState extends State<ProfileEdit> {
         final errorType = errorMessage == 'alert--no-chosen-files'
             ? AlertType.warning
             : AlertType.critical;
-        alert.show(
-          AlertData(
-            body: locales.get(errorMessage),
-            type: errorType,
-            duration: 5,
-            clear: true,
-          ),
+        alertData(
+          context: context,
+          body: locales.get(errorMessage),
+          type: errorType,
+          duration: 5,
+          clear: true,
         );
       }
       loading = false;

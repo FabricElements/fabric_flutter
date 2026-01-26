@@ -9,6 +9,7 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 
+import '../component/alert_data.dart';
 import '../component/content_container.dart';
 import '../component/input_data.dart';
 import '../component/phone_input.dart';
@@ -17,7 +18,6 @@ import '../helper/app_localizations_delegate.dart';
 import '../helper/log_color.dart';
 import '../helper/options.dart';
 import '../placeholder/loading_screen.dart';
-import '../state/state_alert.dart';
 import '../state/state_analytics.dart';
 import '../state/state_global.dart';
 import '../state/state_view_auth.dart';
@@ -124,7 +124,6 @@ class ViewAuthPageState extends State<ViewAuthPage> {
     final stateGlobal = Provider.of<StateGlobal>(context);
     final stateAnalytics = Provider.of<StateAnalytics>(context, listen: false);
     final state = Provider.of<StateViewAuth>(context);
-    final alert = Provider.of<StateAlert>(context, listen: false);
     final theme = Theme.of(context);
     final locales = AppLocalizations.of(context);
     final textTheme = Theme.of(context).textTheme;
@@ -157,11 +156,10 @@ class ViewAuthPageState extends State<ViewAuthPage> {
     /// Verification completed: Sign in with credentials
     verificationCompleted(AuthCredential phoneAuthCredential) async {
       await _auth.signInWithCredential(phoneAuthCredential);
-      alert.show(
-        AlertData(
-          body: locales.get('alert--received-phone-auth-credential'),
-          clear: true,
-        ),
+      alertData(
+        context: context,
+        body: locales.get('alert--received-phone-auth-credential'),
+        clear: true,
       );
     }
 
@@ -172,13 +170,12 @@ class ViewAuthPageState extends State<ViewAuthPage> {
         debugPrint(LogColor.error(error.message ?? error.code));
         return;
       }
-      alert.show(
-        AlertData(
-          body:
-              '${locales.get('alert--phone-number-verification-failed')}. ${error.message} -- Code: ${error.code}',
-          type: AlertType.critical,
-          clear: true,
-        ),
+      alertData(
+        context: context,
+        body:
+            '${locales.get('alert--phone-number-verification-failed')}. ${error.message} -- Code: ${error.code}',
+        type: AlertType.critical,
+        clear: true,
       );
     }
 
@@ -186,13 +183,12 @@ class ViewAuthPageState extends State<ViewAuthPage> {
     codeSent(String verificationId, [int? forceResendingToken]) {
       state.verificationId = verificationId;
       state.section = 2;
-      alert.show(
-        AlertData(
-          body: locales.get('alert--check-phone-verification-code'),
-          type: AlertType.success,
-          duration: 3,
-          clear: true,
-        ),
+      alertData(
+        context: context,
+        body: locales.get('alert--check-phone-verification-code'),
+        type: AlertType.success,
+        duration: 3,
+        clear: true,
       );
     }
 
@@ -228,13 +224,12 @@ class ViewAuthPageState extends State<ViewAuthPage> {
         success = true;
       } catch (error) {
         debugPrint(LogColor.error('ConfirmationResult Error: $error'));
-        alert.show(
-          AlertData(
-            title: locales.get('alert--sign-in-failed'),
-            body: error.toString(),
-            type: AlertType.critical,
-            clear: true,
-          ),
+        alertData(
+          context: context,
+          title: locales.get('alert--sign-in-failed'),
+          body: error.toString(),
+          type: AlertType.critical,
+          clear: true,
         );
       }
       loading = false;
@@ -266,13 +261,12 @@ class ViewAuthPageState extends State<ViewAuthPage> {
         await Future.delayed(const Duration(seconds: 3));
         resetView();
       } catch (error) {
-        alert.show(
-          AlertData(
-            title: locales.get('alert--sign-in-failed'),
-            body: error.toString(),
-            type: AlertType.critical,
-            clear: true,
-          ),
+        alertData(
+          context: context,
+          title: locales.get('alert--sign-in-failed'),
+          body: error.toString(),
+          type: AlertType.critical,
+          clear: true,
         );
       } finally {
         loading = false;
@@ -301,13 +295,12 @@ class ViewAuthPageState extends State<ViewAuthPage> {
         await Future.delayed(const Duration(seconds: 3));
         resetView();
       } catch (error) {
-        alert.show(
-          AlertData(
-            title: locales.get('alert--sign-in-failed'),
-            body: error.toString(),
-            type: AlertType.critical,
-            clear: true,
-          ),
+        alertData(
+          context: context,
+          title: locales.get('alert--sign-in-failed'),
+          body: error.toString(),
+          type: AlertType.critical,
+          clear: true,
         );
       } finally {
         loading = false;
@@ -360,32 +353,29 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       } on FirebaseAuthException catch (error) {
         bool authCanceled = error.code == 'canceled';
         if (!authCanceled) {
-          alert.show(
-            AlertData(
-              title: locales.get('alert--sign-in-failed'),
-              body: error.message,
-              type: AlertType.critical,
-              clear: true,
-            ),
-          );
-        }
-      } on FirebaseException catch (error) {
-        alert.show(
-          AlertData(
+          alertData(
+            context: context,
             title: locales.get('alert--sign-in-failed'),
             body: error.message,
             type: AlertType.critical,
             clear: true,
-          ),
+          );
+        }
+      } on FirebaseException catch (error) {
+        alertData(
+          context: context,
+          title: locales.get('alert--sign-in-failed'),
+          body: error.message,
+          type: AlertType.critical,
+          clear: true,
         );
       } catch (error) {
-        alert.show(
-          AlertData(
-            title: locales.get('alert--sign-in-failed'),
-            body: error.toString(),
-            type: AlertType.critical,
-            clear: true,
-          ),
+        alertData(
+          context: context,
+          title: locales.get('alert--sign-in-failed'),
+          body: error.toString(),
+          type: AlertType.critical,
+          clear: true,
         );
       }
       loading = false;
@@ -399,12 +389,12 @@ class ViewAuthPageState extends State<ViewAuthPage> {
         final User user = userCredential.user!;
         final User currentUser = _auth.currentUser!;
         assert(user.uid == currentUser.uid);
-        alert.show(
-          AlertData(
-            title: 'Signed in with temporary account.',
-            type: AlertType.success,
-            clear: true,
-          ),
+
+        alertData(
+          context: context,
+          title: 'Signed in with temporary account.',
+          type: AlertType.success,
+          clear: true,
         );
       } on FirebaseAuthException catch (e) {
         debugPrint(LogColor.error(e));
@@ -417,22 +407,20 @@ class ViewAuthPageState extends State<ViewAuthPage> {
         }
         bool authCanceled = e.code == 'canceled';
         if (!authCanceled) {
-          alert.show(
-            AlertData(
-              body: errorMessage,
-              type: AlertType.critical,
-              clear: true,
-            ),
+          alertData(
+            context: context,
+            body: errorMessage,
+            type: AlertType.critical,
+            clear: true,
           );
         }
       } on FirebaseException catch (error) {
-        alert.show(
-          AlertData(
-            title: locales.get('alert--sign-in-failed'),
-            body: error.message,
-            type: AlertType.critical,
-            clear: true,
-          ),
+        alertData(
+          context: context,
+          title: locales.get('alert--sign-in-failed'),
+          body: error.message,
+          type: AlertType.critical,
+          clear: true,
         );
       }
     }
@@ -452,32 +440,29 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       } on FirebaseAuthException catch (error) {
         bool authCanceled = error.code == 'canceled';
         if (!authCanceled) {
-          alert.show(
-            AlertData(
-              title: locales.get('alert--sign-in-failed'),
-              body: error.message,
-              type: AlertType.critical,
-              clear: true,
-            ),
-          );
-        }
-      } on FirebaseException catch (error) {
-        alert.show(
-          AlertData(
+          alertData(
+            context: context,
             title: locales.get('alert--sign-in-failed'),
             body: error.message,
             type: AlertType.critical,
             clear: true,
-          ),
+          );
+        }
+      } on FirebaseException catch (error) {
+        alertData(
+          context: context,
+          title: locales.get('alert--sign-in-failed'),
+          body: error.message,
+          type: AlertType.critical,
+          clear: true,
         );
       } catch (error) {
-        alert.show(
-          AlertData(
-            title: locales.get('alert--sign-in-failed: '),
-            body: error.toString(),
-            type: AlertType.critical,
-            clear: true,
-          ),
+        alertData(
+          context: context,
+          title: locales.get('alert--sign-in-failed: '),
+          body: error.toString(),
+          type: AlertType.critical,
+          clear: true,
         );
       } finally {
         resetView();
@@ -536,58 +521,53 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       if (widget.policies != null && !policiesAccepted && !loading) {
         final baseAction = action;
         action = () async {
-          loading = true;
-          if (mounted) setState(() {});
           try {
             String mdFromFile = await rootBundle.loadString(widget.policies!);
-            alert.show(
-              AlertData(
-                type: AlertType.basic,
-                widget: AlertWidget.dialog,
-                child: SizedBox(
-                  width: double.maxFinite,
-                  height: height * 0.5,
-                  child: Markdown(
-                    styleSheet: MarkdownStyleSheet.largeFromTheme(theme),
-                    selectable: true,
-                    // shrinkWrap: true,
-                    data: mdFromFile,
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 32,
-                      horizontal: 16,
-                    ),
+            alertData(
+              context: context,
+              type: AlertType.basic,
+              widget: AlertWidget.dialog,
+              clear: true,
+              child: SizedBox(
+                width: double.maxFinite,
+                height: height * 0.5,
+                child: Markdown(
+                  styleSheet: MarkdownStyleSheet.largeFromTheme(theme),
+                  selectable: true,
+                  // shrinkWrap: true,
+                  data: mdFromFile,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 32,
+                    horizontal: 16,
                   ),
                 ),
-                action: ButtonOptions(
-                  label: locales.get('label--accept'),
-                  icon: Icons.check,
-                  onTap: () {
-                    policiesAccepted = true;
-                    if (mounted) setState(() {});
-                    baseAction();
-                  },
-                ),
-                dismiss: ButtonOptions(
-                  label: locales.get('label--reject'),
-                  icon: Icons.cancel,
-                  onTap: () {
-                    policiesAccepted = false;
-                    if (mounted) setState(() {});
-                  },
-                ),
+              ),
+              action: ButtonOptions(
+                label: locales.get('label--accept'),
+                icon: Icons.check,
+                onTap: () {
+                  policiesAccepted = true;
+                  if (mounted) setState(() {});
+                  baseAction();
+                },
+              ),
+              dismiss: ButtonOptions(
+                label: locales.get('label--reject'),
+                icon: Icons.cancel,
+                onTap: () {
+                  policiesAccepted = false;
+                  if (mounted) setState(() {});
+                },
               ),
             );
           } catch (error) {
-            alert.show(
-              AlertData(
-                body: error.toString(),
-                type: AlertType.critical,
-                clear: true,
-              ),
+            alertData(
+              context: context,
+              body: error.toString(),
+              type: AlertType.critical,
+              clear: true,
             );
           }
-          loading = false;
-          if (mounted) setState(() {});
         };
       }
       return Padding(

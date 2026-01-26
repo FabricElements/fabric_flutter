@@ -423,14 +423,6 @@ abstract class StateShared extends ChangeNotifier {
     }
   }
 
-  /// Soft clear without resetting pagination and selected items
-  void softClear({bool notify = false}) {
-    privateData = null;
-    _loading = false;
-    initialized = false;
-    if (notify) notifyListeners();
-  }
-
   /// Filters
   /// Used to identify the table/collection id
   String filterGroup = 'filters';

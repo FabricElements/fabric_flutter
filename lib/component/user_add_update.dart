@@ -1,6 +1,5 @@
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 import '../helper/app_localizations_delegate.dart';
 import '../helper/input_validation.dart';
@@ -8,7 +7,7 @@ import '../helper/options.dart';
 import '../helper/regex_helper.dart';
 import '../helper/utils.dart';
 import '../serialized/user_data.dart';
-import '../state/state_alert.dart';
+import 'alert_data.dart';
 import 'content_container.dart';
 import 'input_data.dart';
 
@@ -138,7 +137,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final locales = AppLocalizations.of(context);
-    final alert = Provider.of<StateAlert>(context, listen: false);
+
     final passwordRegex = widget.passwordRegex ?? RegexHelper.password;
     bool canCall = sending == false;
     bool validPhone = data.phone != null && data.phone!.isNotEmpty;
@@ -195,15 +194,17 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
           'username, email or phone must not be null',
         );
         await widget.onConfirm(data, group: widget.group);
-        alert.show(
-          AlertData(
-            clear: true,
-            body: locales.get(widget.successMessage),
-            type: AlertType.success,
-            duration: 3,
-          ),
+        alertData(
+          context: context,
+          clear: true,
+          body: locales.get(widget.successMessage),
+          type: AlertType.success,
+          duration: 3,
         );
-        Navigator.of(context).pop();
+        // Check if the widget is still 'alive' before using the context
+        if (context.mounted) {
+          Navigator.of(context).pop();
+        }
         await widget.onChanged();
       } on FirebaseFunctionsException catch (e) {
         error = e.message ?? e.details['message'];

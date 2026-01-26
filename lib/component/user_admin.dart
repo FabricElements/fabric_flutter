@@ -8,9 +8,9 @@ import '../helper/options.dart';
 import '../helper/user_roles.dart';
 import '../helper/user_roles_firebase.dart';
 import '../serialized/user_data.dart';
-import '../state/state_alert.dart';
 import '../state/state_user.dart';
 import '../state/state_users.dart';
+import 'alert_data.dart';
 import 'content_container.dart';
 import 'pagination_container.dart';
 import 'user_add_update.dart';
@@ -89,17 +89,16 @@ class UserAdmin extends StatelessWidget {
     }
     final stateUser = Provider.of<StateUser>(context, listen: false);
     final state = Provider.of<StateUsers>(context, listen: false);
-    final alert = Provider.of<StateAlert>(context, listen: false);
+
     // Set default limit when you will use shrinkWrap
     if (!primary) state.limitDefault = 100;
     // Catch errors
     apiError(String? e) => (e != null)
-        ? alert.show(
-            AlertData(
-              title: locales.get(e),
-              type: AlertType.critical,
-              clear: true,
-            ),
+        ? alertData(
+            context: context,
+            title: locales.get(e),
+            type: AlertType.critical,
+            clear: true,
           )
         : null;
     stateUser.onError = apiError;
@@ -130,46 +129,42 @@ class UserAdmin extends StatelessWidget {
           data.phone ??
           data.email ??
           data.id;
-      alert.show(
-        AlertData(
-          title: locales.get('label--confirm-are-you-sure-remove-label', {
-            'label': '${locales.get('label--user').toLowerCase()}: $name',
-          }),
-          action: ButtonOptions(
-            onTap: () async {
-              try {
-                await UserRolesFirebase.onRemove(data, group: group);
-                // Type indicates the data field to use in the function, admin level or collection.
-                alert.show(
-                  AlertData(
-                    clear: true,
-                    body: locales.get('alert--user-removed'),
-                    type: AlertType.success,
-                    duration: 3,
-                  ),
-                );
-              } on FirebaseFunctionsException catch (error) {
-                alert.show(
-                  AlertData(
-                    clear: true,
-                    body: error.message ?? error.details['message'],
-                    type: AlertType.critical,
-                  ),
-                );
-              } catch (error) {
-                alert.show(
-                  AlertData(
-                    clear: true,
-                    body: error.toString(),
-                    type: AlertType.critical,
-                  ),
-                );
-              }
-            },
-          ),
-          type: AlertType.warning,
-          widget: AlertWidget.dialog,
+      alertData(
+        context: context,
+        title: locales.get('label--confirm-are-you-sure-remove-label', {
+          'label': '${locales.get('label--user').toLowerCase()}: $name',
+        }),
+        action: ButtonOptions(
+          onTap: () async {
+            try {
+              await UserRolesFirebase.onRemove(data, group: group);
+              // Type indicates the data field to use in the function, admin level or collection.
+              alertData(
+                context: context,
+                clear: true,
+                body: locales.get('alert--user-removed'),
+                type: AlertType.success,
+                duration: 3,
+              );
+            } on FirebaseFunctionsException catch (error) {
+              alertData(
+                context: context,
+                clear: true,
+                body: error.message ?? error.details['message'],
+                type: AlertType.critical,
+              );
+            } catch (error) {
+              alertData(
+                context: context,
+                clear: true,
+                body: error.toString(),
+                type: AlertType.critical,
+              );
+            }
+          },
         ),
+        type: AlertType.warning,
+        widget: AlertWidget.dialog,
       );
     }
 

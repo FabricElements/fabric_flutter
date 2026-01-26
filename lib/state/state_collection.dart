@@ -40,8 +40,7 @@ abstract class StateCollection extends StateShared {
     if (oldReference == newReference) return;
     baseQuery = newQuery;
     _streamSubscription?.cancel();
-    super.clear(notify: false);
-    data = null;
+    super.clear(notify: true);
   }
 
   /// Get Collection Reference
@@ -55,7 +54,7 @@ abstract class StateCollection extends StateShared {
   Future<dynamic> listen() async {
     if (loading) return data;
     if (initialized) return data;
-    super.softClear(notify: false);
+    super.clear(notify: false);
     loading = true;
     await _streamSubscription?.cancel();
     if (query == null) {
@@ -100,7 +99,7 @@ abstract class StateCollection extends StateShared {
   /// On page change
   @override
   void onPageChange(int newPage) async {
-    super.softClear(notify: false);
+    super.clear(notify: false);
   }
 
   @override
@@ -108,7 +107,7 @@ abstract class StateCollection extends StateShared {
     if (_streamSubscription != null) return listen();
     if (loading) return data;
     if (initialized) return data;
-    super.softClear(notify: false);
+    super.clear(notify: false);
     loading = true;
     await _streamSubscription?.cancel();
     if (query == null) {

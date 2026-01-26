@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:omni_datetime_picker/omni_datetime_picker.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
-import 'package:provider/provider.dart';
 
 import '../helper/app_localizations_delegate.dart';
 import '../helper/enum_data.dart';
@@ -11,7 +10,7 @@ import '../helper/input_validation.dart';
 import '../helper/log_color.dart';
 import '../helper/options.dart';
 import '../helper/utils.dart';
-import '../state/state_alert.dart';
+import 'alert_data.dart';
 import 'smart_image.dart';
 
 /// InputDataType defines the supported types for the [InputData] component
@@ -541,7 +540,6 @@ getValue -------------------------------------
 
   @override
   Widget build(BuildContext context) {
-    final alert = Provider.of<StateAlert>(context, listen: false);
     final locales = AppLocalizations.of(context);
     final enumData = EnumData(locales: locales);
     final theme = Theme.of(context);
@@ -1150,12 +1148,11 @@ getValue -------------------------------------
         mouseCursor: MouseCursor.uncontrolled,
         onPressed: () {
           Clipboard.setData(ClipboardData(text: copyValue));
-          alert.show(
-            AlertData(
-              body: '${locales.get('alert--copy-clipboard')}: $copyValue',
-              duration: 1,
-              clear: true,
-            ),
+          alertData(
+            context: context,
+            body: '${locales.get('alert--copy-clipboard')}: $copyValue',
+            duration: 1,
+            clear: true,
           );
         },
         child: endWidget,

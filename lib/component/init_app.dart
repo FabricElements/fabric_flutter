@@ -5,7 +5,6 @@ import 'package:provider/single_child_widget.dart';
 
 import '../helper/log_color.dart';
 import '../serialized/user_status.dart';
-import '../state/state_alert.dart';
 import '../state/state_analytics.dart';
 import '../state/state_global.dart';
 import '../state/state_notifications.dart';
@@ -33,7 +32,6 @@ class InitApp extends StatelessWidget {
         ...providers,
         ChangeNotifierProvider(create: (context) => StateViewAuth()),
         ChangeNotifierProvider(create: (context) => StateGlobal()),
-        ListenableProvider(create: (context) => StateAlert()),
         ChangeNotifierProvider(create: (context) => StateNotifications()),
         ChangeNotifierProvider(create: (context) => StateUser()),
         ChangeNotifierProvider(create: (context) => StateAnalytics()),

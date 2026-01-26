@@ -9,7 +9,7 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import '../helper/app_localizations_delegate.dart';
-import '../state/state_alert.dart';
+import 'alert_data.dart';
 import 'input_data.dart';
 
 /// This widget is used to display a JSON object in a searchable and
@@ -55,7 +55,7 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final locales = AppLocalizations.of(context);
-    final alert = Provider.of<StateAlert>(context, listen: false);
+
     final widgetEmpty =
         widget.empty ??
         ListTile(
@@ -116,7 +116,7 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
       if (text.toString().length <= 100) {
         message += ': $text';
       }
-      alert.show(AlertData(body: message, duration: 1, clear: true));
+      alertData(context: context, body: message, duration: 1, clear: true);
     }
 
     /// Wraps the store in a ChangeNotifierProvider and rebuilds the widget
