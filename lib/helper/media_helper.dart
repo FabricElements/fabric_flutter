@@ -36,7 +36,7 @@ class MediaHelper {
     try {
       switch (origin) {
         case MediaOrigin.gallery:
-          FilePickerResult? result = await FilePicker.platform.pickFiles(
+          FilePickerResult? result = await FilePicker.pickFiles(
             type: FileType.image,
             withData: true,
           );
@@ -212,7 +212,7 @@ class MediaHelper {
     String? extension;
     String? contentType;
     String? fileName;
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
+    FilePickerResult? result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: allowedExtensions,
       withData: true,
