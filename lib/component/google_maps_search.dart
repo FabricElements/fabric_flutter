@@ -161,7 +161,6 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
           title: error.toString(),
           type: AlertType.warning,
           duration: 5,
-          clear: true,
         );
         if (widget.onError != null) widget.onError!(error.toString());
       }
@@ -228,7 +227,6 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
                         title: error.toString(),
                         type: AlertType.warning,
                         duration: 5,
-                        clear: true,
                       );
                     }
                   },

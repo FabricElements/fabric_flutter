@@ -75,7 +75,6 @@ abstract class BaseRoutePageState extends State<BaseRoutePage> {
             context: context,
             icon: Icons.wifi,
             body: locales.get('notification--you-are-back-online'),
-            clear: true,
             duration: 2,
           );
         } else {
@@ -83,7 +82,6 @@ abstract class BaseRoutePageState extends State<BaseRoutePage> {
             context: context,
             icon: Icons.wifi_off,
             body: locales.get('notification--you-are--offline'),
-            clear: true,
             duration: 2,
             type: AlertType.warning,
           );

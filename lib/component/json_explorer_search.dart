@@ -116,7 +116,7 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
       if (text.toString().length <= 100) {
         message += ': $text';
       }
-      alertData(context: context, body: message, duration: 1, clear: true);
+      alertData(context: context, body: message, duration: 1);
     }
 
     /// Wraps the store in a ChangeNotifierProvider and rebuilds the widget

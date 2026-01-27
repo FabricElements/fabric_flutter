@@ -1152,7 +1152,6 @@ getValue -------------------------------------
             context: context,
             body: '${locales.get('alert--copy-clipboard')}: $copyValue',
             duration: 1,
-            clear: true,
           );
         },
         child: endWidget,

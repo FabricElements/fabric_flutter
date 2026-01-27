@@ -159,7 +159,6 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       alertData(
         context: context,
         body: locales.get('alert--received-phone-auth-credential'),
-        clear: true,
       );
     }
 
@@ -175,7 +174,6 @@ class ViewAuthPageState extends State<ViewAuthPage> {
         body:
             '${locales.get('alert--phone-number-verification-failed')}. ${error.message} -- Code: ${error.code}',
         type: AlertType.critical,
-        clear: true,
       );
     }
 
@@ -188,7 +186,6 @@ class ViewAuthPageState extends State<ViewAuthPage> {
         body: locales.get('alert--check-phone-verification-code'),
         type: AlertType.success,
         duration: 3,
-        clear: true,
       );
       state.verificationId = verificationId;
       state.section = 2;
@@ -233,7 +230,6 @@ class ViewAuthPageState extends State<ViewAuthPage> {
           title: locales.get('alert--sign-in-failed'),
           body: error.toString(),
           type: AlertType.critical,
-          clear: true,
         );
       }
       loading = false;
@@ -270,7 +266,6 @@ class ViewAuthPageState extends State<ViewAuthPage> {
           title: locales.get('alert--sign-in-failed'),
           body: error.toString(),
           type: AlertType.critical,
-          clear: true,
         );
       } finally {
         loading = false;
@@ -304,7 +299,6 @@ class ViewAuthPageState extends State<ViewAuthPage> {
           title: locales.get('alert--sign-in-failed'),
           body: error.toString(),
           type: AlertType.critical,
-          clear: true,
         );
       } finally {
         loading = false;
@@ -362,7 +356,6 @@ class ViewAuthPageState extends State<ViewAuthPage> {
             title: locales.get('alert--sign-in-failed'),
             body: error.message,
             type: AlertType.critical,
-            clear: true,
           );
         }
       } on FirebaseException catch (error) {
@@ -371,7 +364,6 @@ class ViewAuthPageState extends State<ViewAuthPage> {
           title: locales.get('alert--sign-in-failed'),
           body: error.message,
           type: AlertType.critical,
-          clear: true,
         );
       } catch (error) {
         alertData(
@@ -379,7 +371,6 @@ class ViewAuthPageState extends State<ViewAuthPage> {
           title: locales.get('alert--sign-in-failed'),
           body: error.toString(),
           type: AlertType.critical,
-          clear: true,
         );
       }
       loading = false;
@@ -398,7 +389,6 @@ class ViewAuthPageState extends State<ViewAuthPage> {
           context: context,
           title: 'Signed in with temporary account.',
           type: AlertType.success,
-          clear: true,
         );
       } on FirebaseAuthException catch (e) {
         debugPrint(LogColor.error(e));
@@ -415,7 +405,6 @@ class ViewAuthPageState extends State<ViewAuthPage> {
             context: context,
             body: errorMessage,
             type: AlertType.critical,
-            clear: true,
           );
         }
       } on FirebaseException catch (error) {
@@ -424,7 +413,6 @@ class ViewAuthPageState extends State<ViewAuthPage> {
           title: locales.get('alert--sign-in-failed'),
           body: error.message,
           type: AlertType.critical,
-          clear: true,
         );
       }
     }
@@ -449,7 +437,6 @@ class ViewAuthPageState extends State<ViewAuthPage> {
             title: locales.get('alert--sign-in-failed'),
             body: error.message,
             type: AlertType.critical,
-            clear: true,
           );
         }
       } on FirebaseException catch (error) {
@@ -458,7 +445,6 @@ class ViewAuthPageState extends State<ViewAuthPage> {
           title: locales.get('alert--sign-in-failed'),
           body: error.message,
           type: AlertType.critical,
-          clear: true,
         );
       } catch (error) {
         alertData(
@@ -466,7 +452,6 @@ class ViewAuthPageState extends State<ViewAuthPage> {
           title: locales.get('alert--sign-in-failed: '),
           body: error.toString(),
           type: AlertType.critical,
-          clear: true,
         );
       } finally {
         resetView();
@@ -531,7 +516,6 @@ class ViewAuthPageState extends State<ViewAuthPage> {
               context: context,
               type: AlertType.basic,
               widget: AlertWidget.dialog,
-              clear: true,
               child: SizedBox(
                 width: double.maxFinite,
                 height: height * 0.5,
@@ -569,7 +553,6 @@ class ViewAuthPageState extends State<ViewAuthPage> {
               context: context,
               body: error.toString(),
               type: AlertType.critical,
-              clear: true,
             );
           }
         };

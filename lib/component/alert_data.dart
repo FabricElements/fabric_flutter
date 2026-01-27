@@ -125,9 +125,7 @@ void alertData<T>({
   Widget? child,
 
   /// Clear all other alerts of the same type
-  /// Not recommended for AlertWidget.dialog because it uses Navigator.pop(context!)
-  /// and it can affect the navigation
-  bool clear = false,
+  bool clear = true,
 
   /// Scrollable content for [AlertWidget.dialog] using [AlertDialog]
   bool scrollable = false,
