@@ -132,12 +132,12 @@ void alertData<T>({
   /// Scrollable content for [AlertWidget.dialog] using [AlertDialog]
   bool scrollable = false,
   IconData? icon,
-  required BuildContext context,
+  required BuildContext? context,
 }) async {
   if (typeString != null) {
     type = typeFromString(typeString);
   }
-  if (kDebugMode) {
+  if (kDebugMode || context == null) {
     String debugMessagePrint = '................................';
     if (title != null) debugMessagePrint += '\n$title';
     if (body != null) debugMessagePrint += '\n$body';
@@ -155,6 +155,14 @@ void alertData<T>({
       default:
         debugPrint(LogColor.info(debugMessagePrint));
     }
+  }
+  if (context == null) {
+    debugPrint(
+      LogColor.warning(
+        'Alert context is null. You must provide a valid context to see the alert on the UI.',
+      ),
+    );
+    return;
   }
 
   // Check if the widget is still 'alive' before using the context
