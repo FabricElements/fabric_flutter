@@ -196,7 +196,6 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
         await widget.onConfirm(data, group: widget.group);
         alertData(
           context: context,
-          clear: true,
           body: locales.get(widget.successMessage),
           type: AlertType.success,
           duration: 3,

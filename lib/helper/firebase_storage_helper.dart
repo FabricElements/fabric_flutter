@@ -132,7 +132,6 @@ class FirebaseStorageHelper {
         body: locales.get(errorMessage),
         type: errorType,
         duration: 5,
-        clear: true,
       );
     }
   }
@@ -171,7 +170,6 @@ class FirebaseStorageHelper {
         body: locales.get(errorMessage),
         type: errorType,
         duration: 5,
-        clear: true,
       );
     }
   }

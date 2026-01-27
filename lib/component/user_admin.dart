@@ -98,7 +98,6 @@ class UserAdmin extends StatelessWidget {
             context: context,
             title: locales.get(e),
             type: AlertType.critical,
-            clear: true,
           )
         : null;
     stateUser.onError = apiError;
@@ -141,7 +140,6 @@ class UserAdmin extends StatelessWidget {
               // Type indicates the data field to use in the function, admin level or collection.
               alertData(
                 context: context,
-                clear: true,
                 body: locales.get('alert--user-removed'),
                 type: AlertType.success,
                 duration: 3,
@@ -149,14 +147,12 @@ class UserAdmin extends StatelessWidget {
             } on FirebaseFunctionsException catch (error) {
               alertData(
                 context: context,
-                clear: true,
                 body: error.message ?? error.details['message'],
                 type: AlertType.critical,
               );
             } catch (error) {
               alertData(
                 context: context,
-                clear: true,
                 body: error.toString(),
                 type: AlertType.critical,
               );

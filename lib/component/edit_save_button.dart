@@ -63,7 +63,6 @@ class _EditSaveButtonState extends State<EditSaveButton> {
         action: ButtonOptions(onTap: widget.save, label: 'label--update'),
         type: widget.alertType,
         widget: widget.alertWidget,
-        clear: true,
       );
     }
 
@@ -78,7 +77,6 @@ class _EditSaveButtonState extends State<EditSaveButton> {
         widget: widget.alertWidget,
         title: locales.get('label--confirm-are-you-sure-cancel'),
         action: ButtonOptions(onTap: widget.cancel, label: 'label--cancel'),
-        clear: true,
       );
     }
 

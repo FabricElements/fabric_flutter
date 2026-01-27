@@ -88,7 +88,6 @@ class _ProfileEditState extends State<ProfileEdit> {
         context: context,
         body: locales.get('notification--please-wait'),
         duration: 4,
-        clear: true,
       );
       if (nameFirst!.isEmpty) {
         loading = false;
@@ -100,7 +99,6 @@ class _ProfileEditState extends State<ProfileEdit> {
             'number': '3',
           }),
           type: AlertType.critical,
-          clear: true,
         );
         return;
       }
@@ -114,7 +112,6 @@ class _ProfileEditState extends State<ProfileEdit> {
             'number': '3',
           }),
           type: AlertType.critical,
-          clear: true,
         );
         return;
       }
@@ -141,21 +138,18 @@ class _ProfileEditState extends State<ProfileEdit> {
           context: context,
           body: locales.get('page-profile--alert--profile-updated'),
           type: AlertType.success,
-          clear: true,
         );
       } on FirebaseFunctionsException catch (error) {
         alertData(
           context: context,
           body: error.message ?? error.details['message'],
           type: AlertType.critical,
-          clear: true,
         );
       } catch (error) {
         alertData(
           context: context,
           body: error.toString(),
           type: AlertType.critical,
-          clear: true,
         );
       }
       loading = false;
@@ -181,7 +175,6 @@ class _ProfileEditState extends State<ProfileEdit> {
           body: locales.get(errorMessage),
           type: errorType,
           duration: 5,
-          clear: true,
         );
       }
       loading = false;
