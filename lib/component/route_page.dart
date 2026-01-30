@@ -30,12 +30,14 @@ class RoutePage extends FutureBuilder<void> {
     required UserStatus? status,
     Widget loading = const LoadingScreen(),
     required Future<void> Function() onInit,
+    required Function(BuildContext context) onContextReady,
   }) : super(
          initialData: status,
          // Build an async future that runs onInit, logs errors with
          // stacktrace, and waits a short delay before completing.
          future: _initFuture(onInit),
          builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
+           onContextReady(context);
            if (snapshot.connectionState != ConnectionState.done) {
              return loading;
            }
