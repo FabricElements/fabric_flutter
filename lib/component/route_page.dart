@@ -1,119 +1,116 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../helper/app_localizations_delegate.dart';
 import '../helper/log_color.dart';
+import '../helper/options.dart';
 import '../helper/route_helper.dart';
 import '../placeholder/loading_screen.dart';
+import '../serialized/notification_data.dart';
 import '../serialized/user_status.dart';
+import '../state/state_global.dart';
+import '../state/state_notifications.dart';
 import 'alert_data.dart';
 
-/// BaseRoutePage
-/// Use it to structure your route page class.
-/// Extends [StatefulWidget]
-abstract class BaseRoutePage extends StatefulWidget {
-  const BaseRoutePage({
+/// RoutePage
+/// A convenience widget that waits for an async `onInit` to finish
+/// before rendering the route content. It extends FutureBuilder<void> so callers
+/// don't need to wrap it in an extra FutureBuilder.
+///
+/// Note: the provided `onInit` is required and will be executed immediately
+/// when the widget is constructed (the FutureBuilder's future runs at build
+/// time). Because the callback runs without a guaranteed mounted BuildContext,
+/// avoid invoking context-dependent APIs inside `onInit` (use a StatefulWidget
+/// initState for logic that needs context or to interact with the widget tree).
+class RoutePage extends FutureBuilder<void> {
+  RoutePage({
     super.key,
-    required this.routeHelper,
-    required this.uri,
-    required this.status,
-    this.loading = const LoadingScreen(),
-    this.onInit,
-  });
+    required RouteHelper routeHelper,
+    required Uri uri,
+    required UserStatus? status,
+    Widget loading = const LoadingScreen(),
+    required Future<void> Function() onInit,
+  }) : super(
+         initialData: status,
+         // Build an async future that runs onInit, logs errors with
+         // stacktrace, and waits a short delay before completing.
+         future: _initFuture(onInit),
+         builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
+           if (snapshot.connectionState != ConnectionState.done) {
+             return loading;
+           }
+           final notReady = status == null || !status.ready;
+           if (notReady) return loading;
+           final locales = AppLocalizations.of(context);
+           final stateGlobal = Provider.of<StateGlobal>(context, listen: false);
+           final stateNotifications = Provider.of<StateNotifications>(
+             context,
+             listen: false,
+           );
 
-  final RouteHelper routeHelper;
-  final Uri uri;
-  final UserStatus? status;
-  final Widget loading;
-  final Function? onInit;
-}
+           /// Show connectivity alerts
+           stateGlobal.streamConnection.listen((connected) {
+             if (connected) {
+               alertData(
+                 context: context,
+                 icon: Icons.wifi,
+                 body: locales.get('notification--you-are-back-online'),
+                 duration: 2,
+               );
+             } else {
+               alertData(
+                 context: context,
+                 icon: Icons.wifi_off,
+                 body: locales.get('notification--you-are--offline'),
+                 duration: 100,
+                 type: AlertType.warning,
+               );
+             }
+           });
 
-/// BaseRoutePageState
-/// Use it to structure your route page state class.
-abstract class BaseRoutePageState extends State<BaseRoutePage> {
-  /// loading state variable
-  /// Use it to show loading screen.
-  /// Default is true.
-  bool loading = true;
+           /// Define notification callback
+           stateNotifications.callback = (NotificationData message) {
+             alertData(
+               context: context,
+               duration: message.duration,
+               title: message.title,
+               body: message.body,
+               image: message.imageUrl,
+               typeString: message.type,
+               clear: message.clear,
+               action: (message.path != null)
+                   ? ButtonOptions(
+                       label: locales.get('label--open'),
+                       onTap: () {
+                         Navigator.of(context).popAndPushNamed(message.path!);
+                       },
+                     )
+                   : null,
+             );
+           };
 
-  /// onInit
-  /// Use it to initialize your route page.
-  /// It will be called after the first frame.
-  void _onInit() async {
-    if (widget.onInit != null) {
-      try {
-        await widget.onInit!();
-      } catch (e) {
-        debugPrint(LogColor.error('$e'));
-      } finally {
-        // Wait for all streams to cancel and complete animation
-        await Future.delayed(const Duration(milliseconds: 300));
-        loading = false;
-      }
-    } else {
-      loading = false;
-    }
-    if (mounted) setState(() {});
-  }
+           /// Build the route map based on user status
+           Map<String, Widget> routes = routeHelper.routes(
+             signed: status.signedIn,
+             isAdmin: status.admin,
+           );
+           if (routes.containsKey(uri.path)) {
+             return routes[uri.path]!;
+           }
+           return routes[routeHelper.unknownRoute]!;
+         },
+       );
 
-  @override
-  void initState() {
-    super.initState();
-    loading = true;
-    _onInit();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final notReady = widget.status == null || !widget.status!.ready;
-    if (loading || notReady) return widget.loading;
-    final locales = AppLocalizations.of(context);
-
+  /// This helper runs the provided `onInit` function, logs any errors,
+  /// and adds a small delay to ensure a consistent loading experience.
+  static Future<void> _initFuture(Future<void> Function() onInit) async {
     try {
-      if (widget.status?.connectionChanged ?? false) {
-        if (widget.status?.connected ?? false) {
-          alertData(
-            context: context,
-            icon: Icons.wifi,
-            body: locales.get('notification--you-are-back-online'),
-            duration: 2,
-          );
-        } else {
-          alertData(
-            context: context,
-            icon: Icons.wifi_off,
-            body: locales.get('notification--you-are--offline'),
-            duration: 2,
-            type: AlertType.warning,
-          );
-        }
-      }
-    } catch (e) {
-      //
+      await onInit();
+    } catch (e, st) {
+      debugPrint(LogColor.error('$e\n$st'));
     }
 
-    Map<String, Widget> routes = widget.routeHelper.routes(
-      signed: widget.status!.signedIn,
-      isAdmin: widget.status!.admin,
-    );
-    if (routes.containsKey(widget.uri.path)) {
-      return routes[widget.uri.path]!;
-    }
-    return routes[widget.routeHelper.unknownRoute]!;
+    // Small delay to keep a consistent loading experience.
+    await Future<void>.delayed(const Duration(milliseconds: 300));
   }
 }
-
-class RoutePage extends BaseRoutePage {
-  const RoutePage({
-    super.key,
-    required super.routeHelper,
-    required super.uri,
-    required super.status,
-    super.loading = const LoadingScreen(),
-    super.onInit,
-  });
-
-  @override
-  State<BaseRoutePage> createState() => _RoutePageState();
-}
-
-class _RoutePageState extends BaseRoutePageState {}
