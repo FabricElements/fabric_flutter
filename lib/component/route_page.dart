@@ -37,10 +37,10 @@ class RoutePage extends FutureBuilder<void> {
          // stacktrace, and waits a short delay before completing.
          future: _initFuture(onInit),
          builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
-           onContextReady(context);
            if (snapshot.connectionState != ConnectionState.done) {
              return loading;
            }
+           onContextReady(context);
            final notReady = status == null || !status.ready;
            if (notReady) return loading;
            final locales = AppLocalizations.of(context);
