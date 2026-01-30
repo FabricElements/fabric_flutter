@@ -137,8 +137,8 @@ class ViewAuthPageState extends State<ViewAuthPage> {
         if (mounted) setState(() {});
       });
     }
-
-    if (loading || !initialized) {
+    bool connected = stateGlobal.connected;
+    if (loading || !initialized || !connected) {
       return widget.loader ?? const LoadingScreen();
     }
 

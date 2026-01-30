@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:collection/collection.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:fabric_flutter/variables.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -39,11 +38,6 @@ class StateUser extends StateDocument {
   @override
   int get debounceTime =>
       _ready && !loading && initialized ? super.debounceTime : 3000;
-
-  // Internet connection status
-  bool connected = true;
-  bool connectionChanged = false;
-  String? connectedTo;
 
   /// More at [streamStatus]
   /// ignore: close_sinks
@@ -215,9 +209,6 @@ class StateUser extends StateDocument {
     uid: object?.uid,
     language: language,
     theme: theme,
-    connected: connected,
-    connectionChanged: connectionChanged,
-    connectedTo: connected ? connectedTo : null,
     ready:
         _ready &&
         _init &&
@@ -296,40 +287,15 @@ class StateUser extends StateDocument {
     /// Listen to user changes
     _auth.userChanges().listen(
       _refreshAuth,
-      onError: (e) => error = e.toString(),
+      onError: (e) {
+        print(
+          LogColor.error('StateUser - Auth userChanges error: ${e.toString()}'),
+        );
+        error = e.toString();
+        _ready = true;
+        _userStatusUpdate();
+      },
     );
-
-    /// Check connectivity
-    try {
-      Connectivity().onConnectivityChanged.listen(
-        (results) async {
-          if (results.firstOrNull?.name != connectedTo) {
-            ConnectivityResult connectivityStatus = ConnectivityResult.none;
-            if (results.contains(ConnectivityResult.wifi)) {
-              connectivityStatus = ConnectivityResult.wifi;
-            } else if (results.contains(ConnectivityResult.ethernet)) {
-              connectivityStatus = ConnectivityResult.ethernet;
-            } else if (results.contains(ConnectivityResult.mobile)) {
-              connectivityStatus = ConnectivityResult.mobile;
-            } else if (results.contains(ConnectivityResult.other)) {
-              connectivityStatus = ConnectivityResult.other;
-            }
-            final connectedUpdated =
-                connectivityStatus != ConnectivityResult.none;
-            connectionChanged = connected != connectedUpdated;
-            connected = connectedUpdated;
-            connectedTo = connectivityStatus.name;
-            if (connectionChanged) await _userStatusUpdate();
-          }
-        },
-        cancelOnError: true,
-        onError: (error) {
-          debugPrint('Connectivity error: ${error.toString()}');
-        },
-      );
-    } catch (error) {
-      debugPrint('Connectivity error: ${error.toString()}');
-    }
   }
 
   bool get initCalled => _init;

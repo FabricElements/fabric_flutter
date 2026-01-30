@@ -188,8 +188,6 @@ void alertData<T>({
       buttonColorForeground = theme.colorScheme.onError;
       break;
     case AlertType.warning:
-      color = theme.colorScheme.surface;
-      textColor = theme.colorScheme.onSurface;
       duration ??= 15;
       buttonColor = theme.colorScheme.error;
       buttonColorForeground = theme.colorScheme.onError;

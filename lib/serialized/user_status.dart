@@ -22,10 +22,7 @@ class UserStatus {
   @JsonKey(includeIfNull: false, unknownEnumValue: ThemeMode.light)
   final ThemeMode theme;
 
-  /// Internet connection status
-  final bool connected;
-  final bool connectionChanged;
-  final String? connectedTo;
+  /// User is ready
   bool ready;
 
   UserStatus({
@@ -35,9 +32,6 @@ class UserStatus {
     this.language = 'en',
     this.theme = ThemeMode.light,
     this.uid,
-    this.connected = true,
-    this.connectionChanged = false,
-    this.connectedTo,
     this.ready = false,
   });
 
