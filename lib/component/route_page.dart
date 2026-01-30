@@ -40,9 +40,9 @@ class RoutePage extends FutureBuilder<void> {
            if (snapshot.connectionState != ConnectionState.done) {
              return loading;
            }
-           onContextReady(context);
            final notReady = status == null || !status.ready;
            if (notReady) return loading;
+           onContextReady(context);
            final locales = AppLocalizations.of(context);
            final stateGlobal = Provider.of<StateGlobal>(context, listen: false);
            final stateNotifications = Provider.of<StateNotifications>(
