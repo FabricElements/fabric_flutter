@@ -19,9 +19,6 @@ UserStatus _$UserStatusFromJson(Map<String, dynamic> json) => UserStatus(
       ) ??
       ThemeMode.light,
   uid: json['uid'],
-  connected: json['connected'] as bool? ?? true,
-  connectionChanged: json['connectionChanged'] as bool? ?? false,
-  connectedTo: json['connectedTo'] as String?,
   ready: json['ready'] as bool? ?? false,
 );
 
@@ -33,9 +30,6 @@ Map<String, dynamic> _$UserStatusToJson(UserStatus instance) =>
       'uid': ?instance.uid,
       'language': instance.language,
       'theme': _$ThemeModeEnumMap[instance.theme]!,
-      'connected': instance.connected,
-      'connectionChanged': instance.connectionChanged,
-      'connectedTo': instance.connectedTo,
       'ready': instance.ready,
     };
 
