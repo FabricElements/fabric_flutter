@@ -54,6 +54,7 @@ class InitAppChild extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final stateGlobal = Provider.of<StateGlobal>(context, listen: false);
     ThemeData theme = Theme.of(context);
     // Use system theme colors
     final brightness = MediaQuery.of(context).platformBrightness;
@@ -112,13 +113,18 @@ class InitAppChild extends StatelessWidget {
       }
     });
 
-    /// Init User
-    stateUser.init();
-
-    final loadingWidget = Container(
-      color: theme.colorScheme.surface,
-      child: const Center(child: CircularProgressIndicator()),
+    /// Loading widget
+    final loadingWidget = Theme(
+      data: theme,
+      child: Container(
+        color: theme.colorScheme.surface,
+        child: const Center(child: CircularProgressIndicator()),
+      ),
     );
+
+    /// Init App States
+    stateGlobal.init();
+    stateUser.init();
 
     /// Return child component
     return GestureDetector(
@@ -139,6 +145,42 @@ class InitAppChild extends StatelessWidget {
           final status = snapshot.data!;
           if (!status.ready) {
             return loadingWidget;
+          }
+
+          /// Set user id for analytics
+          if (status.signedIn) {
+            try {
+              stateAnalytics.analytics?.setUserId(id: status.uid);
+            } catch (error) {
+              debugPrint(LogColor.error('FirebaseAnalytics error: $error'));
+            }
+          }
+
+          /// Init Notifications
+          if (notifications) {
+            try {
+              if (status.signedIn) {
+                /// Wait 3 seconds to ensure FCM token is ready
+                // await Future.delayed(const Duration(seconds: 3));
+                stateNotifications.token = stateUser.serialized.fcm;
+                stateNotifications.uid = status.uid;
+                stateNotifications.init();
+                stateNotifications.getUserToken().catchError((e) {
+                  debugPrint(
+                    LogColor.error(
+                      'StateNotifications.getUserToken() Error: $e',
+                    ),
+                  );
+                });
+              } else {
+                if (!kDebugMode) {
+                  // Stop notifications when sign out
+                  stateNotifications.clear();
+                }
+              }
+            } catch (error) {
+              debugPrint(LogColor.error('InitAppChild error: $error'));
+            }
           }
           return child;
         },
