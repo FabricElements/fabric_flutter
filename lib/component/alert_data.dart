@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 
+import '../helper/app_global.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/log_color.dart';
 import '../helper/options.dart';
@@ -54,29 +55,32 @@ void dismissAlerts({
   required AlertWidget widget,
   required BuildContext context,
 }) {
+  final BuildContext safeContext = context.mounted
+      ? context
+      : AppGlobal.navigatorKey.currentContext ?? context;
   // Check if the widget is still 'alive' before using the context
-  if (!context.mounted) {
+  if (!safeContext.mounted) {
     debugPrint('Dismiss alert context is not mounted');
     return;
   }
   switch (widget) {
     case AlertWidget.banner:
       if (dismissAll) {
-        ScaffoldMessenger.of(context).clearMaterialBanners();
+        ScaffoldMessenger.of(safeContext).clearMaterialBanners();
       } else {
-        ScaffoldMessenger.of(context).removeCurrentMaterialBanner();
+        ScaffoldMessenger.of(safeContext).removeCurrentMaterialBanner();
       }
       break;
     case AlertWidget.snackBar:
       if (dismissAll) {
-        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(safeContext).clearSnackBars();
       } else {
-        ScaffoldMessenger.of(context).removeCurrentSnackBar();
+        ScaffoldMessenger.of(safeContext).removeCurrentSnackBar();
       }
       break;
     case AlertWidget.dialog:
-      bool isOpen = isDialogOpen(context);
-      if (isOpen) Navigator.of(context).pop();
+      bool isOpen = isDialogOpen(safeContext);
+      if (isOpen) Navigator.of(safeContext).pop();
       break;
   }
 }
@@ -176,7 +180,6 @@ void alertData<T>({
   final locales = AppLocalizations.of(context);
   final theme = Theme.of(context);
   final textTheme = theme.textTheme;
-
   Color buttonColor = theme.colorScheme.primary;
   Color buttonColorForeground = theme.colorScheme.onPrimary;
   switch (type) {
@@ -348,7 +351,10 @@ void alertData<T>({
         label: Text(locales.get(dismiss.label).toUpperCase()),
         onPressed: () async {
           try {
-            dismissAlerts(widget: widget, context: context);
+            final BuildContext safeContext = context.mounted
+                ? context
+                : AppGlobal.navigatorKey.currentContext ?? context;
+            dismissAlerts(widget: widget, context: safeContext);
             if (hasDismissAction) {
               await dismiss!.onTap!();
             }
@@ -375,18 +381,21 @@ void alertData<T>({
               if (hasAction) {
                 await action!.onTap!();
               }
+              final BuildContext safeContext = context.mounted
+                  ? context
+                  : AppGlobal.navigatorKey.currentContext ?? context;
               dismissAlerts(widget: widget, context: context);
               if (hasValidPath) {
                 final path = action!.path!;
                 if (action.queryParameters != null) {
                   final uri = Uri(path: path);
                   Utils.pushNamedFromQuery(
-                    context: context,
+                    context: safeContext,
                     uri: uri,
                     queryParameters: action.queryParameters!,
                   );
                 } else {
-                  Navigator.of(context).pushNamed(path);
+                  Navigator.of(safeContext).pushNamed(path);
                 }
               }
             } catch (e) {
@@ -451,7 +460,8 @@ void alertData<T>({
             padding: EdgeInsets.zero,
             showCloseIcon: false,
             closeIconColor: textColor,
-            width: 900,
+            width: kIsWeb ? 900 : null,
+            margin: kIsWeb ? null : EdgeInsets.all(16),
           ),
         );
         break;

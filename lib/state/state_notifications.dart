@@ -23,13 +23,18 @@ class StateNotifications extends ChangeNotifier {
 
   String? token;
   NotificationData? _notification;
-  dynamic _uid = '';
+  dynamic _uid;
   bool _initialized = false;
   Function(NotificationData message)? _callback;
 
   /// Update user token on the firestore user/{uid}
   void _updateUserToken(String? tokenId) async {
-    if (!initialized || _uid.isEmpty || tokenId == token) return;
+    if (!initialized ||
+        _uid == null ||
+        _uid.toString().isEmpty ||
+        tokenId == token) {
+      return;
+    }
     try {
       await FirebaseFirestore.instance.collection('user').doc(_uid).set({
         'backup': false,
@@ -270,7 +275,7 @@ class StateNotifications extends ChangeNotifier {
     // Prevent calling this function if not initialized
     if (_initialized) return;
     _initialized = true;
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(const Duration(seconds: 5));
     // Wait for the app assign the callback
     if (_callback == null) {
       await Future.delayed(const Duration(milliseconds: 300));
@@ -283,14 +288,14 @@ class StateNotifications extends ChangeNotifier {
   /// Get user token for notifications
   /// from the main App to prevent blocking call
   Future<void> getUserToken() async {
-    if (!_initialized) await init();
+    if (!_initialized || _uid == null) await init();
     final newToken = await getToken();
     _updateUserToken(newToken);
   }
 
   /// Define user id
   set uid(dynamic id) {
-    _uid = id ?? '';
+    _uid = id;
   }
 
   /// Navigate to a specific view based on the path and arguments
@@ -327,9 +332,9 @@ class StateNotifications extends ChangeNotifier {
   /// Default function call every time the id changes.
   /// Override this function to add custom features for your state.
   void reset() {
-    token = '';
+    token = null;
     _notification = null;
-    _uid = '';
+    _uid = null;
     _initialized = false;
   }
 
