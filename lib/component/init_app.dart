@@ -127,64 +127,55 @@ class InitAppChild extends StatelessWidget {
     stateUser.init();
 
     /// Return child component
-    return GestureDetector(
-      onTap: () {
-        /// Close keyboard when tap outside input
-        FocusScopeNode currentFocus = FocusScope.of(context);
-        if (!currentFocus.hasPrimaryFocus) {
-          currentFocus.requestFocus(FocusNode());
+    return StreamBuilder<UserStatus>(
+      stream: stateUser.streamStatus,
+      initialData: stateUser.userStatus,
+      builder: (context, snapshot) {
+        if (snapshot.data == null) {
+          return loadingWidget;
         }
-      },
-      child: StreamBuilder<UserStatus>(
-        stream: stateUser.streamStatus,
-        initialData: stateUser.userStatus,
-        builder: (context, snapshot) {
-          if (snapshot.data == null) {
-            return loadingWidget;
-          }
-          final status = snapshot.data!;
-          if (!status.ready) {
-            return loadingWidget;
-          }
+        final status = snapshot.data!;
+        if (!status.ready) {
+          return loadingWidget;
+        }
 
-          /// Set user id for analytics
-          if (status.signedIn) {
-            try {
-              stateAnalytics.analytics?.setUserId(id: status.uid);
-            } catch (error) {
-              debugPrint(LogColor.error('FirebaseAnalytics error: $error'));
-            }
+        /// Set user id for analytics
+        if (status.signedIn) {
+          try {
+            stateAnalytics.analytics?.setUserId(id: status.uid);
+          } catch (error) {
+            debugPrint(LogColor.error('FirebaseAnalytics error: $error'));
           }
+        }
 
-          /// Init Notifications
-          if (notifications) {
-            try {
-              if (status.signedIn) {
-                /// Wait 3 seconds to ensure FCM token is ready
-                // await Future.delayed(const Duration(seconds: 3));
-                stateNotifications.token = stateUser.serialized.fcm;
-                stateNotifications.uid = status.uid;
-                stateNotifications.init();
-                stateNotifications.getUserToken().catchError((e) {
-                  debugPrint(
-                    LogColor.error(
-                      'StateNotifications.getUserToken() Error: $e',
-                    ),
-                  );
-                });
-              } else {
-                if (!kDebugMode) {
-                  // Stop notifications when sign out
-                  stateNotifications.clear();
-                }
+        /// Init Notifications
+        if (notifications) {
+          try {
+            if (status.signedIn) {
+              /// Wait 3 seconds to ensure FCM token is ready
+              // await Future.delayed(const Duration(seconds: 3));
+              stateNotifications.token = stateUser.serialized.fcm;
+              stateNotifications.uid = status.uid;
+              stateNotifications.init();
+              stateNotifications.getUserToken().catchError((e) {
+                debugPrint(
+                  LogColor.error(
+                    'StateNotifications.getUserToken() Error: $e',
+                  ),
+                );
+              });
+            } else {
+              if (!kDebugMode) {
+                // Stop notifications when sign out
+                stateNotifications.clear();
               }
-            } catch (error) {
-              debugPrint(LogColor.error('InitAppChild error: $error'));
             }
+          } catch (error) {
+            debugPrint(LogColor.error('InitAppChild error: $error'));
           }
-          return child;
-        },
-      ),
+        }
+        return child;
+      },
     );
   }
 }
