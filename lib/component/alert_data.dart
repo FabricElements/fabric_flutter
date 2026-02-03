@@ -460,7 +460,8 @@ void alertData<T>({
             padding: EdgeInsets.zero,
             showCloseIcon: false,
             closeIconColor: textColor,
-            width: 900,
+            width: kIsWeb ? 900 : null,
+            margin: kIsWeb ? null : EdgeInsets.all(16),
           ),
         );
         break;
