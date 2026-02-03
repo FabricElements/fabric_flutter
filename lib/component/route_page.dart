@@ -12,6 +12,59 @@ import '../state/state_global.dart';
 import '../state/state_notifications.dart';
 import 'alert_data.dart';
 
+bool _listenersConfigured = false;
+
+void _configureListeners(BuildContext context) {
+  if (_listenersConfigured) return;
+  final locales = AppLocalizations.of(context);
+  final stateGlobal = Provider.of<StateGlobal>(context, listen: false);
+  final stateNotifications = Provider.of<StateNotifications>(
+    context,
+    listen: false,
+  );
+
+  /// Show connectivity alerts
+  stateGlobal.streamConnection.listen((connected) {
+    if (connected) {
+      alertData(
+        context: context,
+        icon: Icons.wifi,
+        body: locales.get('notification--you-are-back-online'),
+        duration: 2,
+      );
+    } else {
+      alertData(
+        context: context,
+        icon: Icons.wifi_off,
+        body: locales.get('notification--you-are--offline'),
+        duration: 100,
+        type: AlertType.warning,
+      );
+    }
+  });
+
+  /// Define notification callback
+  stateNotifications.callback = (NotificationData message) {
+    alertData(
+      context: context,
+      duration: message.duration,
+      title: message.title,
+      body: message.body,
+      image: message.imageUrl,
+      typeString: message.type,
+      clear: message.clear,
+      action: (message.path != null)
+          ? ButtonOptions(
+              label: locales.get('label--open'),
+              onTap: () {
+                Navigator.of(context).popAndPushNamed(message.path!);
+              },
+            )
+          : null,
+    );
+  };
+}
+
 /// RoutePage
 /// A convenience widget that waits for an async `onInit` to finish
 /// before rendering the route content. It extends FutureBuilder<void> so callers
@@ -37,59 +90,22 @@ class RoutePage extends FutureBuilder<void> {
          // stacktrace, and waits a short delay before completing.
          future: _initFuture(onInit),
          builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
-           if (snapshot.connectionState != ConnectionState.done) {
-             return loading;
-           }
            final notReady = status == null || !status.ready;
+           print('snapshot.connectionState: ${snapshot.connectionState}');
+           switch (snapshot.connectionState) {
+             case ConnectionState.none:
+               debugPrint(LogColor.error(
+                   'RoutePage: Future is null. This should not happen.'));
+               break;
+             case ConnectionState.active:
+             case ConnectionState.waiting:
+               // Future is still running.
+               return loading;
+             default:
+           }
            if (notReady) return loading;
+           _configureListeners(context);
            onContextReady(context);
-           final locales = AppLocalizations.of(context);
-           final stateGlobal = Provider.of<StateGlobal>(context, listen: false);
-           final stateNotifications = Provider.of<StateNotifications>(
-             context,
-             listen: false,
-           );
-
-           /// Show connectivity alerts
-           stateGlobal.streamConnection.listen((connected) {
-             if (connected) {
-               alertData(
-                 context: context,
-                 icon: Icons.wifi,
-                 body: locales.get('notification--you-are-back-online'),
-                 duration: 2,
-               );
-             } else {
-               alertData(
-                 context: context,
-                 icon: Icons.wifi_off,
-                 body: locales.get('notification--you-are--offline'),
-                 duration: 100,
-                 type: AlertType.warning,
-               );
-             }
-           });
-
-           /// Define notification callback
-           stateNotifications.callback = (NotificationData message) {
-             alertData(
-               context: context,
-               duration: message.duration,
-               title: message.title,
-               body: message.body,
-               image: message.imageUrl,
-               typeString: message.type,
-               clear: message.clear,
-               action: (message.path != null)
-                   ? ButtonOptions(
-                       label: locales.get('label--open'),
-                       onTap: () {
-                         Navigator.of(context).popAndPushNamed(message.path!);
-                       },
-                     )
-                   : null,
-             );
-           };
 
            /// Build the route map based on user status
            Map<String, Widget> routes = routeHelper.routes(
