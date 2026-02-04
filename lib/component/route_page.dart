@@ -128,17 +128,17 @@ class _RoutePageState extends State<RoutePage> {
     return FutureBuilder<void>(
       future: _future,
       builder: (BuildContext ctx, AsyncSnapshot<void> snapshot) {
-        final notReady = status == null || !status.ready;
         switch (snapshot.connectionState) {
           case ConnectionState.none:
           case ConnectionState.active:
           case ConnectionState.waiting:
+            debugPrint(LogColor.info('RoutePage...'));
             return widget.loading;
           default:
         }
+        final notReady = status == null || !status.ready;
         if (notReady) return widget.loading;
         _configureListeners(context);
-
         final routes = widget.routeHelper.routes(
           signed: status.signedIn,
           isAdmin: status.admin,
