@@ -56,6 +56,7 @@ class SmartImage extends StatefulWidget {
     this.size,
     this.color,
     this.format,
+    this.fit = BoxFit.cover,
   });
 
   /// Image URL
@@ -69,6 +70,12 @@ class SmartImage extends StatefulWidget {
 
   /// Output format
   final AvailableOutputFormats? format;
+
+  /// How to inscribe the image into the space allocated during layout.
+  ///
+  /// The default varies based on the other fields. See the discussion at
+  /// [paintImage].
+  final BoxFit fit;
 
   @override
   State<SmartImage> createState() => _SmartImageState();
@@ -128,7 +135,7 @@ class _SmartImageState extends State<SmartImage> {
     if (newHeight <= 0 && newWidth <= 0) return;
     if (width == newWidth && height == newHeight) return;
     _timer?.cancel();
-    _timer = Timer(Duration(milliseconds: resizedTimes > 0 ? 2000 : 500), () {
+    _timer = Timer(Duration(milliseconds: resizedTimes > 0 ? 2000 : 300), () {
       _resizeImage(newHeight: newHeight, newWidth: newWidth);
     });
   }
@@ -202,16 +209,22 @@ class _SmartImageState extends State<SmartImage> {
       Map<String, List<String>> queryParameters = {};
       queryParameters.addAll({
         'dpr': [devicePixelRatio.toString()],
-        'crop': ['entropy'],
       });
       if (widget.size != null) {
         queryParameters.addAll({
           'size': [widget.size!.name],
         });
-      } else {
+      } else if (widget.fit == BoxFit.cover) {
+        /// Crop to fit
         queryParameters.addAll({
           'width': [width.toString()],
           'height': [height.toString()],
+          'crop': ['entropy'],
+        });
+      } else {
+        /// Just resize but maintain aspect ratio
+        queryParameters.addAll({
+          'width': [width.toString()],
         });
       }
       if (widget.format != null) {
@@ -234,7 +247,7 @@ class _SmartImageState extends State<SmartImage> {
             Positioned.fill(
               child: Image.network(
                 path,
-                fit: BoxFit.cover,
+                fit: widget.fit,
                 isAntiAlias: !kIsWeb,
                 width: width.toDouble(),
                 height: height.toDouble(),
@@ -284,6 +297,32 @@ class _SmartImageState extends State<SmartImage> {
             ),
           );
         } else {
+          late BoxFitWeb fitWeb;
+          switch (widget.fit) {
+            case BoxFit.contain:
+              fitWeb = BoxFitWeb.contain;
+              break;
+            case BoxFit.fill:
+              fitWeb = BoxFitWeb.fill;
+              break;
+            case BoxFit.none:
+              fitWeb = BoxFitWeb.contain;
+              break;
+            case BoxFit.scaleDown:
+              fitWeb = BoxFitWeb.contain;
+              break;
+            case BoxFit.cover:
+              fitWeb = BoxFitWeb.cover;
+              break;
+            case BoxFit.fitHeight:
+              fitWeb = BoxFitWeb.contain;
+              break;
+            case BoxFit.fitWidth:
+              fitWeb = BoxFitWeb.contain;
+              break;
+            default:
+              fitWeb = BoxFitWeb.cover;
+          }
           children.add(
             Positioned.fill(
               child: IgnorePointer(
@@ -294,8 +333,8 @@ class _SmartImageState extends State<SmartImage> {
                   key: ValueKey<String>(path),
                   onError: errorPlaceholder,
                   onLoading: loadingPlaceholder,
-                  fitWeb: BoxFitWeb.cover,
-                  fitAndroidIos: BoxFit.cover,
+                  fitWeb: fitWeb,
+                  fitAndroidIos: widget.fit,
                 ),
               ),
             ),
