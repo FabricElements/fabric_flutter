@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../helper/app_global.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/log_color.dart';
 import '../helper/options.dart';
@@ -14,6 +15,7 @@ import 'alert_data.dart';
 
 bool _listenersConfigured = false;
 
+/// Configure global listeners for connectivity and notifications
 void _configureListeners(BuildContext context) {
   if (_listenersConfigured) return;
   final locales = AppLocalizations.of(context);
@@ -25,16 +27,20 @@ void _configureListeners(BuildContext context) {
 
   /// Show connectivity alerts
   stateGlobal.streamConnection.listen((connected) {
+    final BuildContext safeContext =
+        AppGlobal.navigatorKey.currentContext ?? context;
     if (connected) {
       alertData(
-        context: context,
+        context: safeContext,
         icon: Icons.wifi,
         body: locales.get('notification--you-are-back-online'),
         duration: 2,
       );
     } else {
+      final BuildContext safeContext =
+          AppGlobal.navigatorKey.currentContext ?? context;
       alertData(
-        context: context,
+        context: safeContext,
         icon: Icons.wifi_off,
         body: locales.get('notification--you-are--offline'),
         duration: 100,
@@ -122,17 +128,17 @@ class _RoutePageState extends State<RoutePage> {
     return FutureBuilder<void>(
       future: _future,
       builder: (BuildContext ctx, AsyncSnapshot<void> snapshot) {
-        final notReady = status == null || !status.ready;
         switch (snapshot.connectionState) {
           case ConnectionState.none:
           case ConnectionState.active:
           case ConnectionState.waiting:
+            debugPrint(LogColor.info('RoutePage...'));
             return widget.loading;
           default:
         }
+        final notReady = status == null || !status.ready;
         if (notReady) return widget.loading;
         _configureListeners(context);
-
         final routes = widget.routeHelper.routes(
           signed: status.signedIn,
           isAdmin: status.admin,

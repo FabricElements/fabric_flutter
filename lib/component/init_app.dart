@@ -122,22 +122,30 @@ class InitAppChild extends StatelessWidget {
       ),
     );
 
-    /// Init App States
-    stateGlobal.init();
-    stateUser.init();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      /// Init App States
+      stateGlobal.init();
+      stateUser.init();
+    });
 
     /// Return child component
     return StreamBuilder<UserStatus>(
+      key: Key('init-app-user-status-stream-builder'),
       stream: stateUser.streamStatus,
       initialData: stateUser.userStatus,
       builder: (context, snapshot) {
+        switch (snapshot.connectionState) {
+          case ConnectionState.none:
+          case ConnectionState.waiting:
+            return loadingWidget;
+          default:
+        }
         if (snapshot.data == null) {
           return loadingWidget;
         }
         final status = snapshot.data!;
-        if (!status.ready) {
-          return loadingWidget;
-        }
+        final notReady = !status.ready;
+        if (notReady) return loadingWidget;
 
         /// Set user id for analytics
         if (status.signedIn) {
@@ -159,9 +167,7 @@ class InitAppChild extends StatelessWidget {
               stateNotifications.init();
               stateNotifications.getUserToken().catchError((e) {
                 debugPrint(
-                  LogColor.error(
-                    'StateNotifications.getUserToken() Error: $e',
-                  ),
+                  LogColor.error('StateNotifications.getUserToken() Error: $e'),
                 );
               });
             } else {
