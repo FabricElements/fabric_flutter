@@ -34,13 +34,11 @@ dependencies:
   mime: ^2.0.0
   universal_html: ^2.3.0
   video_player: ^2.10.1
-  webview_flutter: ^4.13.1
   webview_flutter_android: ^4.10.11
   webview_flutter_wkwebview: ^3.23.6
   flutter_markdown: ^0.7.7+1
   connectivity_plus: ^7.0.0
   json_explorer: ^0.1.2
-  web: ^1.1.1
   intl: ^0.20.2
   ansicolor: ^2.0.3
   cupertino_icons: ^1.0.8
@@ -64,7 +62,6 @@ dev_dependencies:
 
 dependency_overrides:
   intl: ^0.20.2
-  web: ^1.1.1
 #  http: ^1.2.1
 #  firebase_core: 2.25.4
 # For information on the generic Dart part of this file, see the
