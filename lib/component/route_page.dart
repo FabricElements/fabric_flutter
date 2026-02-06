@@ -123,22 +123,30 @@ class _RoutePageState extends State<RoutePage> {
   @override
   Widget build(BuildContext context) {
     final status = widget.status;
+    if (status == null || !status.ready) {
+      return widget.loading;
+    }
     widget.onContextReady(context);
 
     return FutureBuilder<void>(
+      key: ValueKey('route-page-future'),
       future: _future,
       builder: (BuildContext ctx, AsyncSnapshot<void> snapshot) {
+        bool resolved = false;
         switch (snapshot.connectionState) {
           case ConnectionState.none:
           case ConnectionState.active:
           case ConnectionState.waiting:
-            debugPrint(LogColor.info('RoutePage...'));
-            return widget.loading;
+            resolved = false;
           default:
+            resolved = true;
         }
-        final notReady = status == null || !status.ready;
-        if (notReady) return widget.loading;
+        if (!resolved) return widget.loading;
+
+        /// Configure global listeners
         _configureListeners(context);
+
+        /// Get routes
         final routes = widget.routeHelper.routes(
           signed: status.signedIn,
           isAdmin: status.admin,
@@ -149,6 +157,8 @@ class _RoutePageState extends State<RoutePage> {
         } else {
           routeWidget = routes[widget.routeHelper.unknownRoute]!;
         }
+
+        /// Return child with KeyedSubtree to avoid rebuild issues
         return GestureDetector(
           onTap: () {
             /// Close keyboard when tap outside input
@@ -157,7 +167,10 @@ class _RoutePageState extends State<RoutePage> {
               currentFocus.requestFocus(FocusNode());
             }
           },
-          child: routeWidget,
+          child: KeyedSubtree(
+            key: ValueKey('route-page-child'),
+            child: routeWidget,
+          ),
         );
       },
     );
