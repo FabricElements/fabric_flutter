@@ -23,6 +23,8 @@ class PaginationContainer extends StatefulWidget {
     this.shrinkWrap = false,
     this.initialScrollOffset = 0.0,
     this.onScrollOffsetChanged,
+    this.top,
+    this.bottom,
   });
 
   final Widget Function(BuildContext context, int index, dynamic data)
@@ -39,6 +41,8 @@ class PaginationContainer extends StatefulWidget {
   final List<dynamic>? initialData;
   final Clip clipBehavior;
   final bool shrinkWrap;
+  final Widget? top;
+  final Widget? bottom;
 
   /// Initial scroll offset
   final double initialScrollOffset;
@@ -56,6 +60,7 @@ class PaginationContainer extends StatefulWidget {
 class _PaginationContainerState extends State<PaginationContainer> {
   late bool end;
   late bool loading;
+  late bool isBottom;
 
   // Inside your Widget
   late ScrollController _controller;
@@ -70,6 +75,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
     end = false;
     error = null;
     data = widget.initialData ?? [];
+    isBottom = false;
     // Always set loading to true when the initial data is null
     loading = widget.initialData == null;
     _controller = ScrollController(
@@ -79,14 +85,16 @@ class _PaginationContainerState extends State<PaginationContainer> {
     /// Scroll controller
     _controller.addListener(() async {
       widget.onScrollOffsetChanged?.call(_controller.offset);
-      bool isBottom =
+      isBottom =
           _controller.position.atEdge && _controller.position.pixels != 0;
+      // if (mounted) setState(() {});
       // Do nothing if any of these conditions are met
       if (!isBottom) return;
       if (end) return;
       if (loading) return;
       loading = true;
       if (mounted) setState(() {});
+      await Future.delayed(const Duration(milliseconds: 300));
       try {
         error = null;
         final paginationData = await widget.paginate();
@@ -95,17 +103,20 @@ class _PaginationContainerState extends State<PaginationContainer> {
         error = e.toString();
         debugPrint(LogColor.error(e));
       }
+      await Future.delayed(const Duration(milliseconds: 300));
       loading = false;
       if (mounted) setState(() {});
     });
 
     /// Get data from stream
     widget.stream
-        .listen((event) {
-          loading = false;
+        .listen((event) async {
+          loading = true;
+          if (mounted) setState(() {});
           final eventData = event != null ? event as List<dynamic> : null;
           data = eventData ?? widget.initialData ?? [];
           end = false;
+          loading = false;
           if (mounted) setState(() {});
         })
         .onError((e) {
@@ -139,13 +150,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
         );
     final widgetLoading =
         widget.loading ??
-        Card(
-          child: ListTile(
-            contentPadding: EdgeInsets.all(16),
-            leading: const CircularProgressIndicator(),
-            title: Text(locales.get('label--loading')),
-          ),
-        );
+        Padding(padding: EdgeInsets.all(16), child: LinearProgressIndicator());
     final widgetEnd =
         widget.end ??
         Center(
@@ -161,19 +166,21 @@ class _PaginationContainerState extends State<PaginationContainer> {
     late Widget content;
     if (loading && data.isEmpty) {
       content = SingleChildScrollView(
+        restorationId: 'pagination-container-loading',
         primary: false,
         padding: widget.padding,
         child: ContentContainer(child: widgetLoading),
       );
     } else if (total == 0) {
       content = SingleChildScrollView(
+        restorationId: 'pagination-container-empty',
         primary: false,
         padding: widget.padding,
         child: ContentContainer(child: widgetEmpty),
       );
     } else {
       int totalCount = total;
-      if (loading || error != null || end) totalCount++;
+      if (loading || error != null || end || isBottom) totalCount++;
       content = Scrollbar(
         thumbVisibility: true,
         trackVisibility: true,
@@ -182,6 +189,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
         child: ListView.builder(
           key: const PageStorageKey('pagination-container-scroll'),
           restorationId: 'pagination-container',
+          physics: widget.shrinkWrap ? null : const ClampingScrollPhysics(),
           clipBehavior: widget.clipBehavior,
           primary: widget.primary,
           cacheExtent: widget.cacheExtent,
@@ -191,28 +199,46 @@ class _PaginationContainerState extends State<PaginationContainer> {
           shrinkWrap: widget.shrinkWrap,
           itemBuilder: (BuildContext context, int index) {
             if (index < total) {
+              if (index == 0 && widget.top != null) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: 16,
+                  children: [
+                    widget.top!,
+                    widget.itemBuilder(context, index, data[index]),
+                  ],
+                );
+              } else if (index == (total - 1) && widget.bottom != null) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: 16,
+                  children: [
+                    widget.bottom!,
+                    widget.itemBuilder(context, index, data[index]),
+                  ],
+                );
+              }
               return widget.itemBuilder(context, index, data[index]);
             }
+            Widget footer = widgetEnd;
             if (error != null) {
-              return ContentContainer(
-                child: Card(
-                  color: theme.colorScheme.errorContainer,
-                  child: ListTile(
-                    contentPadding: EdgeInsets.all(16),
-                    leading: Icon(Icons.error),
-                    title: Text(error!),
-                    textColor: theme.colorScheme.onErrorContainer,
-                    iconColor: theme.colorScheme.onErrorContainer,
-                  ),
+              footer = Card(
+                color: theme.colorScheme.errorContainer,
+                child: ListTile(
+                  contentPadding: EdgeInsets.all(16),
+                  leading: Icon(Icons.error),
+                  title: Text(error!),
+                  textColor: theme.colorScheme.onErrorContainer,
+                  iconColor: theme.colorScheme.onErrorContainer,
                 ),
               );
             } else if (loading) {
-              return ContentContainer(child: widgetLoading);
-            } else if (end) {
-              return ContentContainer(child: widgetEnd);
-            } else {
-              return SizedBox(height: kToolbarHeight);
+              footer = widgetLoading;
             }
+            return ConstrainedBox(
+              constraints: BoxConstraints(minHeight: kToolbarHeight * 2),
+              child: ContentContainer(child: footer),
+            );
           },
           reverse: widget.reverse,
           scrollDirection: widget.scrollDirection,
