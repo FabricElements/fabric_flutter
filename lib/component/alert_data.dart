@@ -472,15 +472,17 @@ void alertData<T>({
             primary: false,
             backgroundColor: theme.colorScheme.surface.withValues(alpha: 0.3),
             body: ContentContainer(
-              child: AlertDialog(
-                scrollable: scrollable,
-                actions: actions,
-                content: content,
-                backgroundColor: color,
-                contentPadding: EdgeInsets.zero,
-                clipBehavior: Clip.hardEdge,
-                actionsPadding: const EdgeInsets.all(16),
-                buttonPadding: const EdgeInsets.all(16),
+              child: PointerInterceptor(
+                child: AlertDialog(
+                  scrollable: scrollable,
+                  actions: actions,
+                  content: content,
+                  backgroundColor: color,
+                  contentPadding: EdgeInsets.zero,
+                  clipBehavior: Clip.hardEdge,
+                  actionsPadding: const EdgeInsets.all(16),
+                  buttonPadding: const EdgeInsets.all(16),
+                ),
               ),
             ),
           ),

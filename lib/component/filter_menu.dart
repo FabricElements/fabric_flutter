@@ -801,7 +801,7 @@ class _FilterMenuState extends State<FilterMenu> {
     if (pendingOptions.isNotEmpty) {
       menuOptions.add(
         SearchAnchor(
-          isFullScreen: isSmallScreen,
+          isFullScreen: isSmallScreen || pendingOptions.length > 10,
           searchController: searchController,
           builder: (BuildContext context, SearchController controller) {
             return PointerInterceptor(
@@ -885,22 +885,26 @@ class _FilterMenuState extends State<FilterMenu> {
                       barrierDismissible: false, // user must tap button!
                       context: c,
                       builder: (BuildContext ctx) {
-                        return AlertDialog(
-                          key: ValueKey(
-                            'filter-menu-option-data-pop-up-${item.id}',
-                          ),
-                          scrollable: true,
-                          content: FilterMenuOptionData(
-                            key: ValueKey('filter-menu-option-data-${item.id}'),
-                            data: selected,
-                            onChange: (newValue) {
-                              Navigator.of(ctx).pop();
-                              final merged = FilterHelper.merge(
-                                filters: data,
-                                merge: [newValue],
-                              );
-                              widget.onChange(merged);
-                            },
+                        return PointerInterceptor(
+                          child: AlertDialog(
+                            key: ValueKey(
+                              'filter-menu-option-data-pop-up-${item.id}',
+                            ),
+                            scrollable: true,
+                            content: FilterMenuOptionData(
+                              key: ValueKey(
+                                'filter-menu-option-data-${item.id}',
+                              ),
+                              data: selected,
+                              onChange: (newValue) {
+                                Navigator.of(ctx).pop();
+                                final merged = FilterHelper.merge(
+                                  filters: data,
+                                  merge: [newValue],
+                                );
+                                widget.onChange(merged);
+                              },
+                            ),
                           ),
                         );
                       },
