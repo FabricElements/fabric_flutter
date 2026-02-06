@@ -134,53 +134,22 @@ class InitAppChild extends StatelessWidget {
       stream: stateUser.streamStatus,
       initialData: stateUser.userStatus,
       builder: (context, snapshot) {
+        bool resolved = false;
         switch (snapshot.connectionState) {
           case ConnectionState.none:
           case ConnectionState.waiting:
-            return loadingWidget;
+            resolved = false;
           default:
+            resolved = true;
         }
-        if (snapshot.data == null) {
-          return loadingWidget;
+        final status = snapshot.data ?? stateUser.userStatus;
+        if (status.ready) {
+          resolved = true;
         }
-        final status = snapshot.data!;
-        final notReady = !status.ready;
-        if (notReady) return loadingWidget;
+        if (!resolved) return loadingWidget;
 
-        /// Set user id for analytics
-        if (status.signedIn) {
-          try {
-            stateAnalytics.analytics?.setUserId(id: status.uid);
-          } catch (error) {
-            debugPrint(LogColor.error('FirebaseAnalytics error: $error'));
-          }
-        }
-
-        /// Init Notifications
-        if (notifications) {
-          try {
-            if (status.signedIn) {
-              /// Wait 3 seconds to ensure FCM token is ready
-              // await Future.delayed(const Duration(seconds: 3));
-              stateNotifications.token = stateUser.serialized.fcm;
-              stateNotifications.uid = status.uid;
-              stateNotifications.init();
-              stateNotifications.getUserToken().catchError((e) {
-                debugPrint(
-                  LogColor.error('StateNotifications.getUserToken() Error: $e'),
-                );
-              });
-            } else {
-              if (!kDebugMode) {
-                // Stop notifications when sign out
-                stateNotifications.clear();
-              }
-            }
-          } catch (error) {
-            debugPrint(LogColor.error('InitAppChild error: $error'));
-          }
-        }
-        return child;
+        /// Return child with KeyedSubtree to avoid rebuild issues
+        return KeyedSubtree(key: ValueKey('init-app-child'), child: child);
       },
     );
   }
