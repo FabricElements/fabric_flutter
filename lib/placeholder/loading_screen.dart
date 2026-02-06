@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../helper/utils.dart';
+
 /// LoadingScreen is a preview screen when is loading any content.
 class LoadingScreen extends StatelessWidget {
   const LoadingScreen({super.key, this.parent = false});
@@ -16,6 +18,9 @@ class LoadingScreen extends StatelessWidget {
     } else {
       theme.copyWith(colorScheme: ThemeData.light().colorScheme);
     }
+
+    Utils.getParentWidgetName(context);
+
     return Theme(
       data: theme,
       child: Container(
