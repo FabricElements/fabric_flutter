@@ -32,7 +32,6 @@ class LoadingScreen extends StatelessWidget {
         width: double.maxFinite,
         child: Column(
           children: [
-            if (!parent) const SizedBox(height: kToolbarHeight),
             if (parent) AppBar(),
             Spacer(),
             SizedBox(
