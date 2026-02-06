@@ -30,15 +30,31 @@ abstract class StateCollection extends StateShared {
     return clear(notify: notify);
   }
 
+  bool isSameQuery(Query? reference) {
+    final totalToFetch = limit * page;
+    Query? newQuery = reference?.limit(totalToFetch);
+    final newReference = ({newQuery?.parameters ?? {}}).toString().hashCode;
+    final oldReference = ({query?.parameters ?? {}}).toString().hashCode;
+    return oldReference == newReference;
+  }
+
+  bool isSameBaseQuery(Query? reference) {
+    final newReference = ({reference?.parameters ?? {}}).toString().hashCode;
+    final oldReference = ({baseQuery?.parameters ?? {}}).toString().hashCode;
+    bool same = oldReference == newReference;
+    if (!same) {
+      super.clear(notify: !initialized);
+    }
+    return same;
+  }
+
   /// Collection Reference
   /// FirebaseFirestore.instance.collection('example')
   set query(Query? reference) {
     if (loading) return;
-    Query? newQuery = reference?.limit(limit * page);
-    final newReference = ({newQuery?.parameters ?? {}}).toString().hashCode;
-    final oldReference = ({query?.parameters ?? {}}).toString().hashCode;
-    if (oldReference == newReference) return;
-    baseQuery = newQuery;
+    final totalToFetch = limit * page;
+    if (isSameQuery(reference)) return;
+    baseQuery = reference;
     _streamSubscription?.cancel();
     super.clear(notify: true);
   }
@@ -54,7 +70,6 @@ abstract class StateCollection extends StateShared {
   Future<dynamic> listen() async {
     if (loading) return data;
     if (initialized) return data;
-    super.clear(notify: false);
     loading = true;
     await _streamSubscription?.cancel();
     if (query == null) {
@@ -87,11 +102,14 @@ abstract class StateCollection extends StateShared {
         onError: (e) {
           super.clear(notify: true);
           error = e?.toString();
+          loading = false;
         },
       );
     } catch (e) {
       super.clear(notify: true);
       error = e.toString();
+    } finally {
+      loading = false;
     }
     return data;
   }
@@ -99,23 +117,23 @@ abstract class StateCollection extends StateShared {
   /// On page change
   @override
   void onPageChange(int newPage) async {
-    super.clear(notify: false);
+    await _streamSubscription?.cancel();
   }
 
   @override
   Future<dynamic> call({bool ignoreDuplicatedCalls = true}) async {
-    if (_streamSubscription != null) return listen();
+    /// Check if the query is the same as the previous one to avoid unnecessary calls
+    isSameBaseQuery(baseQuery);
     if (loading) return data;
     if (initialized) return data;
-    super.clear(notify: false);
-    loading = true;
     await _streamSubscription?.cancel();
     if (query == null) {
-      loading = false;
-      data = null;
+      super.clear(notify: false);
       return data;
     }
+    if (_streamSubscription != null) return listen();
     initialized = true;
+    loading = true;
     try {
       final snapshot = await query!.get();
       // Default totalCount depending on the page
@@ -134,8 +152,9 @@ abstract class StateCollection extends StateShared {
       super.clear(notify: false);
       data = null;
       error = e.toString();
+    } finally {
+      loading = false;
     }
-    loading = false;
     return data;
   }
 
