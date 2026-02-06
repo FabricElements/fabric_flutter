@@ -8,12 +8,34 @@ class LoadingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: parent ? AppBar() : null,
-      body: const Padding(
-        padding: EdgeInsets.all(20.0),
-        child: Center(
-          child: CircularProgressIndicator(semanticsLabel: 'Loading'),
+    ThemeData theme = Theme.of(context);
+    // Use system theme colors
+    final brightness = MediaQuery.of(context).platformBrightness;
+    if (brightness == Brightness.dark) {
+      theme.copyWith(colorScheme: ThemeData.dark().colorScheme);
+    } else {
+      theme.copyWith(colorScheme: ThemeData.light().colorScheme);
+    }
+    return Theme(
+      data: theme,
+      child: Container(
+        color: theme.scaffoldBackgroundColor,
+        child: Column(
+          children: [
+            if (!parent) const SizedBox(height: kToolbarHeight),
+            if (parent) AppBar(),
+            Spacer(),
+            SizedBox(
+              width: kToolbarHeight,
+              height: kToolbarHeight,
+              child: CircularProgressIndicator.adaptive(
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  theme.colorScheme.primary,
+                ),
+              ),
+            ),
+            Spacer(),
+          ],
         ),
       ),
     );
