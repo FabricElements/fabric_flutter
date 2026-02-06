@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
 import '../helper/log_color.dart';
+import '../placeholder/loading_screen.dart';
 import '../serialized/user_status.dart';
 import '../state/state_analytics.dart';
 import '../state/state_global.dart';
@@ -114,13 +115,7 @@ class InitAppChild extends StatelessWidget {
     });
 
     /// Loading widget
-    final loadingWidget = Theme(
-      data: theme,
-      child: Container(
-        color: theme.colorScheme.surface,
-        child: const Center(child: CircularProgressIndicator()),
-      ),
-    );
+    final loadingWidget = LoadingScreen();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       /// Init App States
