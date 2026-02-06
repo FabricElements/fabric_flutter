@@ -342,6 +342,11 @@ class _SmartImageState extends State<SmartImage> {
         }
       }
     }
-    return Stack(alignment: AlignmentDirectional.center, children: children);
+
+    /// Return child with KeyedSubtree to avoid rebuild issues
+    return KeyedSubtree(
+      key: ValueKey('smart_image_${widget.url!}'),
+      child: Stack(alignment: AlignmentDirectional.center, children: children),
+    );
   }
 }
