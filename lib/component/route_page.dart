@@ -101,7 +101,7 @@ class RoutePage extends StatefulWidget {
     required this.routeHelper,
     required this.uri,
     required this.status,
-    this.loading = const LoadingScreen(),
+    this.loading = const LoadingScreen(key: Key('route-page-loading')),
     required this.onInit,
     required this.onContextReady,
   });
@@ -160,6 +160,7 @@ class _RoutePageState extends State<RoutePage> {
 
         /// Return child with KeyedSubtree to avoid rebuild issues
         return GestureDetector(
+          key: ValueKey('route-page-gesture-detector'),
           onTap: () {
             /// Close keyboard when tap outside input
             FocusScopeNode currentFocus = FocusScope.of(context);
