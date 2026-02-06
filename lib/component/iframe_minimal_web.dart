@@ -1,9 +1,7 @@
-import 'dart:ui' if (dart.library.html) 'dart:ui_web' as ui;
+import 'dart:ui_web' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:universal_html/html.dart'
-    if (dart.library.html) 'dart:html'
-    show IFrameElement, document;
+import 'package:universal_html/universal_html.dart' show IFrameElement;
 
 import '../helper/log_color.dart';
 
