@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../component/alert_data.dart';
 import '../serialized/media_data.dart';
 import 'app_localizations_delegate.dart';
+import 'log_color.dart';
 import 'media_helper.dart';
 
 /// This is a helper which uploads any type of file to the firebase storage path specified.
@@ -171,6 +172,29 @@ class FirebaseStorageHelper {
         type: errorType,
         duration: 5,
       );
+    }
+  }
+
+  /// Delete file safely
+  static Future<void> delete(String filePath) async {
+    try {
+      final storageRef = FirebaseStorage.instance.ref();
+      final ref = storageRef.child(filePath);
+      await ref.delete();
+      debugPrint('File deleted');
+    } on FirebaseException catch (e) {
+      if (e.code == 'object-not-found') {
+        // File does not exist, treat as success
+        debugPrint(
+          LogColor.info('File at $filePath does not exist, nothing to delete.'),
+        );
+      } else {
+        // Handle other possible errors (e.g., permission denied)
+        debugPrint(
+          LogColor.error('Failed to delete file at $filePath: ${e.message}'),
+        );
+        rethrow; // Re-throw if you want to handle it higher up
+      }
     }
   }
 }
