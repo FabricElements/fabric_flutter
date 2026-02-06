@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 
 import '../serialized/user_data.dart';
 import 'enum_data.dart';
+import 'log_color.dart';
 
 /// Utils for a variety of different utility functions.
 class Utils {
@@ -312,5 +313,25 @@ class Utils {
         statusColor = Colors.grey.shade800;
     }
     return statusColor;
+  }
+
+  static void getParentWidgetName(BuildContext context) {
+    Element? element = context as Element;
+
+    // Move up one level in the tree
+    element.visitAncestorElements((ancestor) {
+      debugPrint(
+        LogColor.info('''
+This widget:
+- key: ${element.widget.key}
+- type: ${element.widget.runtimeType}
+Parent widget:
+- key: ${ancestor.widget.key}
+-type: ${ancestor.widget.runtimeType}
+-----------------------------------
+      '''),
+      );
+      return false; // Stop after the first ancestor
+    });
   }
 }
