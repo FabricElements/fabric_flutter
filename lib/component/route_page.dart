@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../helper/app_global.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/log_color.dart';
 import '../helper/options.dart';
@@ -9,9 +8,9 @@ import '../helper/route_helper.dart';
 import '../placeholder/loading_screen.dart';
 import '../serialized/notification_data.dart';
 import '../serialized/user_status.dart';
-import '../state/state_global.dart';
 import '../state/state_notifications.dart';
 import 'alert_data.dart';
+import 'connection_status.dart';
 
 bool _listenersConfigured = false;
 
@@ -19,35 +18,10 @@ bool _listenersConfigured = false;
 void _configureListeners(BuildContext context) {
   if (_listenersConfigured) return;
   final locales = AppLocalizations.of(context);
-  final stateGlobal = Provider.of<StateGlobal>(context, listen: false);
   final stateNotifications = Provider.of<StateNotifications>(
     context,
     listen: false,
   );
-
-  /// Show connectivity alerts
-  stateGlobal.streamConnection.listen((connected) {
-    final BuildContext safeContext =
-        AppGlobal.navigatorKey.currentContext ?? context;
-    if (connected) {
-      alertData(
-        context: safeContext,
-        icon: Icons.wifi,
-        body: locales.get('notification--you-are-back-online'),
-        duration: 2,
-      );
-    } else {
-      final BuildContext safeContext =
-          AppGlobal.navigatorKey.currentContext ?? context;
-      alertData(
-        context: safeContext,
-        icon: Icons.wifi_off,
-        body: locales.get('notification--you-are--offline'),
-        duration: 100,
-        type: AlertType.warning,
-      );
-    }
-  });
 
   /// Define notification callback
   stateNotifications.callback = (NotificationData message) {
@@ -112,6 +86,7 @@ class RoutePage extends StatefulWidget {
 
 class _RoutePageState extends State<RoutePage> {
   late final Future<void> _future;
+  bool loading = true;
 
   @override
   void initState() {
@@ -168,9 +143,18 @@ class _RoutePageState extends State<RoutePage> {
               currentFocus.requestFocus(FocusNode());
             }
           },
-          child: KeyedSubtree(
-            key: ValueKey('route-page-child'),
-            child: routeWidget,
+          child: Stack(
+            fit: StackFit.loose,
+            children: [
+              KeyedSubtree(
+                key: ValueKey('route-page-child'),
+                child: routeWidget,
+              ),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: const ConnectionStatus(),
+              ),
+            ],
           ),
         );
       },
