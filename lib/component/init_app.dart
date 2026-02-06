@@ -115,7 +115,7 @@ class InitAppChild extends StatelessWidget {
     });
 
     /// Loading widget
-    final loadingWidget = LoadingScreen();
+    final loadingWidget = LoadingScreen(key: Key('init-app-loading-screen'));
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       /// Init App States
@@ -137,8 +137,8 @@ class InitAppChild extends StatelessWidget {
           default:
             resolved = true;
         }
-        final status = snapshot.data ?? stateUser.userStatus;
-        if (status.ready) {
+        final status = snapshot.data;
+        if (status?.ready ?? stateUser.userStatus.ready) {
           resolved = true;
         }
         if (!resolved) return loadingWidget;
