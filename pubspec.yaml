@@ -51,6 +51,7 @@ dependencies:
   gap: ^3.0.1
   google_sign_in_web: ^1.1.0
   image_network: ^2.6.0
+  webview_flutter: ^4.13.1
 dev_dependencies:
   integration_test:
     sdk: flutter
