@@ -1365,5 +1365,13 @@ const Map<String, Map<String, String>> defaultLocales = {
     'en': 'Large',
     'es': 'Grande',
   },
+  'label--online': {
+    'en': 'Online',
+    'es': 'En línea',
+  },
+  'label--offline': {
+    'en': 'Offline',
+    'es': 'Sin conexión',
+  }
 };
 // @formatter:on
