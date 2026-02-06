@@ -20,6 +20,8 @@ class LoadingScreen extends StatelessWidget {
       data: theme,
       child: Container(
         color: theme.scaffoldBackgroundColor,
+        height: double.maxFinite,
+        width: double.maxFinite,
         child: Column(
           children: [
             if (!parent) const SizedBox(height: kToolbarHeight),
