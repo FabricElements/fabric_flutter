@@ -41,7 +41,7 @@ class LoadingScreen extends StatelessWidget {
             height: kToolbarHeight,
             child: CircularProgressIndicator.adaptive(
               valueColor: AlwaysStoppedAnimation<Color>(
-                theme.colorScheme.primary,
+                theme.colorScheme.onSurface,
               ),
             ),
           ),
