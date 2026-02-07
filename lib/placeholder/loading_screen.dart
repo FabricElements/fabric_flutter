@@ -12,18 +12,6 @@ class LoadingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     ThemeData theme = Theme.of(context);
-    // Use system theme colors
-    // final brightness = MediaQuery.of(context).platformBrightness;
-    // if (brightness == Brightness.dark) {
-    //   print('Using dark theme');
-    //   theme = theme.copyWith(colorScheme: ThemeData.dark().colorScheme);
-    // } else {
-    //   print('Using light theme');
-    //   theme = theme.copyWith(colorScheme: ThemeData.light().colorScheme);
-    // }
-    // print(theme.colorScheme.surface);
-    // print('--------------------------------');
-
     if (log) {
       Utils.getParentWidgetName(context);
     }
@@ -37,11 +25,16 @@ class LoadingScreen extends StatelessWidget {
           if (parent) AppBar(),
           Spacer(),
           SizedBox(
-            width: kToolbarHeight,
-            height: kToolbarHeight,
+            width: kToolbarHeight * 2,
+            height: kToolbarHeight * 2,
             child: CircularProgressIndicator.adaptive(
               valueColor: AlwaysStoppedAnimation<Color>(
                 theme.colorScheme.onSurface,
+              ),
+              backgroundColor: theme.colorScheme.inverseSurface,
+              constraints: BoxConstraints(
+                maxWidth: kToolbarHeight,
+                maxHeight: kToolbarHeight,
               ),
             ),
           ),
