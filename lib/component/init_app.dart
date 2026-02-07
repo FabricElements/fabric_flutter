@@ -60,9 +60,9 @@ class InitAppChild extends StatelessWidget {
     // Use system theme colors
     final brightness = MediaQuery.of(context).platformBrightness;
     if (brightness == Brightness.dark) {
-      theme.copyWith(colorScheme: ThemeData.dark().colorScheme);
+      theme = theme.copyWith(colorScheme: ThemeData.dark().colorScheme);
     } else {
-      theme.copyWith(colorScheme: ThemeData.light().colorScheme);
+      theme = theme.copyWith(colorScheme: ThemeData.light().colorScheme);
     }
 
     /// Call App States after MultiProvider is called
@@ -114,9 +114,6 @@ class InitAppChild extends StatelessWidget {
       }
     });
 
-    /// Loading widget
-    final loadingWidget = LoadingScreen(key: Key('init-app-loading-screen'));
-
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       /// Init App States
       stateGlobal.init();
@@ -124,28 +121,36 @@ class InitAppChild extends StatelessWidget {
     });
 
     /// Return child component
-    return StreamBuilder<UserStatus>(
-      key: Key('init-app-user-status-stream-builder'),
-      stream: stateUser.streamStatus,
-      initialData: stateUser.userStatus,
-      builder: (context, snapshot) {
-        bool resolved = false;
-        switch (snapshot.connectionState) {
-          case ConnectionState.none:
-          case ConnectionState.waiting:
-            resolved = false;
-          default:
+    return Theme(
+      data: theme,
+      child: StreamBuilder<UserStatus>(
+        key: Key('init-app-user-status-stream-builder'),
+        stream: stateUser.streamStatus,
+        initialData: stateUser.userStatus,
+        builder: (context, snapshot) {
+          bool resolved = false;
+          switch (snapshot.connectionState) {
+            case ConnectionState.none:
+            case ConnectionState.waiting:
+              resolved = false;
+            default:
+              resolved = true;
+          }
+          final status = snapshot.data;
+          if (status?.ready ?? stateUser.userStatus.ready) {
             resolved = true;
-        }
-        final status = snapshot.data;
-        if (status?.ready ?? stateUser.userStatus.ready) {
-          resolved = true;
-        }
-        if (!resolved) return loadingWidget;
+          }
 
-        /// Return child with KeyedSubtree to avoid rebuild issues
-        return KeyedSubtree(key: ValueKey('init-app-child'), child: child);
-      },
+          /// Loading widget
+          final loadingWidget = LoadingScreen(
+            key: Key('init-app-loading-screen'),
+          );
+          if (!resolved) return loadingWidget;
+
+          /// Return child with KeyedSubtree to avoid rebuild issues
+          return KeyedSubtree(key: ValueKey('init-app-child'), child: child);
+        },
+      ),
     );
   }
 }
