@@ -101,12 +101,14 @@ abstract class StateDocument extends StateShared {
           }
         },
         onError: (e) {
-          super.clear(notify: true);
+          initialized = false;
+          loading = false;
           error = e?.toString();
         },
       );
     } catch (e) {
-      super.clear(notify: true);
+      initialized = false;
+      loading = false;
       error = e.toString();
     }
     return data;
@@ -129,7 +131,8 @@ abstract class StateDocument extends StateShared {
       final snapshot = await baseRef!.get();
       data = {...snapshot.data() as Map<String, dynamic>, 'id': snapshot.id};
     } catch (e) {
-      super.clear(notify: true);
+      initialized = false;
+      loading = false;
       error = e.toString();
     }
     loading = false;
