@@ -191,7 +191,6 @@ class StateUser extends StateDocument {
     await _auth.signOut();
     clearAuth(notify: false);
     await _userStatusUpdate();
-    // notifyListeners();
   }
 
   /// Displays content only if the the role matches for current user
@@ -209,12 +208,9 @@ class StateUser extends StateDocument {
     uid: object?.uid,
     language: language,
     theme: theme,
-    ready:
-        _ready &&
-        _init &&
-        !loading &&
-        ((!initialized && data == null) ||
-            (initialized && (data?.isNotEmpty ?? false))),
+    // DO NOT USE firestore document as a source of truth for ready status
+    // because it can cause flickering when the document is loading or has an error
+    ready: _ready && _init && !loading,
   );
 
   /// Update user status data
@@ -288,7 +284,7 @@ class StateUser extends StateDocument {
     _auth.userChanges().listen(
       _refreshAuth,
       onError: (e) {
-        print(
+        debugPrint(
           LogColor.error('StateUser - Auth userChanges error: ${e.toString()}'),
         );
         error = e.toString();
