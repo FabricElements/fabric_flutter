@@ -210,7 +210,7 @@ class StateUser extends StateDocument {
     theme: theme,
     // DO NOT USE firestore document as a source of truth for ready status
     // because it can cause flickering when the document is loading or has an error
-    ready: _ready && _init && !loading,
+    ready: _ready && _init,
   );
 
   /// Update user status data
@@ -228,6 +228,31 @@ class StateUser extends StateDocument {
     notifyListeners();
   }
 
+  /// Fetch user data in case the user is authenticated but the user data is not loaded yet
+  /// (e.g. after a hot reload or loosing connection and getting it back)
+  /// This function is independent and can be called multiple times without causing duplicated calls or flickering
+  Future<void> _loadUserData(String? uid) async {
+    if (uid == null) return;
+    bool hasUserData = (initialized && (data?.isNotEmpty ?? false));
+    if (object?.uid == uid && hasUserData) {
+      return;
+    }
+
+    /// Small delay to ensure everything is ready and avoid flickering
+    await Future.delayed(Duration(milliseconds: debounceTimeNotInitialized));
+    try {
+      /// Get User document data
+      ref = db.collection('user').doc(uid);
+      await listen();
+    } catch (e) {
+      debugPrint(
+        LogColor.error(
+          'StateUser - Listen User Document error: ${e.toString()}',
+        ),
+      );
+    }
+  }
+
   /// Refresh auth state
   Future<void> _refreshAuth(User? userObject) async {
     if (!_init) return;
@@ -236,20 +261,11 @@ class StateUser extends StateDocument {
       await cancel(notify: true);
       clearAuth(notify: true);
     } else {
-      try {
-        /// Get User document data
-        ref = db.collection('user').doc(userObject.uid);
-        await listen();
-      } catch (e) {
-        debugPrint(
-          LogColor.error(
-            'StateUser - Listen User Document error: ${e.toString()}',
-          ),
-        );
-      }
+      /// Load user data if the user is authenticated but the user data is not loaded yet
+      await _loadUserData(userObject.uid);
       try {
         /// Get user token
-        // Call before _controllerStreamStatus to prevent unauthenticated calls
+        /// Call before _controllerStreamStatus to prevent unauthenticated calls
         await _getToken(userObject);
       } catch (e) {
         debugPrint(
@@ -273,8 +289,12 @@ class StateUser extends StateDocument {
   }
 
   /// Init app and prevent duplicated calls
-  void init() {
-    if (_init) return;
+  Future<void> init() async {
+    /// Prevent duplicated calls when the user is already authenticated and has user data loaded
+    if (_init) {
+      await _loadUserData(object?.uid);
+      return;
+    }
     _init = true;
     Utils.getLanguage()
         .then((value) => _language = value)
