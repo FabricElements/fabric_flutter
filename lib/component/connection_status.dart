@@ -22,15 +22,7 @@ class _ConnectionStatusState extends State<ConnectionStatus> {
     final stateGlobal = Provider.of<StateGlobal>(context, listen: false);
     final locales = AppLocalizations.of(context);
     ThemeData theme = Theme.of(context);
-    // Use system theme colors
-    final brightness = MediaQuery.of(context).platformBrightness;
-    if (brightness == Brightness.dark) {
-      theme.copyWith(colorScheme: ThemeData.dark().colorScheme);
-    } else {
-      theme.copyWith(colorScheme: ThemeData.light().colorScheme);
-    }
     final textTheme = theme.textTheme;
-
     return StreamBuilder(
       stream: stateGlobal.streamConnection,
       builder: (context, snapshot) {
