@@ -1,3 +1,4 @@
+import 'package:fabric_flutter/serialized/user_status.dart';
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -10,9 +11,6 @@ enum UserPresence { active, inactive, away }
 
 /// User Device OS
 enum UserOS { android, ios, macos, linux, web, fuchsia, windows, unknown }
-
-/// Custom visual density options
-enum CustomVisualDensity { adaptive, compact, comfortable, standard, large }
 
 /// Onboarding Object
 @JsonSerializable(explicitToJson: true)
