@@ -188,6 +188,8 @@ class StateUser extends StateDocument {
       debugPrint(LogColor.error('User ping error: ${error.toString()}'));
     }
     await cancel(notify: false);
+    // Force initialized to prevent debounce and ensure the status is updated immediately
+    initialized = true;
     await _auth.signOut();
     clearAuth(notify: false);
     await _userStatusUpdate();
@@ -198,6 +200,7 @@ class StateUser extends StateDocument {
     return roles.contains(roleFromData(group: group));
   }
 
+  /// Keep the last user status to prevent unnecessary updates
   UserStatus? _lastUserStatus;
 
   /// User Status
