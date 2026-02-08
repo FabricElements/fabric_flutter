@@ -75,7 +75,8 @@ abstract class StateDocument extends StateShared {
                 'ping',
                 'os',
                 'backup',
-                'fcm',
+                // TODO: Clear after implementing custom notification request component
+                // 'fcm',
               ];
               // Remove keys that match with [keysToIgnoreFromNotification]
               dataObjectMap.removeWhere(
