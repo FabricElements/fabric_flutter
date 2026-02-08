@@ -24,19 +24,12 @@ class LoadingScreen extends StatelessWidget {
         children: [
           if (parent) AppBar(),
           Spacer(),
-          SizedBox(
-            width: kToolbarHeight * 2,
-            height: kToolbarHeight * 2,
-            child: CircularProgressIndicator.adaptive(
-              valueColor: AlwaysStoppedAnimation<Color>(
-                theme.colorScheme.onSurface,
-              ),
-              backgroundColor: theme.colorScheme.inverseSurface,
-              constraints: BoxConstraints(
-                maxWidth: kToolbarHeight,
-                maxHeight: kToolbarHeight,
-              ),
+          CircularProgressIndicator.adaptive(
+            value: null,
+            valueColor: AlwaysStoppedAnimation<Color>(
+              theme.colorScheme.surface,
             ),
+            backgroundColor: theme.colorScheme.onSurface,
           ),
           Spacer(),
         ],
