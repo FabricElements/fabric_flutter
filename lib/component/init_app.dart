@@ -137,7 +137,7 @@ class InitAppChild extends StatelessWidget {
               resolved = true;
           }
           final status = snapshot.data;
-          if (status?.ready ?? stateUser.userStatus.ready) {
+          if (status?.ready == true) {
             resolved = true;
           }
 
@@ -147,8 +147,12 @@ class InitAppChild extends StatelessWidget {
           );
           if (!resolved) return loadingWidget;
 
-          /// Return child with KeyedSubtree to avoid rebuild issues
-          return KeyedSubtree(key: ValueKey('init-app-child'), child: child);
+          /// Force build for UserStatus updates
+          final now = DateTime.now().millisecondsSinceEpoch;
+          return Container(
+            key: ValueKey('init-app-child-${status?.signedIn}-$now'),
+            child: child,
+          );
         },
       ),
     );

@@ -188,6 +188,8 @@ class StateUser extends StateDocument {
       debugPrint(LogColor.error('User ping error: ${error.toString()}'));
     }
     await cancel(notify: false);
+    // Force initialized to prevent debounce and ensure the status is updated immediately
+    initialized = true;
     await _auth.signOut();
     clearAuth(notify: false);
     await _userStatusUpdate();
@@ -198,6 +200,7 @@ class StateUser extends StateDocument {
     return roles.contains(roleFromData(group: group));
   }
 
+  /// Keep the last user status to prevent unnecessary updates
   UserStatus? _lastUserStatus;
 
   /// User Status
@@ -208,6 +211,7 @@ class StateUser extends StateDocument {
     uid: object?.uid,
     language: language,
     theme: theme,
+    visualDensity: visualDensity,
     // DO NOT USE firestore document as a source of truth for ready status
     // because it can cause flickering when the document is loading or has an error
     ready: _ready && _init,
@@ -216,8 +220,7 @@ class StateUser extends StateDocument {
   /// Update user status data
   Future<void> _userStatusUpdate() async {
     if (!_ready || !userStatus.ready) return;
-    // Basic comparison
-    if (_lastUserStatus == userStatus) return;
+    // Deep comparison
     Map<String, dynamic> oldUserStatus = _lastUserStatus?.toJson() ?? {};
     Map<String, dynamic> newUserStatus = userStatus.toJson();
     if (const DeepCollectionEquality().equals(oldUserStatus, newUserStatus)) {
@@ -341,7 +344,7 @@ class StateUser extends StateDocument {
 
   /// Visual density for the app
   CustomVisualDensity get visualDensity =>
-      _visualDensity ?? serialized.visualDensity;
+      _visualDensity ?? CustomVisualDensity.adaptive;
 
   /// Visual density for the app
   VisualDensity get visualDensityValue {
@@ -366,10 +369,10 @@ class StateUser extends StateDocument {
     if ((_language ?? 'en') != serialized.language) {
       _language = serialized.language;
     }
-    if (theme != serialized.theme) {
+    if (_theme != serialized.theme) {
       _theme = serialized.theme;
     }
-    if (visualDensity != serialized.visualDensity) {
+    if (_visualDensity != serialized.visualDensity) {
       _visualDensity = serialized.visualDensity;
     }
     await _userStatusUpdate();

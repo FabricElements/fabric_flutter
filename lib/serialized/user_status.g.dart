@@ -20,6 +20,13 @@ UserStatus _$UserStatusFromJson(Map<String, dynamic> json) => UserStatus(
       ThemeMode.light,
   uid: json['uid'],
   ready: json['ready'] as bool? ?? false,
+  visualDensity:
+      $enumDecodeNullable(
+        _$CustomVisualDensityEnumMap,
+        json['visualDensity'],
+        unknownValue: CustomVisualDensity.adaptive,
+      ) ??
+      CustomVisualDensity.adaptive,
 );
 
 Map<String, dynamic> _$UserStatusToJson(UserStatus instance) =>
@@ -30,6 +37,7 @@ Map<String, dynamic> _$UserStatusToJson(UserStatus instance) =>
       'uid': ?instance.uid,
       'language': instance.language,
       'theme': _$ThemeModeEnumMap[instance.theme]!,
+      'visualDensity': _$CustomVisualDensityEnumMap[instance.visualDensity]!,
       'ready': instance.ready,
     };
 
@@ -37,4 +45,12 @@ const _$ThemeModeEnumMap = {
   ThemeMode.system: 'system',
   ThemeMode.light: 'light',
   ThemeMode.dark: 'dark',
+};
+
+const _$CustomVisualDensityEnumMap = {
+  CustomVisualDensity.adaptive: 'adaptive',
+  CustomVisualDensity.compact: 'compact',
+  CustomVisualDensity.comfortable: 'comfortable',
+  CustomVisualDensity.standard: 'standard',
+  CustomVisualDensity.large: 'large',
 };

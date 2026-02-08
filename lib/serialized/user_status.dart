@@ -3,6 +3,9 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'user_status.g.dart';
 
+/// Custom visual density options
+enum CustomVisualDensity { adaptive, compact, comfortable, standard, large }
+
 @JsonSerializable(explicitToJson: true)
 class UserStatus {
   @JsonKey(includeIfNull: false)
@@ -22,6 +25,11 @@ class UserStatus {
   @JsonKey(includeIfNull: false, unknownEnumValue: ThemeMode.light)
   final ThemeMode theme;
 
+  /// Visual Density
+  /// Custom visual density for the user interface
+  @JsonKey(includeIfNull: false, unknownEnumValue: CustomVisualDensity.adaptive)
+  final CustomVisualDensity visualDensity;
+
   /// User is ready
   bool ready;
 
@@ -33,6 +41,7 @@ class UserStatus {
     this.theme = ThemeMode.light,
     this.uid,
     this.ready = false,
+    this.visualDensity = CustomVisualDensity.adaptive,
   });
 
   factory UserStatus.fromJson(Map<String, dynamic>? json) =>
