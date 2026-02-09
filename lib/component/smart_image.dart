@@ -243,16 +243,21 @@ class _SmartImageState extends State<SmartImage> {
       /// Only load image if width and height are greater than 10
       if (width > 10 && height > 10 && resizedTimes > 0 && path.isNotEmpty) {
         if (!kIsWeb) {
+          bool willCacheSize = widget.fit == BoxFit.fill;
           children.add(
             Positioned.fill(
               child: Image.network(
                 path,
                 fit: widget.fit,
                 isAntiAlias: !kIsWeb,
-                width: width.toDouble(),
-                height: height.toDouble(),
-                cacheHeight: (height * devicePixelRatio).round(),
-                cacheWidth: (width * devicePixelRatio).round(),
+                width: !willCacheSize ? null : width.toDouble(),
+                height: !willCacheSize ? null : height.toDouble(),
+                cacheHeight: !willCacheSize
+                    ? null
+                    : (height * devicePixelRatio).round(),
+                cacheWidth: !willCacheSize
+                    ? null
+                    : (width * devicePixelRatio).round(),
                 filterQuality: FilterQuality.high,
                 key: ValueKey<String>(path),
                 // This tells the browser to request the image with CORS headers
