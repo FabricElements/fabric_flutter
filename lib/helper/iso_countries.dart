@@ -4229,6 +4229,29 @@ class ISOCountries {
     return items;
   }
 
+  /// List of countries with calling code
+  /// US, CA and CO are the main countries for mobile phone numbers, so they are listed first
+  static List<ISOCountry> get countriesForMobile {
+    List<ISOCountry> items = countries
+        .where((element) => element.callingCode != null)
+        .toList();
+    List<ISOCountry> notMainCountries = items
+        .where(
+          (element) =>
+              element.callingCode != '1' && element.callingCode != '57',
+        )
+        .toList();
+    List<ISOCountry> mainCountries = items
+        .where(
+          (element) =>
+              element.alpha2 == 'US' ||
+              element.alpha2 == 'CA' ||
+              element.alpha2 == 'CO',
+        )
+        .toList();
+    return [...mainCountries, ...notMainCountries];
+  }
+
   /// This method return the country name by [alpha2]
   static String? getName(String? alpha2) {
     try {
