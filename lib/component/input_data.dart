@@ -6,6 +6,7 @@ import 'package:pointer_interceptor/pointer_interceptor.dart';
 
 import '../helper/app_localizations_delegate.dart';
 import '../helper/enum_data.dart';
+import '../helper/gsm.dart';
 import '../helper/input_validation.dart';
 import '../helper/log_color.dart';
 import '../helper/options.dart';
@@ -604,6 +605,10 @@ getValue -------------------------------------
     TextInputAction? textInputAction = widget.textInputAction;
     List<TextInputFormatter> inputFormatters = [...widget.inputFormatters];
     final inputValidation = InputValidation(locales: locales);
+    bool readOnly = false;
+    if (isDisabled) {
+      readOnly = true;
+    }
     switch (widget.type) {
       case InputDataType.text:
         keyboardType = TextInputType.multiline;
@@ -668,6 +673,7 @@ getValue -------------------------------------
         hintTextDefault = locales.get('label--choose-label', {
           'label': locales.get('label--date'),
         });
+        readOnly = true;
         break;
       case InputDataType.secret:
         keyboardType = TextInputType.visiblePassword;
@@ -678,6 +684,7 @@ getValue -------------------------------------
       case InputDataType.enums:
       case InputDataType.dropdown:
         hintTextDefault = defaultTextOptions;
+        readOnly = true;
         break;
       default:
     }
@@ -933,7 +940,7 @@ getValue -------------------------------------
           enableInteractiveSelection: isDisabled
               ? true
               : widget.enableInteractiveSelection,
-          readOnly: isDisabled,
+          readOnly: readOnly,
           mouseCursor: isDisabled ? SystemMouseCursors.click : null,
           controller: textController,
           decoration: inputDecoration.copyWith(
@@ -976,22 +983,39 @@ getValue -------------------------------------
             ],
             searchController: searchController,
             builder: (BuildContext context, SearchController controller) {
-              return PointerInterceptor(child: widgetInput);
+              return MouseRegion(
+                cursor: SystemMouseCursors.click,
+                opaque: false,
+                child: PointerInterceptor(child: widgetInput),
+              );
             },
             suggestionsBuilder:
                 (BuildContext context, SearchController controller) {
-                  final value = controller.text;
+                  final value = controller.text.trim();
                   List<ButtonOptions> recommendations = dropdownOptions;
                   if (value.isNotEmpty) {
                     recommendations = recommendations.where((element) {
-                      final labelMatch = element.label.toLowerCase().contains(
-                        value.toLowerCase(),
-                      );
+                      /// Remove any special characters and spaces from the label to make the search more flexible
+                      final labelClean = GSM
+                          .toGSM(element.label)
+                          .toLowerCase()
+                          .replaceAll(RegExp(r'[\s\W]+'), '')
+                          .trim();
+                      final labelAltClean = element.labelAlt != null
+                          ? GSM
+                                .toGSM(element.labelAlt)
+                                .toLowerCase()
+                                .replaceAll(RegExp(r'[\s\W]+'), '')
+                                .trim()
+                          : null;
+                      final valueClean = GSM
+                          .toGSM(value)
+                          .toLowerCase()
+                          .replaceAll(RegExp(r'[\s\W]+'), '')
+                          .trim();
+                      final labelMatch = labelClean.contains(valueClean);
                       final labelAltMatch =
-                          element.labelAlt?.toLowerCase().contains(
-                            value.toLowerCase(),
-                          ) ??
-                          false;
+                          labelAltClean?.contains(value.toLowerCase()) ?? false;
                       final valueMatch = element.value.toString().contains(
                         value,
                       );
