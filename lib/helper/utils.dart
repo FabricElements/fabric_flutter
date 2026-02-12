@@ -283,7 +283,7 @@ class Utils {
         statusColor = Colors.blueGrey.shade600;
         break;
       case 'review':
-        statusColor = Colors.amber.shade900;
+        statusColor = Colors.amber.shade800;
         break;
       case 'approved':
         statusColor = Colors.deepPurple.shade500;
@@ -292,10 +292,11 @@ class Utils {
         statusColor = Colors.red.shade500;
         break;
       case 'inactive':
-        statusColor = Colors.amber.shade800;
+        statusColor = Colors.blueGrey.shade800;
         break;
       case 'paused':
         statusColor = Colors.deepOrange.shade500;
+        // statusColor = Colors.amber.shade500;
         break;
       case 'scheduled':
         statusColor = Colors.deepPurple.shade500;
@@ -304,7 +305,7 @@ class Utils {
         statusColor = Colors.teal.shade600;
         break;
       case 'archived':
-        statusColor = Colors.grey.shade700;
+        statusColor = Colors.grey.shade900;
         break;
       case 'suspended':
         statusColor = Colors.red.shade500;
