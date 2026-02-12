@@ -176,19 +176,20 @@ class _PhoneInputState extends State<PhoneInput> {
   @override
   void initState() {
     super.initState();
-    final baseCountries = ISOCountries.countries
-        .where((element) => element.callingCode != null)
-        .toList();
+    final baseCountries = ISOCountries.countriesForMobile;
     items = [];
+
+    /// Other countries
     for (var element in baseCountries) {
       // Add the country to the list but merge if already exist same calling code
       if (!items.any((item) => item.callingCode == element.callingCode)) {
         items.add(element);
       } else {
+        /// Join the name, alpha2 and fullName of the country with the same calling code
         final index = items.indexWhere(
           (item) => item.callingCode == element.callingCode,
         );
-        items[index].name = '${items[index].name}, ${element.name}';
+        // items[index].name = '${items[index].name}, ${element.name}';
         items[index].alpha2 = '${items[index].alpha2}, ${element.alpha2}';
         items[index].fullName = '${items[index].fullName}, ${element.fullName}';
       }
