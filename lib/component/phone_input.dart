@@ -189,7 +189,7 @@ class _PhoneInputState extends State<PhoneInput> {
         final index = items.indexWhere(
           (item) => item.callingCode == element.callingCode,
         );
-        // items[index].name = '${items[index].name}, ${element.name}';
+        items[index].name = '${items[index].name}, ${element.name}';
         items[index].alpha2 = '${items[index].alpha2}, ${element.alpha2}';
         items[index].fullName = '${items[index].fullName}, ${element.fullName}';
       }
