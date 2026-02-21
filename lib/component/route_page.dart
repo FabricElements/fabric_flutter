@@ -135,28 +135,29 @@ class _RoutePageState extends State<RoutePage> {
 
         /// Return child with KeyedSubtree to avoid rebuild issues
         return GestureDetector(
-          key: ValueKey('route-page-gesture-detector'),
-          onTap: () {
-            /// Close keyboard when tap outside input
-            FocusScopeNode currentFocus = FocusScope.of(context);
-            if (!currentFocus.hasPrimaryFocus) {
-              currentFocus.requestFocus(FocusNode());
-            }
-          },
-          child: Stack(
-            fit: StackFit.loose,
-            children: [
-              KeyedSubtree(
-                key: ValueKey('route-page-child'),
-                child: routeWidget,
-              ),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: const ConnectionStatus(),
-              ),
-            ],
-          ),
-        );
+				  behavior: HitTestBehavior.opaque, // Ensures taps outside hit your detector.
+				  key: ValueKey('route-page-gesture-detector'),
+				  onTap: () {
+				    /// Close keyboard when tap outside input
+				    FocusScopeNode currentFocus = FocusScope.of(context);
+				    if (!currentFocus.hasPrimaryFocus && currentFocus.focusedChild != null) {
+				      currentFocus.focusedChild.unfocus(); // Explicitly unfocus.
+				    }
+				  },
+				  child: Stack(
+				    fit: StackFit.loose,
+				    children: [
+				      KeyedSubtree(
+				        key: ValueKey('route-page-child'),
+				        child: routeWidget,
+				      ),
+				      Align(
+				        alignment: Alignment.bottomCenter,
+				        child: const ConnectionStatus(),
+				      ),
+				    ],
+				  ),
+				);
       },
     );
   }
