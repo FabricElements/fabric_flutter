@@ -142,6 +142,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
     final widgetEmpty =
         widget.empty ??
         Card(
+          margin: EdgeInsets.all(16),
           child: ListTile(
             contentPadding: EdgeInsets.all(16),
             leading: Icon(Icons.info),
@@ -169,14 +170,32 @@ class _PaginationContainerState extends State<PaginationContainer> {
         restorationId: 'pagination-container-loading',
         primary: false,
         padding: widget.padding,
-        child: ContentContainer(child: widgetLoading),
+        physics: widget.shrinkWrap ? null : const ClampingScrollPhysics(),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          spacing: 16,
+          children: [
+            ?widget.top,
+            ContentContainer(padding: widget.padding, child: widgetLoading),
+            ?widget.bottom,
+          ],
+        ),
       );
     } else if (total == 0) {
       content = SingleChildScrollView(
         restorationId: 'pagination-container-empty',
         primary: false,
         padding: widget.padding,
-        child: ContentContainer(child: widgetEmpty),
+        physics: widget.shrinkWrap ? null : const ClampingScrollPhysics(),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          spacing: 16,
+          children: [
+            ?widget.top,
+            ContentContainer(padding: widget.padding, child: widgetEmpty),
+            ?widget.bottom,
+          ],
+        ),
       );
     } else {
       int totalCount = total;
@@ -223,6 +242,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
             Widget footer = widgetEnd;
             if (error != null) {
               footer = Card(
+                margin: EdgeInsets.all(16),
                 color: theme.colorScheme.errorContainer,
                 child: ListTile(
                   contentPadding: EdgeInsets.all(16),
