@@ -135,12 +135,13 @@ class _RoutePageState extends State<RoutePage> {
 
         /// Return child with KeyedSubtree to avoid rebuild issues
         return GestureDetector(
+          behavior: HitTestBehavior.opaque,
           key: ValueKey('route-page-gesture-detector'),
           onTap: () {
             /// Close keyboard when tap outside input
             FocusScopeNode currentFocus = FocusScope.of(context);
             if (!currentFocus.hasPrimaryFocus) {
-              currentFocus.requestFocus(FocusNode());
+              currentFocus.unfocus();
             }
           },
           child: Stack(
