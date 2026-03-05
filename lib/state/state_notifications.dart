@@ -58,17 +58,19 @@ class StateNotifications extends ChangeNotifier {
     if (!initialized) throw 'Initialize Firebase app first';
     // You may set the permission requests to "provisional" which allows the user to choose what type
     // of notifications they would like to receive once the user receives a notification.
-    final notificationSettings = await FirebaseMessaging.instance
-        .requestPermission(
-          alert: true,
-          announcement: true,
-          badge: true,
-          carPlay: true,
-          criticalAlert: true,
-          provisional: true,
-          sound: true,
-          providesAppNotificationSettings: true,
-        );
+    final notificationSettings = await FirebaseMessaging.instance.requestPermission(
+      alert: true,
+      announcement: true,
+      badge: true,
+      carPlay: true,
+      // criticalAlert: true, // DO NOT ENABLE THIS UNLESS YOU UNDERSTAND THE IMPLICATIONS. Custom entitlements are required
+      provisional: true,
+      sound: true,
+      providesAppNotificationSettings: true,
+    );
+    debugPrint(
+      'User granted permission: ${notificationSettings.authorizationStatus}',
+    );
     switch (notificationSettings.authorizationStatus) {
       case AuthorizationStatus.authorized:
       case AuthorizationStatus.provisional:
@@ -79,6 +81,20 @@ class StateNotifications extends ChangeNotifier {
       default:
         return null;
     }
+    try {
+      // For apple platforms, make sure the APNS token is available before making any FCM plugin API calls
+      final apnsToken = await FirebaseMessaging.instance.getAPNSToken();
+      if (apnsToken != null) {
+        // APNS token is available, make FCM plugin API requests...
+        debugPrint(LogColor.success('APNS token: $apnsToken'));
+      }
+    } catch (error) {
+      debugPrint(
+        LogColor.error('Error getting APNS token: ${error.toString()}'),
+      );
+      return null;
+    }
+
     String? token = await FirebaseMessaging.instance.getToken();
     return token;
   }
@@ -281,7 +297,7 @@ class StateNotifications extends ChangeNotifier {
       await Future.delayed(const Duration(milliseconds: 300));
     }
     // Any time the token refreshes, store this in the database too.
-    // FirebaseMessaging.instance.onTokenRefresh.listen(_updateUserToken);
+    FirebaseMessaging.instance.onTokenRefresh.listen(_updateUserToken);
     initNotifications();
   }
 
