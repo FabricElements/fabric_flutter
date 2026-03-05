@@ -86,6 +86,7 @@ class FirebaseStorageHelper {
     required String file,
     required String contentType,
     required String path,
+    String? fileName,
     bool autoId = false,
     bool expiry = false,
   }) async {
@@ -94,7 +95,12 @@ class FirebaseStorageHelper {
       path: path,
       autoId: autoId,
       format: PutStringFormat.base64,
-      metadata: SettableMetadata(contentType: contentType),
+      metadata: SettableMetadata(
+        contentType: contentType,
+        contentDisposition: fileName != null
+            ? 'inline; filename="$fileName"'
+            : null,
+      ),
       expiry: expiry,
     );
     return fileSaved.ref.fullPath;
