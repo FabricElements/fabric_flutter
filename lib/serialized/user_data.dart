@@ -78,6 +78,19 @@ class InterfaceLinks {
 }
 
 /// Loan from loan service
+List<String> _fcmFromJson(dynamic json) {
+  if (json == null) return [];
+  if (json is String) return [json];
+  if (json is Iterable) {
+    return json
+        .map((e) => e?.toString() ?? '')
+        .where((s) => s.isNotEmpty)
+        .toList();
+  }
+  return [];
+}
+
+/// Loan from loan service
 @JsonSerializable(explicitToJson: true)
 class UserData {
   /// User avatar URL
@@ -89,8 +102,8 @@ class UserData {
   String? email;
 
   /// Firebase Cloud Messaging [fcm] token https://firebase.google.com/docs/cloud-messaging
-  @JsonKey(includeIfNull: false)
-  final String? fcm;
+  @JsonKey(includeToJson: false, fromJson: _fcmFromJson)
+  final List<String> fcm;
 
   /// User id
   @JsonKey(includeIfNull: false)
@@ -199,7 +212,7 @@ class UserData {
     this.ping,
     this.username,
     this.email,
-    this.fcm,
+    this.fcm = const [],
     this.id,
     this.role = 'unknown',
     this.groups = const {},

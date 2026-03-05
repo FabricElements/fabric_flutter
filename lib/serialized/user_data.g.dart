@@ -58,7 +58,7 @@ UserData _$UserDataFromJson(Map<String, dynamic> json) => UserData(
   ping: FirestoreHelper.timestampFromJson(json['ping']),
   username: json['username'] as String?,
   email: json['email'] as String?,
-  fcm: json['fcm'] as String?,
+  fcm: json['fcm'] == null ? const [] : _fcmFromJson(json['fcm']),
   id: json['id'],
   role: json['role'] as String? ?? 'unknown',
   groups:
@@ -101,7 +101,6 @@ UserData _$UserDataFromJson(Map<String, dynamic> json) => UserData(
 Map<String, dynamic> _$UserDataToJson(UserData instance) => <String, dynamic>{
   'avatar': ?instance.avatar,
   'email': ?instance.email,
-  'fcm': ?instance.fcm,
   'id': ?instance.id,
   'firstName': ?instance.firstName,
   'lastName': ?instance.lastName,
