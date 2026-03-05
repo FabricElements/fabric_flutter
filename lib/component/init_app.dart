@@ -94,7 +94,6 @@ class InitAppChild extends StatelessWidget {
           if (status.signedIn) {
             /// Wait 3 seconds to ensure FCM token is ready
             await Future.delayed(const Duration(seconds: 3));
-            stateNotifications.token = stateUser.serialized.fcm;
             stateNotifications.uid = status.uid;
             stateNotifications.init();
             stateNotifications.getUserToken().catchError((e) {
