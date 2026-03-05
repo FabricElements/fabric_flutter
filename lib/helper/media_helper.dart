@@ -80,6 +80,8 @@ class MediaHelper {
     } catch (error) {
       debugPrint(LogColor.error('Getting the image: $error'));
       rethrow;
+    } finally {
+      if (!kIsWeb) await FilePicker.platform.clearTemporaryFiles();
     }
     extension = extension?.toLowerCase();
     if (extension == null || !supportedExtensions.contains(extension)) {
@@ -249,6 +251,7 @@ class MediaHelper {
     }
 
     final fileSize = file.size;
+    if (!kIsWeb) await FilePicker.platform.clearTemporaryFiles();
     if (maxFileSize != null && fileSize > maxFileSize) {
       throw 'label--warning-file-is-too-large';
     }
