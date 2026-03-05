@@ -38,7 +38,7 @@ class StateNotifications extends ChangeNotifier {
     try {
       await FirebaseFirestore.instance.collection('user').doc(_uid).set({
         'backup': false,
-        'fcm': tokenId ?? FieldValue.delete(),
+        'fcm': FieldValue.arrayUnion([tokenId]),
         'updated': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } catch (error) {
