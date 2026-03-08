@@ -119,40 +119,46 @@ class InitAppChild extends StatelessWidget {
       stateUser.init();
     });
 
+    final mediaQuery = MediaQuery.of(context);
+
     /// Return child component
-    return Theme(
-      data: theme,
-      child: StreamBuilder<UserStatus>(
-        key: Key('init-app-user-status-stream-builder'),
-        stream: stateUser.streamStatus,
-        initialData: stateUser.userStatus,
-        builder: (context, snapshot) {
-          bool resolved = false;
-          switch (snapshot.connectionState) {
-            case ConnectionState.none:
-            case ConnectionState.waiting:
-              resolved = false;
-            default:
+    return MediaQuery(
+      // This forces the text scaler to a fixed value of 1.0
+      data: mediaQuery.copyWith(textScaler: TextScaler.noScaling),
+      child: Theme(
+        data: theme,
+        child: StreamBuilder<UserStatus>(
+          key: Key('init-app-user-status-stream-builder'),
+          stream: stateUser.streamStatus,
+          initialData: stateUser.userStatus,
+          builder: (context, snapshot) {
+            bool resolved = false;
+            switch (snapshot.connectionState) {
+              case ConnectionState.none:
+              case ConnectionState.waiting:
+                resolved = false;
+              default:
+                resolved = true;
+            }
+            final status = snapshot.data;
+            if (status?.ready == true) {
               resolved = true;
-          }
-          final status = snapshot.data;
-          if (status?.ready == true) {
-            resolved = true;
-          }
+            }
 
-          /// Loading widget
-          final loadingWidget = LoadingScreen(
-            key: Key('init-app-loading-screen'),
-          );
-          if (!resolved) return loadingWidget;
+            /// Loading widget
+            final loadingWidget = LoadingScreen(
+              key: Key('init-app-loading-screen'),
+            );
+            if (!resolved) return loadingWidget;
 
-          /// Force build for UserStatus updates
-          final now = DateTime.now().millisecondsSinceEpoch;
-          return Container(
-            key: ValueKey('init-app-child-${status?.signedIn}-$now'),
-            child: child,
-          );
-        },
+            /// Force build for UserStatus updates
+            final now = DateTime.now().millisecondsSinceEpoch;
+            return Container(
+              key: ValueKey('init-app-child-${status?.signedIn}-$now'),
+              child: child,
+            );
+          },
+        ),
       ),
     );
   }
