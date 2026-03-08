@@ -102,6 +102,7 @@ class _RoutePageState extends State<RoutePage> {
       return widget.loading;
     }
     widget.onContextReady(context);
+    final mediaQuery = MediaQuery.of(context);
 
     return FutureBuilder<void>(
       key: ValueKey('route-page-future'),
@@ -144,18 +145,22 @@ class _RoutePageState extends State<RoutePage> {
               currentFocus.unfocus();
             }
           },
-          child: Stack(
-            fit: StackFit.loose,
-            children: [
-              KeyedSubtree(
-                key: ValueKey('route-page-child'),
-                child: routeWidget,
-              ),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: const ConnectionStatus(),
-              ),
-            ],
+          child: MediaQuery(
+            // This forces the text scaler to a fixed value of 1.0
+            data: mediaQuery.copyWith(textScaler: TextScaler.noScaling),
+            child: Stack(
+              fit: StackFit.loose,
+              children: [
+                KeyedSubtree(
+                  key: ValueKey('route-page-child'),
+                  child: routeWidget,
+                ),
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: const ConnectionStatus(),
+                ),
+              ],
+            ),
           ),
         );
       },
