@@ -200,7 +200,7 @@ class _SmartImageState extends State<SmartImage> {
               newHeight: heightBasedOnDivisor,
               newWidth: widthBasedOnDivisor,
             );
-            return loadingPlaceholder;
+            return SizedBox.shrink();
           },
         ),
       ),
