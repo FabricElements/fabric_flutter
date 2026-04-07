@@ -36,7 +36,7 @@ class MediaHelper {
     try {
       switch (origin) {
         case MediaOrigin.gallery:
-          FilePickerResult? result = await FilePicker.platform.pickFiles(
+          FilePickerResult? result = await FilePicker.pickFiles(
             type: FileType.image,
             withData: true,
           );
@@ -81,7 +81,7 @@ class MediaHelper {
       debugPrint(LogColor.error('Getting the image: $error'));
       rethrow;
     } finally {
-      if (!kIsWeb) await FilePicker.platform.clearTemporaryFiles();
+      if (!kIsWeb) await FilePicker.clearTemporaryFiles();
     }
     extension = extension?.toLowerCase();
     if (extension == null || !supportedExtensions.contains(extension)) {
@@ -214,7 +214,7 @@ class MediaHelper {
     String? extension;
     String? contentType;
     String? fileName;
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
+    FilePickerResult? result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: allowedExtensions,
       withData: true,
@@ -251,7 +251,7 @@ class MediaHelper {
     }
 
     final fileSize = file.size;
-    if (!kIsWeb) await FilePicker.platform.clearTemporaryFiles();
+    if (!kIsWeb) await FilePicker.clearTemporaryFiles();
     if (maxFileSize != null && fileSize > maxFileSize) {
       throw 'label--warning-file-is-too-large';
     }
