@@ -720,7 +720,9 @@ getValue -------------------------------------
       contentPadding: isDense
           ? const EdgeInsets.symmetric(horizontal: 4, vertical: 4)
           : widget.padding,
-      border: isDisabled ? InputBorder.none : theme.inputDecorationTheme.border,
+      border: isDisabled
+          ? theme.inputDecorationTheme.disabledBorder
+          : theme.inputDecorationTheme.border,
       focusedBorder: isDisabled
           ? theme.inputDecorationTheme.disabledBorder
           : theme.inputDecorationTheme.focusedBorder,
