@@ -705,7 +705,7 @@ getValue -------------------------------------
       isDense: isDense,
       errorText: errorText,
       errorMaxLines: 2,
-      enabled: !isDisabled,
+      // enabled: !isDisabled,
       prefix: widget.prefix,
       suffix: widget.suffix,
       prefixIcon: widget.prefixIcon,
@@ -720,7 +720,19 @@ getValue -------------------------------------
       contentPadding: isDense
           ? const EdgeInsets.symmetric(horizontal: 4, vertical: 4)
           : widget.padding,
-      border: theme.inputDecorationTheme.border,
+      border: isDisabled
+          ? theme.inputDecorationTheme.disabledBorder
+          : theme.inputDecorationTheme.border,
+      focusedBorder: isDisabled
+          ? theme.inputDecorationTheme.disabledBorder
+          : theme.inputDecorationTheme.focusedBorder,
+      enabledBorder: isDisabled
+          ? theme.inputDecorationTheme.disabledBorder
+          : theme.inputDecorationTheme.enabledBorder,
+      focusColor: isDisabled
+          ? (widget.backgroundColor ?? theme.inputDecorationTheme.fillColor)
+          : theme.focusColor,
+      fillColor: widget.backgroundColor ?? theme.inputDecorationTheme.fillColor,
     );
 
     switch (widget.type) {
