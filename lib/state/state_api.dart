@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:convert' show Utf8Codec;
+import 'dart:convert' show Utf8Codec, jsonEncode;
 
 import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth;
 import 'package:flutter/foundation.dart';
@@ -101,6 +101,12 @@ abstract class StateAPI extends StateShared {
 
   /// Use [AuthScheme.Bearer] and the current user id token for authentication
   bool token = false;
+
+  /// HTTP request method
+  HTTPMethod method = HTTPMethod.GET;
+
+  /// HTTP request body (for POST, PUT, PATCH)
+  dynamic body;
 
   /// Define the HTTPS [endpoint] (https://example.com/demo)
   /// when the timestamp is updated it will result in a new call to the API [endpoint].
@@ -243,8 +249,19 @@ abstract class StateAPI extends StateShared {
       List<dynamic> streamResponse = [];
       List<dynamic> streamResponseFull = [];
       try {
-        final request = http.Request('GET', url);
+        final request = http.Request(method.name, url);
+        // Add headers to request
         request.headers.addAll(requestHeaders);
+        if (body != null) {
+          if (body is String) {
+            request.body = body;
+          } else if (body is Map || body is List) {
+            request.body = jsonEncode(body);
+            request.headers['Content-Type'] = 'application/json; charset=utf-8';
+          } else {
+            throw 'Unsupported body type: ${body.runtimeType}';
+          }
+        }
         final response = await httpClient.send(request);
         headers = response.headers;
         contentType = headers['content-type'];
