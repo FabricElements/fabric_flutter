@@ -14,6 +14,10 @@ enum AuthScheme {
   JWT,
 }
 
+/// HTTP request methods
+/// https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
+enum HTTPMethod { HEAD, GET, POST, PUT, PATCH, DELETE }
+
 class HTTPRequest {
   const HTTPRequest({this.credentials, this.authScheme})
     : assert(
