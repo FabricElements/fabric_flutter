@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:fabric_flutter/component/users_dropdown.dart';
 import 'package:flutter/material.dart';
+import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:provider/provider.dart';
 
 import '../helper/app_localizations_delegate.dart';
@@ -164,6 +166,39 @@ class UserAdmin extends StatelessWidget {
       );
     }
 
+    /// Show Update Dialog
+    showUpdateDialog(UserData user) {
+      bool sameUser = stateUser.serialized.id == user.id;
+      // Don't allow a user to change anything about itself on the 'admin' view
+      bool canUpdateUser = !sameUser;
+      if (disabled) canUpdateUser = false;
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false, // user must tap button!
+        fullscreenDialog: true,
+        builder: (context) => PointerInterceptor(
+          child: UserAddUpdate(
+            key: Key('user-update-component-${user.id}'),
+            successMessage: 'notification--updated',
+            role: roleUpdate,
+            roles: roles,
+            onConfirm: UserRolesFirebase.onUpdate,
+            email: emailUpdate,
+            phone: phoneUpdate,
+            username: usernameUpdate,
+            name: nameUpdate,
+            multipleRoles: multipleRolesUpdate,
+            onChanged: () {},
+            user: user,
+            group: group,
+            passwordError: passwordError,
+            passwordRegex: passwordRegex,
+            disabled: !canUpdateUser,
+          ),
+        ),
+      );
+    }
+
     final content = PaginationContainer(
       padding: EdgeInsets.only(
         top: 32,
@@ -176,6 +211,16 @@ class UserAdmin extends StatelessWidget {
       empty: empty,
       initialData: state.data,
       shrinkWrap: !primary,
+      top: ContentContainer(
+        child: UsersDropdown(
+          padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
+          showTrailing: true,
+          prefix: prefix,
+          onChanged: (value) {
+            showUpdateDialog(value);
+          },
+        ),
+      ),
       itemBuilder: (BuildContext c, index, dynamic data) {
         final userData = data as Map<String, dynamic>;
         final user = UserData.fromJson(userData);
@@ -197,28 +242,7 @@ class UserAdmin extends StatelessWidget {
           trailing.addAll([
             IconButton(
               key: Key('user-update-${user.id}'),
-              onPressed: () async {
-                showDialog<void>(
-                  context: context,
-                  builder: (context) => UserAddUpdate(
-                    key: Key('user-update-component-${user.id}'),
-                    successMessage: 'notification--updated',
-                    role: roleUpdate,
-                    roles: roles,
-                    onConfirm: UserRolesFirebase.onUpdate,
-                    email: emailUpdate,
-                    phone: phoneUpdate,
-                    username: usernameUpdate,
-                    name: nameUpdate,
-                    multipleRoles: multipleRolesUpdate,
-                    onChanged: () {},
-                    user: user,
-                    group: group,
-                    passwordError: passwordError,
-                    passwordRegex: passwordRegex,
-                  ),
-                );
-              },
+              onPressed: () => showUpdateDialog(user),
               icon: Icon(Icons.edit, color: theme.colorScheme.primary),
             ),
             space,
@@ -325,22 +349,24 @@ class UserAdmin extends StatelessWidget {
         );
       },
     );
-    Widget userAddWidget = UserAddUpdate(
-      key: const Key('user-add-update'),
-      successMessage: 'notification--added',
-      roles: roles,
-      onConfirm: UserRolesFirebase.onAdd,
-      email: email,
-      phone: phone,
-      username: username,
-      name: name,
-      onChanged: () {},
-      role: role,
-      password: password,
-      group: group,
-      multipleRoles: multipleRoles,
-      passwordError: passwordError,
-      passwordRegex: passwordRegex,
+    Widget userAddWidget = PointerInterceptor(
+      child: UserAddUpdate(
+        key: const Key('user-add-update'),
+        successMessage: 'notification--added',
+        roles: roles,
+        onConfirm: UserRolesFirebase.onAdd,
+        email: email,
+        phone: phone,
+        username: username,
+        name: name,
+        onChanged: () {},
+        role: role,
+        password: password,
+        group: group,
+        multipleRoles: multipleRoles,
+        passwordError: passwordError,
+        passwordRegex: passwordRegex,
+      ),
     );
 
     if (primary) {
@@ -360,6 +386,7 @@ class UserAdmin extends StatelessWidget {
                 onPressed: () {
                   showDialog<void>(
                     context: context,
+                    barrierDismissible: false, // user must tap button!
                     builder: (context) => userAddWidget,
                   );
                 },
@@ -382,7 +409,11 @@ class UserAdmin extends StatelessWidget {
               }).toUpperCase(),
             ),
             onPressed: () {
-              showDialog<void>(context: context, builder: (c) => userAddWidget);
+              showDialog<void>(
+                context: context,
+                barrierDismissible: false, // user must tap button!
+                builder: (c) => userAddWidget,
+              );
             },
           ),
         ),
