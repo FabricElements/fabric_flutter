@@ -15,11 +15,11 @@ class StateViewAuth extends ChangeNotifier {
   }
 
   /// Phone verification code 123456
-  int? _phoneVerificationCode;
+  String? _phoneVerificationCode;
 
-  int? get phoneVerificationCode => _phoneVerificationCode;
+  String? get phoneVerificationCode => _phoneVerificationCode;
 
-  set phoneVerificationCode(int? value) {
+  set phoneVerificationCode(String? value) {
     _phoneVerificationCode = value;
     notifyListeners();
   }

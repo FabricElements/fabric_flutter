@@ -245,7 +245,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       try {
         assert(
           state.phoneVerificationCode != null &&
-              state.phoneVerificationCode.toString().length == 6,
+              state.phoneVerificationCode!.length == 6,
           'Enter valid confirmation code',
         );
         assert(
@@ -253,7 +253,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
           'Please input sms code received after verifying phone number',
         );
         final UserCredential credential = await webConfirmationResult!.confirm(
-          state.phoneVerificationCode.toString(),
+          state.phoneVerificationCode!,
         );
         final User user = credential.user!;
         final User currentUser = _auth.currentUser!;
@@ -281,12 +281,12 @@ class ViewAuthPageState extends State<ViewAuthPage> {
         assert(state.verificationId != null, 'VerificationId missing');
         assert(
           state.phoneVerificationCode != null &&
-              state.phoneVerificationCode.toString().length == 6,
+              state.phoneVerificationCode!.length == 6,
           'Enter valid confirmation code',
         );
         final AuthCredential credential = PhoneAuthProvider.credential(
           verificationId: state.verificationId!,
-          smsCode: state.phoneVerificationCode.toString(),
+          smsCode: state.phoneVerificationCode!,
         );
         final User user = (await _auth.signInWithCredential(credential)).user!;
         final User currentUser = _auth.currentUser!;
@@ -340,11 +340,22 @@ class ViewAuthPageState extends State<ViewAuthPage> {
           final GoogleSignInAuthentication googleAuth =
               authenticated.authentication;
           // Access token is obtained via the authorization client for the account.
+          // Prefer the authorization client's access token but fall back to
+          // the authentication object's accessToken. Some platforms may not
+          // return an idToken, so accept either token as long as one is
+          // available. If neither token is available, surface a helpful
+          // message rather than passing nulls into Firebase.
           final clientAuth = await authenticated.authorizationClient
               .authorizationForScopes(googleScopes);
+          final String? accessToken = clientAuth?.accessToken;
+          final String? idToken = googleAuth.idToken;
+          assert(
+            accessToken != null || idToken != null,
+            'At least one of ID token and access token is required',
+          );
           final credential = GoogleAuthProvider.credential(
-            accessToken: clientAuth?.accessToken,
-            idToken: googleAuth.idToken,
+            accessToken: accessToken,
+            idToken: idToken,
           );
           await _auth.signInWithCredential(credential);
         }
@@ -765,11 +776,20 @@ class ViewAuthPageState extends State<ViewAuthPage> {
         width: double.maxFinite,
         child: InputData(
           value: state.phoneVerificationCode,
-          type: InputDataType.int,
+          type: InputDataType.string,
           keyboardType: TextInputType.number,
           hintText: locales.get('page-auth--input--verification-code'),
           maxLength: 6,
+          inputFormatters: [
+            FilteringTextInputFormatter.singleLineFormatter,
+            FilteringTextInputFormatter.digitsOnly,
+          ],
           onChanged: (value) {
+            state.phoneVerificationCode = (value ?? '').replaceAll(
+              RegExp(r'\D'),
+              '',
+            );
+
             state.phoneVerificationCode = value;
             if (mounted) setState(() {});
           },
@@ -780,7 +800,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
           onSubmit: (value) {
             state.phoneVerificationCode = value;
             if (!(state.phoneVerificationCode != null &&
-                state.phoneVerificationCode.toString().length == 6)) {
+                state.phoneVerificationCode!.length == 6)) {
               return;
             }
             if (mounted) setState(() {});
@@ -795,7 +815,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       spacerLarge,
     ];
     if (state.phoneVerificationCode != null &&
-        state.phoneVerificationCode.toString().length == 6) {
+        state.phoneVerificationCode!.length == 6) {
       sectionsPhoneVerification.add(
         actionButton(
           label: locales.get('label--sign-in-with-phone'),
