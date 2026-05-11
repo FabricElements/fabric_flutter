@@ -41,7 +41,6 @@ class UsersDropdown extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    double width = MediaQuery.sizeOf(context).width;
     SearchController searchController = SearchController();
     final locales = AppLocalizations.of(context);
     final state = Provider.of<StateUsers>(context);
@@ -60,15 +59,17 @@ class UsersDropdown extends StatelessWidget implements PreferredSizeWidget {
       if (item.phone != null) {
         labelAlt += ' ${item.phone!}';
       }
-      final nameForTitle = item.name.isNotEmpty
-          ? item.name
-          : item.firstName ??
-                item.lastName ??
-                item.username ??
-                item.phone ??
-                item.email ??
-                item.id ??
-                locales.get('label--user');
+      final nameForTitle =
+          (item.firstName != null && item.lastName != null
+              ? item.name
+              : null) ??
+          item.firstName ??
+          item.lastName ??
+          item.username ??
+          item.phone ??
+          item.email ??
+          item.id ??
+          locales.get('label--user');
       return ButtonOptions(
         id: item.id,
         value: item,
