@@ -512,10 +512,17 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
             controller: controller,
             child: SingleChildScrollView(
               controller: controller,
-              padding: const EdgeInsets.all(20),
-              child: ContentContainer(
-                size: ContentContainerSize.small,
-                child: Column(children: inviteWidgets),
+              padding: const EdgeInsets.only(
+                bottom: 64,
+                left: 16,
+                right: 16,
+                top: 16,
+              ),
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(children: inviteWidgets),
+                ),
               ),
             ),
           ),
