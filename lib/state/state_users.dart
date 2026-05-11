@@ -9,7 +9,7 @@ final db = FirebaseFirestore.instance;
 
 class StateUsers extends StateCollection {
   @override
-  int limitDefault = 20;
+  int limitDefault = 200;
 
   @override
   List<UserData> get serialized {

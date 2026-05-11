@@ -617,7 +617,7 @@ getValue -------------------------------------
       case InputDataType.phone:
         // https://en.wikipedia.org/wiki/Telephone_numbering_plan
         maxLength = 16;
-        prefixText = '+';
+        prefixText = isDisabled ? null : '+';
         hintTextDefault = '1 (222) 333 - 4444';
         keyboardType = TextInputType.phone;
         inputFormatters.addAll([
@@ -1001,97 +1001,94 @@ getValue -------------------------------------
                 child: PointerInterceptor(child: widgetInput),
               );
             },
-            suggestionsBuilder:
-                (BuildContext context, SearchController controller) {
-                  final value = controller.text.trim();
-                  List<ButtonOptions> recommendations = dropdownOptions;
-                  if (value.isNotEmpty) {
-                    recommendations = recommendations.where((element) {
-                      /// Remove any special characters and spaces from the label to make the search more flexible
-                      final labelClean = GSM
-                          .toGSM(element.label)
-                          .toLowerCase()
-                          .replaceAll(RegExp(r'[\s\W]+'), '')
-                          .trim();
-                      final labelAltClean = element.labelAlt != null
-                          ? GSM
-                                .toGSM(element.labelAlt)
-                                .toLowerCase()
-                                .replaceAll(RegExp(r'[\s\W]+'), '')
-                                .trim()
-                          : null;
-                      final valueClean = GSM
-                          .toGSM(value)
-                          .toLowerCase()
-                          .replaceAll(RegExp(r'[\s\W]+'), '')
-                          .trim();
-                      final labelMatch = labelClean.contains(valueClean);
-                      final labelAltMatch =
-                          labelAltClean?.contains(value.toLowerCase()) ?? false;
-                      final valueMatch = element.value.toString().contains(
-                        value,
-                      );
-                      return labelMatch || valueMatch || labelAltMatch;
-                    }).toList();
-                  }
-                  return List.generate(recommendations.length, (int index) {
-                    final item = recommendations[index];
+            suggestionsBuilder: (BuildContext context, SearchController controller) {
+              final value = controller.text.trim();
+              List<ButtonOptions> recommendations = dropdownOptions;
+              // keep @, . and + characters for more flexible searches (eg. emails, phone prefixes)
+              final regex = RegExp(r'[^\w@.+]+');
+              if (value.isNotEmpty) {
+                recommendations = recommendations.where((element) {
+                  /// Remove any special characters and spaces from the label to make the search more flexible
+                  final labelClean = GSM
+                      .toGSM(element.label)
+                      .toLowerCase()
+                      .replaceAll(regex, '')
+                      .trim();
+                  final labelAltClean = element.labelAlt != null
+                      ? GSM
+                            .toGSM(element.labelAlt)
+                            .toLowerCase()
+                            .replaceAll(regex, '')
+                            .trim()
+                      : null;
+                  final valueClean = GSM
+                      .toGSM(value)
+                      .toLowerCase()
+                      .replaceAll(regex, '')
+                      .trim();
+                  final labelMatch = labelClean.contains(valueClean);
+                  final labelAltMatch =
+                      labelAltClean?.contains(value.toLowerCase()) ?? false;
+                  final valueMatch = element.value.toString().contains(value);
+                  return labelMatch || valueMatch || labelAltMatch;
+                }).toList();
+              }
+              return List.generate(recommendations.length, (int index) {
+                final item = recommendations[index];
 
-                    /// Leading
-                    Widget? leading = item.leading;
-                    if (item.icon != null) {
-                      leading = Icon(item.icon);
-                    }
-                    if (item.image != null) {
-                      leading = Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: CircleAvatar(
-                          backgroundColor:
-                              theme.colorScheme.surfaceContainerHighest,
-                          child: AspectRatio(
-                            aspectRatio: 1 / 1,
-                            child: ClipOval(
-                              child: SmartImage(
-                                url: item.image,
-                                format: AvailableOutputFormats.png,
-                              ),
-                            ),
+                /// Leading
+                Widget? leading = item.leading;
+                if (item.icon != null) {
+                  leading = Icon(item.icon);
+                }
+                if (item.image != null) {
+                  leading = Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: CircleAvatar(
+                      backgroundColor:
+                          theme.colorScheme.surfaceContainerHighest,
+                      child: AspectRatio(
+                        aspectRatio: 1 / 1,
+                        child: ClipOval(
+                          child: SmartImage(
+                            url: item.image,
+                            format: AvailableOutputFormats.png,
                           ),
                         ),
-                      );
-                    }
-
-                    /// Trailing
-                    Widget? trailing = item.trailing;
-                    if (item.trailingIcon != null) {
-                      trailing = Icon(item.trailingIcon);
-                    }
-                    if (item.trailingImage != null) {
-                      trailing = AspectRatio(
-                        aspectRatio: 1 / 1,
-                        child: CircleAvatar(
-                          backgroundImage: NetworkImage(item.trailingImage!),
-                        ),
-                      );
-                    }
-                    return PointerInterceptor(
-                      child: ListTile(
-                        leading: leading,
-                        trailing: trailing,
-                        title: Text(item.label),
-                        onTap: () {
-                          dynamic newValue = item.value == ''
-                              ? null
-                              : item.value;
-                          _closeSearch();
-                          widget.onChanged?.call(newValue);
-                          widget.onComplete?.call(newValue);
-                          widget.onSubmit?.call(newValue);
-                        },
                       ),
-                    );
-                  });
-                },
+                    ),
+                  );
+                }
+
+                /// Trailing
+                Widget? trailing = item.trailing;
+                if (item.trailingIcon != null) {
+                  trailing = Icon(item.trailingIcon);
+                }
+                if (item.trailingImage != null) {
+                  trailing = AspectRatio(
+                    aspectRatio: 1 / 1,
+                    child: CircleAvatar(
+                      backgroundImage: NetworkImage(item.trailingImage!),
+                    ),
+                  );
+                }
+                return PointerInterceptor(
+                  child: ListTile(
+                    leading: leading,
+                    trailing: trailing,
+                    title: Text(item.label),
+                    onTap: () {
+                      dynamic newValue = item.value == '' ? null : item.value;
+                      _closeSearch();
+                      widget.onChanged?.call(newValue);
+                      widget.onComplete?.call(newValue);
+                      widget.onSubmit?.call(newValue);
+                    },
+                  ),
+                );
+              });
+            },
           );
         } else {
           endWidget = widgetInput;

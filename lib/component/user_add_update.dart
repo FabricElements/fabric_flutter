@@ -38,6 +38,7 @@ class UserAddUpdate extends StatefulWidget {
     this.size = ContentContainerSize.medium,
     this.passwordRegex,
     this.passwordError,
+    this.disabled = false,
   });
 
   /// Array of roles
@@ -93,13 +94,14 @@ class UserAddUpdate extends StatefulWidget {
   /// Password Validation Error
   final String? passwordError;
 
+  final bool disabled;
+
   @override
   State<UserAddUpdate> createState() => _UserAddUpdateState();
 }
 
 class _UserAddUpdateState extends State<UserAddUpdate> {
   late bool sending;
-  Color? backgroundColor;
   Function? onChange;
   late UserData data;
   String? error;
@@ -116,7 +118,6 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       data.role = widget.roles.first;
     }
     sending = false;
-    backgroundColor = const Color(0xFF161A21);
     error = null;
   }
 
@@ -127,17 +128,10 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
   }
 
   @override
-  void didUpdateWidget(UserAddUpdate oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    reset();
-    if (mounted) setState(() {});
-  }
-
-  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final locales = AppLocalizations.of(context);
-
+    ScrollController controller = ScrollController();
     final passwordRegex = widget.passwordRegex ?? RegexHelper.password;
     bool canCall = sending == false;
     bool validPhone = data.phone != null && data.phone!.isNotEmpty;
@@ -159,7 +153,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     }
     const spacer = SizedBox(height: 16, width: 16);
     String title = locales.get(
-      data.id == null ? 'label--add-label' : 'label--update-label',
+      data.id == null ? 'label--add-label' : 'label--update',
       {'label': locales.get('label--user')},
     );
     String actionLabel = title;
@@ -217,6 +211,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     Widget phoneInput = SizedBox(
       width: double.maxFinite,
       child: InputData(
+        disabled: widget.disabled,
         autofillHints: const [],
         prefixIcon: const Icon(Icons.phone),
         label: locales.get('label--phone-number'),
@@ -232,6 +227,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     Widget emailInput = SizedBox(
       width: double.maxFinite,
       child: InputData(
+        disabled: widget.disabled,
         autofillHints: const [],
         prefixIcon: const Icon(Icons.email),
         label: locales.get('label--email'),
@@ -248,6 +244,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     Widget usernameInput = SizedBox(
       width: double.maxFinite,
       child: InputData(
+        disabled: widget.disabled,
         autofillHints: const [],
         prefixIcon: const Icon(Icons.alternate_email),
         label: locales.get('label--username'),
@@ -263,6 +260,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     );
 
     Widget firstNameInput = InputData(
+      disabled: widget.disabled,
       autofillHints: const [],
       label: locales.get('label--first-name'),
       value: data.firstName,
@@ -275,6 +273,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       maxLength: 20,
     );
     Widget lastNameInput = InputData(
+      disabled: widget.disabled,
       autofillHints: const [],
       label: locales.get('label--last-name'),
       value: data.lastName,
@@ -290,6 +289,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
 
     /// Password input
     Widget passwordInput = InputData(
+      disabled: widget.disabled,
       autofillHints: const [],
       prefixIcon: const Icon(Icons.lock),
       label: locales.get('label--password'),
@@ -336,6 +336,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     if (widget.role) {
       inviteWidgets.addAll([
         InputData(
+          disabled: widget.disabled,
           autofillHints: const [],
           label: locales.get('label--role'),
           value: data.role,
@@ -375,6 +376,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
         final groupsRoles = item.value;
         inviteWidgets.addAll([
           InputData(
+            disabled: widget.disabled,
             autofillHints: const [],
             label: locales.get('label--role-for-label', {
               'label': locales.get('label--${item.key}'),
@@ -475,7 +477,9 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
           children: [
             TextButton.icon(
               icon: const Icon(Icons.close),
-              label: Text(locales.get('label--cancel')),
+              label: Text(
+                locales.get(widget.disabled ? 'label--done' : 'label--cancel'),
+              ),
               onPressed: () {
                 Navigator.pop(context, 'cancel');
               },
@@ -485,11 +489,12 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
               ),
             ),
             const Spacer(),
-            FilledButton.icon(
-              icon: const Icon(Icons.person_add),
-              label: Text(actionLabel),
-              onPressed: canCall ? addUser : null,
-            ),
+            if (!widget.disabled)
+              FilledButton.icon(
+                icon: const Icon(Icons.person_add),
+                label: Text(actionLabel),
+                onPressed: canCall ? addUser : null,
+              ),
           ],
         ),
       ),
@@ -497,10 +502,31 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
 
     return ContentContainer(
       size: widget.size,
-      child: SimpleDialog(
-        title: Text(title),
-        contentPadding: const EdgeInsets.all(20),
-        children: inviteWidgets,
+      child: Dialog.fullscreen(
+        child: Scaffold(
+          appBar: AppBar(title: Text(title)),
+          body: Scrollbar(
+            thumbVisibility: true,
+            interactive: true,
+            trackVisibility: true,
+            controller: controller,
+            child: SingleChildScrollView(
+              controller: controller,
+              padding: const EdgeInsets.only(
+                bottom: 64,
+                left: 16,
+                right: 16,
+                top: 16,
+              ),
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(children: inviteWidgets),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
