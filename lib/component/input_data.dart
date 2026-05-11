@@ -617,7 +617,7 @@ getValue -------------------------------------
       case InputDataType.phone:
         // https://en.wikipedia.org/wiki/Telephone_numbering_plan
         maxLength = 16;
-        prefixText = '+';
+        prefixText = isDisabled ? null : '+';
         hintTextDefault = '1 (222) 333 - 4444';
         keyboardType = TextInputType.phone;
         inputFormatters.addAll([
