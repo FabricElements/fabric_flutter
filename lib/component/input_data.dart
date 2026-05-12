@@ -976,7 +976,11 @@ getValue -------------------------------------
           endWidget = SearchAnchor(
             key: ValueKey('input-data-${widget.type}'),
             viewHintText: locales.get('label--search'),
-            isFullScreen: kIsWeb || isSmallScreen || isMediumScreen,
+            // isFullScreen:
+            //     kIsWeb ||
+            //     isSmallScreen ||
+            //     (isMediumScreen && dropdownOptions.length >= 10),
+            isFullScreen: kIsWeb == true ? true : null,
             viewLeading: BackButton(onPressed: _closeSearch),
             viewTrailing: [
               if (value != null && value.toString().isNotEmpty)

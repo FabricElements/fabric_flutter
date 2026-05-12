@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
@@ -724,6 +725,8 @@ class _FilterMenuState extends State<FilterMenu> {
     final theme = Theme.of(context);
     final width = MediaQuery.of(context).size.width;
     final isSmallScreen = width < 600;
+    // The max size for an iPad screen is 1366, so we consider medium screen between 600 and 1366
+    final isMediumScreen = width >= 600 && width < 1366;
 
     /// Ignore options that are included on the filters data
     List<FilterData> pendingOptions = data
@@ -801,7 +804,11 @@ class _FilterMenuState extends State<FilterMenu> {
     if (pendingOptions.isNotEmpty) {
       menuOptions.add(
         SearchAnchor(
-          isFullScreen: isSmallScreen || pendingOptions.length > 10,
+          isFullScreen: kIsWeb == true ? true : null,
+          // isFullScreen:
+          //     kIsWeb ||
+          //     isSmallScreen ||
+          //     (isMediumScreen && pendingOptions.length >= 10),
           searchController: searchController,
           builder: (BuildContext context, SearchController controller) {
             return PointerInterceptor(

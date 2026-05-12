@@ -1,9 +1,9 @@
 name: fabric_flutter
 description: Native components and helpers
-version: 2.1.8
+version: 2.2.0
 
 environment:
-  sdk: ^3.10.7
+  sdk: ^3.11.5
 
 dependencies:
   flutter:
@@ -14,14 +14,14 @@ dependencies:
     sdk: flutter
   devicelocale: ^0.8.2
   provider: ^6.1.5+1
-  firebase_core: ^4.7.0
-  cloud_firestore: ^6.3.0
-  cloud_functions: ^6.2.0
-  firebase_analytics: ^12.3.0
-  firebase_auth: ^6.4.0
-  firebase_messaging: ^16.2.0
-  firebase_storage: ^13.3.0
-  firebase_database: ^12.3.0
+  firebase_core: ^4.8.0
+  cloud_firestore: ^6.4.0
+  cloud_functions: ^6.3.0
+  firebase_analytics: ^12.4.0
+  firebase_auth: ^6.5.0
+  firebase_messaging: ^16.2.1
+  firebase_storage: ^13.4.0
+  firebase_database: ^12.4.0
   json_annotation: ^4.11.0
   image_picker: ^1.2.2
   file_picker: ^11.0.2
@@ -45,7 +45,7 @@ dependencies:
   pointer_interceptor: ^0.10.1+2
   omni_datetime_picker: ^2.3.1
   collection: ^1.19.1
-  dlibphonenumber: ^1.1.62
+  dlibphonenumber: ^1.1.63
   scrollable_positioned_list: ^0.3.8
   gap: ^3.0.1
   google_sign_in_web: ^1.1.3
@@ -58,7 +58,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
-  build_runner: 2.13.1
+  build_runner: ^2.15.0
   json_serializable: ^6.13.2
 
 #dependency_overrides:
