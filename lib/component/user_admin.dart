@@ -376,20 +376,22 @@ class UserAdmin extends StatelessWidget {
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
         floatingActionButton: disabled
             ? null
-            : FloatingActionButton.extended(
-                icon: const Icon(Icons.person_add),
-                label: Text(
-                  locales.get('label--add-label', {
-                    'label': locales.get('label--user'),
-                  }).toUpperCase(),
+            : PointerInterceptor(
+                child: FloatingActionButton.extended(
+                  icon: const Icon(Icons.person_add),
+                  label: Text(
+                    locales.get('label--add-label', {
+                      'label': locales.get('label--user'),
+                    }).toUpperCase(),
+                  ),
+                  onPressed: () {
+                    showDialog<void>(
+                      context: context,
+                      barrierDismissible: false, // user must tap button!
+                      builder: (context) => userAddWidget,
+                    );
+                  },
                 ),
-                onPressed: () {
-                  showDialog<void>(
-                    context: context,
-                    barrierDismissible: false, // user must tap button!
-                    builder: (context) => userAddWidget,
-                  );
-                },
               ),
         body: content,
       );
@@ -401,20 +403,22 @@ class UserAdmin extends StatelessWidget {
         const SizedBox(height: 16),
         Align(
           alignment: Alignment.center,
-          child: FilledButton.icon(
-            icon: const Icon(Icons.person_add),
-            label: Text(
-              locales.get('label--add-label', {
-                'label': locales.get('label--user'),
-              }).toUpperCase(),
+          child: PointerInterceptor(
+            child: FilledButton.icon(
+              icon: const Icon(Icons.person_add),
+              label: Text(
+                locales.get('label--add-label', {
+                  'label': locales.get('label--user'),
+                }).toUpperCase(),
+              ),
+              onPressed: () {
+                showDialog<void>(
+                  context: context,
+                  barrierDismissible: false, // user must tap button!
+                  builder: (c) => userAddWidget,
+                );
+              },
             ),
-            onPressed: () {
-              showDialog<void>(
-                context: context,
-                barrierDismissible: false, // user must tap button!
-                builder: (c) => userAddWidget,
-              );
-            },
           ),
         ),
       ]);
