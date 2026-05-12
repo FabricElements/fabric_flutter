@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -973,7 +974,7 @@ getValue -------------------------------------
           endWidget = SearchAnchor(
             key: ValueKey('input-data-${widget.type}'),
             viewHintText: locales.get('label--search'),
-            isFullScreen: isSmallScreen || dropdownOptions.length > 10,
+            isFullScreen: isSmallScreen || kIsWeb,
             viewLeading: BackButton(onPressed: _closeSearch),
             viewTrailing: [
               if (value != null && value.toString().isNotEmpty)
