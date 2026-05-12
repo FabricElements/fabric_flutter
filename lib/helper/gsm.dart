@@ -611,6 +611,10 @@ class GSM {
     /// 3. Trim leading and trailing whitespace (including newlines)
     newContent = newContent.trim();
 
+    /// 4. Replace non GSM characters with their GSM equivalents
+    newContent = newContent.replaceAll('\u2011', '-');
+
+    /// Return the cleaned and GSM-converted content
     return newContent;
   }
 }
