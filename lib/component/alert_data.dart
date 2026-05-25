@@ -133,6 +133,8 @@ void alertData<T>({
 
   /// Scrollable content for [AlertWidget.dialog] using [AlertDialog]
   bool scrollable = false,
+  bool fullscreenDialog = false,
+  bool barrierDismissible = true,
   IconData? icon,
   required BuildContext? context,
 }) async {
@@ -325,7 +327,7 @@ void alertData<T>({
       Container(
         constraints: BoxConstraints(
           minHeight: 50,
-          maxHeight: 900,
+          maxHeight: scrollable ? double.infinity : 900,
           maxWidth: contentWidth,
         ),
         child: child,
@@ -468,6 +470,8 @@ void alertData<T>({
       case AlertWidget.dialog:
         showDialog<void>(
           context: context,
+          fullscreenDialog: fullscreenDialog,
+          barrierDismissible: barrierDismissible,
           builder: (BuildContext context) => Scaffold(
             primary: false,
             backgroundColor: theme.colorScheme.surface.withValues(alpha: 0.3),
