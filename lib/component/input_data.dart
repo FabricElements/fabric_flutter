@@ -587,7 +587,9 @@ getValue -------------------------------------
       case InputDataType.dateTime:
       case InputDataType.timestamp:
       case InputDataType.time:
-        if (value != null) {
+      case InputDataType.dropdown:
+      case InputDataType.enums:
+        if (value != null && value.toString().isNotEmpty) {
           inputSuffixIcon = clearWidget;
         }
         break;
