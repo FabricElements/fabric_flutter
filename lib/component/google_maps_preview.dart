@@ -7,13 +7,21 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'smart_image.dart';
 
-/// GoogleMapsPreview component
-/// Displays a google map using [latitude] and [longitude]
-/// MapBasic(
+/// Displays a geographic preview for the supplied coordinates.
+///
+/// The widget prefers an interactive [GoogleMap] when the current platform can
+/// render it, but it gracefully falls back to a static image when map support or
+/// credentials are unavailable. This makes it safe to reuse inside dialogs,
+/// lists, and read-only detail screens.
+///
+/// ```dart
+/// GoogleMapsPreview(
 ///   latitude: 40.7813821,
 ///   longitude: -73.9785516,
-/// ),
+/// )
+/// ```
 class GoogleMapsPreview extends StatefulWidget {
+  /// Creates a map preview for a single point of interest.
   const GoogleMapsPreview({
     super.key,
     this.mapType = MapType.normal,
@@ -28,27 +36,46 @@ class GoogleMapsPreview extends StatefulWidget {
     this.asImage = false,
   });
 
+  /// Selects the visual rendering mode for the interactive map.
   final MapType mapType;
+  /// Supplies the latitude of the previewed location.
   final double? latitude;
+  /// Supplies the longitude of the previewed location.
   final double? longitude;
+  /// Keeps the preview stable in responsive layouts by fixing its aspect ratio.
   final double aspectRatio;
+  /// Defines the initial camera zoom for the interactive map.
   final double zoom;
+  /// Limits how far users can zoom when interaction is available.
   final MinMaxZoomPreference minMaxZoomPreference;
+  /// Provides the marker title shown in the info window.
   final String? name;
+  /// Provides optional secondary text for the marker info window.
   final String? description;
+  /// Authenticates requests for the Google Static Maps fallback image.
   final String? apiKey;
+  /// Forces the widget to render a static image even on supported platforms.
   final bool asImage;
 
+  /// Creates state that mirrors incoming coordinates and marker metadata.
   @override
   State<GoogleMapsPreview> createState() => _GoogleMapsPreviewState();
 }
 
+/// Caches the current location data so map updates can be coordinated with the
+/// widget lifecycle.
 class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
+  /// Stores the latitude currently being rendered.
   double? latitude;
+  /// Stores the longitude currently being rendered.
   double? longitude;
+  /// Stores the current marker title.
   String? name;
+  /// Stores the current marker description.
   String? description;
 
+  /// Clears the cached location data before a fresh widget configuration is
+  /// applied or the state is disposed.
   void reset() {
     latitude = null;
     longitude = null;
@@ -56,6 +83,11 @@ class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
     description = null;
   }
 
+  /// Reloads location data from the latest widget properties.
+  ///
+  /// When `notify` is `true`, the widget rebuilds before and after the delayed
+  /// refresh so loading and fallback transitions stay in sync with Flutter's
+  /// frame scheduling.
   void getLocation({bool notify = false}) {
     reset();
     if (mounted && notify) setState(() {});
@@ -68,6 +100,7 @@ class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
     });
   }
 
+  /// Seeds the state with the initial coordinate and marker values.
   @override
   void initState() {
     super.initState();
@@ -77,12 +110,15 @@ class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
     description = widget.description;
   }
 
+  /// Releases cached values so stale map data is not retained after disposal.
   @override
   void dispose() {
     reset();
     super.dispose();
   }
 
+  /// Refreshes the cached location whenever the parent provides new
+  /// coordinates.
   @override
   void didUpdateWidget(covariant GoogleMapsPreview oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -91,6 +127,8 @@ class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
     }
   }
 
+  /// Builds either a placeholder image, a static map image, or an interactive
+  /// [GoogleMap] depending on platform support and configuration.
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

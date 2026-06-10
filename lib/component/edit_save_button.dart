@@ -4,8 +4,13 @@ import 'package:flutter/material.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/options.dart';
 
-/// EditSaveButton displays a simple way to show/hide edit buttons
+/// Toggles between an edit action and save or cancel actions for inline editors.
+///
+/// This widget centralizes the small state machine many settings panels need: idle,
+/// editing, and optionally confirming destructive transitions. Keeping the logic here
+/// makes parent widgets simpler and ensures consistent affordances across forms.
 class EditSaveButton extends StatefulWidget {
+  /// Creates a compact action group for entering, saving, or cancelling edit mode.
   const EditSaveButton({
     super.key,
     this.active = false,
@@ -19,34 +24,41 @@ class EditSaveButton extends StatefulWidget {
     this.direction = Axis.horizontal,
   });
 
-  /// if [active] the controls to edit are available
+  /// Indicates whether the save and cancel actions should be shown instead of edit.
   final bool active;
 
-  /// [cancel] is called when the cancel button is clicked
+  /// Runs when the user dismisses the current edit session.
   final VoidCallback cancel;
 
-  /// [save] is called when the confirm button is clicked
+  /// Runs when the user confirms the current edits.
   final VoidCallback save;
 
-  /// [save] is called when the edit button is clicked
+  /// Runs when the user first enters edit mode.
   final VoidCallback edit;
 
-  /// Confirm
+  /// Determines whether save and cancel actions require an extra confirmation prompt.
   final bool confirm;
 
+  /// Chooses how confirmation prompts are presented when [confirm] is enabled.
   final AlertWidget alertWidget;
 
+  /// Controls the visual tone of confirmation prompts shown by [alertWidget].
   final AlertType alertType;
 
+  /// Replaces icon-only controls with labeled buttons for more explicit layouts.
   final bool labels;
 
+  /// Arranges the rendered action buttons horizontally or vertically.
   final Axis direction;
 
+  /// Creates the state that resolves confirmation prompts before invoking callbacks.
   @override
   State<EditSaveButton> createState() => _EditSaveButtonState();
 }
 
+/// Builds the appropriate action set for the current edit lifecycle stage.
 class _EditSaveButtonState extends State<EditSaveButton> {
+  /// Builds either the edit trigger or the active save and cancel controls.
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

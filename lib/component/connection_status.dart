@@ -6,17 +6,29 @@ import 'package:provider/provider.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../state/state_global.dart';
 
+/// Shows a transient banner when network connectivity changes.
+///
+/// The widget listens to [StateGlobal.streamConnection] and briefly surfaces the
+/// latest online or offline state so users understand why network-backed actions
+/// may succeed, fail, or recover.
 class ConnectionStatus extends StatefulWidget {
+  /// Creates the connectivity banner widget.
   const ConnectionStatus({super.key});
 
+  /// Creates the mutable state that tracks banner visibility across updates.
   @override
   State<ConnectionStatus> createState() => _ConnectionStatusState();
 }
 
+/// Tracks the last known connection state and auto-hides the status banner.
 class _ConnectionStatusState extends State<ConnectionStatus> {
+  /// Whether the banner is currently visible.
   bool open = false;
+
+  /// The last connectivity value emitted by [StateGlobal.streamConnection].
   bool lastConnected = true;
 
+  /// Builds the banner and schedules auto-dismiss behavior after status changes.
   @override
   Widget build(BuildContext context) {
     final stateGlobal = Provider.of<StateGlobal>(context, listen: false);

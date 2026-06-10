@@ -4,10 +4,20 @@ import 'package:url_launcher/url_launcher.dart';
 import '../helper/format_data.dart';
 import '../serialized/table_data.dart';
 
-/// ExpansionTable
+/// Renders hierarchical [TableData] with expandable child rows.
+///
+/// The widget mirrors the visual language of [DataTable] while supporting nested
+/// tables inside rows. Root tables add horizontal scrolling and headers, while
+/// child tables inherit the header definition so expanded content stays aligned
+/// with its parent columns.
+///
 /// Example:
 /// -----------------------
 class ExpansionTable extends StatefulWidget {
+  /// Creates an [ExpansionTable] for the provided [data].
+  ///
+  /// When [data] is non-null, its header must contain at least one column so the
+  /// widget can size rows and render nested descendants consistently.
   ExpansionTable({
     super.key,
     required this.data,
@@ -25,6 +35,7 @@ class ExpansionTable extends StatefulWidget {
     this.border,
   }) : assert(data == null || data.header!.isNotEmpty);
 
+  /// Supplies the hierarchical table model rendered by this widget.
   final TableData? data;
 
   /// {@macro flutter.material.dataTable.decoration}
@@ -68,13 +79,21 @@ class ExpansionTable extends StatefulWidget {
   /// The style to use when painting the boundary and interior divisions of the table.
   final TableBorder? border;
 
+  /// Creates the mutable expansion state for [ExpansionTable].
   @override
   State<ExpansionTable> createState() => _ExpansionTableState();
 }
 
+/// Stores the fixed width assigned to each column so nested tables stay aligned.
 double _widthColumn = 350; // default: 100
 
+/// Holds the recursive row-building logic for [ExpansionTable].
 class _ExpansionTableState extends State<ExpansionTable> {
+  /// Builds the current table level and, when expanded, any child table levels.
+  ///
+  /// Root tables render headers and horizontal scrolling, while nested tables
+  /// return only their rows so expanded content can appear inline beneath the
+  /// parent row that revealed it.
   @override
   Widget build(BuildContext context) {
     if (widget.data == null) return const SizedBox();
@@ -133,7 +152,11 @@ class _ExpansionTableState extends State<ExpansionTable> {
         // double width = constraints.maxWidth.floorToDouble();
         // double height = constraints.maxHeight.floorToDouble();
 
-        /// Get the rows
+        /// Builds the widgets for a single row and any expanded descendants.
+        ///
+        /// The helper applies per-column formatting, renders hierarchical
+        /// indentation in the first cell, and recursively inserts child tables
+        /// when the row is expanded.
         Widget getRows({
           required TableRowData row,
           int rowIndex = 0,

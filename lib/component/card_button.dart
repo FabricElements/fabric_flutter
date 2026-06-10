@@ -2,14 +2,19 @@ import 'package:flutter/material.dart';
 
 import 'smart_image.dart';
 
-/// CardButton is a versatile card style raw material button containing an image and additional customization options.
+/// Displays a large tappable card with an image and optional supporting text.
 ///
-/// [borderRadius] This is to set the border radius for the card.
-/// [description] For adding a text description for the button.
-/// [headline] For adding a larger text headline for the button.
-/// [height] Is used to set the height for the card button.
-/// [image] This is to set the image for the widget.
-/// [onPressed] This is the function used for when the button is pressed.
+/// This widget is useful for dashboards and landing pages where the card itself
+/// acts as the call to action. The image fills the background, while the text
+/// overlay stays readable by applying a gradient near the bottom edge.
+///
+/// [borderRadius] configures the intended corner radius for the card.
+/// [description] adds supporting text below the main title.
+/// [headline] adds the primary title displayed over the image.
+/// [height] controls the vertical space reserved for the card.
+/// [image] provides the image source shown behind the text overlay.
+/// [onPressed] handles taps on the card.
+///
 /// ```dart
 /// CardButton(
 ///   headline: "Card Button Example",
@@ -21,6 +26,10 @@ import 'smart_image.dart';
 /// );
 /// ```
 class CardButton extends StatefulWidget {
+  /// Creates a [CardButton] that turns a visual card into a single tap target.
+  ///
+  /// Keeping [image] and [onPressed] required ensures the widget remains useful
+  /// as an actionable card even when [headline] or [description] are omitted.
   const CardButton({
     super.key,
     this.borderRadius = 6,
@@ -32,19 +41,38 @@ class CardButton extends StatefulWidget {
     required this.onPressed,
   });
 
+  /// Exposes the preferred border radius for the surrounding card styling.
   final double borderRadius;
+
+  /// Supplies optional supporting text shown beneath [headline].
   final String? description;
+
+  /// Supplies the prominent title rendered over the image.
   final String? headline;
+
+  /// Sets the overall height reserved for the card content.
   final double height;
+
+  /// Provides the image URL rendered behind the text overlay.
   final String image; // Make optional?
+
+  /// Runs when the user taps the card.
   final GestureTapCallback onPressed;
+
+  /// Adds optional outer spacing so the card can fit varied list and grid layouts.
   final EdgeInsetsGeometry? margin;
 
+  /// Creates the mutable state used to render the card.
   @override
   State<CardButton> createState() => _CardButtonState();
 }
 
+/// Holds the build logic for [CardButton].
 class _CardButtonState extends State<CardButton> {
+  /// Builds the card with a full-bleed image and readable text overlay.
+  ///
+  /// The widget keeps the tappable area unified so both the image and text
+  /// behave like a single button during hit testing.
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

@@ -6,7 +6,14 @@ import '../helper/firebase_storage_helper.dart';
 import '../helper/media_helper.dart';
 import '../serialized/media_data.dart';
 
+/// Lets users pick an image from the supported platform sources and uploads it
+/// through [FirebaseStorageHelper].
+///
+/// The widget keeps its own transient loading state so parent widgets can stay
+/// simple while still reacting through [callback] once the upload completes.
 class UploadImageMedia extends StatefulWidget {
+  /// Creates an image upload trigger that delegates the final storage work to
+  /// [FirebaseStorageHelper].
   const UploadImageMedia({
     super.key,
     required this.callback,
@@ -16,25 +23,41 @@ class UploadImageMedia extends StatefulWidget {
     this.expiry = false,
   });
 
+  /// Receives the uploaded storage path together with the saved [MediaData].
   final Function(String, MediaData) callback;
+  /// Defines the storage path prefix used for every uploaded image.
   final String path;
+  /// Caps the largest image dimension before upload to reduce transfer costs.
   final int maxDimensions;
+  /// Generates a storage identifier automatically when `true`.
   final bool autoId;
+  /// Marks uploaded media as expiring when the storage layer supports it.
   final bool expiry;
 
+  /// Creates the mutable state that tracks whether an upload is in progress.
   @override
   State<UploadImageMedia> createState() => _UploadImageMediaState();
 }
 
+/// Stores transient UI state for [UploadImageMedia] while the picker or upload
+/// workflow is running.
 class _UploadImageMediaState extends State<UploadImageMedia> {
+  /// Prevents duplicate upload requests and swaps the trigger for progress UI.
   late bool loading;
 
+  /// Initializes the state with no pending upload so the trigger is immediately
+  /// interactive on first build.
   @override
   void initState() {
     super.initState();
     loading = false;
   }
 
+  /// Builds either a compact progress indicator or the platform-specific image
+  /// picker affordance.
+  ///
+  /// The upload callback is defined inside `build` so it always captures the
+  /// latest widget configuration when Flutter rebuilds this state object.
   @override
   Widget build(BuildContext context) {
     final double effectiveIconSize = IconTheme.of(context).size ?? 24.0;

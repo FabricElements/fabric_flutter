@@ -22,6 +22,8 @@ import 'user_avatar.dart';
 /// [loader] Widget displayed when a process is in progress
 /// [roles] Replaces default roles with your custom roles
 class UserAdmin extends StatelessWidget {
+  /// Creates a user administration surface for listing, adding, updating, and
+  /// removing users.
   const UserAdmin({
     super.key,
     this.empty,
@@ -50,37 +52,60 @@ class UserAdmin extends StatelessWidget {
     this.passwordRegex,
   });
 
+  /// Replaces the default empty-state widget when no users are available.
   final Widget? empty;
+  /// Provides a custom loading widget for parent-managed loading states.
   final Widget? loader;
+  /// Defines the roles that can be assigned in add and update flows.
   final List<String> roles;
+  /// Wraps the content in a [Scaffold] with a floating action button when `true`.
   final bool primary;
+  /// Prevents add, update, and remove interactions when `true`.
   final bool disabled;
+  /// Prefixes avatar paths so images can be resolved from external hosts.
   final String? prefix;
 
-  /// Role groups
+  /// Restricts management to a specific role group when provided.
   final String? group;
+  /// Supplies the app bar used when [primary] is `true`.
   final PreferredSizeWidget? appBar;
+  /// Includes password fields in the add-user dialog when `true`.
   final bool password;
+  /// Shows the role selector in the add-user dialog when `true`.
   final bool role;
+  /// Shows the email field in the add-user dialog when `true`.
   final bool email;
+  /// Shows the phone field in the add-user dialog when `true`.
   final bool phone;
+  /// Shows the username field in the add-user dialog when `true`.
   final bool username;
+  /// Shows the name fields in the add-user dialog when `true`.
   final bool name;
+  /// Shows the email field in the update dialog when `true`.
   final bool emailUpdate;
+  /// Shows the phone field in the update dialog when `true`.
   final bool phoneUpdate;
+  /// Shows the username field in the update dialog when `true`.
   final bool usernameUpdate;
+  /// Shows the name fields in the update dialog when `true`.
   final bool nameUpdate;
+  /// Shows the role selector in the update dialog when `true`.
   final bool roleUpdate;
+  /// Allows selecting multiple roles while creating a user.
   final bool multipleRoles;
+  /// Allows selecting multiple roles while updating a user.
   final bool multipleRolesUpdate;
+  /// Controls the maximum content width used for each rendered user card.
   final ContentContainerSize size;
 
-  /// Password Regex expression
+  /// Overrides the password validation pattern used by [UserAddUpdate].
   final RegExp? passwordRegex;
 
-  /// Password Validation Error
+  /// Overrides the password validation error shown by [UserAddUpdate].
   final String? passwordError;
 
+  /// Builds a paginated user management interface that stays synchronized with
+  /// the backing Firestore query and role actions.
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

@@ -21,20 +21,30 @@ import 'input_data.dart';
 /// It also provides buttons to expand/collapse all nodes
 /// and copy the JSON object to the clipboard.
 class JsonExplorerSearch extends StatefulWidget {
+  /// Supplies the JSON-like map to render in the explorer.
   final Map<dynamic, dynamic>? json;
+  /// Replaces the default placeholder shown when [json] is empty.
   final Widget? empty;
 
+  /// Creates a searchable explorer for structured JSON data.
   const JsonExplorerSearch({super.key, required this.json, this.empty});
 
+  /// Creates state that owns the explorer store and scroll controller.
   @override
   State<JsonExplorerSearch> createState() => _JsonExplorerSearchState();
 }
 
+/// Coordinates searching, scrolling, and clipboard actions for
+/// [JsonExplorerSearch].
 class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
+  /// Scrolls to focused search results inside the positioned list.
   final itemScrollController = ItemScrollController();
+  /// Stores the explorer nodes, search state, and expansion state.
   final JsonExplorerStore store = JsonExplorerStore();
+  /// Caches whether the current payload should render the empty state.
   bool isEmpty = false;
 
+  /// Builds the initial explorer nodes for the supplied JSON payload.
   @override
   void initState() {
     super.initState();
@@ -42,6 +52,7 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
     store.buildNodes(widget.json, areAllCollapsed: true);
   }
 
+  /// Rebuilds explorer nodes whenever the parent provides a new JSON payload.
   @override
   void didUpdateWidget(covariant JsonExplorerSearch oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -50,6 +61,8 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
     store.buildNodes(widget.json, areAllCollapsed: true);
   }
 
+  /// Builds the searchable explorer UI and wires button actions to the shared
+  /// [JsonExplorerStore].
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -341,11 +354,11 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
     );
   }
 
-  /// Returns a string that indicates the current focused search result
+  /// Returns the human-readable position of the focused search result.
   String _searchFocusText() =>
       '${store.focusedSearchResultIndex + 1}/${store.searchResults.length}';
 
-  /// Scrolls to the focused search match in the JSON explorer.
+  /// Expands search matches and scrolls the focused result into view.
   Future<void> _scrollToSearchMatch() async {
     // Expand all nodes to ensure the search result is visible
     store.expandSearchResults();
@@ -363,6 +376,7 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
     }
   }
 
+  /// Returns whether `value` should be treated as a tappable URL in the explorer.
   bool _valueIsUrl(dynamic value) {
     if (value is String) {
       return Uri.tryParse(value)?.hasAbsolutePath ?? false;
@@ -370,6 +384,7 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
     return false;
   }
 
+  /// Opens a detected URL using the platform launcher.
   Future _launchUrl(String url) {
     return launchUrlString(url);
   }

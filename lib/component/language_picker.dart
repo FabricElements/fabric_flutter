@@ -21,6 +21,11 @@ import 'input_data.dart';
 /// );
 /// ```
 class LanguagePicker extends StatelessWidget {
+  /// Creates a language picker wired to the shared [InputData] dropdown UI.
+  ///
+  /// The picker keeps widget code focused on storing the selected ISO code while
+  /// this component handles localization, optional voice filtering, and default
+  /// labels.
   const LanguagePicker({
     super.key,
     this.voice = false,
@@ -31,13 +36,25 @@ class LanguagePicker extends StatelessWidget {
     required this.onChange,
   });
 
+  /// Limits the list to languages that have supported voice resources.
   final bool voice;
+
+  /// The currently selected ISO 639-1 language code.
   final String? value;
+
+  /// Reports the newly selected language code back to the parent widget.
   final Function(String?) onChange;
+
+  /// Overrides the localized placeholder shown before a value is selected.
   final String? hintText;
+
+  /// Overrides the localized field label.
   final String? label;
+
+  /// Prevents interaction while still showing the current selection.
   final bool disabled;
 
+  /// Builds the localized dropdown and keeps the option list in sync with [voice].
   @override
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context);

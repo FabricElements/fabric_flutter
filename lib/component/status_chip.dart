@@ -11,6 +11,7 @@ import '../helper/utils.dart';
 ///   locale: 'Active',
 /// );
 class StatusChip extends StatelessWidget {
+  /// Creates a compact visual summary for a status value.
   const StatusChip({
     super.key,
     required this.status,
@@ -20,12 +21,19 @@ class StatusChip extends StatelessWidget {
     this.width,
   });
 
+  /// Supplies the raw status key used for localization and default styling.
   final String? status;
+  /// Overrides the icon derived from [status].
   final IconData? icon;
+  /// Overrides the background color derived from [status].
   final Color? color;
+  /// Overrides the label color shown on the chip.
   final Color? textColor;
+  /// Constrains the label width when the chip must align with surrounding UI.
   final double? width;
 
+  /// Builds a localized [RawChip] that stays visually consistent with the rest
+  /// of the status system.
   @override
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context);

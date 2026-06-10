@@ -11,7 +11,8 @@ import '../helper/utils.dart';
 import 'content_container.dart';
 import 'smart_image.dart';
 
-/// AlertType are used to defined behavior and colors for the alerts
+/// Identifies the semantic tone of an alert so shared presentation code can
+/// choose appropriate colors, defaults, and logging behavior.
 enum AlertType {
   /// basic is used for simple alerts
   basic,
@@ -26,10 +27,22 @@ enum AlertType {
   warning,
 }
 
-/// AlertWidget are used to defined behavior and colors for the alerts
-enum AlertWidget { snackBar, banner, dialog }
+/// Selects which Material surface is used to present an alert.
+enum AlertWidget {
+  /// Shows the alert inside a transient [SnackBar].
+  snackBar,
 
-/// typeFromString returns AlertType from a String
+  /// Shows the alert inside a persistent [MaterialBanner].
+  banner,
+
+  /// Shows the alert inside an [AlertDialog].
+  dialog
+}
+
+/// Converts a stored string value back into an [AlertType].
+///
+/// Unknown or missing values intentionally fall back to [AlertType.basic] so
+/// callers can safely deserialize historic or partially populated data.
 AlertType typeFromString(String? value) {
   AlertType type = AlertType.basic;
   switch (value) {
@@ -48,8 +61,11 @@ AlertType typeFromString(String? value) {
   return type;
 }
 
-/// Dismiss action
-/// Dismiss current alert or all alerts with the same widget type
+/// Dismisses the current alert presentation for the given [widget].
+///
+/// When `dismissAll` is `true`, every visible alert of the same widget type is
+/// cleared. The function also protects itself against stale [BuildContext]
+/// instances by falling back to [AppGlobal.navigatorKey] when needed.
 void dismissAlerts({
   bool dismissAll = false,
   required AlertWidget widget,
@@ -85,7 +101,10 @@ void dismissAlerts({
   }
 }
 
-/// Check if a dialog is open
+/// Returns whether a popup-style route is currently visible for `context`.
+///
+/// This is used before dismissing dialog alerts so the navigator is only popped
+/// when a matching overlay is actually present.
 bool isDialogOpen(BuildContext context) {
   bool isDialog = false;
   Navigator.popUntil(context, (route) {
@@ -97,7 +116,14 @@ bool isDialogOpen(BuildContext context) {
   return isDialog;
 }
 
-/// Alert Data Object
+/// Shows a configured alert using a [SnackBar], [MaterialBanner], or dialog.
+///
+/// The helper centralizes alert theming, localized button labels, default
+/// durations, and safe dismissal logic so feature widgets can focus on domain
+/// behavior instead of repeating presentation code. Use [title], [body],
+/// [child], [image], and [icon] to shape the content; use [action] and
+/// [dismiss] to customize button behavior; and choose [widget], [type],
+/// [scrollable], and [barrierDismissible] to match the surrounding UX.
 void alertData<T>({
   /// Notification title
   final String? title,
@@ -120,12 +146,19 @@ void alertData<T>({
   /// Image URL
   final String? image,
 
+  /// Customizes the primary action button and optional navigation behavior.
   ButtonOptions? action,
+  /// Customizes the dismiss button shown for every alert surface.
   ButtonOptions? dismiss,
+  /// Overrides the container color chosen from [type].
   Color? color,
+  /// Overrides the text style applied to [title].
   TextStyle? titleStyle,
+  /// Overrides the text style applied to [body].
   TextStyle? bodyStyle,
+  /// Overrides the foreground color used by text and icons.
   Color? textColor,
+  /// Inserts additional custom content before the alert actions.
   Widget? child,
 
   /// Clear all other alerts of the same type
@@ -133,9 +166,13 @@ void alertData<T>({
 
   /// Scrollable content for [AlertWidget.dialog] using [AlertDialog]
   bool scrollable = false,
+  /// Requests a fullscreen dialog presentation when supported.
   bool fullscreenDialog = false,
+  /// Controls whether tapping outside a dialog dismisses it.
   bool barrierDismissible = true,
+  /// Displays a leading status icon above the main content.
   IconData? icon,
+  /// Supplies the active [BuildContext] used to locate overlay presenters.
   required BuildContext? context,
 }) async {
   if (typeString != null) {

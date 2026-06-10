@@ -14,27 +14,47 @@ import 'alert_data.dart';
 import 'content_container.dart';
 import 'input_data.dart';
 
+/// Lets the current user update profile names and avatar media.
+///
+/// The widget keeps temporary image bytes and edited names in local state so the
+/// surrounding page can rebuild freely while edits remain in progress until the
+/// user explicitly saves them.
 class ProfileEdit extends StatefulWidget {
+  /// Creates a profile editor for the authenticated user.
   const ProfileEdit({super.key, this.loader, this.prefix});
 
+  /// Provides an optional loading widget for parent compositions.
   final Widget? loader;
+  /// Prefixes stored avatar paths when images are hosted behind a base URL.
   final String? prefix;
 
+  /// Creates mutable editing state for names and avatar previews.
   @override
   State<ProfileEdit> createState() => _ProfileEditState();
 }
 
+/// Holds staged profile edits and avatar preview data for [ProfileEdit].
 class _ProfileEditState extends State<ProfileEdit> {
+  /// Tracks whether any editable field has diverged from persisted user data.
   late bool changed;
+  /// Supplies the fallback avatar shown when no user image is available.
   AssetImage? defaultImage;
+  /// Prevents duplicate save or media-picking actions while work is running.
   late bool loading;
+  /// Stores the image provider currently shown in the avatar preview.
   ImageProvider? previewImage;
+  /// Stores newly selected avatar bytes until the user saves the profile.
   Uint8List? _temporalImageBytes;
+  /// Stores the resolved remote avatar URL for the authenticated user.
   String? userImage;
+  /// Stores the staged first name value.
   String? nameFirst;
+  /// Stores the staged last name value.
   String? nameLast;
+  /// Stores the cache-busted avatar URL used for preview refreshes.
   String? _avatarFinalUrl;
 
+  /// Initializes the editor with an unchanged state and a placeholder avatar.
   @override
   void initState() {
     super.initState();
@@ -45,6 +65,8 @@ class _ProfileEditState extends State<ProfileEdit> {
     nameLast = null;
   }
 
+  /// Builds the profile editing form and computes the latest avatar preview for
+  /// the current frame.
   @override
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context);

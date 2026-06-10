@@ -6,8 +6,18 @@ import 'package:flutter/material.dart';
 
 import '../helper/options.dart';
 
-/// [SmartButton] allows you to easily create buttons or/and custom Popup Menus
+/// Builds a text button that can also expose a popup menu of related actions.
+///
+/// [SmartButton] lets callers describe primary and secondary actions with the
+/// same [ButtonOptions] model. It is useful in app bars, toolbars, and compact
+/// action rows where a single button may either navigate immediately or expand
+/// into a menu depending on the provided configuration.
 class SmartButton extends StatefulWidget {
+  /// Creates a [SmartButton] with a required primary [button] definition.
+  ///
+  /// Provide [children] to turn the button into a popup-menu trigger. When
+  /// [pop] is `true`, route changes replace the current route instead of pushing
+  /// on top of it.
   const SmartButton({
     super.key,
     required this.button,
@@ -17,22 +27,38 @@ class SmartButton extends StatefulWidget {
     this.pop = false,
   });
 
+  /// Describes the main visible button label, icon, and optional route.
   final ButtonOptions button;
+
+  /// Overrides the brightness used to derive text and icon colors.
   final Brightness? brightness;
+
+  /// Determines whether navigation should use `popAndPushNamed` instead of `pushNamed`.
   final bool pop;
 
-  /// [children]
-  /// [ButtonOptions], [PopupMenuDivider] or [PopupMenuEntry<String>] for custom implementation
+  /// Supplies popup-menu entries shown after activating the main button.
+  ///
+  /// Supported values include [ButtonOptions], [PopupMenuDivider], and custom
+  /// [PopupMenuEntry<String>] instances for advanced menu content.
   final List<dynamic>? children;
+
+  /// Provides a reserved hook for external redirect flows.
   final Function? redirect;
 
+  /// Creates the mutable state used to coordinate popup-menu behavior.
   @override
   State<SmartButton> createState() => _SmartButtonState();
 }
 
+/// Holds popup-menu state for [SmartButton].
 class _SmartButtonState extends State<SmartButton> {
+  /// References the popup button so hover interactions can open its menu.
   final popupButtonKey = GlobalKey<State>();
 
+  /// Builds the main button and, when configured, its popup-menu wrapper.
+  ///
+  /// The widget adapts its spacing for larger text scales and keeps navigation
+  /// decisions local so parent widgets can pass lightweight action metadata.
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
