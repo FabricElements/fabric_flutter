@@ -216,6 +216,10 @@ dynamic parseValueByInputDataType({
 /// field types without reimplementing the same lifecycle glue in every screen.
 class InputData extends StatefulWidget {
   /// Creates an adaptive field seeded with [value] and configured by [type].
+  ///
+  /// The constructor exposes type-specific configuration such as enum lists, dropdown
+  /// options, controllers, validation, and picker behavior without forcing callers to
+  /// manage separate widgets for each input style.
   const InputData({
     super.key,
     required this.value,
@@ -362,11 +366,10 @@ class InputData extends StatefulWidget {
   ///    should be displayed.
   final FloatingLabelBehavior? floatingLabelBehavior;
 
-  /// An optional controller that allows opening and closing of the search view from
-  /// other widgets.
+  /// Provides an optional [SearchController] that can open and close the search view.
   ///
-  /// If this is null, one internal search controller is created automatically
-  /// and it is used to open the search view when the user taps on the anchor.
+  /// If this is `null`, the widget creates an internal controller and uses it when the
+  /// user taps the anchor field for dropdown and enum selections.
   final SearchController? searchController;
 
   /// Chooses whether date and time values are displayed in local time instead of UTC.
@@ -381,7 +384,10 @@ class InputData extends StatefulWidget {
   /// Appends custom formatters after the widget's built-in type-specific formatters.
   final List<TextInputFormatter> inputFormatters;
 
-  /// {@macro flutter.widgets.editableText.keyboardType}
+  /// Overrides the [TextInputType] used by text-based field variants.
+  ///
+  /// This lets callers replace the widget's built-in keyboard choice when a specialized
+  /// input still needs a different platform keyboard layout.
   final TextInputType? keyboardType;
 
   /// Creates the state that owns controllers, picker state, and normalized values.
@@ -572,7 +578,7 @@ getValue -------------------------------------
   void initState() {
     super.initState();
 
-    /// Validate required parameters on init
+    // Validate required parameters on init.
     switch (widget.type) {
       case InputDataType.enums:
         assert(
@@ -590,12 +596,12 @@ getValue -------------------------------------
     textController = widget.textController ?? TextEditingController();
     searchController = widget.searchController ?? SearchController();
 
-    /// obscure text and show controls
+    // Configure obscured text state and related controls.
     obscureText = widget.obscureText;
     if (widget.type == InputDataType.secret) obscureText = true;
     obscure = obscureText;
 
-    /// Get value
+    // Seed local state from the incoming widget value.
     getValue(newValue: widget.value);
   }
 
@@ -664,7 +670,7 @@ getValue -------------------------------------
             tooltip: locales.get('label--clear'),
           );
 
-    /// Text styles
+    // Resolve transient error state.
     String? errorText;
     if (widget.error != null) {
       errorText = widget.error;
@@ -681,7 +687,7 @@ getValue -------------------------------------
       );
     }
 
-    /// Add clear button when is not possible to set value to null
+    // Configure context-aware trailing controls.
     switch (widget.type) {
       case InputDataType.date:
       case InputDataType.dateTime:
@@ -794,7 +800,7 @@ getValue -------------------------------------
       default:
     }
 
-    /// Override keyboard type using parameter
+    // Let callers override the computed keyboard type.
     if (widget.keyboardType != null) {
       keyboardType = widget.keyboardType!;
     }
@@ -1117,7 +1123,7 @@ getValue -------------------------------------
               final regex = RegExp(r'[^\w@.+]+');
               if (value.isNotEmpty) {
                 recommendations = recommendations.where((element) {
-                  /// Remove any special characters and spaces from the label to make the search more flexible
+                  // Remove special characters and spaces from the label to make search more flexible.
                   final labelClean = GSM
                       .toGSM(element.label)
                       .toLowerCase()
@@ -1145,7 +1151,7 @@ getValue -------------------------------------
               return List.generate(recommendations.length, (int index) {
                 final item = recommendations[index];
 
-                /// Leading
+                // Resolve the leading widget.
                 Widget? leading = item.leading;
                 if (item.icon != null) {
                   leading = Icon(item.icon);
@@ -1169,7 +1175,7 @@ getValue -------------------------------------
                   );
                 }
 
-                /// Trailing
+                // Resolve the trailing widget.
                 Widget? trailing = item.trailing;
                 if (item.trailingIcon != null) {
                   trailing = Icon(item.trailingIcon);
