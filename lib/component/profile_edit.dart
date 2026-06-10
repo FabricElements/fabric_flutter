@@ -14,47 +14,100 @@ import 'alert_data.dart';
 import 'content_container.dart';
 import 'input_data.dart';
 
-/// Lets the current user update profile names and avatar media.
+/// Builds a profile editor for the authenticated user.
 ///
-/// The widget keeps temporary image bytes and edited names in local state so the
-/// surrounding page can rebuild freely while edits remain in progress until the
-/// user explicitly saves them.
+/// The widget stores staged name changes and avatar bytes locally so the wider
+/// page can rebuild without discarding edits before the user saves them.
 class ProfileEdit extends StatefulWidget {
   /// Creates a profile editor for the authenticated user.
+  ///
+  /// The optional [loader] lets parent layouts supply a custom busy widget, and
+  /// [prefix] prepends a base URL to stored avatar paths when needed.
   const ProfileEdit({super.key, this.loader, this.prefix});
 
-  /// Provides an optional loading widget for parent compositions.
+  /// Stores an optional loading widget for parent compositions.
+  ///
+  /// The current implementation does not render [loader] directly, but keeping
+  /// it on the widget preserves compatibility with surrounding layouts.
   final Widget? loader;
-  /// Prefixes stored avatar paths when images are hosted behind a base URL.
+
+  /// Stores an optional base path for remote avatar URLs.
+  ///
+  /// When [prefix] is not `null` and the user has an avatar path, the build
+  /// logic joins both values before requesting the preview image.
   final String? prefix;
 
   /// Creates mutable editing state for names and avatar previews.
+  ///
+  /// Flutter calls this when inserting [ProfileEdit] into the tree so the form
+  /// can track staged values independently from persisted user data.
   @override
   State<ProfileEdit> createState() => _ProfileEditState();
 }
 
-/// Holds staged profile edits and avatar preview data for [ProfileEdit].
+/// Stores staged profile edits and avatar preview data for [ProfileEdit].
+///
+/// The state keeps temporary text values, image bytes, and loading flags so the
+/// widget can coordinate local validation and asynchronous updates.
 class _ProfileEditState extends State<ProfileEdit> {
-  /// Tracks whether any editable field has diverged from persisted user data.
+  /// Tracks whether the current form values differ from persisted user data.
+  ///
+  /// The save button becomes available only after [changed] is `true` and the
+  /// required name fields satisfy the minimum length check.
   late bool changed;
-  /// Supplies the fallback avatar shown when no user image is available.
+
+  /// Stores the fallback avatar image used when no user image is available.
+  ///
+  /// The widget falls back to [defaultImage] when preview generation fails or no
+  /// saved avatar exists for the current user.
   AssetImage? defaultImage;
-  /// Prevents duplicate save or media-picking actions while work is running.
+
+  /// Tracks whether the widget is currently processing user actions.
+  ///
+  /// While [loading] is `true`, save and media-picking controls are disabled to
+  /// avoid duplicate requests and inconsistent local state.
   late bool loading;
-  /// Stores the image provider currently shown in the avatar preview.
+
+  /// Stores the image provider displayed by the avatar preview.
+  ///
+  /// The preview switches between a [MemoryImage], a [NetworkImage], or the
+  /// fallback asset depending on the most recent available avatar source.
   ImageProvider? previewImage;
+
   /// Stores newly selected avatar bytes until the user saves the profile.
+  ///
+  /// Keeping the raw bytes in [_temporalImageBytes] allows the UI to preview a
+  /// local selection before it is uploaded through Cloud Functions.
   Uint8List? _temporalImageBytes;
-  /// Stores the resolved remote avatar URL for the authenticated user.
+
+  /// Stores the resolved remote avatar path for the authenticated user.
+  ///
+  /// The build logic derives [userImage] from the serialized user record and the
+  /// optional widget [ProfileEdit.prefix].
   String? userImage;
-  /// Stores the staged first name value.
+
+  /// Stores the staged first-name value.
+  ///
+  /// A `null` value means the field has not yet diverged from the current user
+  /// record during this widget lifecycle.
   String? nameFirst;
-  /// Stores the staged last name value.
+
+  /// Stores the staged last-name value.
+  ///
+  /// A `null` value means the field has not yet diverged from the current user
+  /// record during this widget lifecycle.
   String? nameLast;
+
   /// Stores the cache-busted avatar URL used for preview refreshes.
+  ///
+  /// Appending the user's updated timestamp helps force a fresh network image
+  /// whenever the avatar changes remotely.
   String? _avatarFinalUrl;
 
-  /// Initializes the editor with an unchanged state and a placeholder avatar.
+  /// Initializes the editor with default loading, change, and avatar values.
+  ///
+  /// The initial state keeps both name fields at `null` so the first build can
+  /// hydrate them from the current [StateUser] snapshot.
   @override
   void initState() {
     super.initState();
@@ -65,8 +118,10 @@ class _ProfileEditState extends State<ProfileEdit> {
     nameLast = null;
   }
 
-  /// Builds the profile editing form and computes the latest avatar preview for
-  /// the current frame.
+  /// Builds the profile editing form for the current [BuildContext].
+  ///
+  /// The build pass resolves localized labels, derives the latest avatar source,
+  /// and wires form actions that stage edits locally before persisting them.
   @override
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context);
@@ -78,6 +133,11 @@ class _ProfileEditState extends State<ProfileEdit> {
       nameFirst = nameFirst ?? stateUser.serialized.firstName;
       nameLast = nameLast ?? stateUser.serialized.lastName;
     }
+
+    /// Refreshes the avatar preview using staged bytes or persisted user data.
+    ///
+    /// The helper prefers local image bytes, then a cache-busted network URL,
+    /// and finally falls back to [defaultImage] when no preview can be derived.
     void refreshImage() {
       _avatarFinalUrl = null;
       try {
@@ -101,6 +161,12 @@ class _ProfileEditState extends State<ProfileEdit> {
     }
 
     refreshImage();
+
+    /// Persists staged profile changes for the authenticated user.
+    ///
+    /// The handler validates required names, optionally encodes the staged avatar
+    /// as base64, calls the `user-actions-update` function, and reports the
+    /// result through localized alerts.
     updateUser() async {
       assert(nameFirst != null, 'First Name must be defined');
       assert(nameLast != null, 'Last Name must be defined');
@@ -154,7 +220,6 @@ class _ProfileEditState extends State<ProfileEdit> {
         _temporalImageBytes = null;
         changed = false;
         refreshImage();
-        // Check if the widget is still 'alive' before using the context
         if (!context.mounted) return;
         alertData(
           context: context,
@@ -178,6 +243,10 @@ class _ProfileEditState extends State<ProfileEdit> {
       if (mounted) setState(() {});
     }
 
+    /// Loads avatar bytes from the requested [MediaOrigin].
+    ///
+    /// The handler updates [_temporalImageBytes] when selection succeeds and
+    /// surfaces localized warnings or errors when media selection fails.
     Future<void> getImageFromOrigin(MediaOrigin origin) async {
       loading = true;
       if (mounted) setState(() {});
@@ -293,7 +362,6 @@ class _ProfileEditState extends State<ProfileEdit> {
             ),
           ),
         ),
-        // First Name
         ContentContainer(
           size: ContentContainerSize.small,
           padding: const EdgeInsets.symmetric(vertical: 8),
@@ -306,7 +374,6 @@ class _ProfileEditState extends State<ProfileEdit> {
             label: locales.get('label--first-name'),
             onChanged: (newValue) {
               String value = newValue?.toString() ?? '';
-              // Remove invalid characters
               value = value.replaceAll(RegExp(r'[0-9!@#$%^*()_+={}<>~]'), '');
               if (stateUser.serialized.firstName == value) return;
               nameFirst = value;
@@ -315,7 +382,6 @@ class _ProfileEditState extends State<ProfileEdit> {
             },
           ),
         ),
-        // Last Name
         ContentContainer(
           size: ContentContainerSize.small,
           padding: const EdgeInsets.symmetric(vertical: 8),
@@ -328,7 +394,6 @@ class _ProfileEditState extends State<ProfileEdit> {
             label: locales.get('label--last-name'),
             onChanged: (newValue) {
               String value = newValue?.toString() ?? '';
-              // Remove invalid characters
               value = value.replaceAll(RegExp(r'[0-9!@#$%^*()_+={}<>~]'), '');
               if (stateUser.serialized.lastName == value) return;
               nameLast = value;

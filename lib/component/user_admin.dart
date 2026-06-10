@@ -18,12 +18,15 @@ import 'pagination_container.dart';
 import 'user_add_update.dart';
 import 'user_avatar.dart';
 
-/// Invite and manage Users and their roles
-/// [loader] Widget displayed when a process is in progress
-/// [roles] Replaces default roles with your custom roles
+/// Builds a user administration interface for inviting and managing users.
+///
+/// Displays a paginated user list, opens add and update dialogs, and scopes
+/// role management with [group], [roles], and the field visibility flags.
 class UserAdmin extends StatelessWidget {
-  /// Creates a user administration surface for listing, adding, updating, and
-  /// removing users.
+  /// Creates a user administration interface.
+  ///
+  /// Uses the provided flags to control which fields and role actions appear in
+  /// the add and update dialogs.
   const UserAdmin({
     super.key,
     this.empty,
@@ -52,60 +55,148 @@ class UserAdmin extends StatelessWidget {
     this.passwordRegex,
   });
 
-  /// Replaces the default empty-state widget when no users are available.
+  /// Provides the empty-state widget when no users are available.
+  ///
+  /// Replaces the default content shown by [PaginationContainer] after the user
+  /// query resolves without any results.
   final Widget? empty;
+
   /// Provides a custom loading widget for parent-managed loading states.
+  ///
+  /// Allows parent compositions to supply their own progress UI even though this
+  /// widget currently renders the Firestore-backed content directly.
   final Widget? loader;
+
   /// Defines the roles that can be assigned in add and update flows.
+  ///
+  /// Supplies the selectable role values for [UserAddUpdate] when users are
+  /// created or updated.
   final List<String> roles;
-  /// Wraps the content in a [Scaffold] with a floating action button when `true`.
+
+  /// Enables the primary scaffold layout.
+  ///
+  /// Wraps the content in a [Scaffold] with [appBar] and a floating add button
+  /// when set to `true`.
   final bool primary;
-  /// Prevents add, update, and remove interactions when `true`.
+
+  /// Disables add, update, and remove interactions.
+  ///
+  /// Prevents role-management actions and suppresses add controls when set to
+  /// `true`.
   final bool disabled;
-  /// Prefixes avatar paths so images can be resolved from external hosts.
+
+  /// Prefixes avatar paths so external image hosts can be resolved.
+  ///
+  /// Prepends the configured path to [UserData.avatar] before it is passed to
+  /// [UserAvatar].
   final String? prefix;
 
-  /// Restricts management to a specific role group when provided.
+  /// Restricts management to a specific role group.
+  ///
+  /// Switches the Firestore ordering and role resolution to the matching entry
+  /// under `groups.<group>` when a non-empty value is provided.
   final String? group;
-  /// Supplies the app bar used when [primary] is `true`.
+
+  /// Supplies the app bar used by the primary scaffold layout.
+  ///
+  /// Applies only when [primary] is `true` and the widget returns a [Scaffold].
   final PreferredSizeWidget? appBar;
-  /// Includes password fields in the add-user dialog when `true`.
+
+  /// Includes password fields in the add-user dialog.
+  ///
+  /// Forwards the flag to [UserAddUpdate] so new users can be created with a
+  /// password when set to `true`.
   final bool password;
-  /// Shows the role selector in the add-user dialog when `true`.
+
+  /// Shows the role selector in the add-user dialog.
+  ///
+  /// Controls whether [UserAddUpdate] exposes role assignment for new users.
   final bool role;
-  /// Shows the email field in the add-user dialog when `true`.
+
+  /// Shows the email field in the add-user dialog.
+  ///
+  /// Controls whether [UserAddUpdate] collects an email address while creating
+  /// a user.
   final bool email;
-  /// Shows the phone field in the add-user dialog when `true`.
+
+  /// Shows the phone field in the add-user dialog.
+  ///
+  /// Controls whether [UserAddUpdate] collects a phone number while creating a
+  /// user.
   final bool phone;
-  /// Shows the username field in the add-user dialog when `true`.
+
+  /// Shows the username field in the add-user dialog.
+  ///
+  /// Controls whether [UserAddUpdate] collects a username while creating a
+  /// user.
   final bool username;
-  /// Shows the name fields in the add-user dialog when `true`.
+
+  /// Shows the name fields in the add-user dialog.
+  ///
+  /// Controls whether [UserAddUpdate] collects first and last name data while
+  /// creating a user.
   final bool name;
-  /// Shows the email field in the update dialog when `true`.
+
+  /// Shows the email field in the update dialog.
+  ///
+  /// Controls whether [UserAddUpdate] exposes email editing for existing users.
   final bool emailUpdate;
-  /// Shows the phone field in the update dialog when `true`.
+
+  /// Shows the phone field in the update dialog.
+  ///
+  /// Controls whether [UserAddUpdate] exposes phone editing for existing users.
   final bool phoneUpdate;
-  /// Shows the username field in the update dialog when `true`.
+
+  /// Shows the username field in the update dialog.
+  ///
+  /// Controls whether [UserAddUpdate] exposes username editing for existing
+  /// users.
   final bool usernameUpdate;
-  /// Shows the name fields in the update dialog when `true`.
+
+  /// Shows the name fields in the update dialog.
+  ///
+  /// Controls whether [UserAddUpdate] exposes name editing for existing users.
   final bool nameUpdate;
-  /// Shows the role selector in the update dialog when `true`.
+
+  /// Shows the role selector in the update dialog.
+  ///
+  /// Controls whether [UserAddUpdate] exposes role changes for existing users.
   final bool roleUpdate;
+
   /// Allows selecting multiple roles while creating a user.
+  ///
+  /// Forwards multi-role creation support to [UserAddUpdate] when set to
+  /// `true`.
   final bool multipleRoles;
+
   /// Allows selecting multiple roles while updating a user.
+  ///
+  /// Forwards multi-role update support to [UserAddUpdate] when set to `true`.
   final bool multipleRolesUpdate;
-  /// Controls the maximum content width used for each rendered user card.
+
+  /// Controls the maximum content width for each rendered user card.
+  ///
+  /// Passes the selected [ContentContainerSize] to each outer
+  /// [ContentContainer].
   final ContentContainerSize size;
 
   /// Overrides the password validation pattern used by [UserAddUpdate].
+  ///
+  /// Supplies a custom [RegExp] when add or update dialogs need validation rules
+  /// beyond the default password requirements.
   final RegExp? passwordRegex;
 
   /// Overrides the password validation error shown by [UserAddUpdate].
+  ///
+  /// Provides custom localized feedback when [passwordRegex] rejects the entered
+  /// password.
   final String? passwordError;
 
-  /// Builds a paginated user management interface that stays synchronized with
-  /// the backing Firestore query and role actions.
+  /// Builds the user administration interface.
+  ///
+  /// Connects [StateUser] and [StateUsers] to a Firestore-backed query,
+  /// configures localized error handling, and returns either a primary
+  /// [Scaffold] or an inline layout depending on [primary].
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -119,7 +210,11 @@ class UserAdmin extends StatelessWidget {
 
     // Set default limit when you will use shrinkWrap
     if (!primary) state.limitDefault = 100;
-    // Catch errors
+
+    /// Reports provider and state errors with a localized critical alert.
+    ///
+    /// Returns `null` when [e] is `null` so empty error callbacks can be safely
+    /// ignored.
     apiError(String? e) => (e != null)
         ? alertData(
             context: context,
@@ -130,12 +225,12 @@ class UserAdmin extends StatelessWidget {
     stateUser.onError = apiError;
     state.onError = apiError;
 
-    /// User collection
     Query<Map<String, dynamic>> baseQuery = FirebaseFirestore.instance
         .collection('user');
     Query<Map<String, dynamic>> query = baseQuery;
 
-    /// Order By role for global users, the role key is only available for parent users
+    // Order by role for global users, because the role key is only available for
+    // parent users.
     query = query.orderBy('name');
     bool fromCollection = group != null && group!.isNotEmpty;
     if (fromCollection) {
@@ -146,7 +241,10 @@ class UserAdmin extends StatelessWidget {
 
     Widget space = Container(width: 16);
 
-    /// Deletes the related user listed user, the documentId is the users uid
+    /// Confirms and removes the selected user.
+    ///
+    /// Resolves the best available display name from [UserData] so the warning
+    /// dialog stays recognizable before [UserRolesFirebase.onRemove] executes.
     removeUser(UserData data) {
       String? name = data.name.trim().length > 4 ? data.name : null;
       name ??=
@@ -191,7 +289,10 @@ class UserAdmin extends StatelessWidget {
       );
     }
 
-    /// Show Update Dialog
+    /// Opens the update dialog for the selected user.
+    ///
+    /// Disables editing when the selected [user] matches the current
+    /// [StateUser.serialized] identity or when [disabled] is `true`.
     showUpdateDialog(UserData user) {
       bool sameUser = stateUser.serialized.id == user.id;
       // Don't allow a user to change anything about itself on the 'admin' view

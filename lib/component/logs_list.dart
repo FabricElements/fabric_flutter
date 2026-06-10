@@ -8,10 +8,16 @@ import 'alert_data.dart';
 import 'json_explorer_search.dart';
 import 'user_chip.dart';
 
-/// Displays a list of logs from an array of [logs]
+/// Builds a list of log entries from [logs].
+///
+/// Supports both fixed and scrollable layouts while formatting inline
+/// placeholders into highlighted text, user chips, and optional structured data
+/// previews.
 class LogsList extends StatelessWidget {
-  /// Creates a log feed that can be embedded in both scrolling pages and static
-  /// detail layouts.
+  /// Creates a log list for timeline-style and detail-style surfaces.
+  ///
+  /// Uses [padding] for each rendered entry and [margin] around the overall
+  /// collection so the same widget can adapt to dense and spacious layouts.
   const LogsList({
     super.key,
     required this.logs,
@@ -28,28 +34,31 @@ class LogsList extends StatelessWidget {
     this.margin = const EdgeInsets.symmetric(vertical: 8),
   });
 
-  /// Provides the ordered log entries to render.
+  /// Provides the ordered [LogsData] entries to render.
   final List<LogsData>? logs;
-  /// Defines optional per-entry actions exposed through a trailing menu.
+
+  /// Provides optional [ButtonOptions] shown for each entry in a trailing menu.
   final List<ButtonOptions>? actions;
+
   /// Reduces visual density for compact surfaces such as side panels.
   final bool minimal;
-  /// Overrides the emphasis color used for highlighted placeholders in log text.
+
+  /// Overrides the emphasis [Color] used for highlighted placeholders.
   final Color? highlightColor;
-  /// Switches between an internal [ListView] and a fixed vertical layout.
+
+  /// Switches between an internal scrollable [ListView] and a fixed column.
   final bool scrollable;
 
-  /// The amount of space using for each item.
+  /// Provides the [EdgeInsetsGeometry] applied around each rendered entry.
   final EdgeInsetsGeometry padding;
 
-  /// Main content margin space
+  /// Provides the [EdgeInsetsGeometry] applied around the entire list.
   final EdgeInsetsGeometry margin;
 
-  /// Builds a rich-text representation of each log entry and optional auxiliary
-  /// actions.
+  /// Builds the log list for the current [BuildContext].
   ///
-  /// Entries can embed user mentions and structured payload previews so callers
-  /// can surface audit information without building custom renderers.
+  /// Returns an empty [SizedBox] when [logs] is `null` or empty so parents can
+  /// include the widget unconditionally without adding extra visibility checks.
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -58,7 +67,6 @@ class LogsList extends StatelessWidget {
     if (logs == null || logs!.isEmpty) return container;
     RegExp regExp = RegExp(r'{.*?}', multiLine: true);
 
-    /// Get item widget
     Widget getItem(LogsData item) {
       DateTime? timestamp = item.timestamp ?? DateTime.now();
       String? text = item.text?.isNotEmpty == true ? item.text : null;
@@ -82,7 +90,6 @@ class LogsList extends StatelessWidget {
       );
       if (matches.isNotEmpty) {
         for (var match in matches) {
-          /// First part
           if (match.start > initialPosition) {
             textFormatted.add(
               TextSpan(
@@ -95,7 +102,6 @@ class LogsList extends StatelessWidget {
             initialPosition = match.end;
           }
 
-          /// Handle match
           String cleanMatch = match
               .group(0)
               .replaceAll('{@', '')
@@ -122,7 +128,6 @@ class LogsList extends StatelessWidget {
           initialPosition = match.end;
         }
 
-        /// Last part
         textFormatted.add(
           TextSpan(
             text: (text.substring(

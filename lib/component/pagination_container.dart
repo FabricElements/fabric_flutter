@@ -6,12 +6,16 @@ import 'content_container.dart';
 
 /// Renders an infinitely scrollable list that reacts to streamed page results.
 ///
-/// The widget listens to [stream] for authoritative list snapshots and requests more
-/// data through [paginate] when the user scrolls to the trailing edge. This separation
-/// keeps pagination side effects outside the widget while still preserving scroll state,
-/// loading feedback, and empty or error placeholders inside the UI lifecycle.
+/// The widget listens to [stream] for authoritative list snapshots and requests
+/// more data through [paginate] when the user scrolls to the trailing edge.
+/// This keeps pagination side effects outside the widget while preserving
+/// scroll state, loading feedback, and empty or error placeholders.
 class PaginationContainer extends StatefulWidget {
-  /// Creates a paginated list shell that can show loading, empty, and terminal states.
+  /// Creates a paginated list shell that can show loading, empty, and terminal
+  /// states.
+  ///
+  /// The constructor accepts presentation overrides and delegates pagination to
+  /// [paginate] so the widget remains focused on rendering streamed content.
   const PaginationContainer({
     super.key,
     required this.paginate,
@@ -34,92 +38,183 @@ class PaginationContainer extends StatefulWidget {
     this.bottom,
   });
 
-  /// Builds each visible item from its index and the matching streamed data element.
+  /// Builds each visible item from its index and matching streamed data.
+  ///
+  /// The callback receives the current [BuildContext], the zero-based item
+  /// index, and the corresponding value from the latest list snapshot.
   final Widget Function(BuildContext context, int index, dynamic data)
   itemBuilder;
-  /// Forwards whether this scroll view should be the primary scrollable in scope.
+
+  /// Determines whether the list should be the primary scroll view in scope.
+  ///
+  /// Passing `true` lets the surrounding [PrimaryScrollController] own scroll
+  /// behaviors such as keyboard scrolling and inherited controller access.
   final bool primary;
-  /// Reverses the order in which list items and scroll direction are presented.
+
+  /// Reverses the visual order of items and the scroll direction.
+  ///
+  /// This is useful for timelines or chat-like layouts where the newest items
+  /// should appear nearest the leading viewport edge.
   final bool reverse;
-  /// Insets the list content and the fallback placeholder layouts.
+
+  /// Stores the insets applied to list content and placeholder layouts.
+  ///
+  /// The same [EdgeInsetsGeometry] is reused for loading and empty states so
+  /// those fallbacks align with the populated list.
   final EdgeInsetsGeometry padding;
-  /// Chooses whether pagination proceeds vertically or horizontally.
+
+  /// Selects whether pagination scrolls vertically or horizontally.
+  ///
+  /// The value affects both the [ListView] axis and how the trailing edge is
+  /// interpreted when deciding whether to request another page.
   final Axis scrollDirection;
-  /// Controls how far ahead the list prebuilds children for smoother scrolling.
+
+  /// Controls how far ahead the list prepares children while scrolling.
+  ///
+  /// Larger values can make scrolling feel smoother at the cost of additional
+  /// memory and build work.
   final double cacheExtent;
-  /// Overrides the widget shown when no items are currently available.
+
+  /// Provides a custom widget for the empty state.
+  ///
+  /// When `null`, the widget shows a localized informational card instead.
   final Widget? empty;
-  /// Overrides the widget shown while the initial page is being fetched.
+
+  /// Provides a custom widget for the loading state.
+  ///
+  /// When `null`, the widget shows a [LinearProgressIndicator] wrapped in
+  /// padding.
   final Widget? loading;
-  /// Overrides the footer shown after pagination reaches the final page.
+
+  /// Provides a custom footer for the terminal pagination state.
+  ///
+  /// When `null`, the widget shows a minimal centered icon after pagination has
+  /// reached the end of the list.
   final Widget? end;
-  /// Emits the latest list snapshot that should replace the current item collection.
+
+  /// Emits the latest list snapshot that should replace the current items.
+  ///
+  /// Each event is treated as the authoritative collection, allowing external
+  /// state to reset or replace the rendered data at any time.
   final Stream<dynamic> stream;
-  /// Seeds the list before the first stream event arrives, preserving perceived continuity.
+
+  /// Seeds the list before the first stream event arrives.
+  ///
+  /// Providing initial items avoids an initial empty flash and preserves
+  /// continuity while the first streamed snapshot is still pending.
   final List<dynamic>? initialData;
-  /// Defines how overflowing children are clipped inside the scrolling list.
+
+  /// Defines how overflowing children are clipped inside the list.
+  ///
+  /// The value is forwarded to [ListView.builder] so embedding layouts can tune
+  /// edge rendering behavior.
   final Clip clipBehavior;
-  /// Shrinks the scroll view to its contents when embedding it in another layout.
+
+  /// Determines whether the list should size itself to its contents.
+  ///
+  /// Passing `true` helps when nesting the widget inside another scrollable or
+  /// constrained parent.
   final bool shrinkWrap;
+
   /// Inserts a widget before the first list item or placeholder content.
+  ///
+  /// The widget is also shown above loading and empty states so surrounding
+  /// context remains visible regardless of data availability.
   final Widget? top;
+
   /// Inserts a widget after the last list item or placeholder content.
+  ///
+  /// The widget is also shown below loading and empty states to keep trailing
+  /// supplementary content consistent.
   final Widget? bottom;
 
   /// Restores a previously captured scroll offset when rebuilding the list.
+  ///
+  /// This lets a parent preserve the user's scroll position across widget
+  /// recreation.
   final double initialScrollOffset;
 
-  /// Reports scroll offset changes so parents can persist or react to scroll position.
+  /// Reports scroll offset changes to interested parents.
+  ///
+  /// The callback can be used to persist the latest offset for later reuse in
+  /// [initialScrollOffset].
   final Function(double offset)? onScrollOffsetChanged;
 
-  /// Requests the next page when the user reaches the current trailing edge.
+  /// Requests the next page after the user reaches the trailing edge.
+  ///
+  /// Returning `null` or an empty result marks pagination as complete and shows
+  /// the terminal footer.
   final Future<dynamic> Function() paginate;
 
-  /// Creates the state that coordinates scroll events, stream updates, and footers.
+  /// Creates the state that coordinates scroll events, stream updates, and
+  /// footers.
+  ///
+  /// The returned [_PaginationContainerState] owns the scroll controller and
+  /// transient pagination flags for this widget instance.
   @override
   State<PaginationContainer> createState() => _PaginationContainerState();
 }
 
-/// Tracks pagination progress, transient errors, and scroll restoration state.
+/// Stores pagination progress, transient errors, and scroll restoration state.
+///
+/// The state object reacts to both user scrolling and external stream updates so
+/// the widget can merge asynchronous data changes with local loading feedback.
 class _PaginationContainerState extends State<PaginationContainer> {
-  /// Marks whether the most recent pagination request indicated there is no more data.
+  /// Stores whether the latest pagination request reported no additional data.
+  ///
+  /// When `true`, the widget stops calling [PaginationContainer.paginate] until
+  /// a new stream event resets the flag.
   late bool end;
-  /// Marks whether the widget is currently awaiting initial or subsequent data.
+
+  /// Stores whether the widget is awaiting initial or subsequent data.
+  ///
+  /// The flag drives both the initial placeholder and the footer loading state.
   late bool loading;
-  /// Tracks whether the current scroll position has reached the trailing edge.
+
+  /// Stores whether the current scroll position has reached the trailing edge.
+  ///
+  /// The flag prevents pagination requests until the user actually scrolls to
+  /// the end of the active scroll extent.
   late bool isBottom;
 
-  // Inside your Widget
-  /// Owns scroll position so the widget can detect pagination thresholds and restore offsets.
+  /// Owns scroll position for pagination thresholds and offset restoration.
+  ///
+  /// The controller also forwards offset changes through
+  /// [PaginationContainer.onScrollOffsetChanged].
   late ScrollController _controller;
-  /// Stores the latest pagination or stream error for footer presentation.
+
+  /// Stores the latest pagination or stream error message.
+  ///
+  /// A non-`null` value replaces the standard footer with an error card.
   late String? error;
-  /// Holds the most recent list snapshot emitted by [PaginationContainer.stream].
+
+  /// Stores the most recent list snapshot emitted by [PaginationContainer.stream].
+  ///
+  /// The list is replaced wholesale whenever the stream publishes a new event.
   List<dynamic> data = [];
 
-  /// Starts listening to scroll and stream updates after insertion into the tree.
+  /// Initializes pagination flags and subscribes to scroll and stream updates.
+  ///
+  /// The method seeds the list from [PaginationContainer.initialData], restores
+  /// scroll offset, and wires listeners that update loading, error, and end
+  /// state as new pages or streamed snapshots arrive.
   @override
   void initState() {
     super.initState();
 
-    /// Initial state
     end = false;
     error = null;
     data = widget.initialData ?? [];
     isBottom = false;
-    // Always set loading to true when the initial data is null
     loading = widget.initialData == null;
     _controller = ScrollController(
       initialScrollOffset: widget.initialScrollOffset,
     );
 
-    /// Scroll controller
     _controller.addListener(() async {
       widget.onScrollOffsetChanged?.call(_controller.offset);
       isBottom =
           _controller.position.atEdge && _controller.position.pixels != 0;
-      // if (mounted) setState(() {});
-      // Do nothing if any of these conditions are met
       if (!isBottom) return;
       if (end) return;
       if (loading) return;
@@ -139,7 +234,6 @@ class _PaginationContainerState extends State<PaginationContainer> {
       if (mounted) setState(() {});
     });
 
-    /// Get data from stream
     widget.stream
         .listen((event) async {
           loading = true;
@@ -158,7 +252,10 @@ class _PaginationContainerState extends State<PaginationContainer> {
         });
   }
 
-  /// Releases the scroll controller and drains the stream when the widget is removed.
+  /// Releases the scroll controller and drains the stream subscription source.
+  ///
+  /// Draining the stream helps discard any remaining events after the widget has
+  /// been removed from the tree.
   @override
   void dispose() {
     _controller.dispose();
@@ -166,7 +263,10 @@ class _PaginationContainerState extends State<PaginationContainer> {
     super.dispose();
   }
 
-  /// Builds the appropriate loading, empty, populated, or error-aware pagination view.
+  /// Builds the loading, empty, populated, or error-aware pagination view.
+  ///
+  /// The returned widget switches between placeholder scroll views and a
+  /// paginated [ListView] so the layout stays consistent across data states.
   @override
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context);

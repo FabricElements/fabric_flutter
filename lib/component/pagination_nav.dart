@@ -4,13 +4,18 @@ import '../helper/app_localizations_delegate.dart';
 import '../helper/options.dart';
 import 'input_data.dart';
 
-/// Renders pagination controls for moving through discrete result pages.
+/// Builds pagination controls for navigating discrete result pages.
 ///
-/// The widget keeps transient loading state locally so repeated taps cannot trigger
-/// overlapping navigation requests. It also exposes a page-size selector to keep list
-/// navigation and page limit changes visually grouped in one reusable control bar.
+/// The widget keeps transient loading state locally so the [next], [previous],
+/// [first], and [last] callbacks cannot overlap. It also groups page movement,
+/// page totals, and page-size selection into one reusable toolbar.
 class PaginationNav extends StatefulWidget {
-  /// Creates a pagination toolbar with previous, next, and optional edge navigation.
+  /// Creates a pagination toolbar with page navigation and limit selection.
+  ///
+  /// The widget requires the current [page], available [totalPages], active
+  /// [limit], and callbacks that update the surrounding data source. Optional
+  /// [first], [last], and [children] entries extend the toolbar without
+  /// changing its built-in pagination behavior.
   const PaginationNav({
     super.key,
     required this.page,
@@ -27,42 +32,100 @@ class PaginationNav extends StatefulWidget {
     this.children = const [],
   });
 
-  /// Reports the currently visible page number.
+  /// Stores the currently visible page number.
+  ///
+  /// The value is shown beside the localized page label so users can confirm
+  /// their current position in the result set.
   final int page;
-  /// Reports the currently selected number of items per page.
+
+  /// Stores the selected number of items shown per page.
+  ///
+  /// The value drives the dropdown state and is passed back through
+  /// [limitChange] when the user selects a different option.
   final int limit;
-  /// Indicates whether advancing to the next page is currently allowed.
+
+  /// Determines whether forward navigation is currently available.
+  ///
+  /// The next button becomes disabled when this value is `false` or while an
+  /// asynchronous pagination action is already running.
   final bool canPaginate;
-  /// Loads the next page when the user activates the forward action.
+
+  /// Provides the callback that loads the next page.
+  ///
+  /// The callback is awaited so the widget can keep its local loading state in
+  /// sync until the navigation request completes.
   final Function next;
-  /// Loads the previous page when the user activates the back action.
+
+  /// Provides the callback that loads the previous page.
+  ///
+  /// The callback is awaited so repeated taps cannot trigger overlapping page
+  /// changes.
   final Function previous;
-  /// Optionally jumps directly to the first page in the result set.
+
+  /// Provides an optional callback that jumps to the first page.
+  ///
+  /// The first-page button is rendered only when this callback is not `null`.
   final Function? first;
-  /// Optionally jumps directly to the final page in the result set.
+
+  /// Provides an optional callback that jumps to the last page.
+  ///
+  /// The last-page button is rendered only when this callback is not `null`.
   final Function? last;
-  /// Receives a newly selected page size when the limit dropdown changes.
+
+  /// Receives a newly selected page size.
+  ///
+  /// The callback runs only when the dropdown value differs from the current
+  /// [limit], which avoids redundant reload requests.
   final ValueChanged<int> limitChange;
-  /// Defines the first logical page so edge-button disabling works with custom indices.
+
+  /// Defines the first logical page index.
+  ///
+  /// The value lets the widget support pagination schemes that do not start at
+  /// `1` while still disabling backward navigation correctly.
   final int initialPage;
-  /// Reports the total number of pages available for the current dataset.
+
+  /// Stores the total number of pages available.
+  ///
+  /// The value is displayed beside [page] and is used to disable the optional
+  /// last-page action when the current page is already at the end.
   final int totalPages;
-  /// Lists the page-size options offered by the limit dropdown.
+
+  /// Lists the page-size options available in the dropdown.
+  ///
+  /// Each entry is converted into a [ButtonOptions] item for the [InputData]
+  /// selector.
   final List<int> limits;
-  /// Appends extra widgets into the toolbar for context-specific actions or filters.
+
+  /// Stores extra widgets that appear inside the toolbar.
+  ///
+  /// The widgets are appended before the navigation buttons so feature-specific
+  /// filters or actions can stay visually aligned with pagination controls.
   final List<Widget> children;
 
-  /// Creates the state that throttles pagination actions during async transitions.
+  /// Creates the mutable state that throttles async pagination actions.
+  ///
+  /// The returned [_PaginationNavState] keeps button and dropdown disabling
+  /// local to this widget instead of requiring external state management.
   @override
   State<PaginationNav> createState() => _PaginationNavState();
 }
 
-/// Tracks temporary loading state while pagination callbacks are running.
+/// Stores transient loading state for [PaginationNav].
+///
+/// The state object disables controls while awaiting pagination callbacks so a
+/// single user interaction cannot issue duplicate requests.
 class _PaginationNavState extends State<PaginationNav> {
-  /// Prevents repeated taps from firing overlapping pagination requests.
+  /// Tracks whether a pagination callback is currently running.
+  ///
+  /// The value disables navigation buttons and the limit selector until the
+  /// active async operation completes.
   bool loading = false;
 
-  /// Builds a responsive toolbar that adapts between row and wrap layouts.
+  /// Builds the pagination toolbar for the current [BuildContext].
+  ///
+  /// The layout switches between a horizontal [Row] and a wrapping [Wrap]
+  /// based on the available width so the control remains usable on narrower
+  /// screens.
   @override
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context);

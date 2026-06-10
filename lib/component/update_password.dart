@@ -9,36 +9,64 @@ import 'alert_data.dart';
 
 /// Guides the user through validating and confirming a password change.
 ///
-/// The widget progressively reveals fields as the current password and the new
-/// password become valid, which helps reduce accidental submissions and keeps
-/// the surrounding settings screen lightweight.
+/// The widget progressively reveals each field only after the prior step is
+/// valid, which helps prevent accidental submissions and keeps surrounding
+/// settings views lightweight.
 class UpdatePassword extends StatefulWidget {
-  /// Creates a password update form that reports a validated [PasswordData]
-  /// object through [callback].
+  /// Creates a password update form that reports a confirmed [PasswordData].
+  ///
+  /// The [callback] runs only after the user accepts the warning dialog, so
+  /// consumers receive values that have already passed the widget's local
+  /// validation flow.
   const UpdatePassword({super.key, required this.callback});
 
-  /// Receives the confirmed password payload after the user accepts the warning
-  /// dialog.
+  /// Receives the confirmed [PasswordData] after the user approves the change.
+  ///
+  /// The callback is deferred until the warning dialog action is selected,
+  /// which keeps parent widgets from reacting to incomplete edits.
   final Function(PasswordData) callback;
 
   /// Creates mutable form state for the password update flow.
+  ///
+  /// The returned [_UpdatePasswordState] stores staged field values so the UI
+  /// can reveal each step as validation succeeds.
   @override
   State<UpdatePassword> createState() => _UpdatePasswordState();
 }
 
-/// Tracks the staged password values and validation results for
-/// [UpdatePassword].
+/// Tracks staged password values and validation results for [UpdatePassword].
+///
+/// The state keeps transient entries separate from the parent widget until the
+/// user confirms the warning dialog and [UpdatePassword.callback] is invoked.
 class _UpdatePasswordState extends State<UpdatePassword> {
-  /// Holds the user's current password entry.
+  /// Stores the user's current password entry.
+  ///
+  /// The value remains empty until the first field changes, allowing the form
+  /// to hide later steps during the initial render.
   late String current;
-  /// Holds the proposed new password before confirmation.
+
+  /// Stores the proposed new password before confirmation.
+  ///
+  /// The value is reset when the current entry changes so the repeated field is
+  /// revalidated against the latest candidate password.
   late String password1;
-  /// Holds the repeated new password used to confirm the change.
+
+  /// Stores the repeated new password used for confirmation.
+  ///
+  /// The value helps surface mismatch messaging before the submission action is
+  /// displayed.
   late String password2;
+
   /// Indicates whether the collected values are ready to submit.
+  ///
+  /// The flag is recalculated during [build] so the button appears only when
+  /// the current password, regex validation, and confirmation all succeed.
   late bool ok;
 
-  /// Resets the form after a successful submission or the initial mount.
+  /// Resets the staged password fields to their initial empty values.
+  ///
+  /// The method is used during initialization and after a successful callback
+  /// so subsequent edits restart from a clean state.
   void reset() {
     current = '';
     password1 = '';
@@ -47,14 +75,20 @@ class _UpdatePasswordState extends State<UpdatePassword> {
   }
 
   /// Initializes the form with empty password values.
+  ///
+  /// Calling [reset] keeps the initial field state aligned with the state used
+  /// after a completed password update.
   @override
   void initState() {
     super.initState();
     reset();
   }
 
-  /// Builds a staged password form that only exposes the next step when the
-  /// current step is valid.
+  /// Builds a staged password form for the provided [BuildContext].
+  ///
+  /// The form uses [RegexHelper.password] and localized error strings to reveal
+  /// follow-up fields only when earlier entries are valid, and it opens a
+  /// confirmation dialog before invoking [UpdatePassword.callback].
   @override
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context);
@@ -165,7 +199,6 @@ class _UpdatePasswordState extends State<UpdatePassword> {
       );
     }
 
-    /// Add BoxConstraints
     sections = sections
         .map(
           (e) => Container(

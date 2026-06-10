@@ -12,13 +12,13 @@ import '../state/state_notifications.dart';
 import 'alert_data.dart';
 import 'connection_status.dart';
 
-/// Tracks whether global connectivity and notification listeners are already attached.
+/// Stores the guard flag consulted before listener configuration runs.
 bool _listenersConfigured = false;
 
-/// Configures global notification listeners exactly once for the current app session.
+/// Configures notification listeners for the current route context.
 ///
-/// Route pages rebuild frequently as authentication and navigation state change,
-/// so this guard prevents duplicate callbacks from stacking up across rebuilds.
+/// The method checks [_listenersConfigured] before wiring the callback so the
+/// route can centralize notification alerts around a single [BuildContext].
 void _configureListeners(BuildContext context) {
   if (_listenersConfigured) return;
   final locales = AppLocalizations.of(context);
@@ -27,7 +27,6 @@ void _configureListeners(BuildContext context) {
     listen: false,
   );
 
-  /// Define notification callback
   stateNotifications.callback = (NotificationData message) {
     alertData(
       context: context,
@@ -49,8 +48,11 @@ void _configureListeners(BuildContext context) {
   };
 }
 
-/// This helper runs the provided `onInit` function, logs any errors,
-/// and adds a small delay to ensure a consistent loading experience.
+/// Runs route initialization and preserves a consistent loading experience.
+///
+/// The wrapper catches and logs errors thrown by [onInit] so route rendering can
+/// continue, then waits briefly before completing to avoid flashes when setup
+/// resolves almost immediately.
 Future<void> _initFuture(Future<void> Function() onInit) async {
   try {
     await onInit();
@@ -58,19 +60,19 @@ Future<void> _initFuture(Future<void> Function() onInit) async {
     debugPrint(LogColor.error('$e\n$st'));
   }
 
-  // Small delay to keep a consistent loading experience.
   await Future<void>.delayed(const Duration(milliseconds: 300));
 }
 
-/// RoutePage
-/// A convenience widget that waits for an async `onInit` to finish
-/// before rendering the route content. It used to extend FutureBuilder<void>,
-/// but now creates the future once in state so rebuilds won't restart it.
+/// Builds a route wrapper that waits for asynchronous setup before showing content.
+///
+/// The widget resolves the active route from [routeHelper] and [uri], waits for
+/// [status] and [onInit], and then renders the resulting child without restarting
+/// initialization on every rebuild.
 class RoutePage extends StatefulWidget {
-  /// Creates a route wrapper that waits for initialization before showing content.
+  /// Creates a route wrapper that defers route content until setup completes.
   ///
-  /// Use this when a route depends on async setup, such as fetching data or
-  /// attaching listeners, but should avoid restarting that work on every rebuild.
+  /// Callers provide the route table through [routeHelper], the current location
+  /// through [uri], and any asynchronous bootstrap work through [onInit].
   const RoutePage({
     super.key,
     required this.routeHelper,
@@ -81,45 +83,82 @@ class RoutePage extends StatefulWidget {
     required this.onContextReady,
   });
 
-  /// Provides the route table used to resolve the widget for [uri].
+  /// Stores the route resolver used to look up the widget for [uri].
+  ///
+  /// The helper supplies authenticated, unauthenticated, and fallback route
+  /// entries after initialization finishes.
   final RouteHelper routeHelper;
-  /// The parsed location used to choose the current route widget.
+
+  /// Stores the parsed location used to choose the current route widget.
+  ///
+  /// The [Uri.path] value is matched against the route map returned by
+  /// [routeHelper].
   final Uri uri;
 
-  /// The latest authentication status required before route initialization can continue.
+  /// Stores the latest authentication state required before initialization continues.
+  ///
+  /// The page keeps showing [loading] until [status] is not `null` and reports
+  /// that it is ready.
   final UserStatus? status;
 
-  /// The placeholder displayed while auth state or [onInit] is unresolved.
+  /// Stores the placeholder displayed while the route is still resolving.
+  ///
+  /// The widget is shown while [status] is unavailable or while [onInit] has not
+  /// completed.
   final Widget loading;
 
-  /// Performs one-time asynchronous initialization for the route.
+  /// Stores the one-time asynchronous setup callback for the route.
+  ///
+  /// The callback is wrapped by [_initFuture] so failures are logged and brief
+  /// loading feedback is preserved.
   final Future<void> Function() onInit;
 
-  /// Runs after user status is ready so callers can access an initialized [BuildContext].
+  /// Stores the callback that runs after the [BuildContext] is ready.
+  ///
+  /// Callers can use the callback to perform context-dependent work once
+  /// [status] has finished resolving.
   final Function(BuildContext context) onContextReady;
 
-  /// Creates the mutable state that caches the initialization future across rebuilds.
+  /// Creates the mutable state that caches route initialization across rebuilds.
+  ///
+  /// The returned [_RoutePageState] holds the single future used by the internal
+  /// [FutureBuilder].
   @override
   State<RoutePage> createState() => _RoutePageState();
 }
 
-/// Holds the cached initialization future and builds the resolved route content.
+/// Builds the resolved route after cached initialization completes.
+///
+/// The state keeps asynchronous bootstrap work stable across rebuilds so route
+/// changes caused by provider updates do not restart setup.
 class _RoutePageState extends State<RoutePage> {
-  /// Caches the async initialization work so it runs only once per state instance.
+  /// Stores the cached initialization future for the current state instance.
+  ///
+  /// The future is created once in [initState] so rebuilds reuse the same async
+  /// work.
   late final Future<void> _future;
 
-  /// Tracks whether the route is still showing its loading affordance.
+  /// Stores whether the route is still considered loading.
+  ///
+  /// The field remains available for route-page state tracking even though the
+  /// rendered loading UI is derived from [RoutePage.loading].
   bool loading = true;
 
-  /// Creates the initialization future during the first lifecycle pass.
+  /// Initializes the cached future during the first lifecycle pass.
+  ///
+  /// Creating [_future] here ensures [RoutePage.onInit] does not restart when the
+  /// widget rebuilds.
   @override
   void initState() {
     super.initState();
-    // Create the future once so rebuilds don't restart it.
     _future = _initFuture(widget.onInit);
   }
 
-  /// Resolves auth state, waits for initialization, and then builds the current route.
+  /// Builds loading or route content based on auth and initialization state.
+  ///
+  /// The method keeps showing [RoutePage.loading] until [RoutePage.status] is
+  /// ready and [_future] completes, then configures listeners, resolves the route,
+  /// and dismisses focus when users tap outside an input.
   @override
   Widget build(BuildContext context) {
     final status = widget.status;
@@ -142,10 +181,8 @@ class _RoutePageState extends State<RoutePage> {
         }
         if (!resolved) return widget.loading;
 
-        /// Configure global listeners
         _configureListeners(context);
 
-        /// Get routes
         final routes = widget.routeHelper.routes(
           signed: status.signedIn,
           isAdmin: status.admin,
@@ -157,12 +194,10 @@ class _RoutePageState extends State<RoutePage> {
           routeWidget = routes[widget.routeHelper.unknownRoute]!;
         }
 
-        /// Return child with KeyedSubtree to avoid rebuild issues
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
           key: ValueKey('route-page-gesture-detector'),
           onTap: () {
-            /// Close keyboard when tap outside input
             FocusScopeNode currentFocus = FocusScope.of(context);
             if (!currentFocus.hasPrimaryFocus) {
               currentFocus.unfocus();

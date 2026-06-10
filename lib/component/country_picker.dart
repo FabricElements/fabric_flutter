@@ -6,15 +6,19 @@ import '../helper/options.dart';
 import '../serialized/iso_data.dart';
 import 'input_data.dart';
 
-/// Lets users choose a country from the bundled ISO country dataset.
+/// Builds a country selector from the bundled ISO country dataset.
 ///
-/// The widget wraps [InputData] so country selection stays visually consistent with the
-/// rest of the form system while still exposing specialized country labels and filtering.
-/// When [phoneNumberOrigin] is enabled it narrows the list to regions supported by the
-/// phone helper dataset, which avoids offering values that downstream phone formatting
-/// cannot handle reliably.
+/// The widget composes [InputData] so country selection matches the package's
+/// broader form styling while still exposing country-specific labels and
+/// filtering. When [phoneNumberOrigin] is `true`, it limits choices to entries
+/// supported by the phone helper dataset so downstream phone-origin workflows
+/// only receive compatible values.
 class CountryPicker extends StatelessWidget {
   /// Creates a country picker backed by ISO alpha-2 country codes.
+  ///
+  /// The picker defaults to `'US'` and forwards selection changes through
+  /// [onChange]. Callers can override the localized label and hint text, or
+  /// disable interaction with [disabled].
   const CountryPicker({
     super.key,
     this.value = 'US',
@@ -25,20 +29,47 @@ class CountryPicker extends StatelessWidget {
     required this.onChange,
   });
 
-  /// Holds the selected ISO alpha-2 country code, defaulting to `'US'` when omitted.
+  /// Stores the selected ISO alpha-2 country code.
+  ///
+  /// The value defaults to `'US'` when omitted so the field starts from a
+  /// common country selection while still allowing `null` when callers clear it.
   final String? value;
-  /// Receives the newly selected country code, or `null` when the selection is cleared.
+
+  /// Receives the newly selected country code.
+  ///
+  /// The callback provides a nullable [String] so [InputData] can propagate a
+  /// cleared dropdown selection as `null`.
   final Function(String?) onChange;
-  /// Overrides the default localized placeholder shown before a country is chosen.
+
+  /// Stores the placeholder text shown before selection.
+  ///
+  /// When `null`, the widget falls back to the localized choose-country prompt
+  /// from [AppLocalizations].
   final String? hintText;
-  /// Overrides the default localized field label.
+
+  /// Stores the field label displayed above the selector.
+  ///
+  /// When `null`, the widget uses the localized country label from
+  /// [AppLocalizations].
   final String? label;
-  /// Disables interaction while still displaying the current country value.
+
+  /// Determines whether the selector accepts user interaction.
+  ///
+  /// When `true`, the widget continues showing the current [value] while
+  /// preventing edits.
   final bool disabled;
-  /// Restricts options to countries supported by phone-origin features when `true`.
+
+  /// Determines whether the selector only shows phone-supported countries.
+  ///
+  /// When `true`, the widget filters [ISOCountries.countries] against
+  /// [ISOCountries.phoneSupportedCountries] before building the dropdown.
   final bool phoneNumberOrigin;
 
-  /// Builds the underlying dropdown field with localized country labels and flags.
+  /// Builds the localized dropdown used to select a country.
+  ///
+  /// The widget resolves labels through [BuildContext], converts each
+  /// [ISOCountry] into a [ButtonOptions] entry, and forwards changes to
+  /// [onChange].
   @override
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context);
