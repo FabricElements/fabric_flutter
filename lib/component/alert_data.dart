@@ -14,16 +14,16 @@ import 'smart_image.dart';
 /// Identifies the semantic tone of an alert so shared presentation code can
 /// choose appropriate colors, defaults, and logging behavior.
 enum AlertType {
-  /// basic is used for simple alerts
+  /// Presents a basic informational alert with neutral styling.
   basic,
 
-  /// critical used for errors and alerts that require an action
+  /// Presents a critical alert for errors requiring immediate action.
   critical,
 
-  /// success alerts
+  /// Presents a success confirmation alert with positive styling.
   success,
 
-  /// warning alerts
+  /// Presents a warning alert for cautionary messages.
   warning,
 }
 
