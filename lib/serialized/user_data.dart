@@ -12,7 +12,10 @@ enum UserPresence { active, inactive, away }
 /// User Device OS
 enum UserOS { android, ios, macos, linux, web, fuchsia, windows, unknown }
 
-/// Onboarding Object
+/// Stores the completion status of onboarding steps for a user.
+///
+/// Onboarding flags track whether the user has completed critical setup tasks
+/// such as accepting terms, uploading an avatar, or finishing the main flow.
 @JsonSerializable(explicitToJson: true)
 class UserDataOnboarding {
   @JsonKey(includeIfNull: true)
@@ -37,7 +40,10 @@ class UserDataOnboarding {
   Map<String, dynamic> toJson() => _$UserDataOnboardingToJson(this);
 }
 
-/// InterfaceLinks Object
+/// Stores social media and web links associated with a user profile.
+///
+/// These links enable the application to display and navigate to the user's
+/// external profiles and personal website across common social platforms.
 @JsonSerializable(explicitToJson: true)
 class InterfaceLinks {
   @JsonKey(includeIfNull: true)
