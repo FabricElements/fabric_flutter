@@ -17,14 +17,14 @@ Map<String, dynamic> _$LocationToJson(Location instance) => <String, dynamic>{
 };
 
 Geometry _$GeometryFromJson(Map<String, dynamic> json) => Geometry(
-  location: Location.fromJson(json['location'] as Map<String, dynamic>),
+  location: Location.fromJson(json['location'] as Map<String, dynamic>?),
   locationType: json['location_type'] as String?,
   viewport: json['viewport'] == null
       ? null
-      : Bounds.fromJson(json['viewport'] as Map<String, dynamic>),
+      : Bounds.fromJson(json['viewport'] as Map<String, dynamic>?),
   bounds: json['bounds'] == null
       ? null
-      : Bounds.fromJson(json['bounds'] as Map<String, dynamic>),
+      : Bounds.fromJson(json['bounds'] as Map<String, dynamic>?),
 );
 
 Map<String, dynamic> _$GeometryToJson(Geometry instance) => <String, dynamic>{
@@ -35,8 +35,8 @@ Map<String, dynamic> _$GeometryToJson(Geometry instance) => <String, dynamic>{
 };
 
 Bounds _$BoundsFromJson(Map<String, dynamic> json) => Bounds(
-  northeast: Location.fromJson(json['northeast'] as Map<String, dynamic>),
-  southwest: Location.fromJson(json['southwest'] as Map<String, dynamic>),
+  northeast: Location.fromJson(json['northeast'] as Map<String, dynamic>?),
+  southwest: Location.fromJson(json['southwest'] as Map<String, dynamic>?),
 );
 
 Map<String, dynamic> _$BoundsToJson(Bounds instance) => <String, dynamic>{
@@ -106,7 +106,7 @@ OpeningHoursDetail _$OpeningHoursDetailFromJson(Map<String, dynamic> json) =>
       periods:
           (json['periods'] as List<dynamic>?)
               ?.map(
-                (e) => OpeningHoursPeriod.fromJson(e as Map<String, dynamic>),
+                (e) => OpeningHoursPeriod.fromJson(e as Map<String, dynamic>?),
               )
               .toList() ??
           const <OpeningHoursPeriod>[],
@@ -140,10 +140,10 @@ OpeningHoursPeriod _$OpeningHoursPeriodFromJson(
 ) => OpeningHoursPeriod(
   open: json['open'] == null
       ? null
-      : OpeningHoursPeriodDate.fromJson(json['open'] as Map<String, dynamic>),
+      : OpeningHoursPeriodDate.fromJson(json['open'] as Map<String, dynamic>?),
   close: json['close'] == null
       ? null
-      : OpeningHoursPeriodDate.fromJson(json['close'] as Map<String, dynamic>),
+      : OpeningHoursPeriodDate.fromJson(json['close'] as Map<String, dynamic>?),
 );
 
 Map<String, dynamic> _$OpeningHoursPeriodToJson(OpeningHoursPeriod instance) =>
@@ -197,26 +197,26 @@ Map<String, dynamic> _$AddressComponentToJson(AddressComponent instance) =>
 
 Place _$PlaceFromJson(Map<String, dynamic> json) => Place(
   addressComponents: (json['address_components'] as List<dynamic>?)
-      ?.map((e) => AddressComponent.fromJson(e as Map<String, dynamic>))
+      ?.map((e) => AddressComponent.fromJson(e as Map<String, dynamic>?))
       .toList(),
   icon: json['icon'] as String?,
   geometry: json['geometry'] == null
       ? null
-      : Geometry.fromJson(json['geometry'] as Map<String, dynamic>),
+      : Geometry.fromJson(json['geometry'] as Map<String, dynamic>?),
   openingHours: json['opening_hours'] == null
       ? null
       : OpeningHoursDetail.fromJson(
-          json['opening_hours'] as Map<String, dynamic>,
+          json['opening_hours'] as Map<String, dynamic>?,
         ),
   photos:
       (json['photos'] as List<dynamic>?)
-          ?.map((e) => Photo.fromJson(e as Map<String, dynamic>))
+          ?.map((e) => Photo.fromJson(e as Map<String, dynamic>?))
           .toList() ??
       const [],
   scope: json['scope'] as String?,
   altIds:
       (json['alt_ids'] as List<dynamic>?)
-          ?.map((e) => AlternativeId.fromJson(e as Map<String, dynamic>))
+          ?.map((e) => AlternativeId.fromJson(e as Map<String, dynamic>?))
           .toList() ??
       const [],
   priceLevel: (json['price_level'] as num?)?.toInt(),
