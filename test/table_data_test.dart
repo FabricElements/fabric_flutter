@@ -3,8 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 dynamic data = {
   'header': [
-    {'label': 'Column 1', 'value': 'column1'}
-  ]
+    {'label': 'Column 1', 'value': 'column1'},
+  ],
 };
 
 void main() {
@@ -16,7 +16,10 @@ void main() {
   test('Deserialize data', () {
     final serialized = TableData.fromJson(data);
     final deserialized = serialized.toJson();
-    expect(data['header'][0]['value'], deserialized['header'][0]['value'],
-        reason: 'Value don\'t match');
+    expect(
+      data['header'][0]['value'],
+      deserialized['header'][0]['value'],
+      reason: 'Value don\'t match',
+    );
   });
 }

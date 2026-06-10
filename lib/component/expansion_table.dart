@@ -4,20 +4,18 @@ import 'package:url_launcher/url_launcher.dart';
 import '../helper/format_data.dart';
 import '../serialized/table_data.dart';
 
-/// Renders hierarchical [TableData] with expandable child rows.
+/// Builds a hierarchical table from [TableData] with expandable child rows.
 ///
-/// The widget mirrors the visual language of [DataTable] while supporting nested
-/// tables inside rows. Root tables add horizontal scrolling and headers, while
-/// child tables inherit the header definition so expanded content stays aligned
-/// with its parent columns.
-///
-/// Example:
-/// -----------------------
+/// The widget preserves a [DataTable]-style presentation while letting nested
+/// datasets appear inline beneath their parent rows. Reusing the parent header
+/// definition keeps widths stable across expansion levels so deeply nested data
+/// remains readable.
 class ExpansionTable extends StatefulWidget {
   /// Creates an [ExpansionTable] for the provided [data].
   ///
-  /// When [data] is non-null, its header must contain at least one column so the
-  /// widget can size rows and render nested descendants consistently.
+  /// The assertion requires a non-empty header whenever [data] is not `null`
+  /// so the widget can derive consistent column widths before rendering nested
+  /// descendants.
   ExpansionTable({
     super.key,
     required this.data,
@@ -35,73 +33,140 @@ class ExpansionTable extends StatefulWidget {
     this.border,
   }) : assert(data == null || data.header!.isNotEmpty);
 
-  /// Supplies the hierarchical table model rendered by this widget.
+  /// Stores the hierarchical table model rendered by this widget.
+  ///
+  /// Accepting `null` lets callers defer rendering until data is available,
+  /// which avoids building placeholder table structure with incomplete columns.
   final TableData? data;
 
+  /// Stores the decoration applied around the rendered table.
+  ///
+  /// Passing a [Decoration] allows callers to align the table with surrounding
+  /// layout chrome without changing the row-building logic.
+  ///
   /// {@macro flutter.material.dataTable.decoration}
   final Decoration? decoration;
 
+  /// Stores the color used for footer rows.
+  ///
+  /// A dedicated footer color helps summary rows remain visually distinct from
+  /// regular data rows when totals or aggregate values are displayed.
+  ///
   /// {@macro flutter.material.dataTable.dataRowColor}
   /// {@macro flutter.material.DataTable.dataRowColor}
   final Color? dataFooterColor;
 
+  /// Stores the base color used for standard data rows.
+  ///
+  /// The value is combined with alternating opacity so long tables are easier
+  /// to scan without introducing separate row widgets or theme variants.
+  ///
   /// {@macro flutter.material.dataTable.dataRowColor}
   /// {@macro flutter.material.DataTable.dataRowColor}
   final Color? dataRowColor;
 
+  /// Stores the minimum height applied to each data row.
+  ///
+  /// Allowing callers to override row height helps dense and spacious table
+  /// layouts share the same rendering logic.
+  ///
   /// {@macro flutter.material.dataTable.dataRowHeight}
   final double? dataRowHeight;
 
+  /// Stores the text style used for data cells.
+  ///
+  /// Overriding the default text style helps nested content match the visual
+  /// hierarchy of the host screen without reformatting individual cells.
+  ///
   /// {@macro flutter.material.dataTable.dataTextStyle}
   final TextStyle? dataTextStyle;
 
+  /// Stores the color used for the heading row.
+  ///
+  /// A custom heading color can reinforce table grouping and keep the root
+  /// header visually anchored above expandable content.
+  ///
   /// {@macro flutter.material.dataTable.headingRowColor}
   /// {@macro flutter.material.DataTable.headingRowColor}
   final Color? headingRowColor;
 
+  /// Stores the height used for the heading row.
+  ///
+  /// Customizing the heading height helps the widget fit compact tool panels or
+  /// larger dashboard layouts while keeping column labels aligned.
+  ///
   /// {@macro flutter.material.dataTable.headingRowHeight}
   final double? headingRowHeight;
 
+  /// Stores the text style used for heading labels.
+  ///
+  /// A separate heading style keeps column titles legible and visually distinct
+  /// from cell content across different themes.
+  ///
   /// {@macro flutter.material.dataTable.headingTextStyle}
   final TextStyle? headingTextStyle;
 
+  /// Stores the horizontal margin applied around each row.
+  ///
+  /// Matching [DataTable] margin behavior makes the widget easier to drop into
+  /// existing table layouts without unexpected spacing differences.
+  ///
   /// {@macro flutter.material.dataTable.horizontalMargin}
   final double? horizontalMargin;
 
-  /// If null, [DataTableThemeData.columnSpacing] is used. This value defaults
-  /// to 56.0 to adhere to the Material Design specifications.
+  /// Stores the spacing inserted between adjacent columns.
+  ///
+  /// When the value is `null`, [DataTableThemeData.columnSpacing] is used and
+  /// falls back to `56.0` so the table continues to follow Material spacing
+  /// expectations.
+  ///
   /// {@macro flutter.material.dataTable.columnSpacing}
   final double? columnSpacing;
 
+  /// Stores the thickness used for row dividers.
+  ///
+  /// Exposing divider thickness lets callers balance separation and density in
+  /// wide tables that may contain many expandable levels.
+  ///
   /// {@macro flutter.material.dataTable.dividerThickness}
   final double? dividerThickness;
 
-  /// The style to use when painting the boundary and interior divisions of the table.
+  /// Stores the border painted around each cell.
+  ///
+  /// Providing a [TableBorder] makes it possible to emphasize boundaries for
+  /// reporting-style tables without altering row composition.
   final TableBorder? border;
 
-  /// Creates the mutable expansion state for [ExpansionTable].
+  /// Creates the mutable state for [ExpansionTable].
+  ///
+  /// Using a dedicated [_ExpansionTableState] preserves expansion toggles while
+  /// rows rebuild in response to user interaction.
   @override
   State<ExpansionTable> createState() => _ExpansionTableState();
 }
 
-/// Stores the fixed width assigned to each column so nested tables stay aligned.
-double _widthColumn = 350; // default: 100
+/// Stores the fixed width assigned to each column.
+///
+/// Sharing one top-level width keeps parent and child tables visually aligned
+/// after expansion, which avoids jitter when nested rows appear.
+double _widthColumn = 350;
 
-/// Holds the recursive row-building logic for [ExpansionTable].
+/// Manages recursive row rendering for [ExpansionTable].
+///
+/// Keeping the expansion behavior in state allows the widget to toggle nested
+/// tables in place without requiring external controllers.
 class _ExpansionTableState extends State<ExpansionTable> {
-  /// Builds the current table level and, when expanded, any child table levels.
+  /// Builds the current table level for the given [BuildContext].
   ///
   /// Root tables render headers and horizontal scrolling, while nested tables
-  /// return only their rows so expanded content can appear inline beneath the
+  /// return only their rows so expanded content can appear directly beneath the
   /// parent row that revealed it.
   @override
   Widget build(BuildContext context) {
     if (widget.data == null) return const SizedBox();
     TableData data = widget.data!;
     final theme = Theme.of(context);
-    // Define MaterialState
     Set<WidgetState> states = <WidgetState>{};
-    // final textTheme = theme.textTheme;
     final BorderSide borderSide = Divider.createBorderSide(
       context,
       width:
@@ -127,11 +192,9 @@ class _ExpansionTableState extends State<ExpansionTable> {
             maxWidth: _widthColumn,
             minWidth: _widthColumn,
           ),
-          // color: Colors.orange,
           child: Align(
             alignment: Alignment.centerLeft,
             child: Container(
-              // color: Colors.blueGrey,
               padding: EdgeInsets.only(
                 left: cellHorizontalPadding,
                 right: cellHorizontalPadding,
@@ -149,9 +212,6 @@ class _ExpansionTableState extends State<ExpansionTable> {
 
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
-        // double width = constraints.maxWidth.floorToDouble();
-        // double height = constraints.maxHeight.floorToDouble();
-
         /// Builds the widgets for a single row and any expanded descendants.
         ///
         /// The helper applies per-column formatting, renders hierarchical
@@ -279,7 +339,6 @@ class _ExpansionTableState extends State<ExpansionTable> {
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Container(
-                      // color: Colors.green,
                       padding: EdgeInsets.only(
                         left: cellHorizontalPadding,
                         right: cellHorizontalPadding,
@@ -325,7 +384,6 @@ class _ExpansionTableState extends State<ExpansionTable> {
           );
           content.add(rowWidget);
           if (row.child != null && row.active) {
-            // TableData childData = row.child!;
             row.child!.active = false;
             row.child!.level = (data.level) + 1;
             row.child!.header = data.header;

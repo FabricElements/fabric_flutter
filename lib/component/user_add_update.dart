@@ -13,12 +13,18 @@ import 'input_data.dart';
 
 /// Presents a full-screen form for creating or updating a [UserData] record.
 ///
-/// The widget adapts its fields to the flags passed by the caller so the same form
-/// can support invite flows, profile edits, and role management without duplicating
-/// UI. It keeps a cloned copy of [user] in state so partially entered data survives
-/// rebuilds and can be safely cancelled before [onConfirm] persists anything.
+/// The widget adapts its fields to the flags passed by the caller so the same
+/// form can support invite flows, profile edits, and role management without
+/// duplicating UI. It keeps a cloned copy of [user] in state so partially
+/// entered data survives rebuilds and can be safely cancelled before
+/// [onConfirm] persists anything.
 class UserAddUpdate extends StatefulWidget {
-  /// Creates a configurable user form with optional identity, password, and role fields.
+  /// Creates a configurable user form with optional identity, password, and
+  /// role fields.
+  ///
+  /// Callers enable only the sections they need, which lets the same widget
+  /// serve account creation, profile editing, and administrative role
+  /// management flows.
   const UserAddUpdate({
     super.key,
     this.roles = const ['user', 'admin'],
@@ -42,91 +48,161 @@ class UserAddUpdate extends StatefulWidget {
   });
 
   /// Lists the role values available when role selection is enabled.
+  ///
+  /// The form uses these values for both single-role and multi-role pickers so
+  /// every role-editing control stays aligned with the same allowed options.
   final List<String> roles;
 
   /// Persists the edited [UserData] and optionally scopes it to [group].
+  ///
+  /// The callback receives the mutable draft after validation passes and is
+  /// responsible for saving it to the backing data source.
   final Function(UserData data, {String? group}) onConfirm;
 
   /// Enables the email input when this workflow needs email-based identity.
+  ///
+  /// Leaving this `false` hides the email field so the form can support flows
+  /// that rely on other identifiers.
   final bool email;
 
   /// Enables the phone input when this workflow needs SMS-ready contact data.
+  ///
+  /// Leaving this `false` hides the phone field and keeps phone validation out
+  /// of the submission rules.
   final bool phone;
 
   /// Enables the username input for systems that support handle-based sign-in.
+  ///
+  /// Leaving this `false` removes username editing so callers can restrict the
+  /// form to email-only or phone-only identity flows.
   final bool username;
 
   /// Enables first and last name fields for flows that require display names.
+  ///
+  /// When this flag is `true`, submission also requires both name parts to have
+  /// more than one character.
   final bool name;
 
   /// Shows a single-role dropdown when users should have exactly one role.
+  ///
+  /// The selected value is written to [UserData.role] and defaults to the first
+  /// entry in [roles] when the current value is invalid.
   final bool role;
 
   /// Shows a multi-select role checklist when users may hold several roles.
+  ///
+  /// The selected values are written to [UserData.roles], which lets callers
+  /// model broader permission sets than [role] alone can represent.
   final bool multipleRoles;
 
-  /// Enables password entry for flows that provision or reset credentials directly.
+  /// Enables password entry for flows that provision or reset credentials.
+  ///
+  /// When this flag is `true`, submission requires a non-empty password that
+  /// matches [passwordRegex] or the default rule from [RegexHelper.password].
   final bool password;
 
   /// Runs after a successful save so parent widgets can refresh surrounding data.
+  ///
+  /// The callback is awaited after the dialog closes, which gives parent views a
+  /// place to reload lists or update local state.
   final Function onChanged;
 
   /// Provides the existing user to edit, or `null` to start from a blank record.
+  ///
+  /// The incoming value is cloned into local state so in-progress edits do not
+  /// mutate the caller's instance before confirmation.
   final UserData? user;
 
   /// Identifies the group that receives the saved user assignment, when applicable.
+  ///
+  /// The value is forwarded unchanged to [onConfirm] so external persistence code
+  /// can apply group-specific behavior.
   final String? group;
 
   /// Supplies the localization key shown after a successful confirmation.
+  ///
+  /// The key is resolved through [AppLocalizations] before the success alert is
+  /// displayed.
   final String successMessage;
 
   /// Maps group identifiers to the role options available for each group-specific picker.
   ///
-  /// The selected values are written back into [UserData.groups], which lets the form
-  /// model per-group privileges without requiring a separate editor for every group.
+  /// The selected values are written back into [UserData.groups], which lets the
+  /// form model per-group privileges without requiring a separate editor for
+  /// every group.
   final Map<String, List<String>>? groups;
 
   /// Constrains the maximum width of the surrounding [ContentContainer].
+  ///
+  /// This keeps the full-screen dialog readable on larger displays while still
+  /// allowing the caller to choose a wider or narrower presentation.
   final ContentContainerSize size;
 
   /// Overrides the default password rule when a workflow needs stricter validation.
+  ///
+  /// Passing `null` falls back to [RegexHelper.password] so common password flows
+  /// can reuse the package default.
   final RegExp? passwordRegex;
 
   /// Overrides the localized message shown when password validation fails.
+  ///
+  /// Passing `null` uses the standard invalid-password translation key supplied
+  /// by the current [AppLocalizations] instance.
   final String? passwordError;
 
   /// Makes the form read-only so callers can reuse it as a detail view.
+  ///
+  /// When this flag is `true`, every input is disabled and the submit action is
+  /// hidden.
   final bool disabled;
 
   /// Creates the mutable form state that owns the editable [UserData] clone.
+  ///
+  /// The returned [_UserAddUpdateState] manages validation, submission, and
+  /// inline error rendering for the dialog.
   @override
   State<UserAddUpdate> createState() => _UserAddUpdateState();
 }
 
 /// Coordinates validation, submission, and transient error handling for [UserAddUpdate].
+///
+/// The state object keeps the editable draft separate from the parent widget so
+/// the dialog can be dismissed without leaking partial edits back to the caller.
 class _UserAddUpdateState extends State<UserAddUpdate> {
   /// Tracks whether a save request is currently in flight so controls can be disabled.
+  ///
+  /// The flag prevents duplicate submissions and helps the form compute whether
+  /// the primary action should remain enabled.
   late bool sending;
+
   /// Stores an optional internal change hook for future extensions of the form state.
+  ///
+  /// The field is currently unused, but it preserves room for internal change
+  /// notifications without altering the widget contract.
   Function? onChange;
+
   /// Holds the editable copy of the user record displayed by the form.
+  ///
+  /// The draft is recreated from [widget.user] so the UI can mutate values
+  /// freely before [widget.onConfirm] commits them.
   late UserData data;
+
   /// Captures the latest submission error to surface it inline to the user.
+  ///
+  /// A `null` value hides the error tile, while any stored key or message is
+  /// localized and rendered near the action buttons.
   String? error;
 
   /// Resets the local user draft to match the current widget configuration.
   ///
-  /// Cloning the incoming [UserData] prevents accidental mutation of parent state, and
-  /// the role fallback keeps the form from holding a stale role that is no longer in the
-  /// allowed option set after a rebuild.
+  /// Cloning the incoming [UserData] prevents accidental mutation of parent
+  /// state, and the role fallback keeps the form from holding a stale role that
+  /// is no longer in the allowed option set after a rebuild.
   void reset() {
-    /// Set default user data
     final base = widget.user ?? UserData(id: widget.user?.id);
 
-    /// Reset the user data to prevent changes to the original object and missing data
     data = UserData.fromJson(base.toJson());
 
-    /// If the role assigned doesn't match the options, set the first role from the list
     if (widget.roles.isNotEmpty && !widget.roles.contains(data.role)) {
       data.role = widget.roles.first;
     }
@@ -135,6 +211,9 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
   }
 
   /// Seeds the form state the first time the widget is inserted into the tree.
+  ///
+  /// Initializing through [reset] ensures the editable draft and status flags use
+  /// the same logic as later rebuild-driven resets.
   @override
   void initState() {
     super.initState();
@@ -142,6 +221,9 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
   }
 
   /// Builds the adaptive user form, including validation, role editors, and actions.
+  ///
+  /// The layout only renders the sections enabled by [widget], which keeps the
+  /// dialog reusable across several account-management workflows.
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -172,7 +254,6 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       {'label': locales.get('label--user')},
     );
     String actionLabel = title;
-    // Get name for title
     String? nameForTitle;
     if (data.firstName != null || data.lastName != null) {
       nameForTitle = Utils.nameFromParts(
@@ -186,10 +267,11 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       title += ': $nameForTitle';
     }
 
-    /// Sends user invite to firebase function with the necessary information when inviting a user.
+    /// Persists the edited user and closes the dialog after a successful save.
     ///
-    /// [type] Whether it is an e-mail or phone number.
-    /// [contact] The e-mail or phone number.
+    /// The handler forwards [data] to [widget.onConfirm], shows a localized
+    /// success alert, and records any thrown error so the UI can render it
+    /// inline without losing the current draft.
     addUser() async {
       sending = true;
       error = null;
@@ -209,7 +291,6 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
           type: AlertType.success,
           duration: 3,
         );
-        // Check if the widget is still 'alive' before using the context
         if (context.mounted) {
           Navigator.of(context).pop();
         }
@@ -302,7 +383,6 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     );
     final inputValidation = InputValidation(locales: locales);
 
-    /// Password input
     Widget passwordInput = InputData(
       disabled: widget.disabled,
       autofillHints: const [],
@@ -375,7 +455,6 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       ]);
     }
 
-    /// Manage roles by group
     if (widget.groups != null) {
       inviteWidgets.addAll([
         const Divider(),
@@ -405,7 +484,6 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
               if (item.contains('_') || item.contains(':')) {
                 label = item;
               } else if (label.contains('--')) {
-                // if the label is not found, use the item as the label
                 label = item[0].toUpperCase() + item.substring(1);
               }
               return ButtonOptions(value: item, label: label);
@@ -428,7 +506,6 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       }
     }
 
-    /// Manage multiple roles using the roles array
     if (widget.multipleRoles) {
       inviteWidgets.addAll([
         const Divider(),
@@ -447,7 +524,6 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
             if (item.contains('_') || item.contains(':')) {
               label = item;
             } else if (label.contains('--')) {
-              // if the label is not found, use the item as the label
               label = item[0].toUpperCase() + item.substring(1);
             }
             return CheckboxListTile(

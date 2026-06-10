@@ -43,8 +43,11 @@ class Location {
   Location({required this.lat, required this.lng});
 
   /// Builds [Location] from JSON returned by the Places API.
-  factory Location.fromJson(Map<String, dynamic> json) =>
-      _$LocationFromJson(json);
+  ///
+  /// A `null` payload is treated as empty input so optional location payloads
+  /// can still be deserialized safely by the caller.
+  factory Location.fromJson(Map<String, dynamic>? json) =>
+      _$LocationFromJson(json ?? {});
 
   /// Converts this location into JSON.
   Map<String, dynamic> toJson() => _$LocationToJson(this);
@@ -82,8 +85,11 @@ class Geometry {
   });
 
   /// Builds [Geometry] from Places API JSON.
-  factory Geometry.fromJson(Map<String, dynamic> json) =>
-      _$GeometryFromJson(json);
+  ///
+  /// A `null` payload is treated as empty input so optional geometry payloads
+  /// can still be deserialized safely by the caller.
+  factory Geometry.fromJson(Map<String, dynamic>? json) =>
+      _$GeometryFromJson(json ?? {});
 
   /// Converts this geometry into JSON.
   Map<String, dynamic> toJson() => _$GeometryToJson(this);
@@ -110,7 +116,11 @@ class Bounds {
       '${northeast.lat},${northeast.lng}|${southwest.lat},${southwest.lng}';
 
   /// Builds [Bounds] from Places API JSON.
-  factory Bounds.fromJson(Map<String, dynamic> json) => _$BoundsFromJson(json);
+  ///
+  /// A `null` payload is treated as empty input so optional bounds payloads can
+  /// still be deserialized safely by the caller.
+  factory Bounds.fromJson(Map<String, dynamic>? json) =>
+      _$BoundsFromJson(json ?? {});
 
   /// Converts these bounds into JSON.
   Map<String, dynamic> toJson() => _$BoundsToJson(this);
@@ -244,8 +254,11 @@ class OpeningHoursDetail {
   });
 
   /// Builds [OpeningHoursDetail] from Places API JSON.
-  factory OpeningHoursDetail.fromJson(Map<String, dynamic> json) =>
-      _$OpeningHoursDetailFromJson(json);
+  ///
+  /// A `null` payload is treated as empty input so optional opening-hours
+  /// payloads can still be deserialized safely by the caller.
+  factory OpeningHoursDetail.fromJson(Map<String, dynamic>? json) =>
+      _$OpeningHoursDetailFromJson(json ?? {});
 
   /// Converts this opening-hours payload into JSON.
   Map<String, dynamic> toJson() => _$OpeningHoursDetailToJson(this);
@@ -277,8 +290,11 @@ class OpeningHoursPeriodDate {
   OpeningHoursPeriodDate({required this.day, required this.time});
 
   /// Builds [OpeningHoursPeriodDate] from Places API JSON.
-  factory OpeningHoursPeriodDate.fromJson(Map<String, dynamic> json) =>
-      _$OpeningHoursPeriodDateFromJson(json);
+  ///
+  /// A `null` payload is treated as empty input so optional period-date payloads
+  /// can still be deserialized safely by the caller.
+  factory OpeningHoursPeriodDate.fromJson(Map<String, dynamic>? json) =>
+      _$OpeningHoursPeriodDateFromJson(json ?? {});
 
   /// Converts this period date into JSON.
   Map<String, dynamic> toJson() => _$OpeningHoursPeriodDateToJson(this);
@@ -300,8 +316,11 @@ class OpeningHoursPeriod {
   OpeningHoursPeriod({this.open, this.close});
 
   /// Builds [OpeningHoursPeriod] from Places API JSON.
-  factory OpeningHoursPeriod.fromJson(Map<String, dynamic> json) =>
-      _$OpeningHoursPeriodFromJson(json);
+  ///
+  /// A `null` payload is treated as empty input so optional period payloads can
+  /// still be deserialized safely by the caller.
+  factory OpeningHoursPeriod.fromJson(Map<String, dynamic>? json) =>
+      _$OpeningHoursPeriodFromJson(json ?? {});
 
   /// Converts this period into JSON.
   Map<String, dynamic> toJson() => _$OpeningHoursPeriodToJson(this);
@@ -336,7 +355,11 @@ class Photo {
   });
 
   /// Builds [Photo] from Places API JSON.
-  factory Photo.fromJson(Map<String, dynamic> json) => _$PhotoFromJson(json);
+  ///
+  /// A `null` payload is treated as empty input so optional photo payloads can
+  /// still be deserialized safely by the caller.
+  factory Photo.fromJson(Map<String, dynamic>? json) =>
+      _$PhotoFromJson(json ?? {});
 
   /// Converts this photo metadata into JSON.
   Map<String, dynamic> toJson() => _$PhotoToJson(this);
@@ -359,8 +382,11 @@ class AlternativeId {
   AlternativeId({required this.placeId, required this.scope});
 
   /// Builds [AlternativeId] from Places API JSON.
-  factory AlternativeId.fromJson(Map<String, dynamic> json) =>
-      _$AlternativeIdFromJson(json);
+  ///
+  /// A `null` payload is treated as empty input so optional alternate-identifier
+  /// payloads can still be deserialized safely by the caller.
+  factory AlternativeId.fromJson(Map<String, dynamic>? json) =>
+      _$AlternativeIdFromJson(json ?? {});
 
   /// Converts this alternate identifier into JSON.
   Map<String, dynamic> toJson() => _$AlternativeIdToJson(this);
@@ -392,8 +418,11 @@ class AddressComponent {
   });
 
   /// Builds [AddressComponent] from Places API JSON.
-  factory AddressComponent.fromJson(Map<String, dynamic> json) =>
-      _$AddressComponentFromJson(json);
+  ///
+  /// A `null` payload is treated as empty input so optional address-component
+  /// payloads can still be deserialized safely by the caller.
+  factory AddressComponent.fromJson(Map<String, dynamic>? json) =>
+      _$AddressComponentFromJson(json ?? {});
 
   /// Converts this address component into JSON.
   Map<String, dynamic> toJson() => _$AddressComponentToJson(this);

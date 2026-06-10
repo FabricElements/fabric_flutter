@@ -14,16 +14,16 @@ import 'smart_image.dart';
 /// Identifies the semantic tone of an alert so shared presentation code can
 /// choose appropriate colors, defaults, and logging behavior.
 enum AlertType {
-  /// basic is used for simple alerts
+  /// Presents a basic informational alert with neutral styling.
   basic,
 
-  /// critical used for errors and alerts that require an action
+  /// Presents a critical alert for errors requiring immediate action.
   critical,
 
-  /// success alerts
+  /// Presents a success confirmation alert with positive styling.
   success,
 
-  /// warning alerts
+  /// Presents a warning alert for cautionary messages.
   warning,
 }
 
@@ -36,7 +36,7 @@ enum AlertWidget {
   banner,
 
   /// Shows the alert inside an [AlertDialog].
-  dialog
+  dialog,
 }
 
 /// Converts a stored string value back into an [AlertType].
@@ -148,16 +148,22 @@ void alertData<T>({
 
   /// Customizes the primary action button and optional navigation behavior.
   ButtonOptions? action,
+
   /// Customizes the dismiss button shown for every alert surface.
   ButtonOptions? dismiss,
+
   /// Overrides the container color chosen from [type].
   Color? color,
+
   /// Overrides the text style applied to [title].
   TextStyle? titleStyle,
+
   /// Overrides the text style applied to [body].
   TextStyle? bodyStyle,
+
   /// Overrides the foreground color used by text and icons.
   Color? textColor,
+
   /// Inserts additional custom content before the alert actions.
   Widget? child,
 
@@ -166,12 +172,16 @@ void alertData<T>({
 
   /// Scrollable content for [AlertWidget.dialog] using [AlertDialog]
   bool scrollable = false,
+
   /// Requests a fullscreen dialog presentation when supported.
   bool fullscreenDialog = false,
+
   /// Controls whether tapping outside a dialog dismisses it.
   bool barrierDismissible = true,
+
   /// Displays a leading status icon above the main content.
   IconData? icon,
+
   /// Supplies the active [BuildContext] used to locate overlay presenters.
   required BuildContext? context,
 }) async {

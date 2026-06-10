@@ -3,13 +3,21 @@ import 'package:flutter/foundation.dart';
 import 'app_localizations_delegate.dart';
 import 'log_color.dart';
 
-/// EnumData provides extended support for enums
+/// Provides extended enum manipulation and localization utilities.
+///
+/// This helper simplifies enum-to-string conversion, reverse lookups, and
+/// locale-aware label resolution for application enums. Methods support both
+/// modern Dart enhanced enums and legacy enum patterns.
 class EnumData {
   const EnumData({this.locales});
 
   final AppLocalizations? locales;
 
-  /// Get Value from enum
+  /// Converts an enum value into its string name representation.
+  ///
+  /// Returns the name portion after the last dot, or the entire string for
+  /// legacy enum types. When [debug] is `true` and [base] is `null`, returns
+  /// `'unknown'` instead of `null` to simplify debugging flows.
   static String? describe(dynamic base, {bool debug = false}) {
     String? label = debug ? 'unknown' : null;
     if (base == null) return label;
@@ -28,7 +36,11 @@ class EnumData {
     return label;
   }
 
-  /// Get locales from enum
+  /// Returns a localized label for the provided enum [base].
+  ///
+  /// Converts [base] to its string key via [describe], then looks up the
+  /// localized string from [locales]. Returns an error message when [locales]
+  /// is not configured.
   String localesFromEnum(dynamic base) {
     if (base == null) return '';
     String text = describe(base) ?? 'unknown';
@@ -37,10 +49,11 @@ class EnumData {
         : 'LOCALES NOT INCLUDED';
   }
 
-  /// Find enum match or return unknown value or null
-  /// [enums] should be passed as a list == enums.values
-  /// [value] expected to find
-  /// [unknown] is used if there is no match
+  /// Searches [enums] for [value] and returns it, or [unknown] if not found.
+  ///
+  /// This method performs an identity check against the provided enum list.
+  /// Use [unknown] to supply a fallback value when the caller needs a typed
+  /// default instead of `null`.
   static dynamic match({
     required List<Enum> enums,
     required dynamic value,
@@ -53,10 +66,11 @@ class EnumData {
     return unknown;
   }
 
-  /// Find enum match or return unknown value or null
-  /// [enums] should be passed as a list == enums.values
-  /// [value] expected to find
-  /// [unknown] is used if there is no match
+  /// Searches [enums] for [value] and returns its string name or [unknown].
+  ///
+  /// This convenience wrapper calls [match] followed by [describe] to produce a
+  /// human-readable string. Returns `null` when no match is found and [unknown]
+  /// is not provided.
   static String? matchString({
     required List<Enum> enums,
     required dynamic value,
@@ -67,7 +81,10 @@ class EnumData {
     return describe(findMatch);
   }
 
-  /// Find and return enum from a given string value
+  /// Finds the first enum in [enums] whose [describe] output matches [value].
+  ///
+  /// Returns `null` when [value] is `null` or no match is found. This method is
+  /// useful for deserializing strings back into typed enum constants.
   static Enum? findFromString({
     required List<Enum> enums,
     required String? value,
@@ -82,6 +99,11 @@ class EnumData {
     return null;
   }
 
+  /// Locates an enum in [enums] by identity or string-name match against [value].
+  ///
+  /// Attempts an identity match first via [match], then falls back to comparing
+  /// string names. Returns `null` when both strategies fail. Errors are logged
+  /// via [debugPrint] to help diagnose mismatched enum definitions.
   static Enum? find({required List<Enum> enums, required dynamic value}) {
     if (value == null) return null;
     dynamic finalValue;
@@ -106,7 +128,10 @@ class EnumData {
     return finalValue;
   }
 
-  /// List of enums to string values
+  /// Converts a list of enum values into their string names.
+  ///
+  /// Returns a list of non-null string names extracted via [describe]. Useful
+  /// for populating dropdowns, filter chips, or serialized configuration.
   static List<String> toList(List<Enum> enums) {
     return enums.map((e) => describe(e)!).toList();
   }

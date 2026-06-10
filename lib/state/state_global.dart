@@ -92,8 +92,10 @@ class StateGlobal extends ChangeNotifier {
 
   /// Emits `true` when connectivity is restored and `false` when it is lost.
   Stream<bool> get streamConnection => _controllerStreamConnection.stream;
+
   /// Tracks whether the device is currently connected to a network.
   bool connected = true;
+
   /// Stores the current connectivity transport name, such as `wifi` or
   /// `mobile`.
   String? connectedTo;

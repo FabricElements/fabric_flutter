@@ -14,14 +14,10 @@ void main() {
     ButtonOptions(
       label: 'Button Label',
       onTap: () {}, // Make it clickable
-    )
+    ),
   ];
   final widget = MaterialApp(
-    home: Scaffold(
-      body: Breadcrumbs(
-        buttons: buttons,
-      ),
-    ),
+    home: Scaffold(body: Breadcrumbs(buttons: buttons)),
   );
 
   /// Tests

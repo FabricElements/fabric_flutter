@@ -6,25 +6,27 @@ import '../helper/options.dart';
 import '../serialized/iso_data.dart';
 import 'input_data.dart';
 
-/// A Picker used to select a language by it's alpha2 code
+/// Builds a language picker for selecting an ISO 639-1 code.
 ///
-/// [voice] Dictates whether the campaign is using voice calls or text messages.
-/// [value] This is the language alpha2 code, it will default to english.
-/// [onChange] This will push selected language iso to parent widget to sync with campaign data.
+/// The widget wraps [InputData] so callers can reuse the shared dropdown UI
+/// while choosing from [ISOLanguage] entries. Set [voice] to `true` to limit
+/// the options to languages supported by WaveNet voice resources, and use
+/// [onChange] to keep parent state synchronized with the selected code.
+///
 /// ```dart
 /// LanguagePicker(
 ///   voice: false,
 ///   value: 'es',
-///   onChange: (String iso) {
+///   onChange: (String? iso) {
 ///     selectedLanguage = iso;
-///   }
+///   },
 /// );
 /// ```
 class LanguagePicker extends StatelessWidget {
   /// Creates a language picker wired to the shared [InputData] dropdown UI.
   ///
   /// The picker keeps widget code focused on storing the selected ISO code while
-  /// this component handles localization, optional voice filtering, and default
+  /// the component handles localization, optional voice filtering, and default
   /// labels.
   const LanguagePicker({
     super.key,
@@ -36,25 +38,46 @@ class LanguagePicker extends StatelessWidget {
     required this.onChange,
   });
 
-  /// Limits the list to languages that have supported voice resources.
+  /// Determines whether the picker only shows languages with WaveNet support.
+  ///
+  /// When `true`, the dropdown filters [ISOLanguages.languages] to entries whose
+  /// alpha-2 code appears in [ISOLanguages.waveNetLanguages].
   final bool voice;
 
-  /// The currently selected ISO 639-1 language code.
+  /// Stores the currently selected ISO 639-1 language code.
+  ///
+  /// The picker falls back to `'en'` through the constructor when callers do not
+  /// supply a value.
   final String? value;
 
   /// Reports the newly selected language code back to the parent widget.
+  ///
+  /// The callback receives the chosen alpha-2 code or `null` when the selection
+  /// is cleared.
   final Function(String?) onChange;
 
-  /// Overrides the localized placeholder shown before a value is selected.
+  /// Stores a custom placeholder shown before a value is selected.
+  ///
+  /// When `null`, the widget uses a localized prompt from
+  /// [AppLocalizationsDelegate].
   final String? hintText;
 
-  /// Overrides the localized field label.
+  /// Stores a custom field label for the dropdown.
+  ///
+  /// When `null`, the widget uses the localized language label from
+  /// [AppLocalizationsDelegate].
   final String? label;
 
-  /// Prevents interaction while still showing the current selection.
+  /// Determines whether the picker prevents user interaction.
+  ///
+  /// Disabled pickers still display the current selection so forms remain
+  /// readable in review-only states.
   final bool disabled;
 
   /// Builds the localized dropdown and keeps the option list in sync with [voice].
+  ///
+  /// The widget converts each [ISOLanguage] entry into a [ButtonOptions] item so
+  /// [InputData] can render a localized dropdown with consistent package styling.
   @override
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context);

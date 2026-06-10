@@ -75,15 +75,18 @@ void main() {
       expect(data.parts.last.length, 47);
     });
 
-    test('should treat a short unicode message as a single 70-char segment', () {
-      // Arrange, Act
-      final data = GSM.info('Hi 😀');
+    test(
+      'should treat a short unicode message as a single 70-char segment',
+      () {
+        // Arrange, Act
+        final data = GSM.info('Hi 😀');
 
-      // Assert
-      expect(data.charSet, CharSet.unicode);
-      expect(data.segments, 1);
-      expect(data.charsLeft, 70 - 'Hi 😀'.length);
-    });
+        // Assert
+        expect(data.charSet, CharSet.unicode);
+        expect(data.segments, 1);
+        expect(data.charsLeft, 70 - 'Hi 😀'.length);
+      },
+    );
 
     test('should split a long unicode message into 67-char segments', () {
       // Arrange - 80 chars including an emoji forces unicode multi-part.

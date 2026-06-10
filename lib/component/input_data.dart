@@ -216,6 +216,10 @@ dynamic parseValueByInputDataType({
 /// field types without reimplementing the same lifecycle glue in every screen.
 class InputData extends StatefulWidget {
   /// Creates an adaptive field seeded with [value] and configured by [type].
+  ///
+  /// The constructor exposes type-specific configuration such as enum lists, dropdown
+  /// options, controllers, validation, and picker behavior without forcing callers to
+  /// manage separate widgets for each input style.
   const InputData({
     super.key,
     required this.value,
@@ -261,64 +265,92 @@ class InputData extends StatefulWidget {
 
   /// Supplies the current value rendered by the field and its internal controllers.
   final dynamic value;
+
   /// Lists the enum values that can be selected when [type] is [InputDataType.enums].
   final List<Enum> enums;
+
   /// Lists selectable options for dropdown and radio-style input types.
   final List<ButtonOptions> options;
+
   /// Chooses which editor, parser, and validation rules the widget should apply.
   final InputDataType type;
+
   /// Makes the field read-only while still allowing selection or copy affordances.
   final bool disabled;
+
   /// Overrides the placeholder shown when the field has no visible value.
   final String? hintText;
+
   /// Limits how many characters the text-based editor will accept.
   final int? maxLength;
+
   /// Requests a denser visual layout than the surrounding theme default.
   final bool isDense;
+
   /// Overrides the internal content padding applied by the generated [InputDecoration].
   final EdgeInsets padding;
+
   /// Wraps the field with outer spacing so forms can align adjacent inputs cleanly.
   final EdgeInsets margin;
+
   /// Adjusts serialized date values when the caller stores a non-local UTC offset.
   final int? utcOffset;
+
   /// Adds custom validation on top of the built-in type-aware normalization rules.
   final FormFieldValidator<String>? validator;
+
   /// Overrides the filled background color used by the generated input decoration.
   final Color? backgroundColor;
+
   /// Shows an external error message without requiring a surrounding [Form].
   final String? error;
+
   /// Provides a custom text style for widgets that read it from the field configuration.
   final TextStyle? textStyle;
+
   /// Starts text inputs in obscured mode before local visibility toggles are applied.
   final bool obscureText;
+
   /// Supplies the label rendered by the generated [InputDecoration].
   final String? label;
+
   /// Overrides the keyboard action button for text-based field variants.
   final TextInputAction? textInputAction;
+
   /// Enables platform autocorrect for text-entry variants that should support it.
   final bool autocorrect;
+
   /// Requests focus for the field as soon as it enters the tree.
   final bool autofocus;
+
   /// Reuses an external [TextEditingController] when the parent needs direct access.
   final TextEditingController? textController;
+
   /// Forwards platform autofill hints to compatible text-based editors.
   final Iterable<String>? autofillHints;
 
   // Custom suffix and prefix
   /// Injects a custom suffix widget after the editable region.
   final Widget? suffix;
+
   /// Replaces the default trailing icon, including clear and visibility controls.
   final Widget? suffixIcon;
+
   /// Appends non-interactive trailing text inside the input decoration.
   final String? suffixText;
+
   /// Prepends non-interactive leading text inside the input decoration.
   final String? prefixText;
+
   /// Injects a custom prefix widget before the editable region.
   final Widget? prefix;
+
   /// Replaces the default leading icon shown for specialized field types.
   final Widget? prefixIcon;
+
   /// Styles [prefixText] when a textual prefix is displayed.
   final TextStyle? prefixStyle;
+
   /// Styles [suffixText] when trailing helper text is displayed.
   final TextStyle? suffixStyle;
 
@@ -362,11 +394,10 @@ class InputData extends StatefulWidget {
   ///    should be displayed.
   final FloatingLabelBehavior? floatingLabelBehavior;
 
-  /// An optional controller that allows opening and closing of the search view from
-  /// other widgets.
+  /// Provides an optional [SearchController] that can open and close the search view.
   ///
-  /// If this is null, one internal search controller is created automatically
-  /// and it is used to open the search view when the user taps on the anchor.
+  /// If this is `null`, the widget creates an internal controller and uses it when the
+  /// user taps the anchor field for dropdown and enum selections.
   final SearchController? searchController;
 
   /// Chooses whether date and time values are displayed in local time instead of UTC.
@@ -381,7 +412,10 @@ class InputData extends StatefulWidget {
   /// Appends custom formatters after the widget's built-in type-specific formatters.
   final List<TextInputFormatter> inputFormatters;
 
-  /// {@macro flutter.widgets.editableText.keyboardType}
+  /// Overrides the [TextInputType] used by text-based field variants.
+  ///
+  /// This lets callers replace the widget's built-in keyboard choice when a specialized
+  /// input still needs a different platform keyboard layout.
   final TextInputType? keyboardType;
 
   /// Creates the state that owns controllers, picker state, and normalized values.
@@ -393,20 +427,27 @@ class InputData extends StatefulWidget {
 class _InputDataState extends State<InputData> {
   /// Owns the editable text for text-based variants when no external controller is used.
   late TextEditingController textController;
+
   /// Opens and closes the search view used by dropdown and enum pickers.
   late SearchController searchController;
+
   /// Formats date-only values for display inside read-only picker fields.
   DateFormat formatDate = DateFormat.yMd('en_US');
+
   /// Formats date-time values for display after picker selections are normalized.
   DateFormat formatDateTime = DateFormat.yMd(
     'en_US',
   ).addPattern(' - ').add_jm();
+
   /// Stores an internally generated prefix, such as the `+` used for phone fields.
   String? prefixText;
+
   /// Holds the normalized current value used across the widget's different editors.
   dynamic value;
+
   /// Tracks whether text should currently be visually obscured.
   late bool obscureText;
+
   /// Records whether the current field type supports a visibility toggle.
   late bool obscure;
 
@@ -572,7 +613,7 @@ getValue -------------------------------------
   void initState() {
     super.initState();
 
-    /// Validate required parameters on init
+    // Validate required parameters on init.
     switch (widget.type) {
       case InputDataType.enums:
         assert(
@@ -590,12 +631,12 @@ getValue -------------------------------------
     textController = widget.textController ?? TextEditingController();
     searchController = widget.searchController ?? SearchController();
 
-    /// obscure text and show controls
+    // Configure obscured text state and related controls.
     obscureText = widget.obscureText;
     if (widget.type == InputDataType.secret) obscureText = true;
     obscure = obscureText;
 
-    /// Get value
+    // Seed local state from the incoming widget value.
     getValue(newValue: widget.value);
   }
 
@@ -664,7 +705,7 @@ getValue -------------------------------------
             tooltip: locales.get('label--clear'),
           );
 
-    /// Text styles
+    // Resolve transient error state.
     String? errorText;
     if (widget.error != null) {
       errorText = widget.error;
@@ -681,7 +722,7 @@ getValue -------------------------------------
       );
     }
 
-    /// Add clear button when is not possible to set value to null
+    // Configure context-aware trailing controls.
     switch (widget.type) {
       case InputDataType.date:
       case InputDataType.dateTime:
@@ -794,7 +835,7 @@ getValue -------------------------------------
       default:
     }
 
-    /// Override keyboard type using parameter
+    // Let callers override the computed keyboard type.
     if (widget.keyboardType != null) {
       keyboardType = widget.keyboardType!;
     }
@@ -1117,7 +1158,7 @@ getValue -------------------------------------
               final regex = RegExp(r'[^\w@.+]+');
               if (value.isNotEmpty) {
                 recommendations = recommendations.where((element) {
-                  /// Remove any special characters and spaces from the label to make the search more flexible
+                  // Remove special characters and spaces from the label to make search more flexible.
                   final labelClean = GSM
                       .toGSM(element.label)
                       .toLowerCase()
@@ -1145,7 +1186,7 @@ getValue -------------------------------------
               return List.generate(recommendations.length, (int index) {
                 final item = recommendations[index];
 
-                /// Leading
+                // Resolve the leading widget.
                 Widget? leading = item.leading;
                 if (item.icon != null) {
                   leading = Icon(item.icon);
@@ -1169,7 +1210,7 @@ getValue -------------------------------------
                   );
                 }
 
-                /// Trailing
+                // Resolve the trailing widget.
                 Widget? trailing = item.trailing;
                 if (item.trailingIcon != null) {
                   trailing = Icon(item.trailingIcon);

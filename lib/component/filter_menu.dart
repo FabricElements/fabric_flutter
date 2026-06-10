@@ -12,36 +12,57 @@ import '../serialized/filter_data.dart';
 import 'input_data.dart';
 import 'popup_entry.dart';
 
-/// Shows the editable controls for a single filter inside a popup surface.
+/// Shows editable controls for a single filter inside a popup surface.
 ///
 /// The widget works on a temporary [FilterData] copy so callers can cancel the
 /// popup without mutating the original filter until the user explicitly applies
 /// the change.
 class FilterMenuOptionData extends StatefulWidget {
   /// Creates the popup editor for an individual filter.
+  ///
+  /// The [data] argument provides the source filter definition, and [onChange]
+  /// receives the committed copy after the user applies the update.
   const FilterMenuOptionData({
     super.key,
     required this.data,
     required this.onChange,
   });
 
-  /// The source filter being edited in the popup.
+  /// Stores the source filter being edited in the popup.
+  ///
+  /// The state object clones this [FilterData] so temporary field edits stay
+  /// local until the user confirms the change.
   final FilterData data;
 
-  /// Receives the committed filter once the user taps Apply.
+  /// Receives the committed filter after the user taps Apply.
+  ///
+  /// The callback returns the edited [FilterData] so the parent can merge the
+  /// result into its canonical filter collection.
   final ValueChanged<FilterData> onChange;
 
-  /// Creates state that owns the temporary editable filter copy.
+  /// Creates the state that owns the temporary editable filter copy.
+  ///
+  /// The returned [_FilterMenuOptionDataState] keeps draft values isolated from
+  /// the parent widget while the popup is open.
   @override
   State<FilterMenuOptionData> createState() => _FilterMenuOptionDataState();
 }
 
-/// Holds the draft filter values while the popup remains open.
+/// Holds draft filter values while the popup remains open.
+///
+/// The state object keeps a defensive copy of [FilterMenuOptionData.data] so
+/// users can abandon partial edits without mutating the original filter.
 class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
-  /// A defensive copy used so partial edits can be discarded safely.
+  /// Stores the defensive copy used during popup editing.
+  ///
+  /// The field mirrors [FilterMenuOptionData.data] at initialization time and
+  /// then absorbs in-progress edits until the popup is applied.
   late FilterData edit;
 
   /// Clones the incoming filter before any field widgets start mutating it.
+  ///
+  /// The copy prevents direct writes to [FilterMenuOptionData.data] while the
+  /// popup remains dismissible.
   @override
   void initState() {
     super.initState();
@@ -50,9 +71,9 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
 
   /// Reads clipboard text and converts it into valid values for the current filter type.
   ///
-  /// This supports bulk entry for operators such as [FilterOperator.whereIn], while
-  /// ignoring empty or invalid items so pasted spreadsheet data does not corrupt the
-  /// in-progress filter state.
+  /// This supports bulk entry for operators such as [FilterOperator.whereIn],
+  /// while ignoring empty or invalid items so pasted spreadsheet data does not
+  /// corrupt the in-progress filter state.
   Future<List> pasteValues() async {
     final clipboardData = await Clipboard.getData('text/plain');
     if (clipboardData == null) return [];
@@ -127,6 +148,10 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
   }
 
   /// Builds the operator-specific editor shown inside the filter popup.
+  ///
+  /// The widget tree adapts to the active [FilterOperator] so each filter type
+  /// presents the correct input control for editing within the current
+  /// [BuildContext].
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -432,6 +457,9 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
 /// the active query at a glance before changing or removing it.
 class FilterMenuOption extends StatefulWidget {
   /// Creates a chip for one active filter entry.
+  ///
+  /// The [data] argument defines the active filter, [onChange] applies edits
+  /// from the popup, and [onDelete] removes the filter entirely.
   const FilterMenuOption({
     super.key,
     required this.data,
@@ -439,26 +467,47 @@ class FilterMenuOption extends StatefulWidget {
     required this.onDelete,
   });
 
-  /// The active filter represented by this chip.
+  /// Stores the active filter represented by this chip.
+  ///
+  /// The value supplies the current label, operator, and selection shown to the
+  /// user before they reopen the editor.
   final FilterData data;
 
-  /// Called after the popup editor commits a new filter value.
+  /// Receives an updated filter after the popup editor commits a change.
+  ///
+  /// The callback lets the parent replace the active [FilterData] without
+  /// coupling this chip to collection management.
   final ValueChanged<FilterData> onChange;
 
   /// Removes the filter from the parent collection.
+  ///
+  /// The callback is wired to the chip delete affordance so the parent can
+  /// clear the matching [FilterData] entry.
   final VoidCallback onDelete;
 
-  /// Creates state that keeps a local snapshot for rendering transitions.
+  /// Creates the state that keeps a local snapshot for rendering transitions.
+  ///
+  /// The returned [_FilterMenuOptionState] derives display text and popup state
+  /// from the latest [FilterData].
   @override
   State<FilterMenuOption> createState() => _FilterMenuOptionState();
 }
 
 /// Formats one filter into a human-readable chip label and edit menu.
+///
+/// The state object maintains a local [FilterData] snapshot so chip rendering
+/// stays synchronized with parent updates and inherited localization changes.
 class _FilterMenuOptionState extends State<FilterMenuOption> {
-  /// The filter snapshot currently shown by the chip.
+  /// Stores the filter snapshot currently shown by the chip.
+  ///
+  /// The value is refreshed from [FilterMenuOption.data] whenever the widget or
+  /// its dependencies change.
   late FilterData data;
 
   /// Refreshes the local snapshot when inherited or widget state changes.
+  ///
+  /// The temporary reset forces dependent chip content to rebuild before the
+  /// latest [FilterData] is reassigned.
   void _update() {
     data = FilterData(id: widget.data.id);
     if (mounted) setState(() {});
@@ -467,6 +516,9 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
   }
 
   /// Seeds the local filter snapshot during the first lifecycle pass.
+  ///
+  /// The initial value mirrors [FilterMenuOption.data] before any rebuilds or
+  /// popup edits occur.
   @override
   void initState() {
     super.initState();
@@ -474,6 +526,9 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
   }
 
   /// Re-synchronizes the displayed chip label when the parent provides a new filter.
+  ///
+  /// The method refreshes derived display state after Flutter swaps in a new
+  /// [FilterMenuOption] configuration.
   @override
   void didUpdateWidget(covariant FilterMenuOption oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -481,6 +536,9 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
   }
 
   /// Rebuilds derived label data after inherited dependencies change.
+  ///
+  /// This keeps localized filter labels current when the surrounding
+  /// [BuildContext] updates.
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -488,6 +546,9 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
   }
 
   /// Builds the summary chip and popup editor for the active filter.
+  ///
+  /// The returned widget shows the current filter state, opens the editor on
+  /// demand, and delegates change handling through [FilterMenuOption.onChange].
   @override
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context);
@@ -676,11 +737,14 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
 
 /// Displays active filters and exposes UI for adding, editing, and clearing them.
 ///
-/// The menu separates inactive filter definitions from active filter values so a
-/// parent can keep one canonical list of [FilterData] objects while this widget
-/// manages the popup and search interactions needed to edit them.
+/// The menu separates inactive filter definitions from active filter values so
+/// a parent can keep one canonical list of [FilterData] objects while this
+/// widget manages the popup and search interactions needed to edit them.
 class FilterMenu extends StatefulWidget {
   /// Creates a filter menu for the provided filter definitions.
+  ///
+  /// The [data] collection supplies both available and active filters, while
+  /// [onChange] receives merged updates after the user edits the menu.
   const FilterMenu({
     super.key,
     required this.data,
@@ -689,35 +753,59 @@ class FilterMenu extends StatefulWidget {
     this.iconClear,
   });
 
-  /// The full set of available and active filter definitions.
+  /// Stores the full set of available and active filter definitions.
+  ///
+  /// The list includes inactive filter templates alongside any filters that are
+  /// currently applied to the surrounding result set.
   final List<FilterData> data;
 
   /// Receives the updated filter collection after any user action.
+  ///
+  /// The callback returns the canonical [List] of [FilterData] entries so the
+  /// parent can persist ordering, values, and clear actions.
   final ValueChanged<List<FilterData>> onChange;
 
-  /// Optional icon used by the add-filter trigger.
+  /// Stores the optional icon used by the add-filter trigger.
   ///
   /// When supplied, the add control behaves like an icon-styled button while
   /// preserving the same search-driven filter selection flow.
   final Widget? icon;
 
-  /// Optional icon used by the clear-filters action.
+  /// Stores the optional icon used by the clear-filters action.
+  ///
+  /// The widget replaces the default clear icon without changing the action
+  /// that resets every active [FilterData].
   final Widget? iconClear;
 
-  /// Creates state that tracks the active filter list and search surface.
+  /// Creates the state that tracks the active filter list and search surface.
+  ///
+  /// The returned [_FilterMenuState] manages the searchable add-filter view and
+  /// the active filter chip collection.
   @override
   State<FilterMenu> createState() => _FilterMenuState();
 }
 
 /// Manages the searchable add-filter menu and active filter chip list.
+///
+/// The state object mirrors [FilterMenu.data], coordinates a [SearchController],
+/// and translates popup edits into parent-facing filter updates.
 class _FilterMenuState extends State<FilterMenu> {
-  /// The current filter collection mirrored from [FilterMenu.data].
+  /// Stores the current filter collection mirrored from [FilterMenu.data].
+  ///
+  /// The list is refreshed whenever the widget configuration changes so search
+  /// results and active chips stay in sync.
   late List<FilterData> data;
 
   /// Controls the Material search view used to add new filters.
+  ///
+  /// The [SearchController] opens, closes, and clears the add-filter search
+  /// surface displayed by this widget.
   late SearchController searchController;
 
   /// Refreshes local state from the latest widget configuration.
+  ///
+  /// The temporary reset forces dependent widgets to rebuild before the newest
+  /// [FilterMenu.data] list is reassigned.
   void _update() {
     data = [];
     if (mounted) setState(() {});
@@ -726,6 +814,9 @@ class _FilterMenuState extends State<FilterMenu> {
   }
 
   /// Closes the search UI and clears any partial query text.
+  ///
+  /// The method safely resets the [SearchController] even when the search view
+  /// has already been dismissed elsewhere in the widget tree.
   void _closeSearch() {
     try {
       searchController.clear();
@@ -736,6 +827,9 @@ class _FilterMenuState extends State<FilterMenu> {
   }
 
   /// Initializes the search controller and local filter snapshot.
+  ///
+  /// The initial state mirrors [FilterMenu.data] and prepares the controller
+  /// before the first search interaction occurs.
   @override
   void initState() {
     super.initState();
@@ -744,6 +838,9 @@ class _FilterMenuState extends State<FilterMenu> {
   }
 
   /// Re-synchronizes local filter state when inherited values change.
+  ///
+  /// This keeps localized labels and other [BuildContext]-driven state aligned
+  /// with the latest inherited widgets.
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -751,6 +848,9 @@ class _FilterMenuState extends State<FilterMenu> {
   }
 
   /// Re-synchronizes local filter state when the parent rebuilds with new data.
+  ///
+  /// The method refreshes the local mirror after Flutter swaps in a new
+  /// [FilterMenu] configuration.
   @override
   void didUpdateWidget(covariant FilterMenu oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -758,6 +858,9 @@ class _FilterMenuState extends State<FilterMenu> {
   }
 
   /// Disposes the search controller and closes the search view during teardown.
+  ///
+  /// The cleanup guards against stale search overlays before the state object is
+  /// removed from the widget tree.
   @override
   void dispose() {
     _closeSearch();
@@ -770,11 +873,17 @@ class _FilterMenuState extends State<FilterMenu> {
   }
 
   /// Removes every active filter and reports the cleared list to the parent.
+  ///
+  /// Calling [FilterMenu.onChange] with an empty collection lets the parent
+  /// reset its canonical filter state in one step.
   void clear() {
     widget.onChange([]);
   }
 
   /// Builds active filter chips plus controls for adding or clearing filters.
+  ///
+  /// The layout adapts the chip list and search entry points to the current
+  /// [BuildContext] while preserving filter ordering and sort behavior.
   @override
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context);

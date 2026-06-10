@@ -228,9 +228,9 @@ void main() {
 
       // Act
       final encoded = wrapper.encode();
-      final decoded = jsonDecode(
-        String.fromCharCodes(base64.decode(encoded)),
-      ) as Map<String, dynamic>;
+      final decoded =
+          jsonDecode(String.fromCharCodes(base64.decode(encoded)))
+              as Map<String, dynamic>;
 
       // Assert
       expect(encoded, isNotEmpty);
@@ -253,9 +253,9 @@ void main() {
       );
 
       // Act
-      final decoded = jsonDecode(
-        String.fromCharCodes(base64.decode(wrapper.encode())),
-      ) as Map<String, dynamic>;
+      final decoded =
+          jsonDecode(String.fromCharCodes(base64.decode(wrapper.encode())))
+              as Map<String, dynamic>;
 
       // Assert
       expect((decoded['dataTable'] as List), hasLength(51));

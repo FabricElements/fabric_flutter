@@ -23,12 +23,16 @@ class StatusChip extends StatelessWidget {
 
   /// Supplies the raw status key used for localization and default styling.
   final String? status;
+
   /// Overrides the icon derived from [status].
   final IconData? icon;
+
   /// Overrides the background color derived from [status].
   final Color? color;
+
   /// Overrides the label color shown on the chip.
   final Color? textColor;
+
   /// Constrains the label width when the chip must align with surrounding UI.
   final double? width;
 

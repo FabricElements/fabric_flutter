@@ -11,210 +11,60 @@
 /// to display user-facing text in the appropriate language based on the user's
 /// device settings or preferences.
 const Map<String, Map<String, String>> defaultLocales = {
-  'say--something': {
-    'en': 'Say something...',
-    'es': 'Di algo...',
-  },
-  'label--label': {
-    'en': 'Label',
-    'es': 'Etiqueta',
-  },
-  'label--draft': {
-    'en': 'Draft',
-    'es': 'Borrador',
-  },
-  'label--review': {
-    'en': 'Review',
-    'es': 'Revisión',
-  },
-  'label--approved': {
-    'en': 'Approved',
-    'es': 'Aprobada',
-  },
-  'label--rejected': {
-    'en': 'Rejected',
-    'es': 'Rechazada',
-  },
-  'label--inactive': {
-    'en': 'Inactive',
-    'es': 'Inactivo',
-  },
-  'label--active': {
-    'en': 'Active',
-    'es': 'Activo',
-  },
-  'label--archived': {
-    'en': 'Archived',
-    'es': 'Archivado',
-  },
-  'label--paused': {
-    'en': 'Paused',
-    'es': 'Pausado',
-  },
-  'label--suspended': {
-    'en': 'Suspended',
-    'es': 'Suspendido',
-  },
-  'label--page': {
-    'en': 'Page',
-    'es': 'Página',
-  },
-  'label--scheduled': {
-    'en': 'Scheduled',
-    'es': 'Programado',
-  },
-  'label--default': {
-    'en': 'Default',
-    'es': 'Predeterminado',
-  },
-  'label--order': {
-    'en': 'Order',
-    'es': 'Orden',
-  },
-  'label--order-by': {
-    'en': 'Order by',
-    'es': 'Ordenar por',
-  },
-  'label--sort': {
-    'en': 'Sort',
-    'es': 'Ordenar',
-  },
-  'label--done': {
-    'en': 'Done',
-    'es': 'Hecho',
-  },
-  'label--sort-by': {
-    'en': 'Sort By',
-    'es': 'Ordenar por',
-  },
-  'label--asc': {
-    'en': 'Ascending',
-    'es': 'Ascendente',
-  },
-  'label--desc': {
-    'en': 'Descending',
-    'es': 'Descendente',
-  },
+  'say--something': {'en': 'Say something...', 'es': 'Di algo...'},
+  'label--label': {'en': 'Label', 'es': 'Etiqueta'},
+  'label--draft': {'en': 'Draft', 'es': 'Borrador'},
+  'label--review': {'en': 'Review', 'es': 'Revisión'},
+  'label--approved': {'en': 'Approved', 'es': 'Aprobada'},
+  'label--rejected': {'en': 'Rejected', 'es': 'Rechazada'},
+  'label--inactive': {'en': 'Inactive', 'es': 'Inactivo'},
+  'label--active': {'en': 'Active', 'es': 'Activo'},
+  'label--archived': {'en': 'Archived', 'es': 'Archivado'},
+  'label--paused': {'en': 'Paused', 'es': 'Pausado'},
+  'label--suspended': {'en': 'Suspended', 'es': 'Suspendido'},
+  'label--page': {'en': 'Page', 'es': 'Página'},
+  'label--scheduled': {'en': 'Scheduled', 'es': 'Programado'},
+  'label--default': {'en': 'Default', 'es': 'Predeterminado'},
+  'label--order': {'en': 'Order', 'es': 'Orden'},
+  'label--order-by': {'en': 'Order by', 'es': 'Ordenar por'},
+  'label--sort': {'en': 'Sort', 'es': 'Ordenar'},
+  'label--done': {'en': 'Done', 'es': 'Hecho'},
+  'label--sort-by': {'en': 'Sort By', 'es': 'Ordenar por'},
+  'label--asc': {'en': 'Ascending', 'es': 'Ascendente'},
+  'label--desc': {'en': 'Descending', 'es': 'Descendente'},
   'label--sort-by-label': {
     'en': 'Sort By {label}',
     'es': 'Ordenar por {label}',
   },
-  'label--newest': {
-    'en': 'Newest',
-    'es': 'Más nueva',
-  },
-  'label--new': {
-    'en': 'New',
-    'es': 'Nuevo',
-  },
-  'label--new-label': {
-    'en': 'New {label}',
-    'es': 'Nuevo {label}',
-  },
-  'label--edit': {
-    'en': 'Edit',
-    'es': 'Editar',
-  },
-  'label--edit-label': {
-    'en': 'Edit {label}',
-    'es': 'Editar {label}',
-  },
-  'label--oldest': {
-    'en': 'Oldest',
-    'es': 'Más antiguo',
-  },
-  'label--all': {
-    'en': 'All',
-    'es': 'Todo',
-  },
-  'label--any': {
-    'en': 'Any',
-    'es': 'Cualquier',
-  },
-  'label--status': {
-    'en': 'Status',
-    'es': 'Estado',
-  },
-  'label--admin': {
-    'en': 'Admin',
-    'es': 'Admin',
-  },
-  'label--agent': {
-    'en': 'Agent',
-    'es': 'Agente',
-  },
-  'label--owner': {
-    'en': 'Owner',
-    'es': 'Propietario',
-  },
-  'label--user': {
-    'en': 'User',
-    'es': 'Usuario',
-  },
-  'label--username': {
-    'en': 'Username',
-    'es': 'Nombre de Usuario',
-  },
-  'label--password': {
-    'en': 'Password',
-    'es': 'Contraseña',
-  },
-  'label--viewer': {
-    'en': 'Viewer',
-    'es': 'Espectador',
-  },
-  'label--help': {
-    'en': 'Help',
-    'es': 'Ayuda',
-  },
-  'label--organization-admin': {
-    'en': 'Admin',
-    'es': 'Admin',
-  },
-  'label--organization-agent': {
-    'en': 'Agent',
-    'es': 'Agente',
-  },
-  'label--organization-user': {
-    'en': 'User',
-    'es': 'Usuario',
-  },
-  'label--role': {
-    'en': 'Role',
-    'es': 'Rol',
-  },
-  'label--roles': {
-    'en': 'Roles',
-    'es': 'Roles',
-  },
-  'label--roles-by-group': {
-    'en': 'Roles by group',
-    'es': 'Roles por grupo',
-  },
-  'label--role-for-label': {
-    'en': 'Role for {label}',
-    'es': 'Rol para {label}',
-  },
-  'label--add': {
-    'en': 'Add',
-    'es': 'Agregar',
-  },
-  'label--removed': {
-    'en': 'Removed',
-    'es': 'Eliminado',
-  },
-  'label--remove': {
-    'en': 'Remove',
-    'es': 'Eliminar',
-  },
-  'label--remove-label': {
-    'en': 'Remove {label}',
-    'es': 'Eliminar {label}',
-  },
-  'alert--user-removed': {
-    'en': 'User Removed',
-    'es': 'Usuario Eliminado',
-  },
+  'label--newest': {'en': 'Newest', 'es': 'Más nueva'},
+  'label--new': {'en': 'New', 'es': 'Nuevo'},
+  'label--new-label': {'en': 'New {label}', 'es': 'Nuevo {label}'},
+  'label--edit': {'en': 'Edit', 'es': 'Editar'},
+  'label--edit-label': {'en': 'Edit {label}', 'es': 'Editar {label}'},
+  'label--oldest': {'en': 'Oldest', 'es': 'Más antiguo'},
+  'label--all': {'en': 'All', 'es': 'Todo'},
+  'label--any': {'en': 'Any', 'es': 'Cualquier'},
+  'label--status': {'en': 'Status', 'es': 'Estado'},
+  'label--admin': {'en': 'Admin', 'es': 'Admin'},
+  'label--agent': {'en': 'Agent', 'es': 'Agente'},
+  'label--owner': {'en': 'Owner', 'es': 'Propietario'},
+  'label--user': {'en': 'User', 'es': 'Usuario'},
+  'label--username': {'en': 'Username', 'es': 'Nombre de Usuario'},
+  'label--password': {'en': 'Password', 'es': 'Contraseña'},
+  'label--viewer': {'en': 'Viewer', 'es': 'Espectador'},
+  'label--help': {'en': 'Help', 'es': 'Ayuda'},
+  'label--organization-admin': {'en': 'Admin', 'es': 'Admin'},
+  'label--organization-agent': {'en': 'Agent', 'es': 'Agente'},
+  'label--organization-user': {'en': 'User', 'es': 'Usuario'},
+  'label--role': {'en': 'Role', 'es': 'Rol'},
+  'label--roles': {'en': 'Roles', 'es': 'Roles'},
+  'label--roles-by-group': {'en': 'Roles by group', 'es': 'Roles por grupo'},
+  'label--role-for-label': {'en': 'Role for {label}', 'es': 'Rol para {label}'},
+  'label--add': {'en': 'Add', 'es': 'Agregar'},
+  'label--removed': {'en': 'Removed', 'es': 'Eliminado'},
+  'label--remove': {'en': 'Remove', 'es': 'Eliminar'},
+  'label--remove-label': {'en': 'Remove {label}', 'es': 'Eliminar {label}'},
+  'alert--user-removed': {'en': 'User Removed', 'es': 'Usuario Eliminado'},
   'alert--no-chosen-files': {
     'en': "You didn't choose any files",
     'es': 'No elegiste ningún archivo',
@@ -227,10 +77,7 @@ const Map<String, Map<String, String>> defaultLocales = {
     'en': 'No photo was taken',
     'es': 'No se tomó una foto',
   },
-  'alert--not-implemented': {
-    'en': 'Not Implemented',
-    'es': 'No implementada',
-  },
+  'alert--not-implemented': {'en': 'Not Implemented', 'es': 'No implementada'},
   'alert--issue-resizing-image': {
     'en': 'There was an issue resizing the image',
     'es': 'Hubo un problema al cambiar el tamaño de la imagen',
@@ -239,62 +86,20 @@ const Map<String, Map<String, String>> defaultLocales = {
     'en': 'This action can\'t be undone',
     'es': 'Esta acción no se puede deshacer',
   },
-  'label--save': {
-    'en': 'Save',
-    'es': 'Guardar',
-  },
-  'label--add-more': {
-    'en': 'Add More',
-    'es': 'Agregar Más',
-  },
-  'label--add-label': {
-    'en': 'Add {label}',
-    'es': 'Agregar {label}',
-  },
-  'label--clear-label': {
-    'en': 'Clear {label}',
-    'es': 'Borrar {label}',
-  },
-  'label--clear': {
-    'en': 'Clear',
-    'es': 'Borrar',
-  },
-  'label--replace-label': {
-    'en': 'Replace {label}',
-    'es': 'Replace {label}',
-  },
-  'label--phone-number': {
-    'en': 'Phone Number',
-    'es': 'Número telefónico',
-  },
-  'label--email': {
-    'en': 'Email',
-    'es': 'Correo',
-  },
-  'label--url': {
-    'en': 'URL',
-    'es': 'Enlace',
-  },
-  'label--first-name': {
-    'en': 'First Name',
-    'es': 'Nombre',
-  },
-  'label--last-name': {
-    'en': 'Last Name',
-    'es': 'Apellido',
-  },
-  'label--users': {
-    'en': 'Users',
-    'es': 'Usuarios',
-  },
-  'label--unknown': {
-    'en': 'Unknown',
-    'es': 'Desconocido',
-  },
-  'label--update-user': {
-    'en': 'Update User',
-    'es': 'Actualizar usuario',
-  },
+  'label--save': {'en': 'Save', 'es': 'Guardar'},
+  'label--add-more': {'en': 'Add More', 'es': 'Agregar Más'},
+  'label--add-label': {'en': 'Add {label}', 'es': 'Agregar {label}'},
+  'label--clear-label': {'en': 'Clear {label}', 'es': 'Borrar {label}'},
+  'label--clear': {'en': 'Clear', 'es': 'Borrar'},
+  'label--replace-label': {'en': 'Replace {label}', 'es': 'Replace {label}'},
+  'label--phone-number': {'en': 'Phone Number', 'es': 'Número telefónico'},
+  'label--email': {'en': 'Email', 'es': 'Correo'},
+  'label--url': {'en': 'URL', 'es': 'Enlace'},
+  'label--first-name': {'en': 'First Name', 'es': 'Nombre'},
+  'label--last-name': {'en': 'Last Name', 'es': 'Apellido'},
+  'label--users': {'en': 'Users', 'es': 'Usuarios'},
+  'label--unknown': {'en': 'Unknown', 'es': 'Desconocido'},
+  'label--update-user': {'en': 'Update User', 'es': 'Actualizar usuario'},
   'label--send-invitation': {
     'en': 'SEND INVITATION',
     'es': 'Enviar invitación',
@@ -307,90 +112,27 @@ const Map<String, Map<String, String>> defaultLocales = {
     'en': 'Enter an e-mail',
     'es': 'Ingresa un correo electrónico',
   },
-  'label--apply': {
-    'en': 'Apply',
-    'es': 'Aplicar',
-  },
-  'label--cancel': {
-    'en': 'Cancel',
-    'es': 'Cancelar',
-  },
-  'label--importing': {
-    'en': 'Importing',
-    'es': 'Importando',
-  },
-  'label--processing': {
-    'en': 'Processing',
-    'es': 'Procesando',
-  },
-  'label--pending': {
-    'en': 'Pending',
-    'es': 'Pendiente',
-  },
-  'label--language': {
-    'en': 'Language',
-    'es': 'Idioma',
-  },
-  'label--country': {
-    'en': 'Country',
-    'es': 'País',
-  },
-  'label--country-code': {
-    'en': 'Country Code',
-    'es': 'Código de país',
-  },
-  'label--continue': {
-    'en': 'Continue',
-    'es': 'Continuar',
-  },
-  'label--update': {
-    'en': 'Update',
-    'es': 'Actualizar',
-  },
-  'label--update-label': {
-    'en': 'Update {label}',
-    'es': 'Actualizar {label}',
-  },
-  'label--create': {
-    'en': 'Create',
-    'es': 'Crear',
-  },
-  'label--create-label': {
-    'en': 'Create {label}',
-    'es': 'Crear {label}',
-  },
-  'label--confirm': {
-    'en': 'Confirm',
-    'es': 'Confirmar',
-  },
-  'label--version': {
-    'en': 'Version',
-    'es': 'versión',
-  },
-  'label--verify': {
-    'en': 'Verify',
-    'es': 'Verificar',
-  },
-  'label--reset': {
-    'en': 'Reset',
-    'es': 'Reiniciar',
-  },
-  'label--settings': {
-    'en': 'Settings',
-    'es': 'Ajustes',
-  },
-  'label--validate': {
-    'en': 'Validate',
-    'es': 'Validar',
-  },
-  'alert--invalid-number': {
-    'en': 'Invalid number',
-    'es': 'Número invalido',
-  },
-  'alert--invalid-email': {
-    'en': 'Invalid e-mail',
-    'es': 'Email inválido',
-  },
+  'label--apply': {'en': 'Apply', 'es': 'Aplicar'},
+  'label--cancel': {'en': 'Cancel', 'es': 'Cancelar'},
+  'label--importing': {'en': 'Importing', 'es': 'Importando'},
+  'label--processing': {'en': 'Processing', 'es': 'Procesando'},
+  'label--pending': {'en': 'Pending', 'es': 'Pendiente'},
+  'label--language': {'en': 'Language', 'es': 'Idioma'},
+  'label--country': {'en': 'Country', 'es': 'País'},
+  'label--country-code': {'en': 'Country Code', 'es': 'Código de país'},
+  'label--continue': {'en': 'Continue', 'es': 'Continuar'},
+  'label--update': {'en': 'Update', 'es': 'Actualizar'},
+  'label--update-label': {'en': 'Update {label}', 'es': 'Actualizar {label}'},
+  'label--create': {'en': 'Create', 'es': 'Crear'},
+  'label--create-label': {'en': 'Create {label}', 'es': 'Crear {label}'},
+  'label--confirm': {'en': 'Confirm', 'es': 'Confirmar'},
+  'label--version': {'en': 'Version', 'es': 'versión'},
+  'label--verify': {'en': 'Verify', 'es': 'Verificar'},
+  'label--reset': {'en': 'Reset', 'es': 'Reiniciar'},
+  'label--settings': {'en': 'Settings', 'es': 'Ajustes'},
+  'label--validate': {'en': 'Validate', 'es': 'Validar'},
+  'alert--invalid-number': {'en': 'Invalid number', 'es': 'Número invalido'},
+  'alert--invalid-email': {'en': 'Invalid e-mail', 'es': 'Email inválido'},
   'alert--received-phone-auth-credential': {
     'en': 'Received phone auth credential',
     'es': 'Credencial de autenticación de teléfono recibida',
@@ -421,22 +163,13 @@ const Map<String, Map<String, String>> defaultLocales = {
     'es':
         'Debe contener al menos 8 caracteres, 1 mayúscula, 1 minúscula, 1 símbolo y 1 número.',
   },
-  'alert--invalid-value': {
-    'en': 'Invalid value',
-    'es': 'Valor inválido',
-  },
+  'alert--invalid-value': {'en': 'Invalid value', 'es': 'Valor inválido'},
   'alert--password-do-not-match': {
     'en': 'Password don\'t match',
     'es': 'La contraseña no coincide',
   },
-  'page-auth--title': {
-    'en': 'Welcome',
-    'es': 'Bienvenido',
-  },
-  'label--sign-in': {
-    'en': 'Sign In',
-    'es': 'Iniciar Sesión',
-  },
+  'page-auth--title': {'en': 'Welcome', 'es': 'Bienvenido'},
+  'label--sign-in': {'en': 'Sign In', 'es': 'Iniciar Sesión'},
   'label--sign-in-mobile': {
     'en': 'Sign in with mobile',
     'es': 'Iniciar sesión celular',
@@ -481,154 +214,52 @@ const Map<String, Map<String, String>> defaultLocales = {
     'en': 'Add your name and profile picture so everyone knows who you are',
     'es': 'Agrega tu nombre y foto de perfil para que todos sepan quién eres',
   },
-  'label--generate': {
-    'en': 'Generate',
-    'es': 'Generar',
-  },
-  'label--send': {
-    'en': 'Send',
-    'es': 'Enviar',
-  },
-  'label--test': {
-    'en': 'Test',
-    'es': 'Probar',
-  },
-  'label--accept': {
-    'en': 'Accept',
-    'es': 'Aceptar',
-  },
-  'label--go': {
-    'en': 'Go',
-    'es': 'Ir',
-  },
-  'label--open': {
-    'en': 'Open',
-    'es': 'Abrir',
-  },
-  'label--dismiss': {
-    'en': 'Dismiss',
-    'es': 'Descartar',
-  },
-  'label--decline': {
-    'en': 'Decline',
-    'es': 'Rechazar',
-  },
-  'label--upload': {
-    'en': 'Upload',
-    'es': 'Subir',
-  },
-  'label--upload-label': {
-    'en': 'Upload {label}',
-    'es': 'Subir {label}',
-  },
+  'label--generate': {'en': 'Generate', 'es': 'Generar'},
+  'label--send': {'en': 'Send', 'es': 'Enviar'},
+  'label--test': {'en': 'Test', 'es': 'Probar'},
+  'label--accept': {'en': 'Accept', 'es': 'Aceptar'},
+  'label--go': {'en': 'Go', 'es': 'Ir'},
+  'label--open': {'en': 'Open', 'es': 'Abrir'},
+  'label--dismiss': {'en': 'Dismiss', 'es': 'Descartar'},
+  'label--decline': {'en': 'Decline', 'es': 'Rechazar'},
+  'label--upload': {'en': 'Upload', 'es': 'Subir'},
+  'label--upload-label': {'en': 'Upload {label}', 'es': 'Subir {label}'},
   'label--upload-image-from-label': {
     'en': 'Upload image from {label}',
     'es': 'Subir imagen desde {label}',
   },
-  'label--schedule': {
-    'en': 'Schedule',
-    'es': 'Horario',
-  },
-  'label--delete': {
-    'en': 'Delete',
-    'es': 'Eliminar',
-  },
-  'label--delete-label': {
-    'en': 'Delete {label}',
-    'es': 'Eliminar {label}',
-  },
-  'label--name-first': {
-    'en': 'First Name',
-    'es': 'Nombres',
-  },
-  'label--name': {
-    'en': 'Name',
-    'es': 'Nombre',
-  },
-  'label--description': {
-    'en': 'Description',
-    'es': 'Descripción',
-  },
-  'label--sign-out': {
-    'en': 'Sign out',
-    'es': 'Cerrar Sesión',
-  },
-  'label--profile': {
-    'en': 'Profile',
-    'es': 'Perfil',
-  },
-  'label--notifications': {
-    'en': 'Notifications',
-    'es': 'Notificaciones',
-  },
-  'label--by-label': {
-    'en': 'By {label}',
-    'es': 'Por {label}',
-  },
-  'label--export': {
-    'en': 'Export',
-    'es': 'Exportar',
-  },
-  'label--export-label': {
-    'en': 'Export {label}',
-    'es': 'Exportar {label}',
-  },
+  'label--schedule': {'en': 'Schedule', 'es': 'Horario'},
+  'label--delete': {'en': 'Delete', 'es': 'Eliminar'},
+  'label--delete-label': {'en': 'Delete {label}', 'es': 'Eliminar {label}'},
+  'label--name-first': {'en': 'First Name', 'es': 'Nombres'},
+  'label--name': {'en': 'Name', 'es': 'Nombre'},
+  'label--description': {'en': 'Description', 'es': 'Descripción'},
+  'label--sign-out': {'en': 'Sign out', 'es': 'Cerrar Sesión'},
+  'label--profile': {'en': 'Profile', 'es': 'Perfil'},
+  'label--notifications': {'en': 'Notifications', 'es': 'Notificaciones'},
+  'label--by-label': {'en': 'By {label}', 'es': 'Por {label}'},
+  'label--export': {'en': 'Export', 'es': 'Exportar'},
+  'label--export-label': {'en': 'Export {label}', 'es': 'Exportar {label}'},
   'label--label-selected': {
     'en': '{label} Selected',
     'es': '{label} Seleccionados',
   },
-  'label--selected': {
-    'en': 'Selected',
-    'es': 'Seleccionados',
-  },
-  'label--select-label': {
-    'en': 'Select {label}',
-    'es': 'Selecciona {label}',
-  },
-  'label--deselect': {
-    'en': 'Deselect',
-    'es': 'Deseleccionar',
-  },
-  'label--deselect-all': {
-    'en': 'Deselect All',
-    'es': 'Deseleccionar Todo',
-  },
-  'label--select': {
-    'en': 'Select',
-    'es': 'Selecciona',
-  },
-  'label--select-all': {
-    'en': 'Select All',
-    'es': 'Seleccionar todo',
-  },
-  'label--choose-option': {
-    'en': 'Choose an Option',
-    'es': 'Elige una opción',
-  },
+  'label--selected': {'en': 'Selected', 'es': 'Seleccionados'},
+  'label--select-label': {'en': 'Select {label}', 'es': 'Selecciona {label}'},
+  'label--deselect': {'en': 'Deselect', 'es': 'Deseleccionar'},
+  'label--deselect-all': {'en': 'Deselect All', 'es': 'Deseleccionar Todo'},
+  'label--select': {'en': 'Select', 'es': 'Selecciona'},
+  'label--select-all': {'en': 'Select All', 'es': 'Seleccionar todo'},
+  'label--choose-option': {'en': 'Choose an Option', 'es': 'Elige una opción'},
   'label--filter-by-label': {
     'en': 'Filter by {label}',
     'es': 'Filtrar por {label}',
   },
-  'label--file': {
-    'en': 'File',
-    'es': 'Archivo',
-  },
-  'label--choose': {
-    'en': 'Choose',
-    'es': 'Elegir',
-  },
-  'label--choose-label': {
-    'en': 'Choose {label}',
-    'es': 'Elige {label}',
-  },
-  'label--dashboard': {
-    'en': 'Dashboard',
-    'es': 'Tablero',
-  },
-  'notification--user-signed-in': {
-    'en': 'Welcome back',
-    'es': 'Bienvenido',
-  },
+  'label--file': {'en': 'File', 'es': 'Archivo'},
+  'label--choose': {'en': 'Choose', 'es': 'Elegir'},
+  'label--choose-label': {'en': 'Choose {label}', 'es': 'Elige {label}'},
+  'label--dashboard': {'en': 'Dashboard', 'es': 'Tablero'},
+  'notification--user-signed-in': {'en': 'Welcome back', 'es': 'Bienvenido'},
   'notification--invitation-sent': {
     'en': 'Invitation sent',
     'es': 'Invitación enviada',
@@ -681,22 +312,10 @@ const Map<String, Map<String, String>> defaultLocales = {
     'en': 'Request successful',
     'es': 'Solicitud exitosa',
   },
-  'label--plus-code': {
-    'en': 'Plus Code',
-    'es': 'Código Plus',
-  },
-  'label--address': {
-    'en': 'Address',
-    'es': 'Dirección',
-  },
-  'label--approve': {
-    'en': 'Approve',
-    'es': 'Aprobar',
-  },
-  'label--reject': {
-    'en': 'Reject',
-    'es': 'Rechazar',
-  },
+  'label--plus-code': {'en': 'Plus Code', 'es': 'Código Plus'},
+  'label--address': {'en': 'Address', 'es': 'Dirección'},
+  'label--approve': {'en': 'Approve', 'es': 'Aprobar'},
+  'label--reject': {'en': 'Reject', 'es': 'Rechazar'},
   'label--confirm-are-you-sure-delete': {
     'en': 'Are you sure you want to delete?',
     'es': '¿Seguro que quieres eliminar?',
@@ -743,64 +362,22 @@ const Map<String, Map<String, String>> defaultLocales = {
   },
   'label--confirm-are-you-sure-update-label-to': {
     'en': "Are you sure you want to update '{label}' to '{to}'?",
-    'es': "¿Seguro que quieres actualizar '{label}' a '{to}'?"
+    'es': "¿Seguro que quieres actualizar '{label}' a '{to}'?",
   },
-  'label--date': {
-    'en': 'Date',
-    'es': 'Fecha',
-  },
-  'label--date-updated': {
-    'en': 'Date Updated',
-    'es': 'Fecha Actualización',
-  },
-  'label--date-created': {
-    'en': 'Date Created',
-    'es': 'Fecha de Creación',
-  },
-  'label--date-label': {
-    'en': 'Date {label}',
-    'es': 'Fecha de {label}',
-  },
-  'label--label-date': {
-    'en': '{label} Date',
-    'es': 'Fecha de {label}',
-  },
-  'label--buy': {
-    'en': 'Buy',
-    'es': 'Comprar',
-  },
-  'label--buy-label': {
-    'en': 'Buy {label}',
-    'es': 'Comprar {label}',
-  },
-  'label--category': {
-    'en': 'Category',
-    'es': 'Categoría',
-  },
-  'label--type': {
-    'en': 'Type',
-    'es': 'Tipo',
-  },
-  'label--organization': {
-    'en': 'Organization',
-    'es': 'Organización',
-  },
-  'label--import': {
-    'en': 'Import',
-    'es': 'Importar',
-  },
-  'label--success': {
-    'en': 'Success',
-    'es': 'Éxito',
-  },
-  'label--search': {
-    'en': 'Search',
-    'es': 'Buscar',
-  },
-  'label--search-by': {
-    'en': 'Search by',
-    'es': 'Buscar por',
-  },
+  'label--date': {'en': 'Date', 'es': 'Fecha'},
+  'label--date-updated': {'en': 'Date Updated', 'es': 'Fecha Actualización'},
+  'label--date-created': {'en': 'Date Created', 'es': 'Fecha de Creación'},
+  'label--date-label': {'en': 'Date {label}', 'es': 'Fecha de {label}'},
+  'label--label-date': {'en': '{label} Date', 'es': 'Fecha de {label}'},
+  'label--buy': {'en': 'Buy', 'es': 'Comprar'},
+  'label--buy-label': {'en': 'Buy {label}', 'es': 'Comprar {label}'},
+  'label--category': {'en': 'Category', 'es': 'Categoría'},
+  'label--type': {'en': 'Type', 'es': 'Tipo'},
+  'label--organization': {'en': 'Organization', 'es': 'Organización'},
+  'label--import': {'en': 'Import', 'es': 'Importar'},
+  'label--success': {'en': 'Success', 'es': 'Éxito'},
+  'label--search': {'en': 'Search', 'es': 'Buscar'},
+  'label--search-by': {'en': 'Search by', 'es': 'Buscar por'},
   'label--search-by-label': {
     'en': 'Search by {label}',
     'es': 'Buscar por {label}',
@@ -809,10 +386,7 @@ const Map<String, Map<String, String>> defaultLocales = {
     'en': "Must start with '{label}'",
     'es': "Debe comenzar con '{label}'",
   },
-  'label--invalid-label': {
-    'en': 'Invalid {label}',
-    'es': '{label} Inválido',
-  },
+  'label--invalid-label': {'en': 'Invalid {label}', 'es': '{label} Inválido'},
   'label--label-value1-should-be-value2': {
     'en': "{label} is '{value1}' but should be '{value2}'",
     'es': "{label} es '{value1}', pero debe ser '{value2}'",
@@ -821,57 +395,22 @@ const Map<String, Map<String, String>> defaultLocales = {
     'en': "The '{label}' can't be changed later.",
     'es': "El '{label}' no se puede cambiar más tarde.",
   },
-  'label--latitude': {
-    'en': 'Latitude',
-    'es': 'Latitud',
-  },
-  'label--longitude': {
-    'en': 'Longitude',
-    'es': 'Longitud',
-  },
-  'label--id': {
-    'en': 'ID',
-  },
-  'error--400': {
-    'en': 'Bad Request',
-    'es': 'Solicitud incorrecta',
-  },
-  'error--401': {
-    'en': 'Unauthorized',
-    'es': 'No autorizado',
-  },
-  'error--404': {
-    'en': 'Not Found',
-    'es': 'No se encuentra',
-  },
-  'error--403': {
-    'en': 'Forbidden',
-    'es': 'Prohibido',
-  },
-  'error--504': {
-    'en': 'Gateway Timeout',
-    'es': 'Tiempo de espera agotado',
-  },
+  'label--latitude': {'en': 'Latitude', 'es': 'Latitud'},
+  'label--longitude': {'en': 'Longitude', 'es': 'Longitud'},
+  'label--id': {'en': 'ID'},
+  'error--400': {'en': 'Bad Request', 'es': 'Solicitud incorrecta'},
+  'error--401': {'en': 'Unauthorized', 'es': 'No autorizado'},
+  'error--404': {'en': 'Not Found', 'es': 'No se encuentra'},
+  'error--403': {'en': 'Forbidden', 'es': 'Prohibido'},
+  'error--504': {'en': 'Gateway Timeout', 'es': 'Tiempo de espera agotado'},
   'error--500': {
     'en': 'Internal Server Error',
     'es': 'Error Interno del Servidor',
   },
-  'label--type-here': {
-    'en': 'Type here...',
-    'es': 'Escribe aquí...',
-  },
-  'label--time': {
-    'en': 'Time',
-    'es': 'Tiempo',
-  },
-  'label--title': {
-    'en': 'Title',
-    'es': 'Título',
-  },
-  'page-auth--description': {
-    'en': 'Placeholder',
-    'es': 'Temporal',
-  },
+  'label--type-here': {'en': 'Type here...', 'es': 'Escribe aquí...'},
+  'label--time': {'en': 'Time', 'es': 'Tiempo'},
+  'label--title': {'en': 'Title', 'es': 'Título'},
+  'page-auth--description': {'en': 'Placeholder', 'es': 'Temporal'},
   'validation--email-address': {
     'en': 'Enter a valid email address',
     'es': 'Introduzca una dirección de correo electrónico válida',
@@ -888,209 +427,58 @@ const Map<String, Map<String, String>> defaultLocales = {
     'en': 'This field can\'t be empty',
     'es': 'Este campo no puede estar vacío',
   },
-  'label--activity': {
-    'en': 'Activity',
-    'es': 'Actividad',
-  },
-  'label--total': {
-    'en': 'Total',
-  },
-  'label--total-label': {
-    'en': 'Total {label}',
-  },
-  'label--and': {
-    'en': 'And',
-    'es': 'Y',
-  },
-  'label--from': {
-    'en': 'From',
-    'es': 'Desde',
-  },
-  'label--to': {
-    'en': 'To',
-    'es': 'Para',
-  },
-  'label--first': {
-    'en': 'First',
-    'es': 'Primera',
-  },
-  'label--last': {
-    'en': 'Last',
-    'es': 'Última',
-  },
-  'label--next': {
-    'en': 'Next',
-    'es': 'Siguiente',
-  },
-  'label--previous': {
-    'en': 'Previous',
-    'es': 'Anterior',
-  },
-  'label--location': {
-    'en': 'Location',
-    'es': 'Ubicación',
-  },
-  'label--area-code': {
-    'en': 'Area Code',
-    'es': 'Código de Area',
-  },
-  'label--area-codes': {
-    'en': 'Area Codes',
-    'es': 'Códigos de Area',
-  },
-  'label--distance': {
-    'en': 'Distance',
-    'es': 'Distancia',
-  },
-  'label--senders': {
-    'en': 'Senders',
-    'es': 'Remitentes',
-  },
-  'label--client': {
-    'en': 'Client',
-    'es': 'Cliente',
-  },
-  'label--internal': {
-    'en': 'Internal',
-    'es': 'Interno',
-  },
-  'label--contact': {
-    'en': 'Contact',
-    'es': 'Contacto',
-  },
-  'label--contacts': {
-    'en': 'Contacts',
-    'es': 'Contactos',
-  },
-  'label--frequency': {
-    'en': 'Frequency',
-    'es': 'Frecuencia',
-  },
-  'label--once': {
-    'en': 'Once',
-    'es': 'Una vez',
-  },
-  'label--daily': {
-    'en': 'Daily',
-    'es': 'Diario',
-  },
-  'label--run-time': {
-    'en': 'Run Time',
-    'es': 'Tiempo de ejecución',
-  },
-  'label--show-label': {
-    'en': 'Show {label}',
-    'es': 'Mostrar {label}',
-  },
-  'label--hide-label': {
-    'en': 'Hide {label}',
-    'es': 'Ocultar {label}',
-  },
-  'label--filter': {
-    'en': 'Filter',
-    'es': 'Filtro',
-  },
-  'label--filters': {
-    'en': 'Filters',
-    'es': 'Filtros',
-  },
-  'label--not-supported': {
-    'en': 'Not Supported',
-    'es': 'No soportado',
-  },
-  'label--template': {
-    'en': 'Template',
-    'es': 'Plantilla',
-  },
-  'label--templates': {
-    'en': 'Templates',
-    'es': 'Plantillas',
-  },
-  'label--message': {
-    'en': 'Message',
-    'es': 'Mensaje',
-  },
-  'label--messages': {
-    'en': 'Messages',
-    'es': 'Mensajes',
-  },
-  'label--enabled': {
-    'en': 'Enabled',
-    'es': 'activado/a',
-  },
-  'label--disabled': {
-    'en': 'Disabled',
-    'es': 'desactivado/a',
-  },
-  'label--error': {
-    'en': 'Error',
-    'es': 'Error',
-  },
-  'label--errors': {
-    'en': 'Errors',
-    'es': 'Errores',
-  },
-  'label--replace': {
-    'en': 'Replace',
-    'es': 'Reemplazar',
-  },
-  'label--basic': {
-    'en': 'Basic',
-    'es': 'Básico',
-  },
-  'label--text': {
-    'en': 'Text',
-    'es': 'Texto',
-  },
-  'label--link': {
-    'en': 'Link',
-    'es': 'Enlace',
-  },
-  'label--limit': {
-    'en': 'Limit',
-    'es': 'Límite',
-  },
-  'label--download': {
-    'en': 'Download',
-    'es': 'Descargar',
-  },
-  'label--files': {
-    'en': 'Files',
-    'es': 'Archivos',
-  },
-  'label--gallery': {
-    'en': 'Gallery',
-    'es': 'Galería',
-  },
-  'label--camera': {
-    'en': 'Camera',
-    'es': 'Cámara',
-  },
-  'label--image': {
-    'en': 'Image',
-    'es': 'Imagen',
-  },
-  'label--images': {
-    'en': 'Images',
-    'es': 'Imágenes',
-  },
-  'label--youtube': {
-    'en': 'YouTube',
-  },
-  'label--vimeo': {
-    'en': 'Vimeo',
-  },
-  'label--video': {
-    'en': 'Video',
-    'es': 'Video',
-  },
-  'label--audio': {
-    'en': 'Audio',
-    'es': 'Audio',
-  },
-  'lorem--s': {
-    'en': 'Aliquam tincidunt mauris eu risus.',
-  },
+  'label--activity': {'en': 'Activity', 'es': 'Actividad'},
+  'label--total': {'en': 'Total'},
+  'label--total-label': {'en': 'Total {label}'},
+  'label--and': {'en': 'And', 'es': 'Y'},
+  'label--from': {'en': 'From', 'es': 'Desde'},
+  'label--to': {'en': 'To', 'es': 'Para'},
+  'label--first': {'en': 'First', 'es': 'Primera'},
+  'label--last': {'en': 'Last', 'es': 'Última'},
+  'label--next': {'en': 'Next', 'es': 'Siguiente'},
+  'label--previous': {'en': 'Previous', 'es': 'Anterior'},
+  'label--location': {'en': 'Location', 'es': 'Ubicación'},
+  'label--area-code': {'en': 'Area Code', 'es': 'Código de Area'},
+  'label--area-codes': {'en': 'Area Codes', 'es': 'Códigos de Area'},
+  'label--distance': {'en': 'Distance', 'es': 'Distancia'},
+  'label--senders': {'en': 'Senders', 'es': 'Remitentes'},
+  'label--client': {'en': 'Client', 'es': 'Cliente'},
+  'label--internal': {'en': 'Internal', 'es': 'Interno'},
+  'label--contact': {'en': 'Contact', 'es': 'Contacto'},
+  'label--contacts': {'en': 'Contacts', 'es': 'Contactos'},
+  'label--frequency': {'en': 'Frequency', 'es': 'Frecuencia'},
+  'label--once': {'en': 'Once', 'es': 'Una vez'},
+  'label--daily': {'en': 'Daily', 'es': 'Diario'},
+  'label--run-time': {'en': 'Run Time', 'es': 'Tiempo de ejecución'},
+  'label--show-label': {'en': 'Show {label}', 'es': 'Mostrar {label}'},
+  'label--hide-label': {'en': 'Hide {label}', 'es': 'Ocultar {label}'},
+  'label--filter': {'en': 'Filter', 'es': 'Filtro'},
+  'label--filters': {'en': 'Filters', 'es': 'Filtros'},
+  'label--not-supported': {'en': 'Not Supported', 'es': 'No soportado'},
+  'label--template': {'en': 'Template', 'es': 'Plantilla'},
+  'label--templates': {'en': 'Templates', 'es': 'Plantillas'},
+  'label--message': {'en': 'Message', 'es': 'Mensaje'},
+  'label--messages': {'en': 'Messages', 'es': 'Mensajes'},
+  'label--enabled': {'en': 'Enabled', 'es': 'activado/a'},
+  'label--disabled': {'en': 'Disabled', 'es': 'desactivado/a'},
+  'label--error': {'en': 'Error', 'es': 'Error'},
+  'label--errors': {'en': 'Errors', 'es': 'Errores'},
+  'label--replace': {'en': 'Replace', 'es': 'Reemplazar'},
+  'label--basic': {'en': 'Basic', 'es': 'Básico'},
+  'label--text': {'en': 'Text', 'es': 'Texto'},
+  'label--link': {'en': 'Link', 'es': 'Enlace'},
+  'label--limit': {'en': 'Limit', 'es': 'Límite'},
+  'label--download': {'en': 'Download', 'es': 'Descargar'},
+  'label--files': {'en': 'Files', 'es': 'Archivos'},
+  'label--gallery': {'en': 'Gallery', 'es': 'Galería'},
+  'label--camera': {'en': 'Camera', 'es': 'Cámara'},
+  'label--image': {'en': 'Image', 'es': 'Imagen'},
+  'label--images': {'en': 'Images', 'es': 'Imágenes'},
+  'label--youtube': {'en': 'YouTube'},
+  'label--vimeo': {'en': 'Vimeo'},
+  'label--video': {'en': 'Video', 'es': 'Video'},
+  'label--audio': {'en': 'Audio', 'es': 'Audio'},
+  'lorem--s': {'en': 'Aliquam tincidunt mauris eu risus.'},
   'lorem--m': {
     'en':
         'Donec nec justo eget felis facilisis fermentum. Aliquam porttitor mauris sit amet orci.',
@@ -1103,62 +491,26 @@ const Map<String, Map<String, String>> defaultLocales = {
     'en':
         'Praesent dapibus, neque id cursus faucibus, tortor neque egestas auguae, eu vulputate magna eros eu erat. Aliquam erat volutpat. Nam dui mi, tincidunt quis, accumsan porttitor, facilisis luctus, metus. \nPhasellus ultrices nulla quis nibh. Quisque a lectus. Donec consectetuer ligula vulputate sem tristique cursus. Nam nulla quam, gravida non, commodo a, sodales sit amet, nisi.',
   },
-  'label--is': {
-    'en': 'Is',
-    'es': 'Es',
-  },
-  'label--equal': {
-    'en': 'Equal',
-    'es': 'Igual',
-  },
-  'label--not-equal': {
-    'en': 'Not Equal',
-    'es': 'Diferente',
-  },
-  'label--contains': {
-    'en': 'Contains',
-    'es': 'Contiene',
-  },
-  'label--between': {
-    'en': 'Between',
-    'es': 'Entre',
-  },
-  'label--greater-than': {
-    'en': 'Greater Than',
-    'es': 'Mayor Que',
-  },
+  'label--is': {'en': 'Is', 'es': 'Es'},
+  'label--equal': {'en': 'Equal', 'es': 'Igual'},
+  'label--not-equal': {'en': 'Not Equal', 'es': 'Diferente'},
+  'label--contains': {'en': 'Contains', 'es': 'Contiene'},
+  'label--between': {'en': 'Between', 'es': 'Entre'},
+  'label--greater-than': {'en': 'Greater Than', 'es': 'Mayor Que'},
   'label--greater-than-or-equal': {
     'en': 'Greater Than or Equal',
     'es': 'Mayor Que o Igual',
   },
-  'label--less-than': {
-    'en': 'Less Than',
-    'es': 'Menor Que',
-  },
+  'label--less-than': {'en': 'Less Than', 'es': 'Menor Que'},
   'label--less-than-or-equal': {
     'en': 'Less Than or Equal',
     'es': 'Menor Que o Igual',
   },
-  'label--where-in': {
-    'en': 'In',
-    'es': 'En',
-  },
-  'label--value': {
-    'en': 'Value',
-    'es': 'Valor',
-  },
-  'label--male': {
-    'en': 'Male',
-    'es': 'Masculino',
-  },
-  'label--female': {
-    'en': 'Female',
-    'es': 'Femenino',
-  },
-  'label--website': {
-    'en': 'Website',
-    'es': 'Sitio web',
-  },
+  'label--where-in': {'en': 'In', 'es': 'En'},
+  'label--value': {'en': 'Value', 'es': 'Valor'},
+  'label--male': {'en': 'Male', 'es': 'Masculino'},
+  'label--female': {'en': 'Female', 'es': 'Femenino'},
+  'label--website': {'en': 'Website', 'es': 'Sitio web'},
   'label--behance': {'en': 'Behance'},
   'label--dribbble': {'en': 'Dribbble'},
   'label--facebook': {'en': 'Facebook'},
@@ -1166,160 +518,66 @@ const Map<String, Map<String, String>> defaultLocales = {
   'label--linkedin': {'en': 'LinkedIn'},
   'label--tiktok': {'en': 'TikTok'},
   'label--twitter': {'en': 'X (Twitter)'},
-  'label--links': {
-    'en': 'Links',
-    'es': 'Enlaces',
-  },
-  'label--copy': {
-    'en': 'Copy',
-    'es': 'Copiar',
-  },
-  'label--operator': {
-    'en': 'Operator',
-    'es': 'Operador',
-  },
-  'label--created': {
-    'en': 'Created',
-    'es': 'Creado',
-  },
-  'label--updated': {
-    'en': 'Updated',
-    'es': 'Actualizado',
-  },
-  'label--deleted': {
-    'en': 'Deleted',
-    'es': 'Eliminado',
-  },
-  'label--open-label': {
-    'en': 'Open {label}',
-    'es': 'Abrir {label}',
-  },
+  'label--links': {'en': 'Links', 'es': 'Enlaces'},
+  'label--copy': {'en': 'Copy', 'es': 'Copiar'},
+  'label--operator': {'en': 'Operator', 'es': 'Operador'},
+  'label--created': {'en': 'Created', 'es': 'Creado'},
+  'label--updated': {'en': 'Updated', 'es': 'Actualizado'},
+  'label--deleted': {'en': 'Deleted', 'es': 'Eliminado'},
+  'label--open-label': {'en': 'Open {label}', 'es': 'Abrir {label}'},
   'label--nothing-here-yet': {
     'en': "Looks like there's nothing here yet!",
     'es': '¡Parece que aún no hay nada aquí!',
   },
-  'label--loading': {
-    'en': 'Loading',
-    'es': 'Cargando',
-  },
+  'label--loading': {'en': 'Loading', 'es': 'Cargando'},
   'label--info-phone-number-format': {
     'en':
         'Please enter your phone number as: +[Country Code][Phone Number] (e.g., +14155552671, +34912345678, +573001234567).',
     'es':
         'Por favor, introduce tu número de teléfono como: +[Código de País][Número de Teléfono] (por ejemplo, +14155552671, +34912345678, +573001234567).',
   },
-  'label--seconds': {
-    'en': 'Seconds',
-    'es': 'Segundos',
-  },
-  'label--minutes': {
-    'en': 'Minutes',
-    'es': 'Minutos',
-  },
-  'label--hours': {
-    'en': 'Hours',
-    'es': 'Horas',
-  },
-  'label--days': {
-    'en': 'Days',
-    'es': 'Días',
-  },
-  'label--weeks': {
-    'en': 'Weeks',
-    'es': 'Semanas',
-  },
-  'label--months': {
-    'en': 'Months',
-    'es': 'Meses',
-  },
-  'label--years': {
-    'en': 'Years',
-    'es': 'Años',
-  },
-  'label--second': {
-    'en': 'Second',
-    'es': 'Segundo',
-  },
-  'label--minute': {
-    'en': 'Minute',
-    'es': 'Minuto',
-  },
-  'label--hour': {
-    'en': 'Hour',
-    'es': 'Hora',
-  },
-  'label--day': {
-    'en': 'Day',
-    'es': 'Día',
-  },
-  'label--week': {
-    'en': 'Week',
-    'es': 'Semana',
-  },
-  'label--month': {
-    'en': 'Month',
-    'es': 'Mes',
-  },
-  'label--year': {
-    'en': 'Year',
-    'es': 'Año',
-  },
+  'label--seconds': {'en': 'Seconds', 'es': 'Segundos'},
+  'label--minutes': {'en': 'Minutes', 'es': 'Minutos'},
+  'label--hours': {'en': 'Hours', 'es': 'Horas'},
+  'label--days': {'en': 'Days', 'es': 'Días'},
+  'label--weeks': {'en': 'Weeks', 'es': 'Semanas'},
+  'label--months': {'en': 'Months', 'es': 'Meses'},
+  'label--years': {'en': 'Years', 'es': 'Años'},
+  'label--second': {'en': 'Second', 'es': 'Segundo'},
+  'label--minute': {'en': 'Minute', 'es': 'Minuto'},
+  'label--hour': {'en': 'Hour', 'es': 'Hora'},
+  'label--day': {'en': 'Day', 'es': 'Día'},
+  'label--week': {'en': 'Week', 'es': 'Semana'},
+  'label--month': {'en': 'Month', 'es': 'Mes'},
+  'label--year': {'en': 'Year', 'es': 'Año'},
   'alert--unsupported-image-format': {
     'en': 'The image format is not supported',
     'es': 'El formato de imagen no es compatible',
   },
-  'label--collapse-all': {
-    'en': 'Collapse All',
-    'es': 'Colapsar todo',
-  },
-  'label--expand-all': {
-    'en': 'Expand All',
-    'es': 'Expandir todo',
-  },
+  'label--collapse-all': {'en': 'Collapse All', 'es': 'Colapsar todo'},
+  'label--expand-all': {'en': 'Expand All', 'es': 'Expandir todo'},
   'label--chart-no-data': {
     'en': 'No data available for chart',
     'es': 'No hay datos disponibles para el gráfico',
   },
   'label--chart-no-data-description': {
-    'en': 'There is no data available to display the chart. Please adjust your filters or add data to see the chart.',
-    'es': 'No hay datos disponibles para mostrar el gráfico. Ajusta tus filtros o agrega datos para ver el gráfico.',
+    'en':
+        'There is no data available to display the chart. Please adjust your filters or add data to see the chart.',
+    'es':
+        'No hay datos disponibles para mostrar el gráfico. Ajusta tus filtros o agrega datos para ver el gráfico.',
   },
-  'label--area-chart': {
-    'en': 'Area Chart',
-    'es': 'Gráfico de Área',
-  },
-  'label--bar-chart': {
-    'en': 'Bar Chart',
-    'es': 'Gráfico de Barras',
-  },
-  'label--bubble-chart': {
-    'en': 'Bubble Chart',
-    'es': 'Gráfico de Burbujas',
-  },
-  'label--calendar': {
-    'en': 'Calendar',
-    'es': 'Calendario',
-  },
-  'label--gauge': {
-    'en': 'Gauge',
-    'es': 'Medidor',
-  },
-  'label--geo-chart': {
-    'en': 'Geo Chart',
-    'es': 'Gráfico Geográfico',
-  },
-  'label--line-chart': {
-    'en': 'Line Chart',
-    'es': 'Gráfico de Líneas',
-  },
+  'label--area-chart': {'en': 'Area Chart', 'es': 'Gráfico de Área'},
+  'label--bar-chart': {'en': 'Bar Chart', 'es': 'Gráfico de Barras'},
+  'label--bubble-chart': {'en': 'Bubble Chart', 'es': 'Gráfico de Burbujas'},
+  'label--calendar': {'en': 'Calendar', 'es': 'Calendario'},
+  'label--gauge': {'en': 'Gauge', 'es': 'Medidor'},
+  'label--geo-chart': {'en': 'Geo Chart', 'es': 'Gráfico Geográfico'},
+  'label--line-chart': {'en': 'Line Chart', 'es': 'Gráfico de Líneas'},
   'label--stepped-area-chart': {
     'en': 'Stepped Area Chart',
     'es': 'Gráfico de Área Escalonada',
   },
-  'label--tree-map': {
-    'en': 'Tree Map',
-    'es': 'Mapa de Árbol',
-  },
+  'label--tree-map': {'en': 'Tree Map', 'es': 'Mapa de Árbol'},
   'label--annotation-chart': {
     'en': 'Annotation Chart',
     'es': 'Gráfico de Anotaciones',
@@ -1328,61 +586,22 @@ const Map<String, Map<String, String>> defaultLocales = {
     'en': 'Candlestick Chart',
     'es': 'Gráfico de Velas',
   },
-  'label--gantt': {
-    'en': 'Gantt Chart',
-    'es': 'Gráfico de Gantt',
-  },
-  'label--org-chart': {
-    'en': 'Org Chart',
-    'es': 'Gráfico Organizacional',
-  },
-  'label--sankey': {
-    'en': 'Sankey Diagram',
-    'es': 'Diagrama de Sankey',
-  },
-  'label--timeline': {
-    'en': 'Timeline',
-    'es': 'Línea de Tiempo',
-  },
-  'label--word-tree': {
-    'en': 'Word Tree',
-    'es': 'Árbol de Palabras',
-  },
+  'label--gantt': {'en': 'Gantt Chart', 'es': 'Gráfico de Gantt'},
+  'label--org-chart': {'en': 'Org Chart', 'es': 'Gráfico Organizacional'},
+  'label--sankey': {'en': 'Sankey Diagram', 'es': 'Diagrama de Sankey'},
+  'label--timeline': {'en': 'Timeline', 'es': 'Línea de Tiempo'},
+  'label--word-tree': {'en': 'Word Tree', 'es': 'Árbol de Palabras'},
   'label--warning-file-is-too-large': {
     'en': 'Warning: The file is too large.',
     'es': 'Advertencia: El archivo es demasiado grande.',
   },
-  'label--visual-density': {
-    'en': 'Visual Density',
-    'es': 'Densidad Visual',
-  },
-  'label--adaptive': {
-    'en': 'Adaptive',
-    'es': 'Adaptativo',
-  },
-  'label--compact': {
-    'en': 'Compact',
-    'es': 'Compacto',
-  },
-  'label--comfortable': {
-    'en': 'Comfortable',
-    'es': 'Cómodo',
-  },
-  'label--standard': {
-    'en': 'Standard',
-    'es': 'Estándar',
-  },
-  'label--large': {
-    'en': 'Large',
-    'es': 'Grande',
-  },
-  'label--online': {
-    'en': 'Online',
-    'es': 'En línea',
-  },
-  'label--offline': {
-    'en': 'Offline',
-    'es': 'Sin conexión',
-  }
+  'label--visual-density': {'en': 'Visual Density', 'es': 'Densidad Visual'},
+  'label--adaptive': {'en': 'Adaptive', 'es': 'Adaptativo'},
+  'label--compact': {'en': 'Compact', 'es': 'Compacto'},
+  'label--comfortable': {'en': 'Comfortable', 'es': 'Cómodo'},
+  'label--standard': {'en': 'Standard', 'es': 'Estándar'},
+  'label--large': {'en': 'Large', 'es': 'Grande'},
+  'label--online': {'en': 'Online', 'es': 'En línea'},
+  'label--offline': {'en': 'Offline', 'es': 'Sin conexión'},
 };
 // @formatter:on

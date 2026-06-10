@@ -10,8 +10,8 @@ import 'smart_image.dart';
 /// Displays a geographic preview for the supplied coordinates.
 ///
 /// The widget prefers an interactive [GoogleMap] when the current platform can
-/// render it, but it gracefully falls back to a static image when map support or
-/// credentials are unavailable. This makes it safe to reuse inside dialogs,
+/// render it, but it falls back to a static image when native map support or
+/// credentials are unavailable. This makes the widget safe to reuse in dialogs,
 /// lists, and read-only detail screens.
 ///
 /// ```dart
@@ -22,6 +22,10 @@ import 'smart_image.dart';
 /// ```
 class GoogleMapsPreview extends StatefulWidget {
   /// Creates a map preview for a single point of interest.
+  ///
+  /// The widget accepts optional coordinates, marker text, and a Google Static
+  /// Maps API key so it can choose the most reliable preview mode for the
+  /// current platform.
   const GoogleMapsPreview({
     super.key,
     this.mapType = MapType.normal,
@@ -38,44 +42,63 @@ class GoogleMapsPreview extends StatefulWidget {
 
   /// Selects the visual rendering mode for the interactive map.
   final MapType mapType;
-  /// Supplies the latitude of the previewed location.
+
+  /// Stores the latitude of the previewed location.
   final double? latitude;
-  /// Supplies the longitude of the previewed location.
+
+  /// Stores the longitude of the previewed location.
   final double? longitude;
-  /// Keeps the preview stable in responsive layouts by fixing its aspect ratio.
+
+  /// Defines the width-to-height ratio used by the preview container.
   final double aspectRatio;
+
   /// Defines the initial camera zoom for the interactive map.
   final double zoom;
+
   /// Limits how far users can zoom when interaction is available.
   final MinMaxZoomPreference minMaxZoomPreference;
-  /// Provides the marker title shown in the info window.
+
+  /// Stores the marker title shown in the info window.
   final String? name;
-  /// Provides optional secondary text for the marker info window.
+
+  /// Stores the optional secondary text shown in the info window.
   final String? description;
-  /// Authenticates requests for the Google Static Maps fallback image.
+
+  /// Stores the API key used for Google Static Maps fallback requests.
   final String? apiKey;
-  /// Forces the widget to render a static image even on supported platforms.
+
+  /// Determines whether the widget always renders a static image.
   final bool asImage;
 
-  /// Creates state that mirrors incoming coordinates and marker metadata.
+  /// Creates the mutable state used to cache preview data between rebuilds.
+  ///
+  /// The returned [_GoogleMapsPreviewState] mirrors incoming coordinates and
+  /// marker text so asynchronous refreshes can be coordinated safely.
   @override
   State<GoogleMapsPreview> createState() => _GoogleMapsPreviewState();
 }
 
-/// Caches the current location data so map updates can be coordinated with the
-/// widget lifecycle.
+/// Stores cached preview data across the widget lifecycle.
+///
+/// The state keeps a local copy of the current coordinates and marker text so
+/// delayed refreshes can update the preview without mutating the widget.
 class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
   /// Stores the latitude currently being rendered.
   double? latitude;
+
   /// Stores the longitude currently being rendered.
   double? longitude;
+
   /// Stores the current marker title.
   String? name;
+
   /// Stores the current marker description.
   String? description;
 
-  /// Clears the cached location data before a fresh widget configuration is
-  /// applied or the state is disposed.
+  /// Clears the cached preview data.
+  ///
+  /// Resetting these values before a refresh or disposal avoids temporarily
+  /// displaying stale coordinates or marker metadata.
   void reset() {
     latitude = null;
     longitude = null;
@@ -83,11 +106,11 @@ class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
     description = null;
   }
 
-  /// Reloads location data from the latest widget properties.
+  /// Reloads cached preview data from the current widget.
   ///
-  /// When `notify` is `true`, the widget rebuilds before and after the delayed
-  /// refresh so loading and fallback transitions stay in sync with Flutter's
-  /// frame scheduling.
+  /// When `notify` is `true`, the method triggers rebuilds before and after the
+  /// short delay so placeholder and fallback transitions stay aligned with the
+  /// widget lifecycle.
   void getLocation({bool notify = false}) {
     reset();
     if (mounted && notify) setState(() {});
@@ -100,7 +123,10 @@ class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
     });
   }
 
-  /// Seeds the state with the initial coordinate and marker values.
+  /// Seeds the cached preview data from the initial widget configuration.
+  ///
+  /// Initializing these values in [initState] ensures the first build can use
+  /// the incoming coordinates immediately.
   @override
   void initState() {
     super.initState();
@@ -110,15 +136,20 @@ class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
     description = widget.description;
   }
 
-  /// Releases cached values so stale map data is not retained after disposal.
+  /// Clears cached preview data before the state is removed.
+  ///
+  /// Resetting local values helps prevent stale map data from lingering longer
+  /// than the lifecycle of this [State].
   @override
   void dispose() {
     reset();
     super.dispose();
   }
 
-  /// Refreshes the cached location whenever the parent provides new
-  /// coordinates.
+  /// Refreshes cached preview data when the parent widget changes.
+  ///
+  /// The comparison against the stored coordinates avoids unnecessary delayed
+  /// refreshes when unrelated widget properties update.
   @override
   void didUpdateWidget(covariant GoogleMapsPreview oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -127,8 +158,12 @@ class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
     }
   }
 
-  /// Builds either a placeholder image, a static map image, or an interactive
-  /// [GoogleMap] depending on platform support and configuration.
+  /// Builds the most appropriate preview for the current platform.
+  ///
+  /// The widget returns a placeholder image when coordinates are unavailable, a
+  /// static map image when native map rendering is unsupported or image mode is
+  /// forced, and an interactive [GoogleMap] otherwise for the current
+  /// [BuildContext].
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -196,133 +231,7 @@ class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
         mapType: widget.mapType,
         initialCameraPosition: kGooglePlex,
         onMapCreated: (GoogleMapController c) {
-          /// TODO: Set map style when implemented
-          // GoogleMapController gmc = c;
-          // gmc.setMapStyle([
-          //   {
-          //     "elementType": "geometry",
-          //     "stylers": [
-          //       {"color": "#242f3e"}
-          //     ]
-          //   },
-          //   {
-          //     "elementType": "labels.text.fill",
-          //     "stylers": [
-          //       {"color": "#746855"}
-          //     ]
-          //   },
-          //   {
-          //     "elementType": "labels.text.stroke",
-          //     "stylers": [
-          //       {"color": "#242f3e"}
-          //     ]
-          //   },
-          //   {
-          //     "featureType": "administrative.locality",
-          //     "elementType": "labels.text.fill",
-          //     "stylers": [
-          //       {"color": "#d59563"}
-          //     ]
-          //   },
-          //   {
-          //     "featureType": "poi",
-          //     "elementType": "labels.text.fill",
-          //     "stylers": [
-          //       {"color": "#d59563"}
-          //     ]
-          //   },
-          //   {
-          //     "featureType": "poi.park",
-          //     "elementType": "geometry",
-          //     "stylers": [
-          //       {"color": "#263c3f"}
-          //     ]
-          //   },
-          //   {
-          //     "featureType": "poi.park",
-          //     "elementType": "labels.text.fill",
-          //     "stylers": [
-          //       {"color": "#6b9a76"}
-          //     ]
-          //   },
-          //   {
-          //     "featureType": "road",
-          //     "elementType": "geometry",
-          //     "stylers": [
-          //       {"color": "#38414e"}
-          //     ]
-          //   },
-          //   {
-          //     "featureType": "road",
-          //     "elementType": "geometry.stroke",
-          //     "stylers": [
-          //       {"color": "#212a37"}
-          //     ]
-          //   },
-          //   {
-          //     "featureType": "road",
-          //     "elementType": "labels.text.fill",
-          //     "stylers": [
-          //       {"color": "#9ca5b3"}
-          //     ]
-          //   },
-          //   {
-          //     "featureType": "road.highway",
-          //     "elementType": "geometry",
-          //     "stylers": [
-          //       {"color": "#746855"}
-          //     ]
-          //   },
-          //   {
-          //     "featureType": "road.highway",
-          //     "elementType": "geometry.stroke",
-          //     "stylers": [
-          //       {"color": "#1f2835"}
-          //     ]
-          //   },
-          //   {
-          //     "featureType": "road.highway",
-          //     "elementType": "labels.text.fill",
-          //     "stylers": [
-          //       {"color": "#f3d19c"}
-          //     ]
-          //   },
-          //   {
-          //     "featureType": "transit",
-          //     "elementType": "geometry",
-          //     "stylers": [
-          //       {"color": "#2f3948"}
-          //     ]
-          //   },
-          //   {
-          //     "featureType": "transit.station",
-          //     "elementType": "labels.text.fill",
-          //     "stylers": [
-          //       {"color": "#d59563"}
-          //     ]
-          //   },
-          //   {
-          //     "featureType": "water",
-          //     "elementType": "geometry",
-          //     "stylers": [
-          //       {"color": "#17263c"}
-          //     ]
-          //   },
-          //   {
-          //     "featureType": "water",
-          //     "elementType": "labels.text.fill",
-          //     "stylers": [
-          //       {"color": "#515c6d"}
-          //     ]
-          //   },
-          //   {
-          //     "featureType": "water",
-          //     "elementType": "labels.text.stroke",
-          //     "stylers": [
-          //       {"color": "#17263c"}
-          //     ]
-          //   }
-          // ].toString());
+          /// Defers custom map styling until the implementation is available.
           controller.complete(c);
         },
         markers: <Marker>{marker},

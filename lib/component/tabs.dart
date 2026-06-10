@@ -5,44 +5,67 @@ import '../helper/options.dart';
 /// Displays a scrollable [TabBar] driven by a list of [ButtonOptions].
 ///
 /// This widget centralizes tab presentation and navigation so screens can reuse
-/// the same option model for both routing and local callbacks. It expects the
-/// incoming list to mark the currently selected tab, which lets rebuilds keep
-/// the controller aligned with external application state.
+/// the same option model for both named-route navigation and local callbacks.
+/// It expects one incoming option to be marked as selected so rebuilds can keep
+/// the visible tab aligned with external application state.
 class Tabs extends StatefulWidget {
   /// Creates a [Tabs] widget from the provided tab definitions.
+  ///
+  /// The [tabs] collection supplies the labels, icons, selection state, and
+  /// optional actions that define each rendered tab.
   const Tabs({super.key, required this.tabs});
 
-  /// Defines the visible tabs, their icons, and any navigation or tap behavior.
+  /// Stores the tab definitions rendered by [Tabs].
+  ///
+  /// Each [ButtonOptions] entry can provide a label, icon, selected state,
+  /// callback, and named route destination for a single tab.
   final List<ButtonOptions> tabs;
 
-  /// Creates the mutable tab-controller state for [Tabs].
+  /// Creates the mutable state that manages tab selection for [Tabs].
+  ///
+  /// The returned [_TabsState] owns the [TabController] used to keep the
+  /// rendered [TabBar] synchronized with [tabs].
   @override
   State<Tabs> createState() => _TabsState();
 }
 
-/// Holds the [TabController] used by [Tabs].
+/// Manages the [TabController] used by [Tabs].
+///
+/// This state object creates and disposes the controller with the widget
+/// lifecycle, then updates its selected index from the current
+/// [ButtonOptions] list during each build.
 class _TabsState extends State<Tabs> with SingleTickerProviderStateMixin {
-  /// Keeps the [TabBar] selection synchronized with the incoming [ButtonOptions].
+  /// Stores the [TabController] that drives the rendered [TabBar].
+  ///
+  /// The controller length matches the current [Tabs.tabs] list so tap and
+  /// selection state stay aligned with the available tab options.
   late TabController _tabController;
 
-  /// Initializes the [TabController] once the state object joins the tree.
+  /// Initializes the [TabController] when the state enters the tree.
+  ///
+  /// Using [SingleTickerProviderStateMixin] lets the controller receive the
+  /// required ticker from this state object.
   @override
   void initState() {
     super.initState();
     _tabController = TabController(vsync: this, length: widget.tabs.length);
   }
 
-  /// Releases the [TabController] when [Tabs] leaves the widget tree.
+  /// Releases the [TabController] before the state is removed.
+  ///
+  /// Disposing the controller prevents ticker and animation resources from
+  /// remaining active after [Tabs] leaves the widget tree.
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
   }
 
-  /// Builds a scrollable [TabBar] and forwards tab selection to callbacks or routes.
+  /// Builds a scrollable [TabBar] for the current [ButtonOptions] list.
   ///
-  /// Routing happens after any tab-specific callback so parent widgets can update
-  /// local state before navigation occurs.
+  /// The returned widget updates the controller index from the selected option,
+  /// then forwards taps to an optional callback before navigating to a named
+  /// route when [ButtonOptions.path] is not `null`.
   @override
   Widget build(BuildContext context) {
     List<Tab> tabList = List.generate(widget.tabs.length, (i) {

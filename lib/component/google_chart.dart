@@ -11,26 +11,34 @@ import 'iframe_minimal.dart';
 /// The widget serializes [data] into the JavaScript configuration expected by
 /// Google's `ChartWrapper`, embeds the generated document in an iframe, and
 /// falls back to localized explanatory copy whenever the chart data is missing
-/// or invalid. This keeps the Flutter tree stable even when chart setup fails
-/// during rebuilds.
+/// or invalid. This keeps the surrounding Flutter tree stable even when chart
+/// setup fails during rebuilds or when the chart cannot be drawn on the current
+/// platform.
 ///
 /// https://developers.google.com/chart
 /// https://developers.google.com/chart/interactive/docs/gallery
 /// https://developers.google.com/chart/interactive/docs/reference
 class GoogleChart extends StatelessWidget {
   /// Stores the Google Charts configuration that will be serialized to JSON.
+  ///
+  /// Keeping the raw [ChartWrapper] on the widget allows each rebuild to derive
+  /// fresh markup and to decide whether a localized fallback should be shown
+  /// instead of attempting to render invalid chart data.
   final ChartWrapper data;
 
   /// Creates a [GoogleChart] from the provided chart configuration.
   ///
-  /// The constructor keeps [data] required so the widget can decide at build
-  /// time whether to render the chart or show a localized fallback state.
+  /// Requiring [data] ensures the widget can always validate the chart setup at
+  /// build time and provide a predictable fallback instead of relying on `null`
+  /// checks deeper in the rendering flow.
   const GoogleChart({super.key, required this.data});
 
   /// Builds either the embedded chart or a fallback tile when rendering is impossible.
   ///
-  /// Invalid data and serialization failures both resolve to the same friendly
-  /// message so parents do not need custom error handling for common edge cases.
+  /// The [BuildContext] supplies localized fallback copy for invalid data and
+  /// serialization failures. Returning the same informational widget for both
+  /// cases keeps parent widgets simple because they do not need separate error
+  /// handling for malformed chart configuration versus runtime encoding issues.
   @override
   Widget build(BuildContext context) {
     bool isValid = data.isValid();

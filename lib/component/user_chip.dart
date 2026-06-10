@@ -4,12 +4,17 @@ import 'package:provider/provider.dart';
 import '../state/state_users.dart';
 import 'user_avatar.dart';
 
-/// UserChip displays a User's profile name and avatar
+/// Builds a chip that displays a user's resolved profile name and avatar.
+///
+/// The widget reads user metadata from [StateUsers] so callers can provide a
+/// user id and receive provider-driven updates for names, avatars, and
+/// presence.
 class UserChip extends StatefulWidget {
-  /// Creates a chip that resolves user metadata from [StateUsers].
+  /// Creates a widget that resolves user metadata from [StateUsers].
   ///
-  /// This widget exists so callers can pass a user id and let the shared state
-  /// layer handle live updates to names, avatars, and presence information.
+  /// The [uid] identifies which user to display, while [minimal],
+  /// [labelStyle], [onDeleted], and [avatarPrefix] customize how the rendered
+  /// chip behaves.
   const UserChip({
     super.key,
     required this.uid,
@@ -19,29 +24,51 @@ class UserChip extends StatefulWidget {
     this.avatarPrefix,
   });
 
-  /// The user identifier looked up in [StateUsers].
+  /// Stores the user identifier that [StateUsers] uses for lookup.
+  ///
+  /// The widget renders an empty [SizedBox] when [uid] is `null`.
   final String? uid;
 
-  /// Shows only the resolved text label when `true`.
+  /// Determines whether the widget renders only the resolved text label.
+  ///
+  /// When `true`, the widget skips the [Chip] wrapper and avatar presentation.
   final bool minimal;
 
-  /// Overrides the text style used by the minimal label variant.
+  /// Provides the [TextStyle] applied to the minimal text-only variant.
+  ///
+  /// The style is ignored when [minimal] is `false` because the full [Chip]
+  /// uses its default label styling.
   final TextStyle? labelStyle;
 
-  /// Called when the chip's delete affordance is pressed.
+  /// Stores the callback invoked when the chip's delete affordance is pressed.
+  ///
+  /// Supplying `null` leaves the chip without delete behavior.
   final Function()? onDeleted;
 
-  /// Prepends a base path to avatar image names when one is required.
+  /// Stores the prefix prepended to avatar image names when needed.
+  ///
+  /// The value is combined with the resolved avatar name only when both
+  /// [avatarPrefix] and the user's avatar are not `null`.
   final String? avatarPrefix;
 
-  /// Creates state that rebuilds when user data changes in the provider.
+  /// Creates the mutable state that listens for user updates.
+  ///
+  /// The returned [_UserChipState] rebuilds when the surrounding
+  /// [Provider]-backed [StateUsers] instance changes.
   @override
   State<UserChip> createState() => _UserChipState();
 }
 
-/// Resolves user state into the visual chip representation used by [UserChip].
+/// Builds the visual representation for [UserChip].
+///
+/// The state resolves the current user from [StateUsers] during each build so
+/// the widget stays synchronized with provider updates.
 class _UserChipState extends State<UserChip> {
-  /// Builds either a compact text label or a full chip, depending on [UserChip.minimal].
+  /// Builds either a text label or a full [Chip] for the resolved user.
+  ///
+  /// The method returns an empty [SizedBox] when [UserChip.uid] is `null`,
+  /// prefers the user's display name when available, and falls back to other
+  /// identifiers as needed.
   @override
   Widget build(BuildContext context) {
     if (widget.uid == null) return const SizedBox(width: 0, height: 0);

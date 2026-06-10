@@ -10,29 +10,51 @@ import '../serialized/user_data.dart';
 import 'enum_data.dart';
 import 'log_color.dart';
 
-/// Utils for a variety of different utility functions.
+/// Provides general-purpose utility functions for serialization, randomness, and formatting.
+///
+/// This class centralizes common operations that do not belong to a specific
+/// domain, including cryptographic string generation, date serialization, locale
+/// detection, and safe type conversions.
 class Utils {
-  /// Get Random value
+  /// Stores a secure random number generator for cryptographic operations.
   static final Random _random = Random.secure();
 
-  /// Create Random String
+  /// Generates a cryptographically secure random string of the specified length.
+  ///
+  /// Creates random bytes, encodes them as base64url, and trims the result to
+  /// [length] characters. The default length of 32 provides approximately 192
+  /// bits of entropy, suitable for session tokens or nonce values.
   static String createCryptoRandomString([int length = 32]) {
     var values = List<int>.generate(length, (i) => _random.nextInt(256));
     return (base64Url.encode(values)).substring(1, 7);
   }
 
-  /// Serialize Timestamp to Json: Used to apply the latest time on every update
+  /// Always returns `false` regardless of [value].
+  ///
+  /// Use with `@JsonKey(toJson: boolFalse)` to force a field to serialize as
+  /// `false` without storing the boolean in the model class.
   static bool boolFalse(dynamic value) => false;
 
-  /// Serialize DateTime string from JSON
+  /// Deserializes an ISO 8601 date-time string into a UTC [DateTime].
+  ///
+  /// Returns `null` when [time] is `null` or cannot be parsed. This is the
+  /// inverse of [dateTimeToJson] for round-trip serialization of optional
+  /// date-time fields.
   static DateTime? dateTimeFromJson(String? time) =>
       time != null ? DateTime.tryParse(time)?.toUtc() : null;
 
-  /// Serialize DateTime to JSON string
+  /// Serializes a [DateTime] into an ISO 8601 string.
+  ///
+  /// Converts [time] to UTC before formatting. Returns `null` when [time] is
+  /// `null` so optional date-time fields remain absent in JSON payloads.
   static String? dateTimeToJson(DateTime? time) =>
       time?.toUtc().toIso8601String();
 
-  /// Serialize Date to JSON string (yyyy-MM-dd)
+  /// Serializes a [DateTime] into a `yyyy-MM-dd` date string.
+  ///
+  /// Discards time-of-day information and formats only the UTC date. Returns
+  /// `null` when [time] is `null`. Use this for date-only fields such as
+  /// birthdates or calendar events.
   static String? dateToJson(DateTime? time) {
     if (time == null) return null;
     return DateFormat('yyyy-MM-dd').format(time.toUtc()).toString();

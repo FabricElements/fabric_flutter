@@ -11,16 +11,19 @@ class RegexHelper {
   static final email = RegExp(
     r'^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\])|(([a-zA-Z\-\d]+\.)+[a-zA-Z]{2,}))$',
   );
+
   /// Matches international phone numbers that start with `+` and 8-15 digits.
   ///
   /// This intentionally favors normalized E.164-style input so stored values
   /// remain easy to compare and transmit.
   static final phone = RegExp(r'^\+\d{8,15}');
+
   /// Matches digit-only phone numbers with no leading `+` sign.
   ///
   /// This is useful when user interfaces split country codes from the local
   /// number but still want the same length constraints as [phone].
   static final phoneNoPlusSign = RegExp(r'^\d{8,15}');
+
   /// Matches basic `http` and `https` URLs.
   ///
   /// The expression is designed for lightweight validation in forms and helpers,

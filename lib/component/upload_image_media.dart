@@ -25,12 +25,16 @@ class UploadImageMedia extends StatefulWidget {
 
   /// Receives the uploaded storage path together with the saved [MediaData].
   final Function(String, MediaData) callback;
+
   /// Defines the storage path prefix used for every uploaded image.
   final String path;
+
   /// Caps the largest image dimension before upload to reduce transfer costs.
   final int maxDimensions;
+
   /// Generates a storage identifier automatically when `true`.
   final bool autoId;
+
   /// Marks uploaded media as expiring when the storage layer supports it.
   final bool expiry;
 

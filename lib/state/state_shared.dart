@@ -615,10 +615,13 @@ abstract class StateShared extends ChangeNotifier {
 
   /// Stores the debounced listener timer used by [notifyListeners].
   Timer? _timerNotify;
+
   /// Tracks how many listener notifications have been coalesced.
   int debounceCountNotify = 0;
+
   /// Stores the debounced data timer used by [_notifyData].
   Timer? _timerData;
+
   /// Tracks how many data updates have been coalesced.
   int debounceCountData = 0;
 
