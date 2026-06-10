@@ -304,18 +304,35 @@ void main() {
 ### Contributing Workflow
 
 1. Fork the repository and create a feature branch
-2. Add or update tests for your changes (see `test/` directory)
-3. Run linters and tests:
+2. **Set up pre-commit hooks** (recommended):
+   ```bash
+   ./scripts/install-hooks.sh
+   ```
+   This installs Git hooks that automatically:
+   - Format code with `dart format` on staged files
+   - Run `flutter analyze` to catch issues
+   - Check for `print()` statements (use `debugPrint()` instead)
+   - Validate documentation patterns
+3. Add or update tests for your changes (see `test/` directory)
+4. Run linters and tests:
    ```bash
    flutter analyze
    flutter test
    ```
-4. Ensure code generation is current:
+5. Ensure code generation is current:
    ```bash
    flutter pub run build_runner build --delete-conflicting-outputs
    ```
-5. Follow commit conventions and submit a pull request
-6. See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines
+6. Follow commit conventions and submit a pull request
+7. See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines
+
+**CI/CD:** All pull requests automatically run GitHub Actions workflows that:
+- Verify code formatting (`dart format`)
+- Run static analysis (`flutter analyze`)
+- Execute the full test suite (`flutter test`)
+- Verify generated files are up to date (`build_runner`)
+
+Ensure your code passes all CI checks before requesting review.
 
 ---
 
