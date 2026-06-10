@@ -108,9 +108,8 @@ class FirebaseStorageHelper {
       format: PutStringFormat.base64,
       metadata: SettableMetadata(
         contentType: contentType,
-        contentDisposition: fileName != null
-            ? 'inline; filename="$fileName"'
-            : null,
+        contentDisposition:
+            fileName != null ? 'inline; filename="$fileName"' : null,
       ),
       expiry: expiry,
     );

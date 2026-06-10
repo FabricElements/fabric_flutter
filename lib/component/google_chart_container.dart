@@ -178,8 +178,7 @@ class _GoogleChartContainerState extends State<GoogleChartContainer> {
     preferencesCopy = ChartPreferences.fromJson(
       widget.preferences?.toJson() ?? {},
     );
-    showRange =
-        widget.min != null &&
+    showRange = widget.min != null &&
         widget.max != null &&
         widget.min! < widget.max! &&
         preferencesCopy.vAxis != null;
@@ -363,26 +362,14 @@ class _GoogleChartContainerState extends State<GoogleChartContainer> {
                       padding: const EdgeInsets.only(top: 8),
                       decoration: BoxDecoration(
                         border: Border.all(
-                          color:
-                              theme
-                                  .inputDecorationTheme
-                                  .enabledBorder
-                                  ?.borderSide
-                                  .color ??
+                          color: theme.inputDecorationTheme.enabledBorder
+                                  ?.borderSide.color ??
                               theme.dividerColor,
-                          width:
-                              theme
-                                  .inputDecorationTheme
-                                  .enabledBorder
-                                  ?.borderSide
-                                  .width ??
+                          width: theme.inputDecorationTheme.enabledBorder
+                                  ?.borderSide.width ??
                               1.0,
-                          style:
-                              theme
-                                  .inputDecorationTheme
-                                  .enabledBorder
-                                  ?.borderSide
-                                  .style ??
+                          style: theme.inputDecorationTheme.enabledBorder
+                                  ?.borderSide.style ??
                               BorderStyle.solid,
                         ),
                         borderRadius: BorderRadius.circular(4),

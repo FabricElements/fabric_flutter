@@ -347,8 +347,8 @@ class _SmartImageState extends State<SmartImage> {
 
             int divisor = 100;
             int widthBasedOnDivisor = ((realWidth / divisor) * divisor).floor();
-            int heightBasedOnDivisor = ((realHeight / divisor) * divisor)
-                .floor();
+            int heightBasedOnDivisor =
+                ((realHeight / divisor) * divisor).floor();
             if (widthBasedOnDivisor < divisor) widthBasedOnDivisor = divisor;
             if (heightBasedOnDivisor < divisor) heightBasedOnDivisor = divisor;
             _resizeImageDebounce(
@@ -403,50 +403,45 @@ class _SmartImageState extends State<SmartImage> {
                 isAntiAlias: !kIsWeb,
                 width: !willCacheSize ? null : width.toDouble(),
                 height: !willCacheSize ? null : height.toDouble(),
-                cacheHeight: !willCacheSize
-                    ? null
-                    : (height * devicePixelRatio).round(),
-                cacheWidth: !willCacheSize
-                    ? null
-                    : (width * devicePixelRatio).round(),
+                cacheHeight:
+                    !willCacheSize ? null : (height * devicePixelRatio).round(),
+                cacheWidth:
+                    !willCacheSize ? null : (width * devicePixelRatio).round(),
                 filterQuality: FilterQuality.high,
                 key: ValueKey<String>(path),
                 headers: {
                   'Access-Control-Allow-Origin': '*',
                   'Accept': 'image/*',
                 },
-                errorBuilder:
-                    (
-                      BuildContext context,
-                      Object exception,
-                      StackTrace? stackTrace,
-                    ) {
-                      return errorPlaceholder;
-                    },
-                loadingBuilder:
-                    (
-                      BuildContext context,
-                      Widget child,
-                      ImageChunkEvent? loadingProgress,
-                    ) {
-                      if (loadingProgress == null) return child;
-                      return loadingPlaceholder;
-                    },
-                frameBuilder:
-                    (
-                      BuildContext context,
-                      Widget child,
-                      int? frame,
-                      bool wasSynchronouslyLoaded,
-                    ) {
-                      if (wasSynchronouslyLoaded) return child;
-                      return AnimatedOpacity(
-                        opacity: frame == null ? 0 : 1,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeOut,
-                        child: child,
-                      );
-                    },
+                errorBuilder: (
+                  BuildContext context,
+                  Object exception,
+                  StackTrace? stackTrace,
+                ) {
+                  return errorPlaceholder;
+                },
+                loadingBuilder: (
+                  BuildContext context,
+                  Widget child,
+                  ImageChunkEvent? loadingProgress,
+                ) {
+                  if (loadingProgress == null) return child;
+                  return loadingPlaceholder;
+                },
+                frameBuilder: (
+                  BuildContext context,
+                  Widget child,
+                  int? frame,
+                  bool wasSynchronouslyLoaded,
+                ) {
+                  if (wasSynchronouslyLoaded) return child;
+                  return AnimatedOpacity(
+                    opacity: frame == null ? 0 : 1,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOut,
+                    child: child,
+                  );
+                },
               ),
             ),
           );

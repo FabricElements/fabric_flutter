@@ -331,8 +331,7 @@ class _ExpansionTableState extends State<ExpansionTable> {
                   constraints: BoxConstraints(
                     maxWidth: _widthColumn,
                     minWidth: _widthColumn,
-                    minHeight:
-                        widget.dataRowHeight ??
+                    minHeight: widget.dataRowHeight ??
                         theme.dataTableTheme.dataRowMinHeight ??
                         30,
                   ),
@@ -356,8 +355,7 @@ class _ExpansionTableState extends State<ExpansionTable> {
           if (data.level.isEven) rowDarker = !rowDarker;
           double rowOpacity = 0;
           rowOpacity = rowDarker ? 0.02 : 0;
-          Color dataRowColor =
-              widget.dataRowColor ??
+          Color dataRowColor = widget.dataRowColor ??
               theme.dataTableTheme.dataRowColor?.resolve(states) ??
               Colors.transparent;
           dataRowColor = dataRowColor.withValues(alpha: rowOpacity);
@@ -370,8 +368,7 @@ class _ExpansionTableState extends State<ExpansionTable> {
             color: rowColor,
             child: Container(
               constraints: BoxConstraints(
-                minHeight:
-                    widget.dataRowHeight ??
+                minHeight: widget.dataRowHeight ??
                     theme.dataTableTheme.dataRowMinHeight ??
                     30,
               ),
@@ -405,16 +402,14 @@ class _ExpansionTableState extends State<ExpansionTable> {
           rowsList.add(getRows(row: footer, isFooter: true));
         }
         Widget rows = Flex(direction: Axis.vertical, children: rowsList);
-        double headingRowHeight =
-            widget.headingRowHeight ??
+        double headingRowHeight = widget.headingRowHeight ??
             theme.dataTableTheme.headingRowHeight ??
             56;
         Widget columns = Material(
           elevation: 1,
           textStyle:
               widget.headingTextStyle ?? theme.dataTableTheme.headingTextStyle,
-          color:
-              widget.headingRowColor ??
+          color: widget.headingRowColor ??
               theme.dataTableTheme.headingRowColor?.resolve(states),
           child: Container(
             padding: EdgeInsets.symmetric(

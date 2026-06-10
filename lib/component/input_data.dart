@@ -265,64 +265,92 @@ class InputData extends StatefulWidget {
 
   /// Supplies the current value rendered by the field and its internal controllers.
   final dynamic value;
+
   /// Lists the enum values that can be selected when [type] is [InputDataType.enums].
   final List<Enum> enums;
+
   /// Lists selectable options for dropdown and radio-style input types.
   final List<ButtonOptions> options;
+
   /// Chooses which editor, parser, and validation rules the widget should apply.
   final InputDataType type;
+
   /// Makes the field read-only while still allowing selection or copy affordances.
   final bool disabled;
+
   /// Overrides the placeholder shown when the field has no visible value.
   final String? hintText;
+
   /// Limits how many characters the text-based editor will accept.
   final int? maxLength;
+
   /// Requests a denser visual layout than the surrounding theme default.
   final bool isDense;
+
   /// Overrides the internal content padding applied by the generated [InputDecoration].
   final EdgeInsets padding;
+
   /// Wraps the field with outer spacing so forms can align adjacent inputs cleanly.
   final EdgeInsets margin;
+
   /// Adjusts serialized date values when the caller stores a non-local UTC offset.
   final int? utcOffset;
+
   /// Adds custom validation on top of the built-in type-aware normalization rules.
   final FormFieldValidator<String>? validator;
+
   /// Overrides the filled background color used by the generated input decoration.
   final Color? backgroundColor;
+
   /// Shows an external error message without requiring a surrounding [Form].
   final String? error;
+
   /// Provides a custom text style for widgets that read it from the field configuration.
   final TextStyle? textStyle;
+
   /// Starts text inputs in obscured mode before local visibility toggles are applied.
   final bool obscureText;
+
   /// Supplies the label rendered by the generated [InputDecoration].
   final String? label;
+
   /// Overrides the keyboard action button for text-based field variants.
   final TextInputAction? textInputAction;
+
   /// Enables platform autocorrect for text-entry variants that should support it.
   final bool autocorrect;
+
   /// Requests focus for the field as soon as it enters the tree.
   final bool autofocus;
+
   /// Reuses an external [TextEditingController] when the parent needs direct access.
   final TextEditingController? textController;
+
   /// Forwards platform autofill hints to compatible text-based editors.
   final Iterable<String>? autofillHints;
 
   // Custom suffix and prefix
   /// Injects a custom suffix widget after the editable region.
   final Widget? suffix;
+
   /// Replaces the default trailing icon, including clear and visibility controls.
   final Widget? suffixIcon;
+
   /// Appends non-interactive trailing text inside the input decoration.
   final String? suffixText;
+
   /// Prepends non-interactive leading text inside the input decoration.
   final String? prefixText;
+
   /// Injects a custom prefix widget before the editable region.
   final Widget? prefix;
+
   /// Replaces the default leading icon shown for specialized field types.
   final Widget? prefixIcon;
+
   /// Styles [prefixText] when a textual prefix is displayed.
   final TextStyle? prefixStyle;
+
   /// Styles [suffixText] when trailing helper text is displayed.
   final TextStyle? suffixStyle;
 
@@ -399,20 +427,27 @@ class InputData extends StatefulWidget {
 class _InputDataState extends State<InputData> {
   /// Owns the editable text for text-based variants when no external controller is used.
   late TextEditingController textController;
+
   /// Opens and closes the search view used by dropdown and enum pickers.
   late SearchController searchController;
+
   /// Formats date-only values for display inside read-only picker fields.
   DateFormat formatDate = DateFormat.yMd('en_US');
+
   /// Formats date-time values for display after picker selections are normalized.
   DateFormat formatDateTime = DateFormat.yMd(
     'en_US',
   ).addPattern(' - ').add_jm();
+
   /// Stores an internally generated prefix, such as the `+` used for phone fields.
   String? prefixText;
+
   /// Holds the normalized current value used across the widget's different editors.
   dynamic value;
+
   /// Tracks whether text should currently be visually obscured.
   late bool obscureText;
+
   /// Records whether the current field type supports a visibility toggle.
   late bool obscure;
 
@@ -492,9 +527,8 @@ class _InputDataState extends State<InputData> {
             );
           }
           // Set the text
-          baseValue = widget.asLocalTime
-              ? baseValue?.toLocal()
-              : baseValue?.toUtc();
+          baseValue =
+              widget.asLocalTime ? baseValue?.toLocal() : baseValue?.toUtc();
           if (baseValue != null) {
             if (widget.type == InputDataType.date) {
               textController.text = formatDate.format(baseValue);
@@ -807,9 +841,8 @@ getValue -------------------------------------
 
     String? hintText = widget.hintText ?? hintTextDefault;
     if (!widget.obscureText) {
-      hintText = (value?.toString() ?? '').isNotEmpty
-          ? value?.toString()
-          : hintText;
+      hintText =
+          (value?.toString() ?? '').isNotEmpty ? value?.toString() : hintText;
     }
     final inputDecoration = InputDecoration(
       hintText: hintText,
@@ -878,9 +911,8 @@ getValue -------------------------------------
               ? SystemMouseCursors.click
               : null,
           obscureText: obscureText,
-          enableInteractiveSelection: isDisabled
-              ? true
-              : widget.enableInteractiveSelection,
+          enableInteractiveSelection:
+              isDisabled ? true : widget.enableInteractiveSelection,
           readOnly: isDisabled,
           // Force focus capability
           onChanged: isDisabled
@@ -922,8 +954,7 @@ getValue -------------------------------------
           readOnly: true,
           mouseCursor: isDisabled ? SystemMouseCursors.click : null,
           decoration: inputDecoration.copyWith(
-            prefixIcon:
-                inputDecoration.prefixIcon ??
+            prefixIcon: inputDecoration.prefixIcon ??
                 Icon(inputDataTypeIcon(widget.type)),
           ),
           onTap: isDisabled
@@ -1004,8 +1035,7 @@ getValue -------------------------------------
         String? dateString = time != null
             ? formatTime.format(DateTime(1, 1, 1, time.hour, time.minute))
             : null;
-        String label =
-            dateString ??
+        String label = dateString ??
             locales.get('label--choose-label', {
               'label': locales.get('label--time'),
             });
@@ -1060,15 +1090,13 @@ getValue -------------------------------------
           enableSuggestions: false,
           keyboardType: keyboardType,
           textInputAction: textInputAction,
-          enableInteractiveSelection: isDisabled
-              ? true
-              : widget.enableInteractiveSelection,
+          enableInteractiveSelection:
+              isDisabled ? true : widget.enableInteractiveSelection,
           readOnly: readOnly,
           mouseCursor: isDisabled ? SystemMouseCursors.click : null,
           controller: textController,
           decoration: inputDecoration.copyWith(
-            prefixIcon:
-                inputDecoration.prefixIcon ??
+            prefixIcon: inputDecoration.prefixIcon ??
                 inputDecoration.prefixIcon ??
                 Icon(inputDataTypeIcon(widget.type)),
             suffixIcon:
@@ -1116,7 +1144,8 @@ getValue -------------------------------------
                 child: PointerInterceptor(child: widgetInput),
               );
             },
-            suggestionsBuilder: (BuildContext context, SearchController controller) {
+            suggestionsBuilder:
+                (BuildContext context, SearchController controller) {
               final value = controller.text.trim();
               List<ButtonOptions> recommendations = dropdownOptions;
               // keep @, . and + characters for more flexible searches (eg. emails, phone prefixes)
@@ -1131,10 +1160,10 @@ getValue -------------------------------------
                       .trim();
                   final labelAltClean = element.labelAlt != null
                       ? GSM
-                            .toGSM(element.labelAlt)
-                            .toLowerCase()
-                            .replaceAll(regex, '')
-                            .trim()
+                          .toGSM(element.labelAlt)
+                          .toLowerCase()
+                          .replaceAll(regex, '')
+                          .trim()
                       : null;
                   final valueClean = GSM
                       .toGSM(value)
@@ -1260,8 +1289,7 @@ getValue -------------------------------------
                     widget.onComplete?.call(newValue);
                     widget.onSubmit?.call(newValue);
                   },
-            secondary:
-                inputDecoration.prefixIcon ??
+            secondary: inputDecoration.prefixIcon ??
                 Icon(inputDataTypeIcon(widget.type)),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(4),

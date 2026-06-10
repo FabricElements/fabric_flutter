@@ -100,8 +100,7 @@ class UsersDropdown extends StatelessWidget implements PreferredSizeWidget {
       if (item.phone != null) {
         labelAlt += ' ${item.phone!}';
       }
-      final nameForTitle =
-          (item.firstName != null && item.lastName != null
+      final nameForTitle = (item.firstName != null && item.lastName != null
               ? item.name
               : null) ??
           item.firstName ??

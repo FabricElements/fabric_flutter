@@ -22,9 +22,9 @@ class IframeMinimal extends StatelessWidget {
     this.title = 'Iframe',
     this.alt = 'Iframe',
   }) : assert(
-         (src != null && rawHtml == null) || (src == null && rawHtml != null),
-         'Either src or rawHtml must be provided, but not both.',
-       );
+          (src != null && rawHtml == null) || (src == null && rawHtml != null),
+          'Either src or rawHtml must be provided, but not both.',
+        );
 
   /// The remote URL assigned to the iframe's `src` attribute.
   final String? src;

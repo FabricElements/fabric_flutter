@@ -106,13 +106,13 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
     final textTheme = theme.textTheme;
     final locales = AppLocalizations.of(context);
 
-    final widgetEmpty =
-        widget.empty ??
+    final widgetEmpty = widget.empty ??
         ListTile(
           contentPadding: EdgeInsets.all(16),
           leading: Icon(Icons.info),
           title: Text(locales.get('label--nothing-here-yet')),
         );
+
     /// Returns the empty-state widget when [json] is `null` or empty.
     if (isEmpty) {
       return widgetEmpty;
@@ -164,6 +164,7 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
     void copyText(dynamic text) {
       if (text == null || text.toString().isEmpty) return;
       Clipboard.setData(ClipboardData(text: text.toString()));
+
       /// Builds the snackbar message shown after a copy action.
       String message = locales.get('alert--copy-clipboard');
       if (text.toString().length <= 100) {
@@ -221,6 +222,7 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
                       tooltip: locales.get('label--previous'),
                       color: theme.colorScheme.primary,
                     ),
+
                     /// Builds the button that focuses the next match.
                     Gap(16),
                     IconButton(
@@ -244,9 +246,8 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
                   ),
                   const Gap(8),
                   TextButton.icon(
-                    onPressed: state.areAllCollapsed()
-                        ? null
-                        : state.collapseAll,
+                    onPressed:
+                        state.areAllCollapsed() ? null : state.collapseAll,
                     label: Text(locales.get('label--collapse-all')),
                     icon: const Icon(Icons.expand_less),
                   ),
@@ -303,10 +304,10 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
                       /// and close.
                       collapsableToggleBuilder: (context, node) =>
                           AnimatedRotation(
-                            turns: node.isCollapsed ? -0.25 : 0,
-                            duration: const Duration(milliseconds: 300),
-                            child: const Icon(Icons.arrow_drop_down),
-                          ),
+                        turns: node.isCollapsed ? -0.25 : 0,
+                        duration: const Duration(milliseconds: 300),
+                        child: const Icon(Icons.arrow_drop_down),
+                      ),
 
                       /// Builds the focused-node copy action.
                       ///
@@ -339,6 +340,7 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
                                     currentNode = currentNode.parent!;
                                     finalKey = '${currentNode.key}.$finalKey';
                                   }
+
                                   /// Resolves the focused key path against the
                                   /// original payload before copying.
                                   dynamic objectToCopy = widget.json;
@@ -360,9 +362,11 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
                                       break;
                                     }
                                   }
+
                                   /// Stops the copy action when the resolved
                                   /// object is `null`.
                                   if (objectToCopy == null) return;
+
                                   /// Copies the resolved object as JSON text.
                                   copyText(jsonEncode(objectToCopy));
                                 },
@@ -389,9 +393,8 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
                                   decoration: TextDecoration.underline,
                                 )
                               : style,
-                          onTap: isUrl
-                              ? () => _launchUrl(value as String)
-                              : null,
+                          onTap:
+                              isUrl ? () => _launchUrl(value as String) : null,
                         );
                       },
                       theme: jsonExplorerTheme,
@@ -421,6 +424,7 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
   Future<void> _scrollToSearchMatch() async {
     /// Expands all matching branches so the focused result becomes visible.
     store.expandSearchResults();
+
     /// Waits for the store-driven rebuild before resolving the target index.
     await Future.delayed(const Duration(milliseconds: 300));
     final index = store.displayNodes.indexOf(store.focusedSearchResult.node);

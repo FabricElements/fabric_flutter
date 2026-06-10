@@ -189,5 +189,6 @@ class AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   ///
   /// Avoiding reloads prevents unnecessary localization work during rebuilds.
   @override
-  bool shouldReload(AppLocalizationsDelegate old) => false; // false to prevent loading every time a widget is build
+  bool shouldReload(AppLocalizationsDelegate old) =>
+      false; // false to prevent loading every time a widget is build
 }

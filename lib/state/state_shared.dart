@@ -397,23 +397,20 @@ abstract class StateShared extends ChangeNotifier {
 
     /// Get page from query
     final pageFromQuery = passingQueryParameters['page'];
-    final newPage = pageFromQuery != null
-        ? int.tryParse(pageFromQuery.first)
-        : null;
+    final newPage =
+        pageFromQuery != null ? int.tryParse(pageFromQuery.first) : null;
     pageDefault = newPage ?? page;
 
     /// Get limit from query
     final limitFromQuery = passingQueryParameters['limit'];
-    final newLimit = limitFromQuery != null
-        ? int.tryParse(limitFromQuery.first)
-        : null;
+    final newLimit =
+        limitFromQuery != null ? int.tryParse(limitFromQuery.first) : null;
     if (newLimit != null) limit = newLimit;
 
     try {
       /// Get filters
       final queryFilters = passingQueryParameters['filters'];
-      final queryFilter =
-          queryFilters != null &&
+      final queryFilter = queryFilters != null &&
               (queryFilters.isNotEmpty && queryFilters.first.isNotEmpty)
           ? queryFilters.first
           : null;
@@ -615,10 +612,13 @@ abstract class StateShared extends ChangeNotifier {
 
   /// Stores the debounced listener timer used by [notifyListeners].
   Timer? _timerNotify;
+
   /// Tracks how many listener notifications have been coalesced.
   int debounceCountNotify = 0;
+
   /// Stores the debounced data timer used by [_notifyData].
   Timer? _timerData;
+
   /// Tracks how many data updates have been coalesced.
   int debounceCountData = 0;
 

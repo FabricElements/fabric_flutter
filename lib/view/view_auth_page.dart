@@ -577,8 +577,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       );
     }
 
-    String backgroundImage =
-        widget.image ??
+    String backgroundImage = widget.image ??
         'https://images.unsplash.com/photo-1615406020658-6c4b805f1f30';
     Widget spacer = const SizedBox(width: 8, height: 8);
     Widget spacerLarge = const SizedBox(width: 16, height: 16);

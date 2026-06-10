@@ -52,9 +52,9 @@ class ContentContainer extends StatelessWidget {
     this.crossAxisAlignment = CrossAxisAlignment.start,
     this.mainAxisAlignment = MainAxisAlignment.start,
   }) : assert(
-         child != null || children != null,
-         'child or children must be specified',
-       );
+          child != null || children != null,
+          'child or children must be specified',
+        );
 
   /// Stores the single widget to render when no internal [Flex] is needed.
   ///
@@ -123,8 +123,7 @@ class ContentContainer extends StatelessWidget {
         maxSize = 1700;
         break;
     }
-    Widget content =
-        child ??
+    Widget content = child ??
         Flex(
           direction: direction,
           mainAxisSize: mainAxisSize,

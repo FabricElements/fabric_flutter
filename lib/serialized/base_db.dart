@@ -98,10 +98,8 @@ class BaseFirestore {
     /// Handle incremental id's
     if (numerical) {
       // Get last document id
-      final last = await ref
-          .orderBy('created', descending: true)
-          .limit(1)
-          .get();
+      final last =
+          await ref.orderBy('created', descending: true).limit(1).get();
       late int lastId;
       if (last.size == 0) {
         // Set to '0' if collection is empty

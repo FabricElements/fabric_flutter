@@ -98,7 +98,8 @@ class StateNotifications extends ChangeNotifier {
     if (!initialized) throw 'Initialize Firebase app first';
     // You may set the permission requests to "provisional" which allows the user to choose what type
     // of notifications they would like to receive once the user receives a notification.
-    final notificationSettings = await FirebaseMessaging.instance.requestPermission(
+    final notificationSettings =
+        await FirebaseMessaging.instance.requestPermission(
       alert: true,
       announcement: true,
       badge: true,
@@ -223,8 +224,7 @@ class StateNotifications extends ChangeNotifier {
 
     /// Add clear
     messageData.addAll({
-      'clear':
-          bool.tryParse(
+      'clear': bool.tryParse(
             messageData['clear']?.toString() ?? 'false',
             caseSensitive: false,
           ) ??

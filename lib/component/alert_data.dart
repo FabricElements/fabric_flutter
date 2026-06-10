@@ -148,16 +148,22 @@ void alertData<T>({
 
   /// Customizes the primary action button and optional navigation behavior.
   ButtonOptions? action,
+
   /// Customizes the dismiss button shown for every alert surface.
   ButtonOptions? dismiss,
+
   /// Overrides the container color chosen from [type].
   Color? color,
+
   /// Overrides the text style applied to [title].
   TextStyle? titleStyle,
+
   /// Overrides the text style applied to [body].
   TextStyle? bodyStyle,
+
   /// Overrides the foreground color used by text and icons.
   Color? textColor,
+
   /// Inserts additional custom content before the alert actions.
   Widget? child,
 
@@ -166,12 +172,16 @@ void alertData<T>({
 
   /// Scrollable content for [AlertWidget.dialog] using [AlertDialog]
   bool scrollable = false,
+
   /// Requests a fullscreen dialog presentation when supported.
   bool fullscreenDialog = false,
+
   /// Controls whether tapping outside a dialog dismisses it.
   bool barrierDismissible = true,
+
   /// Displays a leading status icon above the main content.
   IconData? icon,
+
   /// Supplies the active [BuildContext] used to locate overlay presenters.
   required BuildContext? context,
 }) async {
