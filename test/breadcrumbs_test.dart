@@ -9,21 +9,25 @@ void main() {
     ButtonOptions(
       icon: Icons.home,
       label: 'Home',
+      onTap: () {}, // Make it clickable so it renders as ActionChip
     ),
     ButtonOptions(
       label: 'Button Label',
+      onTap: () {}, // Make it clickable
     )
   ];
   final widget = MaterialApp(
-    home: Breadcrumbs(
-      buttons: buttons,
+    home: Scaffold(
+      body: Breadcrumbs(
+        buttons: buttons,
+      ),
     ),
   );
 
   /// Tests
   testWidgets('find widget with text', (WidgetTester tester) async {
     await tester.pumpWidget(widget);
-    expect(find.widgetWithText(TextButton, 'Button Label'), findsOneWidget);
+    expect(find.widgetWithText(ActionChip, 'Button Label'), findsOneWidget);
   });
 
   testWidgets('find widget with icon', (WidgetTester tester) async {
