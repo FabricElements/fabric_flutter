@@ -13,17 +13,34 @@ import 'package:video_player/video_player.dart';
 import '../serialized/media_data.dart';
 import 'log_color.dart';
 
-enum MediaOrigin { camera, gallery, files }
+/// Identifies where media should be loaded from.
+enum MediaOrigin {
+  /// Captures a new image with the device camera.
+  camera,
 
-/// Image helper class
+  /// Selects an existing image from the photo library.
+  gallery,
+
+  /// Selects a file through the platform file picker.
+  files,
+}
+
+/// Loads and normalizes media selected by the user.
+///
+/// This helper wraps platform-specific picker behavior, common validation, and
+/// metadata extraction so upload flows can work with a consistent [MediaData]
+/// object regardless of where the file came from.
 class MediaHelper {
-  /// Get Image as [MediaData]
-  /// [origin] either 'camera' or 'gallery'
+  /// Returns an image selected from [origin] as [MediaData].
+  ///
+  /// The helper validates supported image extensions, optionally resizes large
+  /// images, captures dimensions, and rejects files that exceed [maxFileSize].
+  /// Camera capture is not supported on the web and throws accordingly.
   static Future<MediaData> getImage({
     required MediaOrigin origin,
     int? maxDimensions,
 
-    /// Optional maximum file size in bytes
+    /// Optional maximum file size in bytes.
     int? maxFileSize,
   }) async {
     Uint8List? fileData;
@@ -128,10 +145,11 @@ class MediaHelper {
     );
   }
 
-  /// Scale an image to specified dimensions, pass the [imagePath] to the function
-  /// and specify the [maxHeight] and/or [maxWidth] and this function will automatically
-  /// scale the down or up to the specified.
-  /// [imageType] Make sure the specify the return image file type, either [jpeg], [png] or [gif].+
+  /// Resizes encoded image bytes to fit within the given bounds.
+  ///
+  /// The aspect ratio is preserved automatically. Only `jpeg`, `jpg`, and
+  /// `png` are supported, and files already within the limits are returned with
+  /// their original dimensions to avoid unnecessary processing.
   static Future<Uint8List> resize({
     required Uint8List imageByes,
     String? imageType,
@@ -202,12 +220,16 @@ class MediaHelper {
     }
   }
 
-  /// Basic file selection
+  /// Returns a file selected with the system picker as [MediaData].
+  ///
+  /// The helper loads bytes into memory, records MIME information, and captures
+  /// dimensions for images and videos when possible. Files larger than
+  /// [maxFileSize] are rejected after selection.
   static Future<MediaData> getFile({
-    /// Optional allowed extensions
+    /// Optional allowed extensions.
     List<String>? allowedExtensions,
 
-    /// Optional maximum file size in bytes
+    /// Optional maximum file size in bytes.
     int? maxFileSize,
   }) async {
     Uint8List? fileData;

@@ -6,50 +6,103 @@ import 'package:image_network/image_network.dart';
 
 import '../helper/utils.dart';
 
-/// Available Image Output Formats
+/// Enumerates the output formats supported by the backing image service.
 enum AvailableOutputFormats {
+  /// Requests AVIF output for modern browsers and compact transfers.
   avif,
+
+  /// Requests Deep Zoom output for tiled image viewers.
   dz,
+
+  /// Requests FITS output for compatible scientific imagery workflows.
   fits,
+
+  /// Requests GIF output.
   gif,
+
+  /// Requests HEIF output when the client can decode it.
   heif,
+
+  /// Preserves the source format when the service supports passthrough output.
   input,
+
+  /// Requests JPEG output for broad compatibility.
   jpeg,
+
+  /// Requests JPEG 2000 output.
   jp2,
+
+  /// Requests JPEG XL output.
   jxl,
+
+  /// Requests ImageMagick-managed output.
   magick,
+
+  /// Requests OpenSlide output for slide-imaging workflows.
   openslide,
+
+  /// Requests PDF output.
   pdf,
+
+  /// Requests PNG output for lossless transparency support.
   png,
+
+  /// Requests PPM output.
   ppm,
+
+  /// Requests raw pixel output.
   raw,
+
+  /// Requests SVG output.
   svg,
+
+  /// Requests TIFF output.
   tiff,
+
+  /// Requests V format output when supported by the service.
   v,
+
+  /// Requests WebP output for browsers that support it.
   webp,
 }
 
-/// Enum for predefined image sizes.
-///
-/// Each size corresponds to a specific dimension.
-///
-/// * `thumbnail` - thumbnail size 200x400
-/// * `small` - small size 200x200
-/// * `medium` - medium size 600x600
-/// * `standard` - standard size 1200x1200
-/// * `high` - high size 1400x1400
-/// * `max` - max size 1600x1600
-enum ImageSize { thumbnail, small, medium, standard, high, max }
+/// Defines the named image sizes understood by the backing image service.
+enum ImageSize {
+  /// Requests a narrow thumbnail rendition, useful for previews and cards.
+  thumbnail,
 
-/// SmartImage can be used to display an image for basic Imgix or Internal implementation.
+  /// Requests a compact square rendition for dense UI surfaces.
+  small,
+
+  /// Requests a medium rendition suitable for most inline media.
+  medium,
+
+  /// Requests a large standard rendition for detailed content views.
+  standard,
+
+  /// Requests a high-resolution rendition for larger displays.
+  high,
+
+  /// Requests the largest predefined rendition exposed by the service.
+  max
+}
+
+/// Loads and resizes network images with sensible placeholders and responsive requests.
 ///
-/// [url] This is the image url.
-/// [size] Predefined size
-/// https://github.com/FabricElements/shared-helpers/blob/main/src/media.ts
+/// The widget measures its layout, debounces resize-driven URL changes, and then asks the
+/// backing image service for an appropriately sized asset. That approach reduces wasted
+/// bandwidth during rapid layout changes while still fitting naturally into Flutter's
+/// rebuild lifecycle on mobile and web.
+/// See https://github.com/FabricElements/shared-helpers/blob/main/src/media.ts.
+///
+/// Example:
+/// ```dart
 /// SmartImage(
 ///   url: 'https://images.unsplash.com/photo-1516571748831-5d81767b788d',
 /// );
+/// ```
 class SmartImage extends StatefulWidget {
+  /// Creates an adaptive network image widget for the supplied [url].
   const SmartImage({
     super.key,
     required this.url,
@@ -59,43 +112,54 @@ class SmartImage extends StatefulWidget {
     this.fit = BoxFit.cover,
   });
 
-  /// Image URL
+  /// Identifies the source image to request, or shows a placeholder when absent.
   final String? url;
 
-  /// Predefined sizes
+  /// Requests a predefined backend size instead of layout-derived dimensions.
   final ImageSize? size;
 
-  /// Background color
+  /// Overrides the placeholder background color while the image is loading.
   final Color? color;
 
-  /// Output format
+  /// Requests a specific backend output format for the generated image.
   final AvailableOutputFormats? format;
 
-  /// How to inscribe the image into the space allocated during layout.
+  /// Controls how the resolved image is inscribed into the available paint box.
   ///
-  /// The default varies based on the other fields. See the discussion at
-  /// [paintImage].
+  /// When [size] is omitted, this value also determines whether the widget requests both
+  /// width and height from the backend or only a width-preserving resize.
   final BoxFit fit;
 
+  /// Creates the state that measures layout changes and debounces resize requests.
   @override
   State<SmartImage> createState() => _SmartImageState();
 }
 
+/// Tracks measured dimensions and resolves the final image request URL.
 class _SmartImageState extends State<SmartImage> {
+  /// Debounces resize-triggered state updates so layout thrashing does not spam requests.
   Timer? _timer;
+  /// Stores the debounced request width sent to the backend image service.
   int width = 0;
+  /// Stores the debounced request height sent to the backend image service.
   int height = 0;
+  /// Captures the current device pixel ratio so cache hints match display density.
   double devicePixelRatio = 1;
+  /// Counts resize updates to lengthen the debounce after the initial measurement.
   int resizedTimes = 0;
+  /// Remembers the actual layout width for widgets that need the rendered dimensions.
   double realWidth = 0;
+  /// Remembers the actual layout height for widgets that need the rendered dimensions.
   double realHeight = 0;
 
+  /// Cancels any pending resize debounce before the widget leaves the tree.
   @override
   void dispose() {
     _timer?.cancel();
     super.dispose();
   }
 
+  /// Resets measured dimensions when the source image changes between rebuilds.
   @override
   void didUpdateWidget(SmartImage oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -110,9 +174,7 @@ class _SmartImageState extends State<SmartImage> {
     }
   }
 
-  /// Resize image
-  /// [newHeight] New height
-  /// [newWidth] New width
+  /// Applies a newly measured request size when the dimensions actually changed.
   void _resizeImage({int newHeight = 0, int newWidth = 0}) {
     if (width == newWidth && height == newHeight) return;
     if (mounted) {
@@ -124,10 +186,7 @@ class _SmartImageState extends State<SmartImage> {
     }
   }
 
-  /// Resize image with debounce
-  /// This function will resize the image with debounce to prevent too many requests
-  /// [newHeight] New height
-  /// [newWidth] New width
+  /// Defers resize updates to avoid issuing a new image request on every tiny layout tick.
   Future<void> _resizeImageDebounce({
     int newHeight = 0,
     int newWidth = 0,
@@ -140,6 +199,7 @@ class _SmartImageState extends State<SmartImage> {
     });
   }
 
+  /// Builds placeholders first and swaps in the resolved network image when ready.
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

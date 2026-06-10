@@ -1,19 +1,18 @@
 import 'dart:async';
 
 /// Stream transformer that limits the total number of bytes emitted by a
-/// Stream<List<int>>.
+/// `Stream<List<int>>`.
 ///
 /// This transformer is useful when reading potentially large binary streams
-/// (for example HTTP responses or file streams) and you want to ensure the
-/// consumer does not process more than a specified number of bytes.
+/// such as HTTP responses or file streams and you want to ensure the consumer
+/// does not process more than a specified number of bytes.
 ///
 /// Behavior:
 /// - Each incoming chunk's length is added to an internal counter.
-/// - If the counter exceeds [maxBytes], the transformer emits an error via
-///   the output stream and cancels the upstream subscription. The output
-///   stream is then closed.
-/// - Otherwise, chunks are forwarded unchanged to the output stream.
-/// - Pause, resume and cancel are proxied to the upstream subscription.
+/// - If the counter exceeds [maxBytes], the transformer emits an error via the
+///   output stream, cancels the upstream subscription, and then closes.
+/// - Otherwise, chunks are forwarded unchanged.
+/// - Pause, resume, and cancel are proxied to the upstream subscription.
 ///
 /// Example:
 /// ```dart
@@ -27,14 +26,18 @@ import 'dart:async';
 class ByteCountTransformer extends StreamTransformerBase<List<int>, List<int>> {
   /// Maximum total bytes allowed to be forwarded by the transformer.
   ///
-  /// When the cumulative size of forwarded chunks exceeds this value an
-  /// error will be emitted and the upstream subscription will be cancelled.
+  /// When the cumulative size of forwarded chunks exceeds this value, an error
+  /// is emitted and the upstream subscription is cancelled.
   final int maxBytes;
 
-  /// Creates a [ByteCountTransformer] that allows up to [maxBytes] bytes
-  /// to pass through before emitting an error and closing the stream.
+  /// Creates a [ByteCountTransformer] capped at [maxBytes] bytes.
   ByteCountTransformer(this.maxBytes);
 
+  /// Returns a stream that forwards bytes until [maxBytes] is exceeded.
+  ///
+  /// Once the limit is crossed, the returned stream emits an [Exception],
+  /// cancels the source subscription, and closes so callers can fail fast when
+  /// handling unexpectedly large payloads.
   @override
   Stream<List<int>> bind(Stream<List<int>> stream) {
     late StreamController<List<int>> controller;

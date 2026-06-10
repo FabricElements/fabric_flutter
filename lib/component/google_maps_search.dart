@@ -10,12 +10,14 @@ import '../helper/http_request.dart';
 import 'alert_data.dart';
 import 'google_maps_preview.dart';
 
-/// This view has a map and allow choose a specific location
+/// Combines place search with a live map preview so users can choose a location.
 ///
-/// [admin] determines if the current user is an admin
-/// [signedIn] determines if the current user is signed In
-/// [user] returns the user object
+/// The widget keeps the text query, search results, and selected coordinates in state so
+/// it can bridge asynchronous Google Places lookups with the Flutter widget lifecycle. It
+/// is useful for address and place pickers where callers need structured [Place] data but
+/// also want immediate geographic feedback before persisting the selection.
 class GoogleMapsSearch extends StatefulWidget {
+  /// Creates a Google Maps search surface backed by the provided Places API key.
   const GoogleMapsSearch({
     super.key,
     required this.apiKey,
@@ -35,45 +37,74 @@ class GoogleMapsSearch extends StatefulWidget {
     this.autofocus = false,
   });
 
+  /// Receives the fully populated [Place] after the user selects a search result.
   final Function(Place)? onChange;
+  /// Receives human-readable errors from search and detail lookups.
   final Function(String)? onError;
+  /// Authenticates requests sent to the Google Places and Maps web services.
   final String apiKey;
+  /// Seeds the preview map with an initial latitude before a new search selection.
   final double? latitude;
+  /// Seeds the preview map with an initial longitude before a new search selection.
   final double? longitude;
+  /// Chooses the base map presentation used by the embedded preview.
   final MapType mapType;
+  /// Supplies the initial label shown in the search field and preview marker.
   final String? name;
+  /// Fixes the overall map surface aspect ratio to fit surrounding layouts predictably.
   final double aspectRatio;
+  /// Defines the initial zoom level applied to the preview map.
   final double zoom;
+  /// Constrains how far users can zoom the preview map in either direction.
   final MinMaxZoomPreference minMaxZoomPreference;
+  /// Reserves room for descriptive context associated with the selected place.
   final String? description;
+  /// Overrides the Google Maps API base URL, which is useful for testing or proxying.
   final String baseUrl;
+  /// Requests focus for the search field when the widget first appears.
   final bool autofocus;
 
-  /// Recommended 'administrative_area_level_1,administrative_area_level_2,locality,postal_codes'
+  /// Narrows queries to supported Google Place types when provided.
   final List<String> types;
 
-  /// Define Google Places API fields you require on the response
-  /// There is no need to include 'name', 'place_id', or 'geometry/location'
-  /// https://developers.google.com/maps/documentation/places/web-service/place-data-fields
+  /// Adds extra Google Places detail fields beyond the defaults required by this widget.
+  ///
+  /// Core identifiers and geometry fields are appended automatically so callers only need
+  /// to request the domain-specific fields they intend to persist or display later.
+  /// See https://developers.google.com/maps/documentation/places/web-service/place-data-fields.
   final List<String> fields;
 
+  /// Creates the state that owns search text, result lists, and selected coordinates.
   @override
   State<GoogleMapsSearch> createState() => _GoogleMapsSearchState();
 }
 
+/// Handles place searching, result selection, and preview synchronization.
 class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
+  /// Controls the search field text so it can be cleared after parent updates.
   TextEditingController textController = TextEditingController();
+  /// Tracks how many autocomplete results are currently visible.
   int totalItems = 0;
+  /// Reserves storage for map points if richer preview overlays are added later.
   List<LatLng>? points;
+  /// Stores the current place suggestions returned by the text search request.
   late List<Place> results;
+  /// Holds the overlay widgets layered on top of the map preview during build.
   late List<Widget> mapComponents;
+  /// Mirrors the selected place name displayed in the field hint and preview.
   String? name;
+  /// Tracks whether an asynchronous lookup is currently updating the selection.
   late bool loading;
+  /// Stores the currently selected latitude shown by the preview map.
   double? latitude;
+  /// Stores the currently selected longitude shown by the preview map.
   double? longitude;
+  /// Defines the minimal fields required to render and resolve text search results.
   List<String> searchFields = ['formatted_address', 'name', 'place_id'];
+  /// Combines mandatory fields with caller-provided detail fields for place lookups.
   late List<String> requiredFields;
 
+  /// Clears transient search state so a new query starts from a known baseline.
   void resetDefaultValues() {
     results = [];
     mapComponents = [];
@@ -84,15 +115,17 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
     name = null;
   }
 
+  /// Copies incoming coordinates and labels from the parent widget into local state.
   void getParentValues() {
     latitude = widget.latitude;
     longitude = widget.longitude;
     name = widget.name;
   }
 
-  /// Google Maps controller definition
+  /// References the underlying Google Map controller for future imperative map actions.
   late GoogleMapController mapController;
 
+  /// Initializes local search state and the required Google Places field list.
   @override
   void initState() {
     super.initState();
@@ -102,6 +135,7 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
     requiredFields = [...searchFields, 'geometry/location', ...widget.fields];
   }
 
+  /// Resynchronizes the preview when parent-provided coordinates or labels change.
   @override
   void didUpdateWidget(covariant GoogleMapsSearch oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -110,6 +144,7 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
     if (mounted) setState(() {});
   }
 
+  /// Builds the stacked map preview, search field, and optional result list overlay.
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

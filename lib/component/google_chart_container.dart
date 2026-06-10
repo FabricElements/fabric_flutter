@@ -11,19 +11,21 @@ import 'edit_save_button.dart';
 import 'google_chart.dart';
 import 'input_data.dart';
 
-/// Container for a chart with edit mode
-/// - Displays chart title and edit button
-/// - In edit mode, allows changing chart preferences
-/// - Calls onSave when preferences are saved
-/// - Calls onUpdate when preferences are updated
-/// - Calls onCancel when edit mode is cancelled
-/// - Calls onDelete when chart is deleted
-/// - Displays chart using GoogleChart widget
+/// Wraps a [GoogleChart] with optional editing controls for persisted chart settings.
+///
+/// This widget keeps a working copy of [preferences] so callers can preview edits,
+/// validate axis selections, and either commit or discard changes without mutating
+/// the original configuration until the surrounding flow is ready. During rebuilds it
+/// refreshes that working copy so externally provided chart state stays in sync with
+/// the widget lifecycle.
 class GoogleChartContainer extends StatefulWidget {
+  /// Provides a default callback for preference updates when no handler is supplied.
   static void _noopOnValueChanged(ChartPreferences preferences) {}
 
+  /// Provides a default callback for actions that do not need external handling.
   static void _defaultVoidCallback() {}
 
+  /// Creates a chart card that can optionally expose inline editing affordances.
   const GoogleChartContainer({
     super.key,
     required this.chartWrapper,
@@ -39,41 +41,63 @@ class GoogleChartContainer extends StatefulWidget {
     this.edit = false,
   });
 
+  /// Supplies the serialized chart data rendered by the embedded [GoogleChart].
   final ChartWrapper chartWrapper;
+  /// Provides the persisted preferences used to seed the editable working copy.
   final ChartPreferences? preferences;
+  /// Receives the current preference draft after the user confirms their edits.
   final Function(ChartPreferences preferences) onSave;
+  /// Receives intermediate preference changes so parents can react live while editing.
   final Function(ChartPreferences preferences) onUpdate;
+  /// Runs when edit mode is dismissed without saving the working copy.
   final VoidCallback onCancel;
+  /// Runs after the delete action is chosen from the edit toolbar.
   final VoidCallback onDelete;
 
-  /// External link to open the chart in a new tab
+  /// Points to an external chart experience that can open the encoded chart data.
   final String? externalLink;
 
-  /// Options for buttons
+  /// Lists selectable data columns for axes and series inputs while editing.
   final List<ButtonOptions> options;
 
-  /// Options for vertical axis
+  /// Defines the lowest selectable bound for the vertical range slider.
   final num? min;
+
+  /// Defines the highest selectable bound for the vertical range slider.
   final num? max;
 
-  /// Whether to support edit mode
+  /// Controls whether edit actions are exposed alongside the chart preview.
   final bool edit;
 
+  /// Creates the mutable state that mirrors and validates editable chart settings.
   @override
   State<GoogleChartContainer> createState() => _GoogleChartContainerState();
 }
 
+/// Manages the editable preference draft and slider state for [GoogleChartContainer].
 class _GoogleChartContainerState extends State<GoogleChartContainer> {
+  /// Tracks whether the widget is currently showing its inline editing controls.
   bool editMode = false;
+  /// Holds a cloned preference object so edits remain isolated until saved.
   late ChartPreferences preferencesCopy;
+  /// Mirrors the range slider selection shown for the vertical axis filter.
   late RangeValues _currentRangeValues;
+  /// Stores the normalized lower bound used by the range slider.
   late double min;
+  /// Stores the normalized upper bound used by the range slider.
   late double max;
+  /// Caches the preferred minimum currently applied to the draft preferences.
   late double prefMin;
+  /// Caches the preferred maximum currently applied to the draft preferences.
   late double prefMax;
+  /// Indicates whether a range selector can be rendered for the current axis setup.
   late bool showRange;
 
-  /// Reset preferences to initial values
+  /// Rebuilds the local editing draft from the latest widget configuration.
+  ///
+  /// This keeps interactive controls consistent after parent updates, clamps invalid
+  /// range values back into supported bounds, and hides the slider when axis data is
+  /// incomplete so the UI does not expose impossible chart states.
   void reset() {
     preferencesCopy = ChartPreferences.fromJson(
       widget.preferences?.toJson() ?? {},
@@ -104,12 +128,14 @@ class _GoogleChartContainerState extends State<GoogleChartContainer> {
     _currentRangeValues = RangeValues(prefMin, prefMax);
   }
 
+  /// Initializes the editable draft the first time the state enters the tree.
   @override
   void initState() {
     super.initState();
     reset();
   }
 
+  /// Refreshes local state whenever the parent provides new chart data or preferences.
   @override
   void didUpdateWidget(covariant GoogleChartContainer oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -117,6 +143,7 @@ class _GoogleChartContainerState extends State<GoogleChartContainer> {
     if (mounted) setState(() {});
   }
 
+  /// Builds either the chart preview or the editor, depending on [editMode].
   @override
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context);

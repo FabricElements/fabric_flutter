@@ -2,7 +2,13 @@ import 'package:flutter/material.dart';
 
 import 'content_container.dart';
 
+/// Displays a vertically stacked stepper using [ContentContainer] sections.
+///
+/// This variant exists for flows that need richer layout control than Flutter's
+/// built-in [Stepper], while still exposing familiar [Step] data and scroll
+/// behavior for long forms and onboarding experiences.
 class StepperExtended extends StatefulWidget {
+  /// Creates a stepper that renders each [Step] inside a content container.
   const StepperExtended({
     super.key,
     required this.steps,
@@ -15,7 +21,10 @@ class StepperExtended extends StatefulWidget {
     this.onScrollOffsetChanged,
   });
 
+  /// The ordered steps to render from top to bottom.
   final List<Step> steps;
+
+  /// Controls the width preset applied to each [ContentContainer].
   final ContentContainerSize size;
 
   /// The text style for ListTile's [title].
@@ -47,13 +56,17 @@ class StepperExtended extends StatefulWidget {
   /// Callback when scroll offset changes
   final Function(double offset)? onScrollOffsetChanged;
 
+  /// Creates state that manages the initial scroll position callback behavior.
   @override
   State<StepperExtended> createState() => _StepperExtendedState();
 }
 
+/// Owns the scroll controller used to report position changes for [StepperExtended].
 class _StepperExtendedState extends State<StepperExtended> {
+  /// Persists the configured initial offset and exposes scroll updates to the parent.
   late ScrollController _controller;
 
+  /// Initializes the controller before the first frame so scroll restoration is stable.
   @override
   void initState() {
     super.initState();
@@ -67,12 +80,14 @@ class _StepperExtendedState extends State<StepperExtended> {
     });
   }
 
+  /// Disposes the owned controller to avoid leaking listeners after removal.
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
 
+  /// Builds the step list and optionally wraps it in scroll affordances.
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

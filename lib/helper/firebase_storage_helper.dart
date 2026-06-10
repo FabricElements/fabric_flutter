@@ -9,34 +9,36 @@ import 'app_localizations_delegate.dart';
 import 'log_color.dart';
 import 'media_helper.dart';
 
-/// This is a helper which uploads any type of file to the firebase storage path specified.
-/// This helper returns the storage task snapshot for further use.
+/// Uploads, stores, and deletes files in Firebase Storage for package flows.
 ///
-/// ```dart
-/// FirebaseStorageHelper;
-/// ```
+/// This helper keeps storage concerns close to the media-picking and alerting
+/// utilities already used by the package. It offers both low-level upload
+/// helpers and higher-level methods that surface localized error feedback to the
+/// user interface.
 class FirebaseStorageHelper {
+  /// Provides access to localization and alert helpers during upload flows.
   BuildContext context;
 
+  /// Creates a storage helper bound to [context].
   FirebaseStorageHelper(this.context);
 
-  /// This is a helper which uploads any type of file to the firebase storage path specified.
-  /// This helper returns the storage task snapshot for further use.
+  /// Uploads [file] to Firebase Storage using an explicit folder [path] and [name].
   ///
-  /// [file] The file to be uploaded.
-  /// [path] The path within storage to put the file.
-  /// [name] The name of the file.
-  /// [contentType] The MIME content type of the file, if not specified firebase
-  /// will detect from the extension, if no extension it will default to `application/octet-stream`.
-  /// [metadata] Any additional metadata wanted to associate with the file, such as a user id, name or size.
+  /// This legacy helper remains available for callers that still work with
+  /// [File] instances directly. Prefer [save] for string-based uploads because
+  /// it supports the same storage backend while fitting better with the package's
+  /// media serialization flow. When [contentType] is omitted, Firebase infers it
+  /// from the file extension when possible, and [metadata] can attach extra
+  /// storage metadata such as ids or labels.
+  ///
   /// ```dart
-  /// FirebaseStorageHelper(reference: FirebaseStorage.instance.ref()).upload(
-  ///      file,
-  ///      'path/to/folder',
-  ///      'testFile.pdf',
-  ///      'application/pdf',
-  ///      {'name': 'testFile'},
-  ///    );
+  /// FirebaseStorageHelper.upload(
+  ///   file,
+  ///   'path/to/folder',
+  ///   'testFile.pdf',
+  ///   'application/pdf',
+  ///   {'name': 'testFile'},
+  /// );
   /// ```
   @Deprecated('use [FirebaseStorageHelper.save]')
   static Future<TaskSnapshot> upload(
@@ -58,8 +60,12 @@ class FirebaseStorageHelper {
     return await uploadTask.then((value) => value);
   }
 
-  /// Save file
-  /// Return file path with fileSavedReference.ref.fullPath
+  /// Saves raw string [data] to Firebase Storage at [path].
+  ///
+  /// The helper can append a timestamp when [autoId] is `true` and mark the path
+  /// with an `_expiry` suffix when [expiry] is requested. This makes it suitable
+  /// for storing generated assets whose final path should reflect lifecycle or
+  /// uniqueness requirements.
   static Future<TaskSnapshot> save({
     required String data,
     required String path,
@@ -81,7 +87,12 @@ class FirebaseStorageHelper {
     return imagesRef.putString(data, format: format, metadata: metadata);
   }
 
-  /// Custom
+  /// Saves a base64-encoded [file] and returns the resulting storage path.
+  ///
+  /// This wraps [save] with [PutStringFormat.base64] so media selected by the
+  /// package can be uploaded without first writing a temporary file. When
+  /// provided, [fileName] is exposed through the content disposition metadata so
+  /// downstream downloads can preserve a friendly name.
   Future<String> saveFile({
     required String file,
     required String contentType,
@@ -106,7 +117,11 @@ class FirebaseStorageHelper {
     return fileSaved.ref.fullPath;
   }
 
-  /// Upload image media
+  /// Lets the user pick an image, uploads it, and passes the result to [callback].
+  ///
+  /// Images are obtained through [MediaHelper.getImage], optionally resized with
+  /// [maxDimensions], and then stored under [path]. Failures trigger a localized
+  /// alert instead of throwing so UI flows can remain straightforward.
   Future uploadImageMedia({
     required MediaOrigin origin,
     required Function(String, MediaData) callback,
@@ -143,6 +158,11 @@ class FirebaseStorageHelper {
     }
   }
 
+  /// Lets the user pick a file, uploads it, and passes the result to [callback].
+  ///
+  /// Only files matching [fileExtensions] are accepted. When [maxFileSize] is
+  /// supplied, oversized files are rejected before upload, and upload or picker
+  /// errors are surfaced through localized alerts.
   Future uploadMedia({
     required Function(String, MediaData) callback,
     required String path,
@@ -181,7 +201,11 @@ class FirebaseStorageHelper {
     }
   }
 
-  /// Delete file safely
+  /// Deletes the Firebase Storage object stored at [filePath].
+  ///
+  /// Missing files are treated as a successful no-op because cleanup code often
+  /// runs after partial failures or repeated retries. Other Firebase errors are
+  /// logged and rethrown so callers can decide whether to recover or abort.
   static Future<void> delete(String filePath) async {
     try {
       final storageRef = FirebaseStorage.instance.ref();

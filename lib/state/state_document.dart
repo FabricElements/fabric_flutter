@@ -5,14 +5,27 @@ import 'package:collection/collection.dart';
 
 import 'state_shared.dart';
 
-/// This is a change notifier class which keeps track of state within the campaign builder views.
+/// Manages state for a single Firestore document.
+///
+/// This base class bridges a [DocumentReference] with the shared state lifecycle
+/// from [StateShared]. Consumers usually assign [ref] and then call either
+/// [call] for a one-time fetch or [listen] for live snapshots. Updates propagate
+/// through [data], [stream], and [notifyListeners], making it suitable for views
+/// that need to rebuild when a document changes.
+///
+/// The implementation intentionally ignores a few server-managed fields during
+/// equality checks so heartbeat-style writes do not trigger unnecessary UI
+/// updates.
 abstract class StateDocument extends StateShared {
+  /// Creates a document-backed state.
   StateDocument();
 
-  /// More at [ref]
+  /// Stores the current Firestore document reference.
   DocumentReference? baseRef;
 
-  /// Stop listening for changes
+  /// Stops listening to the current document and clears the state.
+  ///
+  /// Pass [notify] when listeners should also receive the cleared value.
   Future<void> cancel({bool notify = false}) async {
     baseRef = null;
     if (_streamSubscription != null) {
@@ -25,7 +38,12 @@ abstract class StateDocument extends StateShared {
     return clear(notify: notify);
   }
 
-  /// Collection Reference
+  /// Assigns the document reference that subsequent reads and listeners use.
+  ///
+  /// Reassigning the same path is ignored. Changing the reference cancels any
+  /// active stream subscription and clears existing state so the next fetch does
+  /// not mix data from different documents.
+  ///
   /// FirebaseFirestore.instance.collection('example')
   set ref(DocumentReference? reference) {
     if (loading) return;
@@ -37,7 +55,11 @@ abstract class StateDocument extends StateShared {
     super.clear(notify: true);
   }
 
-  /// Make call and listen for changes
+  /// Starts listening to live updates from [ref].
+  ///
+  /// Call this once during a widget lifecycle when the UI should stay in sync
+  /// with Firestore changes. The listener suppresses rebuilds for changes that
+  /// only affect ignored metadata keys.
   @override
   Future<dynamic> listen() async {
     if (loading) return data;
@@ -114,6 +136,7 @@ abstract class StateDocument extends StateShared {
     return data;
   }
 
+  /// Fetches the current document once without maintaining a live subscription.
   @override
   Future<dynamic> call({bool ignoreDuplicatedCalls = true}) async {
     if (loading) return data;
@@ -139,20 +162,25 @@ abstract class StateDocument extends StateShared {
     return data;
   }
 
-  /// Get document reference
+  /// Returns the current Firestore document reference.
   DocumentReference? get ref => baseRef;
 
-  /// Firestore Document Stream Reference
+  /// Holds the active Firestore snapshot subscription.
   StreamSubscription<DocumentSnapshot<Object?>>? _streamSubscription;
 
-  /// Update Firestore Document
+  /// Updates fields on the current Firestore document.
+  ///
+  /// This requires [ref] to be non-null.
   Future<void> update(Map<String, dynamic> newData) => baseRef!.update(newData);
 
-  /// Set Merge Firestore Document
+  /// Writes [newData] to the current Firestore document.
+  ///
+  /// Set [merge] to preserve unspecified fields instead of replacing the full
+  /// document.
   Future<void> set(Map<String, dynamic> newData, {bool merge = false}) =>
       baseRef!.set(newData, SetOptions(merge: merge));
 
-  /// Clear data
+  /// Clears the document reference and resets shared state.
   @override
   void clear({bool notify = true}) {
     baseRef = null;

@@ -7,21 +7,38 @@ import '../serialized/password_data.dart';
 import './input_data.dart';
 import 'alert_data.dart';
 
+/// Guides the user through validating and confirming a password change.
+///
+/// The widget progressively reveals fields as the current password and the new
+/// password become valid, which helps reduce accidental submissions and keeps
+/// the surrounding settings screen lightweight.
 class UpdatePassword extends StatefulWidget {
+  /// Creates a password update form that reports a validated [PasswordData]
+  /// object through [callback].
   const UpdatePassword({super.key, required this.callback});
 
+  /// Receives the confirmed password payload after the user accepts the warning
+  /// dialog.
   final Function(PasswordData) callback;
 
+  /// Creates mutable form state for the password update flow.
   @override
   State<UpdatePassword> createState() => _UpdatePasswordState();
 }
 
+/// Tracks the staged password values and validation results for
+/// [UpdatePassword].
 class _UpdatePasswordState extends State<UpdatePassword> {
+  /// Holds the user's current password entry.
   late String current;
+  /// Holds the proposed new password before confirmation.
   late String password1;
+  /// Holds the repeated new password used to confirm the change.
   late String password2;
+  /// Indicates whether the collected values are ready to submit.
   late bool ok;
 
+  /// Resets the form after a successful submission or the initial mount.
   void reset() {
     current = '';
     password1 = '';
@@ -29,12 +46,15 @@ class _UpdatePasswordState extends State<UpdatePassword> {
     ok = false;
   }
 
+  /// Initializes the form with empty password values.
   @override
   void initState() {
     super.initState();
     reset();
   }
 
+  /// Builds a staged password form that only exposes the next step when the
+  /// current step is valid.
   @override
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context);

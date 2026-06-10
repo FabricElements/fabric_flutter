@@ -6,6 +6,10 @@ import 'user_avatar.dart';
 
 /// UserChip displays a User's profile name and avatar
 class UserChip extends StatefulWidget {
+  /// Creates a chip that resolves user metadata from [StateUsers].
+  ///
+  /// This widget exists so callers can pass a user id and let the shared state
+  /// layer handle live updates to names, avatars, and presence information.
   const UserChip({
     super.key,
     required this.uid,
@@ -15,17 +19,29 @@ class UserChip extends StatefulWidget {
     this.avatarPrefix,
   });
 
+  /// The user identifier looked up in [StateUsers].
   final String? uid;
+
+  /// Shows only the resolved text label when `true`.
   final bool minimal;
+
+  /// Overrides the text style used by the minimal label variant.
   final TextStyle? labelStyle;
+
+  /// Called when the chip's delete affordance is pressed.
   final Function()? onDeleted;
+
+  /// Prepends a base path to avatar image names when one is required.
   final String? avatarPrefix;
 
+  /// Creates state that rebuilds when user data changes in the provider.
   @override
   State<UserChip> createState() => _UserChipState();
 }
 
+/// Resolves user state into the visual chip representation used by [UserChip].
 class _UserChipState extends State<UserChip> {
+  /// Builds either a compact text label or a full chip, depending on [UserChip.minimal].
   @override
   Widget build(BuildContext context) {
     if (widget.uid == null) return const SizedBox(width: 0, height: 0);

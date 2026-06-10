@@ -6,19 +6,31 @@ import '../helper/app_localizations_delegate.dart';
 import '../serialized/chart_wrapper.dart';
 import 'iframe_minimal.dart';
 
-/// Google Chart
-/// This widget uses Google Charts to render charts within an iframe.
-/// It constructs an HTML document that loads the Google Charts library,
-/// initializes a chart with the provided configuration, and embeds it in an iframe.
+/// Renders a Google Chart inside a minimal iframe-backed HTML document.
+///
+/// The widget serializes [data] into the JavaScript configuration expected by
+/// Google's `ChartWrapper`, embeds the generated document in an iframe, and
+/// falls back to localized explanatory copy whenever the chart data is missing
+/// or invalid. This keeps the Flutter tree stable even when chart setup fails
+/// during rebuilds.
+///
 /// https://developers.google.com/chart
 /// https://developers.google.com/chart/interactive/docs/gallery
 /// https://developers.google.com/chart/interactive/docs/reference
 class GoogleChart extends StatelessWidget {
-  /// Chart configuration data
+  /// Stores the Google Charts configuration that will be serialized to JSON.
   final ChartWrapper data;
 
+  /// Creates a [GoogleChart] from the provided chart configuration.
+  ///
+  /// The constructor keeps [data] required so the widget can decide at build
+  /// time whether to render the chart or show a localized fallback state.
   const GoogleChart({super.key, required this.data});
 
+  /// Builds either the embedded chart or a fallback tile when rendering is impossible.
+  ///
+  /// Invalid data and serialization failures both resolve to the same friendly
+  /// message so parents do not need custom error handling for common edge cases.
   @override
   Widget build(BuildContext context) {
     bool isValid = data.isValid();

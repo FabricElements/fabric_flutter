@@ -1,7 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
+/// Embeds a remote document in a native [WebViewWidget].
+///
+/// This widget mirrors the web implementation so shared widget trees can
+/// request iframe-style content on every platform. When [src] is `null`, it
+/// renders an empty box instead of creating a controller-backed view.
 class IframeMinimal extends StatefulWidget {
+  /// Creates a native iframe wrapper.
+  ///
+  /// Provide [src] to load a remote page. [rawHtml] is accepted for API parity
+  /// with the web implementation, but native platforms currently render only
+  /// URL-based content.
   const IframeMinimal({
     super.key,
     this.src,
@@ -10,18 +20,29 @@ class IframeMinimal extends StatefulWidget {
     this.alt = 'Iframe',
   });
 
+  /// The remote URL loaded into the embedded web view.
   final String? src;
+
+  /// Raw HTML kept for API parity with the web implementation.
   final String? rawHtml;
+
+  /// Alternative text describing the embedded content when accessibility tools use it.
   final String alt;
+
+  /// A human-readable title for the embedded frame.
   final String title;
 
+  /// Creates the mutable state that configures and renders the web view.
   @override
   State<IframeMinimal> createState() => _IframeMinimalState();
 }
 
+/// Owns the [WebViewController] used to render iframe content on native platforms.
 class _IframeMinimalState extends State<IframeMinimal> {
+  /// Controls loading, navigation, and JavaScript execution for the embedded page.
   WebViewController controller = WebViewController();
 
+  /// Initializes the controller once so rebuilds do not reload the page unexpectedly.
   @override
   void initState() {
     if (widget.src != null) {
@@ -56,6 +77,7 @@ class _IframeMinimalState extends State<IframeMinimal> {
     super.initState();
   }
 
+  /// Builds the platform view or an empty placeholder when no source URL exists.
   @override
   Widget build(BuildContext context) {
     if (widget.src == null) return const SizedBox();

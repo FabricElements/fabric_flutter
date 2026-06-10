@@ -15,29 +15,67 @@ import '../helper/utils.dart';
 import 'alert_data.dart';
 import 'smart_image.dart';
 
-/// InputDataType defines the supported types for the [InputData] component
+/// Defines the value representations supported by [InputData].
 enum InputDataType {
+  /// Edits a calendar date without a time component.
   date,
+
+  /// Edits a [TimeOfDay] value without an associated date.
   time,
+
+  /// Edits a full date and time value.
   dateTime,
+
+  /// Edits a timestamp value that is serialized as a [DateTime].
   timestamp,
+
+  /// Edits an email address with email-aware keyboard and validation behavior.
   email,
+
+  /// Edits a signed integer value.
   int,
+
+  /// Edits a floating-point number.
   double,
+
+  /// Edits a numeric value intended to represent currency.
   currency,
+
+  /// Edits a numeric value intended to represent a percentage.
   percent,
+
+  /// Edits long-form multiline text.
   text,
+
+  /// Selects from a Dart [Enum] list.
   enums,
+
+  /// Selects from a caller-provided [ButtonOptions] list.
   dropdown,
+
+  /// Edits a short free-form string.
   string,
+
+  /// Selects one option from a radio-button group.
   radio,
+
+  /// Edits a phone number using phone-friendly formatting rules.
   phone,
+
+  /// Edits secret text, typically passwords or tokens.
   secret,
+
+  /// Edits a URL with URL-aware keyboard and validation behavior.
   url,
+
+  /// Edits a boolean value using a switch control.
   bool,
 }
 
-/// Input Data Type default icon
+/// Returns a sensible default icon for the supplied [InputDataType].
+///
+/// This keeps field affordances visually consistent even when callers do not provide a
+/// custom prefix icon for date pickers, dropdowns, or other specialized inputs.
 IconData inputDataTypeIcon(InputDataType inputDataType) {
   late IconData icon;
   switch (inputDataType) {
@@ -99,8 +137,11 @@ IconData inputDataTypeIcon(InputDataType inputDataType) {
   return icon;
 }
 
-/// Parse value by input data type
-/// This function is used to parse the value to the correct type
+/// Converts a raw value into the runtime type expected by [InputDataType].
+///
+/// The helper mirrors the widget's internal normalization rules so callers can prepare
+/// external values consistently, especially for nullable numbers, phone inputs, dates,
+/// and enum-backed fields before those values re-enter the widget tree.
 dynamic parseValueByInputDataType({
   required InputDataType type,
   required dynamic value,
@@ -168,10 +209,13 @@ dynamic parseValueByInputDataType({
   return newValue;
 }
 
-/// InputData provides an useful way to handle data input
-/// It's much faster to use this component because includes all the controllers
-/// you require for multiple data types [InputDataType]
+/// Presents a single adaptive input widget for many common value types.
+///
+/// [InputData] centralizes controller management, parsing, validation, and specialized
+/// picker behavior so forms can switch between text, dates, enums, booleans, and other
+/// field types without reimplementing the same lifecycle glue in every screen.
 class InputData extends StatefulWidget {
+  /// Creates an adaptive field seeded with [value] and configured by [type].
   const InputData({
     super.key,
     required this.value,
@@ -215,49 +259,85 @@ class InputData extends StatefulWidget {
     this.keyboardType,
   });
 
+  /// Supplies the current value rendered by the field and its internal controllers.
   final dynamic value;
+  /// Lists the enum values that can be selected when [type] is [InputDataType.enums].
   final List<Enum> enums;
+  /// Lists selectable options for dropdown and radio-style input types.
   final List<ButtonOptions> options;
+  /// Chooses which editor, parser, and validation rules the widget should apply.
   final InputDataType type;
+  /// Makes the field read-only while still allowing selection or copy affordances.
   final bool disabled;
+  /// Overrides the placeholder shown when the field has no visible value.
   final String? hintText;
+  /// Limits how many characters the text-based editor will accept.
   final int? maxLength;
+  /// Requests a denser visual layout than the surrounding theme default.
   final bool isDense;
+  /// Overrides the internal content padding applied by the generated [InputDecoration].
   final EdgeInsets padding;
+  /// Wraps the field with outer spacing so forms can align adjacent inputs cleanly.
   final EdgeInsets margin;
+  /// Adjusts serialized date values when the caller stores a non-local UTC offset.
   final int? utcOffset;
+  /// Adds custom validation on top of the built-in type-aware normalization rules.
   final FormFieldValidator<String>? validator;
+  /// Overrides the filled background color used by the generated input decoration.
   final Color? backgroundColor;
+  /// Shows an external error message without requiring a surrounding [Form].
   final String? error;
+  /// Provides a custom text style for widgets that read it from the field configuration.
   final TextStyle? textStyle;
+  /// Starts text inputs in obscured mode before local visibility toggles are applied.
   final bool obscureText;
+  /// Supplies the label rendered by the generated [InputDecoration].
   final String? label;
+  /// Overrides the keyboard action button for text-based field variants.
   final TextInputAction? textInputAction;
+  /// Enables platform autocorrect for text-entry variants that should support it.
   final bool autocorrect;
+  /// Requests focus for the field as soon as it enters the tree.
   final bool autofocus;
+  /// Reuses an external [TextEditingController] when the parent needs direct access.
   final TextEditingController? textController;
+  /// Forwards platform autofill hints to compatible text-based editors.
   final Iterable<String>? autofillHints;
 
   // Custom suffix and prefix
+  /// Injects a custom suffix widget after the editable region.
   final Widget? suffix;
+  /// Replaces the default trailing icon, including clear and visibility controls.
   final Widget? suffixIcon;
+  /// Appends non-interactive trailing text inside the input decoration.
   final String? suffixText;
+  /// Prepends non-interactive leading text inside the input decoration.
   final String? prefixText;
+  /// Injects a custom prefix widget before the editable region.
   final Widget? prefix;
+  /// Replaces the default leading icon shown for specialized field types.
   final Widget? prefixIcon;
+  /// Styles [prefixText] when a textual prefix is displayed.
   final TextStyle? prefixStyle;
+  /// Styles [suffixText] when trailing helper text is displayed.
   final TextStyle? suffixStyle;
 
-  /// [onSubmit]
-  /// Never use expression body or value won't be update correctly
+  /// Runs when the field is submitted and receives the normalized current value.
+  ///
+  /// The callback is invoked after the widget has applied its type-specific parsing so the
+  /// parent does not need to repeat number, enum, or phone normalization.
   final ValueChanged<dynamic>? onSubmit;
 
-  /// [onComplete]
-  /// Never use expression body or value won't be update correctly
+  /// Runs when editing is completed and receives the normalized current value.
+  ///
+  /// This is useful for flows that need to react once input focus or picker interaction has
+  /// settled, rather than on every intermediate character change.
   final ValueChanged<dynamic>? onComplete;
 
-  /// [onChanged]
-  /// Never use expression body or value won't be update correctly
+  /// Runs whenever the field value changes and receives the normalized new value.
+  ///
+  /// The widget uses this as its primary outward data channel, so callers can safely store
+  /// the result without re-parsing it based on [type].
   final ValueChanged<dynamic>? onChanged;
 
   /// {@template flutter.material.inputDecoration.floatingLabelBehavior}
@@ -289,35 +369,48 @@ class InputData extends StatefulWidget {
   /// and it is used to open the search view when the user taps on the anchor.
   final SearchController? searchController;
 
-  /// Show local time
-  /// If true, the time will be shown in the local time zone
-  /// if false, the time will be shown in the UTC time zone
+  /// Chooses whether date and time values are displayed in local time instead of UTC.
+  ///
+  /// This matters when values are persisted in UTC but should be edited in the user's local
+  /// time zone without losing round-trip consistency.
   final bool asLocalTime;
 
+  /// Overrides whether users can select and copy text from text-based field variants.
   final bool? enableInteractiveSelection;
 
+  /// Appends custom formatters after the widget's built-in type-specific formatters.
   final List<TextInputFormatter> inputFormatters;
 
   /// {@macro flutter.widgets.editableText.keyboardType}
   final TextInputType? keyboardType;
 
+  /// Creates the state that owns controllers, picker state, and normalized values.
   @override
   State<InputData> createState() => _InputDataState();
 }
 
+/// Synchronizes controllers, parsed values, and specialized picker interactions.
 class _InputDataState extends State<InputData> {
+  /// Owns the editable text for text-based variants when no external controller is used.
   late TextEditingController textController;
+  /// Opens and closes the search view used by dropdown and enum pickers.
   late SearchController searchController;
+  /// Formats date-only values for display inside read-only picker fields.
   DateFormat formatDate = DateFormat.yMd('en_US');
+  /// Formats date-time values for display after picker selections are normalized.
   DateFormat formatDateTime = DateFormat.yMd(
     'en_US',
   ).addPattern(' - ').add_jm();
+  /// Stores an internally generated prefix, such as the `+` used for phone fields.
   String? prefixText;
+  /// Holds the normalized current value used across the widget's different editors.
   dynamic value;
+  /// Tracks whether text should currently be visually obscured.
   late bool obscureText;
+  /// Records whether the current field type supports a visibility toggle.
   late bool obscure;
 
-  /// Format New Value
+  /// Normalizes raw editor output into the canonical value shape for the current type.
   dynamic valueChanged(dynamic valueLocal) {
     if (valueLocal == null) return null;
     String valueLocalString = valueLocal!.toString();
@@ -344,7 +437,10 @@ class _InputDataState extends State<InputData> {
     }
   }
 
-  /// Get Value from parameter
+  /// Synchronizes controllers and local state from a newly provided external [value].
+  ///
+  /// This method is reused during initialization and widget updates so text controllers,
+  /// dropdown labels, and picker values always reflect the most recent parent state.
   void getValue({bool notify = false, required dynamic newValue}) {
     try {
       switch (widget.type) {
@@ -471,6 +567,7 @@ getValue -------------------------------------
     }
   }
 
+  /// Validates configuration and initializes controllers when the widget is inserted.
   @override
   void initState() {
     super.initState();
@@ -502,7 +599,7 @@ getValue -------------------------------------
     getValue(newValue: widget.value);
   }
 
-  /// Close search controller
+  /// Closes the dropdown search view and clears any transient query text.
   void _closeSearch() {
     try {
       searchController.clear();
@@ -512,19 +609,21 @@ getValue -------------------------------------
     }
   }
 
-  /// Clear the input
+  /// Clears the outward value by notifying listeners with `null`.
   void _clear() {
     widget.onChanged?.call(null);
     widget.onComplete?.call(null);
     widget.onSubmit?.call(null);
   }
 
+  /// Reapplies the incoming value whenever the parent rebuilds with new field data.
   @override
   void didUpdateWidget(covariant InputData oldWidget) {
     super.didUpdateWidget(oldWidget);
     getValue(notify: false, newValue: widget.value);
   }
 
+  /// Releases any internally owned controllers when the widget leaves the tree.
   @override
   void dispose() {
     _closeSearch();
@@ -540,6 +639,7 @@ getValue -------------------------------------
     super.dispose();
   }
 
+  /// Builds the concrete editor that matches the configured [InputDataType].
   @override
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context);

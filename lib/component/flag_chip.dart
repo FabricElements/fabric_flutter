@@ -3,19 +3,27 @@ import 'package:intl/intl.dart';
 
 import '../helper/iso_language.dart';
 
-/// FlagChip is used to represent the language as a flag along with a related number.
+/// Displays a compact chip for a language, optionally with a total count.
 ///
-/// [language] ISO-639-1 language code used to retrieve a flag corresponding to the language.
-/// [total] The related number to the language, such as number of contacts related to the language.
+/// The chip pairs an ISO language code with either its matching emoji flag or a
+/// generic info icon for the special `total` bucket. This makes it suitable for
+/// filters, summaries, and analytics UIs where language metadata needs to stay
+/// glanceable.
+///
+/// [language] is the ISO-639-1 language code used to retrieve a matching flag.
+/// [total] is the related number for the language, such as a contact count.
+///
 /// ```dart
 /// FlagChip(
 ///   language: language,
 ///   total: 100,
-///   color: Colors.indigo.shade500,
-///   colorText: Colors.white,
 /// );
 /// ```
 class FlagChip extends StatelessWidget {
+  /// Creates a [FlagChip] for the given [language].
+  ///
+  /// Supplying [onDeleted] lets the chip participate in removable filter UIs,
+  /// while omitting [total] keeps the label compact for dense layouts.
   const FlagChip({
     super.key,
     required this.language,
@@ -23,10 +31,19 @@ class FlagChip extends StatelessWidget {
     this.onDeleted,
   });
 
+  /// Stores the ISO-639-1 code or special summary label shown by the chip.
   final String language;
+
+  /// Supplies an optional numeric total displayed beside the language code.
   final int? total;
+
+  /// Runs when the chip's delete affordance is activated.
   final VoidCallback? onDeleted;
 
+  /// Builds the chip with a localized number format and flag-style avatar.
+  ///
+  /// The count uses [NumberFormat.decimalPattern] so large totals remain easy to
+  /// scan across locales and analytics-heavy interfaces.
   @override
   Widget build(BuildContext context) {
     final NumberFormat formatDecimal = NumberFormat.decimalPattern();

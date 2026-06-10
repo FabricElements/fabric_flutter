@@ -4,8 +4,13 @@ import '../helper/app_localizations_delegate.dart';
 import '../helper/options.dart';
 import 'input_data.dart';
 
-/// Defines the pagination component with controls
+/// Renders pagination controls for moving through discrete result pages.
+///
+/// The widget keeps transient loading state locally so repeated taps cannot trigger
+/// overlapping navigation requests. It also exposes a page-size selector to keep list
+/// navigation and page limit changes visually grouped in one reusable control bar.
 class PaginationNav extends StatefulWidget {
+  /// Creates a pagination toolbar with previous, next, and optional edge navigation.
   const PaginationNav({
     super.key,
     required this.page,
@@ -22,26 +27,42 @@ class PaginationNav extends StatefulWidget {
     this.children = const [],
   });
 
+  /// Reports the currently visible page number.
   final int page;
+  /// Reports the currently selected number of items per page.
   final int limit;
+  /// Indicates whether advancing to the next page is currently allowed.
   final bool canPaginate;
+  /// Loads the next page when the user activates the forward action.
   final Function next;
+  /// Loads the previous page when the user activates the back action.
   final Function previous;
+  /// Optionally jumps directly to the first page in the result set.
   final Function? first;
+  /// Optionally jumps directly to the final page in the result set.
   final Function? last;
+  /// Receives a newly selected page size when the limit dropdown changes.
   final ValueChanged<int> limitChange;
+  /// Defines the first logical page so edge-button disabling works with custom indices.
   final int initialPage;
+  /// Reports the total number of pages available for the current dataset.
   final int totalPages;
+  /// Lists the page-size options offered by the limit dropdown.
   final List<int> limits;
+  /// Appends extra widgets into the toolbar for context-specific actions or filters.
   final List<Widget> children;
 
+  /// Creates the state that throttles pagination actions during async transitions.
   @override
   State<PaginationNav> createState() => _PaginationNavState();
 }
 
+/// Tracks temporary loading state while pagination callbacks are running.
 class _PaginationNavState extends State<PaginationNav> {
+  /// Prevents repeated taps from firing overlapping pagination requests.
   bool loading = false;
 
+  /// Builds a responsive toolbar that adapts between row and wrap layouts.
   @override
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context);

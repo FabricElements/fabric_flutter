@@ -5,7 +5,16 @@ import 'package:universal_html/universal_html.dart' show IFrameElement;
 
 import '../helper/log_color.dart';
 
+/// Embeds remote or inline HTML content in a browser [HtmlElementView].
+///
+/// The widget registers a platform view factory for the current iframe markup so
+/// Flutter web can host content that must remain outside the normal canvas-based
+/// rendering pipeline.
 class IframeMinimal extends StatelessWidget {
+  /// Creates a web iframe wrapper.
+  ///
+  /// Exactly one of [src] or [rawHtml] must be supplied so the browser knows
+  /// whether to load an external document or inline markup.
   const IframeMinimal({
     super.key,
     this.src,
@@ -17,11 +26,19 @@ class IframeMinimal extends StatelessWidget {
          'Either src or rawHtml must be provided, but not both.',
        );
 
+  /// The remote URL assigned to the iframe's `src` attribute.
   final String? src;
+
+  /// Inline markup assigned to the iframe's `srcdoc` attribute.
   final String? rawHtml;
+
+  /// Alternative text exposed to assistive technologies through the DOM element.
   final String alt;
+
+  /// The iframe title announced by browsers and accessibility tools.
   final String title;
 
+  /// Builds and registers the HTML iframe element for the current widget configuration.
   @override
   Widget build(BuildContext context) {
     final id = '#iframe-${(src ?? rawHtml).hashCode}';

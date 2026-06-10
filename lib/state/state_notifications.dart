@@ -12,22 +12,58 @@ import '../helper/log_color.dart';
 import '../serialized/notification_data.dart';
 import '../serialized/user_data.dart';
 
-/// Enum to define the origin of the notification
-enum NotificationOrigin { message, open, resume }
+/// Identifies how a push notification reached the application.
+enum NotificationOrigin {
+  /// The app received the notification while already in the foreground.
+  message,
 
-/// This is a change notifier class which keeps track of state within the campaign builder views.
+  /// The user opened the app from a notification tap or cold-start launch.
+  open,
+
+  /// The app resumed from the background while handling the notification.
+  resume,
+}
+
+/// Coordinates Firebase Cloud Messaging state for the application.
+///
+/// This notifier owns device-token registration, notification payload
+/// normalization, app-open handling, and optional navigation/callback behavior.
+/// Applications typically initialize it once after Firebase setup, assign a
+/// [callback] if custom UI work is needed, and then listen for updates via
+/// [notifyListeners] or by reading [notification].
+///
+/// Updates propagate when the stored FCM token changes or when formatted
+/// notifications are prepared. Background handling intentionally waits for
+/// navigation infrastructure to be ready before attempting route changes.
 class StateNotifications extends ChangeNotifier {
+  /// Creates the notifications state holder.
   StateNotifications();
 
+  /// Indicates whether Firebase is already initialized and messaging can be
+  /// used safely.
   bool initialized = Firebase.apps.isNotEmpty;
 
+  /// Stores the last device token successfully synchronized with Firestore.
   String? token;
+
+  /// Stores the latest normalized notification payload.
   NotificationData? _notification;
+
+  /// Stores the current user identifier whose document should receive token
+  /// updates.
   dynamic _uid;
+
+  /// Prevents notification listeners from being registered more than once.
   bool _initialized = false;
+
+  /// Stores an optional callback used for foreground or fallback handling.
   Function(NotificationData message)? _callback;
 
-  /// Update user token on the firestore user/{uid}
+  /// Persists the user's device token to `user/{uid}` in Firestore.
+  ///
+  /// Duplicate tokens are ignored so token refresh streams do not perform
+  /// redundant writes. The user document stores the token in the `fcm` array so
+  /// multi-device messaging can coexist cleanly.
   void _updateUserToken(String? tokenId) async {
     if (!initialized ||
         _uid == null ||
@@ -50,10 +86,14 @@ class StateNotifications extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// [notification] returns the body oof the notification
+  /// Returns the latest normalized notification payload.
   NotificationData? get notification => _notification;
 
-  /// Get the user messaging token
+  /// Requests notification permissions and returns the current FCM token.
+  ///
+  /// Returns `null` when the user declines permission or when Apple push token
+  /// setup fails. Callers typically invoke this from the main app flow so the
+  /// permission prompt does not block unrelated state initialization.
   Future<String?> getToken() async {
     if (!initialized) throw 'Initialize Firebase app first';
     // You may set the permission requests to "provisional" which allows the user to choose what type
@@ -99,6 +139,11 @@ class StateNotifications extends ChangeNotifier {
     return token;
   }
 
+  /// Flattens nested maps stored under [key] into the top-level payload.
+  ///
+  /// FCM payloads can arrive with platform-specific wrappers such as `aps` or
+  /// `notification`. Flattening them once keeps later parsing logic simple and
+  /// ensures [NotificationData.fromJson] sees a consistent shape.
   Map<String, dynamic> _clearObject(Map<String, dynamic> data, String key) {
     if (data.isEmpty || data[key] == null) {
       return data;
@@ -111,7 +156,12 @@ class StateNotifications extends ChangeNotifier {
     return data0;
   }
 
-  /// Return notify values
+  /// Normalizes an FCM [message] into a [NotificationData] object.
+  ///
+  /// The method merges platform-specific payload wrappers, annotates the user
+  /// operating system and notification [origin], fills missing title, body, and
+  /// image fields when possible, sanitizes route paths, and coerces booleans and
+  /// durations into predictable values.
   NotificationData? formatMessage({
     RemoteMessage? message,
     required String origin,
@@ -194,7 +244,11 @@ class StateNotifications extends ChangeNotifier {
     return _notification;
   }
 
-  /// Initialize the notifications
+  /// Registers foreground, background, and app-open notification handlers.
+  ///
+  /// Call this after Firebase Messaging is available. The handlers either route
+  /// the message to [callback] or attempt navigation based on the normalized
+  /// payload.
   Future<void> initNotifications() async {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       final formatted = formatMessage(
@@ -237,7 +291,12 @@ class StateNotifications extends ChangeNotifier {
     }
   }
 
-  /// Handle background message when the app is opened from a terminated or background state
+  /// Handles notifications that resume or launch the app.
+  ///
+  /// The entry-point pragma keeps the method reachable for background isolates.
+  /// The handler ensures Firebase is initialized, waits for navigation to become
+  /// available, and then prefers route navigation before falling back to the
+  /// registered [callback].
   @pragma('vm:entry-point')
   Future<void> _handleBackgroundMessage({
     required RemoteMessage message,
@@ -286,7 +345,10 @@ class StateNotifications extends ChangeNotifier {
     }
   }
 
-  /// Initializes the notifications and starts listening
+  /// Initializes notification handling exactly once.
+  ///
+  /// The delayed startup gives the rest of the app time to finish wiring the
+  /// optional [callback] and navigator dependencies before FCM events arrive.
   Future<void> init() async {
     // Prevent calling this function if not initialized
     if (_initialized) return;
@@ -301,21 +363,27 @@ class StateNotifications extends ChangeNotifier {
     initNotifications();
   }
 
-  /// Get user token for notifications
-  /// from the main App to prevent blocking call
+  /// Fetches the current user token and synchronizes it to Firestore.
+  ///
+  /// The method ensures initialization has happened first so token refresh
+  /// listeners and callbacks are already in place.
   Future<void> getUserToken() async {
     if (!_initialized || _uid == null) await init();
     final newToken = await getToken();
     _updateUserToken(newToken);
   }
 
-  /// Define user id
+  /// Sets the user identifier used for token persistence.
   set uid(dynamic id) {
     _uid = id;
   }
 
-  /// Navigate to a specific view based on the path and arguments
+  /// Navigates to the route described by [path] and [args].
+  ///
   /// Example path: /product?id=123&account=abc
+  ///
+  /// Invalid or empty paths are ignored. Only non-empty primitive arguments are
+  /// forwarded so routes do not receive noisy placeholder values.
   Future<void> _navigateToView({
     required String? path,
     required Map<String, dynamic> args,
@@ -345,8 +413,10 @@ class StateNotifications extends ChangeNotifier {
     }
   }
 
-  /// Default function call every time the id changes.
-  /// Override this function to add custom features for your state.
+  /// Resets all notification-related state.
+  ///
+  /// Override this in subclasses if extra caches or subscriptions must be
+  /// cleared alongside the built-in token and payload fields.
   void reset() {
     token = null;
     _notification = null;
@@ -354,11 +424,15 @@ class StateNotifications extends ChangeNotifier {
     _initialized = false;
   }
 
+  /// Registers the callback used for foreground and fallback notification work.
+  ///
+  /// Only the first assignment wins so startup code can safely set the callback
+  /// once without later rebuilds replacing it unexpectedly.
   set callback(Function(NotificationData message) callback) {
     _callback ??= callback;
   }
 
-  /// Clear document data
+  /// Clears all stored notification state.
   void clear() {
     reset();
   }

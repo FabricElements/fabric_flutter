@@ -10,6 +10,8 @@ import 'user_chip.dart';
 
 /// Displays a list of logs from an array of [logs]
 class LogsList extends StatelessWidget {
+  /// Creates a log feed that can be embedded in both scrolling pages and static
+  /// detail layouts.
   const LogsList({
     super.key,
     required this.logs,
@@ -26,10 +28,15 @@ class LogsList extends StatelessWidget {
     this.margin = const EdgeInsets.symmetric(vertical: 8),
   });
 
+  /// Provides the ordered log entries to render.
   final List<LogsData>? logs;
+  /// Defines optional per-entry actions exposed through a trailing menu.
   final List<ButtonOptions>? actions;
+  /// Reduces visual density for compact surfaces such as side panels.
   final bool minimal;
+  /// Overrides the emphasis color used for highlighted placeholders in log text.
   final Color? highlightColor;
+  /// Switches between an internal [ListView] and a fixed vertical layout.
   final bool scrollable;
 
   /// The amount of space using for each item.
@@ -38,6 +45,11 @@ class LogsList extends StatelessWidget {
   /// Main content margin space
   final EdgeInsetsGeometry margin;
 
+  /// Builds a rich-text representation of each log entry and optional auxiliary
+  /// actions.
+  ///
+  /// Entries can embed user mentions and structured payload previews so callers
+  /// can surface audit information without building custom renderers.
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

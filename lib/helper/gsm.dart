@@ -2,7 +2,11 @@ import 'dart:core';
 
 import '../serialized/gsm_data.dart';
 
-/// Dart version of GSM library
+/// Maps GSM 7-bit characters to the number of SMS character units they use.
+///
+/// Standard GSM characters count as one unit, while extension-table characters
+/// such as `^` and `€` count as two. The map powers message-length estimates
+/// and segmentation logic throughout [GSM].
 /// https://github.com/vchatterji/gsm
 /// https://twiliodeved.github.io/message-segment-calculator/
 Map<String, int> charset7bit = {
@@ -145,6 +149,11 @@ Map<String, int> charset7bit = {
   '€': 2,
 };
 
+/// Defines best-effort replacements for Unicode characters not supported by GSM.
+///
+/// The keys are Unicode code points and the values describe how unsupported
+/// input should be normalized before sending SMS content through systems that
+/// expect GSM-compatible text.
 final charMapToReplace = {
   0: {'original': '', 'replace': ''},
   3: {'original': '', 'replace': ''},
@@ -468,7 +477,16 @@ final charMapToReplace = {
   65380: {'original': '、', 'replace': ','},
 };
 
+/// Calculates SMS encoding details for GSM and Unicode text.
+///
+/// This helper mirrors common SMS gateway rules so the app can estimate how a
+/// message will be segmented, how many characters remain, and how text should
+/// be normalized before sending.
 class GSM {
+  /// Returns whether [content] contains any character outside the GSM 7-bit set.
+  ///
+  /// A `true` result means the message must be treated as Unicode, which lowers
+  /// the number of characters available per SMS segment.
   static bool isUnicode(String content) {
     var chars = content.split('');
     var isUnicode = false;
@@ -483,6 +501,10 @@ class GSM {
     return isUnicode;
   }
 
+  /// Returns the effective GSM length of [content].
+  ///
+  /// Characters from the GSM extension table count as two units, so this value
+  /// can differ from `content.length` even when the text is not Unicode.
   static int getTotalLengthGSM(String content) {
     var chars = content.split('');
     var charLength = 0;
@@ -493,6 +515,11 @@ class GSM {
     return charLength;
   }
 
+  /// Returns segmentation metadata for [content].
+  ///
+  /// Empty input produces an empty [GSMData] payload with the default GSM limit.
+  /// Non-GSM text is treated as Unicode, which uses smaller per-segment limits
+  /// than the GSM 7-bit alphabet.
   static GSMData info(String? content) {
     if (content == null || content.isEmpty) {
       return GSMData(
@@ -580,7 +607,11 @@ class GSM {
     }
   }
 
-  /// Takes any Unicode character and converts it to GSM
+  /// Converts [content] to a GSM-friendly approximation.
+  ///
+  /// Unsupported characters are replaced using [charMapToReplace], invisible
+  /// formatting marks are removed, repeated spaces are collapsed, and excessive
+  /// blank lines are normalized so downstream SMS services receive cleaner text.
   static String toGSM(String? content) {
     if (content == null) return '';
     String newContent = '';

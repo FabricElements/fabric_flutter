@@ -4,36 +4,49 @@ import 'chart_wrapper.dart';
 
 part 'chart_preferences.g.dart';
 
-/// Chart Preferences serialized data
-/// Used to store user chart preferences
+/// Stores persisted user preferences for building charts.
+///
+/// These preferences capture how a user wants tabular data mapped into a chart so
+/// reports can be recreated consistently without recalculating the selection UI.
 @JsonSerializable(explicitToJson: true)
 class ChartPreferences {
+  /// Stores a user-facing name for the saved preference set.
   String? name;
 
-  /// Horizontal Axis: Use columns with date or string data
+  /// Stores the field mapped to the horizontal axis.
+  ///
+  /// This should reference a column with date or string data so categorical and
+  /// timeline charts can render readable axis labels.
   String? hAxis;
 
-  /// Vertical Axis: Use columns with numeric data only
+  /// Stores the field mapped to the vertical axis.
+  ///
+  /// This should reference a numeric column because chart aggregations and scales
+  /// depend on quantitative values.
   String? vAxis;
 
-  /// Optional series 1 to group by. Not available for all chart types
+  /// Stores the first optional grouping series.
+  ///
+  /// Not every [ChartType] supports additional grouping, so callers may leave
+  /// this `null` for simpler chart configurations.
   String? series1;
 
-  /// Optional series 2 to group by. Not available for all chart types
+  /// Stores the second optional grouping series.
   String? series2;
 
-  /// Optional series 3 to group by. Not available for all chart types
+  /// Stores the third optional grouping series.
   String? series3;
 
-  /// Chart type to render
+  /// Stores the chart type the user wants to render.
   ChartType type;
 
-  /// Optional value to set range and filtering of the charts using the y axis
+  /// Stores the optional lower bound used for filtering or chart scaling.
   double? min;
 
-  /// Optional value to set range and filtering of the charts using the y axis
+  /// Stores the optional upper bound used for filtering or chart scaling.
   double? max;
 
+  /// Creates serialized chart preferences.
   ChartPreferences({
     this.name,
     this.hAxis,
@@ -46,8 +59,13 @@ class ChartPreferences {
     this.max,
   });
 
+  /// Builds [ChartPreferences] from serialized JSON.
+  ///
+  /// A `null` payload is treated as empty input so missing saved preferences can
+  /// be recreated with constructor defaults.
   factory ChartPreferences.fromJson(Map<String, dynamic>? json) =>
       _$ChartPreferencesFromJson(json ?? {});
 
+  /// Converts these chart preferences into JSON.
   Map<String, dynamic> toJson() => _$ChartPreferencesToJson(this);
 }

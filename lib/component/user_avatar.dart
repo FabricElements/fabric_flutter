@@ -4,15 +4,28 @@ import '../helper/utils.dart';
 import '../serialized/user_data.dart';
 import 'smart_image.dart';
 
-/// UserAvatar shows the image and the name of the users in profile sections.
+/// Displays a circular avatar for a user and, when available, overlays presence.
 ///
-/// [avatar] This is a parameter of the image in the widget.
-/// [name] This is a parameter of the name in the widget.
+/// The widget prefers rendering the image from [avatar]. When no image is
+/// available, it falls back to initials derived from [firstName], [lastName],
+/// or [name], and finally to the default person icon. This makes the widget a
+/// safe choice for profile lists, headers, and other places where user data may
+/// arrive incrementally during the Flutter build lifecycle.
+///
+/// [avatar] is the image source used by the widget.
+/// [name] provides a fallback display name when structured names are missing.
+///
+/// ```dart
 /// UserAvatar(
 ///   avatar: imageUrl,
 ///   name: 'Jeffery',
 /// );
+/// ```
 class UserAvatar extends StatelessWidget {
+  /// Creates a [UserAvatar] that shows a profile image, initials, or a fallback icon.
+  ///
+  /// Supply [presence] when the surrounding UI needs a compact online-status
+  /// indicator. Omitting it keeps the layout focused on the avatar itself.
   const UserAvatar({
     super.key,
     required this.avatar,
@@ -22,12 +35,34 @@ class UserAvatar extends StatelessWidget {
     this.presence,
   });
 
+  /// Provides the avatar image URL used for the circular profile photo.
+  ///
+  /// When this value is `null`, the widget falls back to initials or the default
+  /// person icon so parent widgets do not need to handle missing media.
   final String? avatar;
+
+  /// Supplies a fallback display name for tooltips and generated initials.
+  ///
+  /// This value is especially useful when the caller has a single combined name
+  /// rather than separate [firstName] and [lastName] values.
   final String? name;
+
+  /// Supplies the preferred first-name portion used for initials and tooltips.
   final String? firstName;
+
+  /// Supplies the preferred last-name portion used for initials and tooltips.
   final String? lastName;
+
+  /// Describes the user's current presence for the status badge overlay.
+  ///
+  /// When `null`, the widget returns only the avatar content and skips the extra
+  /// badge so the layout stays compact in contexts that do not track presence.
   final UserPresence? presence;
 
+  /// Builds the avatar using the active [ThemeData] colors and available user data.
+  ///
+  /// The tooltip text follows the same fallback order as the initials so the UI
+  /// remains descriptive even while data is still loading or partially missing.
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

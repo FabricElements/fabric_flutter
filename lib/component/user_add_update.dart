@@ -11,14 +11,14 @@ import 'alert_data.dart';
 import 'content_container.dart';
 import 'input_data.dart';
 
-/// Sends invitation to a new user
+/// Presents a full-screen form for creating or updating a [UserData] record.
 ///
-/// [roles] Optional array of roles
-/// ```dart
-/// UserAddUpdate(
-/// );
-/// ```
+/// The widget adapts its fields to the flags passed by the caller so the same form
+/// can support invite flows, profile edits, and role management without duplicating
+/// UI. It keeps a cloned copy of [user] in state so partially entered data survives
+/// rebuilds and can be safely cancelled before [onConfirm] persists anything.
 class UserAddUpdate extends StatefulWidget {
+  /// Creates a configurable user form with optional identity, password, and role fields.
   const UserAddUpdate({
     super.key,
     this.roles = const ['user', 'admin'],
@@ -41,71 +41,84 @@ class UserAddUpdate extends StatefulWidget {
     this.disabled = false,
   });
 
-  /// Array of roles
+  /// Lists the role values available when role selection is enabled.
   final List<String> roles;
 
-  /// Function to call when the user is added or updated
+  /// Persists the edited [UserData] and optionally scopes it to [group].
   final Function(UserData data, {String? group}) onConfirm;
 
-  /// Allow email to be entered
+  /// Enables the email input when this workflow needs email-based identity.
   final bool email;
 
-  /// Allow phone number to be entered
+  /// Enables the phone input when this workflow needs SMS-ready contact data.
   final bool phone;
 
-  /// Allow username to be entered
+  /// Enables the username input for systems that support handle-based sign-in.
   final bool username;
 
-  /// Allow name to be entered
+  /// Enables first and last name fields for flows that require display names.
   final bool name;
 
-  /// Allow single role to be selected
+  /// Shows a single-role dropdown when users should have exactly one role.
   final bool role;
 
-  /// Allow multiple roles to be selected
+  /// Shows a multi-select role checklist when users may hold several roles.
   final bool multipleRoles;
 
-  /// Allow password to be entered
+  /// Enables password entry for flows that provision or reset credentials directly.
   final bool password;
 
-  /// Function to call when the user is added or updated
+  /// Runs after a successful save so parent widgets can refresh surrounding data.
   final Function onChanged;
 
-  /// User data to update
+  /// Provides the existing user to edit, or `null` to start from a blank record.
   final UserData? user;
 
-  /// Group id
+  /// Identifies the group that receives the saved user assignment, when applicable.
   final String? group;
 
-  /// Success message to display
+  /// Supplies the localization key shown after a successful confirmation.
   final String successMessage;
 
-  /// Groups roles used for dropdown options
-  /// {'groupName':['admin','agent']}
-  /// updates the UserData.roles['groupName'] = 'group role'
+  /// Maps group identifiers to the role options available for each group-specific picker.
+  ///
+  /// The selected values are written back into [UserData.groups], which lets the form
+  /// model per-group privileges without requiring a separate editor for every group.
   final Map<String, List<String>>? groups;
 
-  /// Size of the container
+  /// Constrains the maximum width of the surrounding [ContentContainer].
   final ContentContainerSize size;
 
-  /// Password Regex expression
+  /// Overrides the default password rule when a workflow needs stricter validation.
   final RegExp? passwordRegex;
 
-  /// Password Validation Error
+  /// Overrides the localized message shown when password validation fails.
   final String? passwordError;
 
+  /// Makes the form read-only so callers can reuse it as a detail view.
   final bool disabled;
 
+  /// Creates the mutable form state that owns the editable [UserData] clone.
   @override
   State<UserAddUpdate> createState() => _UserAddUpdateState();
 }
 
+/// Coordinates validation, submission, and transient error handling for [UserAddUpdate].
 class _UserAddUpdateState extends State<UserAddUpdate> {
+  /// Tracks whether a save request is currently in flight so controls can be disabled.
   late bool sending;
+  /// Stores an optional internal change hook for future extensions of the form state.
   Function? onChange;
+  /// Holds the editable copy of the user record displayed by the form.
   late UserData data;
+  /// Captures the latest submission error to surface it inline to the user.
   String? error;
 
+  /// Resets the local user draft to match the current widget configuration.
+  ///
+  /// Cloning the incoming [UserData] prevents accidental mutation of parent state, and
+  /// the role fallback keeps the form from holding a stale role that is no longer in the
+  /// allowed option set after a rebuild.
   void reset() {
     /// Set default user data
     final base = widget.user ?? UserData(id: widget.user?.id);
@@ -121,12 +134,14 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     error = null;
   }
 
+  /// Seeds the form state the first time the widget is inserted into the tree.
   @override
   void initState() {
     super.initState();
     reset();
   }
 
+  /// Builds the adaptive user form, including validation, role editors, and actions.
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

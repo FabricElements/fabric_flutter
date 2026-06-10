@@ -1,59 +1,87 @@
 import 'package:flutter/widgets.dart';
 
-/// Predefined options for internal components
+/// Predefined options for internal components.
 
-/// ButtonOptions
+/// Configures a button with navigation, callback, and visual properties.
+///
+/// [ButtonOptions] provides a flexible way to define button behavior and appearance
+/// across various components like breadcrumbs, tabs, and navigation menus. It supports
+/// both navigation-based actions (via [path]) and callback-based actions (via [onTap]),
+/// as well as hierarchical menu structures through [children].
 class ButtonOptions {
-  /// icon
+  /// The leading icon to display before the label.
   IconData? icon;
 
-  /// Trailing Icon
+  /// The trailing icon to display after the label or at the end of the button.
   IconData? trailingIcon;
 
-  /// Define id
+  /// Unique identifier for the button, useful for tracking or distinguishing between buttons.
   String? id;
 
-  /// Define label text for the button
+  /// The primary text label displayed on the button.
   String label;
 
-  /// Define labelAlt alt text for the button
+  /// Alternative label text, can be used for accessibility or context-specific display.
   String? labelAlt;
 
-  /// onTap button
+  /// Callback function executed when the button is tapped.
+  ///
+  /// If both [onTap] and [path] are provided, [onTap] is executed before navigation.
   Function? onTap;
 
-  /// path to redirect
+  /// Navigation path to redirect to when the button is tapped.
+  ///
+  /// Uses Flutter's named routing system. Can be combined with [queryParameters]
+  /// to pass additional data in the URL.
   String? path;
 
-  /// QueryParameters to use with path
+  /// Query parameters to append to the [path] during navigation.
+  ///
+  /// Useful for passing state or filters through the URL structure.
   Map<String, List<String>>? queryParameters;
 
-  /// set pop to `true` to use Navigator.popAndPushNamed
+  /// When true, uses `Navigator.popAndPushNamed` instead of `Navigator.pushNamed`.
+  ///
+  /// This replaces the current route instead of stacking it, useful for redirect scenarios.
   bool pop;
 
-  /// set important to `true` to use custom design or functionality
+  /// When true, indicates this button should be styled or treated as important or primary.
+  ///
+  /// Components may apply special styling like elevated appearance or accent colors.
   bool important;
 
-  /// set selected to `true` to use custom design or functionality
-  /// Don't use as final in case you need to update it's value programmatically
+  /// When true, indicates this button is currently selected or active.
+  ///
+  /// Should not be marked as final if you need to programmatically update selection state.
   bool selected;
 
-  /// set value as dynamic and cast `value as String` or any type required
+  /// Dynamic value associated with the button.
+  ///
+  /// Can be cast to any type required by the consuming component, useful for
+  /// passing structured data through button interactions.
   dynamic value;
 
-  /// Set children[] for submenus
+  /// Child options for creating hierarchical or nested menu structures.
+  ///
+  /// When populated, this button can act as a submenu trigger.
   List<ButtonOptions> children;
 
-  /// Set image for custom buttons
+  /// URL of an image to display as a leading element.
+  ///
+  /// Takes precedence over [icon] if both are provided.
   String? image;
 
-  /// Set leading widget for custom buttons
+  /// Custom widget to display as a leading element.
+  ///
+  /// Takes precedence over both [image] and [icon] if provided.
   Widget? leading;
 
-  /// Set trailing widget for custom buttons
+  /// Custom widget to display as a trailing element.
+  ///
+  /// Takes precedence over [trailingIcon] and [trailingImage] if provided.
   Widget? trailing;
 
-  /// Trailing Image
+  /// URL of an image to display as a trailing element.
   String? trailingImage;
 
   ButtonOptions({

@@ -1,14 +1,23 @@
 import 'package:flutter/material.dart';
 
-/// SectionTitle is a widget used for emphasis and a screen which can show the start of a section.
+/// Displays a prominent section heading with optional emphasized segments.
 ///
-/// [description] Description for the section, displayed in the widget.
-/// [headline] Headline for the section, emphasis text.
+/// Curly-brace markers inside [headline] and [description] are highlighted with
+/// the current theme's primary color, which makes the widget useful for landing
+/// pages and section intros where a few words need extra emphasis without
+/// introducing richer markup.
+///
+/// [description] provides supporting copy displayed below the headline.
+/// [headline] supplies the emphasized primary section text.
+///
+/// ```dart
 /// SectionTitle(
 ///   headline: 'This is the headline, emphasised text.',
 ///   description: 'This is where the description will go.',
 /// );
+/// ```
 class SectionTitle extends StatelessWidget {
+  /// Creates a [SectionTitle] with a required [headline].
   const SectionTitle({
     super.key,
     this.description,
@@ -17,11 +26,22 @@ class SectionTitle extends StatelessWidget {
     this.descriptionStyle,
   });
 
+  /// Supplies optional body text shown below the headline.
   final String? description;
+
+  /// Supplies the main heading text for the section.
   final String headline;
+
+  /// Overrides the default text style used for [headline].
   final TextStyle? headlineStyle;
+
+  /// Overrides the default text style used for [description].
   final TextStyle? descriptionStyle;
 
+  /// Builds the section title and highlights any marked important segments.
+  ///
+  /// The widget keeps its bottom safe-area inset disabled because it is commonly
+  /// placed near the top of a screen or section rather than above system UI.
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -31,6 +51,11 @@ class SectionTitle extends StatelessWidget {
         descriptionStyle ?? textTheme.bodyMedium;
 
     RegExp regExp = RegExp(r'{.*?}', multiLine: true);
+
+    /// Converts brace-delimited fragments into highlighted [TextSpan] segments.
+    ///
+    /// Underscores are replaced with spaces so lightweight content templates can
+    /// preserve emphasis markers without forcing callers to build rich text.
     List<TextSpan> importantData(String textConvert, TextStyle? textStyle) {
       List<TextSpan> text = [];
       String textFinal = textConvert;

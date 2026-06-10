@@ -12,9 +12,13 @@ import '../state/state_notifications.dart';
 import 'alert_data.dart';
 import 'connection_status.dart';
 
+/// Tracks whether global connectivity and notification listeners are already attached.
 bool _listenersConfigured = false;
 
-/// Configure global listeners for connectivity and notifications
+/// Configures global notification listeners exactly once for the current app session.
+///
+/// Route pages rebuild frequently as authentication and navigation state change,
+/// so this guard prevents duplicate callbacks from stacking up across rebuilds.
 void _configureListeners(BuildContext context) {
   if (_listenersConfigured) return;
   final locales = AppLocalizations.of(context);
@@ -63,13 +67,10 @@ Future<void> _initFuture(Future<void> Function() onInit) async {
 /// before rendering the route content. It used to extend FutureBuilder<void>,
 /// but now creates the future once in state so rebuilds won't restart it.
 class RoutePage extends StatefulWidget {
-  final RouteHelper routeHelper;
-  final Uri uri;
-  final UserStatus? status;
-  final Widget loading;
-  final Future<void> Function() onInit;
-  final Function(BuildContext context) onContextReady;
-
+  /// Creates a route wrapper that waits for initialization before showing content.
+  ///
+  /// Use this when a route depends on async setup, such as fetching data or
+  /// attaching listeners, but should avoid restarting that work on every rebuild.
   const RoutePage({
     super.key,
     required this.routeHelper,
@@ -80,14 +81,37 @@ class RoutePage extends StatefulWidget {
     required this.onContextReady,
   });
 
+  /// Provides the route table used to resolve the widget for [uri].
+  final RouteHelper routeHelper;
+  /// The parsed location used to choose the current route widget.
+  final Uri uri;
+
+  /// The latest authentication status required before route initialization can continue.
+  final UserStatus? status;
+
+  /// The placeholder displayed while auth state or [onInit] is unresolved.
+  final Widget loading;
+
+  /// Performs one-time asynchronous initialization for the route.
+  final Future<void> Function() onInit;
+
+  /// Runs after user status is ready so callers can access an initialized [BuildContext].
+  final Function(BuildContext context) onContextReady;
+
+  /// Creates the mutable state that caches the initialization future across rebuilds.
   @override
   State<RoutePage> createState() => _RoutePageState();
 }
 
+/// Holds the cached initialization future and builds the resolved route content.
 class _RoutePageState extends State<RoutePage> {
+  /// Caches the async initialization work so it runs only once per state instance.
   late final Future<void> _future;
+
+  /// Tracks whether the route is still showing its loading affordance.
   bool loading = true;
 
+  /// Creates the initialization future during the first lifecycle pass.
   @override
   void initState() {
     super.initState();
@@ -95,6 +119,7 @@ class _RoutePageState extends State<RoutePage> {
     _future = _initFuture(widget.onInit);
   }
 
+  /// Resolves auth state, waits for initialization, and then builds the current route.
   @override
   Widget build(BuildContext context) {
     final status = widget.status;

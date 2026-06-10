@@ -1,7 +1,12 @@
 import '../serialized/iso_data.dart';
 
-/// All the language locales with name, native name and emoji if exists.
+/// Exposes ISO country metadata used by forms, phone pickers, and lookups.
+///
+/// Each record captures identifiers and display details such as calling code,
+/// currency, and flag information. The data remains available as raw maps for
+/// lightweight use cases while [countries] provides typed access.
 class ISOCountries {
+  /// Contains the canonical country definitions used throughout the package.
   static List<Map<String, dynamic>> raw = [
     {
       'capital': 'Kabul',
@@ -4220,7 +4225,10 @@ class ISOCountries {
     },
   ];
 
-  /// List of countries
+  /// Returns the raw country metadata as typed [ISOCountry] models.
+  ///
+  /// A fresh list is created on each access so callers do not accidentally mutate
+  /// the shared [raw] definitions.
   static List<ISOCountry> get countries {
     List<ISOCountry> items = [];
     for (var element in raw) {
@@ -4229,8 +4237,11 @@ class ISOCountries {
     return items;
   }
 
-  /// List of countries with calling code
-  /// US, CA and CO are the main countries for mobile phone numbers, so they are listed first
+  /// Returns countries that can be used in phone-number selection flows.
+  ///
+  /// Only entries with a calling code are included. United States, Canada, and
+  /// Colombia are moved to the front because they are treated as primary markets
+  /// in the surrounding mobile-number UX.
   static List<ISOCountry> get countriesForMobile {
     List<ISOCountry> items = countries
         .where((element) => element.callingCode != null)
@@ -4252,7 +4263,10 @@ class ISOCountries {
     return [...mainCountries, ...notMainCountries];
   }
 
-  /// This method return the country name by [alpha2]
+  /// Returns the display name for the country identified by [alpha2].
+  ///
+  /// `null` is returned for unknown codes so callers can fall back gracefully in
+  /// profile, billing, or address flows.
   static String? getName(String? alpha2) {
     try {
       return countries.firstWhere((element) => element.alpha2 == alpha2).name;
@@ -4261,7 +4275,9 @@ class ISOCountries {
     }
   }
 
-  /// This method return the flag country by [key]
+  /// Returns the flag emoji for the country identified by [alpha2].
+  ///
+  /// `null` is returned when no matching country exists.
   static String? getFlag(String? alpha2) {
     try {
       return countries.firstWhere((element) => element.alpha2 == alpha2).flag;
@@ -4270,6 +4286,9 @@ class ISOCountries {
     }
   }
 
-  /// List of countries available to buy phone numbers
+  /// Lists the country codes currently supported for phone-number purchasing.
+  ///
+  /// Keep this narrower than [countriesForMobile] when backend provisioning only
+  /// supports a subset of all dialing destinations.
   static List phoneSupportedCountries = ['US', 'CA'];
 }

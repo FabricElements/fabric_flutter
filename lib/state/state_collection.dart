@@ -4,20 +4,33 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'state_shared.dart';
 
-/// This is a change notifier class which keeps track of state within the campaign builder views.
+/// Manages paginated state for a Firestore query.
+///
+/// [StateCollection] adapts a Firestore [Query] to the lifecycle defined by
+/// [StateShared]. Consumers assign [query], call [call] for one-off reads or
+/// [listen] for live snapshots, and then rebuild from [data], [stream], or
+/// [notifyListeners].
+///
+/// Pagination is always enabled for collections. The implementation resets state
+/// when the underlying base query changes and scales the effective Firestore
+/// limit by `[limit] * [page]` so later pages include all earlier results.
 abstract class StateCollection extends StateShared {
+  /// Creates a collection-backed state.
   StateCollection();
 
+  /// Always enables pagination for collection states.
   @override
   bool get paginate => true;
 
+  /// Always allows pagination because Firestore query pages are accumulated by
+  /// increasing the fetch limit.
   @override
   bool get canPaginate => true;
 
-  /// More at [query]
+  /// Stores the base Firestore query before the current page limit is applied.
   Query? baseQuery;
 
-  /// Stop listening for changes
+  /// Stops listening to the current query and clears the state.
   Future<void> cancel({bool notify = false}) async {
     baseQuery = null;
     if (_streamSubscription != null) {
@@ -30,6 +43,10 @@ abstract class StateCollection extends StateShared {
     return clear(notify: notify);
   }
 
+  /// Returns whether [reference] matches the current paginated query.
+  ///
+  /// The comparison uses Firestore query parameters after applying the effective
+  /// page size so rebuilds do not restart listeners unnecessarily.
   bool isSameQuery(Query? reference) {
     final totalToFetch = limit * page;
     Query? newQuery = reference?.limit(totalToFetch);
@@ -38,6 +55,10 @@ abstract class StateCollection extends StateShared {
     return oldReference == newReference;
   }
 
+  /// Returns whether [reference] matches the current base query.
+  ///
+  /// When the query changes, shared state is cleared so results from the old
+  /// collection do not survive into the new query context.
   bool isSameBaseQuery(Query? reference) {
     final newReference = ({reference?.parameters ?? {}}).toString().hashCode;
     final oldReference = ({baseQuery?.parameters ?? {}}).toString().hashCode;
@@ -48,8 +69,12 @@ abstract class StateCollection extends StateShared {
     return same;
   }
 
-  /// Collection Reference
+  /// Assigns the base Firestore query.
+  ///
   /// FirebaseFirestore.instance.collection('example')
+  ///
+  /// Setting a new query cancels any active listener and clears the current data
+  /// so future reads start from a clean slate.
   set query(Query? reference) {
     if (loading) return;
     final totalToFetch = limit * page;
@@ -59,13 +84,17 @@ abstract class StateCollection extends StateShared {
     super.clear(notify: true);
   }
 
-  /// Get Collection Reference
+  /// Returns the active query with the effective page limit applied.
   Query? get query => baseQuery?.limit(limit * page);
 
-  /// Firestore Document Stream Reference
+  /// Holds the active Firestore query snapshot subscription.
   StreamSubscription<QuerySnapshot<Object?>>? _streamSubscription;
 
-  /// Make call and listen for changes
+  /// Starts listening to live updates for the current [query].
+  ///
+  /// Call this when the UI should stay synchronized with Firestore. Each update
+  /// replaces [data] with a fresh list of serialized documents containing their
+  /// Firestore `id` fields.
   @override
   Future<dynamic> listen() async {
     if (loading) return data;
@@ -114,12 +143,16 @@ abstract class StateCollection extends StateShared {
     return data;
   }
 
-  /// On page change
+  /// Cancels the active query subscription when pagination changes.
+  ///
+  /// Collection pages are materialized by rebuilding the query with a larger
+  /// limit, so the old listener must be torn down first.
   @override
   void onPageChange(int newPage) async {
     await _streamSubscription?.cancel();
   }
 
+  /// Fetches the current query once without keeping a live listener attached.
   @override
   Future<dynamic> call({bool ignoreDuplicatedCalls = true}) async {
     /// Check if the query is the same as the previous one to avoid unnecessary calls
@@ -158,7 +191,7 @@ abstract class StateCollection extends StateShared {
     return data;
   }
 
-  /// Clear data
+  /// Clears the base query and resets shared collection state.
   @override
   void clear({bool notify = false}) {
     super.clear(notify: notify);
