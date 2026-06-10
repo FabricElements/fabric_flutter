@@ -93,6 +93,14 @@ enum ImageSize {
 /// backing image service for an appropriately sized asset. That approach reduces wasted
 /// bandwidth during rapid layout changes while still fitting naturally into Flutter's
 /// rebuild lifecycle on mobile and web.
+/// See https://github.com/FabricElements/shared-helpers/blob/main/src/media.ts.
+///
+/// Example:
+/// ```dart
+/// SmartImage(
+///   url: 'https://images.unsplash.com/photo-1516571748831-5d81767b788d',
+/// );
+/// ```
 class SmartImage extends StatefulWidget {
   /// Creates an adaptive network image widget for the supplied [url].
   const SmartImage({

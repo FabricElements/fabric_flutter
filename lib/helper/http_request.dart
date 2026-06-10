@@ -71,12 +71,14 @@ class HTTPRequest {
   ///
   /// The meaning depends on [authScheme], such as a base64-encoded user pair or
   /// a bearer token returned by an authentication service.
+  /// See https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication.
   final String? credentials;
 
   /// Declares how [credentials] should be labeled in the header.
   ///
   /// Use [AuthScheme.Bearer] for most token-based APIs unless the backend
   /// explicitly expects another scheme.
+  /// See https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication#authentication_schemes.
   final AuthScheme? authScheme;
 
   /// Returns the fully formatted `Authorization` header value, if available.

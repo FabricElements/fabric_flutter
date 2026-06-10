@@ -71,6 +71,7 @@ class GoogleMapsSearch extends StatefulWidget {
   ///
   /// Core identifiers and geometry fields are appended automatically so callers only need
   /// to request the domain-specific fields they intend to persist or display later.
+  /// See https://developers.google.com/maps/documentation/places/web-service/place-data-fields.
   final List<String> fields;
 
   /// Creates the state that owns search text, result lists, and selected coordinates.

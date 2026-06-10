@@ -85,6 +85,7 @@ enum ChartType {
 ///
 /// These values mirror the Google Charts legend position options so serialized
 /// settings can be passed through without translation.
+/// See https://developers.google.com/chart/interactive/docs/gallery/linechart#configuration-options.
 enum ChartWrapperLegendPosition {
   /// Places the legend below the chart.
   bottom,
@@ -108,6 +109,7 @@ enum ChartWrapperLegendPosition {
 ///
 /// Alignment is only meaningful for positions where the legend has spare space
 /// to arrange its content.
+/// See https://developers.google.com/chart/interactive/docs/gallery/linechart#configuration-options.
 enum ChartWrapperLegendAlignment {
   /// Centers legend content within the available space.
   center,
@@ -123,6 +125,7 @@ enum ChartWrapperLegendAlignment {
 ///
 /// Orientation only affects chart types that expose horizontal and vertical
 /// rendering modes, such as bar-style charts.
+/// See https://developers.google.com/chart/interactive/docs/gallery/barchart#configuration-options.
 enum ChartWrapperOrientation {
   /// Draws the chart left-to-right.
   horizontal,
@@ -135,6 +138,7 @@ enum ChartWrapperOrientation {
 ///
 /// Keeping legend settings in a separate object allows callers to persist or
 /// reuse chart-specific legend choices independently from other chart options.
+/// See https://developers.google.com/chart/interactive/docs/gallery/linechart#configuration-options.
 @JsonSerializable(explicitToJson: true)
 class ChartWrapperLegend {
   /// Controls where the legend is rendered.
@@ -181,6 +185,8 @@ class ChartWrapperLegend {
 ///
 /// This object contains renderer-specific option maps that are intentionally
 /// flexible because Google Charts accepts a broad set of loosely typed values.
+/// See https://developers.google.com/chart/interactive/docs/gallery and
+/// https://developers.google.com/chart/interactive/docs/reference#configuration-options.
 @JsonSerializable(explicitToJson: true)
 class ChartWrapperOptions {
   /// Provides the chart title shown by supporting chart types.
@@ -251,6 +257,7 @@ class ChartWrapperOptions {
 /// Instances of this class bundle the chart type, raw tabular data, and related
 /// presentation options so chart definitions can be serialized, persisted, and
 /// later reconstructed by the UI.
+/// See https://developers.google.com/chart/interactive/docs/reference#chartwrapperobject.
 @JsonSerializable(explicitToJson: true)
 class ChartWrapper {
   /// Selects which Google Charts renderer should be used.
