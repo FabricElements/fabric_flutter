@@ -527,8 +527,9 @@ class _InputDataState extends State<InputData> {
             );
           }
           // Set the text
-          baseValue =
-              widget.asLocalTime ? baseValue?.toLocal() : baseValue?.toUtc();
+          baseValue = widget.asLocalTime
+              ? baseValue?.toLocal()
+              : baseValue?.toUtc();
           if (baseValue != null) {
             if (widget.type == InputDataType.date) {
               textController.text = formatDate.format(baseValue);
@@ -841,8 +842,9 @@ getValue -------------------------------------
 
     String? hintText = widget.hintText ?? hintTextDefault;
     if (!widget.obscureText) {
-      hintText =
-          (value?.toString() ?? '').isNotEmpty ? value?.toString() : hintText;
+      hintText = (value?.toString() ?? '').isNotEmpty
+          ? value?.toString()
+          : hintText;
     }
     final inputDecoration = InputDecoration(
       hintText: hintText,
@@ -911,8 +913,9 @@ getValue -------------------------------------
               ? SystemMouseCursors.click
               : null,
           obscureText: obscureText,
-          enableInteractiveSelection:
-              isDisabled ? true : widget.enableInteractiveSelection,
+          enableInteractiveSelection: isDisabled
+              ? true
+              : widget.enableInteractiveSelection,
           readOnly: isDisabled,
           // Force focus capability
           onChanged: isDisabled
@@ -954,7 +957,8 @@ getValue -------------------------------------
           readOnly: true,
           mouseCursor: isDisabled ? SystemMouseCursors.click : null,
           decoration: inputDecoration.copyWith(
-            prefixIcon: inputDecoration.prefixIcon ??
+            prefixIcon:
+                inputDecoration.prefixIcon ??
                 Icon(inputDataTypeIcon(widget.type)),
           ),
           onTap: isDisabled
@@ -1035,7 +1039,8 @@ getValue -------------------------------------
         String? dateString = time != null
             ? formatTime.format(DateTime(1, 1, 1, time.hour, time.minute))
             : null;
-        String label = dateString ??
+        String label =
+            dateString ??
             locales.get('label--choose-label', {
               'label': locales.get('label--time'),
             });
@@ -1090,13 +1095,15 @@ getValue -------------------------------------
           enableSuggestions: false,
           keyboardType: keyboardType,
           textInputAction: textInputAction,
-          enableInteractiveSelection:
-              isDisabled ? true : widget.enableInteractiveSelection,
+          enableInteractiveSelection: isDisabled
+              ? true
+              : widget.enableInteractiveSelection,
           readOnly: readOnly,
           mouseCursor: isDisabled ? SystemMouseCursors.click : null,
           controller: textController,
           decoration: inputDecoration.copyWith(
-            prefixIcon: inputDecoration.prefixIcon ??
+            prefixIcon:
+                inputDecoration.prefixIcon ??
                 inputDecoration.prefixIcon ??
                 Icon(inputDataTypeIcon(widget.type)),
             suffixIcon:
@@ -1144,8 +1151,7 @@ getValue -------------------------------------
                 child: PointerInterceptor(child: widgetInput),
               );
             },
-            suggestionsBuilder:
-                (BuildContext context, SearchController controller) {
+            suggestionsBuilder: (BuildContext context, SearchController controller) {
               final value = controller.text.trim();
               List<ButtonOptions> recommendations = dropdownOptions;
               // keep @, . and + characters for more flexible searches (eg. emails, phone prefixes)
@@ -1160,10 +1166,10 @@ getValue -------------------------------------
                       .trim();
                   final labelAltClean = element.labelAlt != null
                       ? GSM
-                          .toGSM(element.labelAlt)
-                          .toLowerCase()
-                          .replaceAll(regex, '')
-                          .trim()
+                            .toGSM(element.labelAlt)
+                            .toLowerCase()
+                            .replaceAll(regex, '')
+                            .trim()
                       : null;
                   final valueClean = GSM
                       .toGSM(value)
@@ -1289,7 +1295,8 @@ getValue -------------------------------------
                     widget.onComplete?.call(newValue);
                     widget.onSubmit?.call(newValue);
                   },
-            secondary: inputDecoration.prefixIcon ??
+            secondary:
+                inputDecoration.prefixIcon ??
                 Icon(inputDataTypeIcon(widget.type)),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(4),

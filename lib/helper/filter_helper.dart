@@ -358,8 +358,9 @@ class FilterHelper {
       FilterData toMerge = merge[i];
 
       /// Add filter if doesn't exists
-      bool filterExists =
-          filters.where((element) => element.id == toMerge.id).isNotEmpty;
+      bool filterExists = filters
+          .where((element) => element.id == toMerge.id)
+          .isNotEmpty;
       if (!filterExists) {
         filterDataUpdated.add(toMerge);
       }
@@ -478,8 +479,7 @@ class FilterHelper {
   static dynamic valueFromId({
     required List<FilterData> filters,
     required String id,
-  }) =>
-      filterById(filters: filters, id: id)?.value;
+  }) => filterById(filters: filters, id: id)?.value;
 
   /// Normalizes [data] values according to the matching definitions in [filters].
   ///

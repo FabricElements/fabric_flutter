@@ -67,7 +67,8 @@ class Breadcrumbs extends StatelessWidget {
     final textTheme = theme.textTheme;
     List<Widget> items = [];
     TextStyle? textStyleDefault = textStyle ?? textTheme.bodySmall;
-    TextStyle? dividerStyleDefault = dividerStyle ??
+    TextStyle? dividerStyleDefault =
+        dividerStyle ??
         textTheme.bodySmall?.copyWith(color: theme.dividerTheme.color);
     for (int i = 0; i < buttons.length; i++) {
       ButtonOptions button = buttons[i];

@@ -26,13 +26,16 @@ void main() {
       expect(result.minute, 0);
     });
 
-    test('should throw ArgumentError when the time has fewer than 4 digits', () {
-      // Arrange, Act & Assert
-      expect(
-        () => dayTimeToDateTime(1, '930'),
-        throwsA(isA<ArgumentError>()),
-      );
-    });
+    test(
+      'should throw ArgumentError when the time has fewer than 4 digits',
+      () {
+        // Arrange, Act & Assert
+        expect(
+          () => dayTimeToDateTime(1, '930'),
+          throwsA(isA<ArgumentError>()),
+        );
+      },
+    );
   });
 
   group('Location', () {
@@ -133,7 +136,9 @@ void main() {
   group('PlacesResponse', () {
     test('should fall back to default collections for an empty payload', () {
       // Arrange & Act
-      final response = PlacesResponse.fromJson(<String, dynamic>{'status': 'OK'});
+      final response = PlacesResponse.fromJson(<String, dynamic>{
+        'status': 'OK',
+      });
 
       // Assert
       expect(response.status, 'OK');

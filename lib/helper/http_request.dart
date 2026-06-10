@@ -60,12 +60,12 @@ class HTTPRequest {
   /// When either [credentials] or [authScheme] is provided, both must be set so
   /// the helper can build a valid `Authorization` header.
   const HTTPRequest({this.credentials, this.authScheme})
-      : assert(
-          credentials != null || authScheme != null
-              ? credentials != null && authScheme != null
-              : true,
-          'token and authScheme are required for Authentication',
-        );
+    : assert(
+        credentials != null || authScheme != null
+            ? credentials != null && authScheme != null
+            : true,
+        'token and authScheme are required for Authentication',
+      );
 
   /// Stores the raw credentials used to build an `Authorization` header.
   ///
@@ -141,8 +141,10 @@ class HTTPRequest {
         final errors = responseObject['errors'] as List<dynamic>;
         if (errors.isNotEmpty) {
           if (errors.first.containsKey('description')) {
-            errorResponse =
-                errors.map((e) => e['description']).toList().join(', ');
+            errorResponse = errors
+                .map((e) => e['description'])
+                .toList()
+                .join(', ');
           }
         }
       } else {
@@ -156,8 +158,8 @@ class HTTPRequest {
     /// Get default reasonPhrase
     errorResponse =
         response.reasonPhrase != null && response.reasonPhrase!.isNotEmpty
-            ? response.reasonPhrase
-            : null;
+        ? response.reasonPhrase
+        : null;
     if (errorResponse != null) throw errorResponse;
 
     /// Use status code if error is null

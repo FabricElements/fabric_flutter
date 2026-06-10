@@ -7,13 +7,14 @@ part of 'filter_data.dart';
 // **************************************************************************
 
 FilterData _$FilterDataFromJson(Map<String, dynamic> json) => FilterData(
-      id: json['id'] as String,
-      operator: $enumDecodeNullable(_$FilterOperatorEnumMap, json['operator']),
-      value: json['value'],
-      type: $enumDecodeNullable(_$InputDataTypeEnumMap, json['type']) ??
-          InputDataType.string,
-      index: (json['index'] as num?)?.toInt() ?? 0,
-    );
+  id: json['id'] as String,
+  operator: $enumDecodeNullable(_$FilterOperatorEnumMap, json['operator']),
+  value: json['value'],
+  type:
+      $enumDecodeNullable(_$InputDataTypeEnumMap, json['type']) ??
+      InputDataType.string,
+  index: (json['index'] as num?)?.toInt() ?? 0,
+);
 
 Map<String, dynamic> _$FilterDataToJson(FilterData instance) =>
     <String, dynamic>{

@@ -96,7 +96,8 @@ class _UpdatePasswordState extends State<UpdatePassword> {
     String? errorValidation;
     String? errorValidation2;
     bool newPasswordOk = RegexHelper.password.hasMatch(password1);
-    ok = current.isNotEmpty &&
+    ok =
+        current.isNotEmpty &&
         password1.length > 5 &&
         password2.length > 5 &&
         current != password1 &&

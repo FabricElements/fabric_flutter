@@ -36,7 +36,7 @@ enum AlertWidget {
   banner,
 
   /// Shows the alert inside an [AlertDialog].
-  dialog
+  dialog,
 }
 
 /// Converts a stored string value back into an [AlertType].

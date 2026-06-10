@@ -272,7 +272,8 @@ class _ProfileEditState extends State<ProfileEdit> {
       if (mounted) setState(() {});
     }
 
-    final readyToSave = changed &&
+    final readyToSave =
+        changed &&
         !loading &&
         ((nameFirst ?? '').length > 1 && (nameLast ?? '').length > 1);
     return ListView(

@@ -100,8 +100,8 @@ abstract class StateAPI extends StateShared {
   /// Passing [httpClient] is useful in tests or when a custom transport layer is
   /// required. Otherwise a fresh default [http.Client] is created.
   StateAPI({http.Client? httpClient})
-      : httpClient = httpClient ?? http.Client(),
-        super();
+    : httpClient = httpClient ?? http.Client(),
+      super();
 
   /// Remembers the last fully expanded endpoint used by [call].
   ///
@@ -199,8 +199,9 @@ abstract class StateAPI extends StateShared {
   /// case-insensitive to match HTTP semantics.
   Map<String, String> get headersFiltered {
     Map<String, String> finalHeaders = {};
-    final headersToFilterToUse =
-        headersToFilter.map((e) => e.toLowerCase()).toList();
+    final headersToFilterToUse = headersToFilter
+        .map((e) => e.toLowerCase())
+        .toList();
     // change all header keys to lowercase
     final headersToUse = headers.map((key, value) {
       return MapEntry(key.toLowerCase(), value);
@@ -338,33 +339,33 @@ abstract class StateAPI extends StateShared {
               .transform(ByteCountTransformer(maxResponseBytes))
               .transform(Utf8Codec(allowMalformed: true).decoder)
               .asyncExpand((bufferData) async* {
-            // Parse the combined buffer + incoming chunk in a background isolate
-            final Map<String, dynamic> args = {
-              's': bufferData,
-              'staticBuffer': staticBuffer,
-            };
-            Map<String, dynamic> result;
-            try {
-              if (kIsWeb) {
-                // On web, compute() is not supported; fallback to main-isolate parse
-                result = await Future.microtask(
-                  () => _parseJsonBuffer(args),
-                );
-              } else {
-                result = await compute(_parseJsonBuffer, args);
-              }
-            } catch (e) {
-              // On isolate failure, fallback to main-isolate parse (best-effort)
-              result = _parseJsonBuffer(args);
-            }
-            staticBuffer = result['buffer'] as String? ?? '';
-            final List items = result['items'] as List? ?? [];
-            for (final item in items) {
-              if (item is Map<String, dynamic>) {
-                yield item;
-              }
-            }
-          });
+                // Parse the combined buffer + incoming chunk in a background isolate
+                final Map<String, dynamic> args = {
+                  's': bufferData,
+                  'staticBuffer': staticBuffer,
+                };
+                Map<String, dynamic> result;
+                try {
+                  if (kIsWeb) {
+                    // On web, compute() is not supported; fallback to main-isolate parse
+                    result = await Future.microtask(
+                      () => _parseJsonBuffer(args),
+                    );
+                  } else {
+                    result = await compute(_parseJsonBuffer, args);
+                  }
+                } catch (e) {
+                  // On isolate failure, fallback to main-isolate parse (best-effort)
+                  result = _parseJsonBuffer(args);
+                }
+                staticBuffer = result['buffer'] as String? ?? '';
+                final List items = result['items'] as List? ?? [];
+                for (final item in items) {
+                  if (item is Map<String, dynamic>) {
+                    yield item;
+                  }
+                }
+              });
           // Cancel any existing subscription
           await _streamSubscription?.cancel();
           // Subscribe and process chunks; wait until stream completes
@@ -419,7 +420,7 @@ abstract class StateAPI extends StateShared {
       } catch (e) {
         final isAbort =
             (e is http.ClientException && e.message.contains('abortTrigger')) ||
-                e.toString().contains('abortTrigger');
+            e.toString().contains('abortTrigger');
         if (isAbort) {
           debugPrint(LogColor.warning('API call aborted: $endpoint'));
           return data;

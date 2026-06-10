@@ -79,8 +79,10 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
     if (clipboardData == null) return [];
     final clipboardText = clipboardData.text ?? '';
     // values can come on comma-separated values, new lines, tabs, or from a table
-    final valuesFromClipboard =
-        clipboardText.split(RegExp(r'[\n\t,]')).map((e) => e.trim()).toList();
+    final valuesFromClipboard = clipboardText
+        .split(RegExp(r'[\n\t,]'))
+        .map((e) => e.trim())
+        .toList();
     // Validate values depending on the type
     List<dynamic> newValues = [];
     for (var value in valuesFromClipboard) {
@@ -338,7 +340,8 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
                   foregroundColor: theme.buttonTheme.colorScheme?.primary,
                   iconColor: theme.buttonTheme.colorScheme?.primary,
                   side: BorderSide(
-                    color: theme.buttonTheme.colorScheme?.primary ??
+                    color:
+                        theme.buttonTheme.colorScheme?.primary ??
                         theme.colorScheme.primary,
                   ),
                 ),
@@ -569,20 +572,20 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
       label += ': ';
       label += data.value != null && data.value[0] != null
           ? data.options
-              .firstWhere(
-                (element) => element.value == data.value[0],
-                orElse: () => ButtonOptions(),
-              )
-              .label
+                .firstWhere(
+                  (element) => element.value == data.value[0],
+                  orElse: () => ButtonOptions(),
+                )
+                .label
           : '';
       label += ' ';
       label += data.value != null && data.value[1] != null
           ? sortOptions
-              .firstWhere(
-                (element) => element.value == data.value[1],
-                orElse: () => ButtonOptions(),
-              )
-              .label
+                .firstWhere(
+                  (element) => element.value == data.value[1],
+                  orElse: () => ButtonOptions(),
+                )
+                .label
           : '';
     } else if (data.operator != FilterOperator.any) {
       if (data.operator != FilterOperator.contains) {
@@ -891,8 +894,9 @@ class _FilterMenuState extends State<FilterMenu> {
     final isMediumScreen = width >= 600 && width < 1366;
 
     /// Ignore options that are included on the filters data
-    List<FilterData> pendingOptions =
-        data.where((element) => element.operator == null).toList();
+    List<FilterData> pendingOptions = data
+        .where((element) => element.operator == null)
+        .toList();
     pendingOptions.sort((a, b) => a.label.compareTo(b.label));
 
     /// Active options with order
@@ -975,17 +979,20 @@ class _FilterMenuState extends State<FilterMenu> {
             return PointerInterceptor(
               child: OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: theme.buttonTheme.colorScheme?.primary ??
+                  foregroundColor:
+                      theme.buttonTheme.colorScheme?.primary ??
                       theme.colorScheme.primary,
                   disabledForegroundColor:
                       theme.buttonTheme.colorScheme?.primary ??
-                          theme.colorScheme.primary,
+                      theme.colorScheme.primary,
                   side: BorderSide(
-                    color: theme.buttonTheme.colorScheme?.primary ??
+                    color:
+                        theme.buttonTheme.colorScheme?.primary ??
                         theme.colorScheme.primary,
                   ),
                   disabledMouseCursor: SystemMouseCursors.click,
-                  iconColor: theme.buttonTheme.colorScheme?.primary ??
+                  iconColor:
+                      theme.buttonTheme.colorScheme?.primary ??
                       theme.colorScheme.primary,
                 ),
                 onPressed: () {
@@ -1006,8 +1013,8 @@ class _FilterMenuState extends State<FilterMenu> {
             if (value.isNotEmpty) {
               recommendations = recommendations.where((element) {
                 final labelMatch = element.label.toLowerCase().contains(
-                      value.toLowerCase(),
-                    );
+                  value.toLowerCase(),
+                );
                 final valueMatch = element.value.toString().contains(value);
                 return labelMatch || valueMatch;
               }).toList();
@@ -1018,7 +1025,8 @@ class _FilterMenuState extends State<FilterMenu> {
                 (element) => element.id == item.id,
               );
               IconData icon = inputDataTypeIcon(selected.type);
-              bool isSort = selected.operator == FilterOperator.sort ||
+              bool isSort =
+                  selected.operator == FilterOperator.sort ||
                   selected.id == 'sort';
               if (isSort) icon = Icons.sort;
               return PointerInterceptor(

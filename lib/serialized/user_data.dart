@@ -236,9 +236,9 @@ class UserData {
     this.os = UserOS.unknown,
     this.country,
     this.visualDensity = CustomVisualDensity.adaptive,
-  })  : presence = Utils.getPresence(ping),
-        name = Utils.nameFromParts(firstName: firstName, lastName: lastName),
-        abbr = Utils.nameAbbreviation(firstName: firstName, lastName: lastName);
+  }) : presence = Utils.getPresence(ping),
+       name = Utils.nameFromParts(firstName: firstName, lastName: lastName),
+       abbr = Utils.nameAbbreviation(firstName: firstName, lastName: lastName);
 
   factory UserData.fromJson(Map<String, dynamic>? json) =>
       _$UserDataFromJson(json ?? {});

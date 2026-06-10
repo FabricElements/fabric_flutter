@@ -7,12 +7,12 @@ part of 'iso_data.dart';
 // **************************************************************************
 
 ISOLanguage _$ISOLanguageFromJson(Map<String, dynamic> json) => ISOLanguage(
-      alpha2: json['alpha2'] as String,
-      alpha3: json['alpha3'] as String? ?? '',
-      name: json['name'] as String? ?? '',
-      nativeName: json['nativeName'] as String? ?? '',
-      emoji: json['emoji'] as String? ?? '🌐',
-    );
+  alpha2: json['alpha2'] as String,
+  alpha3: json['alpha3'] as String? ?? '',
+  name: json['name'] as String? ?? '',
+  nativeName: json['nativeName'] as String? ?? '',
+  emoji: json['emoji'] as String? ?? '🌐',
+);
 
 Map<String, dynamic> _$ISOLanguageToJson(ISOLanguage instance) =>
     <String, dynamic>{
@@ -24,23 +24,23 @@ Map<String, dynamic> _$ISOLanguageToJson(ISOLanguage instance) =>
     };
 
 ISOCountry _$ISOCountryFromJson(Map<String, dynamic> json) => ISOCountry(
-      capital: json['capital'] as String?,
-      citizenship: json['citizenship'] as String?,
-      countryCode: json['countryCode'] as String,
-      currency: json['currency'] as String?,
-      currencyCode: json['currencyCode'] as String?,
-      currencySubUnit: json['currencySubUnit'] as String?,
-      fullName: json['fullName'] as String?,
-      alpha2: json['alpha2'] as String,
-      alpha3: json['alpha3'] as String,
-      name: json['name'] as String,
-      regionCode: json['regionCode'] as String?,
-      subRegionCode: json['subRegionCode'] as String?,
-      eea: json['eea'] as bool? ?? false,
-      callingCode: json['callingCode'] as String?,
-      currencySymbol: json['currencySymbol'] as String?,
-      flag: json['flag'] as String? ?? '🌐',
-    );
+  capital: json['capital'] as String?,
+  citizenship: json['citizenship'] as String?,
+  countryCode: json['countryCode'] as String,
+  currency: json['currency'] as String?,
+  currencyCode: json['currencyCode'] as String?,
+  currencySubUnit: json['currencySubUnit'] as String?,
+  fullName: json['fullName'] as String?,
+  alpha2: json['alpha2'] as String,
+  alpha3: json['alpha3'] as String,
+  name: json['name'] as String,
+  regionCode: json['regionCode'] as String?,
+  subRegionCode: json['subRegionCode'] as String?,
+  eea: json['eea'] as bool? ?? false,
+  callingCode: json['callingCode'] as String?,
+  currencySymbol: json['currencySymbol'] as String?,
+  flag: json['flag'] as String? ?? '🌐',
+);
 
 Map<String, dynamic> _$ISOCountryToJson(ISOCountry instance) =>
     <String, dynamic>{

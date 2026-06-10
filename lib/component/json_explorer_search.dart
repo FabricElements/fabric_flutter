@@ -106,7 +106,8 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
     final textTheme = theme.textTheme;
     final locales = AppLocalizations.of(context);
 
-    final widgetEmpty = widget.empty ??
+    final widgetEmpty =
+        widget.empty ??
         ListTile(
           contentPadding: EdgeInsets.all(16),
           leading: Icon(Icons.info),
@@ -246,8 +247,9 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
                   ),
                   const Gap(8),
                   TextButton.icon(
-                    onPressed:
-                        state.areAllCollapsed() ? null : state.collapseAll,
+                    onPressed: state.areAllCollapsed()
+                        ? null
+                        : state.collapseAll,
                     label: Text(locales.get('label--collapse-all')),
                     icon: const Icon(Icons.expand_less),
                   ),
@@ -304,10 +306,10 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
                       /// and close.
                       collapsableToggleBuilder: (context, node) =>
                           AnimatedRotation(
-                        turns: node.isCollapsed ? -0.25 : 0,
-                        duration: const Duration(milliseconds: 300),
-                        child: const Icon(Icons.arrow_drop_down),
-                      ),
+                            turns: node.isCollapsed ? -0.25 : 0,
+                            duration: const Duration(milliseconds: 300),
+                            child: const Icon(Icons.arrow_drop_down),
+                          ),
 
                       /// Builds the focused-node copy action.
                       ///
@@ -393,8 +395,9 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
                                   decoration: TextDecoration.underline,
                                 )
                               : style,
-                          onTap:
-                              isUrl ? () => _launchUrl(value as String) : null,
+                          onTap: isUrl
+                              ? () => _launchUrl(value as String)
+                              : null,
                         );
                       },
                       theme: jsonExplorerTheme,

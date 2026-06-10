@@ -205,17 +205,17 @@ class StateUser extends StateDocument {
 
   /// User Status
   UserStatus get userStatus => UserStatus(
-        role: role,
-        admin: admin,
-        signedIn: signedIn,
-        uid: object?.uid,
-        language: language,
-        theme: theme,
-        visualDensity: visualDensity,
-        // DO NOT USE firestore document as a source of truth for ready status
-        // because it can cause flickering when the document is loading or has an error
-        ready: _ready && _init,
-      );
+    role: role,
+    admin: admin,
+    signedIn: signedIn,
+    uid: object?.uid,
+    language: language,
+    theme: theme,
+    visualDensity: visualDensity,
+    // DO NOT USE firestore document as a source of truth for ready status
+    // because it can cause flickering when the document is loading or has an error
+    ready: _ready && _init,
+  );
 
   /// Update user status data
   Future<void> _userStatusUpdate() async {

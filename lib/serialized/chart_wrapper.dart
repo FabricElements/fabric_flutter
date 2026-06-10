@@ -330,8 +330,9 @@ class ChartWrapper {
     if (dataTable.isEmpty) throw Exception('dataTable is empty');
 
     /// Handle header row
-    dataTable[0] =
-        dataTable[0].map((e) => e is Map ? e : e.toString()).toList();
+    dataTable[0] = dataTable[0]
+        .map((e) => e is Map ? e : e.toString())
+        .toList();
 
     /// Handle numerical values
     /// First element of each row is string, the rest are int
@@ -343,8 +344,9 @@ class ChartWrapper {
         final numValue = num.tryParse(value.toString());
         if (numValue != null) {
           // Convert to int, if infinite or NaN set to 0
-          dataTable[i][j] =
-              (numValue.isFinite && !numValue.isNaN) ? numValue : null;
+          dataTable[i][j] = (numValue.isFinite && !numValue.isNaN)
+              ? numValue
+              : null;
         } else {
           // If not a number, convert to string
           dataTable[i][j] = value.toString();

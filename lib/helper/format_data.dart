@@ -29,8 +29,7 @@ class FormatData {
   static NumberFormat currencyFormat({
     String locale = 'en_US',
     String symbol = '\$',
-  }) =>
-      NumberFormat.currency(locale: locale, symbol: symbol);
+  }) => NumberFormat.currency(locale: locale, symbol: symbol);
 
   /// Returns a percentage formatter using the locale default precision.
   static NumberFormat percentFormat({String locale = 'en_US'}) =>

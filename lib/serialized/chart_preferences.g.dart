@@ -14,7 +14,8 @@ ChartPreferences _$ChartPreferencesFromJson(Map<String, dynamic> json) =>
       series1: json['series1'] as String?,
       series2: json['series2'] as String?,
       series3: json['series3'] as String?,
-      type: $enumDecodeNullable(_$ChartTypeEnumMap, json['type']) ??
+      type:
+          $enumDecodeNullable(_$ChartTypeEnumMap, json['type']) ??
           ChartType.Histogram,
       min: (json['min'] as num?)?.toDouble(),
       max: (json['max'] as num?)?.toDouble(),

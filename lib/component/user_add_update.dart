@@ -236,7 +236,8 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     bool validUsername = data.username != null && data.username!.isNotEmpty;
     canCall = canCall && (validPhone || validEmail || validUsername);
     if (widget.name) {
-      canCall = canCall &&
+      canCall =
+          canCall &&
           data.firstName != null &&
           data.firstName!.length > 1 &&
           data.lastName != null &&
@@ -532,8 +533,9 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
                 if (value == true) {
                   data.roles = [...data.roles, item];
                 } else {
-                  data.roles =
-                      data.roles.where((element) => element != item).toList();
+                  data.roles = data.roles
+                      .where((element) => element != item)
+                      .toList();
                 }
                 if (mounted) setState(() {});
               },

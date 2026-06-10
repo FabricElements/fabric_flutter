@@ -13,9 +13,7 @@ void main() {
       ]);
 
       // Act
-      final result = await source
-          .transform(ByteCountTransformer(10))
-          .toList();
+      final result = await source.transform(ByteCountTransformer(10)).toList();
 
       // Assert
       expect(result, [
@@ -35,13 +33,15 @@ void main() {
       final emitted = <List<int>>[];
       Object? error;
       final completer = Completer<void>();
-      source.transform(ByteCountTransformer(5)).listen(
-        emitted.add,
-        onError: (Object e) {
-          error = e;
-        },
-        onDone: completer.complete,
-      );
+      source
+          .transform(ByteCountTransformer(5))
+          .listen(
+            emitted.add,
+            onError: (Object e) {
+              error = e;
+            },
+            onDone: completer.complete,
+          );
       await completer.future;
 
       // Assert
@@ -58,9 +58,7 @@ void main() {
       ]);
 
       // Act
-      final result = await source
-          .transform(ByteCountTransformer(4))
-          .toList();
+      final result = await source.transform(ByteCountTransformer(4)).toList();
 
       // Assert
       expect(result, [

@@ -23,10 +23,7 @@ void main() {
     group('toJson', () {
       test('should serialize both password fields', () {
         // Arrange
-        final data = PasswordData(
-          currentPassword: 'a',
-          newPassword: 'b',
-        );
+        final data = PasswordData(currentPassword: 'a', newPassword: 'b');
 
         // Act
         final json = data.toJson();

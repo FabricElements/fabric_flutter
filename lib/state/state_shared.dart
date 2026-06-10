@@ -397,20 +397,23 @@ abstract class StateShared extends ChangeNotifier {
 
     /// Get page from query
     final pageFromQuery = passingQueryParameters['page'];
-    final newPage =
-        pageFromQuery != null ? int.tryParse(pageFromQuery.first) : null;
+    final newPage = pageFromQuery != null
+        ? int.tryParse(pageFromQuery.first)
+        : null;
     pageDefault = newPage ?? page;
 
     /// Get limit from query
     final limitFromQuery = passingQueryParameters['limit'];
-    final newLimit =
-        limitFromQuery != null ? int.tryParse(limitFromQuery.first) : null;
+    final newLimit = limitFromQuery != null
+        ? int.tryParse(limitFromQuery.first)
+        : null;
     if (newLimit != null) limit = newLimit;
 
     try {
       /// Get filters
       final queryFilters = passingQueryParameters['filters'];
-      final queryFilter = queryFilters != null &&
+      final queryFilter =
+          queryFilters != null &&
               (queryFilters.isNotEmpty && queryFilters.first.isNotEmpty)
           ? queryFilters.first
           : null;

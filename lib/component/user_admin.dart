@@ -225,8 +225,8 @@ class UserAdmin extends StatelessWidget {
     stateUser.onError = apiError;
     state.onError = apiError;
 
-    Query<Map<String, dynamic>> baseQuery =
-        FirebaseFirestore.instance.collection('user');
+    Query<Map<String, dynamic>> baseQuery = FirebaseFirestore.instance
+        .collection('user');
     Query<Map<String, dynamic>> query = baseQuery;
 
     // Order by role for global users, because the role key is only available for
@@ -247,7 +247,8 @@ class UserAdmin extends StatelessWidget {
     /// dialog stays recognizable before [UserRolesFirebase.onRemove] executes.
     removeUser(UserData data) {
       String? name = data.name.trim().length > 4 ? data.name : null;
-      name ??= data.firstName ??
+      name ??=
+          data.firstName ??
           data.username ??
           data.phone ??
           data.email ??

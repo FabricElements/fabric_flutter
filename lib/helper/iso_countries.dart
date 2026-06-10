@@ -4243,8 +4243,9 @@ class ISOCountries {
   /// Colombia are moved to the front because they are treated as primary markets
   /// in the surrounding mobile-number UX.
   static List<ISOCountry> get countriesForMobile {
-    List<ISOCountry> items =
-        countries.where((element) => element.callingCode != null).toList();
+    List<ISOCountry> items = countries
+        .where((element) => element.callingCode != null)
+        .toList();
     List<ISOCountry> notMainCountries = items
         .where(
           (element) =>

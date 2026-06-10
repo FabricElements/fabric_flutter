@@ -41,14 +41,16 @@ class StateGlobal extends ChangeNotifier {
   /// Errors are ignored because test environments and some nonstandard runners
   /// may not expose package information.
   void _initPackageInfo() {
-    PackageInfo.fromPlatform().then((value) {
-      _packageInfo = value;
-      Future.delayed(
-        const Duration(seconds: 1),
-      ).then((value) => notifyListeners());
-    }).catchError((e) {
-      // Ignore error, it's usually an issue with the test environment
-    });
+    PackageInfo.fromPlatform()
+        .then((value) {
+          _packageInfo = value;
+          Future.delayed(
+            const Duration(seconds: 1),
+          ).then((value) => notifyListeners());
+        })
+        .catchError((e) {
+          // Ignore error, it's usually an issue with the test environment
+        });
   }
 
   /// Returns the formatted application version string.
@@ -107,35 +109,35 @@ class StateGlobal extends ChangeNotifier {
     /// Check connectivity
     try {
       Connectivity().onConnectivityChanged.listen(
-            (results) async {
-              if (results.firstOrNull?.name != connectedTo) {
-                ConnectivityResult connectivityStatus = ConnectivityResult.none;
-                if (results.contains(ConnectivityResult.wifi)) {
-                  connectivityStatus = ConnectivityResult.wifi;
-                } else if (results.contains(ConnectivityResult.ethernet)) {
-                  connectivityStatus = ConnectivityResult.ethernet;
-                } else if (results.contains(ConnectivityResult.mobile)) {
-                  connectivityStatus = ConnectivityResult.mobile;
-                } else if (results.contains(ConnectivityResult.other)) {
-                  connectivityStatus = ConnectivityResult.other;
-                }
-                final connectedUpdated =
-                    connectivityStatus != ConnectivityResult.none;
-                bool connectionChanged = connected != connectedUpdated;
-                connected = connectedUpdated;
-                connectedTo = connectivityStatus.name;
-                if (connectionChanged) {
-                  _controllerStreamConnection.sink.add(connected);
-                  connectionChanged = false;
-                  notifyListeners();
-                }
-              }
-            },
-            cancelOnError: true,
-            onError: (error) {
-              debugPrint('Connectivity error: ${error.toString()}');
-            },
-          );
+        (results) async {
+          if (results.firstOrNull?.name != connectedTo) {
+            ConnectivityResult connectivityStatus = ConnectivityResult.none;
+            if (results.contains(ConnectivityResult.wifi)) {
+              connectivityStatus = ConnectivityResult.wifi;
+            } else if (results.contains(ConnectivityResult.ethernet)) {
+              connectivityStatus = ConnectivityResult.ethernet;
+            } else if (results.contains(ConnectivityResult.mobile)) {
+              connectivityStatus = ConnectivityResult.mobile;
+            } else if (results.contains(ConnectivityResult.other)) {
+              connectivityStatus = ConnectivityResult.other;
+            }
+            final connectedUpdated =
+                connectivityStatus != ConnectivityResult.none;
+            bool connectionChanged = connected != connectedUpdated;
+            connected = connectedUpdated;
+            connectedTo = connectivityStatus.name;
+            if (connectionChanged) {
+              _controllerStreamConnection.sink.add(connected);
+              connectionChanged = false;
+              notifyListeners();
+            }
+          }
+        },
+        cancelOnError: true,
+        onError: (error) {
+          debugPrint('Connectivity error: ${error.toString()}');
+        },
+      );
     } catch (error) {
       debugPrint('Connectivity error: ${error.toString()}');
     }
