@@ -3,7 +3,13 @@ import 'package:cloud_functions/cloud_functions.dart';
 
 import '../serialized/user_data.dart';
 
+/// Bridges role-management actions to Firebase services.
+///
+/// This helper keeps Cloud Function names and Firestore queries in one place so
+/// the rest of the app can add, remove, update, and list role assignments
+/// without duplicating backend integration details.
 class UserRolesFirebase {
+  /// Calls the Firebase function that adds [user] to a role or [group].
   static Future<HttpsCallableResult> onAdd(UserData user, {String? group}) {
     final callable = FirebaseFunctions.instance.httpsCallable(
       'user-actions-add',
@@ -12,6 +18,7 @@ class UserRolesFirebase {
     return callable.call(dataFinal);
   }
 
+  /// Calls the Firebase function that removes [user] from a role or [group].
   static Future<HttpsCallableResult> onRemove(UserData user, {String? group}) {
     final callable = FirebaseFunctions.instance.httpsCallable(
       'user-actions-remove',
@@ -20,6 +27,10 @@ class UserRolesFirebase {
     return callable.call(dataFinal);
   }
 
+  /// Calls the Firebase function that updates [user] role data.
+  ///
+  /// When [group] is supplied, the backend can scope the change to a specific
+  /// nested role entry instead of the user's global role.
   static Future<HttpsCallableResult> onUpdate(UserData user, {String? group}) {
     final callable = FirebaseFunctions.instance.httpsCallable(
       'user-actions-role',
@@ -28,6 +39,10 @@ class UserRolesFirebase {
     return callable.call(dataFinal);
   }
 
+  /// Returns Firestore user documents as plain maps, optionally scoped by [group].
+  ///
+  /// Global lookups are ordered by `role`, while group-scoped lookups are
+  /// ordered by `roles.<group>` so role-based lists remain predictable.
   static Future<List<Map<String, dynamic>>> getUsers({String? group}) async {
     if (group != null) {
       assert(group.isNotEmpty, 'group can\'t be empty');

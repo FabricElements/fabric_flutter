@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
 
-/// RouteHelper Enables/Disables routes depending on credentials
+/// Builds route tables that reflect the user's authentication state.
+///
+/// This helper wraps each configured route in a lightweight [Scaffold] and swaps
+/// inaccessible destinations for either the authentication route or the unknown
+/// route. That keeps access-control decisions centralized instead of scattering
+/// them across page builders.
 class RouteHelper {
+  /// Creates a route policy from the supplied route groups and fallback routes.
   RouteHelper({
     required this.adminRoutes,
     required this.authenticatedRoutes,
@@ -12,15 +18,32 @@ class RouteHelper {
     required this.initialRoute,
   });
 
+  /// Lists routes that remain accessible even when the user is signed out.
   final List<String>? publicRoutes;
+
+  /// Lists routes available to any authenticated user.
   final List<String>? authenticatedRoutes;
+
+  /// Lists routes reserved for authenticated admin users.
   final List<String>? adminRoutes;
+
+  /// Maps route names to the widgets that should be displayed for them.
   final Map<String, Widget> routeMap;
 
+  /// Defines the fallback route used when signed-out users hit protected pages.
   final String? authRoute;
+
+  /// Defines the fallback route used when signed-in users hit unknown pages.
   final String? unknownRoute;
+
+  /// Identifies the route that should block back navigation with [PopScope].
   final String initialRoute;
 
+  /// Returns the route table appropriate for the current auth and admin state.
+  ///
+  /// Signed-in users can reach [authenticatedRoutes] and, when [isAdmin] is
+  /// `true`, [adminRoutes]. Signed-out users are limited to [publicRoutes] plus
+  /// [authRoute]. Any inaccessible route is replaced with a safe fallback widget.
   Map<String, Widget> routes({bool signed = false, bool isAdmin = false}) {
     Map<String, Widget> endSignedIn = {};
     Map<String, Widget> endPublic = {};

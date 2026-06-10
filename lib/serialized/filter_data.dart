@@ -9,67 +9,104 @@ import '../helper/utils.dart';
 
 part 'filter_data.g.dart';
 
-/// Filter Operator
+/// Enumerates the comparison operations supported by [FilterData].
+///
+/// These operators are serialized so filtering rules can be stored, reapplied,
+/// and translated into backend queries or local predicates.
 enum FilterOperator {
+  /// Matches values that are exactly equal.
   equal,
+
+  /// Matches values that are not equal.
   notEqual,
+
+  /// Matches values that contain the provided text or element.
   contains,
+
+  /// Matches values strictly greater than the provided bound.
   greaterThan,
+
+  /// Matches values greater than or equal to the provided bound.
   greaterThanOrEqual,
+
+  /// Matches values strictly less than the provided bound.
   lessThan,
+
+  /// Matches values less than or equal to the provided bound.
   lessThanOrEqual,
+
+  /// Matches values that fall within a two-sided range.
   between,
+
+  /// Matches any value without applying an additional constraint.
   any,
+
+  /// Represents sorting rather than filtering semantics.
   sort,
+
+  /// Matches values that exist in a provided collection.
   whereIn,
 }
 
-/// Filter Order
-enum FilterOrder { asc, desc }
+/// Enumerates the supported sort directions.
+enum FilterOrder {
+  /// Sorts values in ascending order.
+  asc,
 
-/// Filter Data
+  /// Sorts values in descending order.
+  desc,
+}
+
+/// Stores one serialized filter definition.
+///
+/// A filter bundles user-facing metadata, value parsing behavior, and optional UI
+/// callbacks so the same object can drive both filter editors and query payloads.
 @JsonSerializable(explicitToJson: true)
 class FilterData {
-  /// ID
+  /// Stores the stable identifier of the filtered field.
   String id;
 
-  /// Label
+  /// Stores the user-facing label for the field.
   @JsonKey(includeToJson: false, includeFromJson: false)
   String label;
 
-  /// Input Data Type
-  /// @see [InputDataType]
+  /// Stores the semantic input type used to interpret [value].
   InputDataType type;
 
-  /// Enums List
+  /// Stores enum values that can be selected for enum-based filters.
   @JsonKey(includeToJson: false, includeFromJson: false)
   List<Enum> enums;
 
-  /// Options List
-  /// @see [ButtonOptions]
+  /// Stores button-style options used by some filter editors.
   @JsonKey(includeToJson: false, includeFromJson: false)
   List<ButtonOptions> options;
 
-  /// Operator
+  /// Stores the selected comparison or sorting operator.
   FilterOperator? operator;
 
-  /// Value
+  /// Stores the raw filter value.
+  ///
+  /// This field remains `dynamic` because dates, booleans, enums, ranges, and
+  /// scalar text inputs all use different runtime representations.
   @JsonKey(includeIfNull: true)
   dynamic value;
 
-  /// Index
+  /// Stores the display or processing order of the filter.
   @JsonKey(includeIfNull: true)
   int index;
 
-  /// On Change
-  /// @see [FilterData]
+  /// Stores a callback invoked when the filter changes in memory.
+  ///
+  /// The callback is excluded from JSON because executable closures cannot be
+  /// serialized and only make sense inside the current process.
   @JsonKey(includeToJson: false, includeFromJson: false)
   Function(FilterData)? onChange;
 
-  /// Group
+  /// Stores an arbitrary grouping token used by the UI.
   @JsonKey(includeToJson: false, includeFromJson: false)
   dynamic group;
 
+  /// Creates serialized filter data.
   FilterData({
     required this.id,
     this.operator,
@@ -83,7 +120,11 @@ class FilterData {
     this.group,
   });
 
-  /// Convert value to JSON
+  /// Converts [value] into a JSON-safe representation.
+  ///
+  /// Serialization depends on both [type] and [operator]. For example, date
+  /// ranges become ISO 8601 string lists, enum values are mapped to descriptive
+  /// strings, and sort filters preserve the field and direction pair.
   dynamic _valueToJson() {
     dynamic finalValue;
     final isSort = operator == FilterOperator.sort || id == 'sort';
@@ -159,6 +200,11 @@ class FilterData {
     return finalValue;
   }
 
+  /// Builds [FilterData] from serialized JSON.
+  ///
+  /// During deserialization the raw JSON `value` is converted back into richer
+  /// runtime types, such as [DateTime] objects for date-based filters. Unknown or
+  /// unsupported shapes are preserved as-is to avoid losing user input.
   factory FilterData.fromJson(Map<String, dynamic>? json) {
     Map<String, dynamic> jsonData = json ?? {};
     dynamic base = _$FilterDataFromJson(jsonData);
@@ -203,12 +249,19 @@ class FilterData {
     return base;
   }
 
+  /// Converts this filter into JSON.
+  ///
+  /// The generated serializer handles the static fields, while `_valueToJson`
+  /// applies the custom value conversion rules needed by dynamic filter inputs.
   Map<String, dynamic> toJson() {
     Map<String, dynamic> base = _$FilterDataToJson(this);
     return {...base, 'value': _valueToJson()};
   }
 
-  /// clear filter data
+  /// Resets the filter back to an unconfigured state.
+  ///
+  /// This keeps the filter object reusable in the UI without replacing the field
+  /// metadata or reallocating a new instance.
   void clear() {
     index = 0;
     operator = null;

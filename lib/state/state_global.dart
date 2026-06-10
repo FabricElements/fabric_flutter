@@ -4,14 +4,25 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-/// This is a change notifier class which keeps track of state within the widgets.
+/// Holds application-wide environment and connectivity state.
+///
+/// This notifier is intended to be initialized once near app startup. Widgets
+/// can listen to it for package metadata, account changes, and connectivity
+/// transitions. Updates propagate through [notifyListeners] and the dedicated
+/// [streamConnection] stream so UI code can either rebuild declaratively or
+/// react imperatively to connection changes.
 class StateGlobal extends ChangeNotifier {
+  /// Creates the global application state holder.
   StateGlobal();
 
-  /// More at [packageInfo]
+  /// Stores package metadata loaded from the current platform.
   PackageInfo? _packageInfo;
 
-  /// packageInfo returns [PackageInfo] temporal or final data
+  /// Returns the current [PackageInfo], or an empty placeholder before
+  /// initialization finishes.
+  ///
+  /// Returning a fallback object avoids null checks throughout the UI while the
+  /// asynchronous platform lookup is still in flight.
   PackageInfo get packageInfo {
     if (_packageInfo == null) {
       return PackageInfo(
@@ -25,7 +36,10 @@ class StateGlobal extends ChangeNotifier {
     return _packageInfo!;
   }
 
-  /// Initialize package info
+  /// Loads package metadata from the underlying platform.
+  ///
+  /// Errors are ignored because test environments and some nonstandard runners
+  /// may not expose package information.
   void _initPackageInfo() {
     PackageInfo.fromPlatform()
         .then((value) {
@@ -39,7 +53,10 @@ class StateGlobal extends ChangeNotifier {
         });
   }
 
-  /// Return app version as a string
+  /// Returns the formatted application version string.
+  ///
+  /// The result looks like `v1.2.3+45` when both version and build number are
+  /// available, or `null` until version metadata has been loaded.
   String? get appVersion {
     String finalVersion = '';
     if (packageInfo.version.isNotEmpty) {
@@ -54,30 +71,38 @@ class StateGlobal extends ChangeNotifier {
     return finalVersion;
   }
 
-  /// Current Account ID
+  /// Stores the active account identifier.
   String? _account;
 
-  /// Current Account ID
+  /// Returns the active account identifier.
   String? get account => _account;
 
-  /// Current Account ID
+  /// Updates the active account identifier and notifies listeners.
   set account(String? value) {
     if (value == _account) return;
     _account = value;
     notifyListeners();
   }
 
-  /// Internet connection status
-  /// More at [streamSerialized]
+  /// Broadcasts connectivity changes for consumers that prefer stream-style
+  /// reactions.
+  ///
   /// ignore: close_sinks
   final _controllerStreamConnection = StreamController<bool>.broadcast();
 
-  /// Stream Connection
+  /// Emits `true` when connectivity is restored and `false` when it is lost.
   Stream<bool> get streamConnection => _controllerStreamConnection.stream;
+  /// Tracks whether the device is currently connected to a network.
   bool connected = true;
+  /// Stores the current connectivity transport name, such as `wifi` or
+  /// `mobile`.
   String? connectedTo;
 
-  /// Initialize connectivity listener
+  /// Starts listening for connectivity changes.
+  ///
+  /// The listener coalesces repeated transport reports and only notifies when
+  /// the effective online/offline state changes, which prevents unnecessary UI
+  /// churn while platform plugins emit intermediate updates.
   void _initConnectivity() {
     /// Check connectivity
     try {
@@ -116,7 +141,10 @@ class StateGlobal extends ChangeNotifier {
     }
   }
 
-  /// Initialize the state
+  /// Initializes package and connectivity state.
+  ///
+  /// Call this once near application startup before widgets begin reading the
+  /// notifier.
   void init() {
     WidgetsFlutterBinding.ensureInitialized();
     _initPackageInfo();

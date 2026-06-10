@@ -1,7 +1,13 @@
 import '../serialized/iso_data.dart';
 
-/// All the language locales with name, native name and emoji if exists.
+/// Exposes ISO language metadata used by pickers and localization helpers.
+///
+/// Each raw entry includes the display name, native name, emoji marker, and the
+/// two-letter code used throughout the package. The data stays in map form here
+/// so callers can either consume the raw records or materialize typed models via
+/// [languages].
 class ISOLanguages {
+  /// Contains the canonical language definitions used by this package.
   static List<Map<String, dynamic>> raw = [
     {'name': 'Abkhaz', 'nativeName': 'аҧсуа', 'emoji': '🌐', 'alpha2': 'ab'},
     {'name': 'Afar', 'nativeName': 'Afaraf', 'emoji': '🇪🇹', 'alpha2': 'aa'},
@@ -879,7 +885,10 @@ class ISOLanguages {
     {'name': 'Zulu', 'nativeName': '', 'emoji': '🇿🇦', 'alpha2': 'zu'},
   ];
 
-  // List of supported Google Text-to-Speech WaveNet languages
+  /// Lists language codes supported by Google Text-to-Speech WaveNet voices.
+  ///
+  /// Callers can use this to hide unsupported voice options before attempting a
+  /// text-to-speech request.
   static List waveNetLanguages = [
     'da',
     'nl',
@@ -900,6 +909,10 @@ class ISOLanguages {
     'uk',
   ];
 
+  /// Returns the raw language metadata as typed [ISOLanguage] models.
+  ///
+  /// A new list is created on each access so callers can iterate safely without
+  /// mutating the canonical [raw] dataset.
   static List<ISOLanguage> get languages {
     List<ISOLanguage> items = [];
     for (var element in raw) {
@@ -908,7 +921,10 @@ class ISOLanguages {
     return items;
   }
 
-  /// This method return the language name by [alpha2]
+  /// Returns the display name for the language identified by [alpha2].
+  ///
+  /// `null` is returned when the code is unknown so UI code can decide how to
+  /// handle missing metadata without catching exceptions.
   static String? getName(String? alpha2) {
     try {
       return languages.firstWhere((element) => element.alpha2 == alpha2).name;
@@ -917,7 +933,10 @@ class ISOLanguages {
     }
   }
 
-  /// This method return the emoji country by [key]
+  /// Returns the emoji marker associated with the language identified by [alpha2].
+  ///
+  /// Some entries use a globe emoji instead of a flag when no single country is a
+  /// good representation of the language.
   static String? getEmoji(String? alpha2) {
     try {
       return languages.firstWhere((element) => element.alpha2 == alpha2).emoji;

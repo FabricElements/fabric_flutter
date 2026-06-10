@@ -11,10 +11,17 @@ import '../helper/log_color.dart';
 import '../helper/utils.dart';
 import 'state_shared.dart';
 
-// Top-level parser that runs inside an isolate via compute().
-// It receives a Map with keys 's' (the new chunk string) and
-// 'staticBuffer' (previous leftover). It returns a Map with
-// keys 'items' (List of parsed Map<String,dynamic>) and 'buffer' (leftover string).
+/// Parses a possibly partial JSON-object stream buffer into complete objects.
+///
+/// The function runs inside `compute()` when isolates are available so large
+/// streaming API responses do not block the main isolate. It accepts `args`
+/// containing the incoming chunk under `s` and any leftover content from the
+/// previous pass under `staticBuffer`, then returns parsed `items` plus the new
+/// trailing `buffer`.
+///
+/// Only complete top-level JSON objects are emitted. Invalid trailing fragments
+/// are intentionally preserved for the next chunk so split payloads can recover
+/// cleanly instead of producing false parse errors.
 Map<String, dynamic> _parseJsonBuffer(Map<String, dynamic> args) {
   final String chunk = (args['s'] as String?) ?? '';
   final String prevBuffer = (args['staticBuffer'] as String?) ?? '';
@@ -72,45 +79,74 @@ Map<String, dynamic> _parseJsonBuffer(Map<String, dynamic> args) {
   return {'items': items, 'buffer': buffer};
 }
 
-/// Base State for API calls
-/// Use this state to fetch updated data every time an endpoint is updated
+/// Defines shared behavior for HTTP-backed state objects.
+///
+/// [StateAPI] extends [StateShared] with endpoint construction, authentication,
+/// header filtering, pagination-aware fetches, and support for both regular JSON
+/// responses and `application/x-json-stream` streams. Typical consumers call
+/// [call] for one-shot loads and listen to the inherited [stream] or
+/// [notifyListeners] updates for UI refreshes.
+///
+/// Subclasses usually configure [endpoint], [method], [headersToFilter], and
+/// serialization logic. Updates propagate through [data], [error], and
+/// [loading], so widgets can react consistently no matter how the response was
+/// delivered.
 abstract class StateAPI extends StateShared {
+  /// Holds the active HTTP client used for outgoing requests.
   http.Client httpClient;
 
+  /// Creates an API state.
+  ///
+  /// Passing [httpClient] is useful in tests or when a custom transport layer is
+  /// required. Otherwise a fresh default [http.Client] is created.
   StateAPI({http.Client? httpClient})
     : httpClient = httpClient ?? http.Client(),
       super();
 
-  /// [initialized] after [endpoint] is set the first time
-
-  /// Use lastEndpointCalled to prevent duplicated calls when get() is called
+  /// Remembers the last fully expanded endpoint used by [call].
+  ///
+  /// This lets the state suppress duplicate requests when the same endpoint is
+  /// asked for repeatedly without any intervening reset.
   String? _lastEndpointCalled;
 
-  /// More at [endpoint]
-  /// Don't override from outside the class, use [endpoint] for that
+  /// Stores the base endpoint path before query parameters are merged in.
+  ///
+  /// Callers should update [endpoint] instead of writing this field directly so
+  /// the state can trigger lifecycle resets and fetches.
   String baseEndpoint = '';
 
-  /// [credentials]
+  /// Stores credentials used by [authScheme] when authenticated requests are
+  /// needed.
+  ///
   /// https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication
   String? credentials;
 
-  /// [authScheme]
+  /// Defines the HTTP authentication scheme for the next request.
+  ///
   /// https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication#authentication_schemes
-  /// Use Bearer for token authentication
+  /// Use [AuthScheme.Bearer] for token authentication.
   AuthScheme? authScheme;
 
-  /// Use [AuthScheme.Bearer] and the current user id token for authentication
+  /// Automatically uses the current Firebase ID token for authentication.
+  ///
+  /// When enabled, [call] refreshes [credentials] before each request and forces
+  /// [authScheme] to [AuthScheme.Bearer].
   bool token = false;
 
-  /// HTTP request method
+  /// Defines the HTTP verb used when sending the request.
   HTTPMethod method = HTTPMethod.GET;
 
-  /// HTTP request body (for POST, PUT, PATCH)
+  /// Stores the request body for methods such as `POST`, `PUT`, or `PATCH`.
+  ///
+  /// [call] accepts [String], [Map], and [List] bodies. Unsupported body types
+  /// throw so mistakes surface early instead of being silently serialized.
   dynamic body;
 
-  /// Define the HTTPS [endpoint] (https://example.com/demo)
-  /// when the timestamp is updated it will result in a new call to the API [endpoint].
-  /// Don't use a '/' at the beginning of the path
+  /// Updates the base HTTPS endpoint and triggers a fresh [call].
+  ///
+  /// Do not prefix the path with `/` when composing relative URLs elsewhere.
+  /// Reassigning the same value after data has already loaded is ignored, which
+  /// prevents redundant network activity during rebuilds.
   set endpoint(String value) {
     if (value == baseEndpoint && data != null) return;
     baseEndpoint = value;
@@ -123,7 +159,7 @@ abstract class StateAPI extends StateShared {
     call();
   }
 
-  /// Get the current endpoint and query parameters as a string
+  /// Returns the active endpoint with current [queryParameters] applied.
   String get endpoint {
     if (queryParameters.isEmpty) return baseEndpoint;
     return Utils.uriMergeQuery(
@@ -132,7 +168,10 @@ abstract class StateAPI extends StateShared {
     ).toString();
   }
 
-  /// Clear URL from pagination queries
+  /// Removes pagination-specific parameters from [url].
+  ///
+  /// This is used when comparing endpoints so a page change does not look like a
+  /// completely unrelated request path.
   String? urlClear(String? url) {
     if (url == null) return null;
     return Utils.uriMergeQuery(
@@ -141,10 +180,12 @@ abstract class StateAPI extends StateShared {
     ).toString();
   }
 
-  /// Response headers
+  /// Stores the raw headers returned by the most recent response.
   Map<String, String> headers = {};
 
-  /// Define the header names to filter for the next call
+  /// Lists response-header patterns that should be exposed through
+  /// [headersFiltered].
+  ///
   /// Example: [x-header-name] for exact header
   /// Example: [x-header-*] for wildcard headers
   /// Example: [x-custom-header-name, x-custom-*] for multiple headers
@@ -152,7 +193,10 @@ abstract class StateAPI extends StateShared {
   /// headersToFilter will be used to filter the headers you like to use for the next call
   List<String> get headersToFilter => [];
 
-  /// Get the headers for the next call
+  /// Returns only the response headers matched by [headersToFilter].
+  ///
+  /// Exact names and `*` suffix wildcards are supported, and comparisons are
+  /// case-insensitive to match HTTP semantics.
   Map<String, String> get headersFiltered {
     Map<String, String> finalHeaders = {};
     final headersToFilterToUse = headersToFilter
@@ -180,9 +224,16 @@ abstract class StateAPI extends StateShared {
     return finalHeaders;
   }
 
-  /// Stream subscription for handling JSON stream responses
+  /// Tracks the active subscription when the server returns a JSON stream.
   StreamSubscription<Map<String, dynamic>>? _streamSubscription;
 
+  /// Fetches data from the configured [endpoint].
+  ///
+  /// This method drives the full API lifecycle: it suppresses duplicate calls,
+  /// injects authentication, handles streamed and non-streamed responses,
+  /// updates pagination metadata, resets the HTTP client, and propagates state
+  /// through [data], [error], [loading], and [initialized]. Listeners should
+  /// treat it as the authoritative refresh entry point for API-backed state.
   @override
   Future<dynamic> call({bool ignoreDuplicatedCalls = true}) async {
     /// Prevents duplicate calls with a delay and check for loading call again
@@ -447,8 +498,10 @@ Error: $error
     return dataResponse;
   }
 
-  /// Reset the HTTP client and cancel any existing stream subscription
-  /// Reset the HTTP client and cancel any existing stream subscription
+  /// Recreates the HTTP client and cancels any active JSON-stream subscription.
+  ///
+  /// Resetting the client avoids stale persistent connections after streaming or
+  /// aborted requests, which helps keep later calls predictable.
   Future<void> _resetHttpClient() async {
     // Cancel and clear existing subscription
     try {
@@ -465,6 +518,7 @@ Error: $error
     httpClient = http.Client();
   }
 
+  /// Clears request-specific state and resets the HTTP transport.
   @override
   void clear({bool notify = false}) {
     _lastEndpointCalled = null;

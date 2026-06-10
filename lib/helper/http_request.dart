@@ -3,22 +3,62 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart';
 
+/// Enumerates the supported HTTP authentication schemes.
+///
+/// These values map directly to the scheme prefix used in an `Authorization`
+/// header and mirror the terminology defined by MDN.
 /// https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication#authentication_schemes
+///
 enum AuthScheme {
+  /// Uses base64-encoded username and password credentials.
   // ignore: constant_identifier_names
   Basic,
+
+  /// Uses a bearer token provided by the server or identity provider.
   // ignore: constant_identifier_names
   Bearer,
+
+  /// Uses a JSON Web Token prefix for APIs that expect `JWT` explicitly.
   // TODO: Remove after it's implemented
   // ignore: constant_identifier_names
   JWT,
 }
 
-/// HTTP request methods
+/// Enumerates the HTTP methods supported by this helper.
+///
+/// The values match the standard HTTP verbs described by MDN and can be reused
+/// by higher-level networking helpers when building requests.
 /// https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
-enum HTTPMethod { HEAD, GET, POST, PUT, PATCH, DELETE }
+///
+enum HTTPMethod {
+  /// Requests only response headers for a resource.
+  HEAD,
 
+  /// Retrieves a resource without modifying server state.
+  GET,
+
+  /// Creates a resource or submits data for processing.
+  POST,
+
+  /// Replaces an existing resource with a full new representation.
+  PUT,
+
+  /// Applies a partial update to an existing resource.
+  PATCH,
+
+  /// Removes a resource.
+  DELETE,
+}
+
+/// Builds common HTTP authentication headers and response helpers.
+///
+/// This utility keeps low-level networking code consistent by centralizing how
+/// authorization headers are formatted and how error responses are interpreted.
 class HTTPRequest {
+  /// Creates an [HTTPRequest] helper.
+  ///
+  /// When either [credentials] or [authScheme] is provided, both must be set so
+  /// the helper can build a valid `Authorization` header.
   const HTTPRequest({this.credentials, this.authScheme})
     : assert(
         credentials != null || authScheme != null
@@ -27,21 +67,30 @@ class HTTPRequest {
         'token and authScheme are required for Authentication',
       );
 
-  /// [credentials]
-  /// https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication
+  /// Stores the raw credentials used to build an `Authorization` header.
+  ///
+  /// The meaning depends on [authScheme], such as a base64-encoded user pair or
+  /// a bearer token returned by an authentication service.
   final String? credentials;
 
-  /// [authScheme]
-  /// https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication#authentication_schemes
-  /// Use Bearer for token authentication
+  /// Declares how [credentials] should be labeled in the header.
+  ///
+  /// Use [AuthScheme.Bearer] for most token-based APIs unless the backend
+  /// explicitly expects another scheme.
   final AuthScheme? authScheme;
 
-  /// Get formatted credentials
+  /// Returns the fully formatted `Authorization` header value, if available.
+  ///
+  /// The returned string combines [authScheme] and [credentials], or `null`
+  /// when authentication was not configured for the request.
   String? get formattedCredentials => credentials != null && authScheme != null
       ? '${authScheme.toString().split('.').last} $credentials'
       : null;
 
-  /// Get headers
+  /// Returns the headers contributed by this helper.
+  ///
+  /// The map is empty when no authentication was configured, which allows
+  /// callers to merge it into other headers without special handling.
   Map<String, String> get headers {
     Map<String, String> endHeaders = {};
     if (formattedCredentials != null) {
@@ -50,14 +99,21 @@ class HTTPRequest {
     return endHeaders;
   }
 
-  /// Throw an error if response return a Forbidden or Unauthorized
+  /// Throws when [response] indicates the caller is not authenticated.
+  ///
+  /// This helper isolates authorization failures so callers can handle `401`
+  /// and `403` responses distinctly from general server or validation errors.
   static void authenticated(Response response) {
     if (response.statusCode == 401 || response.statusCode == 403) {
       throw 'error--${response.statusCode}';
     }
   }
 
-  /// Throw an error if it's found or null if it's ok
+  /// Throws a best-effort error message extracted from [response].
+  ///
+  /// Successful `2xx` responses return normally. For failures, the helper looks
+  /// for a JSON `message`, then a JSON `errors` list, then the HTTP reason
+  /// phrase, and finally falls back to an `error--statusCode` key.
   static void error(Response response) {
     /// Accept status code from 200 to 299
     if (response.statusCode >= 200 && response.statusCode <= 299) {
@@ -111,7 +167,10 @@ class HTTPRequest {
     throw errorResponse;
   }
 
-  /// Decode JSON and remove null or empty values
+  /// Decodes JSON from [data] and removes empty top-level values.
+  ///
+  /// Maps have `null` and empty-string entries removed, while lists drop `null`
+  /// and empty-string items. Non-collection JSON values are returned unchanged.
   static dynamic jsonDecodeAndClean(dynamic data) {
     final decoded = jsonDecode(data);
     if (decoded is Map<String, dynamic>) {
@@ -128,7 +187,11 @@ class HTTPRequest {
     return decoded;
   }
 
-  /// Return decoded request response
+  /// Returns the parsed body from [response] after validating it.
+  ///
+  /// The helper first delegates to [error]. Empty bodies become `null`, JSON
+  /// bodies are decoded with [jsonDecodeAndClean], and all other payloads are
+  /// returned as plain text.
   static dynamic response(Response response) {
     /// Check for errors
     error(response);
