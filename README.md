@@ -25,7 +25,7 @@
 
 | Category | Technologies |
 |----------|-------------|
-| **Framework** | Flutter ^3.11.5, Dart SDK ^3.11.5 |
+| **Framework** | Flutter ^3.44.1, Dart SDK ^3.12.1 |
 | **State Management** | `provider` (v6.1.5+1) |
 | **Backend Services** | Firebase (Auth, Firestore, Functions, Storage, Analytics, Messaging, Database) |
 | **Authentication** | `firebase_auth`, `google_sign_in` |

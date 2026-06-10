@@ -3,7 +3,7 @@ description: Native components and helpers
 version: 2.2.2
 
 environment:
-  sdk: ^3.11.5
+  sdk: ^3.12.1
 
 dependencies:
   flutter:
