@@ -1,4 +1,15 @@
 // @formatter:off
+
+/// Default localization strings for the fabric_flutter package.
+///
+/// This map provides internationalization (i18n) support for English and Spanish
+/// languages. Each key represents a localization identifier in the format
+/// `category--identifier`, and each value contains a map of language codes to
+/// translated strings.
+///
+/// The localization system is consumed by [AppLocalizations] and allows components
+/// to display user-facing text in the appropriate language based on the user's
+/// device settings or preferences.
 const Map<String, Map<String, String>> defaultLocales = {
   'say--something': {
     'en': 'Say something...',

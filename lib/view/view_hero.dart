@@ -2,7 +2,18 @@ import 'package:flutter/material.dart';
 
 import '../component/smart_image.dart';
 
+/// Displays a full-screen hero animation view for media content.
+///
+/// [ViewHero] creates an immersive, zoomable media viewing experience using
+/// Flutter's Hero widget for smooth transitions. It's typically navigated to
+/// from thumbnail images with matching hero tags. The view supports interactive
+/// pinch-to-zoom and pan gestures through [InteractiveViewer].
+///
+/// The media URL is expected to be passed via route arguments with key 'url'.
+/// If no URL is provided or the media fails to load, a fallback error message
+/// is displayed.
 class ViewHero extends StatelessWidget {
+  /// Creates a hero animation view for media content.
   const ViewHero({super.key});
 
   @override
