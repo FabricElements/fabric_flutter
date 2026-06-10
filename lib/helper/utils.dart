@@ -38,20 +38,35 @@ class Utils {
     return DateFormat('yyyy-MM-dd').format(time.toUtc()).toString();
   }
 
-  /// Serialize string to double
+  /// Converts a string value to a double, returning null if conversion fails.
+  ///
+  /// Safely parses any value to double by first converting it to a string,
+  /// then attempting double parsing. Returns null if the value is null or
+  /// cannot be parsed as a valid double.
   static double? stringToDouble(dynamic value) {
     if (value == null) return null;
     return double.tryParse(value.toString());
   }
 
-  /// Serialize string to int
+  /// Converts a string value to an integer, returning null if conversion fails.
+  ///
+  /// Safely parses any value to int by first converting it to a string,
+  /// then attempting integer parsing. Returns null if the value is null or
+  /// cannot be parsed as a valid integer.
   static int? stringToInt(dynamic value) {
     if (value == null) return null;
     return int.tryParse(value.toString());
   }
 
-  /// User Presence
-  /// responses: active, inactive, away
+  /// Determines user presence status based on last activity time.
+  ///
+  /// Evaluates [time] against current time thresholds to classify user presence:
+  /// - Active: last activity within 2 minutes
+  /// - Inactive: last activity between 2-4 minutes ago
+  /// - Away: last activity more than 4 minutes ago or time is null
+  ///
+  /// Used throughout the application to display real-time user availability
+  /// indicators and manage presence-based features.
   static UserPresence getPresence(DateTime? time) {
     UserPresence value = UserPresence.away;
     if (time == null) return value;
@@ -64,7 +79,11 @@ class Utils {
     return value;
   }
 
-  /// Get name abbreviation
+  /// Constructs a full name from first and last name components.
+  ///
+  /// Returns a properly formatted name string from [firstName] and [lastName].
+  /// If only first name is provided, appends a period. If both are provided,
+  /// separates them with a space. Returns an empty string if both are null.
   static String nameFromParts({String? firstName, String? lastName}) {
     String finalName = '';
     if (firstName != null && firstName.isNotEmpty) {
@@ -79,7 +98,12 @@ class Utils {
     return finalName;
   }
 
-  /// Get name abbreviation
+  /// Creates initials or abbreviation from first and last name.
+  ///
+  /// Generates a two-character abbreviation by taking the first character of
+  /// [firstName] and [lastName]. If lastName is not provided, appends a period.
+  /// Returns an empty string if both names are null. The result is always
+  /// uppercase for consistency.
   static String nameAbbreviation({String? firstName, String? lastName}) {
     String finalName = '';
     if (firstName != null || lastName != null) {
@@ -95,8 +119,11 @@ class Utils {
     return finalName.toUpperCase();
   }
 
-  /// Get a String path from a provided [uri] and [queryParameters]
-  /// If any key value is empty the key is removed from the response
+  /// Constructs a [Uri] by merging existing query parameters with new ones.
+  ///
+  /// Takes an existing [uri] and its [queryParameters], merges them using
+  /// [mergeQueryParameters], and returns a new Uri with the combined query string.
+  /// Empty or null values are automatically filtered out to maintain clean URLs.
   static Uri uriMergeQuery({
     required Uri uri,
     required Map<String, List<String>> queryParameters,
@@ -107,6 +134,11 @@ class Utils {
     return baseUri;
   }
 
+  /// Extracts the first value from query parameters for a given key.
+  ///
+  /// Safely retrieves query parameter values, returning null if the key doesn't
+  /// exist, the query parameters map is null, or the value list is empty.
+  /// Otherwise returns the list of values for that key.
   static List<String>? valuesFromQueryKey(
     Map<String, List<String>>? queryParameters,
     String key,
@@ -119,7 +151,14 @@ class Utils {
     return queryParameters[key];
   }
 
-  /// Push Named path from URI query
+  /// Navigates to a new route by merging query parameters with the current URI.
+  ///
+  /// Combines the existing [uri] with new [queryParameters], then navigates using
+  /// the Flutter Navigator. When [pop] is true, uses `popAndPushNamed` to replace
+  /// the current route instead of stacking a new one.
+  ///
+  /// This is particularly useful for maintaining URL state in web applications
+  /// while updating specific query parameters.
   static void pushNamedFromQuery({
     required BuildContext context,
     required Map<String, List<String>> queryParameters,
@@ -138,6 +177,14 @@ class Utils {
   }
 
   // Get the value using the time zone offset in minutes
+  /// Adjusts a [DateTime] by applying a timezone offset in minutes.
+  ///
+  /// This helper converts between UTC and local times when the timezone offset
+  /// is known in minutes. The [utcOffset] represents the number of minutes ahead
+  /// (positive) or behind (negative) UTC. When [reverse] is true, the operation
+  /// is inverted to convert from local time back to UTC.
+  ///
+  /// Returns null if [utcOffset] or [dateTime] is null, or if [utcOffset] is zero.
   static DateTime? dateTimeOffset({
     int? utcOffset,
     DateTime? dateTime,
@@ -164,6 +211,10 @@ class Utils {
     }
   }
 
+  /// Sets the application title displayed in the system task switcher.
+  ///
+  /// On supported platforms, this updates the label shown when users view
+  /// running apps in the system's app switcher or overview screen.
   static void setPageTitle(String title) {
     SystemChrome.setApplicationSwitcherDescription(
       ApplicationSwitcherDescription(
@@ -196,7 +247,12 @@ class Utils {
     }
   }
 
-  /// Get device language
+  /// Retrieves the device's preferred language code.
+  ///
+  /// Attempts to detect the device's language settings and returns a two-letter
+  /// language code (e.g., 'en', 'es'). Currently supports English ('en') and
+  /// Spanish ('es'), defaulting to 'en' for all other languages or if detection
+  /// fails. Uses the devicelocale package to access system preferences.
   static Future<String> getLanguage() async {
     String language = 'en';
     try {
@@ -213,7 +269,15 @@ class Utils {
     return language;
   }
 
-  /// Merge two sets of query parameters and clean empty ones
+  /// Merges two sets of query parameters and removes empty entries.
+  ///
+  /// Takes [base] query parameters and merges them with [toReplace] parameters.
+  /// Any keys present in [toReplace] will override the same keys in [base].
+  /// Empty values (empty strings or empty lists) are automatically removed from
+  /// the final result, ensuring clean URL generation.
+  ///
+  /// This is useful for maintaining URL state while allowing selective updates
+  /// to query parameters during navigation.
   static Map<String, List<String>> mergeQueryParameters(
     // base parameters
     Map<String, List<String>> base,
@@ -233,7 +297,12 @@ class Utils {
     return qp;
   }
 
-  /// Get the icon for the status
+  /// Retrieves the appropriate Material icon for a given status value.
+  ///
+  /// Maps status strings (e.g., 'draft', 'active', 'archived') to corresponding
+  /// Material Design icons. The status value is converted to a string and
+  /// lowercased before matching. Returns a default circle icon for unrecognized
+  /// status values.
   static IconData statusIcon(dynamic value) {
     late IconData iconData;
     final finalValue = EnumData.describe(value)?.toLowerCase();
@@ -274,7 +343,12 @@ class Utils {
     return iconData;
   }
 
-  /// Get the color for the status
+  /// Retrieves the appropriate Material color for a given status value.
+  ///
+  /// Maps status strings (e.g., 'draft', 'active', 'archived') to Material
+  /// theme colors that visually represent the status. The status value is
+  /// converted to a string and lowercased before matching. Returns a default
+  /// grey color for unrecognized status values.
   static Color statusColor(dynamic value) {
     late Color statusColor;
     final finalValue = EnumData.describe(value)?.toLowerCase();
@@ -316,6 +390,12 @@ class Utils {
     return statusColor;
   }
 
+  /// Prints debug information about the widget hierarchy.
+  ///
+  /// Traverses up the widget tree from the given [context] and logs information
+  /// about the current widget and its immediate parent, including keys and
+  /// runtime types. Useful for debugging layout issues or understanding the
+  /// widget tree structure during development.
   static void getParentWidgetName(BuildContext context) {
     Element? element = context as Element;
 
