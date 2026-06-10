@@ -8,12 +8,9 @@ import 'smart_image.dart';
 ///
 /// The widget prefers rendering the image from [avatar]. When no image is
 /// available, it falls back to initials derived from [firstName], [lastName],
-/// or [name], and finally to the default person icon. This makes the widget a
-/// safe choice for profile lists, headers, and other places where user data may
-/// arrive incrementally during the Flutter build lifecycle.
-///
-/// [avatar] is the image source used by the widget.
-/// [name] provides a fallback display name when structured names are missing.
+/// or [name], and finally to the default person icon. This behavior keeps
+/// profile lists, headers, and similar surfaces informative while user data is
+/// still loading or only partially available.
 ///
 /// ```dart
 /// UserAvatar(
@@ -48,9 +45,15 @@ class UserAvatar extends StatelessWidget {
   final String? name;
 
   /// Supplies the preferred first-name portion used for initials and tooltips.
+  ///
+  /// The widget favors this value over [name] so generated initials stay
+  /// consistent with structured user records when both are available.
   final String? firstName;
 
   /// Supplies the preferred last-name portion used for initials and tooltips.
+  ///
+  /// The widget combines this value with [firstName] when generating initials
+  /// so family names remain visible in compact avatar-only layouts.
   final String? lastName;
 
   /// Describes the user's current presence for the status badge overlay.
@@ -61,8 +64,10 @@ class UserAvatar extends StatelessWidget {
 
   /// Builds the avatar using the active [ThemeData] colors and available user data.
   ///
-  /// The tooltip text follows the same fallback order as the initials so the UI
-  /// remains descriptive even while data is still loading or partially missing.
+  /// The [BuildContext] supplies theme colors for the avatar background, icon,
+  /// and initials text. The tooltip follows the same fallback order as the
+  /// displayed content so the UI remains descriptive even while user data is
+  /// still loading or partially missing.
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -97,7 +102,6 @@ class UserAvatar extends StatelessWidget {
       );
     }
 
-    /// Return only avatar if presence is null
     if (presence == null) {
       return Tooltip(
         message: firstName ?? lastName ?? name ?? abbreviation,
@@ -105,7 +109,6 @@ class UserAvatar extends StatelessWidget {
       );
     }
 
-    /// Get user status presence
     Color statusColor = Colors.transparent;
     switch (presence) {
       case UserPresence.active:

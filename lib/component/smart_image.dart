@@ -8,83 +8,133 @@ import '../helper/utils.dart';
 
 /// Enumerates the output formats supported by the backing image service.
 enum AvailableOutputFormats {
-  /// Requests AVIF output for modern browsers and compact transfers.
+  /// Requests AVIF output.
+  ///
+  /// Uses a modern compressed format when the client and service both support it.
   avif,
 
-  /// Requests Deep Zoom output for tiled image viewers.
+  /// Requests Deep Zoom output.
+  ///
+  /// Supports tiled viewers that progressively load large images.
   dz,
 
-  /// Requests FITS output for compatible scientific imagery workflows.
+  /// Requests FITS output.
+  ///
+  /// Supports scientific imagery workflows that consume FITS assets.
   fits,
 
   /// Requests GIF output.
+  ///
+  /// Preserves an animated or broadly compatible raster format.
   gif,
 
-  /// Requests HEIF output when the client can decode it.
+  /// Requests HEIF output.
+  ///
+  /// Uses a high-efficiency format when the client can decode it.
   heif,
 
-  /// Preserves the source format when the service supports passthrough output.
+  /// Preserves the source output format.
+  ///
+  /// Allows the backend to keep the input encoding when passthrough is available.
   input,
 
-  /// Requests JPEG output for broad compatibility.
+  /// Requests JPEG output.
+  ///
+  /// Favors wide compatibility for photographic imagery.
   jpeg,
 
   /// Requests JPEG 2000 output.
+  ///
+  /// Supports clients and workflows that depend on JP2 assets.
   jp2,
 
   /// Requests JPEG XL output.
+  ///
+  /// Uses a modern still-image format when supported by the pipeline.
   jxl,
 
   /// Requests ImageMagick-managed output.
+  ///
+  /// Defers to a service-specific format option exposed by ImageMagick.
   magick,
 
-  /// Requests OpenSlide output for slide-imaging workflows.
+  /// Requests OpenSlide output.
+  ///
+  /// Supports slide-imaging workflows that consume OpenSlide data.
   openslide,
 
   /// Requests PDF output.
+  ///
+  /// Produces a document-friendly asset when the service supports it.
   pdf,
 
-  /// Requests PNG output for lossless transparency support.
+  /// Requests PNG output.
+  ///
+  /// Preserves lossless pixels and transparency.
   png,
 
   /// Requests PPM output.
+  ///
+  /// Supports workflows that expect raw portable pixmap images.
   ppm,
 
   /// Requests raw pixel output.
+  ///
+  /// Produces minimally processed pixel data when available.
   raw,
 
   /// Requests SVG output.
+  ///
+  /// Supports vector-friendly workflows when the source can be represented that way.
   svg,
 
   /// Requests TIFF output.
+  ///
+  /// Supports high-fidelity or archival raster workflows.
   tiff,
 
-  /// Requests V format output when supported by the service.
+  /// Requests V format output.
+  ///
+  /// Uses a service-specific option when the backend exposes that format.
   v,
 
-  /// Requests WebP output for browsers that support it.
+  /// Requests WebP output.
+  ///
+  /// Balances compression and browser support for modern clients.
   webp,
 }
 
 /// Defines the named image sizes understood by the backing image service.
 enum ImageSize {
-  /// Requests a narrow thumbnail rendition, useful for previews and cards.
+  /// Requests a thumbnail rendition.
+  ///
+  /// Favors compact previews and card layouts.
   thumbnail,
 
-  /// Requests a compact square rendition for dense UI surfaces.
+  /// Requests a small rendition.
+  ///
+  /// Fits dense interface surfaces that need a compact image.
   small,
 
-  /// Requests a medium rendition suitable for most inline media.
+  /// Requests a medium rendition.
+  ///
+  /// Covers most inline media placements.
   medium,
 
-  /// Requests a large standard rendition for detailed content views.
+  /// Requests a standard rendition.
+  ///
+  /// Balances fidelity and transfer size for detailed views.
   standard,
 
-  /// Requests a high-resolution rendition for larger displays.
+  /// Requests a high-resolution rendition.
+  ///
+  /// Supports larger displays that need more detail.
   high,
 
-  /// Requests the largest predefined rendition exposed by the service.
-  max
+  /// Requests the largest predefined rendition.
+  ///
+  /// Uses the maximum backend size exposed by the service.
+  max,
 }
 
 /// Loads and resizes network images with sensible placeholders and responsive requests.
@@ -93,6 +143,7 @@ enum ImageSize {
 /// backing image service for an appropriately sized asset. That approach reduces wasted
 /// bandwidth during rapid layout changes while still fitting naturally into Flutter's
 /// rebuild lifecycle on mobile and web.
+///
 /// See https://github.com/FabricElements/shared-helpers/blob/main/src/media.ts.
 ///
 /// Example:
@@ -103,6 +154,9 @@ enum ImageSize {
 /// ```
 class SmartImage extends StatefulWidget {
   /// Creates an adaptive network image widget for the supplied [url].
+  ///
+  /// Uses [size], [format], and [fit] to decide how the backend should transform the
+  /// image before the widget paints it.
   const SmartImage({
     super.key,
     required this.url,
@@ -112,16 +166,24 @@ class SmartImage extends StatefulWidget {
     this.fit = BoxFit.cover,
   });
 
-  /// Identifies the source image to request, or shows a placeholder when absent.
+  /// Identifies the source image to request.
+  ///
+  /// Shows the default placeholder when the value is `null` or empty.
   final String? url;
 
-  /// Requests a predefined backend size instead of layout-derived dimensions.
+  /// Requests a predefined backend size.
+  ///
+  /// Overrides layout-derived dimensions when the service should use a named rendition.
   final ImageSize? size;
 
-  /// Overrides the placeholder background color while the image is loading.
+  /// Overrides the loading placeholder background color.
+  ///
+  /// Falls back to the current [ThemeData.colorScheme] when the value is `null`.
   final Color? color;
 
-  /// Requests a specific backend output format for the generated image.
+  /// Requests a specific backend output format.
+  ///
+  /// Leaves the service default in place when the value is `null`.
   final AvailableOutputFormats? format;
 
   /// Controls how the resolved image is inscribed into the available paint box.
@@ -131,35 +193,65 @@ class SmartImage extends StatefulWidget {
   final BoxFit fit;
 
   /// Creates the state that measures layout changes and debounces resize requests.
+  ///
+  /// Returns a private [_SmartImageState] so the widget can track responsive image
+  /// dimensions between rebuilds.
   @override
   State<SmartImage> createState() => _SmartImageState();
 }
 
 /// Tracks measured dimensions and resolves the final image request URL.
+///
+/// Stores layout-derived sizing data so the widget can avoid issuing a new request for every
+/// transient size change.
 class _SmartImageState extends State<SmartImage> {
-  /// Debounces resize-triggered state updates so layout thrashing does not spam requests.
+  /// Debounces resize-triggered state updates.
+  ///
+  /// Prevents layout thrashing from issuing excessive backend image requests.
   Timer? _timer;
-  /// Stores the debounced request width sent to the backend image service.
+
+  /// Stores the debounced request width.
+  ///
+  /// Uses `0` until the widget has captured a meaningful layout width.
   int width = 0;
-  /// Stores the debounced request height sent to the backend image service.
+
+  /// Stores the debounced request height.
+  ///
+  /// Uses `0` until the widget has captured a meaningful layout height.
   int height = 0;
-  /// Captures the current device pixel ratio so cache hints match display density.
+
+  /// Captures the current device pixel ratio.
+  ///
+  /// Keeps cache sizing aligned with the display density used for rendering.
   double devicePixelRatio = 1;
-  /// Counts resize updates to lengthen the debounce after the initial measurement.
+
+  /// Counts completed resize updates.
+  ///
+  /// Lengthens the debounce window after the initial image measurement settles.
   int resizedTimes = 0;
-  /// Remembers the actual layout width for widgets that need the rendered dimensions.
+
+  /// Remembers the current layout width.
+  ///
+  /// Passes the rendered width to web-specific image widgets that need explicit dimensions.
   double realWidth = 0;
-  /// Remembers the actual layout height for widgets that need the rendered dimensions.
+
+  /// Remembers the current layout height.
+  ///
+  /// Passes the rendered height to web-specific image widgets that need explicit dimensions.
   double realHeight = 0;
 
   /// Cancels any pending resize debounce before the widget leaves the tree.
+  ///
+  /// Releases the active [Timer] so delayed callbacks do not outlive the state object.
   @override
   void dispose() {
     _timer?.cancel();
     super.dispose();
   }
 
-  /// Resets measured dimensions when the source image changes between rebuilds.
+  /// Resets measured dimensions when the source image changes.
+  ///
+  /// Clears cached sizing so a new [SmartImage.url] triggers a fresh responsive request.
   @override
   void didUpdateWidget(SmartImage oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -174,7 +266,9 @@ class _SmartImageState extends State<SmartImage> {
     }
   }
 
-  /// Applies a newly measured request size when the dimensions actually changed.
+  /// Applies a newly measured request size when the dimensions changed.
+  ///
+  /// Ignores `0` values so partially known measurements do not erase a usable size.
   void _resizeImage({int newHeight = 0, int newWidth = 0}) {
     if (width == newWidth && height == newHeight) return;
     if (mounted) {
@@ -186,7 +280,10 @@ class _SmartImageState extends State<SmartImage> {
     }
   }
 
-  /// Defers resize updates to avoid issuing a new image request on every tiny layout tick.
+  /// Defers resize updates to avoid repeated requests during layout churn.
+  ///
+  /// Uses a short initial debounce and then a longer debounce after the first settled
+  /// measurement so resizing remains responsive without flooding the backend.
   Future<void> _resizeImageDebounce({
     int newHeight = 0,
     int newWidth = 0,
@@ -200,6 +297,9 @@ class _SmartImageState extends State<SmartImage> {
   }
 
   /// Builds placeholders first and swaps in the resolved network image when ready.
+  ///
+  /// Uses [BuildContext] to read theme and media-query data so the widget can choose
+  /// placeholders, cache sizing, and platform-specific image widgets.
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -213,7 +313,6 @@ class _SmartImageState extends State<SmartImage> {
       child: Center(child: Icon(Icons.image_not_supported, color: iconColor)),
     );
 
-    /// Return placeholder image if path is not valid
     if (widget.url == null || widget.url!.isEmpty) {
       return defaultPlaceholder;
     }
@@ -234,10 +333,9 @@ class _SmartImageState extends State<SmartImage> {
       color: background,
       child: Center(child: Icon(Icons.downloading, color: iconColor)),
     );
-    Uri uri = Uri.parse(widget.url!);
+    final Uri uri = Uri.parse(widget.url!);
 
-    /// List of children
-    List<Widget> children = [
+    final List<Widget> children = [
       Positioned.fill(
         child: LayoutBuilder(
           builder: (BuildContext context, BoxConstraints constraints) {
@@ -247,10 +345,7 @@ class _SmartImageState extends State<SmartImage> {
             realHeight = constraints.maxHeight;
             realWidth = constraints.maxWidth;
 
-            /// Get dimensions in multiples of [divisor]
-            /// This is to prevent too many requests do to small changes in dimensions
-            int divisor =
-                100; // Total pixels to divide by to get new dimensions
+            int divisor = 100;
             int widthBasedOnDivisor = ((realWidth / divisor) * divisor).floor();
             int heightBasedOnDivisor = ((realHeight / divisor) * divisor)
                 .floor();
@@ -266,7 +361,7 @@ class _SmartImageState extends State<SmartImage> {
       ),
     ];
     if (width > 0 && height > 0 && resizedTimes > 0) {
-      Map<String, List<String>> queryParameters = {};
+      final Map<String, List<String>> queryParameters = {};
       queryParameters.addAll({
         'dpr': [devicePixelRatio.toString()],
       });
@@ -275,14 +370,12 @@ class _SmartImageState extends State<SmartImage> {
           'size': [widget.size!.name],
         });
       } else if (widget.fit == BoxFit.cover) {
-        /// Crop to fit
         queryParameters.addAll({
           'width': [width.toString()],
           'height': [height.toString()],
           'crop': ['entropy'],
         });
       } else {
-        /// Just resize but maintain aspect ratio
         queryParameters.addAll({
           'width': [width.toString()],
         });
@@ -294,16 +387,14 @@ class _SmartImageState extends State<SmartImage> {
         });
       }
 
-      String path = Utils.uriMergeQuery(
+      final String path = Utils.uriMergeQuery(
         uri: uri,
         queryParameters: queryParameters,
       ).toString();
 
-      /// Image
-      /// Only load image if width and height are greater than 10
       if (width > 10 && height > 10 && resizedTimes > 0 && path.isNotEmpty) {
         if (!kIsWeb) {
-          bool willCacheSize = widget.fit == BoxFit.fill;
+          final bool willCacheSize = widget.fit == BoxFit.fill;
           children.add(
             Positioned.fill(
               child: Image.network(
@@ -320,8 +411,6 @@ class _SmartImageState extends State<SmartImage> {
                     : (width * devicePixelRatio).round(),
                 filterQuality: FilterQuality.high,
                 key: ValueKey<String>(path),
-                // This tells the browser to request the image with CORS headers
-                // even though it's on the same domain.
                 headers: {
                   'Access-Control-Allow-Origin': '*',
                   'Accept': 'image/*',
@@ -408,7 +497,6 @@ class _SmartImageState extends State<SmartImage> {
       }
     }
 
-    /// Return child with KeyedSubtree to avoid rebuild issues
     return KeyedSubtree(
       key: ValueKey('smart_image_${widget.url!}'),
       child: Stack(alignment: AlignmentDirectional.center, children: children),

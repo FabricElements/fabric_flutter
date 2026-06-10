@@ -18,6 +18,10 @@ import 'input_data.dart';
 class PhoneInput extends StatefulWidget {
   /// Creates a phone input that formats and validates values with
   /// [PhoneNumberUtil].
+  ///
+  /// The widget parses [value] into a country picker selection and a national
+  /// number field so callers can provide or receive normalized E.164-style
+  /// strings without managing phone metadata themselves.
   const PhoneInput({
     super.key,
     required this.value,
@@ -38,82 +42,102 @@ class PhoneInput extends StatefulWidget {
     this.textInputAction,
   });
 
-  /// Called when the user submits the field and a formatted value is available.
+  /// Provides the latest formatted value when the user submits the number.
   ///
-  /// Never use an expression body here or the value may not update correctly in
-  /// parent state before the callback runs.
+  /// Parents receive a normalized [String] or `null` after the widget refreshes
+  /// its derived state.
   final ValueChanged<String?>? onSubmit;
 
-  /// Called when entry is considered complete and the latest formatted value is
-  /// available.
+  /// Provides the latest formatted value when entry is considered complete.
   ///
-  /// Never use an expression body here or the value may not update correctly in
-  /// parent state before the callback runs.
+  /// Parents receive a normalized [String] or `null` after the widget refreshes
+  /// its derived state.
   final ValueChanged<String?>? onComplete;
 
-  /// Called whenever the selected country code or national number changes.
+  /// Provides the latest formatted value when either input changes.
   ///
-  /// Never use an expression body here or the value may not update correctly in
-  /// parent state before the callback runs.
+  /// Parents receive a normalized [String] or `null` whenever the selected
+  /// calling code or national number changes.
   final ValueChanged<String?>? onChanged;
+
   /// Overrides the localized label for the national number field.
   final String? label;
+
   /// Defines the keyboard action button for the number input when supported.
   final TextInputAction? textInputAction;
 
-  // Custom suffix and prefix
   /// Displays a custom trailing widget when the number is currently valid.
   final Widget? suffix;
+
   /// Displays a custom trailing icon when the number is currently valid.
   final Widget? suffixIcon;
+
   /// Displays trailing helper text when the number is currently valid.
   final String? suffixText;
+
   /// Displays additional prefix text before the national number field.
   final String? prefixText;
+
   /// Reserves a custom leading widget slot for the number field.
   final Widget? prefix;
+
   /// Overrides the icon shown on the country selector input.
   final Widget? prefixIcon;
+
   /// Overrides the text style used by [prefixText].
   final TextStyle? prefixStyle;
+
   /// Overrides the text style used by [suffixText].
   final TextStyle? suffixStyle;
 
   /// Supplies the full phone number value that should be parsed into the UI.
   final String? value;
+
   /// Prevents interaction with both inputs when `true`.
   final bool disabled;
+
   /// Provides a preferred ISO country code used for parsing and defaults.
   final String? country;
 
   /// Creates state that caches parsed phone metadata between rebuilds.
+  ///
+  /// The returned [_PhoneInputState] keeps the country picker and national
+  /// number field synchronized with [value].
   @override
   State<PhoneInput> createState() => _PhoneInputState();
 }
 
 /// Maintains parsed country and number fragments for [PhoneInput].
+///
+/// The state object caches country metadata and best-effort formatted output so
+/// the widget can react to partial edits without losing the user's draft.
 class _PhoneInputState extends State<PhoneInput> {
   /// Provides parsing and formatting utilities from the phone number package.
-  PhoneNumberUtil phoneUtil = PhoneNumberUtil.instance;
+  final PhoneNumberUtil phoneUtil = PhoneNumberUtil.instance;
+
   /// Stores the selected international calling code.
   int? callingCode;
+
   /// Stores the selected country metadata shown in the picker and prefix.
   ISOCountry? country;
+
   /// Stores the national number portion entered by the user.
   int? phoneNumber;
+
   /// Stores the deduplicated list of selectable countries for mobile numbers.
   late List<ISOCountry> items;
 
   /// Stores the normalized output value forwarded to parent callbacks.
   String? formattedNumber;
+
   /// Indicates whether the current number satisfies library validation rules.
   bool isValid = false;
 
   /// Parses an incoming full phone number into the widget's internal fields.
   ///
   /// This runs for external value updates as well as initialization so the UI
-  /// can stay synchronized with parent state, even when partially valid values
-  /// are supplied.
+  /// stays synchronized with parent state, even when partially valid values are
+  /// supplied.
   void formatInput(String input) {
     try {
       PhoneNumber parsedNumber = phoneUtil.parseAndKeepRawInput(
@@ -136,34 +160,29 @@ class _PhoneInputState extends State<PhoneInput> {
       }
     } on NumberParseException catch (e) {
       debugPrint('NumberParseException was thrown: ${e.toString()}');
-      // formattedNumber = null;
       isValid = false;
       switch (e.errorType) {
         case ErrorType.invalidCountryCode:
           callingCode = null;
           break;
         case ErrorType.notANumber:
-          // callingCode = null;
-          // phoneNumber = null;
-          // formattedNumber = null;
           break;
         case ErrorType.tooShortNsn:
         case ErrorType.tooLong:
         case ErrorType.tooShortAfterIdd:
-          // Do nothing
           break;
         default:
           debugPrint('Unknown error: ${e.toString()}');
-          // callingCode = null;
-          // phoneNumber = null;
           formattedNumber = null;
       }
     }
     if (mounted) setState(() {});
   }
 
-  /// Resolves the preferred country from [PhoneInput.country] when the incoming
-  /// value does not already provide one.
+  /// Resolves the preferred country from [PhoneInput.country].
+  ///
+  /// The fallback applies only when parsing [PhoneInput.value] did not already
+  /// determine a country from the incoming number.
   void getCountryData() {
     if (country == null && widget.country != null) {
       final match = ISOCountries.countries.where(
@@ -214,6 +233,9 @@ class _PhoneInputState extends State<PhoneInput> {
   }
 
   /// Clears all derived phone state before a fresh value is parsed.
+  ///
+  /// Resetting cached fields keeps stale parsing results from leaking across
+  /// initialization and subsequent parent-driven updates.
   void _reset() {
     callingCode = null;
     country = null;
@@ -223,19 +245,19 @@ class _PhoneInputState extends State<PhoneInput> {
   }
 
   /// Builds the deduplicated country list and seeds the initial parsed value.
+  ///
+  /// Countries that share the same calling code are merged into a single picker
+  /// option so the dropdown stays compact while still exposing all labels.
   @override
   void initState() {
     super.initState();
     final baseCountries = ISOCountries.countriesForMobile;
     items = [];
 
-    /// Other countries
     for (var element in baseCountries) {
-      // Add the country to the list but merge if already exist same calling code
       if (!items.any((item) => item.callingCode == element.callingCode)) {
         items.add(element);
       } else {
-        /// Join the name, alpha2 and fullName of the country with the same calling code
         final index = items.indexWhere(
           (item) => item.callingCode == element.callingCode,
         );
@@ -252,6 +274,9 @@ class _PhoneInputState extends State<PhoneInput> {
   }
 
   /// Re-parses the external value whenever the parent rebuilds with new input.
+  ///
+  /// Clearing the cached phone fragments when [PhoneInput.value] becomes `null`
+  /// keeps the rendered controls aligned with parent state.
   @override
   void didUpdateWidget(covariant PhoneInput oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -267,8 +292,11 @@ class _PhoneInputState extends State<PhoneInput> {
   }
 
   /// Clears cached parsing state before the widget is removed from the tree.
+  ///
+  /// Resetting the fields releases references to parsed values before calling
+  /// [super.dispose].
   @override
-  dispose() {
+  void dispose() {
     phoneNumber = null;
     formattedNumber = null;
     isValid = false;
@@ -278,13 +306,18 @@ class _PhoneInputState extends State<PhoneInput> {
   }
 
   /// Updates the national number fragment and refreshes the formatted output.
+  ///
+  /// The method accepts the dynamic payload shape emitted by [InputData] and
+  /// narrows it to the cached [int] representation used by this state object.
   void _updatePhoneNumber(dynamic value) {
     phoneNumber = value as int?;
     formatNumber();
   }
 
-  /// Builds coordinated country and phone number inputs that adapt between
-  /// stacked and horizontal layouts.
+  /// Builds coordinated country and phone number inputs for [BuildContext].
+  ///
+  /// The layout switches between stacked and horizontal arrangements so the
+  /// picker and number field remain usable across narrow and wide widths.
   @override
   Widget build(BuildContext context) {
     final isValidMatch =
@@ -326,14 +359,12 @@ class _PhoneInputState extends State<PhoneInput> {
     final phoneInput = InputData(
       key: const Key('phone-input'),
       disabled: widget.disabled || callingCode == null,
-      // prefix: widget.prefix,
       prefix: country != null
           ? Padding(
               padding: const EdgeInsets.only(right: 8),
               child: Text('+${country!.callingCode}'),
             )
           : null,
-      // prefixIcon: widget.prefixIcon ?? const Icon(Icons.phone_iphone),
       prefixText: widget.prefixText,
       suffix: !isValidMatch ? null : widget.suffix,
       suffixText: !isValidMatch ? null : widget.suffixText,

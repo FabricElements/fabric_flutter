@@ -13,22 +13,42 @@ import '../state/state_global.dart';
 /// may succeed, fail, or recover.
 class ConnectionStatus extends StatefulWidget {
   /// Creates the connectivity banner widget.
+  ///
+  /// The optional [key] lets ancestor widgets preserve this [StatefulWidget]
+  /// when the surrounding tree rebuilds.
   const ConnectionStatus({super.key});
 
   /// Creates the mutable state that tracks banner visibility across updates.
+  ///
+  /// The returned [_ConnectionStatusState] keeps the latest connectivity value
+  /// so the banner only opens when the status actually changes.
   @override
   State<ConnectionStatus> createState() => _ConnectionStatusState();
 }
 
 /// Tracks the last known connection state and auto-hides the status banner.
+///
+/// The state keeps enough local information to detect connectivity changes,
+/// show the status message, and dismiss it automatically after a short delay.
 class _ConnectionStatusState extends State<ConnectionStatus> {
-  /// Whether the banner is currently visible.
+  /// Stores whether the banner is currently visible.
+  ///
+  /// The value becomes `true` when a new connectivity state arrives and returns
+  /// to `false` after the banner is dismissed automatically or manually.
   bool open = false;
 
-  /// The last connectivity value emitted by [StateGlobal.streamConnection].
+  /// Stores the last connectivity value emitted by [StateGlobal.streamConnection].
+  ///
+  /// The cached value prevents duplicate stream emissions from reopening the
+  /// banner when the connection status has not actually changed.
   bool lastConnected = true;
 
-  /// Builds the banner and schedules auto-dismiss behavior after status changes.
+  /// Builds the connectivity banner for the current [BuildContext].
+  ///
+  /// The returned [Widget] listens to [StateGlobal.streamConnection], updates
+  /// the local visibility state when the connection changes, and schedules an
+  /// automatic dismissal so the notification does not remain on screen
+  /// indefinitely.
   @override
   Widget build(BuildContext context) {
     final stateGlobal = Provider.of<StateGlobal>(context, listen: false);

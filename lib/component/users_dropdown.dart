@@ -8,20 +8,17 @@ import 'package:provider/provider.dart';
 import '../serialized/user_data.dart';
 import '../state/state_users.dart';
 
-/// Displays a searchable dropdown for selecting a user from [StateUsers].
+/// Displays a searchable user dropdown backed by [StateUsers].
 ///
-/// The widget converts serialized user records into [ButtonOptions] consumed by
-/// [InputData], including avatars and extra searchable text. Because it also
-/// implements [PreferredSizeWidget], it can be dropped directly into an [AppBar]
-/// or other toolbar-like layout that expects a predictable height.
-///
-/// Shows user name, image and optional status chip and reports selection via
-/// [onChanged]. Implements [PreferredSizeWidget] to be used in an [AppBar].
+/// Converts serialized user records into [ButtonOptions] for [InputData],
+/// including avatars and alternate search text. Because it implements
+/// [PreferredSizeWidget], it can be placed directly in an [AppBar] or another
+/// toolbar layout that expects a stable height.
 class UsersDropdown extends StatelessWidget implements PreferredSizeWidget {
   /// Creates a [UsersDropdown] that reads user choices from the nearest provider.
   ///
-  /// The optional [uid] preselects a user, while [prefix] can prepend a media
-  /// base path before avatar filenames are resolved.
+  /// Uses [uid] to preselect an item when available, and uses [prefix] to build
+  /// avatar URLs for users whose image paths are relative.
   const UsersDropdown({
     super.key,
     this.onChanged,
@@ -33,38 +30,56 @@ class UsersDropdown extends StatelessWidget implements PreferredSizeWidget {
     this.prefix,
   });
 
-  /// Receives the selected [UserData] after the dropdown value changes.
+  /// Receives the selected [UserData] when the dropdown value changes.
   ///
-  /// Keep callback logic in a block body when further customization is added so
-  /// value propagation stays easy to extend alongside [InputData].
+  /// Remains `null` when selection changes do not need to notify parent
+  /// widgets.
   final ValueChanged<UserData>? onChanged;
 
-  /// Identifies the currently selected user value.
+  /// Stores the identifier for the currently selected user.
+  ///
+  /// Passes the value through to [InputData] so the dropdown can restore a
+  /// previously chosen record.
   final String? uid;
 
-  /// Overrides the localized field label shown by [InputData].
+  /// Stores the localization key used for the field label.
+  ///
+  /// Falls back to the default search label when the value is `null`.
   final String? label;
 
-  /// Overrides the leading icon displayed beside the search field.
+  /// Stores the leading icon shown beside the search field.
+  ///
+  /// Falls back to [Icons.search] when no custom [IconData] is provided.
   final IconData? icon;
 
-  /// Indicates whether trailing UI should be shown by downstream input widgets.
+  /// Stores whether trailing UI should be shown by downstream widgets.
+  ///
+  /// Keeps the existing [InputData] configuration surface available even when
+  /// the current dropdown layout does not read the value directly.
   final bool showTrailing;
 
-  /// Adds outer padding so the dropdown can align with surrounding toolbar content.
+  /// Stores the outer padding around the dropdown.
+  ///
+  /// Helps align the widget with surrounding toolbar or form content.
   final EdgeInsetsGeometry padding;
 
-  /// Prepends a base path used to resolve relative avatar image URLs.
+  /// Stores the base path used to resolve relative avatar image URLs.
+  ///
+  /// Prefixes each non-`null` avatar filename before it is passed to
+  /// [UserAvatar].
   final String? prefix;
 
-  /// Reports the preferred toolbar size for [PreferredSizeWidget] consumers.
+  /// Reports the preferred size for [PreferredSizeWidget] consumers.
+  ///
+  /// Adds extra vertical space so the dropdown fits comfortably in toolbar
+  /// layouts.
   @override
   Size get preferredSize => const Size(double.maxFinite, kToolbarHeight + 16);
 
   /// Builds the dropdown from the current [StateUsers] provider contents.
   ///
-  /// Empty user collections collapse to a fixed-height placeholder so app bars
-  /// remain stable while asynchronous user data is still loading.
+  /// Returns a fixed-height placeholder when no users are loaded so toolbar
+  /// layouts remain stable while asynchronous state is still resolving.
   @override
   Widget build(BuildContext context) {
     SearchController searchController = SearchController();
