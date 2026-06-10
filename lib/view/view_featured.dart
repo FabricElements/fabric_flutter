@@ -4,33 +4,26 @@ import 'package:flutter/material.dart';
 
 import '../component/smart_image.dart';
 
-/// This Widget provides a informative view, consisting of a strong headline, optional description and action button
+/// Provides an informative full-screen view with headline, description, and action button.
 ///
-/// [actionLabel] Text provided for the action button.
-/// [actionUrl] Navigation destination for when action button is pressed.
-/// [arguments] Optional arguments which may be necessary for certain navigation url's.
-/// [description] Descriptive text provided for the view.
-/// [headline] Strong headline for the view.
-/// [animationDuration] The duration of time it takes for each animation stage to finish. Total duration time is animationDuration * 4.
-/// [firstGradientAnimationColor] The color of the top animation gradient.
-/// [secondGradientAnimationColor] The color of the mid animation gradient.
-/// [thirdGradientAnimationColor] The color of the bottom animation gradient.
-/// [image] Image url to load an image from the cloud to be displayed on the view.
-/// [onPressed] Optional arguments to be provided to the onPressed action, such as updating a firestore document.
+/// [ViewFeatured] presents a visually striking page with an animated gradient
+/// reveal over a background image. The widget is useful for onboarding flows,
+/// feature announcements, or call-to-action screens where a strong visual
+/// impression is desired.
+///
+/// Example:
 /// ```dart
-/// FeaturedView(
+/// ViewFeatured(
 ///   headline: 'This is the Featured View',
-///   description:
-///       'The featured view is useful for describing upcoming actions or giving feedback to the user.',
-///   image:
-///       'https://source.unsplash.com/random',
+///   description: 'The featured view is useful for describing upcoming actions...',
+///   image: 'https://source.unsplash.com/random',
 ///   actionLabel: 'GO TO HOME',
 ///   actionUrl: '/',
 ///   arguments: {'id': 'random_user_id'},
 ///   onPressed: () {
-///     Print('You pressed the button! You can perform any action here.');
-///   }
-/// ),
+///     debugPrint('You pressed the button!');
+///   },
+/// )
 /// ```
 class ViewFeatured extends StatefulWidget {
   const ViewFeatured({
@@ -79,7 +72,12 @@ class _ViewFeaturedState extends State<ViewFeatured> {
   Color? _secondGradientAnimationColor;
   Color? _thirdGradientAnimationColor;
 
-  /// Triggers the animation, the speed of the animation can be altered by [_animationDuration]
+  /// Triggers the reveal animation sequence.
+  ///
+  /// The animation proceeds through five stages: gradient fade-ins for the
+  /// background, followed by opacity transitions for the headline, description,
+  /// custom child widget, and action button. Each stage duration is controlled
+  /// by [_animationDuration].
   void animationTrigger() {
     _timer = Timer(Duration(milliseconds: _animationDuration), () {
       if (mounted) {

@@ -26,13 +26,12 @@ final FirebaseAuth _auth = FirebaseAuth.instance;
 final GoogleSignIn googleSignIn = GoogleSignIn.instance;
 GoogleAuthProvider googleProvider = GoogleAuthProvider();
 
-/// ViewAuthPage
-/// A full screen authentication page with multiple sign-in options
-/// Supports:
-/// - Phone number authentication
-/// - Google Sign-In
-/// - Apple Sign-In
-/// - Anonymous Sign-In
+/// Provides a full-screen authentication page with multiple sign-in options.
+///
+/// [ViewAuthPage] supports phone number authentication, Google Sign-In, Apple
+/// Sign-In, and anonymous authentication. The page displays a configurable logo,
+/// title, description, and background image, along with policy links required
+/// for user consent flows.
 class ViewAuthPage extends StatefulWidget {
   const ViewAuthPage({
     super.key,
