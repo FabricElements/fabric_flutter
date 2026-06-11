@@ -25,7 +25,7 @@ class PaginationContainer extends StatefulWidget {
     this.reverse = false,
     this.padding = EdgeInsets.zero,
     this.scrollDirection = Axis.vertical,
-    this.cacheExtent = 1000,
+    this.cacheExtent = 2,
     this.empty,
     this.loading,
     this.end,
@@ -70,10 +70,13 @@ class PaginationContainer extends StatefulWidget {
   /// interpreted when deciding whether to request another page.
   final Axis scrollDirection;
 
-  /// Controls how far ahead the list prepares children while scrolling.
+  /// Creates a cache extent as a multiplier of the viewport's main axis extent.
   ///
-  /// Larger values can make scrolling feel smoother at the cost of additional
-  /// memory and build work.
+  /// The main axis extent is the size of the viewport in its main axis. For
+  /// example, for a vertically scrolling list, the main axis extent is the
+  /// height of the viewport. If the viewport is 600 logical pixels tall, then
+  /// `ScrollCacheExtent.viewport(2.0)` results in a cache extent of 1200 logical
+  /// pixels.
   final double cacheExtent;
 
   /// Provides a custom widget for the empty state.
@@ -221,6 +224,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
       if (loading) return;
       loading = true;
       if (mounted) setState(() {});
+      await Future.delayed(const Duration(milliseconds: 300));
       try {
         error = null;
         final paginationData = await widget.paginate();
@@ -229,6 +233,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
         error = e.toString();
         debugPrint(LogColor.error(e));
       }
+      await Future.delayed(const Duration(milliseconds: 300));
       loading = false;
       if (mounted) setState(() {});
     });
@@ -343,7 +348,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
           physics: widget.shrinkWrap ? null : const ClampingScrollPhysics(),
           clipBehavior: widget.clipBehavior,
           primary: widget.primary,
-          scrollCacheExtent: ScrollCacheExtent.pixels(widget.cacheExtent),
+          scrollCacheExtent: ScrollCacheExtent.viewport(widget.cacheExtent),
           controller: _controller,
           itemCount: totalCount,
           padding: widget.padding,
