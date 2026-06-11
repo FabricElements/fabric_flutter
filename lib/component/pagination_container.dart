@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 import '../helper/app_localizations_delegate.dart';
 import '../helper/log_color.dart';
@@ -344,7 +345,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
           physics: widget.shrinkWrap ? null : const ClampingScrollPhysics(),
           clipBehavior: widget.clipBehavior,
           primary: widget.primary,
-          cacheExtent: widget.cacheExtent,
+          scrollCacheExtent: ScrollCacheExtent.pixels(widget.cacheExtent),
           controller: _controller,
           itemCount: totalCount,
           padding: widget.padding,
