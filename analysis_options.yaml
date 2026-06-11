@@ -28,6 +28,22 @@ linter:
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options
 analyzer:
+  exclude:
+    # Exclude platform-specific directories where native pods or dependencies reside
+    - 'ios/**'
+    - 'android/**'
+    - 'windows/**'
+    - 'macOS/**'
+    - 'linux/**'
+    - 'web/**'
+
+    # Exclude build artifacts and caching folders
+    - 'build/**'
+    - '.dart_tool/**'
+
+    # (Optional) Exclude generated files if you use Freezed, JSON Serializable, etc.
+    - '**/*.g.dart'
+    - '**/*.freezed.dart'
   errors:
     undefined_prefixed_name: ignore
     use_build_context_synchronously: ignore
