@@ -221,7 +221,6 @@ class _PaginationContainerState extends State<PaginationContainer> {
       if (loading) return;
       loading = true;
       if (mounted) setState(() {});
-      await Future.delayed(const Duration(milliseconds: 300));
       try {
         error = null;
         final paginationData = await widget.paginate();
@@ -230,7 +229,6 @@ class _PaginationContainerState extends State<PaginationContainer> {
         error = e.toString();
         debugPrint(LogColor.error(e));
       }
-      await Future.delayed(const Duration(milliseconds: 300));
       loading = false;
       if (mounted) setState(() {});
     });
