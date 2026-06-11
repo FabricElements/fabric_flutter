@@ -1249,20 +1249,22 @@ getValue -------------------------------------
             title: Text(e.label),
             toggleable: !isDisabled,
             value: e.value,
-            groupValue: value,
             selected: value == e.value,
-            onChanged: (newValue) {
-              value = newValue;
-              widget.onChanged?.call(value);
-              widget.onComplete?.call(value);
-              widget.onSubmit?.call(value);
-            },
           );
         });
-        endWidget = Flex(
-          direction: Axis.vertical,
-          mainAxisSize: MainAxisSize.min,
-          children: radioOptions,
+        endWidget = RadioGroup(
+          groupValue: value,
+          onChanged: (newValue) {
+            value = newValue;
+            widget.onChanged?.call(value);
+            widget.onComplete?.call(value);
+            widget.onSubmit?.call(value);
+          },
+          child: Flex(
+            direction: Axis.vertical,
+            mainAxisSize: MainAxisSize.min,
+            children: radioOptions,
+          ),
         );
         break;
       case InputDataType.bool:
