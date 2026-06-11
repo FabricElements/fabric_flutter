@@ -1,3 +1,8 @@
+// Ignore enum constant naming style for this file. The enum values intentionally
+// use capitalized identifiers to match HTTP/Auth scheme tokens (e.g. `JWT`,
+// `Basic`). Suppress the analyzer lint rather than changing the public API.
+// ignore_for_file: constant_identifier_names
+
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
@@ -11,16 +16,13 @@ import 'package:http/http.dart';
 ///
 enum AuthScheme {
   /// Uses base64-encoded username and password credentials.
-  // ignore: constant_identifier_names
   Basic,
 
   /// Uses a bearer token provided by the server or identity provider.
-  // ignore: constant_identifier_names
   Bearer,
 
   /// Uses a JSON Web Token prefix for APIs that expect `JWT` explicitly.
   // TODO: Remove after it's implemented
-  // ignore: constant_identifier_names
   JWT,
 }
 
