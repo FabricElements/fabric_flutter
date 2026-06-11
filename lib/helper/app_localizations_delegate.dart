@@ -101,13 +101,16 @@ class AppLocalizations {
         try {
           String tag = text.substring(match.start, match.end);
           String cleanTag = tag.substring(1, tag.length - 1);
-          RegExp regExpTag = RegExp(r'' + tag + '', multiLine: true);
+          // Escape the tag so any regex metacharacters (like `{` or `}`)
+          // are treated literally when building the RegExp.
+          RegExp regExpTag = RegExp(RegExp.escape(tag), multiLine: true);
           String? replaceWith = options[cleanTag];
           if (replaceWith != null) {
             result = result.replaceAll(regExpTag, replaceWith);
           }
         } catch (e) {
-          debugPrint(LogColor.warning(e));
+          // Ensure we pass a string to the logger.
+          debugPrint(LogColor.warning(e.toString()));
         }
       }
     }

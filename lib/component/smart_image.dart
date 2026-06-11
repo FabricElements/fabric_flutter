@@ -474,8 +474,6 @@ class _SmartImageState extends State<SmartImage> {
             case BoxFit.fitWidth:
               fitWeb = BoxFitWeb.contain;
               break;
-            default:
-              fitWeb = BoxFitWeb.cover;
           }
           children.add(
             Positioned.fill(

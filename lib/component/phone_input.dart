@@ -171,9 +171,6 @@ class _PhoneInputState extends State<PhoneInput> {
         case ErrorType.tooLong:
         case ErrorType.tooShortAfterIdd:
           break;
-        default:
-          debugPrint('Unknown error: ${e.toString()}');
-          formattedNumber = null;
       }
     }
     if (mounted) setState(() {});

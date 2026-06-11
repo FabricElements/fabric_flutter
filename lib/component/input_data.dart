@@ -693,10 +693,6 @@ getValue -------------------------------------
     String? hintTextDefault;
     int? maxLength = widget.maxLength;
     FormFieldValidator<String>? validator = widget.validator;
-    final width = MediaQuery.of(context).size.width;
-    final isSmallScreen = width < 600;
-    // The max size for an iPad screen is 1366, so we consider medium screen between 600 and 1366
-    final isMediumScreen = width >= 600 && width < 1366;
     final clearWidget = isDisabled
         ? null
         : IconButton(

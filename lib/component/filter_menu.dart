@@ -888,10 +888,6 @@ class _FilterMenuState extends State<FilterMenu> {
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final width = MediaQuery.of(context).size.width;
-    final isSmallScreen = width < 600;
-    // The max size for an iPad screen is 1366, so we consider medium screen between 600 and 1366
-    final isMediumScreen = width >= 600 && width < 1366;
 
     /// Ignore options that are included on the filters data
     List<FilterData> pendingOptions = data

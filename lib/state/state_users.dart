@@ -18,7 +18,7 @@ class StateUsers extends StateCollection {
   /// Uses a larger default page size because user lists are commonly needed for
   /// lookups and participant pickers.
   @override
-  int limitDefault = 200;
+  int get limitDefault => 200;
 
   /// Returns the current query results as sorted [UserData] objects.
   ///

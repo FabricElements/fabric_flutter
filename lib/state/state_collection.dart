@@ -77,7 +77,6 @@ abstract class StateCollection extends StateShared {
   /// so future reads start from a clean slate.
   set query(Query? reference) {
     if (loading) return;
-    final totalToFetch = limit * page;
     if (isSameQuery(reference)) return;
     baseQuery = reference;
     _streamSubscription?.cancel();
