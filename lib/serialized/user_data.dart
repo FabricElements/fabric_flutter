@@ -162,11 +162,15 @@ class UserData {
   @JsonKey(includeIfNull: false)
   String? phone;
 
-  /// password used for authentication
+  /// Holds a plain-text password used exclusively when creating a new user.
   ///
-  /// Intentionally excluded from [toJson] to prevent plain-text credentials
-  /// from appearing in serialized payloads, logs, or Firestore documents.
-  @JsonKey(includeIfNull: false, includeToJson: false)
+  /// This field is **write-only by convention**: it is never read back from the
+  /// database (Firestore security rules prevent storing it), and it is `null`
+  /// for every existing-user fetch. It is serialized into [toJson] only so that
+  /// callers can pass the value to a Cloud Function or auth endpoint during
+  /// account creation. Once the account is created the field should be treated
+  /// as `null` and discarded.
+  @JsonKey(includeIfNull: false)
   String? password;
 
   /// User role

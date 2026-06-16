@@ -109,6 +109,7 @@ Map<String, dynamic> _$UserDataToJson(UserData instance) => <String, dynamic>{
   'links': ?instance.links?.toJson(),
   'os': _$UserOSEnumMap[instance.os]!,
   'phone': ?instance.phone,
+  'password': ?instance.password,
   'role': instance.role,
   'groups': instance.groups,
   'roles': instance.roles,

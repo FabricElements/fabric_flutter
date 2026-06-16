@@ -49,8 +49,8 @@ void main() {
     });
 
     group('toJson', () {
-      test('should never include password in serialized output', () {
-        // Arrange – password is provided during construction.
+      test('should include password when non-null (used for account creation)', () {
+        // Arrange – password is only set during new-user creation flows.
         final data = UserData(
           email: 'user@example.com',
           firstName: 'Ada',
@@ -60,23 +60,22 @@ void main() {
         // Act
         final json = data.toJson();
 
-        // Assert – the sensitive field must be absent from the map.
-        expect(json.containsKey('password'), isFalse);
+        // Assert – the field is serialized so Cloud Functions can receive it.
+        expect(json['password'], 'Sup3rS3cur3!');
       });
 
-      test('should omit password even when it is non-null', () {
-        // Arrange
-        final data = UserData(password: 'P@ssword1');
+      test('should omit password when it is null (existing-user fetch)', () {
+        // Arrange – password is always null when reading an existing user.
+        final data = UserData(email: 'user@example.com');
 
         // Act
         final json = data.toJson();
 
-        // Assert
-        expect(json['password'], isNull);
+        // Assert – includeIfNull: false keeps the key absent.
         expect(json.containsKey('password'), isFalse);
       });
 
-      test('should include non-sensitive fields normally', () {
+      test('should include other fields alongside a non-null password', () {
         // Arrange
         final data = UserData(
           email: 'user@example.com',
@@ -90,12 +89,12 @@ void main() {
         // Assert
         expect(json['email'], 'user@example.com');
         expect(json['role'], 'editor');
-        expect(json.containsKey('password'), isFalse);
+        expect(json['password'], 'P@ssword1');
       });
     });
 
     group('fromJson / toJson round-trip', () {
-      test('should preserve non-sensitive fields across a round-trip', () {
+      test('should preserve all fields across a round-trip', () {
         // Arrange
         final original = UserData(
           email: 'user@example.com',
@@ -112,6 +111,17 @@ void main() {
         expect(restored.firstName, original.firstName);
         expect(restored.lastName, original.lastName);
         expect(restored.role, original.role);
+      });
+
+      test('should preserve a non-null password across a round-trip', () {
+        // Arrange – simulates account-creation payload being re-read.
+        final original = UserData(password: 'R0undTrip!');
+
+        // Act
+        final restored = UserData.fromJson(original.toJson());
+
+        // Assert
+        expect(restored.password, 'R0undTrip!');
       });
     });
   });
