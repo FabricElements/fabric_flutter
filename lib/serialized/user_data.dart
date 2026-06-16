@@ -163,7 +163,10 @@ class UserData {
   String? phone;
 
   /// password used for authentication
-  @JsonKey(includeIfNull: false)
+  ///
+  /// Intentionally excluded from [toJson] to prevent plain-text credentials
+  /// from appearing in serialized payloads, logs, or Firestore documents.
+  @JsonKey(includeIfNull: false, includeToJson: false)
   String? password;
 
   /// User role

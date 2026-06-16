@@ -6,6 +6,7 @@
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart';
 
 /// Enumerates the supported HTTP authentication schemes.
@@ -150,7 +151,7 @@ class HTTPRequest {
           }
         }
       } else {
-        debugPrint(responseObject.toString());
+        if (kDebugMode) debugPrint(responseObject.toString());
       }
     } catch (e) {
       //--
