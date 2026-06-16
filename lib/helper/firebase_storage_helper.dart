@@ -211,7 +211,7 @@ class FirebaseStorageHelper {
       final storageRef = FirebaseStorage.instance.ref();
       final ref = storageRef.child(filePath);
       await ref.delete();
-      if (kDebugMode) debugPrint('File deleted');
+      if (kDebugMode) debugPrint('File deleted: $filePath');
     } on FirebaseException catch (e) {
       if (e.code == 'object-not-found') {
         // File does not exist, treat as success
