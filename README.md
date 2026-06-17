@@ -3,6 +3,7 @@
 **Version:** 2.2.2  
 **License:** [BSD 3-Clause](LICENSE)
 
+[![CI](https://github.com/FabricElements/fabric_flutter/actions/workflows/ci.yml/badge.svg)](https://github.com/FabricElements/fabric_flutter/actions/workflows/ci.yml)
 ---
 
 ## Project Overview & Core Application
