@@ -21,12 +21,15 @@ class Utils {
 
   /// Generates a cryptographically secure random string of the specified length.
   ///
-  /// Creates random bytes, encodes them as base64url, and trims the result to
-  /// [length] characters. The default length of 32 provides approximately 192
-  /// bits of entropy, suitable for session tokens or nonce values.
+  /// Creates [length] random bytes, encodes them as base64url without padding,
+  /// and returns the first [length] characters. Because base64url always
+  /// produces more characters than the raw byte count, the output is guaranteed
+  /// to be exactly [length] characters long. The default length of 32 provides
+  /// approximately 192 bits of entropy, suitable for session tokens or nonce
+  /// values.
   static String createCryptoRandomString([int length = 32]) {
-    var values = List<int>.generate(length, (i) => _random.nextInt(256));
-    return (base64Url.encode(values)).substring(1, 7);
+    final values = List<int>.generate(length, (i) => _random.nextInt(256));
+    return base64Url.encode(values).replaceAll('=', '').substring(0, length);
   }
 
   /// Always returns `false` regardless of [value].
