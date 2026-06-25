@@ -27,6 +27,7 @@ class SmartButton extends StatefulWidget {
     this.pop = false,
     this.semanticsLabel,
     this.automationKey,
+    this.semanticHint,
   });
 
   /// Describes the main visible button label, icon, and optional route.
@@ -57,6 +58,11 @@ class SmartButton extends StatefulWidget {
   /// Use a value following the `[RouteName]_[ContextBlock]_[ComponentType]_[ActionOrId]`
   /// naming convention. Maps to [Semantics.identifier] in the accessibility tree.
   final String? automationKey;
+
+  /// Provides structural, non-visual instructions to autonomous agents.
+  ///
+  /// Maps to [Semantics.hint] in the accessibility tree.
+  final String? semanticHint;
 
   /// Creates the mutable state used to coordinate popup-menu behavior.
   @override
@@ -213,6 +219,7 @@ class _SmartButtonState extends State<SmartButton> {
     return Semantics(
       label: widget.semanticsLabel ?? widget.button.label,
       identifier: widget.automationKey,
+      hint: widget.semanticHint,
       enabled: isActionable,
       container: true,
       child: child,

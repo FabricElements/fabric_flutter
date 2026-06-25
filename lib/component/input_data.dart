@@ -263,6 +263,7 @@ class InputData extends StatefulWidget {
     this.keyboardType,
     this.semanticsLabel,
     this.automationKey,
+    this.semanticHint,
   });
 
   /// Supplies the current value rendered by the field and its internal controllers.
@@ -432,6 +433,11 @@ class InputData extends StatefulWidget {
   /// Use a value following the `[RouteName]_[ContextBlock]_[ComponentType]_[ActionOrId]`
   /// naming convention. Maps to [Semantics.identifier] in the accessibility tree.
   final String? automationKey;
+
+  /// Provides structural, non-visual instructions to autonomous agents.
+  ///
+  /// Maps to [Semantics.hint] in the accessibility tree.
+  final String? semanticHint;
 
   /// Creates the state that owns controllers, picker state, and normalized values.
   @override
@@ -1356,6 +1362,7 @@ getValue -------------------------------------
     return Semantics(
       label: widget.semanticsLabel ?? widget.label,
       identifier: widget.automationKey,
+      hint: widget.semanticHint,
       enabled: !widget.disabled,
       container: true,
       child: Theme(

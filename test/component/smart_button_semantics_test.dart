@@ -157,6 +157,32 @@ void main() {
             .firstWhere((s) => s.properties.label == label);
         expect(node.properties.enabled, isTrue);
       });
+
+      testWidgets('SmartButton includes semanticHint in the accessibility tree', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
+        const testHint = 'Agent Directive: Proceed to checkout';
+        
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: SmartButton(
+                button: ButtonOptions(label: 'Checkout'),
+                semanticHint: testHint,
+              ),
+            ),
+          ),
+        );
+
+        // Act
+        final Semantics node = tester
+            .widgetList<Semantics>(find.byType(Semantics))
+            .firstWhere((s) => s.properties.label == 'Checkout');
+
+        // Assert
+        expect(node.properties.hint, testHint);
+      });
     });
   });
 
