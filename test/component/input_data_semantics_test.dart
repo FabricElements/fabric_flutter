@@ -339,8 +339,10 @@ void main() {
 
           // Assert
           final node = _findContainer(tester);
-          expect(node.properties.hint, isNotNull);
-          expect(node.properties.hint, contains('email'));
+          expect(
+            node.properties.hint,
+            equals('Enter a valid email address, e.g. user@example.com'),
+          );
         },
       );
 
@@ -357,8 +359,10 @@ void main() {
 
           // Assert
           final node = _findContainer(tester);
-          expect(node.properties.hint, isNotNull);
-          expect(node.properties.hint, contains('phone'));
+          expect(
+            node.properties.hint,
+            equals('Enter a phone number with country code, e.g. +12223334444'),
+          );
         },
       );
 
@@ -375,8 +379,10 @@ void main() {
 
           // Assert
           final node = _findContainer(tester);
-          expect(node.properties.hint, isNotNull);
-          expect(node.properties.hint, contains('https://'));
+          expect(
+            node.properties.hint,
+            equals('Enter a valid URL starting with https://'),
+          );
         },
       );
 
@@ -393,8 +399,10 @@ void main() {
 
           // Assert
           final node = _findContainer(tester);
-          expect(node.properties.hint, isNotNull);
-          expect(node.properties.hint, contains('date'));
+          expect(
+            node.properties.hint,
+            equals('Select a date using the calendar picker'),
+          );
         },
       );
 
@@ -411,13 +419,15 @@ void main() {
 
           // Assert
           final node = _findContainer(tester);
-          expect(node.properties.hint, isNotNull);
-          expect(node.properties.hint!.toLowerCase(), contains('toggle'));
+          expect(
+            node.properties.hint,
+            equals('Toggle to enable or disable this option'),
+          );
         },
       );
 
       testWidgets(
-        'should infer dropdown hint for InputDataType.dropdown',
+        'should infer list selection hint for InputDataType.dropdown',
         (WidgetTester tester) async {
           // Arrange
 
@@ -429,8 +439,10 @@ void main() {
 
           // Assert
           final node = _findContainer(tester);
-          expect(node.properties.hint, isNotNull);
-          expect(node.properties.hint!.toLowerCase(), contains('select'));
+          expect(
+            node.properties.hint,
+            equals('Select one option from the list'),
+          );
         },
       );
 

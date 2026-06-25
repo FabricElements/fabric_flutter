@@ -720,9 +720,10 @@ getValue -------------------------------------
       case InputDataType.secret:
         return locales.get('label--password');
       case InputDataType.date:
+        return locales.get('label--date');
       case InputDataType.dateTime:
       case InputDataType.timestamp:
-        return locales.get('label--date');
+        return '${locales.get('label--date')} & ${locales.get('label--time')}';
       case InputDataType.time:
         return locales.get('label--time');
       case InputDataType.text:
@@ -798,7 +799,7 @@ getValue -------------------------------------
         return 'Enter a decimal number';
       case InputDataType.enums:
       case InputDataType.dropdown:
-        return 'Select one option from the dropdown list';
+        return 'Select one option from the list';
       case InputDataType.radio:
         return 'Select one option from the available choices';
       case InputDataType.bool:
