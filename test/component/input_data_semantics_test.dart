@@ -25,6 +25,26 @@ Future<void> _pumpWithRoute(
   await tester.pump();
 }
 
+/// Pumps [child] inside an unnamed [MaterialPageRoute].
+///
+/// This exercises the automation-key fallback branch where [ModalRoute]
+/// resolves to a route whose name is absent or empty instead of `/`.
+Future<void> _pumpWithUnnamedRoute(WidgetTester tester, Widget child) async {
+  await tester.pumpWidget(
+    MaterialApp(
+      home: Navigator(
+        onGenerateInitialRoutes: (_, __) => <Route<void>>[
+          MaterialPageRoute<void>(
+            settings: const RouteSettings(name: ''),
+            builder: (_) => Scaffold(body: child),
+          ),
+        ],
+      ),
+    ),
+  );
+  await tester.pump();
+}
+
 /// Retrieves the outermost [Semantics] node that has [container] set to `true`.
 Semantics _findContainer(WidgetTester tester) {
   return tester
@@ -288,10 +308,10 @@ void main() {
       testWidgets(
         'should produce a non-null identifier even when no route name exists',
         (WidgetTester tester) async {
-          // Arrange – MaterialApp home has no named route
+          // Arrange – the nearest route name is intentionally empty
 
           // Act
-          await _pump(
+          await _pumpWithUnnamedRoute(
             tester,
             InputData(value: '', type: InputDataType.string, label: 'Name'),
           );
