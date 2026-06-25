@@ -116,71 +116,71 @@ class _CardButtonState extends State<CardButton> {
       child: Container(
         padding: widget.margin ?? const EdgeInsets.symmetric(vertical: 8),
         child: Card(
-        color: theme.colorScheme.surfaceContainerHighest,
-        clipBehavior: Clip.hardEdge,
-        child: RawMaterialButton(
-          onPressed: () => widget.onPressed(),
-          child: SizedBox(
-            height: widget.height,
-            child: Stack(
-              fit: StackFit.expand,
-              children: <Widget>[
-                SizedBox.expand(
-                  child: SmartImage(
-                    url: widget.image,
-                    format: AvailableOutputFormats.jpeg,
-                  ),
-                ),
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                    // padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        stops: const [0.0, 0.4, 0.7],
-                        colors: [
-                          theme.colorScheme.surface.withValues(alpha: 0.5),
-                          theme.colorScheme.surface.withValues(alpha: 0.9),
-                          theme.colorScheme.surface.withValues(alpha: 0.9),
-                        ],
-                      ),
+          color: theme.colorScheme.surfaceContainerHighest,
+          clipBehavior: Clip.hardEdge,
+          child: RawMaterialButton(
+            onPressed: () => widget.onPressed(),
+            child: SizedBox(
+              height: widget.height,
+              child: Stack(
+                fit: StackFit.expand,
+                children: <Widget>[
+                  SizedBox.expand(
+                    child: SmartImage(
+                      url: widget.image,
+                      format: AvailableOutputFormats.jpeg,
                     ),
-                    child: ListTile(
-                      title: widget.headline != null
-                          ? Text(
-                              widget.headline!,
-                              style: textTheme.titleMedium?.copyWith(
-                                color: theme.colorScheme.onSurface,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                              softWrap: true,
-                            )
-                          : null,
-                      subtitle: widget.description != null
-                          ? Padding(
-                              padding: const EdgeInsets.only(top: 8),
-                              child: Text(
-                                widget.description!,
-                                style: textTheme.bodyMedium?.copyWith(
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: Container(
+                      // padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          stops: const [0.0, 0.4, 0.7],
+                          colors: [
+                            theme.colorScheme.surface.withValues(alpha: 0.5),
+                            theme.colorScheme.surface.withValues(alpha: 0.9),
+                            theme.colorScheme.surface.withValues(alpha: 0.9),
+                          ],
+                        ),
+                      ),
+                      child: ListTile(
+                        title: widget.headline != null
+                            ? Text(
+                                widget.headline!,
+                                style: textTheme.titleMedium?.copyWith(
                                   color: theme.colorScheme.onSurface,
                                 ),
+                                overflow: TextOverflow.ellipsis,
                                 softWrap: true,
-                              ),
-                            )
-                          : null,
+                              )
+                            : null,
+                        subtitle: widget.description != null
+                            ? Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: Text(
+                                  widget.description!,
+                                  style: textTheme.bodyMedium?.copyWith(
+                                    color: theme.colorScheme.onSurface,
+                                  ),
+                                  softWrap: true,
+                                ),
+                              )
+                            : null,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
       ),
-    ),
     );
   }
 }

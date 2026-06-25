@@ -176,28 +176,28 @@ class _SmartButtonState extends State<SmartButton> {
     if (widget.children == null) return _withSemantics(mainButton);
     return _withSemantics(
       PopupMenuButton<String>(
-      offset: const Offset(0, 40),
-      key: popupButtonKey,
-      initialValue: '/',
-      onSelected: (value) {
-        if (value.startsWith('/')) {
-          if (widget.pop) {
-            Navigator.popAndPushNamed(context, value);
-          } else {
-            Navigator.pushNamed(context, value);
+        offset: const Offset(0, 40),
+        key: popupButtonKey,
+        initialValue: '/',
+        onSelected: (value) {
+          if (value.startsWith('/')) {
+            if (widget.pop) {
+              Navigator.popAndPushNamed(context, value);
+            } else {
+              Navigator.pushNamed(context, value);
+            }
           }
-        }
-      },
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        onHover: (event) {
-          dynamic state = popupButtonKey.currentState;
-          state.showButtonMenu();
         },
-        child: mainButton,
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          onHover: (event) {
+            dynamic state = popupButtonKey.currentState;
+            state.showButtonMenu();
+          },
+          child: mainButton,
+        ),
+        itemBuilder: (BuildContext context) => buttons,
       ),
-      itemBuilder: (BuildContext context) => buttons,
-    ),
     );
   }
 

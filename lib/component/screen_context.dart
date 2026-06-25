@@ -24,11 +24,7 @@ class ScreenContext extends StatelessWidget {
   ///
   /// Provide [routeName] to hard-code the semantic identifier, or omit it to
   /// derive the value from [ModalRoute.of] at build time.
-  const ScreenContext({
-    super.key,
-    required this.child,
-    this.routeName,
-  });
+  const ScreenContext({super.key, required this.child, this.routeName});
 
   /// The widget subtree to annotate with the route-scoped semantic container.
   final Widget child;
