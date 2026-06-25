@@ -261,6 +261,8 @@ class InputData extends StatefulWidget {
     this.enableInteractiveSelection,
     this.inputFormatters = const [],
     this.keyboardType,
+    this.semanticsLabel,
+    this.automationKey,
   });
 
   /// Supplies the current value rendered by the field and its internal controllers.
@@ -417,6 +419,17 @@ class InputData extends StatefulWidget {
   /// This lets callers replace the widget's built-in keyboard choice when a specialized
   /// input still needs a different platform keyboard layout.
   final TextInputType? keyboardType;
+
+  /// Overrides the label exposed to accessibility tools and autonomous agents.
+  ///
+  /// Falls back to [label] then [hintText] when `null`.
+  final String? semanticsLabel;
+
+  /// Assigns a deterministic identifier to the semantics node.
+  ///
+  /// Use a value following the `[RouteName]_[ContextBlock]_[ComponentType]_[ActionOrId]`
+  /// naming convention. Maps to [Semantics.identifier] in the accessibility tree.
+  final String? automationKey;
 
   /// Creates the state that owns controllers, picker state, and normalized values.
   @override
@@ -1338,15 +1351,21 @@ getValue -------------------------------------
         child: endWidget,
       );
     }
-    return Theme(
-      data: theme.copyWith(
-        disabledColor: textTheme.bodyMedium?.color,
-        inputDecorationTheme: theme.inputDecorationTheme.copyWith(
-          disabledBorder: theme.inputDecorationTheme.enabledBorder,
-          hoverColor: textTheme.bodyLarge?.color,
+    return Semantics(
+      label: widget.semanticsLabel ?? widget.label ?? widget.hintText,
+      identifier: widget.automationKey,
+      enabled: !widget.disabled,
+      container: true,
+      child: Theme(
+        data: theme.copyWith(
+          disabledColor: textTheme.bodyMedium?.color,
+          inputDecorationTheme: theme.inputDecorationTheme.copyWith(
+            disabledBorder: theme.inputDecorationTheme.enabledBorder,
+            hoverColor: textTheme.bodyLarge?.color,
+          ),
         ),
+        child: Container(margin: widget.margin, child: endWidget),
       ),
-      child: Container(margin: widget.margin, child: endWidget),
     );
   }
 }
