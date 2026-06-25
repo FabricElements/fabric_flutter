@@ -319,7 +319,7 @@ void main() {
           // Assert – falls back to 'app' as route segment
           final node = _findContainer(tester);
           expect(node.properties.identifier, isNotNull);
-          expect(node.properties.identifier, startsWith('app_'));
+          expect(node.properties.identifier, equals('app_name_input_string'));
         },
       );
     });
