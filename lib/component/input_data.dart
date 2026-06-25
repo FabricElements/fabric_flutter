@@ -422,7 +422,9 @@ class InputData extends StatefulWidget {
 
   /// Overrides the label exposed to accessibility tools and autonomous agents.
   ///
-  /// Falls back to [label] then [hintText] when `null`.
+  /// Falls back to [label] when `null`. Hint text is intentionally excluded
+  /// from the fallback because it is instructional placeholder text rather than
+  /// a stable descriptive identifier for the field.
   final String? semanticsLabel;
 
   /// Assigns a deterministic identifier to the semantics node.
@@ -1352,7 +1354,7 @@ getValue -------------------------------------
       );
     }
     return Semantics(
-      label: widget.semanticsLabel ?? widget.label ?? widget.hintText,
+      label: widget.semanticsLabel ?? widget.label,
       identifier: widget.automationKey,
       enabled: !widget.disabled,
       container: true,

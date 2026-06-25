@@ -222,7 +222,7 @@ void main() {
         // Assert
         final Semantics node = tester
             .widgetList<Semantics>(find.byType(Semantics))
-            .firstWhere((s) => s.container == true, orElse: () => const Semantics(child: SizedBox()));
+            .firstWhere((s) => s.container == true);
         expect(node.properties.identifier, isNull);
       });
     });
