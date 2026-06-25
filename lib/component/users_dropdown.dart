@@ -28,6 +28,8 @@ class UsersDropdown extends StatelessWidget implements PreferredSizeWidget {
     this.showTrailing = false,
     this.padding = EdgeInsets.zero,
     this.prefix,
+    this.semanticsLabel,
+    this.automationKey,
   });
 
   /// Receives the selected [UserData] when the dropdown value changes.
@@ -68,6 +70,16 @@ class UsersDropdown extends StatelessWidget implements PreferredSizeWidget {
   /// Prefixes each non-`null` avatar filename before it is passed to
   /// [UserAvatar].
   final String? prefix;
+
+  /// Overrides the label exposed to accessibility tools and autonomous agents.
+  ///
+  /// Forwarded to [InputData.semanticsLabel].
+  final String? semanticsLabel;
+
+  /// Assigns a deterministic identifier to the semantics node.
+  ///
+  /// Forwarded to [InputData.automationKey].
+  final String? automationKey;
 
   /// Reports the preferred size for [PreferredSizeWidget] consumers.
   ///
@@ -144,6 +156,8 @@ class UsersDropdown extends StatelessWidget implements PreferredSizeWidget {
         value: uid,
         options: items,
         type: InputDataType.dropdown,
+        semanticsLabel: semanticsLabel,
+        automationKey: automationKey,
         onChanged: (value) async {
           if (value == null) return;
           if (onChanged != null) onChanged!(value);

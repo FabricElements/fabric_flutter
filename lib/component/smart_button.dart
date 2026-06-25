@@ -25,6 +25,8 @@ class SmartButton extends StatefulWidget {
     this.redirect,
     this.brightness,
     this.pop = false,
+    this.semanticsLabel,
+    this.automationKey,
   });
 
   /// Describes the main visible button label, icon, and optional route.
@@ -44,6 +46,17 @@ class SmartButton extends StatefulWidget {
 
   /// Provides a reserved hook for external redirect flows.
   final Function? redirect;
+
+  /// Overrides the label exposed to accessibility tools and autonomous agents.
+  ///
+  /// Falls back to [ButtonOptions.label] from [button] when `null`.
+  final String? semanticsLabel;
+
+  /// Assigns a deterministic identifier to the semantics node.
+  ///
+  /// Use a value following the `[RouteName]_[ContextBlock]_[ComponentType]_[ActionOrId]`
+  /// naming convention. Maps to [Semantics.identifier] in the accessibility tree.
+  final String? automationKey;
 
   /// Creates the mutable state used to coordinate popup-menu behavior.
   @override
@@ -160,8 +173,9 @@ class _SmartButtonState extends State<SmartButton> {
         }
       },
     );
-    if (widget.children == null) return mainButton;
-    return PopupMenuButton<String>(
+    if (widget.children == null) return _withSemantics(mainButton);
+    return _withSemantics(
+      PopupMenuButton<String>(
       offset: const Offset(0, 40),
       key: popupButtonKey,
       initialValue: '/',
@@ -183,6 +197,25 @@ class _SmartButtonState extends State<SmartButton> {
         child: mainButton,
       ),
       itemBuilder: (BuildContext context) => buttons,
+    ),
+    );
+  }
+
+  /// Wraps [child] in a [Semantics] container with label, identifier, and enabled state.
+  ///
+  /// Uses [SmartButton.semanticsLabel] when provided; falls back to
+  /// [ButtonOptions.label] from [widget.button]. The [enabled] flag reflects
+  /// whether the button has an actionable [ButtonOptions.path] or
+  /// [ButtonOptions.onTap].
+  Widget _withSemantics(Widget child) {
+    final bool isActionable =
+        widget.button.path != null || widget.button.onTap != null;
+    return Semantics(
+      label: widget.semanticsLabel ?? widget.button.label,
+      identifier: widget.automationKey,
+      enabled: isActionable,
+      container: true,
+      child: child,
     );
   }
 }

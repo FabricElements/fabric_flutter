@@ -35,6 +35,8 @@ class CardButton extends StatefulWidget {
     this.margin,
     required this.image,
     required this.onPressed,
+    this.semanticsLabel,
+    this.automationKey,
   });
 
   /// Stores the preferred border radius for the surrounding card styling.
@@ -74,6 +76,16 @@ class CardButton extends StatefulWidget {
   /// Allows the widget to fit varied list and grid layouts without wrappers.
   final EdgeInsetsGeometry? margin;
 
+  /// Overrides the label exposed to accessibility tools and autonomous agents.
+  ///
+  /// Falls back to [headline] first, then [description], when `null`.
+  final String? semanticsLabel;
+
+  /// Assigns a deterministic identifier to the semantics node.
+  ///
+  /// Maps to [Semantics.identifier] in the accessibility tree.
+  final String? automationKey;
+
   /// Creates the mutable [State] used to render the card.
   ///
   /// Returns a [_CardButtonState] so the widget can participate in the
@@ -96,9 +108,14 @@ class _CardButtonState extends State<CardButton> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
-    return Container(
-      padding: widget.margin ?? const EdgeInsets.symmetric(vertical: 8),
-      child: Card(
+    return Semantics(
+      label: widget.semanticsLabel ?? widget.headline ?? widget.description,
+      identifier: widget.automationKey,
+      enabled: true,
+      container: true,
+      child: Container(
+        padding: widget.margin ?? const EdgeInsets.symmetric(vertical: 8),
+        child: Card(
         color: theme.colorScheme.surfaceContainerHighest,
         clipBehavior: Clip.hardEdge,
         child: RawMaterialButton(
@@ -163,6 +180,7 @@ class _CardButtonState extends State<CardButton> {
           ),
         ),
       ),
+    ),
     );
   }
 }
