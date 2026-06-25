@@ -306,7 +306,7 @@ void main() {
       );
 
       testWidgets(
-        'should produce a non-null identifier even when no route name exists',
+        'should fall back to app as route segment when no route name exists',
         (WidgetTester tester) async {
           // Arrange – the nearest route name is intentionally empty
 
