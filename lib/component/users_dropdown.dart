@@ -30,6 +30,7 @@ class UsersDropdown extends StatelessWidget implements PreferredSizeWidget {
     this.prefix,
     this.semanticsLabel,
     this.automationKey,
+    this.semanticHint,
   });
 
   /// Receives the selected [UserData] when the dropdown value changes.
@@ -80,6 +81,11 @@ class UsersDropdown extends StatelessWidget implements PreferredSizeWidget {
   ///
   /// Forwarded to [InputData.automationKey].
   final String? automationKey;
+
+  /// Provides structural, non-visual instructions to autonomous agents.
+  ///
+  /// Forwarded to [InputData.semanticHint].
+  final String? semanticHint;
 
   /// Reports the preferred size for [PreferredSizeWidget] consumers.
   ///
@@ -158,6 +164,7 @@ class UsersDropdown extends StatelessWidget implements PreferredSizeWidget {
         type: InputDataType.dropdown,
         semanticsLabel: semanticsLabel,
         automationKey: automationKey,
+        semanticHint: semanticHint,
         onChanged: (value) async {
           if (value == null) return;
           if (onChanged != null) onChanged!(value);

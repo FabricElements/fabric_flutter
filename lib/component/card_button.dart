@@ -37,6 +37,7 @@ class CardButton extends StatefulWidget {
     required this.onPressed,
     this.semanticsLabel,
     this.automationKey,
+    this.semanticHint,
   });
 
   /// Stores the preferred border radius for the surrounding card styling.
@@ -86,6 +87,11 @@ class CardButton extends StatefulWidget {
   /// Maps to [Semantics.identifier] in the accessibility tree.
   final String? automationKey;
 
+  /// Provides structural, non-visual instructions to autonomous agents.
+  ///
+  /// Maps to [Semantics.hint] in the accessibility tree.
+  final String? semanticHint;
+
   /// Creates the mutable [State] used to render the card.
   ///
   /// Returns a [_CardButtonState] so the widget can participate in the
@@ -111,6 +117,7 @@ class _CardButtonState extends State<CardButton> {
     return Semantics(
       label: widget.semanticsLabel ?? widget.headline ?? widget.description,
       identifier: widget.automationKey,
+      hint: widget.semanticHint,
       enabled: true,
       container: true,
       child: Container(
