@@ -33,7 +33,7 @@ Future<void> _pumpWithUnnamedRoute(WidgetTester tester, Widget child) async {
   await tester.pumpWidget(
     MaterialApp(
       home: Navigator(
-        onGenerateInitialRoutes: (_, __) => <Route<void>>[
+        onGenerateInitialRoutes: (_, _) => <Route<void>>[
           MaterialPageRoute<void>(
             settings: const RouteSettings(name: ''),
             builder: (_) => Scaffold(body: child),
