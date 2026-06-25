@@ -25,10 +25,12 @@ void main() {
         );
 
         // Assert
-        final Semantics node = tester
-            .widgetList<Semantics>(find.byType(Semantics))
-            .firstWhere((s) => s.properties.label == label);
-        expect(node.properties.label, equals(label));
+        expect(
+          tester
+              .widgetList<Semantics>(find.byType(Semantics))
+              .any((s) => s.properties.label == label),
+          isTrue,
+        );
       });
 
       testWidgets('should use explicit semanticsLabel when provided', (
@@ -50,10 +52,12 @@ void main() {
         );
 
         // Assert
-        final Semantics node = tester
-            .widgetList<Semantics>(find.byType(Semantics))
-            .firstWhere((s) => s.properties.label == semanticsLabel);
-        expect(node.properties.label, equals(semanticsLabel));
+        expect(
+          tester
+              .widgetList<Semantics>(find.byType(Semantics))
+              .any((s) => s.properties.label == semanticsLabel),
+          isTrue,
+        );
       });
 
       testWidgets('should expose automationKey as semantics identifier', (
@@ -176,10 +180,12 @@ void main() {
         );
 
         // Assert
-        final Semantics node = tester
-            .widgetList<Semantics>(find.byType(Semantics))
-            .firstWhere((s) => s.properties.identifier == expectedIdentifier);
-        expect(node.properties.identifier, equals(expectedIdentifier));
+        expect(
+          tester
+              .widgetList<Semantics>(find.byType(Semantics))
+              .any((s) => s.properties.identifier == expectedIdentifier),
+          isTrue,
+        );
       });
 
       testWidgets('should have explicitChildNodes set to true', (
