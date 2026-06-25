@@ -701,6 +701,114 @@ getValue -------------------------------------
     super.dispose();
   }
 
+  /// Resolves the semantic label exposed to accessibility tools.
+  ///
+  /// Returns [InputData.semanticsLabel] when explicitly set. Falls back to
+  /// [InputData.label] and then, when both are `null`, to a localized type name
+  /// derived from [locales] so the semantics tree always carries a meaningful
+  /// description.
+  String? _resolveSemanticLabel(AppLocalizations locales) {
+    if (widget.semanticsLabel != null) return widget.semanticsLabel;
+    if (widget.label != null) return widget.label;
+    switch (widget.type) {
+      case InputDataType.email:
+        return locales.get('label--email');
+      case InputDataType.phone:
+        return locales.get('label--phone-number');
+      case InputDataType.url:
+        return locales.get('label--url');
+      case InputDataType.secret:
+        return locales.get('label--password');
+      case InputDataType.date:
+        return locales.get('label--date');
+      case InputDataType.dateTime:
+      case InputDataType.timestamp:
+        return '${locales.get('label--date')} & ${locales.get('label--time')}';
+      case InputDataType.time:
+        return locales.get('label--time');
+      case InputDataType.text:
+        return locales.get('label--text');
+      default:
+        return null;
+    }
+  }
+
+  /// Generates a deterministic automation key when none is explicitly provided.
+  ///
+  /// Returns [InputData.automationKey] unchanged when set. Otherwise constructs
+  /// an identifier following the `[RouteName]_[ContextBlock]_input_[type]`
+  /// naming convention by reading the ambient [ModalRoute] name and deriving a
+  /// context block from [InputData.label] or [InputData.type].
+  String? _resolveAutomationKey(BuildContext context) {
+    if (widget.automationKey != null) return widget.automationKey;
+    final rawRoute = ModalRoute.of(context)?.settings.name;
+    final String routeSegment;
+    if (rawRoute == null || rawRoute.isEmpty) {
+      routeSegment = 'app';
+    } else if (rawRoute == '/') {
+      routeSegment = 'root';
+    } else {
+      routeSegment = rawRoute
+          .replaceFirst(RegExp(r'^/'), '')
+          .replaceAll(RegExp(r'[^a-zA-Z0-9]+'), '_')
+          .toLowerCase();
+    }
+    final String contextBlock;
+    if (widget.label != null && widget.label!.isNotEmpty) {
+      contextBlock = widget.label!
+          .trim()
+          .replaceAll(RegExp(r'[^a-zA-Z0-9]+'), '_')
+          .toLowerCase();
+    } else {
+      contextBlock = widget.type.name;
+    }
+    return '${routeSegment}_${contextBlock}_input_${widget.type.name}';
+  }
+
+  /// Infers a structural, non-visual hint from the configured [InputDataType].
+  ///
+  /// Returns [InputData.semanticHint] when explicitly set. Otherwise returns a
+  /// format instruction string so autonomous agents know exactly what data
+  /// format is expected for each input variant. Returns `null` for generic
+  /// text and string types where no specific format constraint applies.
+  String? _resolveSemanticHint() {
+    if (widget.semanticHint != null) return widget.semanticHint;
+    switch (widget.type) {
+      case InputDataType.email:
+        return 'Enter a valid email address, e.g. user@example.com';
+      case InputDataType.phone:
+        return 'Enter a phone number with country code, e.g. +12223334444';
+      case InputDataType.url:
+        return 'Enter a valid URL starting with https://';
+      case InputDataType.date:
+        return 'Select a date using the calendar picker';
+      case InputDataType.dateTime:
+      case InputDataType.timestamp:
+        return 'Select a date and time using the picker';
+      case InputDataType.time:
+        return 'Select a time using the time picker';
+      case InputDataType.secret:
+        return 'Enter a password or secret token; input is hidden';
+      case InputDataType.currency:
+        return 'Enter a numeric currency amount';
+      case InputDataType.percent:
+        return 'Enter a numeric percentage value between 0 and 100';
+      case InputDataType.int:
+        return 'Enter a whole number';
+      case InputDataType.double:
+        return 'Enter a decimal number';
+      case InputDataType.enums:
+      case InputDataType.dropdown:
+        return 'Select one option from the list';
+      case InputDataType.radio:
+        return 'Select one option from the available choices';
+      case InputDataType.bool:
+        return 'Toggle to enable or disable this option';
+      default:
+        return null;
+    }
+  }
+
   /// Builds the concrete editor that matches the configured [InputDataType].
   @override
   Widget build(BuildContext context) {
@@ -1360,9 +1468,9 @@ getValue -------------------------------------
       );
     }
     return Semantics(
-      label: widget.semanticsLabel ?? widget.label,
-      identifier: widget.automationKey,
-      hint: widget.semanticHint,
+      label: _resolveSemanticLabel(locales),
+      identifier: _resolveAutomationKey(context),
+      hint: _resolveSemanticHint(),
       enabled: !widget.disabled,
       container: true,
       child: Theme(
