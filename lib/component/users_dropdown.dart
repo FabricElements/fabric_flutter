@@ -129,6 +129,9 @@ class UsersDropdown extends StatelessWidget implements PreferredSizeWidget {
           item.email ??
           item.id ??
           locales.get('label--user');
+      String? avatar = prefix != null && item.avatar != null
+          ? '$prefix/${item.avatar}'
+          : null;
       return ButtonOptions(
         id: item.id,
         value: item,
@@ -137,9 +140,8 @@ class UsersDropdown extends StatelessWidget implements PreferredSizeWidget {
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
           child: UserAvatar(
-            avatar: prefix != null && item.avatar != null
-                ? '$prefix/${item.avatar}'
-                : null,
+            key: ValueKey(avatar ?? 'user-dropdown-avatar-${item.id}'),
+            avatar: avatar,
             name: item.name,
             firstName: item.firstName,
             lastName: item.lastName,

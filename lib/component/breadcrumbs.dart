@@ -92,6 +92,7 @@ class Breadcrumbs extends StatelessWidget {
           backgroundColor: Colors.grey.shade100,
           child: ClipOval(
             child: SmartImage(
+              key: ValueKey('breadcrumb-image-${button.image}'),
               url: button.image,
               format: AvailableOutputFormats.png,
             ),

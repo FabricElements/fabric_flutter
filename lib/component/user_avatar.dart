@@ -88,7 +88,11 @@ class UserAvatar extends StatelessWidget {
         child: AspectRatio(
           aspectRatio: 1 / 1,
           child: ClipOval(
-            child: SmartImage(url: avatar, format: AvailableOutputFormats.png),
+            child: SmartImage(
+              key: ValueKey('user-avatar-image-$avatar'),
+              url: avatar,
+              format: AvailableOutputFormats.png,
+            ),
           ),
         ),
       );

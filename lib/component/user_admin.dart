@@ -441,6 +441,7 @@ class UserAdmin extends StatelessWidget {
                   children: [
                     ListTile(
                       leading: UserAvatar(
+                        key: ValueKey('user-avatar-${user.id}'),
                         avatar: prefix != null && user.avatar != null
                             ? '$prefix/${user.avatar}'
                             : null,

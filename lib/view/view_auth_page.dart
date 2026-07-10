@@ -593,6 +593,14 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       homeButtonOptions.add(authButton('phone'));
     }
     if (widget.anonymous) homeButtonOptions.add(authButton('anonymous'));
+    Widget? logoImage = widget.logo != null
+        ? SmartImage(
+            key: ValueKey('auth-page-logo-circle-${widget.logo}'),
+            url: widget.logo,
+            format: AvailableOutputFormats.png,
+            color: theme.colorScheme.surface,
+          )
+        : null;
     Widget home = AnimatedOpacity(
       opacity: state.section == 0 ? 1 : 0,
       duration: const Duration(milliseconds: 300),
@@ -607,6 +615,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
                 SizedBox.expand(child: Container(color: Colors.grey.shade50)),
                 SizedBox.expand(
                   child: SmartImage(
+                    key: ValueKey('auth-page-background-$backgroundImage'),
                     url: backgroundImage,
                     format: AvailableOutputFormats.jpeg,
                     color: theme.colorScheme.primaryContainer,
@@ -639,22 +648,10 @@ class ViewAuthPageState extends State<ViewAuthPage> {
                                       ? CircleAvatar(
                                           child: AspectRatio(
                                             aspectRatio: 1 / 1,
-                                            child: ClipOval(
-                                              child: SmartImage(
-                                                url: widget.logo,
-                                                format:
-                                                    AvailableOutputFormats.png,
-                                                color:
-                                                    theme.colorScheme.surface,
-                                              ),
-                                            ),
+                                            child: ClipOval(child: logoImage),
                                           ),
                                         )
-                                      : SmartImage(
-                                          url: widget.logo,
-                                          format: AvailableOutputFormats.png,
-                                          color: theme.colorScheme.surface,
-                                        ),
+                                      : logoImage,
                                 ),
                               ),
                             )

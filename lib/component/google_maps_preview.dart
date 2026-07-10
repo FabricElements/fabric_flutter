@@ -178,6 +178,7 @@ class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
       return AspectRatio(
         aspectRatio: widget.aspectRatio,
         child: const SmartImage(
+          key: ValueKey('map-preview-placeholder'),
           url: 'https://images.unsplash.com/photo-1476973422084-e0fa66ff9456',
           format: AvailableOutputFormats.jpeg,
         ),
@@ -202,7 +203,10 @@ class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
                 '&size=$widthBox'
                 'x'
                 '$heightBox';
-            return SmartImage(url: imageUrl);
+            return SmartImage(
+              key: ValueKey('map-preview-image-$imageUrl'),
+              url: imageUrl,
+            );
           },
         ),
       );

@@ -84,6 +84,7 @@ class _UserChipState extends State<UserChip> {
     }
     return Chip(
       avatar: UserAvatar(
+        key: ValueKey(url ?? 'user-chip-avatar-${user.id}'),
         avatar: url,
         firstName: user.firstName,
         lastName: user.lastName,

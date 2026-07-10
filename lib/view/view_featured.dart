@@ -213,6 +213,7 @@ class _ViewFeaturedState extends State<ViewFeatured> {
                   children: <Widget>[
                     SizedBox.expand(
                       child: SmartImage(
+                        key: ValueKey('featured-view-image-${widget.image}'),
                         url: widget.image,
                         format: AvailableOutputFormats.jpeg,
                       ),

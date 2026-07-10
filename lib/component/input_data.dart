@@ -1,3 +1,4 @@
+import 'package:fabric_flutter/component/user_avatar.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,7 +14,6 @@ import '../helper/log_color.dart';
 import '../helper/options.dart';
 import '../helper/utils.dart';
 import 'alert_data.dart';
-import 'smart_image.dart';
 
 /// Defines the value representations supported by [InputData].
 enum InputDataType {
@@ -1317,21 +1317,12 @@ getValue -------------------------------------
                   leading = Icon(item.icon);
                 }
                 if (item.image != null) {
-                  leading = Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: CircleAvatar(
-                      backgroundColor:
-                          theme.colorScheme.surfaceContainerHighest,
-                      child: AspectRatio(
-                        aspectRatio: 1 / 1,
-                        child: ClipOval(
-                          child: SmartImage(
-                            url: item.image,
-                            format: AvailableOutputFormats.png,
-                          ),
-                        ),
-                      ),
+                  leading = UserAvatar(
+                    key: ValueKey(
+                      'input-data-dropdown-leading-image-${item.id}',
                     ),
+                    name: item.label,
+                    avatar: item.image,
                   );
                 }
 
@@ -1341,11 +1332,12 @@ getValue -------------------------------------
                   trailing = Icon(item.trailingIcon);
                 }
                 if (item.trailingImage != null) {
-                  trailing = AspectRatio(
-                    aspectRatio: 1 / 1,
-                    child: CircleAvatar(
-                      backgroundImage: NetworkImage(item.trailingImage!),
+                  trailing = UserAvatar(
+                    key: ValueKey(
+                      'input-data-dropdown-trailing-image-${item.id}',
                     ),
+                    name: item.label,
+                    avatar: item.trailingImage,
                   );
                 }
                 return PointerInterceptor(

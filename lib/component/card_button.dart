@@ -134,6 +134,7 @@ class _CardButtonState extends State<CardButton> {
                 children: <Widget>[
                   SizedBox.expand(
                     child: SmartImage(
+                      key: ValueKey('card-button-image-${widget.image}'),
                       url: widget.image,
                       format: AvailableOutputFormats.jpeg,
                     ),

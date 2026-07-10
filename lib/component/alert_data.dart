@@ -362,7 +362,11 @@ void alertData<T>({
         color: color,
         child: AspectRatio(
           aspectRatio: 3 / 1,
-          child: SmartImage(url: image, format: AvailableOutputFormats.jpeg),
+          child: SmartImage(
+            key: ValueKey('alert-image-$image'),
+            url: image,
+            format: AvailableOutputFormats.jpeg,
+          ),
         ),
       ),
     );
