@@ -38,7 +38,7 @@ dependencies:
   webview_flutter_wkwebview: ^3.26.0
   connectivity_plus: ^7.3.0
   json_explorer: ^0.1.2
-  intl: ^0.20.3
+  intl: ^0.20.2
   ansicolor: ^2.0.3
   cupertino_icons: ^1.0.9
   google_fonts: ^8.1.0
