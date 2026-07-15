@@ -1,5 +1,15 @@
 ## [Unreleased]
 
+## [2.2.5] - 2026-07-15
+
+### Web/WASM Modernization
+* **[Deprecation]** Replaced `universal_html` (`dart:html`) with `package:web` and `dart:ui_web` in `lib/component/iframe_minimal_web.dart`, removing the last `dart:html` dependency and unblocking `flutter build web --wasm` (issue #175).
+* Switched the `iframe_minimal.dart` conditional export from `dart.library.html` to `dart.library.js_interop`, which is available on both the JavaScript and WebAssembly web compilation targets.
+
+### Dependencies
+* Removed `universal_html: ^2.3.0`.
+* Added `web: ^1.1.1`.
+
 ## [2.2.4] - 2026-07-15
 
 ### Dependencies

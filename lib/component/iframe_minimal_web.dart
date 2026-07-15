@@ -1,7 +1,7 @@
 import 'dart:ui_web' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:universal_html/universal_html.dart' show IFrameElement;
+import 'package:web/web.dart' as web;
 
 import '../helper/log_color.dart';
 
@@ -42,7 +42,7 @@ class IframeMinimal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final id = '#iframe-${(src ?? rawHtml).hashCode}';
-    final iframeElement = IFrameElement();
+    final iframeElement = web.HTMLIFrameElement();
 
     if (rawHtml != null) {
       iframeElement.setAttribute('srcdoc', rawHtml!);

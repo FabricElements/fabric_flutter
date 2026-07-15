@@ -6,4 +6,4 @@
 library;
 
 export 'iframe_minimal_native.dart'
-    if (dart.library.html) 'iframe_minimal_web.dart';
+    if (dart.library.js_interop) 'iframe_minimal_web.dart';
