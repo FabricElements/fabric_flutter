@@ -30,18 +30,15 @@ class StepperExtended extends StatefulWidget {
   /// The text style for ListTile's [title].
   ///
   /// If this property is null, then [ListTileThemeData.titleTextStyle] is used.
-  /// If that is also null and [ThemeData.useMaterial3] is true, [TextTheme.bodyLarge]
-  /// with [ColorScheme.onSurface] will be used. Otherwise, If ListTile style is
-  /// [ListTileStyle.list], [TextTheme.titleMedium] will be used and if ListTile style
-  /// is [ListTileStyle.drawer], [TextTheme.bodyLarge] will be used.
+  /// If that is also null, [TextTheme.bodyLarge] with [ColorScheme.onSurface]
+  /// will be used.
   final TextStyle? titleTextStyle;
 
   /// The text style for ListTile's [subtitle].
   ///
   /// If this property is null, then [ListTileThemeData.subtitleTextStyle] is used.
-  /// If that is also null and [ThemeData.useMaterial3] is true, [TextTheme.bodyMedium]
-  /// with [ColorScheme.onSurfaceVariant] will be used, otherwise [TextTheme.bodyMedium]
-  /// with [TextTheme.bodySmall] color will be used.
+  /// If that is also null, [TextTheme.bodyMedium] with
+  /// [ColorScheme.onSurfaceVariant] will be used.
   final TextStyle? subtitleTextStyle;
 
   /// If true, the stepper will be displayed on a [ListView].

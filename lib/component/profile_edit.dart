@@ -289,9 +289,9 @@ class _ProfileEditState extends State<ProfileEdit> {
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Center(
-                  child: RawMaterialButton(
+                  child: InkWell(
                     hoverColor: Colors.transparent,
-                    onPressed: _temporalImageBytes == null
+                    onTap: _temporalImageBytes == null
                         ? () async {
                             Navigator.pushNamed(
                               context,
