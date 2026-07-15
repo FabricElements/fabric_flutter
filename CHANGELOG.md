@@ -1,5 +1,21 @@
 ## [Unreleased]
 
+### CI
+* Bumped CI Flutter SDK version from 3.44.4 to 3.44.6.
+* Bumped CI Flutter SDK version from 3.44.1 to 3.44.4.
+
+## [2.2.5] - 2026-07-15
+
+### Web/WASM Modernization
+* **[Deprecation]** Replaced `universal_html` (`dart:html`) with `package:web` and `dart:ui_web` in `lib/component/iframe_minimal_web.dart`, removing the last `dart:html` dependency and unblocking `flutter build web --wasm` (issue #175).
+* Switched the `iframe_minimal.dart` conditional export from `dart.library.html` to `dart.library.js_interop`, which is available on both the JavaScript and WebAssembly web compilation targets.
+
+### Dependencies
+* **[Fix]** Downgraded `build_runner` constraint from ^2.15.2 to ^2.15.1 to resolve version solving failure with Flutter SDK 3.44.1 (`meta` pin at 1.18.0 is incompatible with `build_runner >=2.15.2` which requires `meta ^1.18.3`).
+* **[Fix]** Downgraded `intl` constraint from ^0.20.3 to ^0.20.2 to satisfy the `intl 0.20.2` pin from `flutter_localizations` in Flutter SDK 3.44.1, resolving version solving failure.
+* Removed `universal_html: ^2.3.0`.
+* Added `web: ^1.1.1`.
+
 ## [2.2.4] - 2026-07-15
 
 ### Dependencies
