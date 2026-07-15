@@ -1,5 +1,8 @@
 ## [Unreleased]
 
+### CI
+* Bumped CI Flutter SDK version from 3.44.1 to 3.44.4.
+
 ## [2.2.5] - 2026-07-15
 
 ### Web/WASM Modernization
