@@ -125,8 +125,8 @@ class _CardButtonState extends State<CardButton> {
         child: Card(
           color: theme.colorScheme.surfaceContainerHighest,
           clipBehavior: Clip.hardEdge,
-          child: RawMaterialButton(
-            onPressed: () => widget.onPressed(),
+          child: InkWell(
+            onTap: () => widget.onPressed(),
             child: SizedBox(
               height: widget.height,
               child: Stack(

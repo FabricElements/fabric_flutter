@@ -134,8 +134,7 @@ class _SmartButtonState extends State<SmartButton> {
         }
       }
     }
-    // final double scale = MediaQuery.maybeOf(context)?.textScaleFactor ?? 1;
-    // TODO: Implement scale when possible
+    // TODO: Implement scale when possible using MediaQuery.textScalerOf(context)
     const double scale = 1;
     final double gap = scale <= 1
         ? 8

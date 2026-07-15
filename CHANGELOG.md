@@ -1,5 +1,13 @@
 ## [Unreleased]
 
+### Material 3 UI Adjustments
+* **[Deprecation]** Replaced the Material-2-era `RawMaterialButton` with `InkWell`/`GestureDetector` in `lib/component/alert_data.dart`, `lib/component/input_data.dart`, `lib/component/profile_edit.dart`, `lib/component/card_button.dart`, and `lib/view/view_featured.dart`, so ripple, focus/hover state layers, and disabled styling track `ThemeData`/`ColorScheme` (issue #177).
+
+### Cleanup
+* Removed a commented-out, deprecated `MediaQuery.textScaleFactor` reference in `lib/component/smart_button.dart`.
+* Reworded `lib/component/stepper_extended.dart` doc comments to drop the no-op `ThemeData.useMaterial3` conditional wording.
+* Removed a stale commented-out `Theme.of(context).primaryColor.value` sample line in `lib/helper/utils.dart`.
+
 ### CI
 * Bumped CI Flutter SDK version from 3.44.4 to 3.44.6.
 * Bumped CI Flutter SDK version from 3.44.1 to 3.44.4.

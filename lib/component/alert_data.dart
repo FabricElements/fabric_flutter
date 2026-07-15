@@ -291,8 +291,8 @@ void alertData<T>({
     onColumn.add(
       Container(
         constraints: BoxConstraints(minWidth: 50, maxWidth: contentWidth),
-        child: RawMaterialButton(
-          onPressed: () {
+        child: InkWell(
+          onTap: () {
             Clipboard.setData(ClipboardData(text: title));
           },
           child: Text(
@@ -310,8 +310,8 @@ void alertData<T>({
     onColumn.add(
       Container(
         constraints: BoxConstraints(minWidth: 50, maxWidth: contentWidth),
-        child: RawMaterialButton(
-          onPressed: () {
+        child: InkWell(
+          onTap: () {
             Clipboard.setData(ClipboardData(text: body));
           },
           child: Text(

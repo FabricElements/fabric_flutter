@@ -242,11 +242,7 @@ class Utils {
   /// running apps in the system's app switcher or overview screen.
   static void setPageTitle(String title) {
     SystemChrome.setApplicationSwitcherDescription(
-      ApplicationSwitcherDescription(
-        label: title,
-        // primaryColor:
-        //     Theme.of(context).primaryColor.value, // This line is required
-      ),
+      ApplicationSwitcherDescription(label: title),
     );
   }
 

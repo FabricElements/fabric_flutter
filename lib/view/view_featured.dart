@@ -202,8 +202,8 @@ class _ViewFeaturedState extends State<ViewFeatured> {
     return Scaffold(
       primary: false,
       body: SizedBox.expand(
-        child: RawMaterialButton(
-          onPressed: widget.actionLabel != null ? () => onClick() : null,
+        child: InkWell(
+          onTap: widget.actionLabel != null ? () => onClick() : null,
           child: Flex(
             direction: Axis.vertical,
             children: <Widget>[
