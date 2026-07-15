@@ -1,5 +1,32 @@
 ## [Unreleased]
 
+## [2.2.4] - 2026-07-15
+
+### Dependencies
+* **[Dependency Modernization]** Bumped 15 dependencies to latest versions (issue #176)
+  * **`package_info_plus`**: ^9.0.1 → ^10.2.1 (major version bump; no breaking API changes)
+  * Firebase suite updates (unblocks transitive `firebase_core_platform_interface` 7→8):
+    * `firebase_core`: ^4.11.0 → ^4.12.1
+    * `cloud_firestore`: ^6.6.0 → ^6.7.1
+    * `cloud_functions`: ^6.3.3 → ^6.3.5
+    * `firebase_auth`: ^6.5.4 → ^6.5.6
+    * `firebase_analytics`: ^12.4.3 → ^12.4.5
+    * `firebase_messaging`: ^16.4.1 → ^16.4.3
+    * `firebase_storage`: ^13.4.3 → ^13.4.5
+    * `firebase_database`: ^12.4.4 → ^12.4.6
+  * Minor package updates:
+    * `connectivity_plus`: ^7.2.0 → ^7.3.0
+    * `video_player`: ^2.11.1 → ^2.13.0
+    * `flutter_markdown_plus`: ^1.0.11 → ^1.0.12
+    * `intl`: ^0.20.2 → ^0.20.3
+  * Dev dependency updates:
+    * `build_runner`: ^2.15.0 → ^2.15.2
+* Pre-1.0 dependency health verified:
+  * `json_explorer: ^0.1.2` — community fork of abandoned json_data_explorer; actively maintained
+  * `devicelocale: ^0.9.0` — active maintenance; compatible with current SDK
+  * `image_network: ^2.6.0` — maintained; complements SmartImage for network image loading
+  * `omni_datetime_picker: ^2.3.2` — current and compatible with Flutter 3.44.x
+
 ### Documentation & Code Quality
 * **[MAJOR]** Comprehensive codebase compliance sweep (June 2026)
   * All 41 component files now fully documented to Effective Dart standards
