@@ -7,6 +7,7 @@
 * Switched the `iframe_minimal.dart` conditional export from `dart.library.html` to `dart.library.js_interop`, which is available on both the JavaScript and WebAssembly web compilation targets.
 
 ### Dependencies
+* **[Fix]** Downgraded `intl` constraint from ^0.20.3 to ^0.20.2 to satisfy the `intl 0.20.2` pin from `flutter_localizations` in Flutter SDK 3.44.1, resolving version solving failure.
 * Removed `universal_html: ^2.3.0`.
 * Added `web: ^1.1.1`.
 
