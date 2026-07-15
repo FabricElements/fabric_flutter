@@ -36,7 +36,7 @@ Sourced directly from [`pubspec.yaml`](pubspec.yaml).
 | **State management** | `provider` ^6.1.5+1 (`ChangeNotifier` — no Riverpod/Bloc/GetX) |
 | **Firebase / backend** | `firebase_core` ^4.12.1, `firebase_auth` ^6.5.6, `cloud_firestore` ^6.7.1, `cloud_functions` ^6.3.5, `firebase_storage` ^13.4.5, `firebase_analytics` ^12.4.5, `firebase_messaging` ^16.4.3, `firebase_database` ^12.4.6 |
 | **Authentication** | `firebase_auth`, `google_sign_in` ^7.2.0, `google_sign_in_web` ^1.1.3 |
-| **Serialization** | `json_annotation` ^4.12.0 (dev: `json_serializable` ^6.14.0, `build_runner` ^2.15.2) |
+| **Serialization** | `json_annotation` ^4.12.0 (dev: `json_serializable` ^6.14.0, `build_runner` ^2.15.1) |
 | **Networking** | `http` ^1.6.0, `connectivity_plus` ^7.3.0 |
 | **Media** | `image_picker` ^1.2.3, `file_picker` ^11.0.2, `image` ^4.9.1, `video_player` ^2.13.0, `mime` ^2.0.0, `image_network` ^2.6.0 |
 | **Maps & web views** | `google_maps_flutter` ^2.17.1, `webview_flutter` ^4.14.1, `webview_flutter_android` ^4.13.0, `webview_flutter_wkwebview` ^3.26.0, `web` ^1.1.1, `pointer_interceptor` ^0.10.1+2 |
