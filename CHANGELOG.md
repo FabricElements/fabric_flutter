@@ -1,6 +1,7 @@
 ## [Unreleased]
 
 ### CI
+* Bumped CI Flutter SDK version from 3.44.4 to 3.44.6.
 * Bumped CI Flutter SDK version from 3.44.1 to 3.44.4.
 
 ## [2.2.5] - 2026-07-15
