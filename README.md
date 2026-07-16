@@ -184,7 +184,7 @@ The host app is what runs on a device, emulator, or browser via its own `flutter
 
 ### Voice dictation (`VoiceDictationButton`)
 
-`VoiceDictationButton` (`lib/component/voice_dictation_button.dart`) is a self-contained, press-and-hold microphone button built on `speech_to_text`. It never holds a `TextEditingController` or touches app-level state — it only reports transcripts and status through constructor callbacks, so the parent decides what to do with the text (including whether/when to submit it):
+`VoiceDictationButton` (`lib/component/voice_dictation_button.dart`) is a self-contained, press-and-hold microphone button built on `speech_to_text`. It never holds a `TextEditingController` or touches app-level state — it only reports transcripts and status through constructor callbacks, so the parent decides what to do with the text (including whether/when to submit it). It also fires a short haptic tap (`HapticFeedback.mediumImpact` on start, `HapticFeedback.lightImpact` on stop) so the user gets tactile confirmation without watching the icon; pass `enableHapticFeedback: false` to disable it:
 
 ```dart
 VoiceDictationButton(
@@ -214,6 +214,9 @@ Host apps must add the platform permissions below; the package itself ships no `
   <string>This app uses speech recognition to transcribe your voice.</string>
   ```
 * **Web:** requires HTTPS (or `localhost` during development) and a genuine user gesture to trigger the microphone permission prompt — the button's pointer-down handler satisfies this. Browser support for the Web Speech API is inconsistent: Safari and Firefox may report unavailable via `onAvailabilityChanged` instead of supporting dictation the way Chrome/Edge do.
+
+> [!WARNING]
+> **Test on a physical iOS device, not the Simulator.** The iOS Simulator's microphone input is well known to be unreliable for `SFSpeechRecognizer` — sessions can start and stop cleanly, with no error ever reported, yet `onPartialTranscript`/`onFinalTranscript` never fire because no real audio ever reaches the recognizer. This is a Simulator/OS limitation, not something `VoiceDictationButton` (or `speech_to_text`) can detect or work around from Dart.
 
 ---
 
