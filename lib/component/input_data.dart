@@ -817,6 +817,7 @@ getValue -------------------------------------
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final width = MediaQuery.sizeOf(context).width;
+    final height = MediaQuery.sizeOf(context).height;
     bool isDense = widget.isDense || theme.inputDecorationTheme.isDense;
     bool isDisabled = widget.disabled;
     String defaultTextOptions = locales.get('label--choose-option');
@@ -1245,8 +1246,8 @@ getValue -------------------------------------
           endWidget = SearchAnchor(
             key: ValueKey('input-data-${widget.type}'),
             viewHintText: locales.get('label--search'),
-            isFullScreen: width < 600,
-            viewConstraints: const BoxConstraints(maxWidth: 900),
+            isFullScreen: width <= 1024 || height <= 1024,
+            viewConstraints: const BoxConstraints(maxWidth: 1024),
             viewLeading: BackButton(onPressed: _closeSearch),
             viewTrailing: [
               ListenableBuilder(
