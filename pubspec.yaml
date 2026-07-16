@@ -52,6 +52,7 @@ dependencies:
   image_network: ^2.6.0
   webview_flutter: ^4.14.1
   flutter_markdown_plus: ^1.0.12
+  speech_to_text: ^7.4.0
 dev_dependencies:
   integration_test:
     sdk: flutter
