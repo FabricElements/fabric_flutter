@@ -603,5 +603,10 @@ const Map<String, Map<String, String>> defaultLocales = {
   'label--large': {'en': 'Large', 'es': 'Grande'},
   'label--online': {'en': 'Online', 'es': 'En línea'},
   'label--offline': {'en': 'Offline', 'es': 'Sin conexión'},
+  'label--hold-to-dictate': {
+    'en': 'Hold to dictate',
+    'es': 'Mantén presionado para dictar',
+  },
+  'label--listening': {'en': 'Listening…', 'es': 'Escuchando…'},
 };
 // @formatter:on
