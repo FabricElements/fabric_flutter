@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
@@ -35,6 +36,7 @@ class PaginationContainer extends StatefulWidget {
     this.shrinkWrap = false,
     this.initialScrollOffset = 0.0,
     this.onScrollOffsetChanged,
+    this.onError,
     this.top,
     this.bottom,
   });
@@ -144,6 +146,13 @@ class PaginationContainer extends StatefulWidget {
   /// [initialScrollOffset].
   final Function(double offset)? onScrollOffsetChanged;
 
+  /// Reports pagination, stream, and scroll-offset-callback errors.
+  ///
+  /// Optional — errors are always reflected in the inline error footer
+  /// regardless of this callback; if omitted, they are only logged via
+  /// `debugPrint` under `kDebugMode`.
+  final ValueChanged<String>? onError;
+
   /// Requests the next page after the user reaches the trailing edge.
   ///
   /// Returning `null` or an empty result marks pagination as complete and shows
@@ -216,7 +225,11 @@ class _PaginationContainerState extends State<PaginationContainer> {
     );
 
     _controller.addListener(() async {
-      widget.onScrollOffsetChanged?.call(_controller.offset);
+      try {
+        widget.onScrollOffsetChanged?.call(_controller.offset);
+      } catch (error) {
+        _reportError('PaginationContainer.onScrollOffsetChanged threw: $error');
+      }
       isBottom =
           _controller.position.atEdge && _controller.position.pixels != 0;
       if (!isBottom) return;
@@ -231,7 +244,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
         end = paginationData == null || paginationData.isEmpty;
       } catch (e) {
         error = e.toString();
-        debugPrint(LogColor.error(e));
+        _reportError(error!);
       }
       await Future.delayed(const Duration(milliseconds: 300));
       loading = false;
@@ -250,10 +263,28 @@ class _PaginationContainerState extends State<PaginationContainer> {
         })
         .onError((e) {
           error = e.toString();
+          _reportError(error!);
           loading = false;
           end = false;
           if (mounted) setState(() {});
         });
+  }
+
+  /// Reports an error through [PaginationContainer.onError], falling back to
+  /// a debug log (under [kDebugMode]) when no handler is registered, or when
+  /// the registered handler itself throws.
+  void _reportError(String message) {
+    if (widget.onError == null) {
+      if (kDebugMode) debugPrint(LogColor.error(message));
+      return;
+    }
+    try {
+      widget.onError!(message);
+    } catch (error) {
+      if (kDebugMode) {
+        debugPrint(LogColor.error('PaginationContainer.onError threw: $error'));
+      }
+    }
   }
 
   /// Releases the scroll controller and drains the stream subscription source.

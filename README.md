@@ -38,6 +38,7 @@ Sourced directly from [`pubspec.yaml`](pubspec.yaml).
 | **Authentication** | `firebase_auth`, `google_sign_in` ^7.2.0, `google_sign_in_web` ^1.1.3 |
 | **Serialization** | `json_annotation` ^4.12.0 (dev: `json_serializable` ^6.14.0, `build_runner` ^2.15.1) |
 | **Networking** | `http` ^1.6.0, `connectivity_plus` ^7.3.0 |
+| **Voice & speech** | `speech_to_text` ^7.4.0 (push-to-talk dictation, `VoiceDictationButton`) |
 | **Media** | `image_picker` ^1.2.3, `file_picker` ^11.0.2, `image` ^4.9.1, `video_player` ^2.13.0, `mime` ^2.0.0, `image_network` ^2.6.0 |
 | **Maps & web views** | `google_maps_flutter` ^2.17.1, `webview_flutter` ^4.14.1, `webview_flutter_android` ^4.13.0, `webview_flutter_wkwebview` ^3.26.0, `web` ^1.1.1, `pointer_interceptor` ^0.10.1+2 |
 | **Localization & i18n** | `flutter_localizations`, `devicelocale` ^0.9.0, `intl` ^0.20.2, `dlibphonenumber` ^1.1.67 |
@@ -58,6 +59,7 @@ lib/
 │   ├── user_*.dart             # User management widgets (admin, avatar, chip, dropdown)
 │   ├── google_*.dart           # Google Maps / Charts widgets
 │   ├── smart_button.dart, smart_image.dart, input_data.dart, ...
+│   ├── voice_dictation_button.dart # Press-to-talk speech dictation (callbacks only, no controller)
 │   └── iframe_minimal*.dart    # Conditional web/native implementations
 ├── state/              # Business logic / state containers (ChangeNotifier + Provider)
 │   ├── state_shared.dart       # Abstract base: pagination, filters, debounce, streams
@@ -179,6 +181,42 @@ void main() {
 ```
 
 The host app is what runs on a device, emulator, or browser via its own `flutter run` (for example `flutter run -d chrome` for web). `InitApp` installs the provider tree so the package's components and state classes are available throughout the app.
+
+### Voice dictation (`VoiceDictationButton`)
+
+`VoiceDictationButton` (`lib/component/voice_dictation_button.dart`) is a self-contained, press-and-hold microphone button built on `speech_to_text`. It never holds a `TextEditingController` or touches app-level state — it only reports transcripts and status through constructor callbacks, so the parent decides what to do with the text (including whether/when to submit it). It also fires a short haptic tap (`HapticFeedback.mediumImpact` on start, `HapticFeedback.lightImpact` on stop) so the user gets tactile confirmation without watching the icon; pass `enableHapticFeedback: false` to disable it:
+
+```dart
+VoiceDictationButton(
+  onPartialTranscript: (text) => _controller.text = text,
+  onFinalTranscript: (text) {
+    _controller.text = text;
+    _sendMessage();
+  },
+  onListeningChanged: (isListening) => setState(() => _isRecording = isListening),
+  onError: (message) => ScaffoldMessenger.of(context)
+      .showSnackBar(SnackBar(content: Text(message))),
+)
+```
+
+Host apps must add the platform permissions below; the package itself ships no `android/`, `ios/`, or `web/` folders.
+
+* **Android** (`android/app/src/main/AndroidManifest.xml`):
+  ```xml
+  <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+  <uses-permission android:name="android.permission.INTERNET"/>
+  ```
+* **iOS** (`ios/Runner/Info.plist`):
+  ```xml
+  <key>NSMicrophoneUsageDescription</key>
+  <string>This app uses the microphone for voice dictation.</string>
+  <key>NSSpeechRecognitionUsageDescription</key>
+  <string>This app uses speech recognition to transcribe your voice.</string>
+  ```
+* **Web:** requires HTTPS (or `localhost` during development) and a genuine user gesture to trigger the microphone permission prompt — the button's pointer-down handler satisfies this. Browser support for the Web Speech API is inconsistent: Safari and Firefox may report unavailable via `onAvailabilityChanged` instead of supporting dictation the way Chrome/Edge do.
+
+> [!WARNING]
+> **Test on a physical iOS device, not the Simulator.** The iOS Simulator's microphone input is well known to be unreliable for `SFSpeechRecognizer` — sessions can start and stop cleanly, with no error ever reported, yet `onPartialTranscript`/`onFinalTranscript` never fire because no real audio ever reaches the recognizer. This is a Simulator/OS limitation, not something `VoiceDictationButton` (or `speech_to_text`) can detect or work around from Dart.
 
 ---
 

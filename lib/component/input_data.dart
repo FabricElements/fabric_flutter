@@ -1,5 +1,5 @@
 import 'package:fabric_flutter/component/user_avatar.dart';
-import 'package:flutter/foundation.dart';
+import 'package:fabric_flutter/component/voice_dictation_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -816,6 +816,8 @@ getValue -------------------------------------
     final enumData = EnumData(locales: locales);
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final width = MediaQuery.sizeOf(context).width;
+    final height = MediaQuery.sizeOf(context).height;
     bool isDense = widget.isDense || theme.inputDecorationTheme.isDense;
     bool isDisabled = widget.disabled;
     String defaultTextOptions = locales.get('label--choose-option');
@@ -1244,29 +1246,38 @@ getValue -------------------------------------
           endWidget = SearchAnchor(
             key: ValueKey('input-data-${widget.type}'),
             viewHintText: locales.get('label--search'),
-            // isFullScreen:
-            //     kIsWeb ||
-            //     isSmallScreen ||
-            //     (isMediumScreen && dropdownOptions.length >= 10),
-            isFullScreen: kIsWeb == true ? true : null,
+            isFullScreen: width <= 1024 || height <= 1024,
+            viewConstraints: const BoxConstraints(maxWidth: 1024),
             viewLeading: BackButton(onPressed: _closeSearch),
             viewTrailing: [
-              if (value != null && value.toString().isNotEmpty)
-                OutlinedButton.icon(
-                  onPressed: () {
-                    _closeSearch();
-                    _clear();
-                  },
-                  icon: const Icon(Icons.clear),
-                  label: Text(locales.get('label--clear')),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: theme.colorScheme.error,
-                    iconColor: theme.colorScheme.error,
-                    side: BorderSide(
-                      color: theme.buttonTheme.colorScheme?.error ?? Colors.red,
-                    ),
-                  ),
-                ),
+              ListenableBuilder(
+                listenable: searchController,
+                builder: (context, child) {
+                  if (searchController.text.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+                  return IconButton(
+                    icon: const Icon(Icons.clear),
+                    color: theme.colorScheme.error,
+                    onPressed: () {
+                      searchController.text = '';
+                    },
+                    tooltip: locales.get('label--clear'),
+                  );
+                },
+              ),
+              VoiceDictationButton(
+                key: ValueKey('input-data-voice-dictation-button'),
+                onPartialTranscript: (value) {
+                  searchController.text = value;
+                },
+                onFinalTranscript: (value) {
+                  searchController.text = value;
+                },
+                onError: (value) {
+                  debugPrint(value);
+                },
+              ),
             ],
             searchController: searchController,
             builder: (BuildContext context, SearchController controller) {

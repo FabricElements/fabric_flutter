@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:fabric_flutter/variables.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../helper/filter_helper.dart';
@@ -234,8 +235,22 @@ abstract class StateShared extends ChangeNotifier {
     if (_error == errorMessage) return;
     _error = errorMessage;
     notifyListeners();
-    onError(errorMessage);
+    _safeOnError(errorMessage);
     _controllerStreamError.sink.add(errorMessage);
+  }
+
+  /// Invokes [onError] safely, routing any exception it throws to a debug
+  /// log instead of letting it escape the [error] setter — a throwing
+  /// listener must not prevent [_controllerStreamError] from still
+  /// publishing the failure.
+  void _safeOnError(String? errorMessage) {
+    try {
+      onError(errorMessage);
+    } catch (error) {
+      if (kDebugMode) {
+        debugPrint(LogColor.error('StateShared.onError threw: $error'));
+      }
+    }
   }
 
   /// Tracks whether any asynchronous work is currently in progress.
@@ -631,6 +646,19 @@ abstract class StateShared extends ChangeNotifier {
   /// Defines the longer debounce interval used before the first successful load.
   int get debounceTimeNotInitialized => 500;
 
+  /// Invokes [callback] safely, routing any exception it throws to a debug
+  /// log instead of letting it escape the debounce [Timer]/test-mode path
+  /// and interrupt [_notifyData].
+  void _safeCallback(dynamic data) {
+    try {
+      callback(data);
+    } catch (error) {
+      if (kDebugMode) {
+        debugPrint(LogColor.error('StateShared.callback threw: $error'));
+      }
+    }
+  }
+
   /// Publishes [data] changes with debouncing.
   ///
   /// Tests bypass debouncing for determinism, while production code batches
@@ -640,7 +668,7 @@ abstract class StateShared extends ChangeNotifier {
     if (kIsTest) {
       _controllerStream.sink.add(privateData);
       super.notifyListeners();
-      callback(privateData);
+      _safeCallback(privateData);
       return;
     }
     // Do not debounce if debounceTime is 0
@@ -659,7 +687,7 @@ abstract class StateShared extends ChangeNotifier {
       debounceCountData = 0;
       _controllerStream.sink.add(privateData);
       super.notifyListeners();
-      callback(privateData);
+      _safeCallback(privateData);
     });
   }
 

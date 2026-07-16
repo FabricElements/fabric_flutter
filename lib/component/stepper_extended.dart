@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../helper/log_color.dart';
 import 'content_container.dart';
 
 /// Displays a vertically stacked stepper using [ContentContainer] sections.
@@ -19,6 +21,7 @@ class StepperExtended extends StatefulWidget {
     this.padding = EdgeInsets.zero,
     this.initialScrollOffset = 0.0,
     this.onScrollOffsetChanged,
+    this.onError,
   });
 
   /// The ordered steps to render from top to bottom.
@@ -53,6 +56,12 @@ class StepperExtended extends StatefulWidget {
   /// Callback when scroll offset changes
   final Function(double offset)? onScrollOffsetChanged;
 
+  /// Reports errors thrown by [onScrollOffsetChanged].
+  ///
+  /// Optional — if omitted, errors are only logged via `debugPrint` under
+  /// `kDebugMode` instead of being swallowed silently.
+  final ValueChanged<String>? onError;
+
   /// Creates state that manages the initial scroll position callback behavior.
   @override
   State<StepperExtended> createState() => _StepperExtendedState();
@@ -73,8 +82,29 @@ class _StepperExtendedState extends State<StepperExtended> {
 
     /// Scroll controller
     _controller.addListener(() async {
-      widget.onScrollOffsetChanged?.call(_controller.offset);
+      try {
+        widget.onScrollOffsetChanged?.call(_controller.offset);
+      } catch (error) {
+        _reportError('StepperExtended.onScrollOffsetChanged threw: $error');
+      }
     });
+  }
+
+  /// Reports an error through [StepperExtended.onError], falling back to a
+  /// debug log (under [kDebugMode]) when no handler is registered, or when
+  /// the registered handler itself throws.
+  void _reportError(String message) {
+    if (widget.onError == null) {
+      if (kDebugMode) debugPrint(LogColor.error(message));
+      return;
+    }
+    try {
+      widget.onError!(message);
+    } catch (error) {
+      if (kDebugMode) {
+        debugPrint(LogColor.error('StepperExtended.onError threw: $error'));
+      }
+    }
   }
 
   /// Disposes the owned controller to avoid leaking listeners after removal.
@@ -89,7 +119,6 @@ class _StepperExtendedState extends State<StepperExtended> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
-    final controller = ScrollController();
     List<Widget> children = List.generate(widget.steps.length, (index) {
       Step step = widget.steps[index];
       TextStyle? leadingStyle = textTheme.titleMedium?.copyWith(
@@ -186,9 +215,9 @@ class _StepperExtendedState extends State<StepperExtended> {
         thumbVisibility: true,
         trackVisibility: true,
         interactive: true,
-        controller: controller,
+        controller: _controller,
         child: SingleChildScrollView(
-          controller: controller,
+          controller: _controller,
           padding: widget.padding,
           restorationId: widget.key?.toString() ?? 'stepper_extended',
           child: content,
