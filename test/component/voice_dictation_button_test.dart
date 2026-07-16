@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:fabric_flutter/component/voice_dictation_button.dart';
 import 'package:fabric_flutter/helper/app_localizations_delegate.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
@@ -486,6 +487,121 @@ void main() {
       },
     );
 
+    testWidgets('should transparently restart the recognizer on a benign '
+        'end-of-session error while still held, preserving already '
+        'recognized words instead of dropping them (regression for iOS '
+        'error_unknown (300) going silent mid-session)', (
+      WidgetTester tester,
+    ) async {
+      // Arrange
+      final fake = _FakeSpeechToText();
+      final errors = <String>[];
+      final partials = <String>[];
+      var listening = false;
+      var finalTranscript = '';
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: VoiceDictationButton(
+              speechToText: fake,
+              onPartialTranscript: partials.add,
+              onFinalTranscript: (value) => finalTranscript = value,
+              onListeningChanged: (value) => listening = value,
+              onError: errors.add,
+            ),
+          ),
+        ),
+      );
+
+      // Act: recognize some words, then the native side reports a benign
+      // "unknown"/no-match style code — either a genuine end-of-utterance
+      // timeout or stale noise — which must never surface via onError and
+      // must not leave the button stuck "listening" with a dead recognizer:
+      // it should transparently request a fresh listen() task.
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byType(IconButton)),
+      );
+      await tester.pumpAndSettle();
+      expect(listening, isTrue);
+      fake.emitResult('hello');
+      expect(fake.listenCallCount, 1);
+      fake.emitError('error_unknown (300)');
+      await tester.pumpAndSettle();
+
+      // Assert: the widget requested a new listen() task and kept
+      // listening, without ever reporting the benign error.
+      expect(errors, isEmpty);
+      expect(listening, isTrue);
+      expect(fake.listenCallCount, 2);
+
+      // Act: the restarted task recognizes a further segment — the reported
+      // transcript must combine it with the words from before the restart
+      // rather than replacing them.
+      fake.emitResult('world');
+      await tester.pumpAndSettle();
+
+      // Assert
+      expect(partials.last, 'hello world');
+
+      // Act: releasing the button reports the combined transcript once.
+      await gesture.up();
+      await tester.pumpAndSettle();
+
+      // Assert
+      expect(listening, isFalse);
+      expect(finalTranscript, 'hello world');
+    });
+
+    testWidgets('should stop and report an error after too many consecutive '
+        'benign restarts without a single result, instead of silently '
+        'retrying forever (regression for the mic appearing to listen '
+        'forever with no transcripts ever arriving)', (
+      WidgetTester tester,
+    ) async {
+      // Arrange
+      final fake = _FakeSpeechToText();
+      final errors = <String>[];
+      final partials = <String>[];
+      var listening = false;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: VoiceDictationButton(
+              speechToText: fake,
+              onPartialTranscript: partials.add,
+              onFinalTranscript: (_) {},
+              onListeningChanged: (value) => listening = value,
+              onError: errors.add,
+            ),
+          ),
+        ),
+      );
+
+      // Act: the recognizer keeps ending benignly on every restart without
+      // ever producing a single result — e.g. a broken audio route.
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byType(IconButton)),
+      );
+      await tester.pumpAndSettle();
+      expect(listening, isTrue);
+      for (var i = 0; i < 4; i++) {
+        fake.emitError('error_unknown (300)');
+        await tester.pumpAndSettle();
+      }
+
+      // Assert: after exceeding the consecutive-restart cap, the session
+      // stops and the last error is finally surfaced instead of retrying
+      // silently forever.
+      expect(errors, ['error_unknown (300)']);
+      expect(listening, isFalse);
+      expect(partials, isEmpty);
+
+      await gesture.up();
+      await tester.pumpAndSettle();
+    });
+
     testWidgets(
       'should still report and stop on a genuine error that arrives while '
       'actively listening',
@@ -775,6 +891,151 @@ void main() {
 
       await gesture.up();
       await tester.pumpAndSettle();
+    });
+
+    group('haptic feedback', () {
+      /// Records the haptic feedback `type` argument of every
+      /// `HapticFeedback.vibrate` platform call intercepted via
+      /// [SystemChannels.platform], without hitting a real platform.
+      ///
+      /// Ignores parameterless `HapticFeedback.vibrate()` calls (`arguments`
+      /// is `null`) — those come from `IconButton`'s own built-in tap
+      /// feedback on some platforms, not from the widget's explicit
+      /// start/stop taps.
+      List<String> interceptHapticCalls(WidgetTester tester) {
+        final calls = <String>[];
+        tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform,
+          (call) async {
+            if (call.method == 'HapticFeedback.vibrate' &&
+                call.arguments is String) {
+              calls.add(call.arguments as String);
+            }
+            return null;
+          },
+        );
+        addTearDown(
+          () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+            SystemChannels.platform,
+            null,
+          ),
+        );
+        return calls;
+      }
+
+      testWidgets(
+        'should trigger a medium haptic tap on start and a light tap on '
+        'stop',
+        (WidgetTester tester) async {
+          // Arrange
+          final fake = _FakeSpeechToText();
+          final calls = interceptHapticCalls(tester);
+
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: VoiceDictationButton(
+                  speechToText: fake,
+                  onPartialTranscript: (_) {},
+                  onFinalTranscript: (_) {},
+                ),
+              ),
+            ),
+          );
+
+          // Act
+          final gesture = await tester.startGesture(
+            tester.getCenter(find.byType(IconButton)),
+          );
+          await tester.pumpAndSettle();
+          await gesture.up();
+          await tester.pumpAndSettle();
+
+          // Assert
+          expect(calls, [
+            'HapticFeedbackType.mediumImpact',
+            'HapticFeedbackType.lightImpact',
+          ]);
+        },
+      );
+
+      testWidgets(
+        'should not trigger a haptic tap when enableHapticFeedback is false',
+        (WidgetTester tester) async {
+          // Arrange
+          final fake = _FakeSpeechToText();
+          final calls = interceptHapticCalls(tester);
+
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: VoiceDictationButton(
+                  speechToText: fake,
+                  enableHapticFeedback: false,
+                  onPartialTranscript: (_) {},
+                  onFinalTranscript: (_) {},
+                ),
+              ),
+            ),
+          );
+
+          // Act
+          final gesture = await tester.startGesture(
+            tester.getCenter(find.byType(IconButton)),
+          );
+          await tester.pumpAndSettle();
+          await gesture.up();
+          await tester.pumpAndSettle();
+
+          // Assert
+          expect(calls, isEmpty);
+        },
+      );
+
+      testWidgets(
+        'should not trigger an extra haptic tap for a transparent internal '
+        'restart after a benign error',
+        (WidgetTester tester) async {
+          // Arrange
+          final fake = _FakeSpeechToText();
+          final calls = interceptHapticCalls(tester);
+
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: VoiceDictationButton(
+                  speechToText: fake,
+                  onPartialTranscript: (_) {},
+                  onFinalTranscript: (_) {},
+                ),
+              ),
+            ),
+          );
+
+          // Act: a benign error triggers a transparent restart while the
+          // button is still held.
+          final gesture = await tester.startGesture(
+            tester.getCenter(find.byType(IconButton)),
+          );
+          await tester.pumpAndSettle();
+          fake.emitError('error_unknown (300)');
+          await tester.pumpAndSettle();
+
+          // Assert: only the initial start tap fired so far — the restart
+          // itself is silent since dictation never stopped from the
+          // user's perspective.
+          expect(calls, ['HapticFeedbackType.mediumImpact']);
+
+          await gesture.up();
+          await tester.pumpAndSettle();
+
+          // Assert: releasing now fires the stop tap.
+          expect(calls, [
+            'HapticFeedbackType.mediumImpact',
+            'HapticFeedbackType.lightImpact',
+          ]);
+        },
+      );
     });
   });
 }

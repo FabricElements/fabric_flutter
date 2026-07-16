@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
@@ -51,6 +52,7 @@ class VoiceDictationButton extends StatefulWidget {
     this.onAvailabilityChanged,
     this.onError,
     this.localeId,
+    this.enableHapticFeedback = true,
     @visibleForTesting this.speechToText,
   });
 
@@ -82,6 +84,17 @@ class VoiceDictationButton extends StatefulWidget {
   /// Overrides the locale passed to the recognizer (e.g. `'en_US'`).
   final String? localeId;
 
+  /// Whether to trigger a haptic tap ([HapticFeedback.mediumImpact] on
+  /// start, [HapticFeedback.lightImpact] on stop) when listening genuinely
+  /// starts/stops.
+  ///
+  /// Transparent internal restarts after a benign end-of-session error (see
+  /// `_handleError`) do not re-trigger it, since from the caller's/user's
+  /// perspective dictation never stopped. Defaults to `true`; set to
+  /// `false` if the parent already provides its own feedback or the
+  /// platform/device doesn't support haptics.
+  final bool enableHapticFeedback;
+
   /// Substitutes the [SpeechToText] instance used by this widget.
   ///
   /// Intended only for tests, which inject a fake built from
@@ -111,6 +124,28 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton> {
   /// pointer-down while a session is still being requested).
   bool _starting = false;
 
+  /// Guards against overlapping restart attempts when the native task ends
+  /// benignly (see [_isBenignErrorMessage]) more than once in quick
+  /// succession while the button is still held.
+  bool _restarting = false;
+
+  /// Counts consecutive benign-error restarts (see [_handleError]) that
+  /// happened without a single recognition result landing in between.
+  ///
+  /// A transient hiccup (one benign error, then real words) resets this to
+  /// zero via [_handleResult]. But if the recognizer keeps ending
+  /// immediately on every restart — e.g. a broken audio route/permission
+  /// state that always fails the same way — blindly retrying forever would
+  /// leave the button silently stuck "listening" forever without ever
+  /// producing a transcript or telling the caller why. Once
+  /// [_maxConsecutiveBenignRestarts] is reached the error is finally
+  /// reported via [onError] and the session is stopped instead of retried
+  /// again.
+  int _consecutiveBenignRestarts = 0;
+
+  /// See [_consecutiveBenignRestarts].
+  static const int _maxConsecutiveBenignRestarts = 3;
+
   /// Tracks the in-flight [SpeechToText.stop] call from the previous
   /// session, if any.
   ///
@@ -120,10 +155,25 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton> {
   /// start of the next session avoids that race.
   Future<void>? _pendingStop;
 
-  /// Holds the most recent recognized words so the pointer-up handler can
-  /// send a trimmed final transcript even if the recognizer never reports a
-  /// [SpeechRecognitionResult.finalResult].
-  String _lastTranscript = '';
+  /// Holds recognized words from segments that already ended (either a
+  /// benign task restart — see [_handleError] — or a genuine
+  /// [SpeechRecognitionResult.finalResult]), so they aren't lost when a new
+  /// recognizer task starts fresh recognition for the next segment of the
+  /// same press-and-hold session.
+  String _committedTranscript = '';
+
+  /// Holds the words recognized so far in the *current* recognizer task
+  /// (since the last [_startListening]/restart), before being combined with
+  /// [_committedTranscript] via [_currentTranscript].
+  String _currentSegment = '';
+
+  /// The full transcript for the in-progress press-and-hold session:
+  /// everything already committed from prior segments plus whatever the
+  /// current segment has recognized so far.
+  String get _currentTranscript => [
+    _committedTranscript,
+    _currentSegment,
+  ].where((segment) => segment.isNotEmpty).join(' ');
 
   /// Tracks whether the recognizer is currently known to be available
   /// (permission granted + device/browser support), so the icon can hint
@@ -143,12 +193,50 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton> {
 
   /// Invokes [widget.onListeningChanged] safely, routing any exception it
   /// throws to [_reportError] instead of letting it crash the recognizer
-  /// lifecycle.
+  /// lifecycle. Also triggers a haptic tap for the transition (see
+  /// [_triggerHapticFeedback]) unless [widget.enableHapticFeedback] is
+  /// `false`.
   void _reportListening(bool listening) {
+    _triggerHapticFeedback(listening);
     try {
       widget.onListeningChanged?.call(listening);
     } catch (error) {
       _reportError('$error');
+    }
+  }
+
+  /// Fires a short haptic tap for a genuine listening start/stop transition
+  /// — [HapticFeedback.mediumImpact] when [listening] starts, the lighter
+  /// [HapticFeedback.lightImpact] when it stops — so the user gets tactile
+  /// confirmation without needing to watch the icon. Skipped entirely when
+  /// [widget.enableHapticFeedback] is `false`.
+  ///
+  /// Never called for the transparent internal restarts triggered by a
+  /// benign end-of-session error (see `_handleError`), since dictation
+  /// never actually stopped from the user's perspective. Failures (e.g. no
+  /// haptic engine on the device) are caught and only logged under
+  /// [kDebugMode] rather than surfaced via [onError], since a missing
+  /// haptic tap isn't a dictation failure.
+  void _triggerHapticFeedback(bool listening) {
+    if (!widget.enableHapticFeedback) return;
+    unawaited(_performHapticFeedback(listening));
+  }
+
+  /// Performs the actual platform call for [_triggerHapticFeedback],
+  /// isolated into its own `async` method so a failure (e.g. no haptic
+  /// engine on the device) can be awaited and caught here rather than
+  /// escaping as an unhandled Future error.
+  Future<void> _performHapticFeedback(bool listening) async {
+    try {
+      await (listening
+          ? HapticFeedback.mediumImpact()
+          : HapticFeedback.lightImpact());
+    } catch (error) {
+      if (kDebugMode) {
+        debugPrint(
+          LogColor.error('VoiceDictationButton haptic failed: $error'),
+        );
+      }
     }
   }
 
@@ -224,7 +312,9 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton> {
       }
       if (!mounted) return;
 
-      _lastTranscript = '';
+      _committedTranscript = '';
+      _currentSegment = '';
+      _consecutiveBenignRestarts = 0;
       var available = false;
       try {
         // `speech_to_text` only honors the `onError`/`onStatus` callbacks
@@ -251,34 +341,112 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton> {
 
       setState(() => _listening = true);
       _reportListening(true);
-
-      try {
-        await _speech.listen(
-          onResult: _handleResult,
-          listenOptions: SpeechListenOptions(
-            partialResults: true,
-            localeId: widget.localeId,
-          ),
-        );
-      } catch (error) {
-        _reportError('$error');
-        _stopListening();
-      }
+      await _requestListenSession();
     } finally {
       _starting = false;
     }
   }
 
+  /// Requests a single `listen()` task from the recognizer, used both for
+  /// the initial press and to transparently restart dictation (see
+  /// [_handleError]) when the native task ends benignly (e.g. the
+  /// platform's own end-of-utterance/pause timeout) while the button is
+  /// still held.
+  Future<void> _requestListenSession() async {
+    try {
+      await _speech.listen(
+        onResult: _handleResult,
+        listenOptions: SpeechListenOptions(
+          partialResults: true,
+          localeId: widget.localeId,
+        ),
+      );
+    } catch (error) {
+      _reportError('$error');
+      _stopListening();
+    }
+  }
+
   /// Reports a recognized speech result, guarding against results that
   /// arrive after listening has already stopped.
+  ///
+  /// Combines the current recognizer task's words with anything already
+  /// [_committedTranscript] from prior segments (see [_currentTranscript])
+  /// so a benign task restart doesn't drop previously dictated words. Also
+  /// resets [_consecutiveBenignRestarts], since a real result proves the
+  /// current task is actually producing audio/recognition rather than
+  /// failing repeatedly.
   void _handleResult(SpeechRecognitionResult result) {
     if (!_listening) return;
-    _lastTranscript = result.recognizedWords;
-    _reportPartialTranscript(_lastTranscript);
+    _consecutiveBenignRestarts = 0;
+    _currentSegment = result.recognizedWords;
+    _reportPartialTranscript(_currentTranscript);
   }
+
+  /// Error messages the underlying `speech_to_text` platform code emits for
+  /// conditions that are expected/benign rather than actionable failures —
+  /// they represent a recognition task ending without a conclusive result
+  /// (either genuinely, e.g. the platform's own end-of-utterance/pause
+  /// timeout, or as a *stale* signal from a just-finished previous session,
+  /// since the persistent error listener — see below — cannot tell which
+  /// session an event actually belongs to) rather than a real
+  /// permission/config/network problem.
+  ///
+  /// iOS reports these (and any other unmapped code, hence the
+  /// [_isBenignErrorMessage] prefix check below) whenever a recognition task
+  /// finishes "unsuccessfully" — which happens routinely on ordinary
+  /// press-and-release usage (short holds, brief pauses, or the system's own
+  /// end-of-utterance detection) and is *not* something the end user needs
+  /// to be told about via [onError]. These never notify [widget.onError];
+  /// while the button is still held (see [_handleError]) the session is
+  /// transparently restarted instead of being stopped, so a benign,
+  /// genuine task end doesn't silently cut dictation short, and stale
+  /// leftover noise from a just-finished previous session doesn't
+  /// interrupt a session that only just began. This was the actual cause
+  /// behind the recurring `error_unknown (300)` reports
+  /// (`kAFAssistantErrorDomain`), since that code is simply Apple's
+  /// catch-all for "task finished without a match", not a fatal condition
+  /// worth interrupting dictation for.
+  static const Set<String> _benignErrorMessages = {
+    'error_no_match',
+    'error_speech_timeout',
+    'error_busy',
+    'error_client',
+    'error_retry',
+    'error_request_cancelled',
+    'error_speech_recognizer_already_active',
+    'error_speech_recognizer_connection_invalidated',
+    'error_speech_recognizer_connection_interrupted',
+  };
+
+  /// Returns whether [errorMsg] represents a benign end-of-session signal
+  /// (see [_benignErrorMessages]) that should never be surfaced via
+  /// [onError], rather than an actionable failure the caller should be
+  /// notified about and that should stop the current session outright.
+  bool _isBenignErrorMessage(String errorMsg) =>
+      _benignErrorMessages.contains(errorMsg) ||
+      errorMsg.startsWith('error_unknown');
 
   /// Reports a recognizer error, ignoring errors that arrive once no
   /// session is being requested or actively listened to.
+  ///
+  /// Benign end-of-session codes (see [_isBenignErrorMessage]) never notify
+  /// [widget.onError] on their own. If the button is still actively held
+  /// ([_listening]), the recognizer task is transparently restarted via
+  /// [_requestListenSession] so dictation keeps going instead of the mic
+  /// silently going dead until release — this is what actually fixes
+  /// `error_unknown (300)`, since on some devices this code reflects the
+  /// *current* task genuinely ending (e.g. the platform's own
+  /// end-of-utterance/pause timeout), not just stale noise from a previous
+  /// one. Only genuinely actionable errors (permission/config/network/
+  /// assets/locale) are reported and stop the session immediately.
+  ///
+  /// If benign errors keep recurring back-to-back without a single result
+  /// landing in between (see [_consecutiveBenignRestarts]), retrying is no
+  /// longer assumed to be transient — the recognizer is likely stuck (e.g.
+  /// a broken audio route) — so the error is finally reported via
+  /// [onError] and the session stops instead of restarting forever in
+  /// silence.
   ///
   /// The native iOS session can emit a delayed teardown error (for example
   /// `error_unknown (300)` from `kAFAssistantErrorDomain`) once
@@ -291,8 +459,42 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton> {
   /// requested ([_starting]) or actively listened to ([_listening]).
   void _handleError(SpeechRecognitionError error) {
     if (!_starting && !_listening) return;
+    if (_isBenignErrorMessage(error.errorMsg)) {
+      if (!_listening || _restarting) return;
+      _consecutiveBenignRestarts++;
+      if (_consecutiveBenignRestarts > _maxConsecutiveBenignRestarts) {
+        _reportError(error.errorMsg);
+        _stopListening();
+        return;
+      }
+      unawaited(_restartListening());
+      return;
+    }
     _reportError(error.errorMsg);
     _stopListening();
+  }
+
+  /// Transparently requests a fresh [SpeechToText.listen] task after a
+  /// benign task end (see [_handleError]), without touching [_listening] or
+  /// firing [onListeningChanged] — from the caller's perspective dictation
+  /// never stopped.
+  ///
+  /// Commits whatever the just-ended task had recognized into
+  /// [_committedTranscript] first, since the new task starts fresh
+  /// recognition and would otherwise report only the next segment's words,
+  /// silently dropping everything dictated before the restart.
+  Future<void> _restartListening() async {
+    _restarting = true;
+    try {
+      if (!mounted || !_listening) return;
+      if (_currentSegment.isNotEmpty) {
+        _committedTranscript = _currentTranscript;
+        _currentSegment = '';
+      }
+      await _requestListenSession();
+    } finally {
+      _restarting = false;
+    }
   }
 
   /// Stops the active listening session and reports the last known
@@ -309,7 +511,7 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton> {
     _reportListening(false);
     _pendingStop = _speech.stop();
 
-    final finalTranscript = _lastTranscript.trim();
+    final finalTranscript = _currentTranscript.trim();
     if (finalTranscript.isNotEmpty) {
       _reportFinalTranscript(finalTranscript);
     }
@@ -328,6 +530,11 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton> {
       onPointerCancel: (_) => _stopListening(),
       child: IconButton(
         onPressed: () {},
+        // The widget already drives its own precise start/stop haptic taps
+        // via [_triggerHapticFeedback]; suppress IconButton's own built-in
+        // tap feedback so Android doesn't fire an extra, generic vibration
+        // on top of ours.
+        enableFeedback: false,
         tooltip: _listening
             ? locales.get('label--listening')
             : locales.get('label--hold-to-dictate'),
