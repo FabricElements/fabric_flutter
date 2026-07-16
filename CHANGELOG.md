@@ -1,5 +1,20 @@
 ## [Unreleased]
 
+### Fixed
+* Fixed `VoiceDictationButton` triggering iOS `error_unknown (300)` (`kAFAssistantErrorDomain`) when a new press started a fresh recognition session before the previous session's `stop()` had finished tearing down on the platform side. The widget now guards against re-entrant starts and awaits the pending `stop()` before requesting a new `listen()` session.
+* Fixed `VoiceDictationButton` surfacing `error_unknown (300)` (and similar iOS teardown noise) as a user-facing error even when the button was no longer pressed. `speech_to_text` only honors the `onError`/`onStatus` callbacks passed to the *first* `initialize()` call for the lifetime of its singleton — every later call is a no-op — so the same error listener kept receiving delayed native teardown events from already-stopped sessions. The listener now discards any error that doesn't correspond to a session currently being requested or actively listened to.
+* Fixed `VoiceDictationButton` letting an exception thrown by a caller-supplied callback (`onPartialTranscript`, `onFinalTranscript`, `onListeningChanged`, `onAvailabilityChanged`) propagate and crash the recognizer lifecycle. Every callback invocation is now wrapped and any failure is routed to `onError` instead (a throwing `onError` itself is caught and only logged via `debugPrint` under `kDebugMode`, since there is nowhere further to report it).
+* Applied the same callback-safety pattern across the rest of the package wherever an external callback is invoked from code we control (async/listener contexts, not synchronous Flutter gesture dispatch which the framework already protects):
+  * `StateShared` (`lib/state/state_shared.dart`, the base for `StateDocument`/`StateCollection`/`StateAPI`/`StateUsers`) now guards its `callback` and `onError` invocations — a throwing `callback` or `onError` no longer prevents `notifyListeners()`/`stream`/`streamError` from still publishing the update, and is only logged via `debugPrint`/`LogColor` under `kDebugMode`.
+  * `PaginationContainer` and `StepperExtended` now guard their `onScrollOffsetChanged` scroll-listener callback so a throwing callback can no longer skip the pagination-detection logic that runs after it in the same listener. Both widgets now expose a new optional `onError` (`ValueChanged<String>?`) so consumers have a dedicated place to receive these (and other internal) errors instead of only a debug log; `PaginationContainer.onError` also now receives `paginate()` and stream failures that previously were only reflected in the inline error footer.
+* Fixed `StepperExtended` never actually reporting scroll offset changes: `build()` created a second, unrelated `ScrollController` for the visible `SingleChildScrollView`/`Scrollbar` instead of reusing the `_controller` field that `onScrollOffsetChanged` was registered against, so the listener was permanently dead code. Both now share the same controller.
+
+### Added
+* Added `VoiceDictationButton` (`lib/component/voice_dictation_button.dart`), a self-contained, press-and-hold microphone widget built on `speech_to_text` that streams partial/final transcripts through constructor callbacks only — no `TextEditingController`, no app-level state writes. Uses a `Listener` (pointer down/up/cancel) instead of `GestureDetector.onLongPress` for immediate response, and guards against late/async recognition results after release. Tooltip labels (`label--hold-to-dictate`, `label--listening`) are resolved through `AppLocalizations`/`default_locales.dart` (en/es) instead of being hardcoded.
+
+### Dependencies
+* Added `speech_to_text` ^7.4.0.
+
 ### Material 3 UI Adjustments
 * **[Deprecation]** Replaced the Material-2-era `RawMaterialButton` with `InkWell`/`GestureDetector` in `lib/component/alert_data.dart`, `lib/component/input_data.dart`, `lib/component/profile_edit.dart`, `lib/component/card_button.dart`, and `lib/view/view_featured.dart`, so ripple, focus/hover state layers, and disabled styling track `ThemeData`/`ColorScheme` (issue #177).
 
