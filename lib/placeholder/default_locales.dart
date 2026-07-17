@@ -609,5 +609,7 @@ const Map<String, Map<String, String>> defaultLocales = {
     'es': 'Mantén presionado para dictar',
   },
   'label--listening': {'en': 'Listening…', 'es': 'Escuchando…'},
+  'label--reload': {'en': 'Reload', 'es': 'Recargar'},
+  'label--refresh': {'en': 'Refresh', 'es': 'Actualizar'},
 };
 // @formatter:on
