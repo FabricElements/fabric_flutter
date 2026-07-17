@@ -525,6 +525,7 @@ const Map<String, Map<String, String>> defaultLocales = {
   'label--updated': {'en': 'Updated', 'es': 'Actualizado'},
   'label--deleted': {'en': 'Deleted', 'es': 'Eliminado'},
   'label--open-label': {'en': 'Open {label}', 'es': 'Abrir {label}'},
+  'label--close-label': {'en': 'Close {label}', 'es': 'Cerrar {label}'},
   'label--nothing-here-yet': {
     'en': "Looks like there's nothing here yet!",
     'es': '¡Parece que aún no hay nada aquí!',
