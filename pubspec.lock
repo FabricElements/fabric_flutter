@@ -293,10 +293,10 @@ packages:
     dependency: "direct main"
     description:
       name: dlibphonenumber
-      sha256: "17c5b080729641c31eb9a987adb1912ce3bf173d819b7ef79a163eb66d087c79"
+      sha256: "57fab742d305fb1ef943d2471183a8fb8915c05575d5a880aee32cdbf8008efe"
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.67"
+    version: "1.1.68"
   equatable:
     dependency: transitive
     description:
@@ -1602,5 +1602,5 @@ packages:
     source: hosted
     version: "3.1.3"
 sdks:
-  dart: ">=3.12.1 <4.0.0"
+  dart: ">=3.12.2 <4.0.0"
   flutter: ">=3.44.0"
