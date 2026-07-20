@@ -2,7 +2,7 @@
   "name": "fabric_flutter",
   "version": "0.0.1",
   "scripts": {
-    "serialize": "flutter pub run build_runner build --delete-conflicting-outputs"
+    "serialize": "flutter pub run build_runner build"
   },
   "devDependencies": {},
   "private": true,
