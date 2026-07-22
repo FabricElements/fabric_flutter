@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
 import '../helper/log_color.dart';
+import '../helper/serialization_error.dart';
 import '../serialized/user_data.dart';
 import 'state_collection.dart';
 
@@ -27,11 +28,16 @@ class StateUsers extends StateCollection {
   @override
   List<UserData> get serialized {
     if (data == null) return [];
-    List<UserData> items = (data as List<dynamic>)
-        .map((value) => UserData.fromJson(value))
-        .toList();
-    items.sort((a, b) => a.name.compareTo(b.name));
-    return items;
+    try {
+      List<UserData> items = (data as List<dynamic>)
+          .map((value) => UserData.fromJson(value))
+          .toList();
+      items.sort((a, b) => a.name.compareTo(b.name));
+      return items;
+    } catch (e) {
+      error = serializationError(e);
+      return [];
+    }
   }
 
   /// Caches users from both collection queries and individual [getUser] calls.

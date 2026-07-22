@@ -7,12 +7,15 @@ part of 'user_data.dart';
 // **************************************************************************
 
 UserDataOnboarding _$UserDataOnboardingFromJson(Map<String, dynamic> json) =>
-    UserDataOnboarding(
-      main: json['main'] as bool? ?? false,
-      avatar: json['avatar'] as bool? ?? false,
-      name: json['name'] as bool? ?? false,
-      terms: json['terms'] as bool? ?? false,
-    );
+    $checkedCreate('UserDataOnboarding', json, ($checkedConvert) {
+      final val = UserDataOnboarding(
+        main: $checkedConvert('main', (v) => v as bool? ?? false),
+        avatar: $checkedConvert('avatar', (v) => v as bool? ?? false),
+        name: $checkedConvert('name', (v) => v as bool? ?? false),
+        terms: $checkedConvert('terms', (v) => v as bool? ?? false),
+      );
+      return val;
+    });
 
 Map<String, dynamic> _$UserDataOnboardingToJson(UserDataOnboarding instance) =>
     <String, dynamic>{
@@ -23,17 +26,20 @@ Map<String, dynamic> _$UserDataOnboardingToJson(UserDataOnboarding instance) =>
     };
 
 InterfaceLinks _$InterfaceLinksFromJson(Map<String, dynamic> json) =>
-    InterfaceLinks(
-      behance: json['behance'] as String?,
-      dribbble: json['dribbble'] as String?,
-      facebook: json['facebook'] as String?,
-      instagram: json['instagram'] as String?,
-      linkedin: json['linkedin'] as String?,
-      tiktok: json['tiktok'] as String?,
-      x: json['x'] as String?,
-      youtube: json['youtube'] as String?,
-      website: json['website'] as String?,
-    );
+    $checkedCreate('InterfaceLinks', json, ($checkedConvert) {
+      final val = InterfaceLinks(
+        behance: $checkedConvert('behance', (v) => v as String?),
+        dribbble: $checkedConvert('dribbble', (v) => v as String?),
+        facebook: $checkedConvert('facebook', (v) => v as String?),
+        instagram: $checkedConvert('instagram', (v) => v as String?),
+        linkedin: $checkedConvert('linkedin', (v) => v as String?),
+        tiktok: $checkedConvert('tiktok', (v) => v as String?),
+        x: $checkedConvert('x', (v) => v as String?),
+        youtube: $checkedConvert('youtube', (v) => v as String?),
+        website: $checkedConvert('website', (v) => v as String?),
+      );
+      return val;
+    });
 
 Map<String, dynamic> _$InterfaceLinksToJson(InterfaceLinks instance) =>
     <String, dynamic>{
@@ -48,55 +54,78 @@ Map<String, dynamic> _$InterfaceLinksToJson(InterfaceLinks instance) =>
       'youtube': instance.youtube,
     };
 
-UserData _$UserDataFromJson(Map<String, dynamic> json) => UserData(
-  onboarding: json['onboarding'] == null
-      ? null
-      : UserDataOnboarding.fromJson(
-          json['onboarding'] as Map<String, dynamic>?,
-        ),
-  phone: json['phone'] as String?,
-  ping: FirestoreHelper.timestampFromJson(json['ping']),
-  username: json['username'] as String?,
-  email: json['email'] as String?,
-  fcm: json['fcm'] == null ? const [] : _fcmFromJson(json['fcm']),
-  id: json['id'],
-  role: json['role'] as String? ?? 'unknown',
-  groups:
-      (json['groups'] as Map<String, dynamic>?)?.map(
-        (k, e) => MapEntry(k, e as String),
-      ) ??
-      const {},
-  roles:
-      (json['roles'] as List<dynamic>?)?.map((e) => e as String).toList() ??
-      const [],
-  avatar: json['avatar'] as String?,
-  firstName: json['firstName'] as String?,
-  lastName: json['lastName'] as String?,
-  language: json['language'] as String?,
-  password: json['password'] as String?,
-  bcId: json['bcId'] as String?,
-  bsId: json['bsId'] as String?,
-  bsiId: json['bsiId'] as String?,
-  theme:
-      $enumDecodeNullable(
-        _$ThemeModeEnumMap,
-        json['theme'],
-        unknownValue: ThemeMode.light,
-      ) ??
-      ThemeMode.light,
-  links: json['links'] == null
-      ? null
-      : InterfaceLinks.fromJson(json['links'] as Map<String, dynamic>?),
-  os: $enumDecodeNullable(_$UserOSEnumMap, json['os']) ?? UserOS.unknown,
-  country: json['country'] as String?,
-  visualDensity:
-      $enumDecodeNullable(
-        _$CustomVisualDensityEnumMap,
-        json['visualDensity'],
-        unknownValue: CustomVisualDensity.adaptive,
-      ) ??
-      CustomVisualDensity.adaptive,
-);
+UserData _$UserDataFromJson(
+  Map<String, dynamic> json,
+) => $checkedCreate('UserData', json, ($checkedConvert) {
+  final val = UserData(
+    onboarding: $checkedConvert(
+      'onboarding',
+      (v) => v == null
+          ? null
+          : UserDataOnboarding.fromJson(v as Map<String, dynamic>?),
+    ),
+    phone: $checkedConvert('phone', (v) => v as String?),
+    ping: $checkedConvert('ping', (v) => FirestoreHelper.timestampFromJson(v)),
+    username: $checkedConvert('username', (v) => v as String?),
+    email: $checkedConvert('email', (v) => v as String?),
+    fcm: $checkedConvert('fcm', (v) => v == null ? const [] : _fcmFromJson(v)),
+    id: $checkedConvert('id', (v) => v),
+    role: $checkedConvert('role', (v) => v as String? ?? 'unknown'),
+    groups: $checkedConvert(
+      'groups',
+      (v) =>
+          (v as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k, e as String),
+          ) ??
+          const {},
+    ),
+    roles: $checkedConvert(
+      'roles',
+      (v) =>
+          (v as List<dynamic>?)?.map((e) => e as String).toList() ?? const [],
+    ),
+    avatar: $checkedConvert('avatar', (v) => v as String?),
+    firstName: $checkedConvert('firstName', (v) => v as String?),
+    lastName: $checkedConvert('lastName', (v) => v as String?),
+    language: $checkedConvert('language', (v) => v as String?),
+    password: $checkedConvert('password', (v) => v as String?),
+    bcId: $checkedConvert('bcId', (v) => v as String?),
+    bsId: $checkedConvert('bsId', (v) => v as String?),
+    bsiId: $checkedConvert('bsiId', (v) => v as String?),
+    theme: $checkedConvert(
+      'theme',
+      (v) =>
+          $enumDecodeNullable(
+            _$ThemeModeEnumMap,
+            v,
+            unknownValue: ThemeMode.light,
+          ) ??
+          ThemeMode.light,
+    ),
+    links: $checkedConvert(
+      'links',
+      (v) => v == null
+          ? null
+          : InterfaceLinks.fromJson(v as Map<String, dynamic>?),
+    ),
+    os: $checkedConvert(
+      'os',
+      (v) => $enumDecodeNullable(_$UserOSEnumMap, v) ?? UserOS.unknown,
+    ),
+    country: $checkedConvert('country', (v) => v as String?),
+    visualDensity: $checkedConvert(
+      'visualDensity',
+      (v) =>
+          $enumDecodeNullable(
+            _$CustomVisualDensityEnumMap,
+            v,
+            unknownValue: CustomVisualDensity.adaptive,
+          ) ??
+          CustomVisualDensity.adaptive,
+    ),
+  );
+  return val;
+});
 
 Map<String, dynamic> _$UserDataToJson(UserData instance) => <String, dynamic>{
   'avatar': ?instance.avatar,
