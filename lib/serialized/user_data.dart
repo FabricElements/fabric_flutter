@@ -16,7 +16,7 @@ enum UserOS { android, ios, macos, linux, web, fuchsia, windows, unknown }
 ///
 /// Onboarding flags track whether the user has completed critical setup tasks
 /// such as accepting terms, uploading an avatar, or finishing the main flow.
-@JsonSerializable(explicitToJson: true)
+@JsonSerializable(explicitToJson: true, checked: true)
 class UserDataOnboarding {
   @JsonKey(includeIfNull: true)
   final bool avatar;
@@ -44,7 +44,7 @@ class UserDataOnboarding {
 ///
 /// These links enable the application to display and navigate to the user's
 /// external profiles and personal website across common social platforms.
-@JsonSerializable(explicitToJson: true)
+@JsonSerializable(explicitToJson: true, checked: true)
 class InterfaceLinks {
   @JsonKey(includeIfNull: true)
   String? behance;
@@ -97,7 +97,7 @@ List<String> _fcmFromJson(dynamic json) {
 }
 
 /// Loan from loan service
-@JsonSerializable(explicitToJson: true)
+@JsonSerializable(explicitToJson: true, checked: true)
 class UserData {
   /// User avatar URL
   @JsonKey(includeIfNull: false)

@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../helper/log_color.dart';
+import '../helper/serialization_error.dart';
 import '../helper/user_roles.dart';
 import '../helper/utils.dart';
 import '../serialized/user_data.dart';
@@ -114,8 +115,13 @@ class StateUser extends StateDocument {
   /// Returns serialized data [UserData]
   @override
   UserData get serialized {
-    UserData userDataSerialized = UserData.fromJson(data ?? {});
-    return userDataSerialized;
+    try {
+      UserData userDataSerialized = UserData.fromJson(data ?? {});
+      return userDataSerialized;
+    } catch (e) {
+      error = serializationError(e);
+      return UserData.fromJson(null);
+    }
   }
 
   /// [signedIn] Returns true when the user is authenticated
