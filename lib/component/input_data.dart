@@ -264,6 +264,7 @@ class InputData extends StatefulWidget {
     this.semanticsLabel,
     this.automationKey,
     this.semanticHint,
+    this.required = false,
   });
 
   /// Supplies the current value rendered by the field and its internal controllers.
@@ -439,6 +440,17 @@ class InputData extends StatefulWidget {
   /// Maps to [Semantics.hint] in the accessibility tree.
   final String? semanticHint;
 
+  /// Marks the field as required so users know a value must be provided.
+  ///
+  /// When `true`, the field appends a colored asterisk to its [label], surfaces
+  /// a subtle "Required" helper while the value is still empty (pending), and,
+  /// for text-based variants, escalates to a validation error once the user
+  /// interacts with an empty field. The required state is also exposed through
+  /// the [Semantics.hint] so screen readers and autonomous agents can tell the
+  /// field is mandatory and whether it is still unfilled. An externally supplied
+  /// [error] continues to take precedence over the pending helper.
+  final bool required;
+
   /// Creates the state that owns controllers, picker state, and normalized values.
   @override
   State<InputData> createState() => _InputDataState();
@@ -471,6 +483,13 @@ class _InputDataState extends State<InputData> {
 
   /// Records whether the current field type supports a visibility toggle.
   late bool obscure;
+
+  /// Reports whether the normalized [value] is currently empty (pending).
+  ///
+  /// This drives the required-field pending affordances by reusing
+  /// [InputValidation.isNotEmpty] so `null`, empty strings, and unselected
+  /// options are all treated as missing input.
+  bool get _isValueEmpty => !InputValidation.isNotEmpty(value);
 
   /// Normalizes raw editor output into the canonical value shape for the current type.
   dynamic valueChanged(dynamic valueLocal) {
@@ -769,10 +788,26 @@ getValue -------------------------------------
   ///
   /// Returns [InputData.semanticHint] when explicitly set. Otherwise returns a
   /// format instruction string so autonomous agents know exactly what data
-  /// format is expected for each input variant. Returns `null` for generic
-  /// text and string types where no specific format constraint applies.
+  /// format is expected for each input variant. When [InputData.required] is
+  /// `true`, a required note is appended describing whether the field is still
+  /// empty (pending) so agents and screen readers understand it is mandatory.
+  /// Returns `null` for generic text and string types where no specific format
+  /// constraint or required state applies.
   String? _resolveSemanticHint() {
-    if (widget.semanticHint != null) return widget.semanticHint;
+    final base = widget.semanticHint ?? _typeHint();
+    if (!widget.required) return base;
+    final requiredNote = _isValueEmpty
+        ? 'Required field, currently empty and pending input.'
+        : 'Required field.';
+    if (base == null || base.isEmpty) return requiredNote;
+    return '$base $requiredNote';
+  }
+
+  /// Returns the format-instruction hint associated with the current [type].
+  ///
+  /// This isolates the type-to-hint mapping so [_resolveSemanticHint] can layer
+  /// the required/pending note on top without duplicating the switch.
+  String? _typeHint() {
     switch (widget.type) {
       case InputDataType.email:
         return 'Enter a valid email address, e.g. user@example.com';
@@ -973,11 +1008,49 @@ getValue -------------------------------------
           ? value?.toString()
           : hintText;
     }
+
+    // Resolve the required-field affordances: a colored asterisk marker on the
+    // label, a pending "Required" helper while the value is empty, and a
+    // validator that escalates to an error once an empty field is interacted
+    // with. An externally supplied [error] keeps precedence over the helper.
+    Widget? decorationLabel;
+    String? decorationLabelText = widget.label;
+    if (widget.required && widget.label != null && widget.label!.isNotEmpty) {
+      decorationLabel = Text.rich(
+        TextSpan(
+          text: widget.label,
+          style: theme.textTheme.bodyMedium,
+          children: [
+            TextSpan(
+              text: ' *',
+              style: TextStyle(color: theme.colorScheme.error),
+            ),
+          ],
+        ),
+      );
+      decorationLabelText = null;
+    }
+    String? requiredHelperText;
+    if (widget.required && errorText == null && _isValueEmpty) {
+      requiredHelperText = locales.get('label--required');
+    }
+    if (widget.required) {
+      final FormFieldValidator<String>? baseValidator = validator;
+      validator = (fieldValue) {
+        if (!InputValidation.isNotEmpty(fieldValue)) {
+          return locales.get('validation--required');
+        }
+        return baseValidator?.call(fieldValue);
+      };
+    }
+
     final inputDecoration = InputDecoration(
       hintText: hintText,
       isDense: isDense,
       errorText: errorText,
       errorMaxLines: 2,
+      helperText: requiredHelperText,
+      helperMaxLines: 2,
       // enabled: !isDisabled,
       prefix: widget.prefix,
       suffix: widget.suffix,
@@ -987,7 +1060,8 @@ getValue -------------------------------------
       suffixText: widget.suffixText,
       prefixStyle: widget.prefixStyle,
       suffixStyle: widget.suffixStyle,
-      labelText: widget.label,
+      label: decorationLabel,
+      labelText: decorationLabelText,
       labelStyle: theme.textTheme.bodyMedium,
       floatingLabelBehavior: widget.floatingLabelBehavior,
       contentPadding: isDense
@@ -1406,7 +1480,8 @@ getValue -------------------------------------
             isDense: isDense,
             errorText: errorText,
             enabled: !isDisabled,
-            labelText: widget.label,
+            label: decorationLabel,
+            labelText: decorationLabelText,
             labelStyle: theme.textTheme.bodyMedium,
             floatingLabelBehavior: FloatingLabelBehavior.always,
             border: theme.inputDecorationTheme.border,
