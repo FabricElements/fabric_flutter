@@ -235,7 +235,6 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     bool validPhone = data.phone != null && data.phone!.isNotEmpty;
     bool validEmail = data.email != null && data.email!.isNotEmpty;
     bool validUsername = data.username != null && data.username!.isNotEmpty;
-    canCall = canCall && (validPhone || validEmail || validUsername);
     if (widget.name) {
       canCall =
           canCall &&
@@ -249,6 +248,15 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       bool newPasswordOk = passwordRegex.hasMatch(data.password ?? '');
       canCall = canCall && newPasswordOk;
     }
+
+    /// Verify valid identifiable data
+    if (widget.username) {
+      canCall = canCall && validUsername;
+    }
+    canCall =
+        canCall &&
+        ((widget.phone && validPhone) || (widget.email && validEmail));
+
     const spacer = SizedBox(height: 16, width: 16);
     String title = locales.get(
       data.id == null ? 'label--add-label' : 'label--update',
@@ -309,7 +317,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       width: double.maxFinite,
       child: InputData(
         disabled: widget.disabled,
-        required: !(validEmail || validUsername),
+        required: true,
         autofillHints: const [],
         prefixIcon: const Icon(Icons.phone),
         label: locales.get('label--phone-number'),
@@ -326,7 +334,9 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       width: double.maxFinite,
       child: InputData(
         disabled: widget.disabled,
-        required: !(validPhone || validUsername),
+        required: widget.phone && widget.email
+            ? !(validPhone || validUsername)
+            : true,
         autofillHints: const [],
         prefixIcon: const Icon(Icons.email),
         label: locales.get('label--email'),
@@ -344,7 +354,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       width: double.maxFinite,
       child: InputData(
         disabled: widget.disabled,
-        required: !(validEmail || validPhone),
+        required: true,
         autofillHints: const [],
         prefixIcon: const Icon(Icons.alternate_email),
         label: locales.get('label--username'),
@@ -601,9 +611,8 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
 
     return Dialog.fullscreen(
       backgroundColor:
-          (theme.dialogTheme.barrierColor ?? theme.colorScheme.scrim).withValues(
-            alpha: 0.8,
-          ),
+          (theme.dialogTheme.barrierColor ?? theme.colorScheme.scrim)
+              .withValues(alpha: 0.8),
       child: Scrollbar(
         thumbVisibility: true,
         interactive: true,
