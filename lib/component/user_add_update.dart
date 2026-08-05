@@ -239,9 +239,9 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       canCall =
           canCall &&
           data.firstName != null &&
-          data.firstName!.length > 1 &&
+          data.firstName!.isNotEmpty &&
           data.lastName != null &&
-          data.lastName!.length > 1;
+          data.lastName!.isNotEmpty;
     }
     if (widget.password) {
       canCall = canCall && data.password != null && data.password!.isNotEmpty;
