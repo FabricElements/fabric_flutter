@@ -427,6 +427,11 @@ const Map<String, Map<String, String>> defaultLocales = {
     'en': 'This field can\'t be empty',
     'es': 'Este campo no puede estar vacío',
   },
+  'validation--required': {
+    'en': 'This field is required',
+    'es': 'Este campo es obligatorio',
+  },
+  'label--required': {'en': 'Required', 'es': 'Requerido'},
   'label--activity': {'en': 'Activity', 'es': 'Actividad'},
   'label--total': {'en': 'Total'},
   'label--total-label': {'en': 'Total {label}'},
