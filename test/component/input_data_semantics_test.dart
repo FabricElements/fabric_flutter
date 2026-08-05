@@ -1,4 +1,5 @@
 import 'package:fabric_flutter/component/input_data.dart';
+import 'package:fabric_flutter/helper/app_localizations_delegate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -9,6 +10,23 @@ Future<void> _pump(WidgetTester tester, Widget child) async {
   await tester.pump();
 }
 
+/// Pumps [child] with a loaded [AppLocalizationsDelegate] so `label--*` keys
+/// resolve to their bundled English strings.
+///
+/// A bare [MaterialApp] exposes an unloaded [AppLocalizations] whose lookups
+/// echo the raw key, so this helper is used whenever a test needs the resolved
+/// label text (e.g. the required-field helper) rather than the key.
+Future<void> _pumpLocalized(WidgetTester tester, Widget child) async {
+  await tester.pumpWidget(
+    MaterialApp(
+      localizationsDelegates: const [AppLocalizationsDelegate(locales: {})],
+      supportedLocales: const [Locale('en', 'US')],
+      home: Scaffold(body: child),
+    ),
+  );
+  await tester.pumpAndSettle();
+}
+
 /// Pumps [builder] at the named [route] so [ModalRoute.of] inside [InputData]
 /// resolves the route name for auto-generated [automationKey] values.
 Future<void> _pumpWithRoute(
@@ -17,10 +35,7 @@ Future<void> _pumpWithRoute(
   required Widget Function(BuildContext) builder,
 }) async {
   await tester.pumpWidget(
-    MaterialApp(
-      initialRoute: route,
-      routes: {route: builder},
-    ),
+    MaterialApp(initialRoute: route, routes: {route: builder}),
   );
   await tester.pump();
 }
@@ -100,10 +115,7 @@ void main() {
           // Arrange – no label, no semanticsLabel
 
           // Act
-          await _pump(
-            tester,
-            InputData(value: '', type: InputDataType.email),
-          );
+          await _pump(tester, InputData(value: '', type: InputDataType.email));
 
           // Assert – AppLocalizations returns 'Email' for 'label--email'
           final node = _findContainer(tester);
@@ -118,10 +130,7 @@ void main() {
           // Arrange
 
           // Act
-          await _pump(
-            tester,
-            InputData(value: '', type: InputDataType.phone),
-          );
+          await _pump(tester, InputData(value: '', type: InputDataType.phone));
 
           // Assert – 'label--phone-number' resolves to a non-empty string
           final node = _findContainer(tester);
@@ -136,10 +145,7 @@ void main() {
           // Arrange
 
           // Act
-          await _pump(
-            tester,
-            InputData(value: null, type: InputDataType.date),
-          );
+          await _pump(tester, InputData(value: null, type: InputDataType.date));
 
           // Assert – 'label--date' resolves to a non-empty string
           final node = _findContainer(tester);
@@ -154,10 +160,7 @@ void main() {
           // Arrange
 
           // Act
-          await _pump(
-            tester,
-            InputData(value: '', type: InputDataType.secret),
-          );
+          await _pump(tester, InputData(value: '', type: InputDataType.secret));
 
           // Assert – 'label--password' resolves to a non-empty string
           final node = _findContainer(tester);
@@ -172,10 +175,7 @@ void main() {
           // Arrange
 
           // Act
-          await _pump(
-            tester,
-            InputData(value: '', type: InputDataType.string),
-          );
+          await _pump(tester, InputData(value: '', type: InputDataType.string));
 
           // Assert – string type has no type-level fallback label
           final node = _findContainer(tester);
@@ -194,11 +194,7 @@ void main() {
         // Act
         await _pump(
           tester,
-          InputData(
-            value: '',
-            type: InputDataType.email,
-            automationKey: key,
-          ),
+          InputData(value: '', type: InputDataType.email, automationKey: key),
         );
 
         // Assert
@@ -260,27 +256,26 @@ void main() {
         },
       );
 
-      testWidgets(
-        'should use root as route segment when route is /',
-        (WidgetTester tester) async {
-          // Arrange
+      testWidgets('should use root as route segment when route is /', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
 
-          // Act
-          await _pumpWithRoute(
-            tester,
-            route: '/',
-            builder: (context) => Scaffold(
-              body: InputData(value: '', type: InputDataType.string),
-            ),
-          );
+        // Act
+        await _pumpWithRoute(
+          tester,
+          route: '/',
+          builder: (context) => Scaffold(
+            body: InputData(value: '', type: InputDataType.string),
+          ),
+        );
 
-          // Assert
-          final node = _findContainer(tester);
-          final id = node.properties.identifier;
-          expect(id, isNotNull);
-          expect(id, startsWith('root_'));
-        },
-      );
+        // Assert
+        final node = _findContainer(tester);
+        final id = node.properties.identifier;
+        expect(id, isNotNull);
+        expect(id, startsWith('root_'));
+      });
 
       testWidgets(
         'should fall back to type name as contextBlock when no label is set',
@@ -298,10 +293,7 @@ void main() {
 
           // Assert – contextBlock = 'int', type = 'int'
           final node = _findContainer(tester);
-          expect(
-            node.properties.identifier,
-            equals('form_int_input_int'),
-          );
+          expect(node.properties.identifier, equals('form_int_input_int'));
         },
       );
 
@@ -334,11 +326,7 @@ void main() {
         // Act
         await _pump(
           tester,
-          InputData(
-            value: '',
-            type: InputDataType.string,
-            semanticHint: hint,
-          ),
+          InputData(value: '', type: InputDataType.string, semanticHint: hint),
         );
 
         // Assert
@@ -346,105 +334,85 @@ void main() {
         expect(node.properties.hint, equals(hint));
       });
 
-      testWidgets(
-        'should infer email format hint for InputDataType.email',
-        (WidgetTester tester) async {
-          // Arrange
+      testWidgets('should infer email format hint for InputDataType.email', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
 
-          // Act
-          await _pump(
-            tester,
-            InputData(value: '', type: InputDataType.email),
-          );
+        // Act
+        await _pump(tester, InputData(value: '', type: InputDataType.email));
 
-          // Assert
-          final node = _findContainer(tester);
-          expect(
-            node.properties.hint,
-            equals('Enter a valid email address, e.g. user@example.com'),
-          );
-        },
-      );
+        // Assert
+        final node = _findContainer(tester);
+        expect(
+          node.properties.hint,
+          equals('Enter a valid email address, e.g. user@example.com'),
+        );
+      });
 
-      testWidgets(
-        'should infer phone format hint for InputDataType.phone',
-        (WidgetTester tester) async {
-          // Arrange
+      testWidgets('should infer phone format hint for InputDataType.phone', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
 
-          // Act
-          await _pump(
-            tester,
-            InputData(value: '', type: InputDataType.phone),
-          );
+        // Act
+        await _pump(tester, InputData(value: '', type: InputDataType.phone));
 
-          // Assert
-          final node = _findContainer(tester);
-          expect(
-            node.properties.hint,
-            equals('Enter a phone number with country code, e.g. +12223334444'),
-          );
-        },
-      );
+        // Assert
+        final node = _findContainer(tester);
+        expect(
+          node.properties.hint,
+          equals('Enter a phone number with country code, e.g. +12223334444'),
+        );
+      });
 
-      testWidgets(
-        'should infer URL format hint for InputDataType.url',
-        (WidgetTester tester) async {
-          // Arrange
+      testWidgets('should infer URL format hint for InputDataType.url', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
 
-          // Act
-          await _pump(
-            tester,
-            InputData(value: '', type: InputDataType.url),
-          );
+        // Act
+        await _pump(tester, InputData(value: '', type: InputDataType.url));
 
-          // Assert
-          final node = _findContainer(tester);
-          expect(
-            node.properties.hint,
-            equals('Enter a valid URL starting with https://'),
-          );
-        },
-      );
+        // Assert
+        final node = _findContainer(tester);
+        expect(
+          node.properties.hint,
+          equals('Enter a valid URL starting with https://'),
+        );
+      });
 
-      testWidgets(
-        'should infer date picker hint for InputDataType.date',
-        (WidgetTester tester) async {
-          // Arrange
+      testWidgets('should infer date picker hint for InputDataType.date', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
 
-          // Act
-          await _pump(
-            tester,
-            InputData(value: null, type: InputDataType.date),
-          );
+        // Act
+        await _pump(tester, InputData(value: null, type: InputDataType.date));
 
-          // Assert
-          final node = _findContainer(tester);
-          expect(
-            node.properties.hint,
-            equals('Select a date using the calendar picker'),
-          );
-        },
-      );
+        // Assert
+        final node = _findContainer(tester);
+        expect(
+          node.properties.hint,
+          equals('Select a date using the calendar picker'),
+        );
+      });
 
-      testWidgets(
-        'should infer bool toggle hint for InputDataType.bool',
-        (WidgetTester tester) async {
-          // Arrange
+      testWidgets('should infer bool toggle hint for InputDataType.bool', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
 
-          // Act
-          await _pump(
-            tester,
-            InputData(value: false, type: InputDataType.bool),
-          );
+        // Act
+        await _pump(tester, InputData(value: false, type: InputDataType.bool));
 
-          // Assert
-          final node = _findContainer(tester);
-          expect(
-            node.properties.hint,
-            equals('Toggle to enable or disable this option'),
-          );
-        },
-      );
+        // Assert
+        final node = _findContainer(tester);
+        expect(
+          node.properties.hint,
+          equals('Toggle to enable or disable this option'),
+        );
+      });
 
       testWidgets(
         'should infer list selection hint for InputDataType.dropdown',
@@ -466,39 +434,167 @@ void main() {
         },
       );
 
+      testWidgets('should return null hint for generic string type', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
+
+        // Act
+        await _pump(tester, InputData(value: '', type: InputDataType.string));
+
+        // Assert – string has no type-specific format constraint
+        final node = _findContainer(tester);
+        expect(node.properties.hint, isNull);
+      });
+
+      testWidgets('should return null hint for generic text type', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
+
+        // Act
+        await _pump(tester, InputData(value: '', type: InputDataType.text));
+
+        // Assert
+        final node = _findContainer(tester);
+        expect(node.properties.hint, isNull);
+      });
+    });
+
+    group('required', () {
       testWidgets(
-        'should return null hint for generic string type',
+        'should append a pending required note to the hint when empty',
         (WidgetTester tester) async {
-          // Arrange
+          // Arrange – required string field with no value
 
           // Act
           await _pump(
             tester,
-            InputData(value: '', type: InputDataType.string),
-          );
-
-          // Assert – string has no type-specific format constraint
-          final node = _findContainer(tester);
-          expect(node.properties.hint, isNull);
-        },
-      );
-
-      testWidgets(
-        'should return null hint for generic text type',
-        (WidgetTester tester) async {
-          // Arrange
-
-          // Act
-          await _pump(
-            tester,
-            InputData(value: '', type: InputDataType.text),
+            InputData(
+              value: '',
+              type: InputDataType.string,
+              label: 'Name',
+              required: true,
+            ),
           );
 
           // Assert
           final node = _findContainer(tester);
-          expect(node.properties.hint, isNull);
+          expect(
+            node.properties.hint,
+            equals('Required field, currently empty and pending input.'),
+          );
         },
       );
+
+      testWidgets(
+        'should append a required note without pending state when filled',
+        (WidgetTester tester) async {
+          // Arrange – required string field with a value
+
+          // Act
+          await _pump(
+            tester,
+            InputData(
+              value: 'John',
+              type: InputDataType.string,
+              label: 'Name',
+              required: true,
+            ),
+          );
+
+          // Assert
+          final node = _findContainer(tester);
+          expect(node.properties.hint, equals('Required field.'));
+        },
+      );
+
+      testWidgets(
+        'should combine the type hint with the required pending note',
+        (WidgetTester tester) async {
+          // Arrange – required email field with no value
+
+          // Act
+          await _pump(
+            tester,
+            InputData(
+              value: '',
+              type: InputDataType.email,
+              label: 'Email',
+              required: true,
+            ),
+          );
+
+          // Assert
+          final node = _findContainer(tester);
+          expect(
+            node.properties.hint,
+            equals(
+              'Enter a valid email address, e.g. user@example.com '
+              'Required field, currently empty and pending input.',
+            ),
+          );
+        },
+      );
+
+      testWidgets('should show the localized "Required" helper while pending', (
+        WidgetTester tester,
+      ) async {
+        // Arrange – required, empty field
+
+        // Act
+        await _pumpLocalized(
+          tester,
+          InputData(
+            value: '',
+            type: InputDataType.string,
+            label: 'Name',
+            required: true,
+          ),
+        );
+
+        // Assert – pending helper is visible, asterisk marker is rendered
+        expect(find.text('Required'), findsOneWidget);
+        expect(find.textContaining('*'), findsOneWidget);
+      });
+
+      testWidgets('should hide the "Required" helper once a value is present', (
+        WidgetTester tester,
+      ) async {
+        // Arrange – required field with a value
+
+        // Act
+        await _pumpLocalized(
+          tester,
+          InputData(
+            value: 'John',
+            type: InputDataType.string,
+            label: 'Name',
+            required: true,
+          ),
+        );
+
+        // Assert
+        expect(find.text('Required'), findsNothing);
+      });
+
+      testWidgets('should add no required affordances when required is false', (
+        WidgetTester tester,
+      ) async {
+        // Arrange – non-required, empty field
+
+        // Act
+        await _pumpLocalized(
+          tester,
+          InputData(value: '', type: InputDataType.string, label: 'Name'),
+        );
+
+        // Assert – no helper, no asterisk, no required hint
+        final node = _findContainer(tester);
+        expect(node.properties.hint, isNull);
+        expect(find.text('Required'), findsNothing);
+        expect(find.textContaining('*'), findsNothing);
+      });
     });
   });
 }

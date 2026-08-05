@@ -229,25 +229,34 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     final theme = Theme.of(context);
     final locales = AppLocalizations.of(context);
     ScrollController controller = ScrollController();
+    final height = MediaQuery.of(context).size.height;
     final passwordRegex = widget.passwordRegex ?? RegexHelper.password;
     bool canCall = sending == false;
     bool validPhone = data.phone != null && data.phone!.isNotEmpty;
     bool validEmail = data.email != null && data.email!.isNotEmpty;
     bool validUsername = data.username != null && data.username!.isNotEmpty;
-    canCall = canCall && (validPhone || validEmail || validUsername);
     if (widget.name) {
       canCall =
           canCall &&
           data.firstName != null &&
-          data.firstName!.length > 1 &&
+          data.firstName!.isNotEmpty &&
           data.lastName != null &&
-          data.lastName!.length > 1;
+          data.lastName!.isNotEmpty;
     }
     if (widget.password) {
       canCall = canCall && data.password != null && data.password!.isNotEmpty;
       bool newPasswordOk = passwordRegex.hasMatch(data.password ?? '');
       canCall = canCall && newPasswordOk;
     }
+
+    /// Verify valid identifiable data
+    if (widget.username) {
+      canCall = canCall && validUsername;
+    }
+    canCall =
+        canCall &&
+        ((widget.phone && validPhone) || (widget.email && validEmail));
+
     const spacer = SizedBox(height: 16, width: 16);
     String title = locales.get(
       data.id == null ? 'label--add-label' : 'label--update',
@@ -308,6 +317,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       width: double.maxFinite,
       child: InputData(
         disabled: widget.disabled,
+        required: true,
         autofillHints: const [],
         prefixIcon: const Icon(Icons.phone),
         label: locales.get('label--phone-number'),
@@ -324,6 +334,9 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       width: double.maxFinite,
       child: InputData(
         disabled: widget.disabled,
+        required: widget.phone && widget.email
+            ? !(validPhone || validUsername)
+            : true,
         autofillHints: const [],
         prefixIcon: const Icon(Icons.email),
         label: locales.get('label--email'),
@@ -341,6 +354,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       width: double.maxFinite,
       child: InputData(
         disabled: widget.disabled,
+        required: true,
         autofillHints: const [],
         prefixIcon: const Icon(Icons.alternate_email),
         label: locales.get('label--username'),
@@ -357,6 +371,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
 
     Widget firstNameInput = InputData(
       disabled: widget.disabled,
+      required: true,
       autofillHints: const [],
       label: locales.get('label--first-name'),
       value: data.firstName,
@@ -370,6 +385,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     );
     Widget lastNameInput = InputData(
       disabled: widget.disabled,
+      required: true,
       autofillHints: const [],
       label: locales.get('label--last-name'),
       value: data.lastName,
@@ -385,6 +401,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
 
     Widget passwordInput = InputData(
       disabled: widget.disabled,
+      required: true,
       autofillHints: const [],
       prefixIcon: const Icon(Icons.lock),
       label: locales.get('label--password'),
@@ -432,6 +449,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       inviteWidgets.addAll([
         InputData(
           disabled: widget.disabled,
+          required: true,
           autofillHints: const [],
           label: locales.get('label--role'),
           value: data.role,
@@ -591,28 +609,46 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       ),
     ]);
 
-    return ContentContainer(
-      size: widget.size,
-      child: Dialog.fullscreen(
-        child: Scaffold(
-          appBar: AppBar(title: Text(title)),
-          body: Scrollbar(
-            thumbVisibility: true,
-            interactive: true,
-            trackVisibility: true,
-            controller: controller,
-            child: SingleChildScrollView(
-              controller: controller,
-              padding: const EdgeInsets.only(
-                bottom: 64,
-                left: 16,
-                right: 16,
-                top: 16,
-              ),
-              child: SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(children: inviteWidgets),
+    return Dialog.fullscreen(
+      backgroundColor:
+          (theme.dialogTheme.barrierColor ?? theme.colorScheme.scrim)
+              .withValues(alpha: 0.8),
+      child: Scrollbar(
+        thumbVisibility: true,
+        interactive: true,
+        trackVisibility: true,
+        controller: controller,
+        child: SingleChildScrollView(
+          controller: controller,
+          padding: const EdgeInsets.only(
+            bottom: 64,
+            left: 16,
+            right: 16,
+            top: 16,
+          ),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: height - 80),
+            child: ContentContainer(
+              size: widget.size,
+              child: Center(
+                child: Card(
+                  clipBehavior: Clip.antiAlias,
+                  child: SafeArea(
+                    child: Column(
+                      children: [
+                        AppBar(
+                          title: Text(title),
+                          primary: false,
+                          automaticallyImplyLeading: false,
+                          automaticallyImplyActions: false,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(children: inviteWidgets),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
