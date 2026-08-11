@@ -29,6 +29,7 @@ class PhoneInput extends StatefulWidget {
     this.onComplete,
     this.onChanged,
     this.disabled = false,
+    this.required = false,
     this.country,
     this.suffix,
     this.suffixIcon,
@@ -95,6 +96,14 @@ class PhoneInput extends StatefulWidget {
 
   /// Prevents interaction with both inputs when `true`.
   final bool disabled;
+
+  /// Marks the national number as required so callers can enforce a value.
+  ///
+  /// The flag is forwarded to the underlying number [InputData], which appends
+  /// a colored asterisk to the label, shows a pending "Required" helper while
+  /// the field is empty, and exposes the required state through the
+  /// [Semantics.hint] for screen readers and autonomous agents.
+  final bool required;
 
   /// Provides a preferred ISO country code used for parsing and defaults.
   final String? country;
@@ -331,6 +340,7 @@ class _PhoneInputState extends State<PhoneInput> {
     });
     final countryPicker = InputData(
       key: const Key('country-picker'),
+      required: widget.required,
       autofillHints: const [],
       prefixIcon: widget.prefixIcon ?? const Icon(Icons.phone_iphone),
       label: locales.get('label--country-code'),
@@ -355,6 +365,7 @@ class _PhoneInputState extends State<PhoneInput> {
     );
     final phoneInput = InputData(
       key: const Key('phone-input'),
+      required: widget.required,
       disabled: widget.disabled || callingCode == null,
       prefix: country != null
           ? Padding(

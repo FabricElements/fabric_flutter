@@ -10,6 +10,7 @@ import '../serialized/user_data.dart';
 import 'alert_data.dart';
 import 'content_container.dart';
 import 'input_data.dart';
+import 'phone_input.dart';
 
 /// Presents a full-screen form for creating or updating a [UserData] record.
 ///
@@ -315,14 +316,11 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
 
     Widget phoneInput = SizedBox(
       width: double.maxFinite,
-      child: InputData(
+      child: PhoneInput(
+        key: ValueKey('phone-input'),
         disabled: widget.disabled,
         required: true,
-        autofillHints: const [],
-        prefixIcon: const Icon(Icons.phone),
-        label: locales.get('label--phone-number'),
         value: data.phone,
-        type: InputDataType.phone,
         onChanged: (value) {
           error = null;
           data.phone = value;
@@ -333,6 +331,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     Widget emailInput = SizedBox(
       width: double.maxFinite,
       child: InputData(
+        key: ValueKey('email-input'),
         disabled: widget.disabled,
         required: widget.phone && widget.email
             ? !(validPhone || validUsername)
@@ -353,6 +352,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     Widget usernameInput = SizedBox(
       width: double.maxFinite,
       child: InputData(
+        key: ValueKey('username-input'),
         disabled: widget.disabled,
         required: true,
         autofillHints: const [],
@@ -370,6 +370,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     );
 
     Widget firstNameInput = InputData(
+      key: ValueKey('first-name-input'),
       disabled: widget.disabled,
       required: true,
       autofillHints: const [],
@@ -384,6 +385,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       maxLength: 20,
     );
     Widget lastNameInput = InputData(
+      key: ValueKey('last-name-input'),
       disabled: widget.disabled,
       required: true,
       autofillHints: const [],
@@ -400,6 +402,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     final inputValidation = InputValidation(locales: locales);
 
     Widget passwordInput = InputData(
+      key: ValueKey('password-input'),
       disabled: widget.disabled,
       required: true,
       autofillHints: const [],
@@ -448,6 +451,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     if (widget.role) {
       inviteWidgets.addAll([
         InputData(
+          key: ValueKey('role-input'),
           disabled: widget.disabled,
           required: true,
           autofillHints: const [],
@@ -488,6 +492,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
         final groupsRoles = item.value;
         inviteWidgets.addAll([
           InputData(
+            key: ValueKey('role-for-${item.key}-input'),
             disabled: widget.disabled,
             autofillHints: const [],
             label: locales.get('label--role-for-label', {
