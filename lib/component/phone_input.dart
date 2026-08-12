@@ -29,6 +29,7 @@ class PhoneInput extends StatefulWidget {
     this.onComplete,
     this.onChanged,
     this.disabled = false,
+    this.required = false,
     this.country,
     this.suffix,
     this.suffixIcon,
@@ -96,6 +97,14 @@ class PhoneInput extends StatefulWidget {
   /// Prevents interaction with both inputs when `true`.
   final bool disabled;
 
+  /// Marks the national number as required so callers can enforce a value.
+  ///
+  /// The flag is forwarded to the underlying number [InputData], which appends
+  /// a colored asterisk to the label, shows a pending "Required" helper while
+  /// the field is empty, and exposes the required state through the
+  /// [Semantics.hint] for screen readers and autonomous agents.
+  final bool required;
+
   /// Provides a preferred ISO country code used for parsing and defaults.
   final String? country;
 
@@ -137,40 +146,30 @@ class _PhoneInputState extends State<PhoneInput> {
   ///
   /// This runs for external value updates as well as initialization so the UI
   /// stays synchronized with parent state, even when partially valid values are
-  /// supplied.
+  /// supplied. Validity is delegated to [InputValidation.validatePhone] (using
+  /// [PhoneInput.country] as the region) so the picker, the national-number
+  /// field, and this parser all agree on when a number is acceptable, while the
+  /// parse here only extracts the calling code, national number, and formatted
+  /// output.
   void formatInput(String input) {
+    final validation = InputValidation(defaultCountry: widget.country ?? 'US');
+    isValid = validation.validatePhone(input) == null;
     try {
-      PhoneNumber parsedNumber = phoneUtil.parseAndKeepRawInput(
+      final parsedNumber = phoneUtil.parseAndKeepRawInput(
         input,
         widget.country?.toUpperCase() ?? 'US',
       );
-      isValid = phoneUtil.isValidNumber(parsedNumber);
       callingCode = parsedNumber.countryCode;
       phoneNumber = parsedNumber.nationalNumber.toInt();
       country = items.firstWhere(
         (element) => element.callingCode == callingCode.toString(),
       );
-      if (isValid) {
-        formattedNumber = phoneUtil.format(
-          parsedNumber,
-          PhoneNumberFormat.e164,
-        );
-      } else if (callingCode != null && phoneNumber != null) {
-        formattedNumber = '+$callingCode$phoneNumber';
-      }
+      formattedNumber = isValid
+          ? phoneUtil.format(parsedNumber, PhoneNumberFormat.e164)
+          : '+$callingCode$phoneNumber';
     } on NumberParseException catch (e) {
-      debugPrint('NumberParseException was thrown: ${e.toString()}');
-      isValid = false;
-      switch (e.errorType) {
-        case ErrorType.invalidCountryCode:
-          callingCode = null;
-          break;
-        case ErrorType.notANumber:
-          break;
-        case ErrorType.tooShortNsn:
-        case ErrorType.tooLong:
-        case ErrorType.tooShortAfterIdd:
-          break;
+      if (e.errorType == ErrorType.invalidCountryCode) {
+        callingCode = null;
       }
     }
     if (mounted) setState(() {});
@@ -320,7 +319,14 @@ class _PhoneInputState extends State<PhoneInput> {
     final isValidMatch =
         isValid || InputValidation.isPhoneValid(formattedNumber);
     final locales = AppLocalizations.of(context);
-    final inputValidation = InputValidation(locales: locales);
+    final selectedAlpha2 = (country?.alpha2 ?? widget.country ?? 'US')
+        .split(',')
+        .first
+        .trim();
+    final inputValidation = InputValidation(
+      locales: locales,
+      defaultCountry: selectedAlpha2.isEmpty ? 'US' : selectedAlpha2,
+    );
     List<ButtonOptions> options = List.generate(items.length, (index) {
       final item = items[index];
       return ButtonOptions(
@@ -331,6 +337,7 @@ class _PhoneInputState extends State<PhoneInput> {
     });
     final countryPicker = InputData(
       key: const Key('country-picker'),
+      required: widget.required,
       autofillHints: const [],
       prefixIcon: widget.prefixIcon ?? const Icon(Icons.phone_iphone),
       label: locales.get('label--country-code'),
@@ -342,10 +349,16 @@ class _PhoneInputState extends State<PhoneInput> {
       options: options,
       onChanged: (dynamic value) {
         callingCode = value as int?;
-        country = items.firstWhere(
-          (element) => element.callingCode == callingCode.toString(),
-        );
-        formatNumber();
+        country = callingCode != null
+            ? items.firstWhere(
+                (element) => element.callingCode == callingCode.toString(),
+              )
+            : null;
+        if (country == null) {
+          _reset();
+        } else {
+          formatNumber();
+        }
         if (mounted) setState(() {});
         widget.onChanged?.call(formattedNumber);
         widget.onComplete?.call(formattedNumber);
@@ -355,6 +368,7 @@ class _PhoneInputState extends State<PhoneInput> {
     );
     final phoneInput = InputData(
       key: const Key('phone-input'),
+      required: widget.required && callingCode != null,
       disabled: widget.disabled || callingCode == null,
       prefix: country != null
           ? Padding(

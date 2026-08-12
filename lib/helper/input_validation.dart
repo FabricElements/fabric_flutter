@@ -1,3 +1,5 @@
+import 'package:dlibphonenumber/dlibphonenumber.dart';
+
 import 'app_localizations_delegate.dart';
 import 'regex_helper.dart';
 
@@ -8,13 +10,26 @@ import 'regex_helper.dart';
 /// and custom input components.
 class InputValidation {
   /// Creates an [InputValidation] helper that can return localized messages.
-  const InputValidation({this.locales});
+  ///
+  /// [defaultCountry] supplies the ISO alpha-2 region used by [validatePhone]
+  /// when parsing numbers that lack an international `+` prefix, mirroring the
+  /// region [PhoneInput] passes to [PhoneNumberUtil]. Keeping it on the
+  /// constructor lets [validatePhone] stay a plain `FormFieldValidator<String>`
+  /// tear-off with no extra parameters.
+  const InputValidation({this.locales, this.defaultCountry = 'US'});
 
   /// Supplies localized fallback messages for validation failures.
   ///
   /// When [locales] is `null`, each validator falls back to a built-in English
   /// message so validation can still run outside a localized widget tree.
   final AppLocalizations? locales;
+
+  /// Identifies the ISO alpha-2 region used to parse phone numbers without a
+  /// leading `+`.
+  ///
+  /// [validatePhone] and [isPhoneValid] pass this to [PhoneNumberUtil] so a
+  /// national number can be interpreted against the country the user selected.
+  final String defaultCountry;
 
   /// Returns whether [password] satisfies the shared password requirements.
   ///
@@ -61,6 +76,31 @@ class InputValidation {
     }
   }
 
+  /// Returns whether [username] matches the app's accepted username pattern.
+  ///
+  /// Empty and `null` values return `false` because the helper is intended for
+  /// form validation where blank values should fail unless explicitly optional.
+  /// The shared [RegexHelper.username] pattern only accepts lowercase ASCII
+  /// letters and digits and enforces a 3-30 character length.
+  static bool isUsernameValid(String? username) {
+    if (username == null || username.isEmpty) return false;
+    return RegexHelper.username.hasMatch(username);
+  }
+
+  /// Returns `null` when [username] is valid, or a localized error message.
+  ///
+  /// Designed for use as a `FormFieldValidator<String>`, this reuses
+  /// [isUsernameValid] so UI feedback stays aligned with the username policy
+  /// enforced elsewhere in the app.
+  String? validateUsername(String? username) {
+    if (isUsernameValid(username)) {
+      return null;
+    } else {
+      return locales?.get('validation--username') ??
+          'It must be 3-30 characters using only lowercase letters and numbers.';
+    }
+  }
+
   /// Returns `null` when [value] matches [regex], or an error message.
   ///
   /// This generic validator is useful for one-off checks that do not justify a
@@ -79,13 +119,26 @@ class InputValidation {
     }
   }
 
-  /// Returns whether [phone] matches the international phone-number pattern.
+  /// Returns whether [phone] is a valid number according to [PhoneNumberUtil].
   ///
-  /// This variant expects the canonical pattern defined in [RegexHelper.phone],
-  /// which includes the leading plus sign when that is part of the format.
-  static bool isPhoneValid(String? phone) {
+  /// The number is parsed with [PhoneNumberUtil.parseAndKeepRawInput] using
+  /// [defaultCountry] as the region for values that omit an international `+`
+  /// prefix, then checked with [PhoneNumberUtil.isValidNumber]. This mirrors the
+  /// parsing performed by [PhoneInput.formatInput]. Empty, `null`, and
+  /// unparseable values return `false` so callers can treat them as invalid.
+  static bool isPhoneValid(String? phone, {String defaultCountry = 'US'}) {
     if (phone == null || phone.isEmpty) return false;
-    return RegexHelper.phone.hasMatch(phone);
+    try {
+      final parsed = PhoneNumberUtil.instance.parseAndKeepRawInput(
+        phone,
+        defaultCountry.toUpperCase(),
+      );
+      return PhoneNumberUtil.instance.isValidNumber(parsed);
+    } on NumberParseException {
+      return false;
+    } catch (_) {
+      return false;
+    }
   }
 
   /// Returns whether [phone] matches the phone-number pattern without `+`.
@@ -99,14 +152,113 @@ class InputValidation {
 
   /// Returns `null` when [phone] is valid, or a localized error message.
   ///
-  /// The validator uses [isPhoneValidNoPlusSign] so it matches the formatting
-  /// expected by the app's phone input fields.
-  String? validatePhone(String? phone) {
+  /// The validator uses [isPhoneValidNoPlusSign] so it matches the digit-only
+  /// formatting expected by input fields that store the national number without
+  /// an international prefix.
+  String? validatePhoneNoPlusSign(String? phone) {
     if (isPhoneValidNoPlusSign(phone)) {
       return null;
     } else {
       return locales?.get('validation--phone') ?? 'Enter a valid phone number';
     }
+  }
+
+  /// Returns `null` when [phone] is valid, or a localized error message.
+  ///
+  /// Designed for use as a `FormFieldValidator<String>`, this parses [phone]
+  /// with [PhoneNumberUtil] (using [defaultCountry] for numbers without a `+`
+  /// prefix) exactly like [PhoneInput.formatInput]. When parsing throws a
+  /// [NumberParseException] the message is chosen with a `switch` over
+  /// [ErrorType]. Most national-number input parses successfully but is not yet
+  /// a valid number, so this then inspects [PhoneNumberUtil.isPossibleNumberWithReason]
+  /// and switches over its [ValidationResult] to distinguish *too short* from
+  /// *too long* from an *invalid country calling code*; anything else, including
+  /// empty or `null` input, falls back to the generic `validation--phone`
+  /// message.
+  String? validatePhone(String? phone) {
+    if (phone == null || phone.isEmpty) {
+      return _phoneMessage('validation--phone');
+    }
+    try {
+      final parsed = PhoneNumberUtil.instance.parseAndKeepRawInput(
+        phone,
+        defaultCountry.toUpperCase(),
+      );
+      if (PhoneNumberUtil.instance.isValidNumber(parsed)) {
+        return null;
+      }
+      return _phoneMessageForReason(
+        PhoneNumberUtil.instance.isPossibleNumberWithReason(parsed),
+      );
+    } on NumberParseException catch (e) {
+      switch (e.errorType) {
+        case ErrorType.invalidCountryCode:
+          return _phoneMessage(
+            'validation--phone-invalid-country-code',
+            'Enter a valid country calling code',
+          );
+        case ErrorType.notANumber:
+          return _phoneMessage(
+            'validation--phone-not-a-number',
+            'Enter a valid phone number',
+          );
+        case ErrorType.tooShortNsn:
+        case ErrorType.tooShortAfterIdd:
+          return _phoneMessage(
+            'validation--phone-too-short',
+            'This phone number is too short',
+          );
+        case ErrorType.tooLong:
+          return _phoneMessage(
+            'validation--phone-too-long',
+            'This phone number is too long',
+          );
+      }
+    } catch (_) {
+      return _phoneMessage('validation--phone');
+    }
+  }
+
+  /// Maps a parsed-but-invalid [result] to a localized phone error message.
+  ///
+  /// A number that parses without throwing can still be invalid because it is
+  /// too short or too long for its region, so this reuses the same localized
+  /// keys as the [NumberParseException] branch of [validatePhone].
+  /// [ValidationResult.isPossibleLocalOnly] is treated as *too short* because a
+  /// local-only number is missing the digits needed for a complete
+  /// international number, while lengths that are merely *possible* fall back to
+  /// the generic `validation--phone` message.
+  String _phoneMessageForReason(ValidationResult result) {
+    switch (result) {
+      case ValidationResult.invalidCountryCode:
+        return _phoneMessage(
+          'validation--phone-invalid-country-code',
+          'Enter a valid country calling code',
+        );
+      case ValidationResult.tooShort:
+      case ValidationResult.isPossibleLocalOnly:
+        return _phoneMessage(
+          'validation--phone-too-short',
+          'This phone number is too short',
+        );
+      case ValidationResult.tooLong:
+        return _phoneMessage(
+          'validation--phone-too-long',
+          'This phone number is too long',
+        );
+      case ValidationResult.invalidLength:
+      case ValidationResult.isPossible:
+        return _phoneMessage('validation--phone');
+    }
+  }
+
+  /// Resolves the localized message for [key], falling back to [fallback].
+  ///
+  /// When [fallback] is omitted the default `validation--phone` English message
+  /// is used so every phone validation branch always returns a human-readable
+  /// string even outside a localized widget tree.
+  String _phoneMessage(String key, [String? fallback]) {
+    return locales?.get(key) ?? fallback ?? 'Enter a valid phone number';
   }
 
   /// Returns whether [url] matches the shared URL pattern.

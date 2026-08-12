@@ -10,6 +10,7 @@ import '../serialized/user_data.dart';
 import 'alert_data.dart';
 import 'content_container.dart';
 import 'input_data.dart';
+import 'phone_input.dart';
 
 /// Presents a full-screen form for creating or updating a [UserData] record.
 ///
@@ -232,9 +233,18 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     final height = MediaQuery.of(context).size.height;
     final passwordRegex = widget.passwordRegex ?? RegexHelper.password;
     bool canCall = sending == false;
-    bool validPhone = data.phone != null && data.phone!.isNotEmpty;
-    bool validEmail = data.email != null && data.email!.isNotEmpty;
-    bool validUsername = data.username != null && data.username!.isNotEmpty;
+    bool validPhone =
+        data.phone != null &&
+        data.phone!.isNotEmpty &&
+        InputValidation.isPhoneValid(data.phone);
+    bool validEmail =
+        data.email != null &&
+        data.email!.isNotEmpty &&
+        InputValidation.isEmailValid(data.email);
+    bool validUsername =
+        data.username != null &&
+        data.username!.isNotEmpty &&
+        InputValidation.isUsernameValid(data.username);
     if (widget.name) {
       canCall =
           canCall &&
@@ -248,14 +258,33 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       bool newPasswordOk = passwordRegex.hasMatch(data.password ?? '');
       canCall = canCall && newPasswordOk;
     }
-
-    /// Verify valid identifiable data
+    // Verify valid identifiable data
     if (widget.username) {
       canCall = canCall && validUsername;
     }
-    canCall =
-        canCall &&
-        ((widget.phone && validPhone) || (widget.email && validEmail));
+    // Identifier validation (username / phone / email).
+    // When both phone and email are enabled, accept either one.
+    bool identifierValid = true;
+    if (widget.username) {
+      identifierValid = identifierValid && validUsername;
+    }
+    if (widget.phone && widget.email) {
+      identifierValid = identifierValid && (validPhone || validEmail);
+    } else if (widget.phone) {
+      identifierValid = identifierValid && validPhone;
+    } else if (widget.email) {
+      identifierValid = identifierValid && validEmail;
+    }
+
+    // If an identifier field has been filled but is invalid, fail.
+    if (widget.phone && data.phone != null && !validPhone) {
+      identifierValid = false;
+    }
+    if (widget.email && data.email != null && !validEmail) {
+      identifierValid = false;
+    }
+
+    canCall = canCall && identifierValid;
 
     const spacer = SizedBox(height: 16, width: 16);
     String title = locales.get(
@@ -290,9 +319,15 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
           assert(data.role.isNotEmpty, 'You must select a user role');
         }
         assert(
-          data.username != null || data.email != null || data.phone != null,
-          'username, email or phone must not be null',
+          data.email != null || data.phone != null,
+          'Email or Phone must not be null',
         );
+        if (widget.username) {
+          assert(
+            data.username != null && data.username!.isNotEmpty,
+            'Username must not be null or empty',
+          );
+        }
         await widget.onConfirm(data, group: widget.group);
         alertData(
           context: context,
@@ -313,16 +348,15 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       if (mounted) setState(() {});
     }
 
+    final inputValidation = InputValidation(locales: locales);
+
     Widget phoneInput = SizedBox(
       width: double.maxFinite,
-      child: InputData(
+      child: PhoneInput(
+        key: ValueKey('phone-input'),
         disabled: widget.disabled,
         required: true,
-        autofillHints: const [],
-        prefixIcon: const Icon(Icons.phone),
-        label: locales.get('label--phone-number'),
         value: data.phone,
-        type: InputDataType.phone,
         onChanged: (value) {
           error = null;
           data.phone = value;
@@ -333,6 +367,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     Widget emailInput = SizedBox(
       width: double.maxFinite,
       child: InputData(
+        key: ValueKey('email-input'),
         disabled: widget.disabled,
         required: widget.phone && widget.email
             ? !(validPhone || validUsername)
@@ -353,6 +388,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     Widget usernameInput = SizedBox(
       width: double.maxFinite,
       child: InputData(
+        key: ValueKey('username-input'),
         disabled: widget.disabled,
         required: true,
         autofillHints: const [],
@@ -361,6 +397,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
         value: data.username,
         type: InputDataType.string,
         maxLength: 20,
+        validator: inputValidation.validateUsername,
         onChanged: (value) {
           error = null;
           data.username = value;
@@ -370,6 +407,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     );
 
     Widget firstNameInput = InputData(
+      key: ValueKey('first-name-input'),
       disabled: widget.disabled,
       required: true,
       autofillHints: const [],
@@ -384,6 +422,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       maxLength: 20,
     );
     Widget lastNameInput = InputData(
+      key: ValueKey('last-name-input'),
       disabled: widget.disabled,
       required: true,
       autofillHints: const [],
@@ -397,9 +436,9 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       },
       maxLength: 20,
     );
-    final inputValidation = InputValidation(locales: locales);
 
     Widget passwordInput = InputData(
+      key: ValueKey('password-input'),
       disabled: widget.disabled,
       required: true,
       autofillHints: const [],
@@ -448,6 +487,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     if (widget.role) {
       inviteWidgets.addAll([
         InputData(
+          key: ValueKey('role-input'),
           disabled: widget.disabled,
           required: true,
           autofillHints: const [],
@@ -488,6 +528,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
         final groupsRoles = item.value;
         inviteWidgets.addAll([
           InputData(
+            key: ValueKey('role-for-${item.key}-input'),
             disabled: widget.disabled,
             autofillHints: const [],
             label: locales.get('label--role-for-label', {
@@ -584,7 +625,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
         padding: const EdgeInsets.only(top: 16),
         child: Row(
           children: [
-            TextButton.icon(
+            FilledButton.tonalIcon(
               icon: const Icon(Icons.close),
               label: Text(
                 locales.get(widget.disabled ? 'label--done' : 'label--cancel'),
@@ -592,10 +633,6 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
               onPressed: () {
                 Navigator.pop(context, 'cancel');
               },
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.deepOrange,
-                iconColor: Colors.deepOrange,
-              ),
             ),
             const Spacer(),
             if (!widget.disabled)

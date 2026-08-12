@@ -419,9 +419,31 @@ const Map<String, Map<String, String>> defaultLocales = {
     'en': 'Enter a valid phone number',
     'es': 'Introduce un número de teléfono válido',
   },
+  'validation--phone-invalid-country-code': {
+    'en': 'Enter a valid country calling code',
+    'es': 'Introduce un código de país válido',
+  },
+  'validation--phone-not-a-number': {
+    'en': 'Enter a valid phone number',
+    'es': 'Introduce un número de teléfono válido',
+  },
+  'validation--phone-too-short': {
+    'en': 'This phone number is too short',
+    'es': 'Este número de teléfono es demasiado corto',
+  },
+  'validation--phone-too-long': {
+    'en': 'This phone number is too long',
+    'es': 'Este número de teléfono es demasiado largo',
+  },
   'validation--url': {
     'en': 'Enter a valid URL',
     'es': 'Introduce una URL válida',
+  },
+  'validation--username': {
+    'en':
+        'It must be 3-30 characters using only lowercase letters and numbers.',
+    'es':
+        'Debe tener entre 3 y 30 caracteres usando solo letras minúsculas y números.',
   },
   'validation--not-empty': {
     'en': 'This field can\'t be empty',
