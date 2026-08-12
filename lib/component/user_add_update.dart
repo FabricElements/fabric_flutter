@@ -258,21 +258,33 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       bool newPasswordOk = passwordRegex.hasMatch(data.password ?? '');
       canCall = canCall && newPasswordOk;
     }
-
-    /// Verify valid identifiable data
+    // Verify valid identifiable data
     if (widget.username) {
       canCall = canCall && validUsername;
     }
-
-    /// Special Case:
-    /// Do not force phone and email, accept either one if both are enabled
-    if (widget.phone && widget.email) {
-      canCall = canCall && (validPhone || validEmail);
-    } else if (widget.phone) {
-      canCall = canCall && validPhone;
-    } else if (widget.email) {
-      canCall = canCall && validEmail;
+    // Identifier validation (username / phone / email).
+    // When both phone and email are enabled, accept either one.
+    bool identifierValid = true;
+    if (widget.username) {
+      identifierValid = identifierValid && validUsername;
     }
+    if (widget.phone && widget.email) {
+      identifierValid = identifierValid && (validPhone || validEmail);
+    } else if (widget.phone) {
+      identifierValid = identifierValid && validPhone;
+    } else if (widget.email) {
+      identifierValid = identifierValid && validEmail;
+    }
+
+    // If an identifier field has been filled but is invalid, fail.
+    if (widget.phone && data.phone != null && !validPhone) {
+      identifierValid = false;
+    }
+    if (widget.email && data.email != null && !validEmail) {
+      identifierValid = false;
+    }
+
+    canCall = canCall && identifierValid;
 
     const spacer = SizedBox(height: 16, width: 16);
     String title = locales.get(
