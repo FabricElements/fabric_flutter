@@ -76,6 +76,31 @@ class InputValidation {
     }
   }
 
+  /// Returns whether [username] matches the app's accepted username pattern.
+  ///
+  /// Empty and `null` values return `false` because the helper is intended for
+  /// form validation where blank values should fail unless explicitly optional.
+  /// The shared [RegexHelper.username] pattern only accepts lowercase ASCII
+  /// letters and digits and enforces a 3-30 character length.
+  static bool isUsernameValid(String? username) {
+    if (username == null || username.isEmpty) return false;
+    return RegexHelper.username.hasMatch(username);
+  }
+
+  /// Returns `null` when [username] is valid, or a localized error message.
+  ///
+  /// Designed for use as a `FormFieldValidator<String>`, this reuses
+  /// [isUsernameValid] so UI feedback stays aligned with the username policy
+  /// enforced elsewhere in the app.
+  String? validateUsername(String? username) {
+    if (isUsernameValid(username)) {
+      return null;
+    } else {
+      return locales?.get('validation--username') ??
+          'It must be 3-30 characters using only lowercase letters and numbers.';
+    }
+  }
+
   /// Returns `null` when [value] matches [regex], or an error message.
   ///
   /// This generic validator is useful for one-off checks that do not justify a

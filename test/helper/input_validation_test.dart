@@ -360,6 +360,85 @@ void main() {
       });
     });
 
+    group('isUsernameValid', () {
+      test('should accept a lowercase alphanumeric handle', () {
+        // Act & Assert
+        expect(InputValidation.isUsernameValid('user123'), isTrue);
+      });
+
+      test('should accept the minimum length of three characters', () {
+        // Act & Assert
+        expect(InputValidation.isUsernameValid('abc'), isTrue);
+      });
+
+      test('should reject a handle shorter than three characters', () {
+        // Act & Assert
+        expect(InputValidation.isUsernameValid('ab'), isFalse);
+      });
+
+      test('should reject a handle longer than thirty characters', () {
+        // Act & Assert
+        expect(InputValidation.isUsernameValid('a' * 31), isFalse);
+      });
+
+      test('should reject uppercase letters', () {
+        // Act & Assert
+        expect(InputValidation.isUsernameValid('UserName'), isFalse);
+      });
+
+      test('should reject whitespace and special characters', () {
+        // Act & Assert
+        expect(InputValidation.isUsernameValid('user name'), isFalse);
+        expect(InputValidation.isUsernameValid('user_name'), isFalse);
+        expect(InputValidation.isUsernameValid('user.name'), isFalse);
+      });
+
+      test('should reject an empty value', () {
+        // Act & Assert
+        expect(InputValidation.isUsernameValid(''), isFalse);
+      });
+
+      test('should reject a null value', () {
+        // Act & Assert
+        expect(InputValidation.isUsernameValid(null), isFalse);
+      });
+    });
+
+    group('validateUsername', () {
+      const validation = InputValidation();
+
+      test('should return null for a valid username', () {
+        // Act & Assert
+        expect(validation.validateUsername('user123'), isNull);
+      });
+
+      test('should return the English fallback message for an invalid '
+          'username', () {
+        // Act & Assert
+        expect(
+          validation.validateUsername('Invalid Name'),
+          'It must be 3-30 characters using only lowercase letters and numbers.',
+        );
+      });
+
+      test('should localize the message in Spanish', () async {
+        // Arrange
+        final locales = AppLocalizations(const Locale('es'));
+        await locales.load();
+        final validationEs = InputValidation(locales: locales);
+
+        // Act
+        final result = validationEs.validateUsername('Invalid Name');
+
+        // Assert
+        expect(
+          result,
+          'Debe tener entre 3 y 30 caracteres usando solo letras minúsculas y '
+          'números.',
+        );
+      });
+    });
+
     group('validateNotEmpty', () {
       const validation = InputValidation();
 

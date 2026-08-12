@@ -91,4 +91,43 @@ void main() {
       expect(RegexHelper.password.hasMatch('Strong!Pass'), isFalse);
     });
   });
+
+  group('RegexHelper.username', () {
+    test('should match a lowercase alphanumeric handle', () {
+      // Arrange, Act & Assert
+      expect(RegexHelper.username.hasMatch('user123'), isTrue);
+    });
+
+    test('should match the minimum length of three characters', () {
+      // Arrange, Act & Assert
+      expect(RegexHelper.username.hasMatch('abc'), isTrue);
+    });
+
+    test('should match the maximum length of thirty characters', () {
+      // Arrange, Act & Assert
+      expect(RegexHelper.username.hasMatch('a' * 30), isTrue);
+    });
+
+    test('should reject a handle shorter than three characters', () {
+      // Arrange, Act & Assert
+      expect(RegexHelper.username.hasMatch('ab'), isFalse);
+    });
+
+    test('should reject a handle longer than thirty characters', () {
+      // Arrange, Act & Assert
+      expect(RegexHelper.username.hasMatch('a' * 31), isFalse);
+    });
+
+    test('should reject uppercase letters', () {
+      // Arrange, Act & Assert
+      expect(RegexHelper.username.hasMatch('UserName'), isFalse);
+    });
+
+    test('should reject whitespace and special characters', () {
+      // Arrange, Act & Assert
+      expect(RegexHelper.username.hasMatch('user name'), isFalse);
+      expect(RegexHelper.username.hasMatch('user_name'), isFalse);
+      expect(RegexHelper.username.hasMatch('user.name'), isFalse);
+    });
+  });
 }

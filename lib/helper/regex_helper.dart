@@ -42,4 +42,13 @@ class RegexHelper {
   static final password = RegExp(
     r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$',
   );
+
+  /// Matches username identifiers used by forms and authentication.
+  ///
+  /// Allows only lowercase ASCII letters (a-z) and digits (0-9). No
+  /// whitespace, punctuation, or special characters are permitted.
+  ///
+  /// Usernames must be between 3 and 30 characters inclusive. The pattern
+  /// enforces both the allowed character set and the length: `^[a-z0-9]{3,30}$`.
+  static final username = RegExp(r'^[a-z0-9]{3,30}$');
 }
