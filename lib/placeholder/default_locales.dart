@@ -439,6 +439,12 @@ const Map<String, Map<String, String>> defaultLocales = {
     'en': 'Enter a valid URL',
     'es': 'Introduce una URL válida',
   },
+  'validation--username': {
+    'en':
+        'It must be 3-30 characters using only lowercase letters and numbers.',
+    'es':
+        'Debe tener entre 3 y 30 caracteres usando solo letras minúsculas y números.',
+  },
   'validation--not-empty': {
     'en': 'This field can\'t be empty',
     'es': 'Este campo no puede estar vacío',
