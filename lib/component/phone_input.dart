@@ -354,7 +354,11 @@ class _PhoneInputState extends State<PhoneInput> {
                 (element) => element.callingCode == callingCode.toString(),
               )
             : null;
-        formatNumber();
+        if (country == null) {
+          _reset();
+        } else {
+          formatNumber();
+        }
         if (mounted) setState(() {});
         widget.onChanged?.call(formattedNumber);
         widget.onComplete?.call(formattedNumber);
