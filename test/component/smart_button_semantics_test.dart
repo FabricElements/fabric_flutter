@@ -7,31 +7,32 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('SmartButton', () {
     group('semantics', () {
-      testWidgets('should fall back to button label when semanticsLabel is null', (
-        WidgetTester tester,
-      ) async {
-        // Arrange
-        const label = 'Save Profile';
+      testWidgets(
+        'should fall back to button label when semanticsLabel is null',
+        (WidgetTester tester) async {
+          // Arrange
+          const label = 'Save Profile';
 
-        // Act
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Scaffold(
-              body: SmartButton(
-                button: ButtonOptions(label: label, path: '/save'),
+          // Act
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: SmartButton(
+                  button: ButtonOptions(label: label, path: '/save'),
+                ),
               ),
             ),
-          ),
-        );
+          );
 
-        // Assert
-        expect(
-          tester
-              .widgetList<Semantics>(find.byType(Semantics))
-              .any((s) => s.properties.label == label),
-          isTrue,
-        );
-      });
+          // Assert
+          expect(
+            tester
+                .widgetList<Semantics>(find.byType(Semantics))
+                .any((s) => s.properties.label == label),
+            isTrue,
+          );
+        },
+      );
 
       testWidgets('should use explicit semanticsLabel when provided', (
         WidgetTester tester,
@@ -120,9 +121,7 @@ void main() {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
-              body: SmartButton(
-                button: ButtonOptions(label: label),
-              ),
+              body: SmartButton(button: ButtonOptions(label: label)),
             ),
           ),
         );
@@ -158,31 +157,32 @@ void main() {
         expect(node.properties.enabled, isTrue);
       });
 
-      testWidgets('SmartButton includes semanticHint in the accessibility tree', (
-        WidgetTester tester,
-      ) async {
-        // Arrange
-        const testHint = 'Agent Directive: Proceed to checkout';
-        
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Scaffold(
-              body: SmartButton(
-                button: ButtonOptions(label: 'Checkout'),
-                semanticHint: testHint,
+      testWidgets(
+        'SmartButton includes semanticHint in the accessibility tree',
+        (WidgetTester tester) async {
+          // Arrange
+          const testHint = 'Agent Directive: Proceed to checkout';
+
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: SmartButton(
+                  button: ButtonOptions(label: 'Checkout'),
+                  semanticHint: testHint,
+                ),
               ),
             ),
-          ),
-        );
+          );
 
-        // Act
-        final Semantics node = tester
-            .widgetList<Semantics>(find.byType(Semantics))
-            .firstWhere((s) => s.properties.label == 'Checkout');
+          // Act
+          final Semantics node = tester
+              .widgetList<Semantics>(find.byType(Semantics))
+              .firstWhere((s) => s.properties.label == 'Checkout');
 
-        // Assert
-        expect(node.properties.hint, testHint);
-      });
+          // Assert
+          expect(node.properties.hint, testHint);
+        },
+      );
     });
   });
 
@@ -198,10 +198,7 @@ void main() {
         // Act
         await tester.pumpWidget(
           MaterialApp(
-            home: ScreenContext(
-              routeName: routeName,
-              child: const SizedBox(),
-            ),
+            home: ScreenContext(routeName: routeName, child: const SizedBox()),
           ),
         );
 
@@ -223,40 +220,36 @@ void main() {
         // Act
         await tester.pumpWidget(
           MaterialApp(
-            home: ScreenContext(
-              routeName: routeName,
-              child: const SizedBox(),
-            ),
+            home: ScreenContext(routeName: routeName, child: const SizedBox()),
           ),
         );
 
         // Assert
         final Semantics node = tester
             .widgetList<Semantics>(find.byType(Semantics))
-            .firstWhere(
-              (s) => s.properties.identifier == 'screen_$routeName',
-            );
+            .firstWhere((s) => s.properties.identifier == 'screen_$routeName');
         expect(node.explicitChildNodes, isTrue);
       });
 
-      testWidgets('should leave identifier unset when routeName is null and no ambient route', (
-        WidgetTester tester,
-      ) async {
-        // Act
-        await tester.pumpWidget(
-          // Wrap in a plain WidgetsApp without named routes so no ModalRoute exists.
-          Directionality(
-            textDirection: TextDirection.ltr,
-            child: ScreenContext(child: const SizedBox()),
-          ),
-        );
+      testWidgets(
+        'should leave identifier unset when routeName is null and no ambient route',
+        (WidgetTester tester) async {
+          // Act
+          await tester.pumpWidget(
+            // Wrap in a plain WidgetsApp without named routes so no ModalRoute exists.
+            Directionality(
+              textDirection: TextDirection.ltr,
+              child: ScreenContext(child: const SizedBox()),
+            ),
+          );
 
-        // Assert
-        final Semantics node = tester
-            .widgetList<Semantics>(find.byType(Semantics))
-            .firstWhere((s) => s.container == true);
-        expect(node.properties.identifier, isNull);
-      });
+          // Assert
+          final Semantics node = tester
+              .widgetList<Semantics>(find.byType(Semantics))
+              .firstWhere((s) => s.container == true);
+          expect(node.properties.identifier, isNull);
+        },
+      );
     });
   });
 }

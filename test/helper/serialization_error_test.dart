@@ -1,6 +1,6 @@
+import 'package:fabric_flutter/helper/serialization_error.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:fabric_flutter/helper/serialization_error.dart';
 
 void main() {
   group('serializationError', () {
@@ -21,7 +21,7 @@ void main() {
         expect(
           message,
           'Invalid field "id": '
-              "type 'Null' is not a subtype of type 'String'",
+          "type 'Null' is not a subtype of type 'String'",
         );
       });
 

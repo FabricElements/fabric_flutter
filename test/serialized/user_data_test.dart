@@ -49,20 +49,23 @@ void main() {
     });
 
     group('toJson', () {
-      test('should include password when non-null (used for account creation)', () {
-        // Arrange – password is only set during new-user creation flows.
-        final data = UserData(
-          email: 'user@example.com',
-          firstName: 'Ada',
-          password: 'Sup3rS3cur3!',
-        );
+      test(
+        'should include password when non-null (used for account creation)',
+        () {
+          // Arrange – password is only set during new-user creation flows.
+          final data = UserData(
+            email: 'user@example.com',
+            firstName: 'Ada',
+            password: 'Sup3rS3cur3!',
+          );
 
-        // Act
-        final json = data.toJson();
+          // Act
+          final json = data.toJson();
 
-        // Assert – the field is serialized so Cloud Functions can receive it.
-        expect(json['password'], 'Sup3rS3cur3!');
-      });
+          // Assert – the field is serialized so Cloud Functions can receive it.
+          expect(json['password'], 'Sup3rS3cur3!');
+        },
+      );
 
       test('should omit password when it is null (existing-user fetch)', () {
         // Arrange – password is always null when reading an existing user.
