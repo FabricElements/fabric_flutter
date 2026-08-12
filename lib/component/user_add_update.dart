@@ -233,9 +233,18 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     final height = MediaQuery.of(context).size.height;
     final passwordRegex = widget.passwordRegex ?? RegexHelper.password;
     bool canCall = sending == false;
-    bool validPhone = data.phone != null && data.phone!.isNotEmpty;
-    bool validEmail = data.email != null && data.email!.isNotEmpty;
-    bool validUsername = data.username != null && data.username!.isNotEmpty;
+    bool validPhone =
+        data.phone != null &&
+        data.phone!.isNotEmpty &&
+        InputValidation.isPhoneValid(data.phone);
+    bool validEmail =
+        data.email != null &&
+        data.email!.isNotEmpty &&
+        InputValidation.isEmailValid(data.email);
+    bool validUsername =
+        data.username != null &&
+        data.username!.isNotEmpty &&
+        InputValidation.isUsernameValid(data.username);
     if (widget.name) {
       canCall =
           canCall &&
@@ -254,9 +263,16 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
     if (widget.username) {
       canCall = canCall && validUsername;
     }
-    canCall =
-        canCall &&
-        ((widget.phone && validPhone) || (widget.email && validEmail));
+
+    /// Special Case:
+    /// Do not force phone and email, accept either one if both are enabled
+    if (widget.phone && widget.email) {
+      canCall = canCall && (validPhone || validEmail);
+    } else if (widget.phone) {
+      canCall = canCall && validPhone;
+    } else if (widget.email) {
+      canCall = canCall && validEmail;
+    }
 
     const spacer = SizedBox(height: 16, width: 16);
     String title = locales.get(
@@ -291,9 +307,15 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
           assert(data.role.isNotEmpty, 'You must select a user role');
         }
         assert(
-          data.username != null || data.email != null || data.phone != null,
-          'username, email or phone must not be null',
+          data.email != null || data.phone != null,
+          'Email or Phone must not be null',
         );
+        if (widget.username) {
+          assert(
+            data.username != null && data.username!.isNotEmpty,
+            'Username must not be null or empty',
+          );
+        }
         await widget.onConfirm(data, group: widget.group);
         alertData(
           context: context,
@@ -313,6 +335,8 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       sending = false;
       if (mounted) setState(() {});
     }
+
+    final inputValidation = InputValidation(locales: locales);
 
     Widget phoneInput = SizedBox(
       width: double.maxFinite,
@@ -361,6 +385,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
         value: data.username,
         type: InputDataType.string,
         maxLength: 20,
+        validator: inputValidation.validateUsername,
         onChanged: (value) {
           error = null;
           data.username = value;
@@ -399,7 +424,6 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       },
       maxLength: 20,
     );
-    final inputValidation = InputValidation(locales: locales);
 
     Widget passwordInput = InputData(
       key: ValueKey('password-input'),
