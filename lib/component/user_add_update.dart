@@ -589,7 +589,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
         padding: const EdgeInsets.only(top: 16),
         child: Row(
           children: [
-            TextButton.icon(
+            FilledButton.tonalIcon(
               icon: const Icon(Icons.close),
               label: Text(
                 locales.get(widget.disabled ? 'label--done' : 'label--cancel'),
@@ -597,10 +597,6 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
               onPressed: () {
                 Navigator.pop(context, 'cancel');
               },
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.deepOrange,
-                iconColor: Colors.deepOrange,
-              ),
             ),
             const Spacer(),
             if (!widget.disabled)
