@@ -509,6 +509,9 @@ class _InputDataState extends State<InputData> {
     'en_US',
   ).addPattern(' - ').add_jm();
 
+  /// Formats time-only values for display inside read-only picker fields.
+  DateFormat formatTime = DateFormat.jm();
+
   /// Stores an internally generated prefix, such as the `+` used for phone fields.
   String? prefixText;
 
@@ -1273,7 +1276,6 @@ getValue -------------------------------------
         break;
       case InputDataType.time:
         TimeOfDay? time = value;
-        DateFormat formatTime = DateFormat.jm();
         String? dateString = time != null
             ? formatTime.format(DateTime(1, 1, 1, time.hour, time.minute))
             : null;

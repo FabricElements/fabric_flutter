@@ -1,5 +1,9 @@
 import 'package:fabric_flutter/component/input_data.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
+
+Widget _wrap(Widget child) => MaterialApp(home: Scaffold(body: child));
 
 void main() {
   group('parseValueByInputDataType', () {
@@ -80,6 +84,47 @@ void main() {
 
       // Assert
       expect(result, isNull);
+    });
+  });
+
+  group('InputData time field', () {
+    testWidgets('should render a selected time with the shared formatter', (
+      tester,
+    ) async {
+      // Arrange
+      const time = TimeOfDay(hour: 14, minute: 30);
+      final expected = DateFormat.jm().format(DateTime(1, 1, 1, 14, 30));
+
+      // Act
+      await tester.pumpWidget(
+        _wrap(const InputData(value: time, type: InputDataType.time)),
+      );
+      await tester.pumpAndSettle();
+
+      // Assert
+      expect(find.text(expected), findsOneWidget);
+    });
+
+    testWidgets('should dispose cleanly when removed from the tree', (
+      tester,
+    ) async {
+      // Arrange
+      await tester.pumpWidget(
+        _wrap(
+          const InputData(
+            value: TimeOfDay(hour: 9, minute: 0),
+            type: InputDataType.time,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Act
+      await tester.pumpWidget(_wrap(const SizedBox()));
+      await tester.pumpAndSettle();
+
+      // Assert
+      expect(tester.takeException(), isNull);
     });
   });
 }
