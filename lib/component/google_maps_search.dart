@@ -445,9 +445,7 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
                                   ),
                                   onTap: () {
                                     selectLocation(item);
-                                    FocusScope.of(
-                                      context,
-                                    ).requestFocus(FocusNode());
+                                    FocusScope.of(context).unfocus();
                                   },
                                 ),
                                 const Divider(height: 1),
