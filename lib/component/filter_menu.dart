@@ -12,6 +12,33 @@ import '../serialized/filter_data.dart';
 import 'input_data.dart';
 import 'popup_entry.dart';
 
+/// Operators offered for date and numeric filters, pre-sorted by name.
+///
+/// Built once at load so the popup editor does not rebuild and re-sort the list
+/// on every [build] pass.
+final List<FilterOperator> _filterOperatorDatesOrNumbers = <FilterOperator>[
+  FilterOperator.equal,
+  FilterOperator.notEqual,
+  FilterOperator.greaterThan,
+  FilterOperator.greaterThanOrEqual,
+  FilterOperator.lessThan,
+  FilterOperator.lessThanOrEqual,
+  FilterOperator.between,
+  FilterOperator.any,
+  FilterOperator.whereIn,
+]..sort((a, b) => a.name.compareTo(b.name));
+
+/// Operators offered for exact-match filters, pre-sorted by name.
+///
+/// Built once at load so the popup editor does not rebuild and re-sort the list
+/// on every [build] pass.
+final List<FilterOperator> _filterOperatorExact = <FilterOperator>[
+  FilterOperator.equal,
+  FilterOperator.notEqual,
+  FilterOperator.any,
+  FilterOperator.whereIn,
+]..sort((a, b) => a.name.compareTo(b.name));
+
 /// Shows editable controls for a single filter inside a popup surface.
 ///
 /// The widget works on a temporary [FilterData] copy so callers can cancel the
@@ -164,25 +191,8 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
     /// Define Dropdown options depending on the InputDataType
     // Ignore FilterOperator.sort
     late List<FilterOperator> dropdownOptions;
-    List<FilterOperator> filterOperatorDatesOrNumbers = [
-      FilterOperator.equal,
-      FilterOperator.notEqual,
-      FilterOperator.greaterThan,
-      FilterOperator.greaterThanOrEqual,
-      FilterOperator.lessThan,
-      FilterOperator.lessThanOrEqual,
-      FilterOperator.between,
-      FilterOperator.any,
-      FilterOperator.whereIn,
-    ];
-    filterOperatorDatesOrNumbers.sort((a, b) => a.name.compareTo(b.name));
-    List<FilterOperator> filterOperatorExact = [
-      FilterOperator.equal,
-      FilterOperator.notEqual,
-      FilterOperator.any,
-      FilterOperator.whereIn,
-    ];
-    filterOperatorExact.sort((a, b) => a.name.compareTo(b.name));
+    final filterOperatorDatesOrNumbers = _filterOperatorDatesOrNumbers;
+    final filterOperatorExact = _filterOperatorExact;
 
     switch (widget.data.type) {
       case InputDataType.email:
@@ -506,11 +516,9 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
 
   /// Refreshes the local snapshot when inherited or widget state changes.
   ///
-  /// The temporary reset forces dependent chip content to rebuild before the
-  /// latest [FilterData] is reassigned.
+  /// Copies the latest [FilterMenuOption.data] into the local mirror and
+  /// schedules a single rebuild.
   void _update() {
-    data = FilterData(id: widget.data.id);
-    if (mounted) setState(() {});
     data = widget.data;
     if (mounted) setState(() {});
   }
@@ -804,11 +812,9 @@ class _FilterMenuState extends State<FilterMenu> {
 
   /// Refreshes local state from the latest widget configuration.
   ///
-  /// The temporary reset forces dependent widgets to rebuild before the newest
-  /// [FilterMenu.data] list is reassigned.
+  /// Copies the latest [FilterMenu.data] list into the local mirror and
+  /// schedules a single rebuild.
   void _update() {
-    data = [];
-    if (mounted) setState(() {});
     data = widget.data;
     if (mounted) setState(() {});
   }
