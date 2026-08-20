@@ -65,6 +65,11 @@ class RegexHelper {
   /// Does **not** match uppercase letters, whitespace, underscores, dots, or
   /// any other punctuation.
   ///
+  /// Compare with [slug], which is the looser identifier pattern: [slug] allows
+  /// mixed case plus `-` and `_` and has no length bound. Use [username] for
+  /// account handles that must be canonical and length-checked; use [slug] for
+  /// URL or storage identifiers. The two are intentionally **not** merged.
+  ///
   /// Matches: `user123`. Does not match: `User_Name`.
   static final RegExp username = RegExp(r'^[a-z0-9]{3,30}$');
 
@@ -311,23 +316,42 @@ class RegexHelper {
   /// Matches a value composed entirely of slug-safe characters.
   ///
   /// Accepts ASCII letters in either case, digits, hyphens, and underscores
-  /// over the whole string.
+  /// over the whole string, with no length limit.
+  ///
+  /// Compare with [username], which is stricter: lowercase-only and bounded to
+  /// 3-30 characters. Use [slug] for URL and storage identifiers, and
+  /// [username] for account handles. The two are intentionally **not** merged.
   ///
   /// Does **not** match empty strings, spaces, dots, or slashes.
   ///
   /// Matches: `my-slug_1`. Does not match: `my slug`.
   static final RegExp slug = RegExp(r'^[A-Za-z0-9\-_]+$');
 
-  /// Matches every character that may not appear in a generated slug.
+  /// Matches every character that may not appear in a subdomain or slug.
   ///
-  /// Use it with `replaceAll` to sanitize already-lowercased text into a slug.
-  /// Because it is lowercase-only it also strips uppercase letters, so
+  /// This is the sanitizing complement to [slug]: use it with `replaceAll` to
+  /// strip illegal characters when generating a subdomain or slug from user
+  /// input. Because it is lowercase-only it also strips uppercase letters, so
   /// lowercase the input first.
   ///
   /// Does **not** match `a`-`z`, `0`-`9`, or `-`.
   ///
   /// Matches the space and `!` in `my slug!`. Does not match: `my-slug`.
-  static final RegExp nonSlug = RegExp(r'[^a-z0-9-]');
+  static final RegExp nonSubdomain = RegExp(r'[^a-z0-9-]');
+
+  /// Captures the path segment that follows a leading forward slash.
+  ///
+  /// Capture group 1 is everything after the `/` up to the first whitespace
+  /// character, which makes it useful for turning a route or path into a bare
+  /// identifier.
+  ///
+  /// Does **not** match a value that does not start with `/`, and it stops at
+  /// the first space rather than consuming a whole sentence. Use
+  /// [leadingSlash] instead when you only want to strip the slash.
+  ///
+  /// Matches `/settings/profile` capturing `settings/profile`.
+  /// Does not match: `settings/profile`.
+  static final RegExp slugAfterSlash = RegExp(r'^/([^\s]+)');
 
   /// Matches a single leading forward slash.
   ///

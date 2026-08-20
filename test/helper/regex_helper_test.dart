@@ -335,10 +335,10 @@ void main() {
     });
   });
 
-  group('RegexHelper.nonSlug', () {
+  group('RegexHelper.nonSubdomain', () {
     test('should sanitize lowercased text into a slug', () {
       // Arrange, Act
-      final result = 'my slug!'.replaceAll(RegexHelper.nonSlug, '-');
+      final result = 'my slug!'.replaceAll(RegexHelper.nonSubdomain, '-');
 
       // Assert
       expect(result, 'my-slug-');
@@ -518,6 +518,43 @@ void main() {
       // Act & Assert
       expect(RegexHelper.url.hasMatch(embedded), isTrue);
       expect(RegexHelper.urlStrict.hasMatch(embedded), isFalse);
+    });
+  });
+
+  group('RegexHelper.slugAfterSlash', () {
+    test('should capture the path segment after a leading slash', () {
+      // Arrange, Act
+      final match = RegexHelper.slugAfterSlash.firstMatch('/settings/profile');
+
+      // Assert
+      expect(match?.group(1), 'settings/profile');
+    });
+
+    test('should stop at the first whitespace character', () {
+      // Arrange, Act
+      final match = RegexHelper.slugAfterSlash.firstMatch('/settings profile');
+
+      // Assert
+      expect(match?.group(1), 'settings');
+    });
+
+    test('should not match a value without a leading slash', () {
+      // Arrange, Act & Assert
+      expect(RegexHelper.slugAfterSlash.hasMatch('settings'), isFalse);
+    });
+  });
+
+  group('RegexHelper.slug versus RegexHelper.username', () {
+    test('should keep the two identifier patterns distinct', () {
+      // Arrange
+      const mixedCase = 'My-Slug_1';
+      const shortHandle = 'ab';
+
+      // Act & Assert
+      expect(RegexHelper.slug.hasMatch(mixedCase), isTrue);
+      expect(RegexHelper.username.hasMatch(mixedCase), isFalse);
+      expect(RegexHelper.slug.hasMatch(shortHandle), isTrue);
+      expect(RegexHelper.username.hasMatch(shortHandle), isFalse);
     });
   });
 }
