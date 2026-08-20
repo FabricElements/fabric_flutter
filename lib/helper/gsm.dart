@@ -633,13 +633,15 @@ class GSM {
   /// blank lines are normalized so downstream SMS services receive cleaner text.
   static String toGSM(String? content) {
     if (content == null) return '';
-    String newContent = '';
+    final StringBuffer buffer = StringBuffer();
     for (int i = 0; i < content.length; i++) {
-      String character = content[i];
-      int charcode = character.codeUnitAt(0); // Define Char Code for letter.
-      String newCharacter = charMapToReplace[charcode]?['replace'] ?? character;
-      newContent += newCharacter;
+      final String character = content[i];
+      final int charcode = character.codeUnitAt(
+        0,
+      ); // Define Char Code for letter.
+      buffer.write(charMapToReplace[charcode]?['replace'] ?? character);
     }
+    String newContent = buffer.toString();
 
     /// 1. Remove U+2069 and formatting characters, BUT keep line breaks (\n)
     /// We use a "lookahead" or specific exclusion to ensure \n and \r survive
