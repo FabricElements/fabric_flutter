@@ -305,13 +305,15 @@ await AgentBridgeServer.start(
 // In-process — `AgentInProcessTransport.start(...)` for tests and embedding.
 ```
 
-The bridge implements **no login, token minting, or refresh**. An agent obtains a normal OAuth 2.0 access token through the host's existing flow and presents it in the reserved **`params.auth`** field of the request envelope (the `Bearer ` prefix is optional); the native transport also accepts an `Authorization` header or a `?token=` query parameter and normalizes it into the same field. The host supplies the verification callback:
+The bridge implements **no login, token minting, refresh, or consent UI**. An agent obtains an access token from *your* OAuth 2.0 authorization server and presents it in the reserved **`params.auth`** field of the request envelope (the `Bearer ` prefix is optional); the native transport also accepts an `Authorization` header or a `?token=` query parameter and normalizes it into the same field. The host supplies the verification callback:
 
 ```dart
 typedef AgentTokenVerifier = FutureOr<AgentPrincipal?> Function(String token);
 ```
 
 `AgentTokenAuthorizer` resolves the token through a short-lived cache, denies with `unauthorized` when it is missing, invalid, or expired, enforces `AgentCommand.requiresRole` against the principal's role and groups, and forwards the principal to handlers via `AgentCommandContext.meta`. `describe`/`ping` and `state` are gated independently (`requireAuthenticationForDiscovery`, `requireAuthenticationForState`, both `true` by default).
+
+On the web the transport is a property on `window`, so **any script in the page can call it**. The exposure is bounded by three facts, all covered by tests: the property exists only after a successful `start(...)` (a build that never starts the bridge has none at all), `stop()` deletes it, and with the defaults an unauthenticated caller is refused on **every** method — `ping`, `describe`, `state`, and `invoke` all answer `unauthorized` and disclose neither the command catalog, the route list, nor any on-screen value. See the threat model and web exposure model in the protocol document before shipping a web build.
 
 Defaults are deliberately restrictive: the bridge is disabled until enabled, binds to `127.0.0.1:8757`, rejects requests over 64 KiB, allows 4 concurrent connections, and rate-limits each principal to 60 requests per minute. Starting a transport throws when the bridge is disabled, and throws when no verifier is supplied while the bridge still carries the permissive default authorizer — so on the web `window.fabricAgentBridge` is never installed by a build that did not deliberately opt in.
 

@@ -168,6 +168,65 @@ void main() {
         expect(response['error']['code'], 'disabled');
         expect(response['id'], '4');
       });
+
+      test('should refuse every method to an unauthenticated caller', () async {
+        // Arrange — the defaults a web build ships with, where any script on
+        // the page can call the binding.
+        final transport = await AgentInProcessTransport.start(
+          bridge: _bridge(),
+          verifier: _verify,
+        );
+
+        // Act — no token at all, across the whole method surface.
+        final responses = <String, Map<String, dynamic>>{
+          for (final method in <String>['ping', 'describe', 'state', 'invoke'])
+            method: await transport.send(<String, dynamic>{
+              'id': method,
+              'method': method,
+              'params': <String, dynamic>{'commandId': 'echo'},
+            }),
+        };
+
+        // Assert — nothing is enumerable: no capability catalog, no route
+        // list, no on-screen values, no execution.
+        for (final entry in responses.entries) {
+          expect(entry.value['ok'], isFalse, reason: entry.key);
+          expect(
+            entry.value['error']['code'],
+            'unauthorized',
+            reason: entry.key,
+          );
+          expect(entry.value['result'], isNull, reason: entry.key);
+        }
+        expect(jsonEncode(responses), isNot(contains('echo')));
+        expect(jsonEncode(responses), isNot(contains('Fabric')));
+        await transport.stop();
+      });
+
+      test('should allow discovery only when the host opts in', () async {
+        // Arrange
+        final transport = await AgentInProcessTransport.start(
+          bridge: _bridge(),
+          verifier: _verify,
+          requireAuthenticationForDiscovery: false,
+        );
+
+        // Act
+        final describe = await transport.send(<String, dynamic>{
+          'id': '1',
+          'method': 'describe',
+        });
+        final state = await transport.send(<String, dynamic>{
+          'id': '2',
+          'method': 'state',
+        });
+
+        // Assert — discovery opens, but state and execution stay closed.
+        expect(describe['ok'], isTrue);
+        expect(state['ok'], isFalse);
+        expect(state['error']['code'], 'unauthorized');
+        await transport.stop();
+      });
     });
 
     group('sendJson', () {

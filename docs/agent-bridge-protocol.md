@@ -107,10 +107,13 @@ credential, so one connection can act for several principals.
 
 ### Where the token comes from
 
-The bridge implements **no** login, token minting, or refresh. An agent obtains
-a normal OAuth 2.0 access token through the host's existing authorization-code
-flow (consent screen, `POST /auth/token`, refresh token) and presents it here.
-The application verifies it by supplying an `AgentTokenVerifier`:
+The bridge implements **no** login, token minting, refresh, or consent UI. An
+agent obtains an access token from **your** OAuth 2.0 authorization server —
+whatever authorization-code flow, consent screen, and token endpoint you already
+run — and presents it here. The bridge never sees the authorization code, the
+refresh token, or the user's credentials; it only ever sees the access token the
+caller chose to send. The application verifies it by supplying an
+`AgentTokenVerifier`:
 
 ```dart
 typedef AgentTokenVerifier = FutureOr<AgentPrincipal?> Function(String token);
@@ -152,7 +155,7 @@ On approval the principal is forwarded to the command handler through
 and `groups`.
 
 > Client-side role checks are a UX and blast-radius control. Authorization is
-> still enforced server-side by Firestore rules and Cloud Functions.
+> still enforced server-side by your security rules and backend functions.
 
 ---
 
@@ -167,6 +170,77 @@ and `groups`.
 | Max connections | 4 | `AgentBridgeServerOptions.maxConnections`. |
 | Rate limit | 60 requests / minute | `maxRequestsPerWindow`, `rateLimitWindow`; bucketed per principal, or per connection when anonymous. |
 | Command timeout | 30 s | `AgentBridge.configure(commandTimeout: …)`, per request `params.timeoutMs`. |
+
+### Threat model
+
+**The token is the only thing standing between a process that can reach the
+transport and full control of the application.** An authenticated caller can
+read every on-screen value, set every input, press every button, and navigate
+anywhere — that is the entire point of the bridge. Treat an agent access token
+with exactly the care you would treat the user's session.
+
+* **The default bind is loopback-only (`127.0.0.1`), and it should stay that
+  way.** Binding `0.0.0.0` publishes the control surface to every host on the
+  network — a coffee-shop Wi-Fi, a shared CI runner, a container network — with
+  no TLS and no origin check, so a bearer token becomes sniffable and replayable
+  and anyone who reaches the port can attempt commands. If an agent runs on
+  another machine, tunnel to loopback (SSH, a VPN, the platform's port
+  forwarding) rather than widening the bind.
+* **`enabled` belongs behind a remote flag, not a compile-time constant.**
+  Shipping it hardcoded to `true` means the only way to turn a misbehaving or
+  compromised bridge off is a store release. Read it from your remote config so
+  it can be revoked in minutes, per user, per version, or globally.
+* **The verifier is your revocation point.** Principals are cached for five
+  minutes by default, so a revoked token stops working within that window;
+  shorten `AgentPrincipalResolver.cacheTtl`, or call `invalidate`, when you need
+  it to be immediate.
+* **Client-side role checks are a UX and blast-radius control, not a security
+  boundary.** Authorization is still enforced server-side by your security rules
+  and backend functions, exactly as it is for a human user. A command that an
+  agent should not be able to run must also be refused by the backend.
+* **Audit is not a security control on its own.** Records are emitted to the
+  sink the host injects, in-process; a caller who compromises the app can
+  suppress them. They are for after-the-fact accountability.
+* **Known, accepted leak:** `invoke` with an unknown command answers `not_found`
+  before authorization runs, so an unauthenticated caller can distinguish an
+  existing command identifier from a non-existent one by guessing. It reveals
+  nothing about parameters, roles, or state, and no command executes, but it is
+  an enumeration oracle if command identifiers are themselves sensitive.
+
+### Web exposure model
+
+On the web the transport is a property on `window`, so **any script running in
+the page — including a third-party tag or an injected extension — can call it**.
+There is no origin check, because a same-page caller has no origin to check.
+The exposure is therefore bounded entirely by the following three facts, all
+covered by tests:
+
+1. **The binding exists only after a successful
+   `AgentBridgeServer.start(...)`.** It is installed at the end of `start`, and
+   `start` throws when the bridge is disabled or when no authentication gate is
+   in place. A build that never starts the bridge has **no
+   `window.fabricAgentBridge` property at all** — nothing to discover, nothing
+   to call.
+2. **With the defaults (`requireAuth: true`,
+   `requireAuthenticationForDiscovery: true`, `requireAuthenticationForState:
+   true`), an unauthenticated caller is refused on _every_ method** — `ping`,
+   `describe`, `state`, and `invoke` all answer `unauthorized`, carry no
+   `result`, and disclose neither the command catalog, the parameter schemas,
+   the `requiresRole` values, the route list, the application name, nor any
+   on-screen value. A page script without a token cannot perform reconnaissance,
+   only observe that the bridge exists. Setting
+   `requireAuthenticationForDiscovery: false` deliberately opens `ping` and
+   `describe` — and therefore the full capability catalog — to anything on the
+   page; do it only when an agent genuinely must discover the application before
+   the user has consented.
+3. **`stop()` removes the property** (`delete window.fabricAgentBridge`), so a
+   host can withdraw the surface at sign-out, on losing a feature flag, or when
+   backgrounding, without reloading the page.
+
+Because the token is readable by whatever script holds it, a hostile script that
+can already read the page's storage can act as that principal. On the web, prefer
+short-lived tokens, keep `requireAuthenticationForDiscovery` at its default, and
+start the bridge only for the sessions that need it.
 
 ---
 
@@ -252,7 +326,8 @@ const response = await window.fabricAgentBridge({
 ```
 
 A page cannot listen on a socket, so the transport is inverted: the bridge
-installs a callable property on `window` (renamed with
+installs a callable property on `window` — reachable by any script in the page,
+so read the web exposure model in §5 before shipping one (renamed with
 `AgentBridgeServerOptions.jsBindingName`) that Playwright, Puppeteer, a CDP
 client, an extension, or the console can call. It accepts a JavaScript object or
 a JSON string, always resolves, and resolves with a plain object.
@@ -279,7 +354,7 @@ Built-in commands: `navigate`, `set_value`, `tap`, `read_value`, `wait_for`,
 ```dart
 AgentBridge.instance.configure(
   enabled: true,
-  appName: 'Furcata',
+  appName: 'My App',
   appVersion: packageInfo.version,
   routes: myRoutes,
 );
