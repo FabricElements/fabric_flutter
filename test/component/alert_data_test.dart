@@ -136,6 +136,27 @@ void main() {
       expect(resolved, isNotNull);
       expect(resolved, same(AppGlobal.navigatorKey.currentContext));
     });
+
+    testWidgets('should fall back to the root context when the supplied '
+        'context is unmounted', (tester) async {
+      // Arrange — capture a context, then rebuild without the probe so the
+      // element backing it is disposed. This is the case layer 1 left untested
+      // at the alertContext level: an unmounted caller context previously made
+      // the alert silently vanish instead of falling back to the root.
+      final captured = <BuildContext>[];
+      await tester.pumpWidget(_wiredApp(child: _ContextProbe(captured)));
+      final staleContext = captured.first;
+      await tester.pumpWidget(_wiredApp());
+      expect(staleContext.mounted, isFalse);
+
+      // Act
+      final resolved = alertContext(staleContext);
+
+      // Assert — resolves to the root rather than the dead context or null
+      expect(resolved, isNotNull);
+      expect(resolved, same(AppGlobal.navigatorKey.currentContext));
+      expect(resolved, isNot(same(staleContext)));
+    });
   });
 
   group('dismissAlerts', () {
