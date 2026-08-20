@@ -22,7 +22,7 @@ import 'input_data.dart';
 ///   },
 /// );
 /// ```
-class LanguagePicker extends StatelessWidget {
+class LanguagePicker extends StatefulWidget {
   /// Creates a language picker wired to the shared [InputData] dropdown UI.
   ///
   /// The picker keeps widget code focused on storing the selected ISO code while
@@ -74,22 +74,33 @@ class LanguagePicker extends StatelessWidget {
   /// readable in review-only states.
   final bool disabled;
 
-  /// Builds the localized dropdown and keeps the option list in sync with [voice].
-  ///
-  /// The widget converts each [ISOLanguage] entry into a [ButtonOptions] item so
-  /// [InputData] can render a localized dropdown with consistent package styling.
+  /// Creates the mutable state that memoizes the language options.
   @override
-  Widget build(BuildContext context) {
-    final locales = AppLocalizations.of(context);
+  State<LanguagePicker> createState() => _LanguagePickerState();
+}
+
+/// Holds the pre-built dropdown options for [LanguagePicker].
+///
+/// The option list is derived from the bundled ISO dataset once in
+/// [initState] instead of on every build, because it depends only on the
+/// immutable [LanguagePicker.voice] flag.
+class _LanguagePickerState extends State<LanguagePicker> {
+  /// Caches the dropdown options built from the ISO language dataset.
+  late final List<ButtonOptions> _options;
+
+  /// Builds the language options once from the bundled ISO dataset.
+  @override
+  void initState() {
+    super.initState();
     List<ISOLanguage> items = ISOLanguages.languages;
-    if (voice) {
+    if (widget.voice) {
       // Filter available voices by those available on WaveNet
       items = items.where((element) {
         return ISOLanguages.waveNetLanguages.contains(element.alpha2);
       }).toList();
     }
     // List of iso's corresponding to the text widgets
-    List<ButtonOptions> options = List.generate(items.length, (index) {
+    _options = List.generate(items.length, (index) {
       final item = items[index];
       return ButtonOptions(
         label: '${item.emoji} ${item.name} (${item.alpha2})',
@@ -97,19 +108,28 @@ class LanguagePicker extends StatelessWidget {
         value: item.alpha2,
       );
     });
+  }
+
+  /// Builds the localized dropdown using the pre-built [_options].
+  ///
+  /// The widget forwards changes to [LanguagePicker.onChange] while resolving
+  /// labels through [BuildContext].
+  @override
+  Widget build(BuildContext context) {
+    final locales = AppLocalizations.of(context);
     return InputData(
       prefixIcon: const Icon(Icons.language),
-      label: label ?? locales.get('label--language'),
+      label: widget.label ?? locales.get('label--language'),
       hintText:
-          hintText ??
+          widget.hintText ??
           locales.get('label--choose-label', {
             'label': locales.get('label--language'),
           }),
-      value: value,
+      value: widget.value,
       type: InputDataType.dropdown,
-      options: options,
-      onChanged: (dynamic value) => onChange(value as String?),
-      disabled: disabled,
+      options: _options,
+      onChanged: (dynamic value) => widget.onChange(value as String?),
+      disabled: widget.disabled,
     );
   }
 }
