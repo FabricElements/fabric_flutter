@@ -156,6 +156,19 @@ double _widthColumn = 350;
 /// Keeping the expansion behavior in state allows the widget to toggle nested
 /// tables in place without requiring external controllers.
 class _ExpansionTableState extends State<ExpansionTable> {
+  /// Controls horizontal scrolling for the root table.
+  ///
+  /// Created once and disposed with the state so the controller is not
+  /// reallocated (and leaked) on every [build] pass.
+  final ScrollController _controllerHorizontal = ScrollController();
+
+  /// Releases the horizontal scroll controller when the widget is removed.
+  @override
+  void dispose() {
+    _controllerHorizontal.dispose();
+    super.dispose();
+  }
+
   /// Builds the current table level for the given [BuildContext].
   ///
   /// Root tables render headers and horizontal scrolling, while nested tables
@@ -172,7 +185,6 @@ class _ExpansionTableState extends State<ExpansionTable> {
       width:
           widget.dividerThickness ?? theme.dataTableTheme.dividerThickness ?? 1,
     );
-    ScrollController controllerHorizontal = ScrollController();
     final List<TableColumnWidth> tableColumns = List<TableColumnWidth>.filled(
       data.header!.length,
       const FixedColumnWidth(300.0),
@@ -436,9 +448,9 @@ class _ExpansionTableState extends State<ExpansionTable> {
           thumbVisibility: true,
           interactive: true,
           trackVisibility: true,
-          controller: controllerHorizontal,
+          controller: _controllerHorizontal,
           child: SingleChildScrollView(
-            controller: controllerHorizontal,
+            controller: _controllerHorizontal,
             scrollDirection: Axis.horizontal,
             primary: false,
             child: Flex(
