@@ -14,6 +14,53 @@ import 'alert_data.dart';
 import 'content_container.dart';
 import 'input_data.dart';
 
+/// Removes digits and punctuation that are not allowed in profile names.
+///
+/// Declared at file scope so the name field's per-keystroke sanitizer reuses a
+/// single compiled pattern instead of rebuilding it on every change.
+final RegExp _nameSanitizeExp = RegExp(r'[0-9!@#$%^*()_+={}<>~]');
+
+/// Immutable description of which avatar preview to display.
+///
+/// [signature] captures the inputs that produced the preview so callers can
+/// avoid re-resolving (and re-allocating an [ImageProvider]) while nothing has
+/// changed. [url] is the cache-busted network URL when the preview is remote.
+class AvatarPreviewData {
+  /// Creates a preview descriptor with a memoization [signature].
+  const AvatarPreviewData({required this.signature, this.url});
+
+  /// Identifies the inputs that produced this preview.
+  final String signature;
+
+  /// Provides the cache-busted network URL, or `null` for non-remote previews.
+  final String? url;
+}
+
+/// Derives the avatar preview [AvatarPreviewData] for the given inputs.
+///
+/// Staged local bytes win over a persisted remote image, which in turn wins
+/// over the fallback. [temporalBytesId] should identify the staged byte buffer
+/// (for example via [identityHashCode]) so a new selection changes the
+/// signature, and [updatedSeconds] cache-busts the remote URL.
+AvatarPreviewData resolveAvatarPreview({
+  required bool hasTemporalBytes,
+  int? temporalBytesId,
+  String? userImage,
+  String? updatedSeconds,
+}) {
+  if (hasTemporalBytes) {
+    return AvatarPreviewData(signature: 'mem:${temporalBytesId ?? 0}');
+  }
+  if (userImage != null) {
+    final t = updatedSeconds ?? '';
+    return AvatarPreviewData(
+      signature: 'net:$userImage:$t',
+      url: '$userImage?size=medium&t=$t',
+    );
+  }
+  return const AvatarPreviewData(signature: 'default');
+}
+
 /// Builds a profile editor for the authenticated user.
 ///
 /// The widget stores staged name changes and avatar bytes locally so the wider
@@ -98,11 +145,11 @@ class _ProfileEditState extends State<ProfileEdit> {
   /// record during this widget lifecycle.
   String? nameLast;
 
-  /// Stores the cache-busted avatar URL used for preview refreshes.
+  /// Caches the inputs that produced the current [previewImage].
   ///
-  /// Appending the user's updated timestamp helps force a fresh network image
-  /// whenever the avatar changes remotely.
-  String? _avatarFinalUrl;
+  /// The avatar preview is only re-resolved when this signature changes, which
+  /// keeps [build] from allocating a new [ImageProvider] on every pass.
+  String? _previewSignature;
 
   /// Initializes the editor with default loading, change, and avatar values.
   ///
@@ -138,19 +185,38 @@ class _ProfileEditState extends State<ProfileEdit> {
     ///
     /// The helper prefers local image bytes, then a cache-busted network URL,
     /// and finally falls back to [defaultImage] when no preview can be derived.
+    /// The resolved provider is memoized through [_previewSignature] so repeated
+    /// build passes reuse the existing [ImageProvider] instead of allocating a
+    /// new one each time.
     void refreshImage() {
-      _avatarFinalUrl = null;
+      String userLastUpdate = '';
+      try {
+        if (userImage != null && stateUser.data['updated'] != null) {
+          userLastUpdate = (stateUser.data['updated'] as Timestamp).seconds
+              .toString();
+        }
+      } catch (error) {
+        debugPrint(LogColor.error(error));
+      }
+      final preview = resolveAvatarPreview(
+        hasTemporalBytes: _temporalImageBytes != null,
+        temporalBytesId: _temporalImageBytes != null
+            ? identityHashCode(_temporalImageBytes)
+            : null,
+        userImage: userImage,
+        updatedSeconds: userLastUpdate,
+      );
+      if (preview.signature == _previewSignature && previewImage != null) {
+        return;
+      }
+      _previewSignature = preview.signature;
       try {
         if (_temporalImageBytes != null) {
           previewImage = MemoryImage(_temporalImageBytes!);
           return;
         }
-        if (userImage != null) {
-          String userLastUpdate = stateUser.data['updated'] != null
-              ? (stateUser.data['updated'] as Timestamp).seconds.toString()
-              : '';
-          _avatarFinalUrl = '$userImage?size=medium&t=$userLastUpdate';
-          previewImage = NetworkImage(_avatarFinalUrl!);
+        if (preview.url != null) {
+          previewImage = NetworkImage(preview.url!);
           return;
         }
       } catch (error) {
@@ -374,7 +440,7 @@ class _ProfileEditState extends State<ProfileEdit> {
             label: locales.get('label--first-name'),
             onChanged: (newValue) {
               String value = newValue?.toString() ?? '';
-              value = value.replaceAll(RegExp(r'[0-9!@#$%^*()_+={}<>~]'), '');
+              value = value.replaceAll(_nameSanitizeExp, '');
               if (stateUser.serialized.firstName == value) return;
               nameFirst = value;
               changed = true;
@@ -394,7 +460,7 @@ class _ProfileEditState extends State<ProfileEdit> {
             label: locales.get('label--last-name'),
             onChanged: (newValue) {
               String value = newValue?.toString() ?? '';
-              value = value.replaceAll(RegExp(r'[0-9!@#$%^*()_+={}<>~]'), '');
+              value = value.replaceAll(_nameSanitizeExp, '');
               if (stateUser.serialized.lastName == value) return;
               nameLast = value;
               changed = true;
