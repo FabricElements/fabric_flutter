@@ -3,6 +3,12 @@ import 'package:intl/intl.dart';
 
 import '../helper/iso_language.dart';
 
+/// Formats the optional total count shown beside the language code.
+///
+/// Hoisted to file scope so [FlagChip] reuses a single formatter instead of
+/// constructing a new [NumberFormat] on every rebuild.
+final NumberFormat _flagChipDecimalFormat = NumberFormat.decimalPattern();
+
 /// Displays a compact chip for a language, optionally with a total count.
 ///
 /// The chip pairs an ISO language code with either its matching emoji flag or a
@@ -46,7 +52,6 @@ class FlagChip extends StatelessWidget {
   /// scan across locales and analytics-heavy interfaces.
   @override
   Widget build(BuildContext context) {
-    final NumberFormat formatDecimal = NumberFormat.decimalPattern();
     final theme = Theme.of(context);
     List<Widget> items = [];
     late Widget icon;
@@ -65,7 +70,7 @@ class FlagChip extends StatelessWidget {
     if (total != null) {
       items.add(
         Text(
-          formatDecimal.format(total),
+          _flagChipDecimalFormat.format(total),
           style: TextStyle(
             color: theme.colorScheme.primary,
             fontWeight: FontWeight.bold,
