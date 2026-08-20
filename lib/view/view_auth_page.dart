@@ -145,7 +145,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
     Future<void> resetView() async {
       loading = true;
       // Close Keyboard
-      FocusScope.of(context).requestFocus(FocusNode());
+      FocusScope.of(context).unfocus();
       state.clear();
       await Future.delayed(const Duration(seconds: 1));
       loading = false;

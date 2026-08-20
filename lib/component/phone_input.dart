@@ -9,6 +9,18 @@ import '../helper/options.dart';
 import '../serialized/iso_data.dart';
 import 'input_data.dart';
 
+/// Matches whitespace and phone grouping punctuation stripped from raw input.
+///
+/// Hoisted to file scope so the phone field's input formatters reuse a single
+/// compiled pattern instead of recompiling it on every [State.build].
+final RegExp _denyFormattingRegex = RegExp(r'[\s()-+]');
+
+/// Matches the digit characters permitted in the national number field.
+///
+/// Hoisted to file scope so the phone field's input formatters reuse a single
+/// compiled pattern instead of recompiling it on every [State.build].
+final RegExp _allowDigitsRegex = RegExp(r'[\d{0,15}]');
+
 /// Collects a phone number by separating country selection from the national
 /// number entry field.
 ///
@@ -403,8 +415,8 @@ class _PhoneInputState extends State<PhoneInput> {
       },
       validator: inputValidation.validatePhone,
       inputFormatters: [
-        FilteringTextInputFormatter.deny(RegExp(r'[\s()-+]')),
-        FilteringTextInputFormatter.allow(RegExp(r'[\d{0,15}]')),
+        FilteringTextInputFormatter.deny(_denyFormattingRegex),
+        FilteringTextInputFormatter.allow(_allowDigitsRegex),
         FilteringTextInputFormatter.singleLineFormatter,
       ],
       maxLength: 10,
