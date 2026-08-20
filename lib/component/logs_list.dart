@@ -61,6 +61,12 @@ class LogsList extends StatelessWidget {
   /// time the list renders.
   static final RegExp _placeholderExp = RegExp(r'{.*?}', multiLine: true);
 
+  /// Formats each entry's timestamp as a localized date and time.
+  ///
+  /// Created once and shared across builds so the formatter is not rebuilt for
+  /// every log row on every render.
+  static final DateFormat _timestampFormat = DateFormat.yMd().add_jm();
+
   /// Builds the log list for the current [BuildContext].
   ///
   /// Returns an empty [SizedBox] when [logs] is `null` or empty so parents can
@@ -89,7 +95,7 @@ class LogsList extends StatelessWidget {
       final timestampWidget = Padding(
         padding: const EdgeInsets.only(bottom: 4.0),
         child: Text(
-          DateFormat.yMd().add_jm().format(timestamp),
+          _timestampFormat.format(timestamp),
           style: textTheme.bodySmall,
         ),
       );
