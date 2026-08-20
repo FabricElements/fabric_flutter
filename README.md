@@ -77,12 +77,16 @@ lib/
 │   ├── agent_*.dart            # Agent bridge protocol models (request, response, command, element, ...)
 │   ├── media_data.dart, logs_data.dart, filter_data.dart, ... (every model has a .g.dart twin)
 ├── helper/             # Stateless utilities / repository-style helpers
-│   ├── agent/                  # Agent bridge core (transport-agnostic, opt-in, no auth)
+│   ├── agent/                  # Agent bridge (opt-in, disabled by default)
 │   │   ├── agent_bridge.dart       # AgentBridge: configure + handle(Map) -> Map dispatcher
 │   │   ├── agent_registry.dart     # Capability registry of AgentCommand
 │   │   ├── agent_element_index.dart, agent_element_binding.dart  # Live element index
 │   │   ├── agent_builtin_commands.dart  # navigate, set_value, tap, read_value, wait_for, ...
-│   │   └── agent_authorizer.dart   # Seam where authentication and role checks plug in
+│   │   ├── agent_authorizer.dart   # Seam where authentication and role checks plug in
+│   │   ├── agent_token_authorizer.dart, agent_principal_resolver.dart  # Bearer token + role gate
+│   │   ├── agent_dispatcher.dart, agent_rate_limiter.dart  # Size cap, rate limit, attribution
+│   │   ├── agent_audit.dart        # Redacting audit log routed to an injectable sink
+│   │   └── agent_transport.dart, agent_bridge_server*.dart  # In-process, native, and web transports
 │   ├── http_request.dart       # HTTP networking (AuthScheme, request helpers over package:http)
 │   ├── firestore_helper.dart   # Firestore utilities (Timestamp conversions)
 │   ├── auth_service.dart       # Injectable auth seam (AuthService / FirebaseAuthService)
@@ -283,7 +287,39 @@ MaterialApp(
 );
 ```
 
-Authentication and per-command role checks are **not** part of this layer. They plug in through `AgentAuthorizer`, which receives every request and the resolved command — including its `requiresRole` — and may attach `meta` (for example the resolved principal) that is forwarded to the handler as `AgentCommandContext.meta`.
+Authentication and per-command role checks are **not** part of the dispatcher. They plug in through `AgentAuthorizer`, which receives every request and the resolved command — including its `requiresRole` — and may attach `meta` (for example the resolved principal) that is forwarded to the handler as `AgentCommandContext.meta`.
+
+#### Transports, authentication, and audit
+
+Starting a transport is the second (and only other) opt-in step. All three transports share one entry point shape and funnel through the same dispatcher, so none of them can widen the attack surface:
+
+```dart
+// Native (desktop, mobile) — WebSocket and POST on one loopback port.
+await AgentBridgeServer.start(
+  options: const AgentBridgeServerOptions(port: 8757),
+  verifier: (token) async => myBackend.principalFor(token),
+  auditSink: (record) => myAuditCollection.add(record.toJson()),
+);
+
+// Web — installs a callable `window.fabricAgentBridge(request)`.
+// In-process — `AgentInProcessTransport.start(...)` for tests and embedding.
+```
+
+The bridge implements **no login, token minting, refresh, or consent UI**. An agent obtains an access token from *your* OAuth 2.0 authorization server and presents it in the reserved **`params.auth`** field of the request envelope (the `Bearer ` prefix is optional); the native transport also accepts an `Authorization` header or a `?token=` query parameter and normalizes it into the same field. The host supplies the verification callback:
+
+```dart
+typedef AgentTokenVerifier = FutureOr<AgentPrincipal?> Function(String token);
+```
+
+`AgentTokenAuthorizer` resolves the token through a short-lived cache, denies with `unauthorized` when it is missing, invalid, or expired, enforces `AgentCommand.requiresRole` against the principal's role and groups, and forwards the principal to handlers via `AgentCommandContext.meta`. `describe`/`ping` and `state` are gated independently (`requireAuthenticationForDiscovery`, `requireAuthenticationForState`, both `true` by default).
+
+On the web the transport is a property on `window`, so **any script in the page can call it**. The exposure is bounded by three facts, all covered by tests: the property exists only after a successful `start(...)` (a build that never starts the bridge has none at all), `stop()` deletes it, and with the defaults an unauthenticated caller is refused on **every** method — `ping`, `describe`, `state`, and `invoke` all answer `unauthorized` and disclose neither the command catalog, the route list, nor any on-screen value. See the threat model and web exposure model in the protocol document before shipping a web build.
+
+Defaults are deliberately restrictive: the bridge is disabled until enabled, binds to `127.0.0.1:8757`, rejects requests over 64 KiB, allows 4 concurrent connections, and rate-limits each principal to 60 requests per minute. Starting a transport throws when the bridge is disabled, and throws when no verifier is supplied while the bridge still carries the permissive default authorizer — so on the web `window.fabricAgentBridge` is never installed by a build that did not deliberately opt in.
+
+Every `invoke` emits one `AgentAuditRecord` (timestamp, request id, principal id, command id, outcome, duration, transport, and a **redacted** parameter summary) to the injected sink. Parameter *values* are never recorded — only a type and size summary — and credential-shaped keys are replaced by `<redacted>` with no size, so not even a token's length leaks.
+
+The full wire protocol, envelope, error taxonomy, safety table, and audit shape are documented in [`docs/agent-bridge-protocol.md`](docs/agent-bridge-protocol.md).
 
 ### Voice dictation (`VoiceDictationButton`)
 
