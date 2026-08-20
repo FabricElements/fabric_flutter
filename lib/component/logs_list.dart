@@ -55,6 +55,12 @@ class LogsList extends StatelessWidget {
   /// Provides the [EdgeInsetsGeometry] applied around the entire list.
   final EdgeInsetsGeometry margin;
 
+  /// Matches `{placeholder}` markers used to highlight inline log segments.
+  ///
+  /// Compiled once and shared across builds so the pattern is not rebuilt every
+  /// time the list renders.
+  static final RegExp _placeholderExp = RegExp(r'{.*?}', multiLine: true);
+
   /// Builds the log list for the current [BuildContext].
   ///
   /// Returns an empty [SizedBox] when [logs] is `null` or empty so parents can
@@ -65,7 +71,6 @@ class LogsList extends StatelessWidget {
     final textTheme = theme.textTheme;
     Widget container = const SizedBox(height: 0);
     if (logs == null || logs!.isEmpty) return container;
-    RegExp regExp = RegExp(r'{.*?}', multiLine: true);
 
     Widget getItem(LogsData item) {
       DateTime? timestamp = item.timestamp ?? DateTime.now();
@@ -80,7 +85,7 @@ class LogsList extends StatelessWidget {
         color: highlightColor ?? textThemeBase.color ?? Colors.black,
         fontWeight: FontWeight.w600,
       );
-      Iterable matches = regExp.allMatches(text);
+      Iterable matches = _placeholderExp.allMatches(text);
       final timestampWidget = Padding(
         padding: const EdgeInsets.only(bottom: 4.0),
         child: Text(

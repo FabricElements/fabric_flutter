@@ -38,6 +38,12 @@ class SectionTitle extends StatelessWidget {
   /// Overrides the default text style used for [description].
   final TextStyle? descriptionStyle;
 
+  /// Matches `{emphasis}` markers used to highlight inline segments.
+  ///
+  /// Compiled once and shared across builds so the pattern is not rebuilt every
+  /// time the widget renders.
+  static final RegExp _emphasisExp = RegExp(r'{.*?}', multiLine: true);
+
   /// Builds the section title and highlights any marked important segments.
   ///
   /// The widget keeps its bottom safe-area inset disabled because it is commonly
@@ -50,8 +56,6 @@ class SectionTitle extends StatelessWidget {
     TextStyle? defaultDescriptionStyle =
         descriptionStyle ?? textTheme.bodyMedium;
 
-    RegExp regExp = RegExp(r'{.*?}', multiLine: true);
-
     /// Converts brace-delimited fragments into highlighted [TextSpan] segments.
     ///
     /// Underscores are replaced with spaces so lightweight content templates can
@@ -60,7 +64,7 @@ class SectionTitle extends StatelessWidget {
       List<TextSpan> text = [];
       String textFinal = textConvert;
       int? initialHelper = 0;
-      Iterable matches = regExp.allMatches(textFinal);
+      Iterable matches = _emphasisExp.allMatches(textFinal);
       if (matches.isNotEmpty) {
         for (var match in matches) {
           if (match.start > initialHelper) {
