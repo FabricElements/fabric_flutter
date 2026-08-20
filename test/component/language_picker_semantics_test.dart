@@ -32,11 +32,7 @@ void main() {
         // Act
         await _pump(
           tester,
-          LanguagePicker(
-            value: 'en',
-            onChange: (_) {},
-            semanticsLabel: label,
-          ),
+          LanguagePicker(value: 'en', onChange: (_) {}, semanticsLabel: label),
         );
 
         // Assert

@@ -52,16 +52,19 @@ void main() {
         expect(result.scale(10), 10 * 1.4);
       });
 
-      test('should pass a value already inside the range through unchanged', () {
-        // Arrange
-        const scaler = TextScaler.linear(1.2);
+      test(
+        'should pass a value already inside the range through unchanged',
+        () {
+          // Arrange
+          const scaler = TextScaler.linear(1.2);
 
-        // Act
-        final result = clampedTextScaler(scaler, min: 1.0, max: 1.4);
+          // Act
+          final result = clampedTextScaler(scaler, min: 1.0, max: 1.4);
 
-        // Assert
-        expect(result.scale(10), closeTo(12, 0.0001));
-      });
+          // Assert
+          expect(result.scale(10), closeTo(12, 0.0001));
+        },
+      );
     });
 
     group('null bounds', () {

@@ -9,10 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// Routing through [Navigator] is required because [ViewHero] reads its media
 /// URL from [ModalRoute.of], so a bare `home:` mount would surface no
 /// arguments.
-Future<void> _pumpHero(
-  WidgetTester tester,
-  Object? arguments,
-) async {
+Future<void> _pumpHero(WidgetTester tester, Object? arguments) async {
   await tester.pumpWidget(
     MaterialApp(
       onGenerateRoute: (settings) => MaterialPageRoute<void>(

@@ -60,12 +60,7 @@ void main() {
         // Arrange & Act
         await _pump(
           tester,
-          EditSaveButton(
-            active: true,
-            cancel: () {},
-            save: () {},
-            edit: () {},
-          ),
+          EditSaveButton(active: true, cancel: () {}, save: () {}, edit: () {}),
         );
 
         // Assert
@@ -155,12 +150,7 @@ void main() {
         // Arrange & Act
         await _pump(
           tester,
-          EditSaveButton(
-            labels: true,
-            cancel: () {},
-            save: () {},
-            edit: () {},
-          ),
+          EditSaveButton(labels: true, cancel: () {}, save: () {}, edit: () {}),
         );
 
         // Assert

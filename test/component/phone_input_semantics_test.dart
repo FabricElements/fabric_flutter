@@ -30,7 +30,10 @@ void main() {
         const label = 'Mobile number';
 
         // Act
-        await _pump(tester, const PhoneInput(value: null, semanticsLabel: label));
+        await _pump(
+          tester,
+          const PhoneInput(value: null, semanticsLabel: label),
+        );
 
         // Assert
         expect(
@@ -80,7 +83,10 @@ void main() {
         const key = 'auth_phone_input_country';
 
         // Act
-        await _pump(tester, const PhoneInput(value: null, countryAutomationKey: key));
+        await _pump(
+          tester,
+          const PhoneInput(value: null, countryAutomationKey: key),
+        );
 
         // Assert
         expect(

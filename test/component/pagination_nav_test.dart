@@ -39,8 +39,7 @@ PaginationNav _nav({
   limit: 10,
   canPaginate: canPaginate,
   next: () async => counters['next'] = (counters['next'] ?? 0) + 1,
-  previous: () async =>
-      counters['previous'] = (counters['previous'] ?? 0) + 1,
+  previous: () async => counters['previous'] = (counters['previous'] ?? 0) + 1,
   first: withFirstLast
       ? () async => counters['first'] = (counters['first'] ?? 0) + 1
       : null,
