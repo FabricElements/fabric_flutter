@@ -121,12 +121,12 @@ class AppLocalizations {
         try {
           String tag = text.substring(match.start, match.end);
           String cleanTag = tag.substring(1, tag.length - 1);
-          // Escape the tag so any regex metacharacters (like `{` or `}`)
-          // are treated literally when building the RegExp.
-          RegExp regExpTag = RegExp(RegExp.escape(tag), multiLine: true);
           String? replaceWith = options[cleanTag];
           if (replaceWith != null) {
-            result = result.replaceAll(regExpTag, replaceWith);
+            // Pass the tag as a plain string so it is replaced literally. This
+            // avoids allocating a RegExp per placeholder and treats regex
+            // metacharacters (like `{` or `}`) as literal text.
+            result = result.replaceAll(tag, replaceWith);
           }
         } catch (e) {
           // Ensure we pass a string to the logger.
