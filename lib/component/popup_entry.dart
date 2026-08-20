@@ -11,6 +11,9 @@ class PopupEntry extends PopupMenuEntry<Never> {
     super.key,
     this.height = kMinInteractiveDimension,
     required this.child,
+    this.semanticsLabel,
+    this.automationKey,
+    this.semanticHint,
   });
 
   /// Defines the vertical space the entry occupies inside the popup menu.
@@ -23,6 +26,25 @@ class PopupEntry extends PopupMenuEntry<Never> {
 
   /// The widget subtree displayed inside the popup menu.
   final Widget child;
+
+  /// Describes this entry's purpose for assistive technology.
+  ///
+  /// Maps to [Semantics.label] on the entry's accessibility group. Leave this
+  /// `null` when the hosted [child] already exposes its own accessible name
+  /// (for example, a labeled form control), so nothing is announced twice.
+  final String? semanticsLabel;
+
+  /// Identifies this entry for automated testing and agent tooling.
+  ///
+  /// Maps to [Semantics.identifier]. Follows the
+  /// `[RouteName]_[ContextBlock]_[ComponentType]_[ActionOrId]` naming
+  /// convention used across the package.
+  final String? automationKey;
+
+  /// Supplies extra guidance for screen readers and autonomous agents.
+  ///
+  /// Maps to [Semantics.hint].
+  final String? semanticHint;
 
   /// Creates state that preserves the child widget during popup rebuilds.
   @override
@@ -41,9 +63,20 @@ class _PopupEntryState extends State<PopupEntry> {
     child = widget.child;
   }
 
-  /// Returns the hosted popup content without adding extra layout wrappers.
+  /// Returns the hosted popup content grouped as a distinct accessibility node.
+  ///
+  /// Wraps [child] in a [Semantics] container so screen readers treat this
+  /// entry as a boundary within the surrounding popup menu, without merging
+  /// (and thereby hiding) any individually actionable descendants.
   @override
   Widget build(BuildContext context) {
-    return child;
+    return Semantics(
+      container: true,
+      explicitChildNodes: true,
+      label: widget.semanticsLabel,
+      identifier: widget.automationKey,
+      hint: widget.semanticHint,
+      child: child,
+    );
   }
 }

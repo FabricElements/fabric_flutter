@@ -77,6 +77,28 @@ class _ViewFeaturedState extends State<ViewFeatured> {
   Color? _secondGradientAnimationColor;
   Color? _thirdGradientAnimationColor;
 
+  /// Guards the reveal so it only starts (or is skipped) once, even though
+  /// [didChangeDependencies] can run again for unrelated inherited widget
+  /// changes such as a theme or locale update.
+  bool _revealStarted = false;
+
+  /// Immediately shows every stage of the reveal without staged delays.
+  ///
+  /// Used when [MediaQuery.accessibleNavigationOf] or
+  /// [MediaQuery.disableAnimationsOf] report that the user relies on a screen
+  /// reader or has requested reduced motion, so the headline, description, and
+  /// action semantics are available right away instead of being staggered
+  /// behind opacity animations.
+  void _skipAnimation() {
+    _firstGradientAnimationColor = Colors.transparent;
+    _secondGradientAnimationColor = Colors.transparent;
+    _thirdGradientAnimationColor = Colors.transparent;
+    _headlineOpacityLevel = 1.0;
+    _descriptionOpacityLevel = 1.0;
+    _childOpacityLevel = 1.0;
+    _actionOpacityLevel = 1.0;
+  }
+
   /// Cancels and clears every pending stage timer.
   void _cancelTimers() {
     for (final timer in _timers) {
@@ -125,6 +147,31 @@ class _ViewFeaturedState extends State<ViewFeatured> {
     });
   }
 
+  /// Starts the reveal once the inherited widgets required to read the user's
+  /// motion preferences are available.
+  ///
+  /// The [_revealStarted] guard keeps this to a single run, so unrelated
+  /// inherited-widget changes (theme, locale, media query) cannot restart the
+  /// sequence or spawn a second set of timers.
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_revealStarted) return;
+    _revealStarted = true;
+    // Users with reduced motion enabled or who rely on assistive
+    // navigation (screen readers) should not have to wait on staged
+    // AnimatedOpacity reveals before headline/description/action content
+    // becomes available.
+    final reduceMotion =
+        MediaQuery.accessibleNavigationOf(context) ||
+        MediaQuery.disableAnimationsOf(context);
+    if (reduceMotion) {
+      setState(_skipAnimation);
+    } else {
+      animationTrigger();
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -132,10 +179,10 @@ class _ViewFeaturedState extends State<ViewFeatured> {
     _secondGradientAnimationColor = widget.secondGradientAnimationColor;
     _thirdGradientAnimationColor = widget.thirdGradientAnimationColor;
     _animationDuration = widget.animationDuration;
-    // Started once here rather than from didChangeDependencies, which fires
-    // again on every inherited-widget change (theme, locale, media query) and
-    // would otherwise restart the reveal and spawn a fresh set of timers.
-    animationTrigger();
+    // The reveal itself starts from didChangeDependencies, which is the
+    // earliest point where the user's reduced-motion preference can be read.
+    // The _revealStarted guard there keeps it to a single run, so inherited
+    // widget changes still cannot restart it or spawn extra timers.
   }
 
   @override
@@ -205,97 +252,107 @@ class _ViewFeaturedState extends State<ViewFeatured> {
         ),
       ]);
     }
-    return Scaffold(
-      primary: false,
-      body: SizedBox.expand(
-        child: InkWell(
-          onTap: widget.actionLabel != null ? () => onClick() : null,
-          child: Flex(
-            direction: Axis.vertical,
-            children: <Widget>[
-              Expanded(
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: <Widget>[
-                    SizedBox.expand(
-                      child: SmartImage(
-                        key: ValueKey('featured-view-image-${widget.image}'),
-                        url: widget.image,
-                        format: AvailableOutputFormats.jpeg,
+    Widget page = InkWell(
+      onTap: widget.actionLabel != null ? () => onClick() : null,
+      child: Flex(
+        direction: Axis.vertical,
+        children: <Widget>[
+          Expanded(
+            child: Stack(
+              fit: StackFit.expand,
+              children: <Widget>[
+                SizedBox.expand(
+                  // Purely decorative: the headline/description text
+                  // overlay already conveys the same information.
+                  child: ExcludeSemantics(
+                    child: SmartImage(
+                      key: ValueKey('featured-view-image-${widget.image}'),
+                      url: widget.image,
+                      format: AvailableOutputFormats.jpeg,
+                    ),
+                  ),
+                ),
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                  child: AnimatedContainer(
+                    duration: Duration(milliseconds: _animationDuration),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        stops: const [0.0, 0.5, 1.0],
+                        colors: [
+                          _firstGradientAnimationColor!,
+                          _secondGradientAnimationColor!,
+                          _thirdGradientAnimationColor!,
+                        ],
                       ),
                     ),
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      top: 0,
-                      child: AnimatedContainer(
-                        duration: Duration(milliseconds: _animationDuration),
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            stops: const [0.0, 0.5, 1.0],
-                            colors: [
-                              _firstGradientAnimationColor!,
-                              _secondGradientAnimationColor!,
-                              _thirdGradientAnimationColor!,
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        child: AnimatedOpacity(
-                          duration: Duration(milliseconds: _animationDuration),
-                          opacity: _headlineOpacityLevel,
-                          child: Padding(
-                            padding: const EdgeInsets.only(top: 64),
-                            child: SafeArea(
-                              top: false,
-                              bottom: false,
-                              child: Text(
-                                widget.headline!,
-                                style: textTheme.displaySmall?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: TextAlign.left,
+                  ),
+                ),
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    child: AnimatedOpacity(
+                      duration: Duration(milliseconds: _animationDuration),
+                      opacity: _headlineOpacityLevel,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 64),
+                        child: SafeArea(
+                          top: false,
+                          bottom: false,
+                          child: Semantics(
+                            header: true,
+                            child: Text(
+                              widget.headline!,
+                              style: textTheme.displaySmall?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
                               ),
+                              textAlign: TextAlign.left,
                             ),
                           ),
                         ),
                       ),
                     ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.only(
-                  top: 16,
-                  bottom: widget.child == null ? 16 : 0,
-                  left: 16,
-                  right: 16,
-                ),
-                child: SafeArea(
-                  top: false,
-                  bottom: widget.actionLabel != null,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: options,
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
+          Padding(
+            padding: EdgeInsets.only(
+              top: 16,
+              bottom: widget.child == null ? 16 : 0,
+              left: 16,
+              right: 16,
+            ),
+            child: SafeArea(
+              top: false,
+              bottom: widget.actionLabel != null,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: options,
+              ),
+            ),
+          ),
+        ],
       ),
     );
+    if (widget.actionLabel != null) {
+      // The action is already exposed by the visible
+      // FloatingActionButton.extended below; give this larger tap region
+      // the same accessible name instead of leaving it as an unlabeled
+      // control for assistive technology.
+      page = Semantics(button: true, label: widget.actionLabel, child: page);
+    }
+    return Scaffold(primary: false, body: SizedBox.expand(child: page));
   }
 }

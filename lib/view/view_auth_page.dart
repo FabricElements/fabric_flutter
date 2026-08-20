@@ -4,6 +4,7 @@ import 'dart:io' show Platform;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -50,6 +51,7 @@ class ViewAuthPage extends StatefulWidget {
     this.logoHeight = 150,
     this.logoWidth = 150,
     this.logoCircle = false,
+    this.logoSemanticLabel,
     this.title,
     this.description,
   });
@@ -105,6 +107,12 @@ class ViewAuthPage extends StatefulWidget {
   final double logoHeight;
   final double logoWidth;
   final bool logoCircle;
+
+  /// Optional accessible name announced for [logo] by assistive technology.
+  ///
+  /// When `null`, the logo falls back to [SmartImage]'s default image label so
+  /// screen readers still describe the brand mark rather than skipping it.
+  final String? logoSemanticLabel;
   final String? title;
   final String? description;
 
@@ -150,6 +158,24 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       return widget.loader ?? const LoadingScreen();
     }
 
+    /// Announces a message to assistive technology such as screen readers.
+    ///
+    /// Used for auth failures and step transitions so users relying on
+    /// TalkBack/VoiceOver are notified even though those changes are only
+    /// visual (an [AnimatedOpacity]/[IndexedStack] swap) by default.
+    ///
+    /// Several callers run after an awaited Firebase call, so the guard is
+    /// centralized here: unlike [alertData], an announcement needs this
+    /// element's live [View] and cannot fall back to a root context.
+    void announce(String message) {
+      if (!context.mounted) return;
+      SemanticsService.sendAnnouncement(
+        View.of(context),
+        message,
+        TextDirection.ltr,
+      );
+    }
+
     /// Reset view to initial state
     Future<void> resetView() async {
       // Callers reach this from `catch`/`finally` blocks that follow awaited
@@ -162,6 +188,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       await Future.delayed(const Duration(seconds: 1));
       loading = false;
       if (mounted) setState(() {});
+      announce(widget.title ?? locales.get('page-auth--title'));
     }
 
     /// Presents a localized sign-in failure alert.
@@ -171,12 +198,14 @@ class ViewAuthPageState extends State<ViewAuthPage> {
     /// been unmounted. No context is passed: [alertData] resolves the root
     /// context itself, so the failure is always surfaced. The optional [title]
     /// overrides the default `alert--sign-in-failed` heading.
+    ///
+    /// The failure is also announced through the semantics tree so screen
+    /// reader users learn about it: the alert is a transient overlay that does
+    /// not otherwise move focus.
     void alertSignInFailed(String? body, {String? title}) {
-      alertData(
-        title: title ?? locales.get('alert--sign-in-failed'),
-        body: body,
-        type: AlertType.critical,
-      );
+      final heading = title ?? locales.get('alert--sign-in-failed');
+      alertData(title: heading, body: body, type: AlertType.critical);
+      announce(heading);
     }
 
     /// Verification completed: Sign in with credentials
@@ -192,12 +221,10 @@ class ViewAuthPageState extends State<ViewAuthPage> {
         debugPrint(LogColor.error(error.message ?? error.code));
         return;
       }
-      alertData(
-        context: context,
-        body:
-            '${locales.get('alert--phone-number-verification-failed')}. ${error.message} -- Code: ${error.code}',
-        type: AlertType.critical,
-      );
+      final message =
+          '${locales.get('alert--phone-number-verification-failed')}. ${error.message} -- Code: ${error.code}';
+      alertData(context: context, body: message, type: AlertType.critical);
+      announce(message);
     }
 
     /// SMS auth code sent
@@ -214,6 +241,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       state.section = 2;
       loading = false;
       if (mounted) setState(() {});
+      announce(locales.get('page-auth--input--verification-code'));
     }
 
     /// SMS auth code retrieval timeout
@@ -435,6 +463,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
           error.toString(),
           title: locales.get('alert--sign-in-failed: '),
         );
+        announce(locales.get('alert--sign-in-failed'));
       } finally {
         resetView();
       }
@@ -481,6 +510,8 @@ class ViewAuthPageState extends State<ViewAuthPage> {
           text = locales.get('label--sign-in-mobile');
           action = () {
             state.section = 1;
+            if (mounted) setState(() {});
+            announce(locales.get('label--phone-number'));
           };
           break;
         case 'google':
@@ -531,6 +562,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
             );
           } catch (error) {
             alertData(body: error.toString(), type: AlertType.critical);
+            announce(error.toString());
           }
         };
       }
@@ -566,6 +598,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
             url: widget.logo,
             format: AvailableOutputFormats.png,
             color: theme.colorScheme.surface,
+            semanticsLabel: widget.logoSemanticLabel,
           )
         : null;
     Widget home = AnimatedOpacity(
@@ -586,6 +619,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
                     url: backgroundImage,
                     format: AvailableOutputFormats.jpeg,
                     color: theme.colorScheme.primaryContainer,
+                    excludeSemantics: true,
                   ),
                 ),
                 Positioned(
@@ -633,11 +667,14 @@ class ViewAuthPageState extends State<ViewAuthPage> {
                               children: <Widget>[
                                 SizedBox(
                                   width: double.infinity,
-                                  child: Text(
-                                    widget.title ??
-                                        locales.get('page-auth--title'),
-                                    style: textTheme.displayMedium?.copyWith(
-                                      color: theme.colorScheme.onSurface,
+                                  child: Semantics(
+                                    header: true,
+                                    child: Text(
+                                      widget.title ??
+                                          locales.get('page-auth--title'),
+                                      style: textTheme.displayMedium?.copyWith(
+                                        color: theme.colorScheme.onSurface,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -741,7 +778,12 @@ class ViewAuthPageState extends State<ViewAuthPage> {
           value: state.phoneVerificationCode,
           type: InputDataType.string,
           keyboardType: TextInputType.number,
+          label: locales.get('page-auth--input--verification-code'),
           hintText: locales.get('page-auth--input--verification-code'),
+          semanticsLabel: locales.get('page-auth--input--verification-code'),
+          semanticHint: locales.get('label--verify'),
+          automationKey: 'auth_phone-verification_input_code',
+          autofillHints: const [AutofillHints.oneTimeCode],
           maxLength: 6,
           inputFormatters: [
             FilteringTextInputFormatter.singleLineFormatter,

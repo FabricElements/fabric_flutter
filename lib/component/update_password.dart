@@ -124,6 +124,7 @@ class _UpdatePasswordState extends State<UpdatePassword> {
         hintText: locales.get('label--password'),
         type: InputDataType.secret,
         obscureText: true,
+        textInputAction: TextInputAction.next,
         value: current,
         onChanged: (value) {
           current = value ?? '';
@@ -138,6 +139,7 @@ class _UpdatePasswordState extends State<UpdatePassword> {
           hintText: locales.get('label--password'),
           type: InputDataType.secret,
           obscureText: true,
+          textInputAction: TextInputAction.next,
           value: password1,
           error: errorValidation,
           onChanged: (value) {
@@ -156,6 +158,7 @@ class _UpdatePasswordState extends State<UpdatePassword> {
           hintText: locales.get('label--password'),
           type: InputDataType.secret,
           obscureText: true,
+          textInputAction: TextInputAction.done,
           value: password2,
           error: errorValidation2,
           onChanged: (value) {

@@ -304,12 +304,22 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
                       /// Rotating the icon instead of swapping widgets keeps the
                       /// tree interaction easier to track visually as nodes open
                       /// and close.
-                      collapsableToggleBuilder: (context, node) =>
-                          AnimatedRotation(
-                            turns: node.isCollapsed ? -0.25 : 0,
-                            duration: const Duration(milliseconds: 300),
-                            child: const Icon(Icons.arrow_drop_down),
-                          ),
+                      collapsableToggleBuilder: (context, node) => Semantics(
+                        button: true,
+                        toggled: !node.isCollapsed,
+                        label: node.isCollapsed
+                            ? locales.get('label--open-label', {
+                                'label': node.key,
+                              })
+                            : locales.get('label--close-label', {
+                                'label': node.key,
+                              }),
+                        child: AnimatedRotation(
+                          turns: node.isCollapsed ? -0.25 : 0,
+                          duration: const Duration(milliseconds: 300),
+                          child: const Icon(Icons.arrow_drop_down),
+                        ),
+                      ),
 
                       /// Builds the focused-node copy action.
                       ///
@@ -322,11 +332,10 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
                               child: IconButton(
                                 visualDensity: VisualDensity.compact,
                                 icon: const Icon(Icons.copy),
-                                constraints: BoxConstraints(
-                                  minHeight: 32,
-                                  minWidth: 32,
-                                  maxHeight: 32,
-                                  maxWidth: 32,
+                                iconSize: 18,
+                                constraints: const BoxConstraints(
+                                  minHeight: 48,
+                                  minWidth: 48,
                                 ),
                                 color: theme.colorScheme.onSurface,
                                 tooltip: locales.get('label--copy'),

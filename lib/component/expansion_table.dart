@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../helper/app_localizations_delegate.dart';
 import '../helper/format_data.dart';
 import '../serialized/table_data.dart';
 
@@ -179,6 +180,7 @@ class _ExpansionTableState extends State<ExpansionTable> {
     if (widget.data == null) return const SizedBox();
     TableData data = widget.data!;
     final theme = Theme.of(context);
+    final locales = AppLocalizations.of(context);
     Set<WidgetState> states = <WidgetState>{};
     final BorderSide borderSide = Divider.createBorderSide(
       context,
@@ -212,10 +214,14 @@ class _ExpansionTableState extends State<ExpansionTable> {
                 left: cellHorizontalPadding,
                 right: cellHorizontalPadding,
               ),
-              child: Text(
-                column.value,
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
+              // Marks this cell as a column header for assistive technology.
+              child: Semantics(
+                header: true,
+                child: Text(
+                  column.value,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
               ),
             ),
           ),
@@ -290,43 +296,50 @@ class _ExpansionTableState extends State<ExpansionTable> {
             if (index == 0) {
               double childLeftSpace = 0;
               childLeftSpace = (data.level.toDouble()) * 16;
-              double iconContentSize = 40;
+              // Meets the minimum 48x48 logical-pixel tap target for the
+              // expand/collapse control.
+              double iconContentSize = 48;
               childLeftSpace += iconContentSize;
-              baseCell = Row(
-                children: [
-                  SizedBox(
-                    width: childLeftSpace,
-                    child: row.child != null
-                        ? IconButton(
-                            constraints: BoxConstraints(
-                              minHeight: iconContentSize,
-                              minWidth: iconContentSize,
-                            ),
-                            splashRadius: 16,
-                            onPressed: () {
-                              if (row.active) {
-                                row.child?.rows
-                                    .where((element) => element.active)
-                                    .forEach((e) => e.active = false);
-                              }
-                              row.active = !row.active;
-                              if (mounted) setState(() {});
-                            },
-                            icon: Icon(
-                              row.active
-                                  ? Icons.arrow_drop_down
-                                  : Icons.arrow_right,
-                            ),
-                          )
-                        : null,
-                  ),
-                  Expanded(
-                    child: ClipRect(
-                      clipBehavior: Clip.antiAlias,
-                      child: baseCell,
+              baseCell = MergeSemantics(
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: childLeftSpace,
+                      child: row.child != null
+                          ? IconButton(
+                              constraints: BoxConstraints(
+                                minHeight: iconContentSize,
+                                minWidth: iconContentSize,
+                              ),
+                              splashRadius: 16,
+                              tooltip: row.active
+                                  ? locales.get('label--collapse-row')
+                                  : locales.get('label--expand-row'),
+                              onPressed: () {
+                                if (row.active) {
+                                  row.child?.rows
+                                      .where((element) => element.active)
+                                      .forEach((e) => e.active = false);
+                                }
+                                row.active = !row.active;
+                                if (mounted) setState(() {});
+                              },
+                              icon: Icon(
+                                row.active
+                                    ? Icons.arrow_drop_down
+                                    : Icons.arrow_right,
+                              ),
+                            )
+                          : null,
                     ),
-                  ),
-                ],
+                    Expanded(
+                      child: ClipRect(
+                        clipBehavior: Clip.antiAlias,
+                        child: baseCell,
+                      ),
+                    ),
+                  ],
+                ),
               );
             }
             return Container(
@@ -434,7 +447,9 @@ class _ExpansionTableState extends State<ExpansionTable> {
               horizontal: effectiveHorizontalMargin,
             ),
             alignment: Alignment.center,
-            height: headingRowHeight,
+            // A minimum rather than a fixed height lets the heading grow at
+            // larger OS text-scale factors instead of clipping column labels.
+            constraints: BoxConstraints(minHeight: headingRowHeight),
             child: Table(
               defaultVerticalAlignment: TableCellVerticalAlignment.middle,
               columnWidths: tableColumnWidths,

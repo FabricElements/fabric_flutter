@@ -43,6 +43,11 @@ class _TabsState extends State<Tabs> with TickerProviderStateMixin {
   /// selection state stay aligned with the available tab options.
   late TabController _tabController;
 
+  /// Tracks the reduced-motion preference the current [_tabController] was
+  /// built with, so [didChangeDependencies] only recreates it when the
+  /// platform setting actually changes.
+  bool? _disableAnimations;
+
   /// Initializes the [TabController] when the state enters the tree.
   ///
   /// Using [TickerProviderStateMixin] lets the controller receive the
@@ -85,6 +90,29 @@ class _TabsState extends State<Tabs> with TickerProviderStateMixin {
     );
   }
 
+  /// Rebuilds [_tabController] with an animation duration that respects the
+  /// platform's reduced-motion preference.
+  ///
+  /// When [MediaQuery.disableAnimationsOf] reports that animations should be
+  /// disabled, the tab indicator jumps instantly instead of sliding, while the
+  /// currently selected index and length are preserved.
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final disableAnimations = MediaQuery.disableAnimationsOf(context);
+    if (_disableAnimations == disableAnimations) return;
+    _disableAnimations = disableAnimations;
+    final previousIndex = _tabController.index;
+    final previousLength = _tabController.length;
+    _tabController.dispose();
+    _tabController = TabController(
+      vsync: this,
+      length: previousLength,
+      initialIndex: previousIndex < previousLength ? previousIndex : 0,
+      animationDuration: disableAnimations ? Duration.zero : kTabScrollDuration,
+    );
+  }
+
   /// Releases the [TabController] before the state is removed.
   ///
   /// Disposing the controller prevents ticker and animation resources from
@@ -105,8 +133,12 @@ class _TabsState extends State<Tabs> with TickerProviderStateMixin {
     List<Tab> tabList = List.generate(widget.tabs.length, (i) {
       final option = widget.tabs[i];
       return Tab(
-        text: option.label,
         icon: option.icon != null ? Icon(option.icon) : null,
+        // A custom child (instead of `text:`) lets the label ellipsize so a
+        // long label or an opted-in OS text scale cannot overflow the tab.
+        // `Tab` centers its child in a box, so the text must not be wrapped in
+        // a `Flexible`.
+        child: Text(option.label, maxLines: 1, overflow: TextOverflow.ellipsis),
       );
     });
     final selected = _selectedIndex;

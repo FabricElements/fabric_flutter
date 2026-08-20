@@ -288,6 +288,9 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
                 final removeButton = IconButton(
                   color: theme.colorScheme.error,
                   icon: const Icon(Icons.delete),
+                  tooltip: locales.get('label--remove-label', {
+                    'label': '${locales.get('label--value')} ${index + 1}',
+                  }),
                   onPressed: () {
                     values.removeAt(index);
                     edit.value = values;
@@ -327,33 +330,36 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
                 );
               }),
             if (isMultiple)
-              OutlinedButton.icon(
-                onPressed: () {
-                  values.add(null);
-                  edit.value = values;
-                  if (mounted) setState(() {});
-                },
-                onLongPress: () async {
-                  // Paste and Add values without duplicates
-                  final newValues = await pasteValues();
-                  if (newValues.isEmpty) return;
-                  values = <dynamic>{...values, ...newValues}.toList();
-                  edit.value = values;
-                  if (mounted) setState(() {});
-                },
-                icon: const Icon(Icons.add),
-                label: Text(
-                  locales.get('label--add-label', {
-                    'label': locales.get('label--value'),
-                  }),
-                ),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: theme.buttonTheme.colorScheme?.primary,
-                  iconColor: theme.buttonTheme.colorScheme?.primary,
-                  side: BorderSide(
-                    color:
-                        theme.buttonTheme.colorScheme?.primary ??
-                        theme.colorScheme.primary,
+              Tooltip(
+                message: locales.get('label--paste-values-hint'),
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    values.add(null);
+                    edit.value = values;
+                    if (mounted) setState(() {});
+                  },
+                  onLongPress: () async {
+                    // Paste and Add values without duplicates
+                    final newValues = await pasteValues();
+                    if (newValues.isEmpty) return;
+                    values = <dynamic>{...values, ...newValues}.toList();
+                    edit.value = values;
+                    if (mounted) setState(() {});
+                  },
+                  icon: const Icon(Icons.add),
+                  label: Text(
+                    locales.get('label--add-label', {
+                      'label': locales.get('label--value'),
+                    }),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: theme.buttonTheme.colorScheme?.primary,
+                    iconColor: theme.buttonTheme.colorScheme?.primary,
+                    side: BorderSide(
+                      color:
+                          theme.buttonTheme.colorScheme?.primary ??
+                          theme.colorScheme.primary,
+                    ),
                   ),
                 ),
               ),
@@ -732,7 +738,10 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
         },
         child: Chip(
           mouseCursor: SystemMouseCursors.click,
-          label: Text(label),
+          label: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 280),
+            child: Text(label, overflow: TextOverflow.ellipsis, maxLines: 1),
+          ),
           avatar: Icon(icon, color: theme.colorScheme.onSurface),
           onDeleted: widget.onDelete,
           deleteButtonTooltipMessage: locales.get('label--remove-label', {
@@ -1149,12 +1158,22 @@ class _FilterMenuState extends State<FilterMenu> {
       );
     }
 
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      runAlignment: WrapAlignment.center,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: menuOptions,
+    // Group the active filter chips and the "clear all" action under a single
+    // labelled landmark. Unlike a radio/checkbox group these chips are
+    // independently editable/removable tags rather than mutually exclusive
+    // or togglable options, so `inMutuallyExclusiveGroup`/`checked` do not
+    // apply here; the group label alone gives screen reader users the
+    // context that what follows is the active filters list.
+    return Semantics(
+      container: true,
+      label: locales.get('label--filters'),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        runAlignment: WrapAlignment.center,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: menuOptions,
+      ),
     );
   }
 }

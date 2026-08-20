@@ -1,5 +1,6 @@
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 
 import '../helper/app_localizations_delegate.dart';
 import '../helper/input_validation.dart';
@@ -358,6 +359,13 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       }
       sending = false;
       if (mounted) setState(() {});
+      if (error != null && context.mounted) {
+        SemanticsService.sendAnnouncement(
+          View.of(context),
+          locales.get(error!),
+          Directionality.of(context),
+        );
+      }
     }
 
     final inputValidation = InputValidation(locales: locales);
@@ -369,6 +377,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
         disabled: widget.disabled,
         required: true,
         value: data.phone,
+        textInputAction: TextInputAction.next,
         onChanged: (value) {
           error = null;
           data.phone = value;
@@ -389,6 +398,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
         label: locales.get('label--email'),
         value: data.email,
         type: InputDataType.email,
+        textInputAction: TextInputAction.next,
         onChanged: (value) {
           error = null;
           data.email = value;
@@ -409,6 +419,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
         value: data.username,
         type: InputDataType.string,
         maxLength: 20,
+        textInputAction: TextInputAction.next,
         validator: inputValidation.validateUsername,
         onChanged: (value) {
           error = null;
@@ -426,6 +437,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       label: locales.get('label--first-name'),
       value: data.firstName,
       type: InputDataType.string,
+      textInputAction: TextInputAction.next,
       onChanged: (value) {
         error = null;
         data.firstName = value;
@@ -441,6 +453,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       label: locales.get('label--last-name'),
       value: data.lastName,
       type: InputDataType.string,
+      textInputAction: TextInputAction.next,
       onChanged: (value) {
         error = null;
         data.lastName = value;
@@ -458,6 +471,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       label: locales.get('label--password'),
       value: data.password,
       type: InputDataType.secret,
+      textInputAction: TextInputAction.done,
       validator: (value) => inputValidation.validateMatch(
         regex: passwordRegex,
         value: value,

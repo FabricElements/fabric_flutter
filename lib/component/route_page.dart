@@ -11,6 +11,7 @@ import '../serialized/user_status.dart';
 import '../state/state_notifications.dart';
 import 'alert_data.dart';
 import 'connection_status.dart';
+import 'screen_context.dart';
 
 /// Stores the guard flag consulted before listener configuration runs.
 bool _listenersConfigured = false;
@@ -220,6 +221,11 @@ class _RoutePageState extends State<RoutePage> {
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
           key: ValueKey('route-page-gesture-detector'),
+          // This full-screen tap target only dismisses the keyboard; it must
+          // not surface as an unlabeled semantics "button" covering the
+          // entire route, so it is excluded from the accessibility tree
+          // rather than adding a Semantics(button: true) wrapper.
+          excludeFromSemantics: true,
           onTap: () {
             FocusScopeNode currentFocus = FocusScope.of(context);
             if (!currentFocus.hasPrimaryFocus) {
@@ -231,7 +237,10 @@ class _RoutePageState extends State<RoutePage> {
             children: [
               KeyedSubtree(
                 key: ValueKey('route-page-child'),
-                child: routeWidget,
+                child: ScreenContext(
+                  routeName: widget.uri.path,
+                  child: routeWidget,
+                ),
               ),
               Align(
                 alignment: Alignment.bottomCenter,

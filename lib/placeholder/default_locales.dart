@@ -638,5 +638,35 @@ const Map<String, Map<String, String>> defaultLocales = {
   'label--listening': {'en': 'Listening…', 'es': 'Escuchando…'},
   'label--reload': {'en': 'Reload', 'es': 'Recargar'},
   'label--refresh': {'en': 'Refresh', 'es': 'Actualizar'},
+  // Accessibility labels. These are read by assistive technologies for
+  // controls and imagery that have no visible text of their own.
+  'label--expand-row': {'en': 'Expand row', 'es': 'Expandir fila'},
+  'label--collapse-row': {'en': 'Collapse row', 'es': 'Contraer fila'},
+  'label--view-details': {'en': 'View details', 'es': 'Ver detalles'},
+  'label--more-actions': {'en': 'More actions', 'es': 'Más acciones'},
+  'label--copy-to-clipboard': {
+    'en': 'Copy to clipboard',
+    'es': 'Copiar al portapapeles',
+  },
+  'label--clear-selection': {'en': 'Clear selection', 'es': 'Borrar selección'},
+  'notification--upload-success': {
+    'en': 'Image uploaded successfully',
+    'es': 'Imagen subida correctamente',
+  },
+  'label--step': {'en': 'Step', 'es': 'Paso'},
+  'label--steps': {'en': 'Steps', 'es': 'Pasos'},
+  'label--step-error': {'en': 'Error', 'es': 'Error'},
+  'label--load-more': {'en': 'Load more', 'es': 'Cargar más'},
+  'label--breadcrumb': {
+    'en': 'Breadcrumb navigation',
+    'es': 'Navegación de migas de pan',
+  },
+  'label--current-page': {'en': 'Current page', 'es': 'Página actual'},
+  'label--show-password': {'en': 'Show password', 'es': 'Mostrar contraseña'},
+  'label--hide-password': {'en': 'Hide password', 'es': 'Ocultar contraseña'},
+  'label--paste-values-hint': {
+    'en': 'Long press to paste values from clipboard',
+    'es': 'Mantén presionado para pegar valores desde el portapapeles',
+  },
 };
 // @formatter:on

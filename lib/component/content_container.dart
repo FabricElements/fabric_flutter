@@ -51,6 +51,8 @@ class ContentContainer extends StatelessWidget {
     this.mainAxisSize = MainAxisSize.max,
     this.crossAxisAlignment = CrossAxisAlignment.start,
     this.mainAxisAlignment = MainAxisAlignment.start,
+    this.isDialog = false,
+    this.semanticsLabel,
   }) : assert(
          child != null || children != null,
          'child or children must be specified',
@@ -101,6 +103,20 @@ class ContentContainer extends StatelessWidget {
   /// This value is forwarded to [Flex.mainAxisAlignment] when [children] are rendered.
   final MainAxisAlignment mainAxisAlignment;
 
+  /// Marks this container as the content of a dialog/popup route.
+  ///
+  /// When `true`, wraps the rendered content in a [Semantics] node with
+  /// `scopesRoute: true` and `namesRoute: true` so assistive technology
+  /// announces entry into the dialog using [semanticsLabel] (falling back to
+  /// the platform default announcement when `null`), matching the behavior
+  /// expected of a modal route boundary.
+  final bool isDialog;
+
+  /// Supplies the accessible name announced when [isDialog] is `true`.
+  ///
+  /// Ignored when [isDialog] is `false`.
+  final String? semanticsLabel;
+
   /// Builds the constrained content tree for the current [BuildContext].
   ///
   /// The method maps [size] to a maximum width, renders either [child] or an
@@ -132,7 +148,7 @@ class ContentContainer extends StatelessWidget {
           mainAxisAlignment: mainAxisAlignment,
           children: children!,
         );
-    return Center(
+    Widget result = Center(
       child: Container(
         constraints: BoxConstraints(maxWidth: maxSize),
         margin: margin,
@@ -140,5 +156,15 @@ class ContentContainer extends StatelessWidget {
         child: SizedBox(width: double.maxFinite, child: content),
       ),
     );
+    if (isDialog) {
+      result = Semantics(
+        container: true,
+        scopesRoute: true,
+        namesRoute: true,
+        label: semanticsLabel,
+        child: result,
+      );
+    }
+    return result;
   }
 }

@@ -54,6 +54,7 @@ class StatusChip extends StatelessWidget {
 
     final text = Text(
       baseStatus,
+      maxLines: 1,
       style: TextStyle(
         fontWeight: FontWeight.w500,
         letterSpacing: 1.1,
@@ -65,7 +66,7 @@ class StatusChip extends StatelessWidget {
     /// Return a Tooltip with a message and a Chip with an icon and label.
     return RawChip(
       tooltip: locales.get('label--status'),
-      avatar: Icon(iconData, color: Colors.white),
+      avatar: ExcludeSemantics(child: Icon(iconData, color: Colors.white)),
       label: width != null ? SizedBox(width: width, child: text) : text,
       backgroundColor: statusColor,
       elevation: 1,

@@ -15,6 +15,42 @@ import '../state/state_user.dart';
 import '../state/state_users.dart';
 import '../state/state_view_auth.dart';
 
+/// Lower bound applied to the operating system text scale when a host
+/// application opts in through [InitApp.honorSystemTextScale].
+///
+/// Fabric Flutter layouts are designed at a scale factor of `1.0`, so shrinking
+/// text below that value only reduces legibility without freeing meaningful
+/// space. This value is unused while text scaling stays disabled, which is the
+/// default.
+const double kDefaultMinTextScaleFactor = 1.0;
+
+/// Upper bound applied to the operating system text scale when a host
+/// application opts in through [InitApp.honorSystemTextScale].
+///
+/// The value covers the accessibility text sizes users actually enable while
+/// keeping dense components (tables, chips, navigation chrome) laid out
+/// correctly. Applications that verified their layouts at larger scales can
+/// raise or remove the bound through [InitApp.maxTextScaleFactor]. This value is
+/// unused while text scaling stays disabled, which is the default.
+const double kDefaultMaxTextScaleFactor = 1.4;
+
+/// Returns [textScaler] restricted to the range defined by [min] and [max].
+///
+/// Passing `null` for both bounds returns [textScaler] untouched. This helper is
+/// only reached once a host application enables
+/// [InitApp.honorSystemTextScale]; it never disables scaling on its own.
+TextScaler clampedTextScaler(
+  TextScaler textScaler, {
+  double? min,
+  double? max,
+}) {
+  if (min == null && max == null) return textScaler;
+  return textScaler.clamp(
+    minScaleFactor: min ?? 0.0,
+    maxScaleFactor: max ?? double.infinity,
+  );
+}
+
 /// Installs the core application providers required by the component library.
 ///
 /// Wrapping an app with [InitApp] ensures that authentication, analytics,
@@ -28,11 +64,18 @@ class InitApp extends StatelessWidget {
   /// widgets resolve them. The [child] subtree receives every provider created
   /// by this widget, and [notifications] enables notification setup in
   /// [InitAppChild].
+  ///
+  /// [honorSystemTextScale] is opt-in and defaults to `false`, which preserves
+  /// the long-standing Fabric Flutter behavior of rendering text at a fixed
+  /// scale. See [honorSystemTextScale] before enabling it.
   const InitApp({
     super.key,
     this.providers = const [],
     required this.child,
     this.notifications = false,
+    this.honorSystemTextScale = false,
+    this.minTextScaleFactor = kDefaultMinTextScaleFactor,
+    this.maxTextScaleFactor = kDefaultMaxTextScaleFactor,
   });
 
   /// Stores additional providers inserted ahead of the default Fabric providers.
@@ -53,6 +96,38 @@ class InitApp extends StatelessWidget {
   /// [InitAppChild].
   final bool notifications;
 
+  /// Stores whether the operating system text scale is applied to the app.
+  ///
+  /// Defaults to `false`, which renders text with [TextScaler.noScaling].
+  ///
+  /// Disabling text scaling is deliberate, not an oversight: honoring the
+  /// operating system text scale caused a layout bug on iOS, so Fabric Flutter
+  /// pins the scale by default and every consuming application has been sized
+  /// against that behavior. Please do not "fix" this by removing the opt-in —
+  /// see the note in [_InitAppChildState.build].
+  ///
+  /// Setting this to `true` restores standard Flutter behavior: the user's
+  /// preference is honored, clamped to [minTextScaleFactor] and
+  /// [maxTextScaleFactor]. Enabling it is at the host application's own risk and
+  /// should follow a visual pass over every screen at the largest supported
+  /// scale, with particular attention to iOS.
+  final bool honorSystemTextScale;
+
+  /// Stores the lower bound applied to the operating system text scale.
+  ///
+  /// Only used when [honorSystemTextScale] is `true`. Defaults to
+  /// [kDefaultMinTextScaleFactor] so text is never rendered smaller than the
+  /// design size. Pass `null` to allow the user's smaller text sizes.
+  final double? minTextScaleFactor;
+
+  /// Stores the upper bound applied to the operating system text scale.
+  ///
+  /// Only used when [honorSystemTextScale] is `true`. Defaults to
+  /// [kDefaultMaxTextScaleFactor], which covers larger accessibility text sizes
+  /// while keeping dense layouts readable. Pass `null` to apply the user's text
+  /// scale without any upper bound.
+  final double? maxTextScaleFactor;
+
   /// Builds the provider tree and delegates post-bootstrap work to [InitAppChild].
   ///
   /// The returned [MultiProvider] installs the standard Fabric Flutter state
@@ -70,7 +145,13 @@ class InitApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => StateAnalytics()),
         ChangeNotifierProvider(create: (context) => StateUsers()),
       ],
-      child: InitAppChild(notifications: notifications, child: child),
+      child: InitAppChild(
+        notifications: notifications,
+        honorSystemTextScale: honorSystemTextScale,
+        minTextScaleFactor: minTextScaleFactor,
+        maxTextScaleFactor: maxTextScaleFactor,
+        child: child,
+      ),
     );
   }
 }
@@ -90,12 +171,15 @@ class InitAppChild extends StatefulWidget {
     super.key,
     required this.child,
     this.notifications = false,
+    this.honorSystemTextScale = false,
+    this.minTextScaleFactor = kDefaultMinTextScaleFactor,
+    this.maxTextScaleFactor = kDefaultMaxTextScaleFactor,
   });
 
   /// Stores the application subtree shown once bootstrap work is complete.
   ///
-  /// This widget is wrapped in the resolved [Theme] and a fixed [MediaQuery]
-  /// text scaler before it is displayed.
+  /// This widget is wrapped in the resolved [Theme] and a [MediaQuery] whose
+  /// text scaler is fixed unless [honorSystemTextScale] is enabled.
   final Widget child;
 
   /// Stores whether notification lifecycle management runs for signed-in users.
@@ -103,6 +187,24 @@ class InitAppChild extends StatefulWidget {
   /// Keeping this value `false` skips the notification initialization and clear
   /// logic driven by [StateNotifications].
   final bool notifications;
+
+  /// Stores whether the operating system text scale is applied to the app.
+  ///
+  /// Defaults to `false`, matching [InitApp.honorSystemTextScale]. See that
+  /// member for why text scaling is disabled by default.
+  final bool honorSystemTextScale;
+
+  /// Stores the lower bound applied to the operating system text scale.
+  ///
+  /// Only used when [honorSystemTextScale] is `true`. Pass `null` to leave the
+  /// lower bound untouched.
+  final double? minTextScaleFactor;
+
+  /// Stores the upper bound applied to the operating system text scale.
+  ///
+  /// Only used when [honorSystemTextScale] is `true`. Pass `null` to leave the
+  /// upper bound untouched.
+  final double? maxTextScaleFactor;
 
   @override
   State<InitAppChild> createState() => _InitAppChildState();
@@ -185,10 +287,39 @@ class _InitAppChildState extends State<InitAppChild> {
     super.dispose();
   }
 
+  /// Returns the text scaler applied to the whole application subtree.
+  ///
+  /// Returns [TextScaler.noScaling] unless the host application opted in via
+  /// [InitAppChild.honorSystemTextScale], in which case the operating system
+  /// preference is used, clamped to the configured bounds.
+  TextScaler _resolveTextScaler(BuildContext context) {
+    // Text scaling is DISABLED BY DELIBERATE DESIGN — this is not an oversight
+    // and should not be "fixed" by deleting the branch below.
+    //
+    // Honoring the operating system text scale caused a layout bug on iOS, and
+    // every application consuming this package has been visually sized against
+    // the fixed-scale behavior. Removing this would silently resize text across
+    // all of those apps.
+    //
+    // Applications that want the platform behavior can opt in per app with
+    // InitApp(honorSystemTextScale: true), optionally tuning
+    // minTextScaleFactor / maxTextScaleFactor, and should do so only after a
+    // visual pass over every screen — especially on iOS.
+    if (!widget.honorSystemTextScale) return TextScaler.noScaling;
+    return clampedTextScaler(
+      MediaQuery.textScalerOf(context),
+      min: widget.minTextScaleFactor,
+      max: widget.maxTextScaleFactor,
+    );
+  }
+
   /// Returns either the loading screen or the application [InitAppChild.child].
   ///
   /// The method derives a theme from the current platform brightness and delays
   /// rendering the child until the [UserStatus] stream reports a resolved state.
+  /// Text is rendered at a fixed scale unless
+  /// [InitAppChild.honorSystemTextScale] is enabled; see [_resolveTextScaler]
+  /// for why that default exists.
   @override
   Widget build(BuildContext context) {
     ThemeData theme = Theme.of(context);
@@ -200,9 +331,10 @@ class _InitAppChildState extends State<InitAppChild> {
     }
 
     final stateUser = Provider.of<StateUser>(context, listen: false);
+    final textScaler = _resolveTextScaler(context);
 
     return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.noScaling),
+      data: MediaQuery.of(context).copyWith(textScaler: textScaler),
       child: Theme(
         data: theme,
         child: StreamBuilder<UserStatus>(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../helper/app_localizations_delegate.dart';
 import '../serialized/user_data.dart';
 import '../state/state_users.dart';
 import 'user_avatar.dart';
@@ -99,6 +100,7 @@ class _UserChipState extends State<UserChip> {
   @override
   Widget build(BuildContext context) {
     if (widget.uid == null) return const SizedBox(width: 0, height: 0);
+    final locales = AppLocalizations.of(context);
     final stateUsers = Provider.of<StateUsers>(context, listen: true);
     final user =
         stateUsers.cachedUser(widget.uid!) ??
@@ -106,22 +108,41 @@ class _UserChipState extends State<UserChip> {
     String label = user.id!;
     if (user.username != null) label = user.username!;
     if (user.name.isNotEmpty) label = user.name;
-    if (widget.minimal) return Text(label, style: widget.labelStyle);
+    if (widget.minimal) {
+      return Text(
+        label,
+        style: widget.labelStyle,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      );
+    }
     String? url = user.avatar;
     if (widget.avatarPrefix != null && user.avatar != null) {
       url = '${widget.avatarPrefix}/${user.avatar}';
     }
-    return Chip(
-      avatar: UserAvatar(
-        key: ValueKey(url ?? 'user-chip-avatar-${user.id}'),
-        avatar: url,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        name: user.name,
-        presence: user.presence,
+    return MergeSemantics(
+      child: Semantics(
+        label: label,
+        child: Chip(
+          avatar: ExcludeSemantics(
+            child: UserAvatar(
+              key: ValueKey(url ?? 'user-chip-avatar-${user.id}'),
+              avatar: url,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              name: user.name,
+              presence: user.presence,
+            ),
+          ),
+          label: ExcludeSemantics(
+            child: Text(label, overflow: TextOverflow.ellipsis),
+          ),
+          onDeleted: widget.onDeleted,
+          deleteButtonTooltipMessage: widget.onDeleted != null
+              ? locales.get('label--remove-label', {'label': label})
+              : null,
+        ),
       ),
-      label: Text(label),
-      onDeleted: widget.onDeleted,
     );
   }
 }

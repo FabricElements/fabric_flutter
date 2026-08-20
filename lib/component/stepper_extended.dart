@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../helper/app_localizations_delegate.dart';
 import '../helper/log_color.dart';
 import 'content_container.dart';
 
@@ -119,6 +120,7 @@ class _StepperExtendedState extends State<StepperExtended> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final locales = AppLocalizations.of(context);
     List<Widget> children = List.generate(widget.steps.length, (index) {
       Step step = widget.steps[index];
       TextStyle? leadingStyle = textTheme.titleMedium?.copyWith(
@@ -129,6 +131,10 @@ class _StepperExtendedState extends State<StepperExtended> {
       const iconColor = Colors.white;
       const iconSize = 18.0;
       Color leadingColor = Colors.grey.shade800;
+      // Builds the accessible label announced for this step, since the
+      // leading circle (number/icon) is decorative and excluded from
+      // semantics below.
+      String stepLabel = '${locales.get('label--step')} ${index + 1}';
       switch (step.state) {
         // case StepState.indexed:
         // case StepState.disabled:
@@ -146,21 +152,28 @@ class _StepperExtendedState extends State<StepperExtended> {
             size: iconSize,
           );
           leadingColor = Colors.teal;
+          stepLabel = '$stepLabel, ${locales.get('label--done')}';
           break;
         case StepState.error:
           leadingContent = Text('!', style: leadingStyle);
           leadingColor = Colors.red;
+          stepLabel = '$stepLabel, ${locales.get('label--step-error')}';
           break;
         default:
           leadingContent = Text((index + 1).toString(), style: leadingStyle);
           break;
       }
 
-      Widget leading = Container(
-        width: 32.0,
-        height: 32.0,
-        decoration: BoxDecoration(color: leadingColor, shape: BoxShape.circle),
-        child: Center(child: leadingContent),
+      Widget leading = ExcludeSemantics(
+        child: Container(
+          width: 32.0,
+          height: 32.0,
+          decoration: BoxDecoration(
+            color: leadingColor,
+            shape: BoxShape.circle,
+          ),
+          child: Center(child: leadingContent),
+        ),
       );
       return ContentContainer(
         key: ValueKey('stepper_extended_step_$index'),
@@ -171,19 +184,32 @@ class _StepperExtendedState extends State<StepperExtended> {
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 16,
           children: [
-            ListTile(
-              leading: leading,
-              title: step.title,
-              titleTextStyle: widget.titleTextStyle,
-              subtitle: step.subtitle != null
-                  ? Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: step.subtitle,
-                    )
-                  : null,
-              subtitleTextStyle: widget.subtitleTextStyle,
-              minLeadingWidth: 32,
-              isThreeLine: step.subtitle != null,
+            // MergeSemantics combines the leading state, title, and subtitle
+            // into a single announcement per step; selected:true marks the
+            // step currently being edited as the current step, and
+            // inMutuallyExclusiveGroup:true (together with the outer group
+            // Semantics below) lets assistive technology announce
+            // "step N of M, selected" like a radio group.
+            MergeSemantics(
+              child: Semantics(
+                label: stepLabel,
+                selected: step.state == StepState.editing,
+                inMutuallyExclusiveGroup: true,
+                child: ListTile(
+                  leading: leading,
+                  title: step.title,
+                  titleTextStyle: widget.titleTextStyle,
+                  subtitle: step.subtitle != null
+                      ? Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: step.subtitle,
+                        )
+                      : null,
+                  subtitleTextStyle: widget.subtitleTextStyle,
+                  minLeadingWidth: 32,
+                  isThreeLine: step.subtitle != null,
+                ),
+              ),
             ),
             Container(
               padding: const EdgeInsets.only(left: 32),
@@ -203,11 +229,18 @@ class _StepperExtendedState extends State<StepperExtended> {
       );
     });
 
-    final content = Flex(
-      direction: Axis.vertical,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: children,
+    // A group label lets assistive technology announce the whole step list
+    // as one navigable set of mutually-exclusive-state options, matching the
+    // "step N of M" pattern used by radio groups.
+    final content = Semantics(
+      container: true,
+      label: locales.get('label--steps'),
+      child: Flex(
+        direction: Axis.vertical,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: children,
+      ),
     );
 
     if (widget.scrollable) {

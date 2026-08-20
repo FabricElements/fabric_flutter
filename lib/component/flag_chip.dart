@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../helper/app_localizations_delegate.dart';
 import '../helper/iso_language.dart';
 
 /// Formats the optional total count shown beside the language code.
@@ -53,6 +54,7 @@ class FlagChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final locales = AppLocalizations.of(context);
     List<Widget> items = [];
     late Widget icon;
 
@@ -80,7 +82,7 @@ class FlagChip extends StatelessWidget {
     }
 
     return Chip(
-      avatar: icon,
+      avatar: ExcludeSemantics(child: icon),
       label: Flex(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
@@ -89,6 +91,9 @@ class FlagChip extends StatelessWidget {
         children: items,
       ),
       onDeleted: onDeleted,
+      deleteButtonTooltipMessage: onDeleted != null
+          ? locales.get('label--remove-label', {'label': language})
+          : null,
     );
   }
 }

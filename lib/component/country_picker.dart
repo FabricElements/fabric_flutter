@@ -26,6 +26,9 @@ class CountryPicker extends StatefulWidget {
     this.label,
     this.hintText,
     this.disabled = false,
+    this.semanticsLabel,
+    this.automationKey,
+    this.semanticHint,
     required this.onChange,
   });
 
@@ -64,6 +67,21 @@ class CountryPicker extends StatefulWidget {
   /// When `true`, the widget filters [ISOCountries.countries] against
   /// [ISOCountries.phoneSupportedCountries] before building the dropdown.
   final bool phoneNumberOrigin;
+
+  /// Overrides the accessibility label exposed to screen readers and agents.
+  ///
+  /// Forwarded unchanged to the underlying [InputData.semanticsLabel].
+  final String? semanticsLabel;
+
+  /// Assigns a deterministic automation identifier to the selector.
+  ///
+  /// Forwarded unchanged to the underlying [InputData.automationKey].
+  final String? automationKey;
+
+  /// Provides a structural, non-visual hint for the selector.
+  ///
+  /// Forwarded unchanged to the underlying [InputData.semanticHint].
+  final String? semanticHint;
 
   /// Creates the mutable state that memoizes the country options.
   @override
@@ -122,6 +140,9 @@ class _CountryPickerState extends State<CountryPicker> {
       options: _options,
       onChanged: (dynamic value) => widget.onChange(value as String?),
       disabled: widget.disabled,
+      semanticsLabel: widget.semanticsLabel,
+      automationKey: widget.automationKey,
+      semanticHint: widget.semanticHint,
     );
   }
 }

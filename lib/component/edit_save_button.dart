@@ -28,6 +28,7 @@ class EditSaveButton extends StatefulWidget {
     this.alertType = AlertType.basic,
     this.labels = false,
     this.direction = Axis.horizontal,
+    this.disabledHint,
   });
 
   /// Indicates whether the save and cancel actions should be shown instead of edit.
@@ -86,6 +87,12 @@ class EditSaveButton extends StatefulWidget {
   /// horizontal toolbar or a vertical action stack without changing the logic.
   final Axis direction;
 
+  /// Optional non-visual explanation surfaced to screen readers and other
+  /// assistive tools, regardless of whether the current action set is
+  /// enabled or disabled by the parent widget (for example, explaining why a
+  /// save action cannot be completed yet).
+  final String? disabledHint;
+
   /// Creates the state that resolves confirmation prompts before invoking callbacks.
   ///
   /// The returned [_EditSaveButtonState] keeps the widget stateful so the button
@@ -140,44 +147,71 @@ class _EditSaveButtonState extends State<EditSaveButton> {
       );
     }
 
-    Widget cancelButton = IconButton(
-      onPressed: cancel,
-      icon: const Icon(Icons.cancel, color: Colors.deepOrange),
+    Widget cancelButton = Semantics(
+      button: true,
+      label: locales.get('label--cancel'),
+      hint: widget.disabledHint,
+      child: IconButton(
+        tooltip: locales.get('label--cancel'),
+        onPressed: cancel,
+        icon: const Icon(Icons.cancel, color: Colors.deepOrange),
+      ),
     );
 
-    Widget updateButton = IconButton(
-      onPressed: update,
-      icon: Icon(Icons.save, color: theme.colorScheme.primary),
+    Widget updateButton = Semantics(
+      button: true,
+      label: locales.get('label--update'),
+      hint: widget.disabledHint,
+      child: IconButton(
+        tooltip: locales.get('label--update'),
+        onPressed: update,
+        icon: Icon(Icons.save, color: theme.colorScheme.primary),
+      ),
     );
 
-    Widget editButton = IconButton(
-      icon: Icon(Icons.edit, color: theme.colorScheme.primary),
-      onPressed: widget.edit,
+    Widget editButton = Semantics(
+      button: true,
+      label: locales.get('label--edit'),
+      hint: widget.disabledHint,
+      child: IconButton(
+        tooltip: locales.get('label--edit'),
+        icon: Icon(Icons.edit, color: theme.colorScheme.primary),
+        onPressed: widget.edit,
+      ),
     );
 
     if (widget.labels) {
-      cancelButton = OutlinedButton.icon(
-        onPressed: cancel,
-        icon: const Icon(Icons.cancel),
-        label: Text(locales.get('label--cancel')),
-        style: OutlinedButton.styleFrom(
-          foregroundColor:
-              theme.buttonTheme.colorScheme?.secondary ?? Colors.deepOrange,
-          iconColor:
-              theme.buttonTheme.colorScheme?.secondary ?? Colors.deepOrange,
+      cancelButton = Semantics(
+        hint: widget.disabledHint,
+        child: OutlinedButton.icon(
+          onPressed: cancel,
+          icon: const Icon(Icons.cancel),
+          label: Text(locales.get('label--cancel')),
+          style: OutlinedButton.styleFrom(
+            foregroundColor:
+                theme.buttonTheme.colorScheme?.secondary ?? Colors.deepOrange,
+            iconColor:
+                theme.buttonTheme.colorScheme?.secondary ?? Colors.deepOrange,
+          ),
         ),
       );
 
-      updateButton = FilledButton.icon(
-        onPressed: update,
-        icon: const Icon(Icons.save),
-        label: Text(locales.get('label--update')),
+      updateButton = Semantics(
+        hint: widget.disabledHint,
+        child: FilledButton.icon(
+          onPressed: update,
+          icon: const Icon(Icons.save),
+          label: Text(locales.get('label--update')),
+        ),
       );
 
-      editButton = FilledButton.icon(
-        icon: const Icon(Icons.edit),
-        onPressed: widget.edit,
-        label: Text(locales.get('label--edit')),
+      editButton = Semantics(
+        hint: widget.disabledHint,
+        child: FilledButton.icon(
+          icon: const Icon(Icons.edit),
+          onPressed: widget.edit,
+          label: Text(locales.get('label--edit')),
+        ),
       );
     }
 

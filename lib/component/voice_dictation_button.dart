@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
@@ -198,11 +199,28 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton> {
   /// `false`.
   void _reportListening(bool listening) {
     _triggerHapticFeedback(listening);
+    _announceListening(listening);
     try {
       widget.onListeningChanged?.call(listening);
     } catch (error) {
       _reportError('$error');
     }
+  }
+
+  /// Announces the listening transition to screen readers via
+  /// [SemanticsService.sendAnnouncement], since the icon/tooltip change alone
+  /// is not always narrated the moment dictation starts or stops.
+  void _announceListening(bool listening) {
+    if (!mounted) return;
+    final locales = AppLocalizations.of(context);
+    final message = listening
+        ? locales.get('label--listening')
+        : locales.get('label--hold-to-dictate');
+    SemanticsService.sendAnnouncement(
+      View.of(context),
+      message,
+      Directionality.of(context),
+    );
   }
 
   /// Fires a short haptic tap for a genuine listening start/stop transition
@@ -524,25 +542,32 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final locales = AppLocalizations.of(context);
+    final label = _listening
+        ? locales.get('label--listening')
+        : locales.get('label--hold-to-dictate');
     return Listener(
       onPointerDown: (_) => _startListening(),
       onPointerUp: (_) => _stopListening(),
       onPointerCancel: (_) => _stopListening(),
-      child: IconButton(
-        onPressed: () {},
-        // The widget already drives its own precise start/stop haptic taps
-        // via [_triggerHapticFeedback]; suppress IconButton's own built-in
-        // tap feedback so Android doesn't fire an extra, generic vibration
-        // on top of ours.
-        enableFeedback: false,
-        tooltip: _listening
-            ? locales.get('label--listening')
-            : locales.get('label--hold-to-dictate'),
-        icon: Icon(
-          _listening ? Icons.mic : Icons.mic_none,
-          color: _listening
-              ? theme.colorScheme.error
-              : (_available ? theme.colorScheme.primary : null),
+      child: Semantics(
+        button: true,
+        toggled: _listening,
+        label: label,
+        hint: locales.get('label--hold-to-dictate'),
+        child: IconButton(
+          onPressed: () {},
+          // The widget already drives its own precise start/stop haptic taps
+          // via [_triggerHapticFeedback]; suppress IconButton's own built-in
+          // tap feedback so Android doesn't fire an extra, generic vibration
+          // on top of ours.
+          enableFeedback: false,
+          tooltip: label,
+          icon: Icon(
+            _listening ? Icons.mic : Icons.mic_none,
+            color: _listening
+                ? theme.colorScheme.error
+                : (_available ? theme.colorScheme.primary : null),
+          ),
         ),
       ),
     );
