@@ -100,7 +100,6 @@ class UsersDropdown extends StatelessWidget implements PreferredSizeWidget {
   /// layouts remain stable while asynchronous state is still resolving.
   @override
   Widget build(BuildContext context) {
-    SearchController searchController = SearchController();
     final locales = AppLocalizations.of(context);
     final state = Provider.of<StateUsers>(context);
     final serialized = state.serialized;
@@ -158,7 +157,6 @@ class UsersDropdown extends StatelessWidget implements PreferredSizeWidget {
       constraints: BoxConstraints(minHeight: kToolbarHeight),
       padding: padding,
       child: InputData(
-        searchController: searchController,
         key: const Key('users-dropdown'),
         label: locales.get(label ?? 'label--search'),
         prefixIcon: Icon(icon ?? Icons.search),
