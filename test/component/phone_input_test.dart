@@ -55,5 +55,24 @@ void main() {
       // Assert
       expect(tester.takeException(), isNull);
     });
+
+    testWidgets('should keep rendering after a parent rebuild', (tester) async {
+      // Arrange — the picker options are cached in initState, so a rebuild
+      // must not throw or drop the fields.
+      await tester.pumpWidget(
+        _wrap(const PhoneInput(value: null, country: 'US')),
+      );
+      await tester.pumpAndSettle();
+
+      // Act — force a rebuild with the same configuration.
+      await tester.pumpWidget(
+        _wrap(const PhoneInput(value: null, country: 'US')),
+      );
+      await tester.pumpAndSettle();
+
+      // Assert
+      expect(tester.takeException(), isNull);
+      expect(find.byType(PhoneInput), findsOneWidget);
+    });
   });
 }

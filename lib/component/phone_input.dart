@@ -148,6 +148,12 @@ class _PhoneInputState extends State<PhoneInput> {
   /// Stores the deduplicated list of selectable countries for mobile numbers.
   late List<ISOCountry> items;
 
+  /// Caches the dropdown options derived from [items].
+  ///
+  /// Built once in [initState] because [items] is stable after initialization,
+  /// so the picker does not regenerate this ~200-entry list on every rebuild.
+  late List<ButtonOptions> options;
+
   /// Stores the normalized output value forwarded to parent callbacks.
   String? formattedNumber;
 
@@ -274,6 +280,14 @@ class _PhoneInputState extends State<PhoneInput> {
         items[index].fullName = '${items[index].fullName}, ${element.fullName}';
       }
     }
+    options = List.generate(items.length, (index) {
+      final item = items[index];
+      return ButtonOptions(
+        label: '${item.name} (+${item.callingCode})',
+        labelAlt: '${item.fullName} ${item.alpha2}',
+        value: int.tryParse(item.callingCode!),
+      );
+    });
     _reset();
     if (widget.value != null) {
       formatInput(widget.value!);
@@ -339,14 +353,6 @@ class _PhoneInputState extends State<PhoneInput> {
       locales: locales,
       defaultCountry: selectedAlpha2.isEmpty ? 'US' : selectedAlpha2,
     );
-    List<ButtonOptions> options = List.generate(items.length, (index) {
-      final item = items[index];
-      return ButtonOptions(
-        label: '${item.name} (+${item.callingCode})',
-        labelAlt: '${item.fullName} ${item.alpha2}',
-        value: int.tryParse(item.callingCode!),
-      );
-    });
     final countryPicker = InputData(
       key: const Key('country-picker'),
       required: widget.required,
