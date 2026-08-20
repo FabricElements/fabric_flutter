@@ -78,5 +78,25 @@ void main() {
       // Assert
       expect(names, ['Ada Byron', 'Bob Stone']);
     });
+
+    testWidgets(
+      'keeps rendering across rebuilds without leaking a controller',
+      (tester) async {
+        // Arrange
+        final state = StateUsers();
+        state.data = [
+          {'id': 'a', 'firstName': 'Ada', 'lastName': 'Byron'},
+        ];
+
+        // Act: pump, then force additional rebuilds of the same widget tree.
+        await _pump(tester, state, const UsersDropdown(uid: null));
+        await tester.pump();
+        await tester.pump();
+
+        // Assert: still renders a single dropdown, no exceptions on rebuild.
+        expect(find.byType(InputData), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
+    );
   });
 }
