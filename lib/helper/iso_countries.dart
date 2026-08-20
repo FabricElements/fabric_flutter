@@ -4263,27 +4263,29 @@ class ISOCountries {
     return [...mainCountries, ...notMainCountries];
   }
 
+  /// Caches countries keyed by ISO 3166-1 alpha-2 code for fast metadata lookups.
+  ///
+  /// Built once from [countries] so repeated [getName] and [getFlag] calls do
+  /// not re-deserialize the full dataset and linear-scan it on every access.
+  static final Map<String, ISOCountry> _byAlpha2 = {
+    for (final country in countries) country.alpha2: country,
+  };
+
   /// Returns the display name for the country identified by [alpha2].
   ///
   /// `null` is returned for unknown codes so callers can fall back gracefully in
   /// profile, billing, or address flows.
   static String? getName(String? alpha2) {
-    try {
-      return countries.firstWhere((element) => element.alpha2 == alpha2).name;
-    } catch (error) {
-      return null;
-    }
+    if (alpha2 == null) return null;
+    return _byAlpha2[alpha2]?.name;
   }
 
   /// Returns the flag emoji for the country identified by [alpha2].
   ///
   /// `null` is returned when no matching country exists.
   static String? getFlag(String? alpha2) {
-    try {
-      return countries.firstWhere((element) => element.alpha2 == alpha2).flag;
-    } catch (error) {
-      return null;
-    }
+    if (alpha2 == null) return null;
+    return _byAlpha2[alpha2]?.flag;
   }
 
   /// Lists the country codes currently supported for phone-number purchasing.

@@ -72,5 +72,15 @@ void main() {
       // Arrange, Act & Assert
       expect(ISOCountries.getFlag('ZZ'), isNull);
     });
+
+    test('should return the same value across repeated cached lookups', () {
+      // Arrange & Act — the memoized lookup must stay stable between calls.
+      final first = ISOCountries.getName('CA');
+      final second = ISOCountries.getName('CA');
+
+      // Assert
+      expect(first, 'Canada');
+      expect(first, second);
+    });
   });
 }

@@ -42,5 +42,15 @@ void main() {
       // Arrange, Act & Assert
       expect(ISOLanguages.getEmoji('zz'), isNull);
     });
+
+    test('should return the same value across repeated cached lookups', () {
+      // Arrange & Act — the memoized lookup must stay stable between calls.
+      final first = ISOLanguages.getName('en');
+      final second = ISOLanguages.getName('en');
+
+      // Assert
+      expect(first, 'English');
+      expect(first, second);
+    });
   });
 }
