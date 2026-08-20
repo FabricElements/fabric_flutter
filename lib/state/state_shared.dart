@@ -567,6 +567,7 @@ abstract class StateShared extends ChangeNotifier {
     scrollOffset = 0.0;
     _timerNotify?.cancel();
     _timerData?.cancel();
+    invalidateSerialized();
     if (notify) {
       data = null;
     } else {
@@ -662,6 +663,75 @@ abstract class StateShared extends ChangeNotifier {
 
   /// Returns the state payload converted into a domain-specific representation.
   dynamic get serialized;
+
+  /// Holds the source reference that produced [_serializedCache].
+  Object? _serializedSource;
+
+  /// Holds the last value returned by [cachedSerialize].
+  Object? _serializedCache;
+
+  /// Tracks whether [_serializedCache] holds a real result.
+  ///
+  /// A dedicated flag is required because `null` is a legitimate cached value
+  /// and `null` is also a legitimate [_serializedSource].
+  bool _serializedCached = false;
+
+  /// Memoizes an expensive [serialized] conversion against its [source].
+  ///
+  /// [serialized] is typically read many times per update — at least once by
+  /// each listening widget build plus any internal consumers — while [data] is
+  /// replaced by a brand new object on every fetch. Rebuilding the domain model
+  /// on each read repeats every `fromJson` call, sort, and filter for no gain.
+  ///
+  /// Pass the value that the conversion derives from as [source] (usually
+  /// [data]) and the conversion itself as [build]. While [source] stays
+  /// *identical* — reference equality, not structural equality — the previously
+  /// built value is returned. As soon as the state assigns a new [data] object
+  /// the identity check fails and [build] runs again, so the cache cannot go
+  /// stale.
+  ///
+  /// A `null` [source] is cached like any other value, which keeps repeated
+  /// reads cheap while a state is still empty. [clear] invalidates the cache.
+  ///
+  /// Example:
+  ///
+  /// ```dart
+  /// @override
+  /// List<UserData> get serialized => cachedSerialize(data, () {
+  ///   final items = (data as List<dynamic>? ?? [])
+  ///       .map(UserData.fromJson)
+  ///       .toList();
+  ///   items.sort((a, b) => a.name.compareTo(b.name));
+  ///   return items;
+  /// });
+  /// ```
+  ///
+  /// [build] is only invoked on a cache miss, so it may safely be expensive.
+  /// Exceptions thrown by [build] propagate to the caller and leave the previous
+  /// cache entry untouched.
+  @protected
+  T cachedSerialize<T>(Object? source, T Function() build) {
+    if (_serializedCached && identical(_serializedSource, source)) {
+      return _serializedCache as T;
+    }
+    final result = build();
+    _serializedSource = source;
+    _serializedCache = result;
+    _serializedCached = true;
+    return result;
+  }
+
+  /// Drops any value memoized through [cachedSerialize].
+  ///
+  /// Call this when a subclass mutates the payload in place instead of assigning
+  /// a new [data] object, because in-place mutation cannot be detected by the
+  /// identity check.
+  @protected
+  void invalidateSerialized() {
+    _serializedSource = null;
+    _serializedCache = null;
+    _serializedCached = false;
+  }
 
   /// Stores the debounced listener timer used by [notifyListeners].
   Timer? _timerNotify;
@@ -767,6 +837,7 @@ abstract class StateShared extends ChangeNotifier {
     _controllerStream.close();
     _controllerStreamError.close();
     _timerNotify?.cancel();
+    _timerData?.cancel();
     super.dispose();
   }
 }

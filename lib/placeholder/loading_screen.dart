@@ -41,7 +41,7 @@ class LoadingScreen extends StatelessWidget {
       child: Column(
         children: [
           if (parent) AppBar(),
-          Spacer(),
+          const Spacer(),
           CircularProgressIndicator.adaptive(
             value: null,
             valueColor: AlwaysStoppedAnimation<Color>(
@@ -49,7 +49,7 @@ class LoadingScreen extends StatelessWidget {
             ),
             backgroundColor: theme.colorScheme.onSurface,
           ),
-          Spacer(),
+          const Spacer(),
         ],
       ),
     );

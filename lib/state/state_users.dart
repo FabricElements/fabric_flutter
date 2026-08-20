@@ -33,11 +33,7 @@ class StateUsers extends StateCollection {
   /// build). Because [data] is replaced by a new object on every fetch, an
   /// identity check lets repeated reads of the same data reuse the previous
   /// result instead of redoing N `fromJson` calls and a full sort each time.
-  List<UserData>? _serializedCache;
-
-  /// Holds the [data] reference that produced [_serializedCache].
-  Object? _serializedCacheToken;
-
+  ///
   /// Returns the current query results as sorted [UserData] objects.
   ///
   /// Sorting by [UserData.name] keeps user pickers stable even when Firestore
@@ -47,18 +43,14 @@ class StateUsers extends StateCollection {
   List<UserData> get serialized {
     final currentData = data;
     if (currentData == null) return [];
-    if (_serializedCache != null &&
-        identical(_serializedCacheToken, currentData)) {
-      return _serializedCache!;
-    }
     try {
-      List<UserData> items = (currentData as List<dynamic>)
-          .map((value) => UserData.fromJson(value))
-          .toList();
-      items.sort((a, b) => a.name.compareTo(b.name));
-      _serializedCache = items;
-      _serializedCacheToken = currentData;
-      return items;
+      return cachedSerialize(currentData, () {
+        List<UserData> items = (currentData as List<dynamic>)
+            .map((value) => UserData.fromJson(value))
+            .toList();
+        items.sort((a, b) => a.name.compareTo(b.name));
+        return items;
+      });
     } catch (e) {
       error = serializationError(e);
       return [];

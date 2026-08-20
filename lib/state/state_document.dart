@@ -184,6 +184,116 @@ abstract class StateDocument extends StateShared {
   @override
   void clear({bool notify = true}) {
     baseRef = null;
+    _edit = false;
+    _copy = null;
     super.clear(notify: notify);
+  }
+
+  /// Tracks whether the document is currently open for editing.
+  bool _edit = false;
+
+  /// Holds the snapshot captured when editing started.
+  Map<String, dynamic>? _copy;
+
+  /// Returns whether the document is currently open for editing.
+  ///
+  /// This flag is purely local UI state: it does not gate Firestore writes and
+  /// it never changes on its own when a snapshot arrives. Views typically bind
+  /// it to an "Edit" / "Done" toggle and read it to decide whether to render
+  /// form fields or read-only content.
+  bool get edit => _edit;
+
+  /// Enters or leaves edit mode and notifies listeners.
+  ///
+  /// Entering edit mode captures a shallow snapshot of the current [data] into
+  /// [copy] so [revert] can restore it. Leaving edit mode discards that snapshot
+  /// and keeps whatever is currently in [data], which makes assigning `false`
+  /// the "accept the local changes" path. Use [revert] to discard them instead.
+  ///
+  /// Reassigning the current value is ignored, so a rebuild that re-applies the
+  /// same flag will not clobber an existing snapshot.
+  set edit(bool value) {
+    if (_edit == value) return;
+    _edit = value;
+    _copy = value ? _snapshot() : null;
+    notifyListeners();
+  }
+
+  /// Returns the snapshot captured when edit mode was entered.
+  ///
+  /// The value is `null` outside of edit mode, or when editing started while the
+  /// document had no data. The returned map is the state's own copy: mutate it
+  /// only if you intend to change what [revert] restores.
+  Map<String, dynamic>? get copy => _copy;
+
+  /// Returns a defensive shallow copy of the current [data].
+  ///
+  /// A shallow copy is enough to undo the top-level field edits that document
+  /// forms perform. Nested maps and lists are shared with [data], so subclasses
+  /// that edit nested structures should replace them wholesale rather than
+  /// mutating them in place.
+  Map<String, dynamic>? _snapshot() {
+    final current = data;
+    if (current is! Map) return null;
+    return Map<String, dynamic>.from(current);
+  }
+
+  /// Applies a local, unsaved change to a single field while editing.
+  ///
+  /// Assigning through this method — rather than mutating `data[key]` directly —
+  /// is what makes the change visible: [data] compares payloads structurally, so
+  /// an in-place mutation of the existing map would be indistinguishable from
+  /// the previous value and would never notify listeners.
+  ///
+  /// The change is local only. Call [save] to persist it, or [revert] to discard
+  /// it. Calling this outside of edit mode still updates [data] but leaves no
+  /// snapshot to revert to.
+  void editField(String key, dynamic value) {
+    final current = data;
+    final updated = current is Map
+        ? Map<String, dynamic>.from(current)
+        : <String, dynamic>{};
+    updated[key] = value;
+    data = updated;
+  }
+
+  /// Discards local edits and restores the snapshot taken when editing started.
+  ///
+  /// Leaves edit mode and notifies listeners. When no snapshot exists — because
+  /// editing never started, or started on an empty document — the current [data]
+  /// is left untouched and only the edit flag is cleared.
+  void revert() {
+    final snapshot = _copy;
+    _edit = false;
+    _copy = null;
+    if (snapshot != null) {
+      data = snapshot;
+    } else {
+      notifyListeners();
+    }
+  }
+
+  /// Persists the current [data] to Firestore and leaves edit mode.
+  ///
+  /// The document `id` is stripped before writing because it is the document key
+  /// rather than a stored field. Edit mode is only exited after the write
+  /// succeeds, so a failed save leaves the user's changes on screen; the error is
+  /// recorded through [error] and rethrown for callers that want to react to it.
+  ///
+  /// [merge] defaults to `true` so unspecified fields are preserved, which is the
+  /// safe choice for partial document forms.
+  Future<void> save({bool merge = true}) async {
+    final current = data;
+    if (current is! Map) return;
+    final payload = Map<String, dynamic>.from(current)..remove('id');
+    try {
+      await set(payload, merge: merge);
+    } catch (e) {
+      error = e.toString();
+      rethrow;
+    }
+    _edit = false;
+    _copy = null;
+    notifyListeners();
   }
 }

@@ -89,3 +89,6 @@ ignore-*.*
 **/local.properties
 /package-lock.json
 
+
+# Test coverage output
+/coverage/
