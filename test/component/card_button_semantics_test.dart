@@ -157,6 +157,83 @@ void main() {
         );
       });
 
+      testWidgets('should announce the card as a button', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
+        final handle = tester.ensureSemantics();
+
+        // Act
+        await tester.pumpWidget(
+          _app(
+            CardButton(
+              image: 'https://example.com/a.jpg',
+              headline: 'Dashboard',
+              onPressed: () {},
+            ),
+          ),
+        );
+
+        // Assert
+        final node = tester.getSemantics(find.byType(CardButton));
+        expect(node.flagsCollection.isButton, isTrue);
+        handle.dispose();
+      });
+
+      testWidgets('should merge headline and description into one node', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
+        final handle = tester.ensureSemantics();
+
+        // Act
+        await tester.pumpWidget(
+          _app(
+            CardButton(
+              image: 'https://example.com/a.jpg',
+              headline: 'Reports',
+              description: 'Monthly totals',
+              onPressed: () {},
+            ),
+          ),
+        );
+
+        // Assert
+        final node = tester.getSemantics(find.byType(CardButton));
+        expect(node.label, 'Reports. Monthly totals');
+        handle.dispose();
+      });
+
+      testWidgets('should not announce the decorative image separately', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
+        final handle = tester.ensureSemantics();
+
+        // Act
+        await tester.pumpWidget(
+          _app(
+            CardButton(
+              image: 'https://example.com/a.jpg',
+              headline: 'Reports',
+              description: 'Monthly totals',
+              semanticsLabel: 'Open reports',
+              semanticHint: 'Shows the monthly report',
+              automationKey: 'home_grid_card_reports',
+              onPressed: () {},
+            ),
+          ),
+        );
+
+        // Assert
+        final node = tester.getSemantics(find.byType(CardButton));
+        expect(node.label, 'Open reports');
+        expect(node.hint, 'Shows the monthly report');
+        expect(node.identifier, 'home_grid_card_reports');
+        expect(node.childrenCount, 0);
+        handle.dispose();
+      });
+
       testWidgets('should satisfy the labeled tap target guideline', (
         WidgetTester tester,
       ) async {
