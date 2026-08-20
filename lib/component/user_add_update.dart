@@ -194,6 +194,19 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
   /// localized and rendered near the action buttons.
   String? error;
 
+  /// Controls vertical scrolling of the form contents.
+  ///
+  /// Created once and disposed with the state so the controller is not
+  /// reallocated (and leaked) on every [build] pass.
+  final ScrollController _controller = ScrollController();
+
+  /// Releases the scroll controller when the widget is removed from the tree.
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   /// Resets the local user draft to match the current widget configuration.
   ///
   /// Cloning the incoming [UserData] prevents accidental mutation of parent
@@ -229,7 +242,6 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final locales = AppLocalizations.of(context);
-    ScrollController controller = ScrollController();
     final height = MediaQuery.of(context).size.height;
     final passwordRegex = widget.passwordRegex ?? RegexHelper.password;
     bool canCall = sending == false;
@@ -654,9 +666,9 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
         thumbVisibility: true,
         interactive: true,
         trackVisibility: true,
-        controller: controller,
+        controller: _controller,
         child: SingleChildScrollView(
-          controller: controller,
+          controller: _controller,
           padding: const EdgeInsets.only(
             bottom: 64,
             left: 16,
