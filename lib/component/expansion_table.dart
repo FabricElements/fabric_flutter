@@ -189,6 +189,7 @@ class _ExpansionTableState extends State<ExpansionTable> {
       data.header!.length,
       const FixedColumnWidth(300.0),
     );
+    final Map<int, TableColumnWidth> tableColumnWidths = tableColumns.asMap();
     final double effectiveHorizontalMargin =
         widget.horizontalMargin ?? theme.dataTableTheme.horizontalMargin ?? 0;
     final double effectiveColumnSpacing =
@@ -389,7 +390,7 @@ class _ExpansionTableState extends State<ExpansionTable> {
               ),
               child: Table(
                 defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                columnWidths: tableColumns.asMap(),
+                columnWidths: tableColumnWidths,
                 children: [TableRow(children: cellsBase)],
               ),
             ),
@@ -436,7 +437,7 @@ class _ExpansionTableState extends State<ExpansionTable> {
             height: headingRowHeight,
             child: Table(
               defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-              columnWidths: tableColumns.asMap(),
+              columnWidths: tableColumnWidths,
               children: [TableRow(children: columnsList)],
             ),
           ),
