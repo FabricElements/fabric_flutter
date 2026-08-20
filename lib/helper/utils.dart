@@ -10,6 +10,12 @@ import '../serialized/user_data.dart';
 import 'enum_data.dart';
 import 'log_color.dart';
 
+/// Formats a [DateTime] as a `yyyy-MM-dd` date string.
+///
+/// Hoisted to file scope so [Utils.dateToJson] reuses one formatter instead of
+/// constructing a new [DateFormat] on every call.
+final DateFormat _dateOnlyFormat = DateFormat('yyyy-MM-dd');
+
 /// Provides general-purpose utility functions for serialization, randomness, and formatting.
 ///
 /// This class centralizes common operations that do not belong to a specific
@@ -60,7 +66,7 @@ class Utils {
   /// birthdates or calendar events.
   static String? dateToJson(DateTime? time) {
     if (time == null) return null;
-    return DateFormat('yyyy-MM-dd').format(time.toUtc()).toString();
+    return _dateOnlyFormat.format(time.toUtc()).toString();
   }
 
   /// Converts a string value to a double, returning null if conversion fails.
