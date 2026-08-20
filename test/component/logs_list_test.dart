@@ -1,4 +1,5 @@
 import 'package:fabric_flutter/component/logs_list.dart';
+import 'package:fabric_flutter/helper/options.dart';
 import 'package:fabric_flutter/serialized/logs_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -91,6 +92,36 @@ void main() {
 
       // Assert
       expect(find.text(expected), findsOneWidget);
+    });
+
+    testWidgets('passes a non-null id to an action when the entry has none', (
+      tester,
+    ) async {
+      // Arrange: an entry without an id, so LogsList must synthesize one.
+      dynamic tappedId;
+      final logs = [
+        LogsData(text: 'A log line', timestamp: DateTime(2024, 1, 3, 9)),
+      ];
+      final actions = [
+        ButtonOptions(label: 'Remove', onTap: (dynamic id) => tappedId = id),
+      ];
+
+      // Act: open the popup menu and tap the action.
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: LogsList(logs: logs, actions: actions),
+          ),
+        ),
+      );
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Remove'));
+      await tester.pumpAndSettle();
+
+      // Assert
+      expect(tappedId, isNotNull);
+      expect(tappedId, isA<String>());
     });
   });
 }
