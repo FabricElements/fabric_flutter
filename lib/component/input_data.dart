@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:omni_datetime_picker/omni_datetime_picker.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 
+import '../helper/agent/agent_element_binding.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/enum_data.dart';
 import '../helper/gsm.dart';
@@ -14,6 +15,7 @@ import '../helper/log_color.dart';
 import '../helper/options.dart';
 import '../helper/regex_helper.dart';
 import '../helper/utils.dart';
+import '../serialized/agent_element_snapshot.dart';
 import 'alert_data.dart';
 
 /// Defines the value representations supported by [InputData].
@@ -853,6 +855,132 @@ getValue -------------------------------------
     }
   }
 
+  /// Classifies this input for the live agent element index.
+  ///
+  /// The mapping mirrors how a user interacts with each variant, so an agent
+  /// reading the index knows whether to set a value, pick an option, or toggle.
+  AgentElementType get _agentElementType {
+    switch (widget.type) {
+      case InputDataType.enums:
+      case InputDataType.dropdown:
+        return AgentElementType.dropdown;
+      case InputDataType.radio:
+        return AgentElementType.radio;
+      case InputDataType.bool:
+        return AgentElementType.checkbox;
+      case InputDataType.date:
+      case InputDataType.dateTime:
+      case InputDataType.timestamp:
+      case InputDataType.time:
+        return AgentElementType.datePicker;
+      default:
+        return AgentElementType.textInput;
+    }
+  }
+
+  /// Applies [rawValue] exactly as user input would.
+  ///
+  /// The value is first converted into the shape this input expects, then the
+  /// local editor state is synchronized through [getValue] so controllers and
+  /// pickers stay consistent, and finally the same callbacks a real interaction
+  /// fires are invoked. Text-based variants notify [InputData.onChanged] only,
+  /// matching keyboard entry; selection and picker variants also notify
+  /// [InputData.onComplete] and [InputData.onSubmit], matching a committed
+  /// choice.
+  ///
+  /// Picker-backed variants such as [InputDataType.date] set the value directly
+  /// instead of opening the platform picker, which is what lets an agent drive
+  /// them without a visible dialog.
+  void agentSetValue(Object? rawValue) {
+    if (widget.disabled) return;
+    final parsed = _parseAgentValue(rawValue);
+    switch (widget.type) {
+      case InputDataType.currency:
+      case InputDataType.percent:
+      case InputDataType.double:
+      case InputDataType.int:
+      case InputDataType.string:
+      case InputDataType.text:
+      case InputDataType.email:
+      case InputDataType.secret:
+      case InputDataType.url:
+      case InputDataType.phone:
+        getValue(notify: true, newValue: parsed);
+        widget.onChanged?.call(valueChanged(parsed));
+        break;
+      default:
+        getValue(notify: true, newValue: parsed);
+        widget.onChanged?.call(parsed);
+        widget.onComplete?.call(parsed);
+        widget.onSubmit?.call(parsed);
+    }
+  }
+
+  /// Converts a JSON-safe [rawValue] into the shape this input expects.
+  ///
+  /// Strings are parsed into the matching Dart type for date, time, boolean,
+  /// and numeric variants. Selection variants resolve the value against the
+  /// configured options or enums by value, identifier, name, or label so an
+  /// agent can address an option the same way it reads one back.
+  dynamic _parseAgentValue(Object? rawValue) {
+    if (rawValue == null) return null;
+    switch (widget.type) {
+      case InputDataType.date:
+      case InputDataType.dateTime:
+      case InputDataType.timestamp:
+        if (rawValue is DateTime) return rawValue;
+        return DateTime.tryParse(rawValue.toString());
+      case InputDataType.time:
+        if (rawValue is TimeOfDay) return rawValue;
+        final parts = rawValue.toString().split(':');
+        if (parts.length < 2) return null;
+        final hour = int.tryParse(parts[0]);
+        final minute = int.tryParse(parts[1]);
+        if (hour == null || minute == null) return null;
+        return TimeOfDay(hour: hour, minute: minute);
+      case InputDataType.bool:
+        if (rawValue is bool) return rawValue;
+        final text = rawValue.toString().toLowerCase();
+        return text == 'true' || text == '1';
+      case InputDataType.enums:
+        return _matchEnum(rawValue);
+      case InputDataType.dropdown:
+      case InputDataType.radio:
+        return _matchOption(rawValue);
+      default:
+        return rawValue;
+    }
+  }
+
+  /// Resolves [rawValue] against [InputData.enums] by identity or name.
+  ///
+  /// Returns `null` when no enum entry matches.
+  dynamic _matchEnum(Object rawValue) {
+    for (final item in widget.enums) {
+      if (identical(item, rawValue)) return item;
+      if (item.name == rawValue.toString()) return item;
+      if (item.toString() == rawValue.toString()) return item;
+    }
+    return null;
+  }
+
+  /// Resolves [rawValue] against [InputData.options].
+  ///
+  /// Matches on [ButtonOptions.value], [ButtonOptions.id], and
+  /// [ButtonOptions.label], in that order. Returns `null` when nothing matches.
+  dynamic _matchOption(Object rawValue) {
+    final text = rawValue.toString();
+    for (final option in widget.options) {
+      if (option.value == rawValue) return option.value;
+    }
+    for (final option in widget.options) {
+      if (option.value?.toString() == text) return option.value;
+      if (option.id == text) return option.value;
+      if (option.label == text) return option.value;
+    }
+    return null;
+  }
+
   /// Builds the concrete editor that matches the configured [InputDataType].
   @override
   Widget build(BuildContext context) {
@@ -1655,21 +1783,30 @@ getValue -------------------------------------
         ),
       );
     }
-    return Semantics(
+    return AgentElement(
+      id: _resolveAutomationKey(context),
+      type: _agentElementType,
       label: _resolveSemanticLabel(locales),
-      identifier: _resolveAutomationKey(context),
       hint: _resolveSemanticHint(),
-      enabled: !widget.disabled,
-      container: true,
-      child: Theme(
-        data: theme.copyWith(
-          disabledColor: textTheme.bodyMedium?.color,
-          inputDecorationTheme: theme.inputDecorationTheme.copyWith(
-            disabledBorder: theme.inputDecorationTheme.enabledBorder,
-            hoverColor: textTheme.bodyLarge?.color,
+      valueGetter: () => value,
+      enabledGetter: () => !widget.disabled,
+      setter: agentSetValue,
+      child: Semantics(
+        label: _resolveSemanticLabel(locales),
+        identifier: _resolveAutomationKey(context),
+        hint: _resolveSemanticHint(),
+        enabled: !widget.disabled,
+        container: true,
+        child: Theme(
+          data: theme.copyWith(
+            disabledColor: textTheme.bodyMedium?.color,
+            inputDecorationTheme: theme.inputDecorationTheme.copyWith(
+              disabledBorder: theme.inputDecorationTheme.enabledBorder,
+              hoverColor: textTheme.bodyLarge?.color,
+            ),
           ),
+          child: Container(margin: widget.margin, child: endWidget),
         ),
-        child: Container(margin: widget.margin, child: endWidget),
       ),
     );
   }

@@ -56,6 +56,16 @@ export 'component/users_dropdown.dart';
 export 'component/voice_dictation_button.dart';
 
 // Helpers
+export 'helper/agent/agent_authorizer.dart';
+export 'helper/agent/agent_bridge.dart';
+export 'helper/agent/agent_builtin_commands.dart';
+export 'helper/agent/agent_command.dart';
+export 'helper/agent/agent_element.dart';
+export 'helper/agent/agent_element_binding.dart';
+export 'helper/agent/agent_element_index.dart';
+export 'helper/agent/agent_exception.dart';
+export 'helper/agent/agent_navigator_observer.dart';
+export 'helper/agent/agent_registry.dart';
 export 'helper/app_global.dart';
 export 'helper/app_localizations_delegate.dart';
 export 'helper/auth_service.dart';
@@ -89,6 +99,15 @@ export 'placeholder/default_locales.dart';
 export 'placeholder/loading_screen.dart';
 
 // Serialized models
+export 'serialized/agent_command_info.dart';
+export 'serialized/agent_describe_result.dart';
+export 'serialized/agent_element_snapshot.dart';
+export 'serialized/agent_error.dart';
+export 'serialized/agent_param.dart';
+export 'serialized/agent_request.dart';
+export 'serialized/agent_response.dart';
+export 'serialized/agent_route_info.dart';
+export 'serialized/agent_state_result.dart';
 export 'serialized/base_db.dart';
 export 'serialized/chart_preferences.dart';
 export 'serialized/chart_wrapper.dart';
