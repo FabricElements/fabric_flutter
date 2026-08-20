@@ -56,6 +56,7 @@ export 'component/voice_dictation_button.dart';
 // Helpers
 export 'helper/app_global.dart';
 export 'helper/app_localizations_delegate.dart';
+export 'helper/auth_service.dart';
 export 'helper/byte_count_transformer.dart';
 export 'helper/enum_data.dart';
 export 'helper/filter_helper.dart';

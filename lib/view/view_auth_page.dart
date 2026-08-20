@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 
 import '../component/alert_data.dart';
@@ -16,6 +15,7 @@ import '../component/input_data.dart';
 import '../component/phone_input.dart';
 import '../component/smart_image.dart';
 import '../helper/app_localizations_delegate.dart';
+import '../helper/auth_service.dart';
 import '../helper/log_color.dart';
 import '../helper/options.dart';
 import '../placeholder/loading_screen.dart';
@@ -23,9 +23,10 @@ import '../state/state_analytics.dart';
 import '../state/state_global.dart';
 import '../state/state_view_auth.dart';
 
-final FirebaseAuth _auth = FirebaseAuth.instance;
-final GoogleSignIn googleSignIn = GoogleSignIn.instance;
-GoogleAuthProvider googleProvider = GoogleAuthProvider();
+/// Re-exports the authentication seam so importers of this view keep access to
+/// [AuthService], [FirebaseAuthService], `googleSignIn`, and `googleProvider`,
+/// which used to be declared here.
+export '../helper/auth_service.dart';
 
 /// Provides a full-screen authentication page with multiple sign-in options.
 ///
@@ -54,6 +55,7 @@ class ViewAuthPage extends StatefulWidget {
     this.logoSemanticLabel,
     this.title,
     this.description,
+    this.authService,
   });
 
   final Widget? loader;
@@ -116,12 +118,39 @@ class ViewAuthPage extends StatefulWidget {
   final String? title;
   final String? description;
 
+  /// Overrides the authentication backend used by every sign-in button.
+  ///
+  /// Exists **for testability**. When `null` — the default, and what every
+  /// production call site should keep using — the page builds a
+  /// [FirebaseAuthService] and talks to Firebase and Google Sign-In exactly as
+  /// before. Supplying a fake [AuthService] lets a test complete or throw at
+  /// will and therefore exercise the failure branches, which are otherwise
+  /// unreachable because the mocked Firebase method channel never completes.
+  final AuthService? authService;
+
   @override
   State<ViewAuthPage> createState() => ViewAuthPageState();
 }
 
 class ViewAuthPageState extends State<ViewAuthPage> {
   late bool loading;
+
+  /// Performs the actual sign-in calls for this page.
+  ///
+  /// Resolved once so a page-scoped [FirebaseAuthService] can retain the
+  /// pending web phone confirmation across the verify/confirm steps, mirroring
+  /// how that confirmation used to be held by this state object.
+  late final AuthService auth;
+
+  /// Holds the pending web phone confirmation.
+  ///
+  /// No longer populated: the confirmation is retained by [auth] so the page
+  /// never handles a `ConfirmationResult` it cannot fake in a test. Kept only
+  /// so existing references still compile.
+  @Deprecated(
+    'The pending confirmation is now held by AuthService and this field is '
+    'always null. It will be removed in a future release.',
+  )
   ConfirmationResult? webConfirmationResult;
   bool policiesAccepted = false;
   final List<String> googleScopes = <String>['openid', 'email'];
@@ -131,7 +160,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
   void initState() {
     super.initState();
     loading = false;
-    webConfirmationResult = null;
+    auth = widget.authService ?? FirebaseAuthService();
     policiesAccepted = false;
   }
 
@@ -210,7 +239,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
 
     /// Verification completed: Sign in with credentials
     verificationCompleted(AuthCredential phoneAuthCredential) async {
-      await _auth.signInWithCredential(phoneAuthCredential);
+      await auth.signInWithCredential(phoneAuthCredential);
       alertData(body: locales.get('alert--received-phone-auth-credential'));
     }
 
@@ -257,16 +286,12 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       if (mounted) setState(() {});
       try {
         if (kIsWeb || Platform.isMacOS) {
-          final confirmationResult = await _auth.signInWithPhoneNumber(
+          state.verificationId = await auth.signInWithPhoneNumber(
             state.phoneValid!,
           );
-          state.verificationId = confirmationResult.verificationId;
-          webConfirmationResult = confirmationResult;
         } else {
-          await _auth.verifyPhoneNumber(
-            forceResendingToken: 3,
+          await auth.verifyPhoneNumber(
             phoneNumber: state.phoneValid!,
-            timeout: const Duration(minutes: 2),
             verificationCompleted: verificationCompleted,
             verificationFailed: verificationFailed,
             codeSent: codeSent,
@@ -294,16 +319,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
               state.phoneVerificationCode!.length == 6,
           'Enter valid confirmation code',
         );
-        assert(
-          webConfirmationResult?.verificationId != null,
-          'Please input sms code received after verifying phone number',
-        );
-        final UserCredential credential = await webConfirmationResult!.confirm(
-          state.phoneVerificationCode!,
-        );
-        final User user = credential.user!;
-        final User currentUser = _auth.currentUser!;
-        assert(user.uid == currentUser.uid);
+        await auth.confirmPhoneCode(state.phoneVerificationCode!);
         await Future.delayed(const Duration(seconds: 3));
         resetView();
       } catch (error) {
@@ -325,13 +341,10 @@ class ViewAuthPageState extends State<ViewAuthPage> {
               state.phoneVerificationCode!.length == 6,
           'Enter valid confirmation code',
         );
-        final AuthCredential credential = PhoneAuthProvider.credential(
+        await auth.signInWithPhoneCredential(
           verificationId: state.verificationId!,
           smsCode: state.phoneVerificationCode!,
         );
-        final User user = (await _auth.signInWithCredential(credential)).user!;
-        final User currentUser = _auth.currentUser!;
-        assert(user.uid == currentUser.uid);
         await Future.delayed(const Duration(seconds: 3));
         resetView();
       } catch (error) {
@@ -347,54 +360,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       // loading = true;
       // if (mounted) setState(() {});
       try {
-        // Sign out if signed in
-        // The new API exposes a singleton without a `currentUser` getter.
-        // Always attempt signOut first to ensure a fresh sign-in.
-        try {
-          await googleSignIn.signOut();
-        } catch (e) {
-          // ignore sign out errors
-        }
-      } catch (error) {
-        //
-      }
-      try {
-        if (kIsWeb) {
-          for (var scope in googleScopes) {
-            googleProvider.addScope(scope);
-          }
-          await _auth.signInWithPopup(googleProvider);
-        } else {
-          // Use `authenticate` from the new API which performs an interactive sign-in.
-          final authenticated = await googleSignIn.authenticate(
-            scopeHint: googleScopes,
-          );
-          // `authenticate` in google_sign_in >=7.x returns a non-null
-          // GoogleSignInAccount on success or throws on failure, so no null
-          // check is necessary here.
-          // Get ID token from the authentication object.
-          final GoogleSignInAuthentication googleAuth =
-              authenticated.authentication;
-          // Access token is obtained via the authorization client for the account.
-          // Prefer the authorization client's access token but fall back to
-          // the authentication object's accessToken. Some platforms may not
-          // return an idToken, so accept either token as long as one is
-          // available. If neither token is available, surface a helpful
-          // message rather than passing nulls into Firebase.
-          final clientAuth = await authenticated.authorizationClient
-              .authorizationForScopes(googleScopes);
-          final String? accessToken = clientAuth?.accessToken;
-          final String? idToken = googleAuth.idToken;
-          assert(
-            accessToken != null || idToken != null,
-            'At least one of ID token and access token is required',
-          );
-          final credential = GoogleAuthProvider.credential(
-            accessToken: accessToken,
-            idToken: idToken,
-          );
-          await _auth.signInWithCredential(credential);
-        }
+        await auth.signInWithGoogle(scopes: googleScopes);
       } on FirebaseAuthException catch (error) {
         bool authCanceled = error.code == 'canceled';
         if (!authCanceled) {
@@ -412,11 +378,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
     /// Sign in anonymously
     signInAnonymously() async {
       try {
-        final userCredential = await _auth.signInAnonymously();
-        final User user = userCredential.user!;
-        final User currentUser = _auth.currentUser!;
-        assert(user.uid == currentUser.uid);
-
+        await auth.signInAnonymously();
         alertData(
           title: 'Signed in with temporary account.',
           type: AlertType.success,
@@ -444,13 +406,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       try {
         loading = true;
         if (mounted) setState(() {});
-        var appleProvider = AppleAuthProvider();
-        appleProvider.addScope('email'); //this scope is required
-        if (kIsWeb) {
-          await _auth.signInWithPopup(appleProvider);
-        } else {
-          await _auth.signInWithProvider(appleProvider);
-        }
+        await auth.signInWithApple();
       } on FirebaseAuthException catch (error) {
         bool authCanceled = error.code == 'canceled';
         if (!authCanceled) {
