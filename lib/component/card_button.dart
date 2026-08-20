@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../helper/agent/agent_element_binding.dart';
+import '../serialized/agent_element_snapshot.dart';
 import 'smart_image.dart';
 
 /// Displays a large tappable card with an image and optional supporting text.
@@ -144,81 +146,94 @@ class _CardButtonState extends State<CardButton> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
-    return Semantics(
+    return AgentElement(
+      id: widget.automationKey,
+      type: AgentElementType.button,
       label: _resolvedLabel,
-      identifier: widget.automationKey,
       hint: widget.semanticHint,
-      button: true,
-      enabled: true,
-      container: true,
-      onTap: widget.onPressed,
-      child: ExcludeSemantics(
-        child: Container(
-          padding: widget.margin ?? const EdgeInsets.symmetric(vertical: 8),
-          child: Card(
-            color: theme.colorScheme.surfaceContainerHighest,
-            clipBehavior: Clip.hardEdge,
-            child: InkWell(
-              onTap: () => widget.onPressed(),
-              child: SizedBox(
-                height: widget.height,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: <Widget>[
-                    ExcludeSemantics(
-                      child: SizedBox.expand(
-                        child: SmartImage(
-                          key: ValueKey('card-button-image-${widget.image}'),
-                          url: widget.image,
-                          format: AvailableOutputFormats.jpeg,
-                          excludeSemantics: true,
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            stops: const [0.0, 0.4, 0.7],
-                            colors: [
-                              theme.colorScheme.surface.withValues(alpha: 0.5),
-                              theme.colorScheme.surface.withValues(alpha: 0.9),
-                              theme.colorScheme.surface.withValues(alpha: 0.9),
-                            ],
+      activator: widget.onPressed,
+      child: Semantics(
+        label: _resolvedLabel,
+        identifier: widget.automationKey,
+        hint: widget.semanticHint,
+        button: true,
+        enabled: true,
+        container: true,
+        onTap: widget.onPressed,
+        child: ExcludeSemantics(
+          child: Container(
+            padding: widget.margin ?? const EdgeInsets.symmetric(vertical: 8),
+            child: Card(
+              color: theme.colorScheme.surfaceContainerHighest,
+              clipBehavior: Clip.hardEdge,
+              child: InkWell(
+                onTap: () => widget.onPressed(),
+                child: SizedBox(
+                  height: widget.height,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: <Widget>[
+                      ExcludeSemantics(
+                        child: SizedBox.expand(
+                          child: SmartImage(
+                            key: ValueKey('card-button-image-${widget.image}'),
+                            url: widget.image,
+                            format: AvailableOutputFormats.jpeg,
+                            excludeSemantics: true,
                           ),
                         ),
-                        child: ListTile(
-                          title: widget.headline != null
-                              ? Text(
-                                  widget.headline!,
-                                  style: textTheme.titleMedium?.copyWith(
-                                    color: theme.colorScheme.onSurface,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                  softWrap: true,
-                                )
-                              : null,
-                          subtitle: widget.description != null
-                              ? Padding(
-                                  padding: const EdgeInsets.only(top: 8),
-                                  child: Text(
-                                    widget.description!,
-                                    style: textTheme.bodyMedium?.copyWith(
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              stops: const [0.0, 0.4, 0.7],
+                              colors: [
+                                theme.colorScheme.surface.withValues(
+                                  alpha: 0.5,
+                                ),
+                                theme.colorScheme.surface.withValues(
+                                  alpha: 0.9,
+                                ),
+                                theme.colorScheme.surface.withValues(
+                                  alpha: 0.9,
+                                ),
+                              ],
+                            ),
+                          ),
+                          child: ListTile(
+                            title: widget.headline != null
+                                ? Text(
+                                    widget.headline!,
+                                    style: textTheme.titleMedium?.copyWith(
                                       color: theme.colorScheme.onSurface,
                                     ),
+                                    overflow: TextOverflow.ellipsis,
                                     softWrap: true,
-                                  ),
-                                )
-                              : null,
+                                  )
+                                : null,
+                            subtitle: widget.description != null
+                                ? Padding(
+                                    padding: const EdgeInsets.only(top: 8),
+                                    child: Text(
+                                      widget.description!,
+                                      style: textTheme.bodyMedium?.copyWith(
+                                        color: theme.colorScheme.onSurface,
+                                      ),
+                                      softWrap: true,
+                                    ),
+                                  )
+                                : null,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

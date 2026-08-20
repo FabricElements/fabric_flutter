@@ -4,7 +4,9 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
+import '../helper/agent/agent_element_binding.dart';
 import '../helper/options.dart';
+import '../serialized/agent_element_snapshot.dart';
 
 /// Builds a text button that can also expose a popup menu of related actions.
 ///
@@ -163,20 +165,11 @@ class _SmartButtonState extends State<SmartButton> {
       ]);
     }
     Widget mainButton = TextButton(
+      onPressed: _activate,
       child: Padding(
         padding: const EdgeInsets.all(8),
         child: Row(mainAxisSize: MainAxisSize.min, children: mainButtonWidgets),
       ),
-      onPressed: () {
-        if (widget.button.path != null) {
-          if (widget.button.onTap != null) widget.button.onTap!();
-          if (widget.pop) {
-            Navigator.popAndPushNamed(context, widget.button.path!);
-          } else {
-            Navigator.pushNamed(context, widget.button.path!);
-          }
-        }
-      },
     );
     if (widget.children == null) return _withSemantics(mainButton);
     return _withSemantics(
@@ -206,22 +199,49 @@ class _SmartButtonState extends State<SmartButton> {
     );
   }
 
+  /// Runs the primary button action.
+  ///
+  /// Invokes [ButtonOptions.onTap] and then navigates to [ButtonOptions.path],
+  /// replacing the current route when [SmartButton.pop] is `true`. This is the
+  /// single activation path shared by the rendered button and by autonomous
+  /// agents driving the widget through its `automationKey`.
+  void _activate() {
+    widget.button.onTap?.call();
+    final path = widget.button.path;
+    if (path == null) return;
+    if (widget.pop) {
+      Navigator.popAndPushNamed(context, path);
+    } else {
+      Navigator.pushNamed(context, path);
+    }
+  }
+
   /// Wraps [child] in a [Semantics] container with label, identifier, and enabled state.
   ///
   /// Uses [SmartButton.semanticsLabel] when provided; falls back to
   /// [ButtonOptions.label] from [widget.button]. The [enabled] flag reflects
   /// whether the button has an actionable [ButtonOptions.path] or
-  /// [ButtonOptions.onTap].
+  /// [ButtonOptions.onTap]. The result is also published to the live agent
+  /// element index when [SmartButton.automationKey] is set, which adds no
+  /// semantics node of its own and leaves the accessibility tree unchanged.
   Widget _withSemantics(Widget child) {
     final bool isActionable =
         widget.button.path != null || widget.button.onTap != null;
-    return Semantics(
+    return AgentElement(
+      id: widget.automationKey,
+      type: AgentElementType.button,
       label: widget.semanticsLabel ?? widget.button.label,
-      identifier: widget.automationKey,
       hint: widget.semanticHint,
-      enabled: isActionable,
-      container: true,
-      child: child,
+      enabledGetter: () => isActionable,
+      activator: isActionable ? _activate : null,
+      child: Semantics(
+        label: widget.semanticsLabel ?? widget.button.label,
+        identifier: widget.automationKey,
+        hint: widget.semanticHint,
+        enabled: isActionable,
+        container: true,
+        child: child,
+      ),
     );
   }
 }

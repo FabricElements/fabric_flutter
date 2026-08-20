@@ -74,8 +74,15 @@ lib/
 │   └── state_view_auth.dart    # Auth view state
 ├── serialized/         # Data models: @JsonSerializable classes + generated *.g.dart pairs
 │   ├── user_data.dart / user_data.g.dart
+│   ├── agent_*.dart            # Agent bridge protocol models (request, response, command, element, ...)
 │   ├── media_data.dart, logs_data.dart, filter_data.dart, ... (every model has a .g.dart twin)
 ├── helper/             # Stateless utilities / repository-style helpers
+│   ├── agent/                  # Agent bridge core (transport-agnostic, opt-in, no auth)
+│   │   ├── agent_bridge.dart       # AgentBridge: configure + handle(Map) -> Map dispatcher
+│   │   ├── agent_registry.dart     # Capability registry of AgentCommand
+│   │   ├── agent_element_index.dart, agent_element_binding.dart  # Live element index
+│   │   ├── agent_builtin_commands.dart  # navigate, set_value, tap, read_value, wait_for, ...
+│   │   └── agent_authorizer.dart   # Seam where authentication and role checks plug in
 │   ├── http_request.dart       # HTTP networking (AuthScheme, request helpers over package:http)
 │   ├── firestore_helper.dart   # Firestore utilities (Timestamp conversions)
 │   ├── auth_service.dart       # Injectable auth seam (AuthService / FirebaseAuthService)
@@ -235,6 +242,48 @@ Components implementing the trio include `SmartButton`, `CardButton`, `InputData
 **3. Assistive-technology preferences.** Components that animate or auto-advance respect `MediaQuery.disableAnimationsOf` and `MediaQuery.accessibleNavigationOf` — `Tabs`, `StepperExtended`, `PaginationContainer`, `AlertData`, and `ViewFeatured` skip animations, suppress auto-advance, and offer explicit controls when a screen reader is active. Status changes (connection lost/restored, page changes, upload results, auth failures) are announced through `SemanticsService`, and `Breadcrumbs` exposes a navigation landmark with the current page marked (WCAG 2.4.8).
 
 All accessibility strings are localized through `AppLocalizations`; add or override them the same way as any other label.
+
+### Agent bridge (`lib/helper/agent/`)
+
+The agent bridge lets an external agent — an MCP client, a cloud workflow, an automated test — drive the app the way a user can: read the current screen, set any input, tap any button, navigate, and run host-registered actions. It **reuses the accessibility metadata above as its contract**: `automationKey` is the element identifier, `semanticsLabel` the label, `semanticHint` the description. There is no parallel metadata to maintain, and the binding adds no `Semantics` node, so the accessibility tree is unchanged.
+
+The bridge is **transport agnostic** (`handle` takes a decoded request map and returns a decoded response map), **performs no access control of its own**, and is **disabled by default**:
+
+```dart
+AgentBridge.instance.configure(
+  enabled: true,
+  appName: 'My App',
+  appVersion: '1.0.0',
+  routes: [AgentRouteInfo(name: '/dashboard', title: 'Dashboard')],
+  // Replace this before exposing the bridge outside a trusted process.
+  authorizer: MyTokenAndRoleAuthorizer(),
+);
+
+// Register a domain command; it is published by `describe` alongside the built-ins.
+AgentBridge.instance.registry.register(
+  AgentCommand.define(
+    id: 'archive_order',
+    title: 'Archive order',
+    category: 'orders',
+    requiresRole: 'admin',
+    params: [AgentParam(name: 'orderId', required: true)],
+    handler: (context) => archiveOrder(context.require<String>('orderId')),
+  ),
+);
+```
+
+Requests are `{ "id", "method": "describe" | "state" | "invoke" | "ping", "params": {...} }` and responses are `{ "id", "ok": true, "result": {...} }` or `{ "id", "ok": false, "error": { "code", "message" } }`, with the codes `unauthorized`, `not_found`, `invalid_params`, `disabled`, and `failed`. `describe` is shaped to map 1:1 onto MCP tool definitions. The built-in commands are `navigate`, `set_value`, `tap`, `read_value`, `wait_for`, `screen_state`, and `list_commands`.
+
+For route reporting and `navigate` to work, wire the navigator:
+
+```dart
+MaterialApp(
+  navigatorKey: AppGlobal.navigatorKey,
+  navigatorObservers: [AgentNavigatorObserver.instance],
+);
+```
+
+Authentication and per-command role checks are **not** part of this layer. They plug in through `AgentAuthorizer`, which receives every request and the resolved command — including its `requiresRole` — and may attach `meta` (for example the resolved principal) that is forwarded to the handler as `AgentCommandContext.meta`.
 
 ### Voice dictation (`VoiceDictationButton`)
 
