@@ -15,6 +15,43 @@ import '../helper/options.dart';
 import '../helper/utils.dart';
 import 'alert_data.dart';
 
+/// Removes every non-digit character from a phone value.
+///
+/// Declared once at file scope so hot paths that normalize phone input do not
+/// recompile the pattern on each call.
+final RegExp _nonDigitExp = RegExp(r'\D');
+
+/// Removes literal plus signs from a phone value before re-prefixing.
+final RegExp _plusExp = RegExp(r'\+');
+
+/// Collapses runs of non-alphanumeric characters into a single separator.
+///
+/// Shared by automation-key derivation so it is compiled once instead of on
+/// every widget build.
+final RegExp _nonAlphanumericExp = RegExp(r'[^a-zA-Z0-9]+');
+
+/// Strips a single leading slash from a route name.
+final RegExp _leadingSlashExp = RegExp(r'^/');
+
+/// Denies whitespace, parentheses, dashes, and plus signs in phone input.
+final RegExp _phoneDenyExp = RegExp(r'[\s()-+]');
+
+/// Allows only digits (up to fifteen) in phone input.
+final RegExp _phoneAllowExp = RegExp(r'[\d{0,15}]');
+
+/// Allows digits, a decimal point, and a sign in decimal input.
+final RegExp _decimalAllowExp = RegExp(r'[\d.-]');
+
+/// Allows digits and a sign in integer input.
+final RegExp _intAllowExp = RegExp(r'[\d-]');
+
+/// Strips characters other than word chars, `@`, `.`, and `+` when matching
+/// dropdown suggestions.
+///
+/// Kept `@`, `.`, and `+` so email and phone-prefix searches stay flexible.
+/// Declared at file scope so the per-keystroke suggestion filter reuses it.
+final RegExp _searchSanitizeExp = RegExp(r'[^\w@.+]+');
+
 /// Defines the value representations supported by [InputData].
 enum InputDataType {
   /// Edits a calendar date without a time component.
@@ -167,8 +204,8 @@ dynamic parseValueByInputDataType({
     case InputDataType.phone:
       // only accept digits
       String onlyNumbers = baseValueAsString
-          .replaceAll(RegExp(r'\D'), '')
-          .replaceAll(RegExp(r'\+'), '');
+          .replaceAll(_nonDigitExp, '')
+          .replaceAll(_plusExp, '');
       // Add plus sign at the beginning if it's missing
       newValue = onlyNumbers.isEmpty ? null : '+$onlyNumbers';
       break;
@@ -509,8 +546,8 @@ class _InputDataState extends State<InputData> {
       case InputDataType.phone:
         // only accept digits
         String onlyNumbers = valueLocalString
-            .replaceAll(RegExp(r'\D'), '')
-            .replaceAll(RegExp(r'\+'), '');
+            .replaceAll(_nonDigitExp, '')
+            .replaceAll(_plusExp, '');
         // Add plus sign at the beginning
         return '+$onlyNumbers';
       default:
@@ -546,7 +583,7 @@ class _InputDataState extends State<InputData> {
           dynamic newFormattedValue = valueChanged(newValue)?.toString() ?? '';
           // remove plus sign to avoid double plus sign on the input
           final valueWithoutPlusSign = newFormattedValue.replaceAll(
-            RegExp(r'\+'),
+            _plusExp,
             '',
           );
           bool sameValue = value == newFormattedValue;
@@ -768,15 +805,15 @@ getValue -------------------------------------
       routeSegment = 'root';
     } else {
       routeSegment = rawRoute
-          .replaceFirst(RegExp(r'^/'), '')
-          .replaceAll(RegExp(r'[^a-zA-Z0-9]+'), '_')
+          .replaceFirst(_leadingSlashExp, '')
+          .replaceAll(_nonAlphanumericExp, '_')
           .toLowerCase();
     }
     final String contextBlock;
     if (widget.label != null && widget.label!.isNotEmpty) {
       contextBlock = widget.label!
           .trim()
-          .replaceAll(RegExp(r'[^a-zA-Z0-9]+'), '_')
+          .replaceAll(_nonAlphanumericExp, '_')
           .toLowerCase();
     } else {
       contextBlock = widget.type.name;
@@ -929,8 +966,8 @@ getValue -------------------------------------
         hintTextDefault = '1 (222) 333 - 4444';
         keyboardType = TextInputType.phone;
         inputFormatters.addAll([
-          FilteringTextInputFormatter.deny(RegExp(r'[\s()-+]')),
-          FilteringTextInputFormatter.allow(RegExp(r'[\d{0,15}]')),
+          FilteringTextInputFormatter.deny(_phoneDenyExp),
+          FilteringTextInputFormatter.allow(_phoneAllowExp),
           FilteringTextInputFormatter.singleLineFormatter,
         ]);
         validator = inputValidation.validatePhone;
@@ -961,14 +998,14 @@ getValue -------------------------------------
         );
         inputFormatters.addAll([
           FilteringTextInputFormatter.singleLineFormatter,
-          FilteringTextInputFormatter.allow(RegExp(r'[\d.-]')),
+          FilteringTextInputFormatter.allow(_decimalAllowExp),
         ]);
         break;
       case InputDataType.int:
         keyboardType = const TextInputType.numberWithOptions(signed: true);
         inputFormatters.addAll([
           FilteringTextInputFormatter.singleLineFormatter,
-          FilteringTextInputFormatter.allow(RegExp(r'[\d-]')),
+          FilteringTextInputFormatter.allow(_intAllowExp),
         ]);
         break;
       case InputDataType.date:
@@ -1365,7 +1402,7 @@ getValue -------------------------------------
               final value = controller.text.trim();
               List<ButtonOptions> recommendations = dropdownOptions;
               // keep @, . and + characters for more flexible searches (eg. emails, phone prefixes)
-              final regex = RegExp(r'[^\w@.+]+');
+              final regex = _searchSanitizeExp;
               if (value.isNotEmpty) {
                 recommendations = recommendations.where((element) {
                   // Remove special characters and spaces from the label to make search more flexible.
