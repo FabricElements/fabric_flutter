@@ -33,5 +33,33 @@ void main() {
       expect(user.id, isNull);
       expect(user.firstName, isNull);
     });
+
+    test('serialized reuses the cached instance for the same data', () {
+      // Arrange
+      final state = StateUser();
+      state.data = {'id': 'user-123', 'firstName': 'Ada'};
+
+      // Act
+      final first = state.serialized;
+      final second = state.serialized;
+
+      // Assert: identical instance means no rebuild via fromJson occurred.
+      expect(identical(first, second), isTrue);
+    });
+
+    test('serialized rebuilds when data is replaced', () {
+      // Arrange
+      final state = StateUser();
+      state.data = {'id': 'user-123', 'firstName': 'Ada'};
+      final first = state.serialized;
+
+      // Act
+      state.data = {'id': 'user-456', 'firstName': 'Grace'};
+      final second = state.serialized;
+
+      // Assert
+      expect(identical(first, second), isFalse);
+      expect(second.id, 'user-456');
+    });
   });
 }

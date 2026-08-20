@@ -112,11 +112,35 @@ class StateUser extends StateDocument {
 
   Map<String, dynamic> get claims => _claims ?? {};
 
+  /// Caches the last serialized user together with the [data] reference it was
+  /// built from.
+  ///
+  /// [serialized] is read many times per update — `role` reads it twice,
+  /// `admin`/`id`/`signedIn` route through it, and every widget that watches
+  /// this notifier reads it on build. Because [data] is replaced by a new map
+  /// on each update (never mutated in place), an identity check lets repeated
+  /// reads of the same data reuse the previous [UserData] instead of rebuilding
+  /// it with [UserData.fromJson] each time.
+  UserData? _serializedCache;
+
+  /// Holds the [data] reference that produced [_serializedCache].
+  Object? _serializedCacheToken;
+
+  /// Tracks whether [_serializedCache] holds a computed value yet.
+  bool _serializedCached = false;
+
   /// Returns serialized data [UserData]
   @override
   UserData get serialized {
+    final currentData = data;
+    if (_serializedCached && identical(_serializedCacheToken, currentData)) {
+      return _serializedCache!;
+    }
     try {
-      UserData userDataSerialized = UserData.fromJson(data ?? {});
+      final userDataSerialized = UserData.fromJson(currentData ?? {});
+      _serializedCache = userDataSerialized;
+      _serializedCacheToken = currentData;
+      _serializedCached = true;
       return userDataSerialized;
     } catch (e) {
       error = serializationError(e);
