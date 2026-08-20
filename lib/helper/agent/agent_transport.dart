@@ -47,6 +47,10 @@ abstract class AgentTransport {
   /// [AgentTokenAuthorizer] on [bridge], **replacing any authorizer previously
   /// configured**; omitting it leaves the bridge's authorizer untouched.
   ///
+  /// Throws an [ArgumentError] when [bridge] is not enabled, so a transport
+  /// can never exist ahead of the kill switch — on the web in particular, the
+  /// `window` binding is never installed by a build that did not opt in.
+  ///
   /// Throws an [ArgumentError] when [AgentBridgeServerOptions.requireAuth] is
   /// `true`, no [verifier] was supplied, and the bridge still carries the
   /// default [AgentAllowAllAuthorizer] — which would otherwise expose an
@@ -64,6 +68,14 @@ abstract class AgentTransport {
     var resolver = principals;
     if (resolver == null && verifier != null) {
       resolver = AgentPrincipalResolver(verifier: verifier);
+    }
+    if (!bridge.enabled) {
+      throw ArgumentError(
+        'The agent bridge transport refuses to start while the bridge is '
+        'disabled. Call AgentBridge.configure(enabled: true) first, so the '
+        'kill switch is always the single thing that decides whether a '
+        'control surface exists at all.',
+      );
     }
     if (resolver != null) {
       bridge.configure(

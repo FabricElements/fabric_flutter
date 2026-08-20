@@ -313,7 +313,7 @@ typedef AgentTokenVerifier = FutureOr<AgentPrincipal?> Function(String token);
 
 `AgentTokenAuthorizer` resolves the token through a short-lived cache, denies with `unauthorized` when it is missing, invalid, or expired, enforces `AgentCommand.requiresRole` against the principal's role and groups, and forwards the principal to handlers via `AgentCommandContext.meta`. `describe`/`ping` and `state` are gated independently (`requireAuthenticationForDiscovery`, `requireAuthenticationForState`, both `true` by default).
 
-Defaults are deliberately restrictive: the bridge is disabled until enabled, binds to `127.0.0.1:8757`, rejects requests over 64 KiB, allows 4 concurrent connections, and rate-limits each principal to 60 requests per minute. Starting a transport with no verifier while the bridge still carries the permissive default authorizer throws.
+Defaults are deliberately restrictive: the bridge is disabled until enabled, binds to `127.0.0.1:8757`, rejects requests over 64 KiB, allows 4 concurrent connections, and rate-limits each principal to 60 requests per minute. Starting a transport throws when the bridge is disabled, and throws when no verifier is supplied while the bridge still carries the permissive default authorizer — so on the web `window.fabricAgentBridge` is never installed by a build that did not deliberately opt in.
 
 Every `invoke` emits one `AgentAuditRecord` (timestamp, request id, principal id, command id, outcome, duration, transport, and a **redacted** parameter summary) to the injected sink. Parameter *values* are never recorded — only a type and size summary — and credential-shaped keys are replaced by `<redacted>` with no size, so not even a token's length leaks.
 

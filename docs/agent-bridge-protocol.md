@@ -160,7 +160,7 @@ and `groups`.
 
 | Control | Default | Where |
 | --- | --- | --- |
-| Kill switch | Disabled | `AgentBridge.configure(enabled: …)` — every request answers `disabled` until a host opts in. |
+| Kill switch | Disabled | `AgentBridge.configure(enabled: …)` — every request answers `disabled` until a host opts in, and **starting a transport while the bridge is disabled throws**, so on the web `window.fabricAgentBridge` is never installed by a build that did not opt in. |
 | Authentication required | On | `AgentBridgeServerOptions.requireAuth`; starting a transport throws `ArgumentError` when no verifier is supplied and the bridge still carries `AgentAllowAllAuthorizer`. |
 | Loopback only | `127.0.0.1` | `AgentBridgeServerOptions.host`. |
 | Max request size | 64 KiB | `AgentBridgeServerOptions.maxRequestBytes`. |

@@ -45,6 +45,18 @@ void main() {
         );
       });
 
+      test('should refuse to start while the bridge is disabled', () async {
+        // Arrange — the kill switch is off, so no control surface may exist.
+        final bridge = AgentBridge();
+        bridge.configure(appName: 'Fabric', appVersion: '1.0.0');
+
+        // Act & Assert
+        await expectLater(
+          AgentInProcessTransport.start(bridge: bridge, verifier: _verify),
+          throwsArgumentError,
+        );
+      });
+
       test('should start when a verifier is supplied', () async {
         // Arrange
         final bridge = _bridge();

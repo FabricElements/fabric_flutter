@@ -44,6 +44,11 @@ class AgentBridgeServer extends AgentTransport {
 
   /// Installs the JavaScript entry point in front of [bridge].
   ///
+  /// The binding is installed **only** when the bridge is already enabled and
+  /// an authentication gate is in place, so a release build that never called
+  /// `AgentBridge.instance.configure(enabled: true)` hands no page script a
+  /// control surface — `window.fabricAgentBridge` does not exist at all.
+  ///
   /// Supplying [verifier] installs an [AgentTokenAuthorizer] on the bridge,
   /// replacing any authorizer previously configured. When it is omitted and
   /// [AgentBridgeServerOptions.requireAuth] is `true`, starting throws an
