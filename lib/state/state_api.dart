@@ -95,12 +95,24 @@ abstract class StateAPI extends StateShared {
   /// Holds the active HTTP client used for outgoing requests.
   http.Client httpClient;
 
+  /// Builds the replacement client used whenever the transport is reset.
+  ///
+  /// Defaults to creating a plain [http.Client]. Supplying a factory keeps a
+  /// custom transport — such as a stubbed client in a test — in place across the
+  /// resets performed after every request.
+  final http.Client Function() _clientFactory;
+
   /// Creates an API state.
   ///
   /// Passing [httpClient] is useful in tests or when a custom transport layer is
   /// required. Otherwise a fresh default [http.Client] is created.
-  StateAPI({http.Client? httpClient})
-    : httpClient = httpClient ?? http.Client(),
+  ///
+  /// [clientFactory] is used to rebuild the client after each request. When it
+  /// is omitted, a standard [http.Client] is created, which preserves the
+  /// previous behavior.
+  StateAPI({http.Client? httpClient, http.Client Function()? clientFactory})
+    : _clientFactory = clientFactory ?? http.Client.new,
+      httpClient = httpClient ?? clientFactory?.call() ?? http.Client(),
       super();
 
   /// Remembers the last fully expanded endpoint used by [call].
@@ -515,7 +527,7 @@ Error: $error
       httpClient.close();
     } catch (_) {}
     // Create a fresh client
-    httpClient = http.Client();
+    httpClient = _clientFactory();
   }
 
   /// Clears request-specific state and resets the HTTP transport.
