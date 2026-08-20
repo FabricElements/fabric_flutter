@@ -103,4 +103,35 @@ void main() {
       expect(result, 'January 5, 2020');
     });
   });
+
+  group('FormatData caching', () {
+    test('should reuse the same formatter for identical arguments', () {
+      // Arrange & Act
+      final first = FormatData.numberFormat();
+      final second = FormatData.numberFormat();
+
+      // Assert
+      expect(identical(first, second), isTrue);
+    });
+
+    test('should cache currency formatters separately per symbol', () {
+      // Arrange & Act
+      final dollars = FormatData.currencyFormat();
+      final euros = FormatData.currencyFormat(symbol: '€');
+      final dollarsAgain = FormatData.currencyFormat();
+
+      // Assert
+      expect(identical(dollars, dollarsAgain), isTrue);
+      expect(identical(dollars, euros), isFalse);
+    });
+
+    test('should cache date formatters separately from number formatters', () {
+      // Arrange & Act
+      final date = FormatData.formatDate();
+      final dateAgain = FormatData.formatDate();
+
+      // Assert
+      expect(identical(date, dateAgain), isTrue);
+    });
+  });
 }
