@@ -43,10 +43,23 @@ class UserRolesFirebase {
   ///
   /// Global lookups are ordered by `role`, while group-scoped lookups are
   /// ordered by `roles.<group>` so role-based lists remain predictable.
-  static Future<List<Map<String, dynamic>>> getUsers({String? group}) async {
+  ///
+  /// > **Performance warning:** when [limit] is `null` this reads *every*
+  /// > document in the `user` collection. On a large collection that is an
+  /// > expensive, unbounded read in billed document reads, bandwidth, and
+  /// > deserialization time. Pass [limit] to cap the result set, or drive the
+  /// > list through `StateCollection`, which paginates automatically.
+  ///
+  /// [limit] caps the number of documents fetched. It defaults to `null`, which
+  /// preserves the previous unbounded behavior for existing callers.
+  static Future<List<Map<String, dynamic>>> getUsers({
+    String? group,
+    int? limit,
+  }) async {
     if (group != null) {
       assert(group.isNotEmpty, 'group can\'t be empty');
     }
+    assert(limit == null || limit > 0, 'limit must be greater than zero');
     Query baseQuery = FirebaseFirestore.instance.collection('user');
     Query query = baseQuery;
 
@@ -56,6 +69,7 @@ class UserRolesFirebase {
     if (fromCollection) {
       query = baseQuery.orderBy('roles.$group');
     }
+    if (limit != null) query = query.limit(limit);
     final snapshot = await query.get();
     final data = snapshot.docs.map((userDocument) {
       Map<String, dynamic> userData =

@@ -17,7 +17,11 @@ class StateViewAuth extends ChangeNotifier {
   String? get phone => _phone;
 
   /// Updates the raw phone number and notifies listeners.
+  ///
+  /// Reassigning the current value is ignored so per-keystroke controller
+  /// listeners do not rebuild every dependent widget for a no-op change.
   set phone(String? value) {
+    if (_phone == value) return;
     _phone = value;
     notifyListeners();
   }
@@ -30,6 +34,7 @@ class StateViewAuth extends ChangeNotifier {
 
   /// Updates the SMS verification code and notifies listeners.
   set phoneVerificationCode(String? value) {
+    if (_phoneVerificationCode == value) return;
     _phoneVerificationCode = value;
     notifyListeners();
   }
@@ -42,6 +47,7 @@ class StateViewAuth extends ChangeNotifier {
 
   /// Updates the Firebase verification identifier and notifies listeners.
   set verificationId(String? value) {
+    if (_verificationId == value) return;
     _verificationId = value;
     notifyListeners();
   }
@@ -61,6 +67,7 @@ class StateViewAuth extends ChangeNotifier {
 
   /// Updates the current auth-flow section and notifies listeners.
   set section(int value) {
+    if (_section == value) return;
     _section = value;
     notifyListeners();
   }

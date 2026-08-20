@@ -72,5 +72,42 @@ void main() {
       expect(find.byType(Chip), findsOneWidget);
       expect(find.text('Grace Hopper'), findsOneWidget);
     });
+
+    testWidgets('does not start a lookup from build', (tester) async {
+      // Arrange
+      final state = StateUsers();
+
+      // Act
+      await tester.pumpWidget(
+        _wrap(state, const UserChip(uid: 'abc', minimal: true)),
+      );
+      // Force additional builds without changing the requested identifier.
+      await tester.pumpWidget(
+        _wrap(state, const UserChip(uid: 'abc', minimal: true)),
+      );
+      await tester.pump();
+
+      // Assert: the placeholder was inserted exactly once, by initState.
+      expect(state.usersMap.keys.toList(), ['abc']);
+      expect(state.cachedUser('abc')!.id, 'abc');
+    });
+
+    testWidgets('requests the replacement user when the uid changes', (
+      tester,
+    ) async {
+      // Arrange
+      final state = StateUsers();
+      await tester.pumpWidget(
+        _wrap(state, const UserChip(uid: 'abc', minimal: true)),
+      );
+
+      // Act
+      await tester.pumpWidget(
+        _wrap(state, const UserChip(uid: 'xyz', minimal: true)),
+      );
+
+      // Assert
+      expect(state.cachedUser('xyz'), isNotNull);
+    });
   });
 }

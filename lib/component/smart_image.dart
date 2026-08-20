@@ -339,8 +339,12 @@ class _SmartImageState extends State<SmartImage> {
       Positioned.fill(
         child: LayoutBuilder(
           builder: (BuildContext context, BoxConstraints constraints) {
-            final queryData = MediaQuery.of(context);
-            devicePixelRatio = queryData.devicePixelRatio.floorToDouble();
+            // Depend only on devicePixelRatio instead of the whole
+            // MediaQueryData, which would also rebuild on every resize,
+            // rotation, text-scale, and safe-area change.
+            devicePixelRatio = MediaQuery.devicePixelRatioOf(
+              context,
+            ).floorToDouble();
             if (devicePixelRatio < 1) devicePixelRatio = 1;
             realHeight = constraints.maxHeight;
             realWidth = constraints.maxWidth;

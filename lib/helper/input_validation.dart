@@ -261,13 +261,19 @@ class InputValidation {
     return locales?.get(key) ?? fallback ?? 'Enter a valid phone number';
   }
 
-  /// Returns whether [url] matches the shared URL pattern.
+  /// Returns whether [url] is a well-formed `http` or `https` URL.
   ///
   /// Empty and `null` values are rejected because this helper is intended for
   /// required fields unless callers add their own optional-field handling.
+  ///
+  /// This uses the anchored [RegexHelper.urlStrict] pattern. It previously used
+  /// the unanchored [RegexHelper.url], which accepted any value that merely
+  /// *contained* something URL-shaped, so strings such as
+  /// `'garbage https://example.com'` and `'xhttps://example.com'` passed
+  /// validation.
   static bool isUrlValid(String? url) {
     if (url == null || url.isEmpty) return false;
-    return RegexHelper.url.hasMatch(url);
+    return RegexHelper.urlStrict.hasMatch(url);
   }
 
   /// Returns `null` when [url] is valid, or a localized error message.

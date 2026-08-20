@@ -9,16 +9,11 @@ import 'package:provider/provider.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/log_color.dart';
 import '../helper/media_helper.dart';
+import '../helper/regex_helper.dart';
 import '../state/state_user.dart';
 import 'alert_data.dart';
 import 'content_container.dart';
 import 'input_data.dart';
-
-/// Removes digits and punctuation that are not allowed in profile names.
-///
-/// Declared at file scope so the name field's per-keystroke sanitizer reuses a
-/// single compiled pattern instead of rebuilding it on every change.
-final RegExp _nameSanitizeExp = RegExp(r'[0-9!@#$%^*()_+={}<>~]');
 
 /// Immutable description of which avatar preview to display.
 ///
@@ -441,7 +436,7 @@ class _ProfileEditState extends State<ProfileEdit> {
             label: locales.get('label--first-name'),
             onChanged: (newValue) {
               String value = newValue?.toString() ?? '';
-              value = value.replaceAll(_nameSanitizeExp, '');
+              value = value.replaceAll(RegexHelper.nameSanitize, '');
               if (stateUser.serialized.firstName == value) return;
               nameFirst = value;
               changed = true;
@@ -461,7 +456,7 @@ class _ProfileEditState extends State<ProfileEdit> {
             label: locales.get('label--last-name'),
             onChanged: (newValue) {
               String value = newValue?.toString() ?? '';
-              value = value.replaceAll(_nameSanitizeExp, '');
+              value = value.replaceAll(RegexHelper.nameSanitize, '');
               if (stateUser.serialized.lastName == value) return;
               nameLast = value;
               changed = true;

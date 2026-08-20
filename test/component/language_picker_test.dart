@@ -23,10 +23,7 @@ void main() {
       tester,
     ) async {
       // Arrange & Act
-      await _pump(
-        tester,
-        LanguagePicker(value: 'en', onChange: (_) {}),
-      );
+      await _pump(tester, LanguagePicker(value: 'en', onChange: (_) {}));
 
       // Assert – the resolved label ends with the selected alpha-2 code.
       expect(find.byType(InputData), findsOneWidget);

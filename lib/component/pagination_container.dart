@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -211,6 +213,10 @@ class _PaginationContainerState extends State<PaginationContainer> {
   /// The method seeds the list from [PaginationContainer.initialData], restores
   /// scroll offset, and wires listeners that update loading, error, and end
   /// state as new pages or streamed snapshots arrive.
+  /// Tracks the [PaginationContainer.stream] subscription so it can be
+  /// cancelled when the widget is disposed.
+  StreamSubscription<dynamic>? _streamSubscription;
+
   @override
   void initState() {
     super.initState();
@@ -251,23 +257,23 @@ class _PaginationContainerState extends State<PaginationContainer> {
       if (mounted) setState(() {});
     });
 
-    widget.stream
-        .listen((event) async {
-          loading = true;
-          if (mounted) setState(() {});
-          final eventData = event != null ? event as List<dynamic> : null;
-          data = eventData ?? widget.initialData ?? [];
-          end = false;
-          loading = false;
-          if (mounted) setState(() {});
-        })
-        .onError((e) {
-          error = e.toString();
-          _reportError(error!);
-          loading = false;
-          end = false;
-          if (mounted) setState(() {});
-        });
+    final subscription = widget.stream.listen((event) async {
+      loading = true;
+      if (mounted) setState(() {});
+      final eventData = event != null ? event as List<dynamic> : null;
+      data = eventData ?? widget.initialData ?? [];
+      end = false;
+      loading = false;
+      if (mounted) setState(() {});
+    });
+    subscription.onError((e) {
+      error = e.toString();
+      _reportError(error!);
+      loading = false;
+      end = false;
+      if (mounted) setState(() {});
+    });
+    _streamSubscription = subscription;
   }
 
   /// Reports an error through [PaginationContainer.onError], falling back to
@@ -294,7 +300,10 @@ class _PaginationContainerState extends State<PaginationContainer> {
   @override
   void dispose() {
     _controller.dispose();
-    widget.stream.drain();
+    // `drain()` attaches a *second* listener instead of releasing the first one,
+    // so the original subscription kept firing after dispose. Cancel it.
+    _streamSubscription?.cancel();
+    _streamSubscription = null;
     super.dispose();
   }
 

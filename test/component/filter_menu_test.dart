@@ -100,5 +100,37 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.byType(FilterMenuOptionData), findsOneWidget);
     });
+
+    testWidgets('should not renumber filter indexes during build', (
+      tester,
+    ) async {
+      // Arrange: indexes are assigned by FilterHelper, where a non-positive
+      // value means "unset", so build must leave them untouched.
+      final data = [
+        FilterData(
+          id: 'name',
+          label: 'Name',
+          type: InputDataType.string,
+          operator: FilterOperator.equal,
+          value: 'Bob',
+          index: 3,
+        ),
+        FilterData(
+          id: 'city',
+          label: 'City',
+          type: InputDataType.string,
+          operator: FilterOperator.equal,
+          value: 'Lima',
+          index: 7,
+        ),
+      ];
+
+      // Act
+      await tester.pumpWidget(_wrap(FilterMenu(data: data, onChange: (_) {})));
+      await tester.pumpAndSettle();
+
+      // Assert
+      expect(data.map((filter) => filter.index).toList(), [3, 7]);
+    });
   });
 }

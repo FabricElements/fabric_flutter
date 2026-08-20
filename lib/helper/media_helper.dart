@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
+import 'dart:io' show File;
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
@@ -12,6 +12,68 @@ import 'package:video_player/video_player.dart';
 
 import '../serialized/media_data.dart';
 import 'log_color.dart';
+
+/// Decodes, optionally resizes, and re-encodes an image on a background isolate.
+///
+/// [args] carries the raw `bytes`, the target `imageType` (`jpeg` or `png`),
+/// and the `maxHeight`/`maxWidth` bounds. Image decoding, resizing, and
+/// encoding are CPU-bound and O(pixels), so running them on the UI isolate
+/// stalled the frame pipeline for multi-megapixel photos.
+///
+/// Declared as a top-level function because `compute` can only invoke top-level
+/// or static targets.
+Uint8List _resizeImageWorker(Map<String, dynamic> args) {
+  final Uint8List bytes = args['bytes'] as Uint8List;
+  final String imageType = args['imageType'] as String;
+  final int maxHeight = args['maxHeight'] as int;
+  final int maxWidth = args['maxWidth'] as int;
+
+  img.Image baseImage = img.decodeImage(bytes)!;
+  int height = baseImage.height;
+  int width = baseImage.width;
+  // Workout the scaling options, height going first being that height
+  // is very often the largest value
+  final bool needsResize = height > maxHeight || width > maxWidth;
+  if (needsResize) {
+    if (height > maxHeight) {
+      width = (width / (height / maxHeight)).round();
+      height = maxHeight;
+    }
+    if (width > maxWidth) {
+      height = (height / (width / maxWidth)).round();
+      width = maxWidth;
+    }
+  }
+  if (needsResize) {
+    baseImage = img.copyResize(baseImage, height: height, width: width);
+  }
+  if (imageType == 'png') return img.encodePng(baseImage);
+  return img.encodeJpg(baseImage, quality: 95);
+}
+
+/// Re-encodes camera bytes as JPEG on a background isolate.
+///
+/// Mirrors the decode/encode the camera branch previously performed inline on
+/// the UI isolate.
+Uint8List _encodeJpgWorker(Uint8List bytes) {
+  return img.encodeJpg(img.decodeImage(bytes)!);
+}
+
+/// Runs [callback] off the UI isolate when the platform supports isolates.
+///
+/// Web builds have no isolate support, so the work is scheduled as a microtask
+/// instead. If spawning the isolate fails for any reason the call falls back to
+/// running inline so image handling never breaks outright. This mirrors the
+/// pattern already used by `StateAPI` for streamed JSON parsing.
+Future<R> _runOffThread<M, R>(ComputeCallback<M, R> callback, M message) async {
+  if (kIsWeb) return Future.microtask(() => callback(message));
+  try {
+    return await compute(callback, message);
+  } catch (error) {
+    debugPrint(LogColor.error('Isolate unavailable, running inline: $error'));
+    return callback(message);
+  }
+}
 
 /// Identifies where media should be loaded from.
 enum MediaOrigin {
@@ -80,8 +142,7 @@ class MediaHelper {
           }
           File baseImage = File(pickedFile.path);
           fileData = await baseImage.readAsBytes();
-          final baseDecoded = img.decodeImage(fileData)!;
-          fileData = img.encodeJpg(baseDecoded);
+          fileData = await _runOffThread(_encodeJpgWorker, fileData);
           extension = 'jpeg';
           contentType = 'image/jpeg';
           break;
@@ -168,51 +229,12 @@ class MediaHelper {
         throw 'alert--unsupported-image-format';
     }
     try {
-      img.Image baseImage = img.decodeImage(imageByes)!;
-      int height = baseImage.height;
-      int width = baseImage.width;
-      // Workout the scaling options, height going first being that height
-      // is very often the largest value
-      bool needsResize = height > maxHeight || width > maxWidth;
-      if (height > maxHeight || width > maxWidth) {
-        if (height > maxHeight) {
-          width = (width / (height / maxHeight)).round();
-          height = maxHeight;
-        }
-        if (width > maxWidth) {
-          height = (height / (width / maxWidth)).round();
-          width = maxWidth;
-        }
-      }
-
-      img.Image resizeSrc(img.Image src) {
-        /// Return same data if doesn't require resize
-        if (!needsResize) return src;
-        return img.copyResize(src, height: height, width: width);
-      }
-
-      late Uint8List encodedImage;
-      switch (imageType) {
-        case 'png':
-          try {
-            baseImage = resizeSrc(baseImage);
-          } catch (error) {
-            debugPrint(LogColor.error('Resizing PNG: $error'));
-          }
-          encodedImage = img.encodePng(baseImage);
-          break;
-        case 'jpeg':
-        case 'jpg':
-        default:
-          try {
-            baseImage = resizeSrc(baseImage);
-          } catch (error) {
-            debugPrint(LogColor.error('Resizing $imageType: $error'));
-          }
-          encodedImage = img.encodeJpg(baseImage, quality: 95);
-          break;
-      }
-      return encodedImage;
+      return await _runOffThread(_resizeImageWorker, <String, dynamic>{
+        'bytes': imageByes,
+        'imageType': imageType,
+        'maxHeight': maxHeight,
+        'maxWidth': maxWidth,
+      });
     } catch (error) {
       debugPrint(LogColor.error(error));
       // Check for specific errors, if not just return error
@@ -259,7 +281,9 @@ class MediaHelper {
     }
     // wrap with try catch
     // if video, get width and height
-    if (contentType.contains('video')) {
+    // `File.fromRawPath` comes from `dart:io` and throws `UnsupportedError` on
+    // web, so video dimensions are only probed on native platforms.
+    if (contentType.contains('video') && !kIsWeb) {
       // TODO: Verify this works
       try {
         // file from Uint8List

@@ -8,6 +8,7 @@ import '../helper/enum_data.dart';
 import '../helper/filter_helper.dart';
 import '../helper/format_data.dart';
 import '../helper/options.dart';
+import '../helper/regex_helper.dart';
 import '../serialized/filter_data.dart';
 import 'input_data.dart';
 import 'popup_entry.dart';
@@ -107,7 +108,7 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
     final clipboardText = clipboardData.text ?? '';
     // values can come on comma-separated values, new lines, tabs, or from a table
     final valuesFromClipboard = clipboardText
-        .split(RegExp(r'[\n\t,]'))
+        .split(RegexHelper.listSeparators)
         .map((e) => e.trim())
         .toList();
     // Validate values depending on the type
@@ -810,12 +811,50 @@ class _FilterMenuState extends State<FilterMenu> {
   /// surface displayed by this widget.
   late SearchController searchController;
 
+  /// Caches the unassigned filter options, sorted by label.
+  ///
+  /// Derived from [data] in [_recomputeOptions] instead of `build` because the
+  /// sort is `O(n log n)` and `build` runs on every keystroke and rebuild.
+  List<FilterData> _pendingOptions = const [];
+
+  /// Caches the active filter options in display order.
+  ///
+  /// `build` copies this list before mutating it, so the expensive filter and
+  /// sort run only when [data] actually changes.
+  List<FilterData> _activeOptions = const [];
+
+  /// Caches the dropdown entries offered by the sort filter.
+  List<ButtonOptions> _sortOptions = const [];
+
+  /// Recomputes the derived option lists from [data].
+  ///
+  /// Called whenever the mirrored filter collection changes so `build` only has
+  /// to copy the results rather than re-filter and re-sort them.
+  void _recomputeOptions() {
+    final pending = data.where((element) => element.operator == null).toList();
+    pending.sort((a, b) => a.label.compareTo(b.label));
+    _pendingOptions = pending;
+
+    final active = FilterHelper.filter(filters: data);
+    active.sort((a, b) => a.index.compareTo(b.index));
+    _activeOptions = active.reversed.toList();
+
+    _sortOptions = data
+        .where(
+          (element) =>
+              element.id != 'sort' && element.operator != FilterOperator.sort,
+        )
+        .map((e) => ButtonOptions(label: e.label, id: e.id, value: e.id))
+        .toList();
+  }
+
   /// Refreshes local state from the latest widget configuration.
   ///
-  /// Copies the latest [FilterMenu.data] list into the local mirror and
-  /// schedules a single rebuild.
+  /// Copies the latest [FilterMenu.data] list into the local mirror, refreshes
+  /// the derived option caches, and schedules a single rebuild.
   void _update() {
     data = widget.data;
+    _recomputeOptions();
     if (mounted) setState(() {});
   }
 
@@ -841,6 +880,7 @@ class _FilterMenuState extends State<FilterMenu> {
     super.initState();
     searchController = SearchController();
     data = widget.data;
+    _recomputeOptions();
   }
 
   /// Re-synchronizes local filter state when inherited values change.
@@ -895,16 +935,13 @@ class _FilterMenuState extends State<FilterMenu> {
     final locales = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
-    /// Ignore options that are included on the filters data
-    List<FilterData> pendingOptions = data
-        .where((element) => element.operator == null)
-        .toList();
-    pendingOptions.sort((a, b) => a.label.compareTo(b.label));
+    /// Ignore options that are included on the filters data.
+    /// The filtering and sorting happen in [_recomputeOptions] so they only run
+    /// when the filter collection changes rather than on every build.
+    final List<FilterData> pendingOptions = _pendingOptions;
 
-    /// Active options with order
-    List<FilterData> activeOptions = FilterHelper.filter(filters: data);
-    activeOptions.sort((a, b) => a.index.compareTo(b.index));
-    activeOptions = activeOptions.reversed.toList();
+    /// Active options with order. Copied because the list is mutated below.
+    final List<FilterData> activeOptions = List<FilterData>.of(_activeOptions);
 
     /// get the sort option
     final sortOptionFromData = activeOptions.firstWhere(
@@ -912,13 +949,7 @@ class _FilterMenuState extends State<FilterMenu> {
       orElse: () =>
           FilterData(id: 'sort', operator: FilterOperator.sort, index: 1),
     );
-    final optionsIgnoringSort = data.where(
-      (element) =>
-          element.id != 'sort' && element.operator != FilterOperator.sort,
-    );
-    final sortOptions = optionsIgnoringSort
-        .map((e) => ButtonOptions(label: e.label, id: e.id, value: e.id))
-        .toList();
+    final sortOptions = _sortOptions;
     final sortOption = FilterData(
       id: 'sort',
       operator: FilterOperator.sort,
@@ -942,8 +973,13 @@ class _FilterMenuState extends State<FilterMenu> {
       activeOptions.insert(0, sortOption);
     }
 
-    /// Update index
-    activeOptions.map((e) => e.index = activeOptions.indexOf(e));
+    /// Rendering order comes from the list order established in
+    /// [_recomputeOptions], which already sorts by [FilterData.index]. The
+    /// previous renumbering pass here was a lazy `map` that never executed, and
+    /// enabling it would be wrong: it mutates shared [FilterData] objects from
+    /// `build`, assigns `0` to the first entry even though [FilterHelper]
+    /// treats a non-positive index as "unset", and renumbers the locally
+    /// constructed sort chip rather than the instance stored in [data].
 
     /// Menu List Options
     List<Widget> menuOptions = List.generate(activeOptions.length, (index) {

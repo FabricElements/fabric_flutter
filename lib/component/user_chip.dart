@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../serialized/user_data.dart';
 import '../state/state_users.dart';
 import 'user_avatar.dart';
 
@@ -64,16 +65,44 @@ class UserChip extends StatefulWidget {
 /// The state resolves the current user from [StateUsers] during each build so
 /// the widget stays synchronized with provider updates.
 class _UserChipState extends State<UserChip> {
+  /// Queues the user lookup so `build` never starts a Firestore read.
+  ///
+  /// [StateUsers.getUser] batches every identifier requested during the same
+  /// frame, so a list of chips resolves with chunked queries and a single
+  /// notification instead of one read and one rebuild per chip.
+  void _requestUser() {
+    final uid = widget.uid;
+    if (uid == null) return;
+    context.read<StateUsers>().getUser(uid);
+  }
+
+  /// Requests the initial user record once the widget is mounted.
+  @override
+  void initState() {
+    super.initState();
+    _requestUser();
+  }
+
+  /// Requests the replacement user record when the parent supplies a new id.
+  @override
+  void didUpdateWidget(covariant UserChip oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.uid != widget.uid) _requestUser();
+  }
+
   /// Builds either a text label or a full [Chip] for the resolved user.
   ///
   /// The method returns an empty [SizedBox] when [UserChip.uid] is `null`,
   /// prefers the user's display name when available, and falls back to other
-  /// identifiers as needed.
+  /// identifiers as needed. It only reads the cache: the fetch is issued from
+  /// [initState] and [didUpdateWidget].
   @override
   Widget build(BuildContext context) {
     if (widget.uid == null) return const SizedBox(width: 0, height: 0);
     final stateUsers = Provider.of<StateUsers>(context, listen: true);
-    final user = stateUsers.getUser(widget.uid!);
+    final user =
+        stateUsers.cachedUser(widget.uid!) ??
+        UserData.fromJson({'id': widget.uid, 'name': 'Unknown'});
     String label = user.id!;
     if (user.username != null) label = user.username!;
     if (user.name.isNotEmpty) label = user.name;
