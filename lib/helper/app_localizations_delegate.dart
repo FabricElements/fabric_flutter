@@ -20,6 +20,28 @@ class AppLocalizations {
   /// Identifies the active locale used when selecting translated strings.
   final Locale locale;
 
+  /// Validates that a key path contains at least one usable token.
+  ///
+  /// Compiled once and reused so [_mergeLocales] does not rebuild it on every
+  /// lookup, which happens for essentially every localized label in the tree.
+  static final RegExp _keyPathExp = RegExp(r'([a-zA-Z\d_-]+)');
+
+  /// Matches `{placeholder}` tokens when substituting option values.
+  ///
+  /// Shared across calls to [_replaceOptions] to avoid recompiling the pattern
+  /// on every message that carries options.
+  static final RegExp _placeholderExp = RegExp(r'{.*?}');
+
+  /// Strips characters that are not valid in a normalized key.
+  ///
+  /// Reused by [get] instead of being recompiled on each invocation.
+  static final RegExp _invalidCharsExp = RegExp(r'([^a-zA-Z\d-]+)');
+
+  /// Detects camelCase boundaries so they can be split with a dash.
+  ///
+  /// Reused by [get] instead of being recompiled on each invocation.
+  static final RegExp _camelCaseExp = RegExp(r'(?<=[a-z])[A-Z]');
+
   /// Returns whether an [AppLocalizations] instance is available in [context].
   ///
   /// This private guard lets [of] fall back to English when localization state
@@ -66,10 +88,9 @@ class AppLocalizations {
   /// exists. That behavior makes missing labels visible during development while
   /// still keeping the app functional.
   String _mergeLocales(String keyPath) {
-    RegExp regExp = RegExp(r'([a-zA-Z\d_-]+)');
     String finalResponse = '';
     try {
-      assert(regExp.hasMatch(keyPath));
+      assert(_keyPathExp.hasMatch(keyPath));
       if (keys.containsKey(keyPath)) {
         if (keys[keyPath]!.containsKey('en')) {
           finalResponse = keys[keyPath]!['en']!;
@@ -94,8 +115,7 @@ class AppLocalizations {
   /// keep localization lookup non-fatal.
   String _replaceOptions(String text, Map<String, String> options) {
     String result = text;
-    RegExp regExp = RegExp(r'{.*?}');
-    Iterable matches = regExp.allMatches(text);
+    Iterable matches = _placeholderExp.allMatches(text);
     if (matches.isNotEmpty) {
       for (var match in matches) {
         try {
@@ -134,16 +154,14 @@ class AppLocalizations {
     keyFinal = keyFinal.replaceAll('_', '-');
     try {
       // Remove invalid characters
-      RegExp regExp = RegExp(r'([^a-zA-Z\d-]+)');
-      keyFinal = keyFinal.replaceAll(regExp, '');
+      keyFinal = keyFinal.replaceAll(_invalidCharsExp, '');
     } catch (e) {
       //
     }
     try {
       // Handle camelCase
-      RegExp exp = RegExp(r'(?<=[a-z])[A-Z]');
       keyFinal = keyFinal.replaceAllMapped(
-        exp,
+        _camelCaseExp,
         (Match m) => ('-${m.group(0)!}'),
       );
     } catch (e) {
