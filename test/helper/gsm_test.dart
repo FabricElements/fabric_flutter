@@ -138,5 +138,21 @@ void main() {
       // Assert
       expect(result, 'a.b,c');
     });
+
+    test(
+      'should remove invisible formatting marks while keeping line breaks',
+      () {
+        // Arrange
+        // U+2069 (pop directional isolate) and U+200B (zero-width space, a Cf
+        // format character) must be stripped, but the newline must survive.
+        const input = 'a\u{2069}\u{200B}\nb';
+
+        // Act
+        final result = GSM.toGSM(input);
+
+        // Assert
+        expect(result, 'a\nb');
+      },
+    );
   });
 }
