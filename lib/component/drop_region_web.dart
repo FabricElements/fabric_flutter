@@ -50,11 +50,11 @@ class _DropRegionState extends State<DropRegion> {
   /// Tracks whether a drag is currently reported as hovering the region.
   bool _hovering = false;
 
-  /// Retained `dragenter` listener so it can be removed on dispose.
-  late final JSFunction _enterJs = _onDragEnter.toJS;
-
-  /// Retained `dragover` listener so it can be removed on dispose.
-  late final JSFunction _overJs = _onDragOver.toJS;
+  /// Retained `dragenter`/`dragover` listener so it can be removed on dispose.
+  ///
+  /// Both events run the identical hover check, so they share one handler and
+  /// one retained reference.
+  late final JSFunction _moveJs = _onDragMove.toJS;
 
   /// Retained `dragleave` listener so it can be removed on dispose.
   late final JSFunction _leaveJs = _onDragLeave.toJS;
@@ -66,8 +66,8 @@ class _DropRegionState extends State<DropRegion> {
   @override
   void initState() {
     super.initState();
-    web.document.addEventListener('dragenter', _enterJs);
-    web.document.addEventListener('dragover', _overJs);
+    web.document.addEventListener('dragenter', _moveJs);
+    web.document.addEventListener('dragover', _moveJs);
     web.document.addEventListener('dragleave', _leaveJs);
     web.document.addEventListener('drop', _dropJs);
   }
@@ -75,8 +75,8 @@ class _DropRegionState extends State<DropRegion> {
   /// Removes the document drag listeners when the widget is disposed.
   @override
   void dispose() {
-    web.document.removeEventListener('dragenter', _enterJs);
-    web.document.removeEventListener('dragover', _overJs);
+    web.document.removeEventListener('dragenter', _moveJs);
+    web.document.removeEventListener('dragover', _moveJs);
     web.document.removeEventListener('dragleave', _leaveJs);
     web.document.removeEventListener('drop', _dropJs);
     super.dispose();
@@ -107,15 +107,11 @@ class _DropRegionState extends State<DropRegion> {
     event.dataTransfer?.dropEffect = 'copy';
   }
 
-  /// Handles a drag entering the document and refreshes the hover state.
-  void _onDragEnter(web.Event event) {
-    final drag = event as web.DragEvent;
-    _allowDrag(drag);
-    _setHovering(_isInside(drag.clientX.toDouble(), drag.clientY.toDouble()));
-  }
-
-  /// Handles continuous drag movement and refreshes the hover state.
-  void _onDragOver(web.Event event) {
+  /// Handles a drag entering or moving over the document and refreshes hover.
+  ///
+  /// `dragenter` and `dragover` perform the identical work — allow the copy
+  /// operation and re-run the hit-test — so they share this handler.
+  void _onDragMove(web.Event event) {
     final drag = event as web.DragEvent;
     _allowDrag(drag);
     _setHovering(_isInside(drag.clientX.toDouble(), drag.clientY.toDouble()));

@@ -143,57 +143,28 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
         'label': locales.get('label--image'),
       }),
       itemBuilder: (context) => [
-        PopupMenuItem(
-          value: MediaOrigin.gallery,
-          child: Row(
-            spacing: 16,
-            children: [
-              const Icon(Icons.image),
-              Flexible(
-                child: Text(
-                  locales.get('label--upload-image-from-label', {
-                    'label': locales.get('label--gallery'),
-                  }),
-                  overflow: TextOverflow.ellipsis,
+        for (final (origin, icon, labelKey) in const [
+          (MediaOrigin.gallery, Icons.image, 'label--gallery'),
+          (MediaOrigin.files, Icons.image_search, 'label--file'),
+          (MediaOrigin.camera, Icons.photo_camera, 'label--camera'),
+        ])
+          PopupMenuItem(
+            value: origin,
+            child: Row(
+              spacing: 16,
+              children: [
+                Icon(icon),
+                Flexible(
+                  child: Text(
+                    locales.get('label--upload-image-from-label', {
+                      'label': locales.get(labelKey),
+                    }),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        PopupMenuItem(
-          value: MediaOrigin.files,
-          child: Row(
-            spacing: 16,
-            children: [
-              const Icon(Icons.image_search),
-              Flexible(
-                child: Text(
-                  locales.get('label--upload-image-from-label', {
-                    'label': locales.get('label--file'),
-                  }),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-        ),
-        PopupMenuItem(
-          value: MediaOrigin.camera,
-          child: Row(
-            spacing: 16,
-            children: [
-              const Icon(Icons.photo_camera),
-              Flexible(
-                child: Text(
-                  locales.get('label--upload-image-from-label', {
-                    'label': locales.get('label--camera'),
-                  }),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-        ),
       ],
       onSelected: uploadFromOrigin,
     );
