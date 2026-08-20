@@ -173,12 +173,13 @@ class _ProfileEditState extends State<ProfileEdit> {
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context);
     final stateUser = Provider.of<StateUser>(context, listen: false);
-    userImage = widget.prefix != null && stateUser.serialized.avatar != null
-        ? '${widget.prefix}/${stateUser.serialized.avatar}'
-        : stateUser.serialized.avatar;
+    final user = stateUser.serialized;
+    userImage = widget.prefix != null && user.avatar != null
+        ? '${widget.prefix}/${user.avatar}'
+        : user.avatar;
     if (!changed) {
-      nameFirst = nameFirst ?? stateUser.serialized.firstName;
-      nameLast = nameLast ?? stateUser.serialized.lastName;
+      nameFirst = nameFirst ?? user.firstName;
+      nameLast = nameLast ?? user.lastName;
     }
 
     /// Refreshes the avatar preview using staged bytes or persisted user data.
