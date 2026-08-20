@@ -125,5 +125,18 @@ void main() {
       // Assert
       expect(result, 'a\n\nb');
     });
+
+    test('should replace unsupported characters via charMapToReplace', () {
+      // Arrange
+      // U+FF61 (fullwidth ideographic full stop) maps to '.' and
+      // U+FF64 (fullwidth ideographic comma) maps to ','.
+      const input = 'a\u{FF61}b\u{FF64}c';
+
+      // Act
+      final result = GSM.toGSM(input);
+
+      // Assert
+      expect(result, 'a.b,c');
+    });
   });
 }
