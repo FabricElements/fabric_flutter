@@ -167,14 +167,12 @@ class ViewAuthPageState extends State<ViewAuthPage> {
     /// Presents a localized sign-in failure alert.
     ///
     /// Every caller reaches this from a `catch` block that follows an awaited
-    /// authentication call, so the element backing [context] may already have
-    /// been unmounted; in that case the alert is skipped rather than presented
-    /// against a defunct context. The optional [title] overrides the default
-    /// `alert--sign-in-failed` heading.
+    /// authentication call, so the element backing this view may already have
+    /// been unmounted. No context is passed: [alertData] resolves the root
+    /// context itself, so the failure is always surfaced. The optional [title]
+    /// overrides the default `alert--sign-in-failed` heading.
     void alertSignInFailed(String? body, {String? title}) {
-      if (!context.mounted) return;
       alertData(
-        context: context,
         title: title ?? locales.get('alert--sign-in-failed'),
         body: body,
         type: AlertType.critical,
@@ -184,11 +182,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
     /// Verification completed: Sign in with credentials
     verificationCompleted(AuthCredential phoneAuthCredential) async {
       await _auth.signInWithCredential(phoneAuthCredential);
-      if (!context.mounted) return;
-      alertData(
-        context: context,
-        body: locales.get('alert--received-phone-auth-credential'),
-      );
+      alertData(body: locales.get('alert--received-phone-auth-credential'));
     }
 
     /// Verification Failed
@@ -395,9 +389,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
         final User currentUser = _auth.currentUser!;
         assert(user.uid == currentUser.uid);
 
-        if (!context.mounted) return;
         alertData(
-          context: context,
           title: 'Signed in with temporary account.',
           type: AlertType.success,
         );
@@ -502,9 +494,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
         action = () async {
           try {
             String mdFromFile = await rootBundle.loadString(widget.policies!);
-            if (!context.mounted) return;
             alertData(
-              context: context,
               type: AlertType.basic,
               widget: AlertWidget.dialog,
               child: SizedBox(
@@ -540,12 +530,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
               ),
             );
           } catch (error) {
-            if (!context.mounted) return;
-            alertData(
-              context: context,
-              body: error.toString(),
-              type: AlertType.critical,
-            );
+            alertData(body: error.toString(), type: AlertType.critical);
           }
         };
       }

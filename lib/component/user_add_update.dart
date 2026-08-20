@@ -341,13 +341,13 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
           );
         }
         await widget.onConfirm(data, group: widget.group);
+        alertData(
+          body: locales.get(widget.successMessage),
+          type: AlertType.success,
+          duration: 3,
+        );
+        // Navigator genuinely needs a live context, unlike alertData.
         if (context.mounted) {
-          alertData(
-            context: context,
-            body: locales.get(widget.successMessage),
-            type: AlertType.success,
-            duration: 3,
-          );
           Navigator.of(context).pop();
         }
         await widget.onChanged();

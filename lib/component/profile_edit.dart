@@ -289,19 +289,12 @@ class _ProfileEditState extends State<ProfileEdit> {
           type: AlertType.success,
         );
       } on FirebaseFunctionsException catch (error) {
-        if (!context.mounted) return;
         alertData(
-          context: context,
           body: error.message ?? error.details['message'],
           type: AlertType.critical,
         );
       } catch (error) {
-        if (!context.mounted) return;
-        alertData(
-          context: context,
-          body: error.toString(),
-          type: AlertType.critical,
-        );
+        alertData(body: error.toString(), type: AlertType.critical);
       }
       loading = false;
       if (mounted) setState(() {});
@@ -325,14 +318,11 @@ class _ProfileEditState extends State<ProfileEdit> {
         final errorType = errorMessage == 'alert--no-chosen-files'
             ? AlertType.warning
             : AlertType.critical;
-        if (context.mounted) {
-          alertData(
-            context: context,
-            body: locales.get(errorMessage),
-            type: errorType,
-            duration: 5,
-          );
-        }
+        alertData(
+          body: locales.get(errorMessage),
+          type: errorType,
+          duration: 5,
+        );
       }
       loading = false;
       if (mounted) setState(() {});

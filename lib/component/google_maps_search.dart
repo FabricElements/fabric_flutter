@@ -327,14 +327,11 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
       try {
         await getPlaceById(result.placeId);
       } catch (error) {
-        if (context.mounted) {
-          alertData(
-            context: context,
-            title: error.toString(),
-            type: AlertType.warning,
-            duration: 5,
-          );
-        }
+        alertData(
+          title: error.toString(),
+          type: AlertType.warning,
+          duration: 5,
+        );
         if (widget.onError != null) widget.onError!(error.toString());
       }
     }
@@ -395,9 +392,7 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
                       totalItems = results.length;
                       if (mounted) setState(() {});
                     } catch (error) {
-                      if (!context.mounted) return;
                       alertData(
-                        context: context,
                         title: error.toString(),
                         type: AlertType.warning,
                         duration: 5,

@@ -81,18 +81,19 @@ class FirebaseStorageHelper {
   /// Surfaces a localized alert describing a failed media upload.
   ///
   /// Both upload flows reach this after awaiting the picker and the storage
-  /// write, so [context] may already be unmounted; in that case the alert is
-  /// skipped rather than presented against a defunct element.
+  /// write, so [context] may already be unmounted. [alertContext] resolves the
+  /// root context in that case so the alert is still shown; only the
+  /// localization lookup, which needs a live element, is skipped.
   void _reportMediaError(Object error) {
-    if (!context.mounted) return;
-    final locales = AppLocalizations.of(context);
+    final ctx = alertContext(context);
     final errorMessage = error.toString();
     final errorType = errorMessage == 'alert--no-chosen-files'
         ? AlertType.warning
         : AlertType.critical;
     alertData(
-      context: context,
-      body: locales.get(errorMessage),
+      body: ctx != null
+          ? AppLocalizations.of(ctx).get(errorMessage)
+          : errorMessage,
       type: errorType,
       duration: 5,
     );
