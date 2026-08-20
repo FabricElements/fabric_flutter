@@ -319,7 +319,7 @@ class _ManagedDropZoneState extends State<ManagedDropZone> {
           child: Row(
             spacing: 16,
             children: [
-              if (_dropState.mediaList.isNotEmpty && !_dropState.loading)
+              if (_dropState.mediaList.isNotEmpty && !_dropState.loading) ...[
                 FilledButton.tonalIcon(
                   icon: const Icon(Icons.cloud_upload),
                   onPressed: () {
@@ -332,7 +332,6 @@ class _ManagedDropZoneState extends State<ManagedDropZone> {
                   },
                   label: Text(locales.get('label--upload')),
                 ),
-              if (_dropState.mediaList.isNotEmpty && !_dropState.loading)
                 FilledButton.icon(
                   style: FilledButton.styleFrom(
                     foregroundColor: theme.colorScheme.onErrorContainer,
@@ -345,6 +344,7 @@ class _ManagedDropZoneState extends State<ManagedDropZone> {
                   label: Text(locales.get('label--clear-all')),
                   icon: const Icon(Icons.clear_all),
                 ),
+              ],
             ],
           ),
         ),
