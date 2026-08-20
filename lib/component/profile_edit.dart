@@ -290,16 +290,11 @@ class _ProfileEditState extends State<ProfileEdit> {
         );
       } on FirebaseFunctionsException catch (error) {
         alertData(
-          context: context,
           body: error.message ?? error.details['message'],
           type: AlertType.critical,
         );
       } catch (error) {
-        alertData(
-          context: context,
-          body: error.toString(),
-          type: AlertType.critical,
-        );
+        alertData(body: error.toString(), type: AlertType.critical);
       }
       loading = false;
       if (mounted) setState(() {});
@@ -324,7 +319,6 @@ class _ProfileEditState extends State<ProfileEdit> {
             ? AlertType.warning
             : AlertType.critical;
         alertData(
-          context: context,
           body: locales.get(errorMessage),
           type: errorType,
           duration: 5,

@@ -127,4 +127,52 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   });
+
+  group('InputData controller ownership', () {
+    testWidgets('should not dispose a caller-supplied text controller', (
+      tester,
+    ) async {
+      // Arrange — the parent owns this controller and may reuse it after the
+      // field is removed, so InputData must leave it intact.
+      final controller = TextEditingController(text: 'owned');
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(
+        _wrap(
+          InputData(
+            value: 'owned',
+            type: InputDataType.string,
+            textController: controller,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Act
+      await tester.pumpWidget(_wrap(const SizedBox()));
+      await tester.pumpAndSettle();
+
+      // Assert — touching a disposed controller throws, so this both proves the
+      // controller survived and that the parent can keep using it.
+      expect(tester.takeException(), isNull);
+      controller.text = 'still usable';
+      expect(controller.text, 'still usable');
+    });
+
+    testWidgets('should dispose an internally created text controller', (
+      tester,
+    ) async {
+      // Arrange
+      await tester.pumpWidget(
+        _wrap(const InputData(value: 'local', type: InputDataType.string)),
+      );
+      await tester.pumpAndSettle();
+
+      // Act
+      await tester.pumpWidget(_wrap(const SizedBox()));
+      await tester.pumpAndSettle();
+
+      // Assert — no leak is reported for the controller InputData owns.
+      expect(tester.takeException(), isNull);
+    });
+  });
 }

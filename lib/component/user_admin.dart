@@ -217,13 +217,11 @@ class UserAdmin extends StatelessWidget {
     /// Reports provider and state errors with a localized critical alert.
     ///
     /// Returns `null` when [e] is `null` so empty error callbacks can be safely
-    /// ignored.
+    /// ignored. No context is passed because the callback outlives this build
+    /// and may fire once the element is gone; [alertData] resolves the root
+    /// context itself.
     apiError(String? e) => (e != null)
-        ? alertData(
-            context: context,
-            title: locales.get(e),
-            type: AlertType.critical,
-          )
+        ? alertData(title: locales.get(e), type: AlertType.critical)
         : null;
     stateUser.onError = apiError;
     state.onError = apiError;
@@ -267,23 +265,17 @@ class UserAdmin extends StatelessWidget {
               await UserRolesFirebase.onRemove(data, group: group);
               // Type indicates the data field to use in the function, admin level or collection.
               alertData(
-                context: context,
                 body: locales.get('alert--user-removed'),
                 type: AlertType.success,
                 duration: 3,
               );
             } on FirebaseFunctionsException catch (error) {
               alertData(
-                context: context,
                 body: error.message ?? error.details['message'],
                 type: AlertType.critical,
               );
             } catch (error) {
-              alertData(
-                context: context,
-                body: error.toString(),
-                type: AlertType.critical,
-              );
+              alertData(body: error.toString(), type: AlertType.critical);
             }
           },
         ),

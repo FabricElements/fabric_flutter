@@ -144,6 +144,28 @@ class _RoutePageState extends State<RoutePage> {
   /// rendered loading UI is derived from [RoutePage.loading].
   bool loading = true;
 
+  /// Tracks whether [RoutePage.onContextReady] has already been invoked.
+  ///
+  /// The callback is a one-shot notification that the context is usable, so it
+  /// is latched here to keep unrelated rebuilds from re-running consumer side
+  /// effects. It is reset when [RoutePage.status] goes back to not-ready so a
+  /// genuine ready transition notifies again.
+  bool _contextReadyNotified = false;
+
+  /// Notifies [RoutePage.onContextReady] once the status becomes ready.
+  ///
+  /// The callback is dispatched from a post-frame callback because it belongs to
+  /// the consumer and may trigger navigation or state updates, neither of which
+  /// is legal during the build phase.
+  void _notifyContextReady() {
+    if (_contextReadyNotified) return;
+    _contextReadyNotified = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      widget.onContextReady(context);
+    });
+  }
+
   /// Initializes the cached future during the first lifecycle pass.
   ///
   /// Creating [_future] here ensures [RoutePage.onInit] does not restart when the
@@ -163,9 +185,10 @@ class _RoutePageState extends State<RoutePage> {
   Widget build(BuildContext context) {
     final status = widget.status;
     if (status == null || !status.ready) {
+      _contextReadyNotified = false;
       return widget.loading;
     }
-    widget.onContextReady(context);
+    _notifyContextReady();
     return FutureBuilder<void>(
       key: ValueKey('route-page-future'),
       future: _future,

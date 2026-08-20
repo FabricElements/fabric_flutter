@@ -328,7 +328,6 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
         await getPlaceById(result.placeId);
       } catch (error) {
         alertData(
-          context: context,
           title: error.toString(),
           type: AlertType.warning,
           duration: 5,
@@ -394,7 +393,6 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
                       if (mounted) setState(() {});
                     } catch (error) {
                       alertData(
-                        context: context,
                         title: error.toString(),
                         type: AlertType.warning,
                         duration: 5,

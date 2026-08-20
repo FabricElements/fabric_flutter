@@ -46,4 +46,3 @@ analyzer:
     - '**/*.freezed.dart'
   errors:
     undefined_prefixed_name: ignore
-    use_build_context_synchronously: ignore

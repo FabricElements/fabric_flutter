@@ -61,22 +61,46 @@ AlertType typeFromString(String? value) {
   return type;
 }
 
+/// Resolves the [BuildContext] used to present or dismiss an alert.
+///
+/// A caller-supplied [context] is preferred, but only while it is still
+/// mounted; otherwise the root context behind [AppGlobal.navigatorKey] is used.
+/// Returns `null` when neither is usable, which lets callers degrade to a debug
+/// log instead of throwing.
+///
+/// This is what makes the `context` argument optional in [alertData] and
+/// [dismissAlerts]: after an `await` a caller can simply omit it and let the
+/// root context be resolved here, which satisfies
+/// `use_build_context_synchronously` correctly rather than suppressing it.
+///
+/// Exposed publicly so sibling helpers that genuinely need a live context —
+/// for example to perform an [InheritedWidget] lookup such as
+/// `AppLocalizations.of(context)` — can reuse the exact same fallback instead of
+/// silently dropping their work when the caller's element is gone.
+BuildContext? alertContext(BuildContext? context) {
+  if (context != null && context.mounted) return context;
+  final fallback = AppGlobal.navigatorKey.currentContext;
+  if (fallback != null && fallback.mounted) return fallback;
+  return null;
+}
+
 /// Dismisses the current alert presentation for the given [widget].
 ///
 /// When `dismissAll` is `true`, every visible alert of the same widget type is
-/// cleared. The function also protects itself against stale [BuildContext]
-/// instances by falling back to [AppGlobal.navigatorKey] when needed.
+/// cleared. The [context] is optional: when omitted, stale, or unmounted, the
+/// root context behind [AppGlobal.navigatorKey] is used instead, so this is safe
+/// to call after an `await` without a `mounted` guard.
 void dismissAlerts({
   bool dismissAll = false,
   required AlertWidget widget,
-  required BuildContext context,
+  BuildContext? context,
 }) {
-  final BuildContext safeContext = context.mounted
-      ? context
-      : AppGlobal.navigatorKey.currentContext ?? context;
+  final safeContext = alertContext(context);
   // Check if the widget is still 'alive' before using the context
-  if (!safeContext.mounted) {
-    debugPrint('Dismiss alert context is not mounted');
+  if (safeContext == null) {
+    debugPrint(
+      'Dismiss alert skipped: no mounted context and no AppGlobal.navigatorKey.',
+    );
     return;
   }
   switch (widget) {
@@ -124,6 +148,43 @@ bool isDialogOpen(BuildContext context) {
 /// [child], [image], and [icon] to shape the content; use [action] and
 /// [dismiss] to customize button behavior; and choose [widget], [type],
 /// [scrollable], and [barrierDismissible] to match the surrounding UX.
+///
+/// ## Calling this after an `await`
+///
+/// [context] is optional. **After an `await`, prefer omitting it entirely:**
+///
+/// ```dart
+/// await save();
+/// alertData(body: 'Saved', type: AlertType.success);
+/// ```
+///
+/// This is not merely a lint workaround — it is the safer call. The helper has
+/// always guarded against unmounted contexts internally, but
+/// `use_build_context_synchronously` fires on *referencing* a [BuildContext]
+/// after an async gap and cannot see that the callee is safe, so passing a
+/// context post-`await` forces callers into pointless `mounted` guards, `//
+/// ignore:` comments, or disabling the lint outright. Not passing one removes
+/// the reference, so the lint is satisfied correctly and real violations
+/// elsewhere stay visible. Keep passing [context] for synchronous calls, where
+/// the local subtree context is the most accurate presenter.
+///
+/// ## Wiring required for the contextless path
+///
+/// Resolution goes through [alertContext], which falls back to
+/// [AppGlobal.navigatorKey]. Consumers **must** wire the global keys for the
+/// contextless path to render UI:
+///
+/// ```dart
+/// MaterialApp(
+///   navigatorKey: AppGlobal.navigatorKey,
+///   scaffoldMessengerKey: AppGlobal.snackbarKey,
+///   // ...
+/// );
+/// ```
+///
+/// Without that wiring — or before the first frame — no context is available
+/// and the alert degrades gracefully to a `debugPrint` and returns; it never
+/// throws.
 void alertData<T>({
   /// Notification title
   final String? title,
@@ -183,12 +244,21 @@ void alertData<T>({
   IconData? icon,
 
   /// Supplies the active [BuildContext] used to locate overlay presenters.
-  required BuildContext? context,
+  ///
+  /// Optional. When omitted — or when the supplied context has since been
+  /// unmounted — the root context behind [AppGlobal.navigatorKey] is used
+  /// instead. **After an `await`, prefer calling `alertData(...)` without a
+  /// `context` argument**: the call is equally safe and avoids a spurious
+  /// `use_build_context_synchronously` diagnostic at the call site.
+  BuildContext? context,
 }) async {
   if (typeString != null) {
     type = typeFromString(typeString);
   }
-  if (kDebugMode || context == null) {
+  // Prefer the caller's context while it is still usable, otherwise fall back
+  // to the app root so post-await callers can omit it entirely.
+  final ctx = alertContext(context);
+  if (kDebugMode || ctx == null) {
     String debugMessagePrint = '................................';
     if (title != null) debugMessagePrint += '\n$title';
     if (body != null) debugMessagePrint += '\n$body';
@@ -207,27 +277,23 @@ void alertData<T>({
         debugPrint(LogColor.info(debugMessagePrint));
     }
   }
-  if (context == null) {
+  if (ctx == null) {
     debugPrint(
       LogColor.warning(
-        'Alert context is null. You must provide a valid context to see the alert on the UI.',
+        'Alert context is unavailable, so the alert was only logged. Pass a '
+        'mounted context, or assign AppGlobal.navigatorKey to '
+        'MaterialApp.navigatorKey so alerts can resolve the root context.',
       ),
     );
     return;
   }
 
-  // Check if the widget is still 'alive' before using the context
-  if (!context.mounted) {
-    debugPrint('Alert context is not mounted');
-    return;
-  }
-
-  final queryData = MediaQuery.of(context);
+  final queryData = MediaQuery.of(ctx);
   double width = queryData.size.width;
   double basePadding = 16;
   double contentWidth = width - (basePadding * 4);
-  final locales = AppLocalizations.of(context);
-  final theme = Theme.of(context);
+  final locales = AppLocalizations.of(ctx);
+  final theme = Theme.of(ctx);
   final textTheme = theme.textTheme;
   Color buttonColor = theme.colorScheme.primary;
   Color buttonColorForeground = theme.colorScheme.onPrimary;
@@ -280,7 +346,7 @@ void alertData<T>({
 
   /// Hide all alerts from same type to prevent overlap
   if (clear) {
-    dismissAlerts(dismissAll: true, widget: widget, context: context);
+    dismissAlerts(dismissAll: true, widget: widget, context: ctx);
   }
 
   List<Widget> onColumn = [];
@@ -404,10 +470,7 @@ void alertData<T>({
         label: Text(locales.get(dismiss.label).toUpperCase()),
         onPressed: () async {
           try {
-            final BuildContext safeContext = context.mounted
-                ? context
-                : AppGlobal.navigatorKey.currentContext ?? context;
-            dismissAlerts(widget: widget, context: safeContext);
+            dismissAlerts(widget: widget);
             if (hasDismissAction) {
               await dismiss!.onTap!();
             }
@@ -434,10 +497,14 @@ void alertData<T>({
               if (hasAction) {
                 await action!.onTap!();
               }
-              final BuildContext safeContext = context.mounted
-                  ? context
-                  : AppGlobal.navigatorKey.currentContext ?? context;
-              dismissAlerts(widget: widget, context: context);
+              // `ctx` may be gone by the time the action resolves; fall back to
+              // the root context through [alertContext]. The explicit
+              // `ctx.mounted` check is what satisfies
+              // `use_build_context_synchronously` here, since navigation below
+              // genuinely needs a live context.
+              final safeContext = ctx.mounted ? ctx : alertContext(null);
+              if (safeContext == null || !safeContext.mounted) return;
+              dismissAlerts(widget: widget, context: safeContext);
               if (hasValidPath) {
                 final path = action!.path!;
                 if (action.queryParameters != null) {
@@ -493,7 +560,7 @@ void alertData<T>({
   try {
     switch (widget) {
       case AlertWidget.banner:
-        ScaffoldMessenger.of(context).showMaterialBanner(
+        ScaffoldMessenger.of(ctx).showMaterialBanner(
           MaterialBanner(
             actions: actions,
             content: content,
@@ -504,7 +571,7 @@ void alertData<T>({
         );
         break;
       case AlertWidget.snackBar:
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.of(ctx).showSnackBar(
           SnackBar(
             behavior: SnackBarBehavior.floating,
             content: content,
@@ -520,7 +587,7 @@ void alertData<T>({
         break;
       case AlertWidget.dialog:
         showDialog<void>(
-          context: context,
+          context: ctx,
           fullscreenDialog: fullscreenDialog,
           barrierDismissible: barrierDismissible,
           builder: (BuildContext context) => Scaffold(

@@ -642,8 +642,11 @@ abstract class StateShared extends ChangeNotifier {
       assert(uri != null, 'uri can\'t be null for if redirect is true');
       // Use 300+ milliseconds to ensure animations completes
       Future.delayed(const Duration(milliseconds: 400)).whenComplete(() {
+        // The delay outlives the caller's frame, so the element backing the
+        // captured context may already be gone by the time this runs.
+        if (!context!.mounted) return;
         Utils.pushNamedFromQuery(
-          context: context!,
+          context: context,
           uri: uri!,
           queryParameters: {
             ...queryParameters,
