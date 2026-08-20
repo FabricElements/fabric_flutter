@@ -65,5 +65,72 @@ void main() {
       // Assert
       expect(notified, isTrue);
     });
+
+    group('merge', () {
+      test('should append entries with new ids', () {
+        // Arrange
+        final state = _TestState();
+        final base = [
+          {'id': 1, 'name': 'a'},
+        ];
+
+        // Act
+        final result = state.merge(
+          base: base,
+          toMerge: [
+            {'id': 2, 'name': 'b'},
+          ],
+        );
+
+        // Assert
+        expect(result, [
+          {'id': 1, 'name': 'a'},
+          {'id': 2, 'name': 'b'},
+        ]);
+      });
+
+      test('should replace existing entries in place by id', () {
+        // Arrange
+        final state = _TestState();
+        final base = [
+          {'id': 1, 'name': 'a'},
+          {'id': 2, 'name': 'b'},
+        ];
+
+        // Act
+        final result = state.merge(
+          base: base,
+          toMerge: [
+            {'id': 1, 'name': 'updated'},
+          ],
+        );
+
+        // Assert — same position, replaced value, no new entry
+        expect(result, [
+          {'id': 1, 'name': 'updated'},
+          {'id': 2, 'name': 'b'},
+        ]);
+      });
+
+      test('should let a later duplicate id replace an appended entry', () {
+        // Arrange — mirrors the old indexWhere behavior where a second incoming
+        // item with the same new id overwrites the first that was appended.
+        final state = _TestState();
+
+        // Act
+        final result = state.merge(
+          base: [],
+          toMerge: [
+            {'id': 5, 'name': 'first'},
+            {'id': 5, 'name': 'second'},
+          ],
+        );
+
+        // Assert
+        expect(result, [
+          {'id': 5, 'name': 'second'},
+        ]);
+      });
+    });
   });
 }
