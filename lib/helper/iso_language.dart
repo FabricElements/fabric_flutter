@@ -921,16 +921,21 @@ class ISOLanguages {
     return items;
   }
 
+  /// Caches languages keyed by ISO 639-1 alpha-2 code for fast metadata lookups.
+  ///
+  /// Built once from [languages] so repeated [getName] and [getEmoji] calls do
+  /// not re-deserialize the full dataset and linear-scan it on every access.
+  static final Map<String, ISOLanguage> _byAlpha2 = {
+    for (final language in languages) language.alpha2: language,
+  };
+
   /// Returns the display name for the language identified by [alpha2].
   ///
   /// `null` is returned when the code is unknown so UI code can decide how to
   /// handle missing metadata without catching exceptions.
   static String? getName(String? alpha2) {
-    try {
-      return languages.firstWhere((element) => element.alpha2 == alpha2).name;
-    } catch (error) {
-      return null;
-    }
+    if (alpha2 == null) return null;
+    return _byAlpha2[alpha2]?.name;
   }
 
   /// Returns the emoji marker associated with the language identified by [alpha2].
@@ -938,10 +943,7 @@ class ISOLanguages {
   /// Some entries use a globe emoji instead of a flag when no single country is a
   /// good representation of the language.
   static String? getEmoji(String? alpha2) {
-    try {
-      return languages.firstWhere((element) => element.alpha2 == alpha2).emoji;
-    } catch (error) {
-      return null;
-    }
+    if (alpha2 == null) return null;
+    return _byAlpha2[alpha2]?.emoji;
   }
 }
