@@ -1013,9 +1013,10 @@ class _FilterMenuState extends State<FilterMenu> {
             final value = controller.text;
             List<FilterData> recommendations = pendingOptions;
             if (value.isNotEmpty) {
+              final valueLower = value.toLowerCase();
               recommendations = recommendations.where((element) {
                 final labelMatch = element.label.toLowerCase().contains(
-                  value.toLowerCase(),
+                  valueLower,
                 );
                 final valueMatch = element.value.toString().contains(value);
                 return labelMatch || valueMatch;

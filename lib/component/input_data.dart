@@ -1406,6 +1406,14 @@ getValue -------------------------------------
               // keep @, . and + characters for more flexible searches (eg. emails, phone prefixes)
               final regex = _searchSanitizeExp;
               if (value.isNotEmpty) {
+                // The sanitized search term does not depend on the element, so
+                // compute it once instead of per candidate on every keystroke.
+                final valueClean = GSM
+                    .toGSM(value)
+                    .toLowerCase()
+                    .replaceAll(regex, '')
+                    .trim();
+                final valueLower = value.toLowerCase();
                 recommendations = recommendations.where((element) {
                   // Remove special characters and spaces from the label to make search more flexible.
                   final labelClean = GSM
@@ -1420,14 +1428,9 @@ getValue -------------------------------------
                             .replaceAll(regex, '')
                             .trim()
                       : null;
-                  final valueClean = GSM
-                      .toGSM(value)
-                      .toLowerCase()
-                      .replaceAll(regex, '')
-                      .trim();
                   final labelMatch = labelClean.contains(valueClean);
                   final labelAltMatch =
-                      labelAltClean?.contains(value.toLowerCase()) ?? false;
+                      labelAltClean?.contains(valueLower) ?? false;
                   final valueMatch = element.value.toString().contains(value);
                   return labelMatch || valueMatch || labelAltMatch;
                 }).toList();
