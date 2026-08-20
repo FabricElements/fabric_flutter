@@ -21,18 +21,39 @@ class StateUsers extends StateCollection {
   @override
   int get limitDefault => 200;
 
+  /// Caches the last serialized result together with the [data] reference it
+  /// was built from.
+  ///
+  /// [serialized] deserializes and sorts the entire user list, and it is read
+  /// repeatedly per update (once inside [notifyListeners] plus once per widget
+  /// build). Because [data] is replaced by a new object on every fetch, an
+  /// identity check lets repeated reads of the same data reuse the previous
+  /// result instead of redoing N `fromJson` calls and a full sort each time.
+  List<UserData>? _serializedCache;
+
+  /// Holds the [data] reference that produced [_serializedCache].
+  Object? _serializedCacheToken;
+
   /// Returns the current query results as sorted [UserData] objects.
   ///
   /// Sorting by [UserData.name] keeps user pickers stable even when Firestore
-  /// returns documents in a different order.
+  /// returns documents in a different order. The result is memoized against the
+  /// current [data] reference so repeated reads within the same update are free.
   @override
   List<UserData> get serialized {
-    if (data == null) return [];
+    final currentData = data;
+    if (currentData == null) return [];
+    if (_serializedCache != null &&
+        identical(_serializedCacheToken, currentData)) {
+      return _serializedCache!;
+    }
     try {
-      List<UserData> items = (data as List<dynamic>)
+      List<UserData> items = (currentData as List<dynamic>)
           .map((value) => UserData.fromJson(value))
           .toList();
       items.sort((a, b) => a.name.compareTo(b.name));
+      _serializedCache = items;
+      _serializedCacheToken = currentData;
       return items;
     } catch (e) {
       error = serializationError(e);
