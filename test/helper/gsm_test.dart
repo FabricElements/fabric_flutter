@@ -154,5 +154,18 @@ void main() {
         expect(result, 'a\nb');
       },
     );
+
+    test('should preserve long content unchanged after the buffered rewrite', () {
+      // Arrange – a long GSM-safe string exercises the character loop at scale.
+      final input = 'abc 123 ' * 500;
+      final expected = ('abc 123 ' * 500).trim();
+
+      // Act
+      final result = GSM.toGSM(input);
+
+      // Assert
+      expect(result, expected);
+      expect(result.length, expected.length);
+    });
   });
 }
