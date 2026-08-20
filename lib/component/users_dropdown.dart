@@ -103,8 +103,9 @@ class UsersDropdown extends StatelessWidget implements PreferredSizeWidget {
     SearchController searchController = SearchController();
     final locales = AppLocalizations.of(context);
     final state = Provider.of<StateUsers>(context);
-    List<ButtonOptions> items = List.generate(state.serialized.length, (index) {
-      final item = state.serialized[index];
+    final serialized = state.serialized;
+    List<ButtonOptions> items = List.generate(serialized.length, (index) {
+      final item = serialized[index];
       String labelAlt = '';
       if (item.username != null) {
         labelAlt += item.username!;
