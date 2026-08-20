@@ -78,6 +78,7 @@ lib/
 ├── helper/             # Stateless utilities / repository-style helpers
 │   ├── http_request.dart       # HTTP networking (AuthScheme, request helpers over package:http)
 │   ├── firestore_helper.dart   # Firestore utilities (Timestamp conversions)
+│   ├── auth_service.dart       # Injectable auth seam (AuthService / FirebaseAuthService)
 │   ├── firebase_storage_helper.dart, media_helper.dart
 │   ├── route_helper.dart       # Auth-aware route table builder (RouteHelper)
 │   ├── provider_helper.dart    # ProviderHelper.isProviderDefined<T>(context)
