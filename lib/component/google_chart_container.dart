@@ -11,6 +11,20 @@ import 'edit_save_button.dart';
 import 'google_chart.dart';
 import 'input_data.dart';
 
+/// Formats the numeric range-slider labels shown in the chart editor.
+///
+/// Hoisted to file scope so the editor reuses a single formatter instead of
+/// constructing a new [NumberFormat] four times on every rebuild (including on
+/// every frame while the range slider is dragged).
+final NumberFormat _chartRangeFormat = NumberFormat();
+
+/// Formats [value] for a chart range-slider label using grouped digits.
+///
+/// Exposed as a pure top-level helper so the formatting can be verified without
+/// rendering the webview-backed chart, and so every call site reuses the same
+/// hoisted [NumberFormat] instance.
+String chartRangeLabel(num value) => _chartRangeFormat.format(value);
+
 /// Wraps a [GoogleChart] with optional editing controls for persisted chart settings.
 ///
 /// This widget keeps a working copy of [preferences] so callers can preview edits,
@@ -393,10 +407,8 @@ class _GoogleChartContainerState extends State<GoogleChartContainer> {
                         min: min,
                         divisions: (max / 20).floor(),
                         labels: RangeLabels(
-                          NumberFormat().format(
-                            _currentRangeValues.start.floor(),
-                          ),
-                          NumberFormat().format(_currentRangeValues.end.ceil()),
+                          chartRangeLabel(_currentRangeValues.start.floor()),
+                          chartRangeLabel(_currentRangeValues.end.ceil()),
                         ),
                         onChanged: (RangeValues values) {
                           preferencesCopy.min = values.start.floorToDouble();
@@ -428,7 +440,7 @@ class _GoogleChartContainerState extends State<GoogleChartContainer> {
                           vertical: 2,
                         ),
                         child: Text(
-                          '${locales.get('label--range')} (${NumberFormat().format(_currentRangeValues.start.floor())} - ${NumberFormat().format(_currentRangeValues.end.ceil())})',
+                          '${locales.get('label--range')} (${chartRangeLabel(_currentRangeValues.start.floor())} - ${chartRangeLabel(_currentRangeValues.end.ceil())})',
                           style: textTheme.bodySmall,
                         ),
                       ),
