@@ -99,12 +99,21 @@ abstract class StateShared extends ChangeNotifier {
     required List<dynamic> toMerge,
   }) {
     List<dynamic> newData = base;
+    // Index existing entries by id once so each incoming item is matched in
+    // constant time instead of rescanning the whole list, turning the merge
+    // from O(base * toMerge) into O(base + toMerge). First occurrences win, to
+    // mirror the previous indexWhere lookup.
+    final Map<dynamic, int> indexById = {};
+    for (int i = 0; i < newData.length; i++) {
+      indexById.putIfAbsent(newData[i]['id'], () => i);
+    }
     for (final item in toMerge) {
       dynamic itemID = item['id'];
-      int itemIndex = newData.indexWhere((element) => element['id'] == itemID);
-      if (itemIndex >= 0) {
+      final int? itemIndex = indexById[itemID];
+      if (itemIndex != null) {
         newData[itemIndex] = item;
       } else {
+        indexById[itemID] = newData.length;
         newData.add(item);
       }
     }
