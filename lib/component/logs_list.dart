@@ -78,19 +78,20 @@ class LogsList extends StatelessWidget {
     Widget container = const SizedBox(height: 0);
     if (logs == null || logs!.isEmpty) return container;
 
+    final TextStyle? textThemeBase = textTheme.bodyLarge?.copyWith(
+      height: !minimal ? 1.7 : null,
+    );
+    final TextStyle? textThemeColor = textThemeBase?.copyWith(
+      color: highlightColor ?? textThemeBase.color ?? Colors.black,
+      fontWeight: FontWeight.w600,
+    );
+
     Widget getItem(LogsData item) {
       DateTime? timestamp = item.timestamp ?? DateTime.now();
       String? text = item.text?.isNotEmpty == true ? item.text : null;
       if (text == null || text.isEmpty) return container;
       List<InlineSpan> textFormatted = [];
       int? initialPosition = 0;
-      TextStyle? textThemeBase = textTheme.bodyLarge?.copyWith(
-        height: !minimal ? 1.7 : null,
-      );
-      TextStyle? textThemeColor = textThemeBase?.copyWith(
-        color: highlightColor ?? textThemeBase.color ?? Colors.black,
-        fontWeight: FontWeight.w600,
-      );
       Iterable matches = _placeholderExp.allMatches(text);
       final timestampWidget = Padding(
         padding: const EdgeInsets.only(bottom: 4.0),
