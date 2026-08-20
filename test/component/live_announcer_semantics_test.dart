@@ -217,6 +217,72 @@ void main() {
         expect(recorder.messages, isEmpty);
         recorder.stop(tester);
       });
+
+      testWidgets('should announce on mount when announceOnMount is true', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
+        final recorder = _AnnouncementRecorder()..start(tester);
+
+        // Act
+        await tester.pumpWidget(
+          _app(
+            const LiveAnnouncer(
+              message: 'Queue: 3 waiting',
+              announceOnMount: true,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Assert
+        expect(recorder.messages, <String>['Queue: 3 waiting']);
+        recorder.stop(tester);
+      });
+
+      testWidgets(
+        'should stay silent on mount when announceOnMount is false, then '
+        'speak on a genuine change while ignoring the seeded value',
+        (WidgetTester tester) async {
+          // Arrange
+          final recorder = _AnnouncementRecorder()..start(tester);
+
+          // Act — mount with a message reflecting already-present state.
+          await tester.pumpWidget(
+            _app(
+              const LiveAnnouncer(
+                message: 'Queue: 3 waiting',
+                announceOnMount: false,
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+          // Rebuild with the same seeded message: must stay silent.
+          await tester.pumpWidget(
+            _app(
+              const LiveAnnouncer(
+                message: 'Queue: 3 waiting',
+                announceOnMount: false,
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+          // A genuine transition must still announce.
+          await tester.pumpWidget(
+            _app(
+              const LiveAnnouncer(
+                message: 'Queue: 5 waiting',
+                announceOnMount: false,
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          // Assert
+          expect(recorder.messages, <String>['Queue: 5 waiting']);
+          recorder.stop(tester);
+        },
+      );
     });
 
     group('semantics', () {

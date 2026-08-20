@@ -94,4 +94,27 @@ class FormatData {
   /// Returns a locale-aware formatter for times only.
   static DateFormat formatHour({String locale = 'en_US'}) =>
       _dateFormatCache.putIfAbsent('hour|$locale', () => DateFormat.jm(locale));
+
+  /// Returns a human-readable size string for a byte count.
+  ///
+  /// The value is scaled to the largest unit that keeps the number below 1024
+  /// (`B`, `KB`, `MB`, `GB`, `TB`) and rounded to [fractionDigits] decimals, with
+  /// trailing zeros trimmed so whole values read as `4 KB` rather than `4.0 KB`.
+  /// A non-positive [bytes] returns `0 B`.
+  static String formatBytes(int bytes, {int fractionDigits = 1}) {
+    if (bytes <= 0) return '0 B';
+    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    var size = bytes.toDouble();
+    var unit = 0;
+    while (size >= 1024 && unit < units.length - 1) {
+      size /= 1024;
+      unit++;
+    }
+    final text = unit == 0
+        ? bytes.toString()
+        : size
+              .toStringAsFixed(fractionDigits)
+              .replaceFirst(RegExp(r'\.?0+$'), '');
+    return '$text ${units[unit]}';
+  }
 }
