@@ -149,7 +149,7 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
   ///
   /// Keeping a dedicated [TextEditingController] lets the state reset the field
   /// without recreating the surrounding widget tree.
-  TextEditingController textController = TextEditingController();
+  final TextEditingController textController = TextEditingController();
 
   /// Tracks how many autocomplete results are currently visible.
   ///
@@ -249,6 +249,13 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
     getParentValues();
     loading = false;
     requiredFields = [...searchFields, 'geometry/location', ...widget.fields];
+  }
+
+  /// Releases the search field controller when the widget is removed from the tree.
+  @override
+  void dispose() {
+    textController.dispose();
+    super.dispose();
   }
 
   /// Resynchronizes the preview when parent-provided coordinates or labels change.
