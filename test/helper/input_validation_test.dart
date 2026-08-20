@@ -358,6 +358,37 @@ void main() {
         // Act & Assert
         expect(validation.validateUrl('not a url'), 'Enter a valid URL');
       });
+
+      test('should accept URLs on long modern top-level domains', () {
+        // Arrange
+        final validation = InputValidation();
+        const valid = [
+          'https://example.digital',
+          'https://example.services',
+          'https://example.technology',
+          'https://example.photography',
+        ];
+
+        // Act & Assert
+        for (final value in valid) {
+          expect(validation.validateUrl(value), isNull, reason: value);
+        }
+      });
+
+      test('should reject a URL embedded in surrounding text', () {
+        // Arrange
+        final validation = InputValidation();
+
+        // Act & Assert
+        expect(
+          validation.validateUrl('garbage https://example.com'),
+          'Enter a valid URL',
+        );
+        expect(
+          validation.validateUrl('xhttps://example.com'),
+          'Enter a valid URL',
+        );
+      });
     });
 
     group('isUsernameValid', () {

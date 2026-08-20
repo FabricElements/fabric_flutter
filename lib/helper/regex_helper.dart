@@ -126,13 +126,19 @@ class RegexHelper {
   /// used for form validation. It accepts the same URL shapes as [url] but
   /// rejects anything with leading or trailing content.
   ///
+  /// The top-level domain label accepts 2 to 63 characters, which is the DNS
+  /// maximum label length, so long modern TLDs such as `.photography` and
+  /// `.international` validate correctly. [url] caps that label at 6 characters
+  /// and only appears to accept longer ones because its unanchored trailing
+  /// character class silently absorbs the overflow.
+  ///
   /// Does **not** match scheme-less values, other protocols such as `ftp://`,
   /// or a valid URL embedded in a larger string.
   ///
-  /// Matches: `https://example.com/a?b=c#d`.
+  /// Matches: `https://example.com/a?b=c#d` and `https://example.photography`.
   /// Does not match: `garbage https://example.com`.
   static final RegExp urlStrict = RegExp(
-    r'^https?://[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$',
+    r'^https?://[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{2,63}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$',
   );
 
   /// Extracts `http` and `https` links from free-form text.

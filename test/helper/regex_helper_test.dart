@@ -511,6 +511,29 @@ void main() {
       }
     });
 
+    test('should match long modern top-level domains', () {
+      // Arrange: the TLD label allows up to the DNS maximum of 63 characters,
+      // so anything past the legacy 6-character cap must still validate.
+      const valid = [
+        'https://example.agency',
+        'https://example.digital',
+        'https://example.services',
+        'https://example.technology',
+        'https://example.photography',
+        'https://a.international/path?x=1',
+      ];
+
+      // Act & Assert
+      for (final value in valid) {
+        expect(RegexHelper.urlStrict.hasMatch(value), isTrue, reason: value);
+      }
+    });
+
+    test('should reject a single-character top-level domain', () {
+      // Arrange, Act & Assert
+      expect(RegexHelper.urlStrict.hasMatch('https://example.c'), isFalse);
+    });
+
     test('should be stricter than the legacy unanchored url pattern', () {
       // Arrange
       const embedded = 'garbage https://example.com';
