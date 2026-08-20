@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -78,7 +80,7 @@ class InitApp extends StatelessWidget {
 /// This widget delays initialization work until provider lookups are safe, then
 /// coordinates theme selection, user-state startup, and optional notification
 /// wiring before revealing the application child.
-class InitAppChild extends StatelessWidget {
+class InitAppChild extends StatefulWidget {
   /// Creates the post-provider bootstrap widget.
   ///
   /// The [child] subtree is revealed after startup state has resolved, while
@@ -102,22 +104,31 @@ class InitAppChild extends StatelessWidget {
   /// logic driven by [StateNotifications].
   final bool notifications;
 
-  /// Starts shared app services and returns either the loading screen or [child].
-  ///
-  /// The method derives a theme from the current platform brightness, connects
-  /// [StateUser] updates to analytics and notification setup, and delays
-  /// rendering [child] until the [UserStatus] stream reports a resolved state.
   @override
-  Widget build(BuildContext context) {
-    final stateGlobal = Provider.of<StateGlobal>(context, listen: false);
-    ThemeData theme = Theme.of(context);
-    final brightness = MediaQuery.of(context).platformBrightness;
-    if (brightness == Brightness.dark) {
-      theme = theme.copyWith(colorScheme: ThemeData.dark().colorScheme);
-    } else {
-      theme = theme.copyWith(colorScheme: ThemeData.light().colorScheme);
-    }
+  State<InitAppChild> createState() => _InitAppChildState();
+}
 
+/// Owns the bootstrap subscriptions created for an [InitAppChild].
+///
+/// Startup work is performed once in [initState] rather than in `build` so the
+/// [UserStatus] listener is registered a single time and is cancelled when the
+/// widget is removed from the tree.
+class _InitAppChildState extends State<InitAppChild> {
+  /// Tracks the [StateUser.streamStatus] subscription so it can be cancelled.
+  ///
+  /// Registering this in [initState] instead of `build` prevents a new listener
+  /// from being added on every rebuild, which previously caused analytics and
+  /// notification setup to run once per accumulated subscription.
+  StreamSubscription<UserStatus>? _statusSubscription;
+
+  /// Registers the one-time bootstrap listeners for the app.
+  ///
+  /// Provider lookups use `listen: false` because this runs outside of `build`
+  /// and must not create a dependency on the located state objects.
+  @override
+  void initState() {
+    super.initState();
+    final stateGlobal = Provider.of<StateGlobal>(context, listen: false);
     final stateUser = Provider.of<StateUser>(context, listen: false);
     final stateNotifications = Provider.of<StateNotifications>(
       context,
@@ -129,7 +140,7 @@ class InitAppChild extends StatelessWidget {
         ? debugPrint(LogColor.error('StateUser.onError: $e'))
         : null;
 
-    stateUser.streamStatus.listen((status) async {
+    _statusSubscription = stateUser.streamStatus.listen((status) async {
       if (status.signedIn) {
         try {
           stateAnalytics.analytics?.setUserId(id: status.uid);
@@ -138,7 +149,7 @@ class InitAppChild extends StatelessWidget {
         }
       }
 
-      if (notifications) {
+      if (widget.notifications) {
         try {
           if (status.signedIn) {
             await Future.delayed(const Duration(seconds: 3));
@@ -164,11 +175,34 @@ class InitAppChild extends StatelessWidget {
       stateGlobal.init();
       stateUser.init();
     });
+  }
 
-    final mediaQuery = MediaQuery.of(context);
+  /// Cancels the bootstrap subscription when the widget leaves the tree.
+  @override
+  void dispose() {
+    _statusSubscription?.cancel();
+    _statusSubscription = null;
+    super.dispose();
+  }
+
+  /// Returns either the loading screen or the application [InitAppChild.child].
+  ///
+  /// The method derives a theme from the current platform brightness and delays
+  /// rendering the child until the [UserStatus] stream reports a resolved state.
+  @override
+  Widget build(BuildContext context) {
+    ThemeData theme = Theme.of(context);
+    final brightness = MediaQuery.platformBrightnessOf(context);
+    if (brightness == Brightness.dark) {
+      theme = theme.copyWith(colorScheme: ThemeData.dark().colorScheme);
+    } else {
+      theme = theme.copyWith(colorScheme: ThemeData.light().colorScheme);
+    }
+
+    final stateUser = Provider.of<StateUser>(context, listen: false);
 
     return MediaQuery(
-      data: mediaQuery.copyWith(textScaler: TextScaler.noScaling),
+      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.noScaling),
       child: Theme(
         data: theme,
         child: StreamBuilder<UserStatus>(
@@ -189,15 +223,17 @@ class InitAppChild extends StatelessWidget {
               resolved = true;
             }
 
-            final loadingWidget = LoadingScreen(
-              key: Key('init-app-loading-screen'),
-            );
-            if (!resolved) return loadingWidget;
+            if (!resolved) {
+              return const LoadingScreen(key: Key('init-app-loading-screen'));
+            }
 
-            final now = DateTime.now().millisecondsSinceEpoch;
-            return Container(
-              key: ValueKey('init-app-child-${status?.signedIn}-$now'),
-              child: child,
+            // The key intentionally depends only on the signed-in flag. It used
+            // to include `DateTime.now()`, which produced a new key on every
+            // rebuild and forced Flutter to discard and recreate the entire
+            // application subtree each time.
+            return KeyedSubtree(
+              key: ValueKey('init-app-child-${status?.signedIn}'),
+              child: widget.child,
             );
           },
         ),

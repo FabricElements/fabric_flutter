@@ -130,4 +130,394 @@ void main() {
       expect(RegexHelper.username.hasMatch('user.name'), isFalse);
     });
   });
+
+  group('RegexHelper.uuid', () {
+    test('should match a canonical hyphenated UUID', () {
+      // Arrange, Act & Assert
+      expect(
+        RegexHelper.uuid.hasMatch('3f2504e0-4f89-11d3-9a0c-0305e82c3301'),
+        isTrue,
+      );
+    });
+
+    test('should reject a UUID without hyphens', () {
+      // Arrange, Act & Assert
+      expect(
+        RegexHelper.uuid.hasMatch('3f2504e04f8911d39a0c0305e82c3301'),
+        isFalse,
+      );
+    });
+  });
+
+  group('RegexHelper.urlInText', () {
+    test('should pull a link out of free-form text', () {
+      // Arrange
+      const text = 'See https://example.com/a for details';
+
+      // Act
+      final match = RegexHelper.urlInText.firstMatch(text);
+
+      // Assert
+      expect(match?.group(0), 'https://example.com/a');
+    });
+
+    test('should not match a scheme-less domain', () {
+      // Arrange, Act & Assert
+      expect(RegexHelper.urlInText.hasMatch('see example.com'), isFalse);
+    });
+  });
+
+  group('RegexHelper.mimePrimaryType', () {
+    test('should capture the top-level media type', () {
+      // Arrange, Act
+      final match = RegexHelper.mimePrimaryType.firstMatch('image/png');
+
+      // Assert
+      expect(match?.group(1), 'image');
+    });
+
+    test('should reject a value without a subtype separator', () {
+      // Arrange, Act & Assert
+      expect(RegexHelper.mimePrimaryType.hasMatch('image'), isFalse);
+    });
+  });
+
+  group('RegexHelper.htmlTag', () {
+    test('should strip markup while keeping the text', () {
+      // Arrange, Act
+      final result = '<b>hi</b>'.replaceAll(RegexHelper.htmlTag, '');
+
+      // Assert
+      expect(result, 'hi');
+    });
+
+    test('should not match a bare comparison operator', () {
+      // Arrange, Act & Assert
+      expect(RegexHelper.htmlTag.hasMatch('a < b'), isFalse);
+    });
+  });
+
+  group('RegexHelper.whitespace', () {
+    test('should collapse mixed whitespace runs', () {
+      // Arrange, Act
+      final result = 'a  \t b'.replaceAll(RegexHelper.whitespace, ' ');
+
+      // Assert
+      expect(result, 'a b');
+    });
+  });
+
+  group('RegexHelper.multipleSpaces', () {
+    test('should collapse spaces without touching newlines', () {
+      // Arrange, Act
+      final result = 'a   b\n\nc'.replaceAll(RegexHelper.multipleSpaces, ' ');
+
+      // Assert
+      expect(result, 'a b\n\nc');
+    });
+  });
+
+  group('RegexHelper.extraNewlines', () {
+    test('should reduce three or more newlines to two', () {
+      // Arrange, Act
+      final result = 'a\n\n\n\nb'.replaceAll(RegexHelper.extraNewlines, '\n\n');
+
+      // Assert
+      expect(result, 'a\n\nb');
+    });
+
+    test('should leave a single blank line untouched', () {
+      // Arrange, Act & Assert
+      expect(RegexHelper.extraNewlines.hasMatch('a\n\nb'), isFalse);
+    });
+  });
+
+  group('RegexHelper.formattingOnly', () {
+    test('should strip an invisible directional isolate', () {
+      // Arrange, Act
+      final result = 'a\u2069b'.replaceAll(RegexHelper.formattingOnly, '');
+
+      // Assert
+      expect(result, 'ab');
+    });
+
+    test('should leave ordinary characters untouched', () {
+      // Arrange, Act & Assert
+      expect(RegexHelper.formattingOnly.hasMatch('a b'), isFalse);
+    });
+  });
+
+  group('RegexHelper.nonDigits', () {
+    test('should reduce a formatted phone number to digits', () {
+      // Arrange, Act
+      final result = '+1 (415) 555'.replaceAll(RegexHelper.nonDigits, '');
+
+      // Assert
+      expect(result, '1415555');
+    });
+  });
+
+  group('RegexHelper.plusSign', () {
+    test('should remove an international prefix marker', () {
+      // Arrange, Act & Assert
+      expect('+1415'.replaceAll(RegexHelper.plusSign, ''), '1415');
+    });
+  });
+
+  group('RegexHelper.phoneDeniedInput', () {
+    test('should match the formatting characters it denies', () {
+      // Arrange, Act & Assert
+      expect(RegexHelper.phoneDeniedInput.hasMatch('1 415'), isTrue);
+      expect(RegexHelper.phoneDeniedInput.hasMatch('(415)'), isTrue);
+      expect(RegexHelper.phoneDeniedInput.hasMatch('1415'), isFalse);
+    });
+  });
+
+  group('RegexHelper.phoneAllowedInput', () {
+    test('should allow digits and reject letters', () {
+      // Arrange, Act & Assert
+      expect(RegexHelper.phoneAllowedInput.hasMatch('4'), isTrue);
+      expect(RegexHelper.phoneAllowedInput.hasMatch('a'), isFalse);
+    });
+  });
+
+  group('RegexHelper.decimalAllowedInput', () {
+    test('should allow signed decimal characters', () {
+      // Arrange, Act & Assert
+      expect(RegexHelper.decimalAllowedInput.hasMatch('.'), isTrue);
+      expect(RegexHelper.decimalAllowedInput.hasMatch('-'), isTrue);
+      expect(RegexHelper.decimalAllowedInput.hasMatch('e'), isFalse);
+    });
+  });
+
+  group('RegexHelper.intAllowedInput', () {
+    test('should allow digits and a sign but not a decimal point', () {
+      // Arrange, Act & Assert
+      expect(RegexHelper.intAllowedInput.hasMatch('-'), isTrue);
+      expect(RegexHelper.intAllowedInput.hasMatch('4'), isTrue);
+      expect(RegexHelper.intAllowedInput.hasMatch('.'), isFalse);
+    });
+  });
+
+  group('RegexHelper.nonAlphanumericRun', () {
+    test('should collapse separators into a single token boundary', () {
+      // Arrange, Act
+      final result = 'Save - Now'.replaceAll(
+        RegexHelper.nonAlphanumericRun,
+        '_',
+      );
+
+      // Assert
+      expect(result, 'Save_Now');
+    });
+  });
+
+  group('RegexHelper.nonAlphanumeric', () {
+    test('should strip punctuation but keep spaces', () {
+      // Arrange, Act
+      final result = 'hi there!'.replaceAll(RegexHelper.nonAlphanumeric, '');
+
+      // Assert
+      expect(result, 'hi there');
+    });
+  });
+
+  group('RegexHelper.slug', () {
+    test('should match a slug-safe value', () {
+      // Arrange, Act & Assert
+      expect(RegexHelper.slug.hasMatch('my-slug_1'), isTrue);
+    });
+
+    test('should reject spaces and an empty value', () {
+      // Arrange, Act & Assert
+      expect(RegexHelper.slug.hasMatch('my slug'), isFalse);
+      expect(RegexHelper.slug.hasMatch(''), isFalse);
+    });
+  });
+
+  group('RegexHelper.nonSlug', () {
+    test('should sanitize lowercased text into a slug', () {
+      // Arrange, Act
+      final result = 'my slug!'.replaceAll(RegexHelper.nonSlug, '-');
+
+      // Assert
+      expect(result, 'my-slug-');
+    });
+  });
+
+  group('RegexHelper.leadingSlash', () {
+    test('should strip only the first slash', () {
+      // Arrange, Act & Assert
+      expect('/a/b'.replaceFirst(RegexHelper.leadingSlash, ''), 'a/b');
+    });
+  });
+
+  group('RegexHelper.trailingPunctuation', () {
+    test('should trim trailing punctuation from an extracted token', () {
+      // Arrange, Act
+      final result = 'https://a.com/a).'.replaceAll(
+        RegexHelper.trailingPunctuation,
+        '',
+      );
+
+      // Assert
+      expect(result, 'https://a.com/a');
+    });
+
+    test('should leave interior punctuation alone', () {
+      // Arrange, Act & Assert
+      expect(
+        'https://a.com/a.b'.replaceAll(RegexHelper.trailingPunctuation, ''),
+        'https://a.com/a.b',
+      );
+    });
+  });
+
+  group('RegexHelper.searchSanitize', () {
+    test('should keep email and phone friendly characters', () {
+      // Arrange, Act & Assert
+      expect(
+        'jane@a.com'.replaceAll(RegexHelper.searchSanitize, ''),
+        'jane@a.com',
+      );
+      expect(
+        'jane doe-1'.replaceAll(RegexHelper.searchSanitize, ''),
+        'janedoe1',
+      );
+    });
+  });
+
+  group('RegexHelper.nameSanitize', () {
+    test('should strip digits and symbols from a name', () {
+      // Arrange, Act & Assert
+      expect('Jane1#'.replaceAll(RegexHelper.nameSanitize, ''), 'Jane');
+    });
+
+    test('should preserve hyphens, apostrophes, and spaces', () {
+      // Arrange, Act & Assert
+      expect(
+        "Jane O'Neil-Smith".replaceAll(RegexHelper.nameSanitize, ''),
+        "Jane O'Neil-Smith",
+      );
+    });
+  });
+
+  group('RegexHelper.listSeparators', () {
+    test('should split on commas, newlines, and tabs', () {
+      // Arrange, Act
+      final result = 'a,b\nc\td'.split(RegexHelper.listSeparators);
+
+      // Assert
+      expect(result, ['a', 'b', 'c', 'd']);
+    });
+  });
+
+  group('RegexHelper.placeholder', () {
+    test('should match each token individually', () {
+      // Arrange, Act
+      final matches = RegexHelper.placeholder
+          .allMatches('Hi {name}, you have {count}')
+          .map((e) => e.group(0))
+          .toList();
+
+      // Assert
+      expect(matches, ['{name}', '{count}']);
+    });
+
+    test('should match tokens across multiple lines', () {
+      // Arrange, Act
+      final matches = RegexHelper.placeholder.allMatches('{a}\n{b}').length;
+
+      // Assert
+      expect(matches, 2);
+    });
+  });
+
+  group('RegexHelper.localizationKeyPath', () {
+    test('should match a conventional key path', () {
+      // Arrange, Act & Assert
+      expect(
+        RegexHelper.localizationKeyPath.hasMatch('alert--invalid-value'),
+        isTrue,
+      );
+    });
+
+    test('should reject a whitespace-only key', () {
+      // Arrange, Act & Assert
+      expect(RegexHelper.localizationKeyPath.hasMatch('   '), isFalse);
+    });
+  });
+
+  group('RegexHelper.invalidLocaleChars', () {
+    test('should strip an underscore separator', () {
+      // Arrange, Act & Assert
+      expect('en_US'.replaceAll(RegexHelper.invalidLocaleChars, ''), 'enUS');
+    });
+
+    test('should leave a hyphenated locale untouched', () {
+      // Arrange, Act & Assert
+      expect('en-US'.replaceAll(RegexHelper.invalidLocaleChars, ''), 'en-US');
+    });
+  });
+
+  group('RegexHelper.camelCaseBoundary', () {
+    test('should find the boundary in a camelCase identifier', () {
+      // Arrange, Act
+      final result = 'firstName'.replaceAllMapped(
+        RegexHelper.camelCaseBoundary,
+        (m) => '-${m.group(0)}',
+      );
+
+      // Assert
+      expect(result, 'first-Name');
+    });
+
+    test('should not match consecutive uppercase letters', () {
+      // Arrange, Act & Assert
+      expect(RegexHelper.camelCaseBoundary.hasMatch('ABTest'), isFalse);
+    });
+  });
+
+  group('RegexHelper.urlStrict', () {
+    test('should match well-formed URLs end to end', () {
+      // Arrange
+      const valid = [
+        'https://example.com',
+        'http://example.com/path',
+        'https://example.com/a?b=c#d',
+        'https://sub.example.co.uk/x',
+      ];
+
+      // Act & Assert
+      for (final value in valid) {
+        expect(RegexHelper.urlStrict.hasMatch(value), isTrue, reason: value);
+      }
+    });
+
+    test('should reject a URL embedded in surrounding text', () {
+      // Arrange
+      const invalid = [
+        'garbage https://example.com',
+        'xhttps://example.com',
+        'https://example.com trailing junk',
+        'example.com',
+        'ftp://example.com',
+        '',
+      ];
+
+      // Act & Assert
+      for (final value in invalid) {
+        expect(RegexHelper.urlStrict.hasMatch(value), isFalse, reason: value);
+      }
+    });
+
+    test('should be stricter than the legacy unanchored url pattern', () {
+      // Arrange
+      const embedded = 'garbage https://example.com';
+
+      // Act & Assert
+      expect(RegexHelper.url.hasMatch(embedded), isTrue);
+      expect(RegexHelper.urlStrict.hasMatch(embedded), isFalse);
+    });
+  });
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../helper/options.dart';
+import '../helper/regex_helper.dart';
 import '../helper/utils.dart';
 import '../serialized/logs_data.dart';
 import 'alert_data.dart';
@@ -55,12 +56,6 @@ class LogsList extends StatelessWidget {
   /// Provides the [EdgeInsetsGeometry] applied around the entire list.
   final EdgeInsetsGeometry margin;
 
-  /// Matches `{placeholder}` markers used to highlight inline log segments.
-  ///
-  /// Compiled once and shared across builds so the pattern is not rebuilt every
-  /// time the list renders.
-  static final RegExp _placeholderExp = RegExp(r'{.*?}', multiLine: true);
-
   /// Formats each entry's timestamp as a localized date and time.
   ///
   /// Created once and shared across builds so the formatter is not rebuilt for
@@ -92,7 +87,7 @@ class LogsList extends StatelessWidget {
       if (text == null || text.isEmpty) return container;
       List<InlineSpan> textFormatted = [];
       int? initialPosition = 0;
-      Iterable matches = _placeholderExp.allMatches(text);
+      Iterable matches = RegexHelper.placeholder.allMatches(text);
       final timestampWidget = Padding(
         padding: const EdgeInsets.only(bottom: 4.0),
         child: Text(

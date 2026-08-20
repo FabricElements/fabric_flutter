@@ -6,20 +6,9 @@ import '../helper/app_localizations_delegate.dart';
 import '../helper/input_validation.dart';
 import '../helper/iso_countries.dart';
 import '../helper/options.dart';
+import '../helper/regex_helper.dart';
 import '../serialized/iso_data.dart';
 import 'input_data.dart';
-
-/// Matches whitespace and phone grouping punctuation stripped from raw input.
-///
-/// Hoisted to file scope so the phone field's input formatters reuse a single
-/// compiled pattern instead of recompiling it on every [State.build].
-final RegExp _denyFormattingRegex = RegExp(r'[\s()-+]');
-
-/// Matches the digit characters permitted in the national number field.
-///
-/// Hoisted to file scope so the phone field's input formatters reuse a single
-/// compiled pattern instead of recompiling it on every [State.build].
-final RegExp _allowDigitsRegex = RegExp(r'[\d{0,15}]');
 
 /// Collects a phone number by separating country selection from the national
 /// number entry field.
@@ -421,8 +410,8 @@ class _PhoneInputState extends State<PhoneInput> {
       },
       validator: inputValidation.validatePhone,
       inputFormatters: [
-        FilteringTextInputFormatter.deny(_denyFormattingRegex),
-        FilteringTextInputFormatter.allow(_allowDigitsRegex),
+        FilteringTextInputFormatter.deny(RegexHelper.phoneDeniedInput),
+        FilteringTextInputFormatter.allow(RegexHelper.phoneAllowedInput),
         FilteringTextInputFormatter.singleLineFormatter,
       ],
       maxLength: 10,

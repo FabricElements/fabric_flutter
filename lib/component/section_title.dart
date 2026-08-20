@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../helper/regex_helper.dart';
+
 /// Displays a prominent section heading with optional emphasized segments.
 ///
 /// Curly-brace markers inside [headline] and [description] are highlighted with
@@ -38,12 +40,6 @@ class SectionTitle extends StatelessWidget {
   /// Overrides the default text style used for [description].
   final TextStyle? descriptionStyle;
 
-  /// Matches `{emphasis}` markers used to highlight inline segments.
-  ///
-  /// Compiled once and shared across builds so the pattern is not rebuilt every
-  /// time the widget renders.
-  static final RegExp _emphasisExp = RegExp(r'{.*?}', multiLine: true);
-
   /// Builds the section title and highlights any marked important segments.
   ///
   /// The widget keeps its bottom safe-area inset disabled because it is commonly
@@ -64,7 +60,7 @@ class SectionTitle extends StatelessWidget {
       List<TextSpan> text = [];
       String textFinal = textConvert;
       int? initialHelper = 0;
-      Iterable matches = _emphasisExp.allMatches(textFinal);
+      Iterable matches = RegexHelper.placeholder.allMatches(textFinal);
       if (matches.isNotEmpty) {
         for (var match in matches) {
           if (match.start > initialHelper) {

@@ -1,6 +1,7 @@
 import 'dart:core';
 
 import '../serialized/gsm_data.dart';
+import 'regex_helper.dart';
 
 /// Maps GSM 7-bit characters to the number of SMS character units they use.
 ///
@@ -477,25 +478,6 @@ const Map<int, Map<String, String>> charMapToReplace = {
   65380: {'original': '、', 'replace': ','},
 };
 
-/// Matches invisible formatting marks removed during GSM normalization.
-///
-/// Excludes control characters (`\p{Cc}`) so line breaks survive. Hoisted to
-/// file scope so [GSM.toGSM] reuses one compiled pattern instead of recompiling
-/// it on every call.
-final RegExp _gsmFormattingOnlyRegex = RegExp(r'[\u2069\p{Cf}]', unicode: true);
-
-/// Matches runs of horizontal spaces collapsed to a single space.
-///
-/// Hoisted to file scope so [GSM.toGSM] reuses one compiled pattern instead of
-/// recompiling it on every call.
-final RegExp _gsmMultiSpaceRegex = RegExp(r' +');
-
-/// Matches three or more consecutive line breaks normalized to two.
-///
-/// Hoisted to file scope so [GSM.toGSM] reuses one compiled pattern instead of
-/// recompiling it on every call.
-final RegExp _gsmExtraNewlinesRegex = RegExp(r'\n{3,}');
-
 /// Calculates SMS encoding details for GSM and Unicode text.
 ///
 /// This helper mirrors common SMS gateway rules so the app can estimate how a
@@ -646,14 +628,14 @@ class GSM {
     /// 1. Remove U+2069 and formatting characters, BUT keep line breaks (\n)
     /// We use a "lookahead" or specific exclusion to ensure \n and \r survive
     /// Remove invisible formatting
-    newContent = newContent.replaceAll(_gsmFormattingOnlyRegex, '');
+    newContent = newContent.replaceAll(RegexHelper.formattingOnly, '');
 
     /// 2. Replace multiple spaces with a single space
     /// Note: \s matches line breaks too, so we use ' +' to only target horizontal spaces
-    newContent = newContent.replaceAll(_gsmMultiSpaceRegex, ' ');
+    newContent = newContent.replaceAll(RegexHelper.multipleSpaces, ' ');
 
     /// 3. Normalize line breaks: 3 or more becomes exactly 2
-    newContent = newContent.replaceAll(_gsmExtraNewlinesRegex, '\n\n');
+    newContent = newContent.replaceAll(RegexHelper.extraNewlines, '\n\n');
 
     /// 3. Trim leading and trailing whitespace (including newlines)
     newContent = newContent.trim();

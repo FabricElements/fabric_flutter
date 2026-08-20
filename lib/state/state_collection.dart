@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:collection/collection.dart';
 
 import 'state_shared.dart';
 
@@ -50,9 +51,19 @@ abstract class StateCollection extends StateShared {
   bool isSameQuery(Query? reference) {
     final totalToFetch = limit * page;
     Query? newQuery = reference?.limit(totalToFetch);
-    final newReference = ({newQuery?.parameters ?? {}}).toString().hashCode;
-    final oldReference = ({query?.parameters ?? {}}).toString().hashCode;
-    return oldReference == newReference;
+    return _isSameParameters(newQuery, query);
+  }
+
+  /// Returns whether two Firestore queries carry the same parameters.
+  ///
+  /// The parameters are compared structurally with [DeepCollectionEquality]
+  /// instead of hashing `toString()` output. Hashing was both more expensive on
+  /// large `whereIn`/`arrayContainsAny` payloads and collision-prone, which
+  /// could leave a stale listener attached when the query really had changed.
+  static bool _isSameParameters(Query? a, Query? b) {
+    if (identical(a, b)) return true;
+    if (a?.parameters == null || b?.parameters == null) return a == b;
+    return const DeepCollectionEquality().equals(a!.parameters, b!.parameters);
   }
 
   /// Returns whether [reference] matches the current base query.
@@ -60,9 +71,7 @@ abstract class StateCollection extends StateShared {
   /// When the query changes, shared state is cleared so results from the old
   /// collection do not survive into the new query context.
   bool isSameBaseQuery(Query? reference) {
-    final newReference = ({reference?.parameters ?? {}}).toString().hashCode;
-    final oldReference = ({baseQuery?.parameters ?? {}}).toString().hashCode;
-    bool same = oldReference == newReference;
+    bool same = _isSameParameters(reference, baseQuery);
     if (!same) {
       super.clear(notify: !initialized);
     }

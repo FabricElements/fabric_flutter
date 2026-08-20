@@ -23,10 +23,7 @@ void main() {
       tester,
     ) async {
       // Arrange & Act
-      await _pump(
-        tester,
-        CountryPicker(value: 'US', onChange: (_) {}),
-      );
+      await _pump(tester, CountryPicker(value: 'US', onChange: (_) {}));
 
       // Assert – the resolved label ends with the selected alpha-2 code.
       expect(find.byType(InputData), findsOneWidget);
@@ -37,11 +34,7 @@ void main() {
       // Arrange & Act
       await _pump(
         tester,
-        CountryPicker(
-          value: 'US',
-          phoneNumberOrigin: true,
-          onChange: (_) {},
-        ),
+        CountryPicker(value: 'US', phoneNumberOrigin: true, onChange: (_) {}),
       );
 
       // Assert

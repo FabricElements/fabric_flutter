@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:fabric_flutter/variables.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -200,13 +201,31 @@ abstract class StateShared extends ChangeNotifier {
     return call();
   }
 
+  /// Compares two payloads for structural equality.
+  ///
+  /// Firestore and HTTP responses allocate a fresh [Map] or [List] for every
+  /// snapshot, and Dart's default `==` on collections is referential. A plain
+  /// `==` guard therefore never matched, so every identical snapshot still
+  /// notified every listener. [identical] is checked first as a cheap fast path
+  /// before falling back to a deep comparison.
+  static bool _isSameData(dynamic a, dynamic b) {
+    if (identical(a, b)) return true;
+    if (a is Iterable || a is Map || b is Iterable || b is Map) {
+      return const DeepCollectionEquality().equals(a, b);
+    }
+    return a == b;
+  }
+
   /// Assigns new state data and publishes the change.
   ///
-  /// Reassigning the same non-null object is ignored to reduce accidental
-  /// recursive updates.
+  /// Reassigning data that is structurally equal to the current value is
+  /// ignored so listeners are not rebuilt for a snapshot that renders
+  /// identically.
   set data(dynamic dataObject) {
-    /// Basic check to prevent infinite loops
-    if (privateOldData == dataObject && privateOldData != null) return;
+    /// Basic check to prevent infinite loops and redundant rebuilds
+    if (privateOldData != null && _isSameData(privateOldData, dataObject)) {
+      return;
+    }
     // Set data
     privateOldData = dataObject;
     privateData = dataObject;
@@ -495,7 +514,11 @@ abstract class StateShared extends ChangeNotifier {
   ///
   /// Passing `null` clears all selected items.
   set selected(List<dynamic>? items) {
-    selectedItems = items ?? [];
+    final newItems = items ?? [];
+    // Skip the notify when the selection is unchanged; the setter is commonly
+    // re-assigned from a parent rebuild with an equivalent list.
+    if (const DeepCollectionEquality().equals(selectedItems, newItems)) return;
+    selectedItems = newItems;
     notifyListeners();
   }
 
