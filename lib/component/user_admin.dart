@@ -207,6 +207,9 @@ class UserAdmin extends StatelessWidget {
     }
     final stateUser = Provider.of<StateUser>(context, listen: false);
     final state = Provider.of<StateUsers>(context, listen: false);
+    // Resolve the current user's id once; StateUser.serialized rebuilds a
+    // UserData on every access, so avoid recomputing it per row.
+    final currentUserId = stateUser.serialized.id;
 
     // Set default limit when you will use shrinkWrap
     if (!primary) state.limitDefault = 100;
@@ -294,7 +297,7 @@ class UserAdmin extends StatelessWidget {
     /// Disables editing when the selected [user] matches the current
     /// [StateUser.serialized] identity or when [disabled] is `true`.
     showUpdateDialog(UserData user) {
-      bool sameUser = stateUser.serialized.id == user.id;
+      bool sameUser = currentUserId == user.id;
       // Don't allow a user to change anything about itself on the 'admin' view
       bool canUpdateUser = !sameUser;
       if (disabled) canUpdateUser = false;
@@ -351,7 +354,7 @@ class UserAdmin extends StatelessWidget {
         final userData = data as Map<String, dynamic>;
         final user = UserData.fromJson(userData);
         assert(user.id != null, 'user id is required');
-        bool sameUser = stateUser.serialized.id == user.id;
+        bool sameUser = currentUserId == user.id;
         // Don't allow a user to change anything about itself on the 'admin' view
         bool canUpdateUser = !sameUser;
         if (disabled) canUpdateUser = false;
