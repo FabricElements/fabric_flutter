@@ -23,6 +23,10 @@ class ViewHero extends StatelessWidget {
           {},
     );
     String? mediaUrl = args['url'];
+    // Optional accessible description for the media, supplied via route
+    // arguments (e.g. `{'url': ..., 'title': 'Photo of ...'}'). Falls back to
+    // SmartImage's default localized image label when omitted.
+    String? mediaSemanticLabel = args['title'] as String?;
     Widget content = const Padding(
       padding: EdgeInsets.all(16),
       child: Text('Your media file can\'t be loaded'),
@@ -36,6 +40,7 @@ class ViewHero extends StatelessWidget {
             child: SmartImage(
               key: ValueKey('hero-media-image-$mediaUrl'),
               url: mediaUrl,
+              semanticsLabel: mediaSemanticLabel,
             ),
           ),
         ),

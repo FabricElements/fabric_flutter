@@ -44,7 +44,9 @@ class GoogleChart extends StatelessWidget {
     bool isValid = data.isValid();
     final locales = AppLocalizations.of(context);
     final infoWidget = ListTile(
-      leading: const Icon(Icons.info_outline),
+      // Decorative: the title/subtitle text already conveys the same
+      // "no data" message, so the icon is excluded from semantics.
+      leading: const ExcludeSemantics(child: Icon(Icons.info_outline)),
       title: Text(locales.get('label--chart-no-data')),
       subtitle: Text(locales.get('label--chart-no-data-description')),
     );
@@ -92,9 +94,45 @@ class GoogleChart extends StatelessWidget {
         mimeType: 'text/html',
         encoding: Encoding.getByName('utf-8'),
       ).toString();
-      return IframeMinimal(src: chartUrl);
+      final chartTypeLabel = _chartTypeLabel(data.chartType, locales);
+      final chartTitle = data.options?.title;
+      final summary = chartTitle != null && chartTitle.isNotEmpty
+          ? '$chartTypeLabel: $chartTitle'
+          : chartTypeLabel;
+      // The iframe itself exposes no useful semantics (it is opaque HTML), so
+      // provide a text summary describing what the chart shows.
+      return Semantics(
+        label: summary,
+        child: IframeMinimal(src: chartUrl),
+      );
     } catch (e) {
       return infoWidget;
     }
+  }
+}
+
+/// Maps well-known [ChartType] values to existing localized labels.
+///
+/// Chart types without a dedicated localized label fall back to a
+/// human-readable form of the enum name (e.g. `ColumnChart` -> `Column
+/// chart`) so a [Semantics] summary can always describe what a chart shows.
+String _chartTypeLabel(ChartType chartType, AppLocalizations locales) {
+  switch (chartType) {
+    case ChartType.AreaChart:
+    case ChartType.SteppedAreaChart:
+      return locales.get('label--area-chart');
+    case ChartType.BarChart:
+      return locales.get('label--bar-chart');
+    case ChartType.LineChart:
+      return locales.get('label--line-chart');
+    case ChartType.GeoChart:
+      return locales.get('label--geo-chart');
+    default:
+      final name = chartType.name;
+      final spaced = name.replaceAllMapped(
+        RegExp(r'(?<=[a-z])(?=[A-Z])'),
+        (match) => ' ',
+      );
+      return '${spaced[0].toUpperCase()}${spaced.substring(1).toLowerCase()}';
   }
 }

@@ -35,6 +35,9 @@ class LanguagePicker extends StatefulWidget {
     this.label,
     this.hintText,
     this.disabled = false,
+    this.semanticsLabel,
+    this.automationKey,
+    this.semanticHint,
     required this.onChange,
   });
 
@@ -73,6 +76,21 @@ class LanguagePicker extends StatefulWidget {
   /// Disabled pickers still display the current selection so forms remain
   /// readable in review-only states.
   final bool disabled;
+
+  /// Overrides the accessibility label exposed to screen readers and agents.
+  ///
+  /// Forwarded unchanged to the underlying [InputData.semanticsLabel].
+  final String? semanticsLabel;
+
+  /// Assigns a deterministic automation identifier to the picker.
+  ///
+  /// Forwarded unchanged to the underlying [InputData.automationKey].
+  final String? automationKey;
+
+  /// Provides a structural, non-visual hint for the picker.
+  ///
+  /// Forwarded unchanged to the underlying [InputData.semanticHint].
+  final String? semanticHint;
 
   /// Creates the mutable state that memoizes the language options.
   @override
@@ -130,6 +148,9 @@ class _LanguagePickerState extends State<LanguagePicker> {
       options: _options,
       onChanged: (dynamic value) => widget.onChange(value as String?),
       disabled: widget.disabled,
+      semanticsLabel: widget.semanticsLabel,
+      automationKey: widget.automationKey,
+      semanticHint: widget.semanticHint,
     );
   }
 }

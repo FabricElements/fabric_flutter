@@ -345,60 +345,66 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
           mapComponents.clear();
           mapComponents.addAll([
             SafeArea(
-              child: SizedBox(
-                height: 50,
-                child: TextField(
-                  controller: textController,
-                  autofocus: widget.autofocus,
-                  keyboardType: TextInputType.text,
-                  textInputAction: TextInputAction.search,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 50),
+                child: Semantics(
+                  textField: true,
+                  label: locales.get('label--search-by-label', {
+                    'label': locales.get('label--location'),
+                  }),
+                  child: TextField(
+                    controller: textController,
+                    autofocus: widget.autofocus,
+                    keyboardType: TextInputType.text,
+                    textInputAction: TextInputAction.search,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      contentPadding: const EdgeInsets.all(16),
+                      filled: true,
+                      hintText: name ?? locales.get('label--search'),
+                      suffixIcon: const Icon(Icons.search),
                     ),
-                    contentPadding: const EdgeInsets.all(16),
-                    filled: true,
-                    hintText: name ?? locales.get('label--search'),
-                    suffixIcon: const Icon(Icons.search),
-                  ),
-                  onChanged: (val) async {
-                    if (val.length < 2) {
-                      results = [];
-                      totalItems = 0;
-                      if (mounted) setState(() {});
-                      return;
-                    }
-                    try {
-                      Map<String, dynamic>? queryParameters = {
-                        'key': widget.apiKey,
-                        'input': val,
-                        'inputtype': 'textquery',
-                        'type': widget.types.isEmpty
-                            ? null
-                            : widget.types.join(','),
-                        'fields': searchFields.join(','),
-                      };
-                      Uri url = Uri.parse(
-                        '${widget.baseUrl}/place/findplacefromtext/json',
-                      );
-                      url = url.replace(queryParameters: queryParameters);
-                      final response = await http.get(url);
-                      dynamic newData = HTTPRequest.response(response);
-                      final search = PlacesResponse.fromJson(newData);
-                      if (search.errorMessage != null) {
-                        throw search.errorMessage!;
+                    onChanged: (val) async {
+                      if (val.length < 2) {
+                        results = [];
+                        totalItems = 0;
+                        if (mounted) setState(() {});
+                        return;
                       }
-                      results = search.candidates;
-                      totalItems = results.length;
-                      if (mounted) setState(() {});
-                    } catch (error) {
-                      alertData(
-                        title: error.toString(),
-                        type: AlertType.warning,
-                        duration: 5,
-                      );
-                    }
-                  },
+                      try {
+                        Map<String, dynamic>? queryParameters = {
+                          'key': widget.apiKey,
+                          'input': val,
+                          'inputtype': 'textquery',
+                          'type': widget.types.isEmpty
+                              ? null
+                              : widget.types.join(','),
+                          'fields': searchFields.join(','),
+                        };
+                        Uri url = Uri.parse(
+                          '${widget.baseUrl}/place/findplacefromtext/json',
+                        );
+                        url = url.replace(queryParameters: queryParameters);
+                        final response = await http.get(url);
+                        dynamic newData = HTTPRequest.response(response);
+                        final search = PlacesResponse.fromJson(newData);
+                        if (search.errorMessage != null) {
+                          throw search.errorMessage!;
+                        }
+                        results = search.candidates;
+                        totalItems = results.length;
+                        if (mounted) setState(() {});
+                      } catch (error) {
+                        alertData(
+                          title: error.toString(),
+                          type: AlertType.warning,
+                          duration: 5,
+                        );
+                      }
+                    },
+                  ),
                 ),
               ),
             ),
@@ -432,14 +438,22 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
                               children: <Widget>[
                                 ListTile(
                                   dense: true,
-                                  leading: Icon(
-                                    Icons.location_on,
-                                    color: theme.colorScheme.secondary,
+                                  leading: ExcludeSemantics(
+                                    child: Icon(
+                                      Icons.location_on,
+                                      color: theme.colorScheme.secondary,
+                                    ),
                                   ),
-                                  title: Text(formattedAddress),
-                                  trailing: Icon(
-                                    Icons.arrow_forward,
-                                    color: theme.colorScheme.primary,
+                                  title: Text(
+                                    formattedAddress,
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 2,
+                                  ),
+                                  trailing: ExcludeSemantics(
+                                    child: Icon(
+                                      Icons.arrow_forward,
+                                      color: theme.colorScheme.primary,
+                                    ),
                                   ),
                                   onTap: () {
                                     selectLocation(item);

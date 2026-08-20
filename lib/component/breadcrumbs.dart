@@ -74,6 +74,10 @@ class Breadcrumbs extends StatelessWidget {
       ButtonOptions button = buttons[i];
       String label = locales.get(button.label);
       bool clickable = button.path != null || button.onTap != null;
+      // The last breadcrumb represents the current location and is announced
+      // as selected to assistive technology, matching the current-tab/step
+      // convention used elsewhere in this pass.
+      bool isCurrent = i == (buttons.length - 1);
       VoidCallback? onPressed;
       if (clickable) {
         onPressed = () {
@@ -99,55 +103,86 @@ class Breadcrumbs extends StatelessWidget {
           ),
         );
       }
+      Widget chip;
       if (onPressed != null) {
-        items.add(
-          ActionChip(
-            avatar: iconButton,
-            onPressed: onPressed,
-            label: Text(label, style: textStyleDefault),
-            // Force transparent background
-            color: WidgetStateProperty.resolveWith<Color?>(
-              (states) => Colors.transparent,
-            ),
-            elevation: 0,
-            pressElevation: 0,
-            shadowColor: Colors.transparent,
-            surfaceTintColor: Colors.transparent,
-            side: BorderSide.none,
-            backgroundColor: Colors.transparent,
+        chip = ActionChip(
+          avatar: iconButton,
+          onPressed: onPressed,
+          label: Text(
+            label,
+            style: textStyleDefault,
+            overflow: TextOverflow.ellipsis,
           ),
+          // Force transparent background
+          color: WidgetStateProperty.resolveWith<Color?>(
+            (states) => Colors.transparent,
+          ),
+          elevation: 0,
+          pressElevation: 0,
+          shadowColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
+          side: BorderSide.none,
+          backgroundColor: Colors.transparent,
         );
       } else {
-        items.add(
-          Chip(
-            avatar: iconButton,
-            label: Text(label, style: textStyleDefault),
-            // Force transparent background
-            color: WidgetStateProperty.resolveWith<Color?>(
-              (states) => Colors.transparent,
-            ),
-            elevation: 0,
-            shadowColor: Colors.transparent,
-            surfaceTintColor: Colors.transparent,
-            side: BorderSide.none,
-            backgroundColor: Colors.transparent,
+        chip = Chip(
+          avatar: iconButton,
+          label: Text(
+            label,
+            style: textStyleDefault,
+            overflow: TextOverflow.ellipsis,
           ),
+          // Force transparent background
+          color: WidgetStateProperty.resolveWith<Color?>(
+            (states) => Colors.transparent,
+          ),
+          elevation: 0,
+          shadowColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
+          side: BorderSide.none,
+          backgroundColor: Colors.transparent,
         );
       }
+      // MergeSemantics collapses the chip's icon/avatar and label into a single
+      // node so screen readers announce one coherent breadcrumb instead of two
+      // fragments. Only clickable crumbs are exposed as `button: true` — the
+      // current, non-interactive crumb must not be announced as a button.
+      // `Semantics.currentPage` does not exist in this Flutter SDK, so the
+      // current crumb instead falls back to `selected: true` plus a localized
+      // hint ("Current page").
+      items.add(
+        MergeSemantics(
+          child: Semantics(
+            label: label,
+            button: clickable,
+            selected: isCurrent,
+            hint: isCurrent ? locales.get('label--current-page') : null,
+            child: ExcludeSemantics(child: chip),
+          ),
+        ),
+      );
       if (i < (buttons.length - 1)) {
-        items.add(Text('/', style: dividerStyleDefault));
+        // Dividers are purely decorative; excluding them keeps the breadcrumb
+        // trail readable to screen readers instead of announcing stray "/".
+        items.add(
+          ExcludeSemantics(child: Text('/', style: dividerStyleDefault)),
+        );
       }
     }
-    return SingleChildScrollView(
-      padding: padding,
-      scrollDirection: Axis.horizontal,
-      child: Wrap(
-        spacing: spacing,
-        runSpacing: spacing,
-        alignment: WrapAlignment.start,
-        runAlignment: WrapAlignment.center,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: items,
+    return Semantics(
+      container: true,
+      label: locales.get('label--breadcrumb'),
+      child: SingleChildScrollView(
+        padding: padding,
+        scrollDirection: Axis.horizontal,
+        child: Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
+          alignment: WrapAlignment.start,
+          runAlignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: items,
+        ),
       ),
     );
   }

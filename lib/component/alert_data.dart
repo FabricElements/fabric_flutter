@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 
@@ -327,6 +328,17 @@ void alertData<T>({
   titleStyle ??= textTheme.titleLarge;
   bodyStyle ??= textTheme.bodyLarge;
 
+  /// Screen reader users need more time to read an alert than the fixed
+  /// snackbar duration allows, so critical/warning snackbars stay open longer
+  /// when accessible navigation (e.g. TalkBack/VoiceOver) is active instead of
+  /// auto-dismissing while assistive technology is still reading the message.
+  final bool accessibleNavigation = MediaQuery.accessibleNavigationOf(ctx);
+  if (accessibleNavigation &&
+      widget == AlertWidget.snackBar &&
+      (type == AlertType.critical || type == AlertType.warning)) {
+    duration = duration < 60 ? 60 : duration;
+  }
+
   titleStyle = titleStyle?.apply(color: textColor);
   bodyStyle = bodyStyle?.apply(color: textColor);
 
@@ -357,16 +369,21 @@ void alertData<T>({
     onColumn.add(
       Container(
         constraints: BoxConstraints(minWidth: 50, maxWidth: contentWidth),
-        child: InkWell(
-          onTap: () {
-            Clipboard.setData(ClipboardData(text: title));
-          },
-          child: Text(
-            title,
-            style: titleStyle,
-            maxLines: 4,
-            overflow: TextOverflow.ellipsis,
-            softWrap: true,
+        child: Semantics(
+          button: true,
+          label: title,
+          hint: locales.get('label--copy-to-clipboard'),
+          child: InkWell(
+            onTap: () {
+              Clipboard.setData(ClipboardData(text: title));
+            },
+            child: Text(
+              title,
+              style: titleStyle,
+              maxLines: 4,
+              overflow: TextOverflow.ellipsis,
+              softWrap: true,
+            ),
           ),
         ),
       ),
@@ -376,16 +393,21 @@ void alertData<T>({
     onColumn.add(
       Container(
         constraints: BoxConstraints(minWidth: 50, maxWidth: contentWidth),
-        child: InkWell(
-          onTap: () {
-            Clipboard.setData(ClipboardData(text: body));
-          },
-          child: Text(
-            body,
-            style: bodyStyle,
-            maxLines: 10,
-            overflow: TextOverflow.ellipsis,
-            softWrap: true,
+        child: Semantics(
+          button: true,
+          label: body,
+          hint: locales.get('label--copy-to-clipboard'),
+          child: InkWell(
+            onTap: () {
+              Clipboard.setData(ClipboardData(text: body));
+            },
+            child: Text(
+              body,
+              style: bodyStyle,
+              maxLines: 10,
+              overflow: TextOverflow.ellipsis,
+              softWrap: true,
+            ),
           ),
         ),
       ),
@@ -403,9 +425,14 @@ void alertData<T>({
           alignment: Alignment.centerLeft,
           child: AspectRatio(
             aspectRatio: 1 / 1,
-            child: CircleAvatar(
-              backgroundColor: buttonColor,
-              child: Icon(icon, color: buttonColorForeground),
+            // Purely decorative: the title/body text already conveys the
+            // alert's meaning, so this icon is excluded from semantics to
+            // avoid a redundant announcement.
+            child: ExcludeSemantics(
+              child: CircleAvatar(
+                backgroundColor: buttonColor,
+                child: Icon(icon, color: buttonColorForeground),
+              ),
             ),
           ),
         ),
@@ -555,6 +582,26 @@ void alertData<T>({
       ),
     ),
   );
+
+  /// Announce the alert to assistive technology as it appears. This is only
+  /// triggered once per [alertData] call (a real state transition), not on
+  /// every rebuild, so it stays non-spammy.
+  final String announcement = [
+    title,
+    body,
+  ].where((value) => value != null && value.isNotEmpty).join('. ');
+  if (announcement.isNotEmpty) {
+    SemanticsService.sendAnnouncement(
+      View.of(ctx),
+      announcement,
+      Directionality.of(ctx),
+    );
+  }
+  if (widget == AlertWidget.banner) {
+    // A [MaterialBanner] persists on screen and can be replaced in place, so
+    // mark it as a live region for assistive technology that supports it.
+    content = Semantics(container: true, liveRegion: true, child: content);
+  }
 
   /// Show notification
   try {

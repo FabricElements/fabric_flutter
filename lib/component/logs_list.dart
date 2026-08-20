@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../helper/app_localizations_delegate.dart';
 import '../helper/options.dart';
 import '../helper/regex_helper.dart';
 import '../helper/utils.dart';
@@ -70,6 +71,7 @@ class LogsList extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final locales = AppLocalizations.of(context);
     Widget container = const SizedBox(height: 0);
     if (logs == null || logs!.isEmpty) return container;
 
@@ -170,6 +172,7 @@ class LogsList extends StatelessWidget {
           child: IconButton(
             icon: const Icon(Icons.account_tree),
             color: theme.colorScheme.onSurface,
+            tooltip: locales.get('label--view-details'),
             onPressed: () {
               alertData(
                 context: context,
@@ -201,6 +204,7 @@ class LogsList extends StatelessWidget {
           padding: const EdgeInsets.only(left: 8.0),
           child: PopupMenuButton<String>(
             padding: EdgeInsets.zero,
+            tooltip: locales.get('label--more-actions'),
             itemBuilder: (BuildContext context) => buttons,
           ),
         );
@@ -217,11 +221,15 @@ class LogsList extends StatelessWidget {
       }
       List<Widget> horizontal = [
         Expanded(
-          child: Flex(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            direction: Axis.vertical,
-            children: vertical,
+          // Presents the timestamp and message as one composite semantics
+          // node instead of separate announcements for each piece of text.
+          child: MergeSemantics(
+            child: Flex(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              direction: Axis.vertical,
+              children: vertical,
+            ),
           ),
         ),
       ];

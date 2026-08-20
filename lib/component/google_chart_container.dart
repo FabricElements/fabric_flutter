@@ -343,6 +343,8 @@ class _GoogleChartContainerState extends State<GoogleChartContainer> {
             ),
             IconButton(
               icon: iconDelete,
+              tooltip:
+                  '${locales.get('label--clear-selection')}: ${locales.get('label--horizontal-axis')}',
               onPressed: () {
                 preferencesCopy.hAxis = null;
                 widget.onUpdate(preferencesCopy);
@@ -369,6 +371,8 @@ class _GoogleChartContainerState extends State<GoogleChartContainer> {
             ),
             IconButton(
               icon: iconDelete,
+              tooltip:
+                  '${locales.get('label--clear-selection')}: ${locales.get('label--vertical-axis')}',
               onPressed: () {
                 preferencesCopy.vAxis = null;
                 preferencesCopy.min = null;
@@ -465,6 +469,8 @@ class _GoogleChartContainerState extends State<GoogleChartContainer> {
               ),
               IconButton(
                 icon: iconDelete,
+                tooltip:
+                    '${locales.get('label--clear-selection')}: ${locales.get('label--range')}',
                 onPressed: () {
                   preferencesCopy.min = null;
                   preferencesCopy.max = null;
@@ -493,6 +499,8 @@ class _GoogleChartContainerState extends State<GoogleChartContainer> {
             ),
             IconButton(
               icon: iconDelete,
+              tooltip:
+                  '${locales.get('label--clear-selection')}: ${locales.get('label--series')} 1',
               onPressed: () {
                 preferencesCopy.series1 = null;
                 widget.onUpdate(preferencesCopy);
@@ -517,6 +525,8 @@ class _GoogleChartContainerState extends State<GoogleChartContainer> {
             ),
             IconButton(
               icon: iconDelete,
+              tooltip:
+                  '${locales.get('label--clear-selection')}: ${locales.get('label--series')} 2',
               onPressed: () {
                 preferencesCopy.series2 = null;
                 widget.onUpdate(preferencesCopy);
@@ -541,6 +551,8 @@ class _GoogleChartContainerState extends State<GoogleChartContainer> {
             ),
             IconButton(
               icon: iconDelete,
+              tooltip:
+                  '${locales.get('label--clear-selection')}: ${locales.get('label--series')} 3',
               onPressed: () {
                 preferencesCopy.series3 = null;
                 widget.onUpdate(preferencesCopy);
@@ -564,6 +576,11 @@ class _GoogleChartContainerState extends State<GoogleChartContainer> {
             leading: widget.externalLink != null
                 ? IconButton(
                     icon: const Icon(Icons.open_in_new),
+                    tooltip: locales.get('label--open-label', {
+                      'label':
+                          widget.preferences?.name ??
+                          locales.get('label--activity'),
+                    }),
                     onPressed: isValid
                         ? () async {
                             final url =

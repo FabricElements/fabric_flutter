@@ -104,8 +104,11 @@ class SectionTitle extends StatelessWidget {
     List<Widget> items = [
       Padding(
         padding: const EdgeInsets.only(bottom: 16),
-        child: Text.rich(
-          TextSpan(children: importantData(headline, defaultHeadlineStyle)),
+        child: Semantics(
+          header: true,
+          child: Text.rich(
+            TextSpan(children: importantData(headline, defaultHeadlineStyle)),
+          ),
         ),
       ),
     ];

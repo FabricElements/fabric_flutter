@@ -42,6 +42,12 @@ class PhoneInput extends StatefulWidget {
     this.suffixStyle,
     this.label,
     this.textInputAction,
+    this.semanticsLabel,
+    this.automationKey,
+    this.semanticHint,
+    this.countrySemanticsLabel,
+    this.countryAutomationKey,
+    this.countrySemanticHint,
   });
 
   /// Provides the latest formatted value when the user submits the number.
@@ -108,6 +114,37 @@ class PhoneInput extends StatefulWidget {
 
   /// Provides a preferred ISO country code used for parsing and defaults.
   final String? country;
+
+  /// Overrides the accessibility label exposed on the national number field.
+  ///
+  /// Forwarded unchanged to the underlying [InputData.semanticsLabel]. When
+  /// `null`, [InputData] falls back to [label] or a localized default.
+  final String? semanticsLabel;
+
+  /// Assigns a deterministic automation identifier to the national number field.
+  ///
+  /// Forwarded unchanged to the underlying [InputData.automationKey].
+  final String? automationKey;
+
+  /// Provides a structural, non-visual hint for the national number field.
+  ///
+  /// Forwarded unchanged to the underlying [InputData.semanticHint].
+  final String? semanticHint;
+
+  /// Overrides the accessibility label exposed on the country code picker.
+  ///
+  /// Forwarded unchanged to the underlying [InputData.semanticsLabel].
+  final String? countrySemanticsLabel;
+
+  /// Assigns a deterministic automation identifier to the country code picker.
+  ///
+  /// Forwarded unchanged to the underlying [InputData.automationKey].
+  final String? countryAutomationKey;
+
+  /// Provides a structural, non-visual hint for the country code picker.
+  ///
+  /// Forwarded unchanged to the underlying [InputData.semanticHint].
+  final String? countrySemanticHint;
 
   /// Creates state that caches parsed phone metadata between rebuilds.
   ///
@@ -372,6 +409,9 @@ class _PhoneInputState extends State<PhoneInput> {
         widget.onSubmit?.call(formattedNumber);
       },
       disabled: widget.disabled,
+      semanticsLabel: widget.countrySemanticsLabel,
+      automationKey: widget.countryAutomationKey,
+      semanticHint: widget.countrySemanticHint,
     );
     final phoneInput = InputData(
       key: const Key('phone-input'),
@@ -415,6 +455,9 @@ class _PhoneInputState extends State<PhoneInput> {
         FilteringTextInputFormatter.singleLineFormatter,
       ],
       maxLength: 10,
+      semanticsLabel: widget.semanticsLabel,
+      automationKey: widget.automationKey,
+      semanticHint: widget.semanticHint,
     );
     return LayoutBuilder(
       builder: (context, constraints) {

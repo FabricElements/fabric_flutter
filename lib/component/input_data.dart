@@ -884,12 +884,24 @@ getValue -------------------------------------
 
     Widget? inputSuffixIcon;
     if (obscure) {
-      inputSuffixIcon = IconButton(
-        onPressed: () {
-          obscureText = !obscureText;
-          if (mounted) setState(() {});
-        },
-        icon: Icon(obscureText ? Icons.visibility : Icons.visibility_off),
+      // Announce the toggle's current state explicitly (in addition to the
+      // tooltip) so a screen reader user knows whether pressing the button
+      // will reveal or hide the password.
+      final obscureToggleLabel = obscureText
+          ? locales.get('label--show-password')
+          : locales.get('label--hide-password');
+      inputSuffixIcon = Semantics(
+        button: true,
+        toggled: obscureText,
+        label: obscureToggleLabel,
+        child: IconButton(
+          onPressed: () {
+            obscureText = !obscureText;
+            if (mounted) setState(() {});
+          },
+          icon: Icon(obscureText ? Icons.visibility : Icons.visibility_off),
+          tooltip: obscureToggleLabel,
+        ),
       );
     }
 
@@ -1404,53 +1416,86 @@ getValue -------------------------------------
                   return labelMatch || valueMatch || labelAltMatch;
                 }).toList();
               }
-              return List.generate(recommendations.length, (int index) {
-                final item = recommendations[index];
-
-                // Resolve the leading widget.
-                Widget? leading = item.leading;
-                if (item.icon != null) {
-                  leading = Icon(item.icon);
-                }
-                if (item.image != null) {
-                  leading = UserAvatar(
-                    key: ValueKey(
-                      'input-data-dropdown-leading-image-${item.id}',
-                    ),
-                    name: item.label,
-                    avatar: item.image,
-                  );
-                }
-
-                // Resolve the trailing widget.
-                Widget? trailing = item.trailing;
-                if (item.trailingIcon != null) {
-                  trailing = Icon(item.trailingIcon);
-                }
-                if (item.trailingImage != null) {
-                  trailing = UserAvatar(
-                    key: ValueKey(
-                      'input-data-dropdown-trailing-image-${item.id}',
-                    ),
-                    name: item.label,
-                    avatar: item.trailingImage,
-                  );
-                }
-                return PointerInterceptor(
-                  child: ListTile(
-                    leading: leading,
-                    trailing: trailing,
-                    title: Text(item.label),
-                    onTap: () {
-                      dynamic newValue = item.value == '' ? null : item.value;
-                      _closeSearch();
-                      widget.onChanged?.call(newValue);
-                      widget.onComplete?.call(newValue);
-                      widget.onSubmit?.call(newValue);
-                    },
+              return [
+                // Announces the group's purpose once before the individual
+                // options so screen readers have context for the mutually
+                // exclusive selection list that follows, instead of reading
+                // each suggestion in isolation.
+                if (recommendations.isNotEmpty)
+                  Semantics(
+                    container: true,
+                    label: _resolveSemanticLabel(locales),
+                    child: const SizedBox.shrink(),
                   ),
-                );
-              });
+                ...List.generate(recommendations.length, (int index) {
+                  final item = recommendations[index];
+
+                  // Resolve the leading widget.
+                  Widget? leading = item.leading;
+                  if (item.icon != null) {
+                    leading = Icon(item.icon);
+                  }
+                  if (item.image != null) {
+                    leading = UserAvatar(
+                      key: ValueKey(
+                        'input-data-dropdown-leading-image-${item.id}',
+                      ),
+                      name: item.label,
+                      avatar: item.image,
+                    );
+                  }
+
+                  // Resolve the trailing widget.
+                  Widget? trailing = item.trailing;
+                  if (item.trailingIcon != null) {
+                    trailing = Icon(item.trailingIcon);
+                  }
+                  if (item.trailingImage != null) {
+                    trailing = UserAvatar(
+                      key: ValueKey(
+                        'input-data-dropdown-trailing-image-${item.id}',
+                      ),
+                      name: item.label,
+                      avatar: item.trailingImage,
+                    );
+                  }
+                  return Semantics(
+                    inMutuallyExclusiveGroup: true,
+                    selected: item.value == this.value,
+                    child: PointerInterceptor(
+                      // MergeSemantics combines the leading/trailing avatar
+                      // and the title into a single announced unit instead of
+                      // two separate stops; the avatar's own accessible name
+                      // (set to the same `item.label`) is excluded below so
+                      // the option's name is not announced twice.
+                      child: MergeSemantics(
+                        child: ListTile(
+                          leading: leading is UserAvatar
+                              ? ExcludeSemantics(child: leading)
+                              : leading,
+                          trailing: trailing is UserAvatar
+                              ? ExcludeSemantics(child: trailing)
+                              : trailing,
+                          title: Text(
+                            item.label,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 2,
+                          ),
+                          onTap: () {
+                            dynamic newValue = item.value == ''
+                                ? null
+                                : item.value;
+                            _closeSearch();
+                            widget.onChanged?.call(newValue);
+                            widget.onComplete?.call(newValue);
+                            widget.onSubmit?.call(newValue);
+                          },
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+              ];
             },
           );
         } else {
@@ -1462,14 +1507,23 @@ getValue -------------------------------------
           index,
         ) {
           final e = widget.options[index];
-          return RadioListTile(
-            title: Text(e.label),
-            toggleable: !isDisabled,
-            value: e.value,
-            selected: value == e.value,
+          final isSelected = value == e.value;
+          return Semantics(
+            inMutuallyExclusiveGroup: true,
+            selected: isSelected,
+            child: RadioListTile(
+              title: Text(
+                e.label,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 2,
+              ),
+              toggleable: !isDisabled,
+              value: e.value,
+              selected: isSelected,
+            ),
           );
         });
-        endWidget = RadioGroup(
+        final radioGroup = RadioGroup(
           groupValue: value,
           onChanged: (newValue) {
             value = newValue;
@@ -1483,6 +1537,41 @@ getValue -------------------------------------
             children: radioOptions,
           ),
         );
+        // Surface the field label and any validation error visibly, matching
+        // the accessible affordances already provided by other input types
+        // instead of leaving the radio group without a readable heading.
+        final hasVisibleRadioLabel =
+            decorationLabel != null || decorationLabelText != null;
+        // When there is no adjacent visible label, wrap the option list in a
+        // labelled group so screen readers announce the group's purpose once
+        // instead of reading each radio option with no shared context. When a
+        // visible label is already rendered (via the [InputDecorator] below),
+        // it is read immediately before the options in traversal order, so
+        // adding a second identical group label here would be redundant.
+        final radioGroupWithSemantics = hasVisibleRadioLabel
+            ? radioGroup
+            : Semantics(
+                container: true,
+                label: decorationLabelText ?? _resolveSemanticLabel(locales),
+                child: radioGroup,
+              );
+        endWidget = (hasVisibleRadioLabel || errorText != null)
+            ? InputDecorator(
+                decoration: InputDecoration(
+                  contentPadding: EdgeInsets.zero,
+                  isDense: isDense,
+                  errorText: errorText,
+                  errorMaxLines: 2,
+                  enabled: !isDisabled,
+                  label: decorationLabel,
+                  labelText: decorationLabelText,
+                  labelStyle: theme.textTheme.bodyMedium,
+                  floatingLabelBehavior: FloatingLabelBehavior.always,
+                  border: theme.inputDecorationTheme.border,
+                ),
+                child: radioGroupWithSemantics,
+              )
+            : radioGroupWithSemantics;
         break;
       case InputDataType.bool:
         endWidget = InputDecorator(
@@ -1499,7 +1588,12 @@ getValue -------------------------------------
           ),
           child: SwitchListTile(
             title: widget.hintText != null
-                ? Text(widget.hintText!, style: textTheme.bodyLarge)
+                ? Text(
+                    widget.hintText!,
+                    style: textTheme.bodyLarge,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
+                  )
                 : null,
             value: value ?? false,
             dense: isDense,
@@ -1537,7 +1631,9 @@ getValue -------------------------------------
           break;
         default:
       }
-      endWidget = GestureDetector(
+      endWidget = Semantics(
+        button: true,
+        label: locales.get('label--copy-to-clipboard'),
         onTap: () {
           Clipboard.setData(ClipboardData(text: copyValue));
           alertData(
@@ -1546,7 +1642,17 @@ getValue -------------------------------------
             duration: 1,
           );
         },
-        child: endWidget,
+        child: GestureDetector(
+          onTap: () {
+            Clipboard.setData(ClipboardData(text: copyValue));
+            alertData(
+              context: context,
+              body: '${locales.get('alert--copy-clipboard')}: $copyValue',
+              duration: 1,
+            );
+          },
+          child: endWidget,
+        ),
       );
     }
     return Semantics(

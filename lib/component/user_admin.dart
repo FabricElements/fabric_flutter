@@ -363,12 +363,22 @@ class UserAdmin extends StatelessWidget {
           trailing.addAll([
             IconButton(
               key: Key('user-update-${user.id}'),
+              tooltip: locales.get('label--edit-label', {
+                'label': user.name.isNotEmpty
+                    ? user.name
+                    : locales.get('label--user'),
+              }),
               onPressed: () => showUpdateDialog(user),
               icon: Icon(Icons.edit, color: theme.colorScheme.primary),
             ),
             space,
             IconButton(
               key: Key('user-remove-${user.id}'),
+              tooltip: locales.get('label--remove-label', {
+                'label': user.name.isNotEmpty
+                    ? user.name
+                    : locales.get('label--user'),
+              }),
               color: Colors.deepOrange,
               onPressed: () => removeUser(user),
               icon: const Icon(Icons.person_remove),
@@ -434,18 +444,23 @@ class UserAdmin extends StatelessWidget {
                   direction: Axis.vertical,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    ListTile(
-                      leading: UserAvatar(
-                        key: ValueKey('user-avatar-${user.id}'),
-                        avatar: prefix != null && user.avatar != null
-                            ? '$prefix/${user.avatar}'
-                            : null,
-                        name: user.name,
-                        firstName: user.firstName,
-                        lastName: user.lastName,
-                        presence: user.presence,
+                    MergeSemantics(
+                      child: ListTile(
+                        leading: UserAvatar(
+                          key: ValueKey('user-avatar-${user.id}'),
+                          avatar: prefix != null && user.avatar != null
+                              ? '$prefix/${user.avatar}'
+                              : null,
+                          name: user.name,
+                          firstName: user.firstName,
+                          lastName: user.lastName,
+                          presence: user.presence,
+                        ),
+                        title: SelectableText(
+                          name,
+                          style: textTheme.titleMedium,
+                        ),
                       ),
-                      title: SelectableText(name, style: textTheme.titleMedium),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(16),

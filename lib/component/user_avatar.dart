@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../helper/app_localizations_delegate.dart';
 import '../helper/utils.dart';
 import '../serialized/user_data.dart';
 import 'smart_image.dart';
@@ -30,6 +31,9 @@ class UserAvatar extends StatelessWidget {
     this.firstName,
     this.lastName,
     this.presence,
+    this.semanticsLabel,
+    this.automationKey,
+    this.semanticHint,
   });
 
   /// Provides the avatar image URL used for the circular profile photo.
@@ -62,6 +66,26 @@ class UserAvatar extends StatelessWidget {
   /// badge so the layout stays compact in contexts that do not track presence.
   final UserPresence? presence;
 
+  /// Describes the avatar for assistive technology.
+  ///
+  /// Maps to [Semantics.label] and is forwarded to the rendered [SmartImage].
+  /// Defaults to the resolved user display name ([firstName], [lastName], or
+  /// [name]) when `null`, falling back to a localized generic user label when
+  /// no name is available.
+  final String? semanticsLabel;
+
+  /// Identifies this avatar for automated testing and agent tooling.
+  ///
+  /// Maps to [Semantics.identifier]. Follows the
+  /// `[RouteName]_[ContextBlock]_[ComponentType]_[ActionOrId]` naming
+  /// convention used across the package.
+  final String? automationKey;
+
+  /// Supplies extra guidance for screen readers and autonomous agents.
+  ///
+  /// Maps to [Semantics.hint] on the same node as [semanticsLabel].
+  final String? semanticHint;
+
   /// Builds the avatar using the active [ThemeData] colors and available user data.
   ///
   /// The [BuildContext] supplies theme colors for the avatar background, icon,
@@ -72,15 +96,23 @@ class UserAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final locales = AppLocalizations.of(context);
     final color = theme.colorScheme.onPrimaryContainer;
     final backgroundColor = theme.colorScheme.primaryContainer;
     String abbreviation = Utils.nameAbbreviation(
       firstName: firstName ?? name,
       lastName: lastName,
     );
+    final displayName = firstName ?? lastName ?? name ?? abbreviation.trim();
+    final accessibleName =
+        semanticsLabel ??
+        (displayName.isNotEmpty ? displayName : locales.get('label--user'));
     Widget avatarContainer = CircleAvatar(
       backgroundColor: backgroundColor,
-      child: Icon(Icons.person, color: color),
+      child: Semantics(
+        label: locales.get('label--user'),
+        child: ExcludeSemantics(child: Icon(Icons.person, color: color)),
+      ),
     );
     if (avatar != null) {
       avatarContainer = CircleAvatar(
@@ -92,6 +124,7 @@ class UserAvatar extends StatelessWidget {
               key: ValueKey('user-avatar-image-$avatar'),
               url: avatar,
               format: AvailableOutputFormats.png,
+              semanticsLabel: accessibleName,
             ),
           ),
         ),
@@ -99,53 +132,71 @@ class UserAvatar extends StatelessWidget {
     } else if (abbreviation.isNotEmpty) {
       avatarContainer = CircleAvatar(
         backgroundColor: backgroundColor,
-        child: Text(
-          abbreviation,
-          style: textTheme.titleMedium?.copyWith(color: color),
+        child: ExcludeSemantics(
+          child: Text(
+            abbreviation,
+            style: textTheme.titleMedium?.copyWith(color: color),
+          ),
         ),
       );
     }
 
     if (presence == null) {
-      return Tooltip(
-        message: firstName ?? lastName ?? name ?? abbreviation,
-        child: avatarContainer,
+      return MergeSemantics(
+        child: Semantics(
+          label: accessibleName,
+          identifier: automationKey,
+          hint: semanticHint,
+          child: Tooltip(message: accessibleName, child: avatarContainer),
+        ),
       );
     }
 
     Color statusColor = Colors.transparent;
+    String? presenceLabel;
     switch (presence) {
       case UserPresence.active:
         statusColor = Colors.green;
+        presenceLabel = locales.get('label--active');
         break;
       case UserPresence.inactive:
         statusColor = Colors.deepOrange;
+        presenceLabel = locales.get('label--inactive');
         break;
       case UserPresence.away:
         statusColor = Colors.transparent;
         break;
       default:
     }
-    final presenceWidget = Container(
-      width: 8,
-      height: 8,
-      decoration: BoxDecoration(
-        color: statusColor,
-        shape: BoxShape.circle,
-        border: Border.all(color: Colors.white, width: 1),
+    final presenceWidget = ExcludeSemantics(
+      child: Container(
+        width: 8,
+        height: 8,
+        decoration: BoxDecoration(
+          color: statusColor,
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white, width: 1),
+        ),
       ),
     );
-    return AspectRatio(
-      aspectRatio: 1 / 1,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Tooltip(
-            message: firstName ?? lastName ?? name ?? abbreviation,
-            child: avatarContainer,
+    final combinedLabel = presenceLabel != null
+        ? '$accessibleName, $presenceLabel'
+        : accessibleName;
+    return MergeSemantics(
+      child: Semantics(
+        label: combinedLabel,
+        identifier: automationKey,
+        hint: semanticHint,
+        child: AspectRatio(
+          aspectRatio: 1 / 1,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Tooltip(message: accessibleName, child: avatarContainer),
+              Positioned(right: 0, top: 0, child: presenceWidget),
+            ],
           ),
-          Positioned(right: 0, top: 0, child: presenceWidget),
-        ],
+        ),
       ),
     );
   }

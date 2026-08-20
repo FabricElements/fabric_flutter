@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_network/image_network.dart';
 
+import '../helper/app_localizations_delegate.dart';
 import '../helper/utils.dart';
 
 /// Enumerates the output formats supported by the backing image service.
@@ -164,6 +165,10 @@ class SmartImage extends StatefulWidget {
     this.color,
     this.format,
     this.fit = BoxFit.cover,
+    this.semanticsLabel,
+    this.automationKey,
+    this.semanticHint,
+    this.excludeSemantics = false,
   });
 
   /// Identifies the source image to request.
@@ -191,6 +196,31 @@ class SmartImage extends StatefulWidget {
   /// When [size] is omitted, this value also determines whether the widget requests both
   /// width and height from the backend or only a width-preserving resize.
   final BoxFit fit;
+
+  /// Describes the image content for assistive technology.
+  ///
+  /// Maps to [Semantics.label] on the rendered image and placeholder states.
+  /// Falls back to a generic localized image label when `null` and
+  /// [excludeSemantics] is `false`.
+  final String? semanticsLabel;
+
+  /// Identifies this image for automated testing and agent tooling.
+  ///
+  /// Maps to [Semantics.identifier]. Follows the
+  /// `[RouteName]_[ContextBlock]_[ComponentType]_[ActionOrId]` naming
+  /// convention used across the package.
+  final String? automationKey;
+
+  /// Supplies extra guidance for screen readers and autonomous agents.
+  ///
+  /// Maps to [Semantics.hint] on the same node as [semanticsLabel].
+  final String? semanticHint;
+
+  /// Marks the image as purely decorative for assistive technology.
+  ///
+  /// When `true`, the widget wraps its content in [ExcludeSemantics] instead of
+  /// exposing [semanticsLabel] so screen readers skip decorative imagery.
+  final bool excludeSemantics;
 
   /// Creates the state that measures layout changes and debounces resize requests.
   ///
@@ -303,6 +333,7 @@ class _SmartImageState extends State<SmartImage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final locales = AppLocalizations.of(context);
     final background =
         widget.color ?? theme.colorScheme.surfaceContainerHighest;
     final iconColor = theme.colorScheme.onSurfaceVariant;
@@ -310,20 +341,32 @@ class _SmartImageState extends State<SmartImage> {
       width: double.infinity,
       height: double.infinity,
       color: theme.colorScheme.surfaceContainerHighest,
-      child: Center(child: Icon(Icons.image_not_supported, color: iconColor)),
+      child: Center(
+        child: Semantics(
+          label: locales.get('label--not-supported'),
+          child: ExcludeSemantics(
+            child: Icon(Icons.image_not_supported, color: iconColor),
+          ),
+        ),
+      ),
     );
 
     if (widget.url == null || widget.url!.isEmpty) {
-      return defaultPlaceholder;
+      return _wrapSemantics(defaultPlaceholder, locales);
     }
     final errorPlaceholder = Container(
       width: double.infinity,
       height: double.infinity,
       color: theme.colorScheme.errorContainer,
       child: Center(
-        child: Icon(
-          Icons.broken_image,
-          color: theme.colorScheme.onErrorContainer,
+        child: Semantics(
+          label: locales.get('label--error'),
+          child: ExcludeSemantics(
+            child: Icon(
+              Icons.broken_image,
+              color: theme.colorScheme.onErrorContainer,
+            ),
+          ),
         ),
       ),
     );
@@ -331,7 +374,14 @@ class _SmartImageState extends State<SmartImage> {
       width: double.infinity,
       height: double.infinity,
       color: background,
-      child: Center(child: Icon(Icons.downloading, color: iconColor)),
+      child: Center(
+        child: Semantics(
+          label: locales.get('label--loading'),
+          child: ExcludeSemantics(
+            child: Icon(Icons.downloading, color: iconColor),
+          ),
+        ),
+      ),
     );
     final Uri uri = Uri.parse(widget.url!);
 
@@ -499,9 +549,36 @@ class _SmartImageState extends State<SmartImage> {
       }
     }
 
-    return KeyedSubtree(
-      key: ValueKey('smart_image_${widget.url!}'),
-      child: Stack(alignment: AlignmentDirectional.center, children: children),
+    return _wrapSemantics(
+      KeyedSubtree(
+        key: ValueKey('smart_image_${widget.url!}'),
+        child: Stack(
+          alignment: AlignmentDirectional.center,
+          children: children,
+        ),
+      ),
+      locales,
+    );
+  }
+
+  /// Applies the image's accessibility annotation to [child].
+  ///
+  /// Uses [ExcludeSemantics] when [SmartImage.excludeSemantics] is `true` so
+  /// decorative imagery is skipped by assistive technology. Otherwise wraps
+  /// [child] in a [Semantics] node using [SmartImage.semanticsLabel],
+  /// [SmartImage.automationKey], and [SmartImage.semanticHint], falling back
+  /// to a localized generic image label from [locales] when no label is
+  /// supplied.
+  Widget _wrapSemantics(Widget child, AppLocalizations locales) {
+    if (widget.excludeSemantics) {
+      return ExcludeSemantics(child: child);
+    }
+    return Semantics(
+      label: widget.semanticsLabel ?? locales.get('label--image'),
+      identifier: widget.automationKey,
+      hint: widget.semanticHint,
+      image: true,
+      child: child,
     );
   }
 }

@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import '../helper/app_localizations_delegate.dart';
 import 'smart_image.dart';
 
 /// Displays a geographic preview for the supplied coordinates.
@@ -38,6 +39,7 @@ class GoogleMapsPreview extends StatefulWidget {
     this.description,
     this.apiKey,
     this.asImage = false,
+    this.semanticsLabel,
   });
 
   /// Selects the visual rendering mode for the interactive map.
@@ -69,6 +71,14 @@ class GoogleMapsPreview extends StatefulWidget {
 
   /// Determines whether the widget always renders a static image.
   final bool asImage;
+
+  /// Overrides the accessibility label announced for the map preview.
+  ///
+  /// When `null`, the widget derives a description from [name],
+  /// [description], and the coordinates so screen readers can announce the
+  /// previewed location even though the underlying map surface (native map
+  /// view or static image) is not independently navigable.
+  final String? semanticsLabel;
 
   /// Creates the mutable state used to cache preview data between rebuilds.
   ///
@@ -158,6 +168,24 @@ class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
     }
   }
 
+  /// Resolves the accessible description announced for the map preview.
+  ///
+  /// Returns [GoogleMapsPreview.semanticsLabel] when explicitly set. Otherwise
+  /// builds a localized summary from the marker [name]/[description] or, when
+  /// those are absent, the raw coordinates so the preview is never silent for
+  /// screen reader users.
+  String _resolveSemanticsLabel(AppLocalizations locales) {
+    if (widget.semanticsLabel != null) return widget.semanticsLabel!;
+    final parts = <String>[locales.get('label--location')];
+    if (name != null && name!.isNotEmpty) parts.add(name!);
+    if (description != null && description!.isNotEmpty) parts.add(description!);
+    if (name == null && description == null) {
+      parts.add('${locales.get('label--latitude')}: $latitude');
+      parts.add('${locales.get('label--longitude')}: $longitude');
+    }
+    return parts.join(', ');
+  }
+
   /// Builds the most appropriate preview for the current platform.
   ///
   /// The widget returns a placeholder image when coordinates are unavailable, a
@@ -167,6 +195,7 @@ class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final locales = AppLocalizations.of(context);
     bool isDarkTheme = theme.brightness == Brightness.dark;
     bool supported = kIsWeb;
     if (!kIsWeb) {
@@ -175,39 +204,47 @@ class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
     if (longitude == null ||
         longitude == null ||
         (!supported && widget.apiKey == null)) {
-      return AspectRatio(
-        aspectRatio: widget.aspectRatio,
-        child: const SmartImage(
-          key: ValueKey('map-preview-placeholder'),
-          url: 'https://images.unsplash.com/photo-1476973422084-e0fa66ff9456',
-          format: AvailableOutputFormats.jpeg,
+      return Semantics(
+        image: true,
+        label: widget.semanticsLabel ?? locales.get('label--location'),
+        child: AspectRatio(
+          aspectRatio: widget.aspectRatio,
+          child: const SmartImage(
+            key: ValueKey('map-preview-placeholder'),
+            url: 'https://images.unsplash.com/photo-1476973422084-e0fa66ff9456',
+            format: AvailableOutputFormats.jpeg,
+          ),
         ),
       );
     }
     if (!supported || widget.asImage) {
-      return AspectRatio(
-        aspectRatio: widget.aspectRatio,
-        child: LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints constraints) {
-            final widthBox = constraints.maxWidth.toInt();
-            final heightBox = constraints.maxHeight.toInt();
-            String imageUrl =
-                'https://maps.googleapis.com/maps/api/staticmap?zoom=13&maptype=roadmap&key=${widget.apiKey}';
-            imageUrl +=
-                '&markers=color:red%7C${widget.latitude},${widget.longitude}';
-            if (isDarkTheme) {
+      return Semantics(
+        image: true,
+        label: _resolveSemanticsLabel(locales),
+        child: AspectRatio(
+          aspectRatio: widget.aspectRatio,
+          child: LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints constraints) {
+              final widthBox = constraints.maxWidth.toInt();
+              final heightBox = constraints.maxHeight.toInt();
+              String imageUrl =
+                  'https://maps.googleapis.com/maps/api/staticmap?zoom=13&maptype=roadmap&key=${widget.apiKey}';
               imageUrl +=
-                  '&style=element:geometry%7Ccolor:0x242f3e&style=element:labels.text.fill%7Ccolor:0x746855&style=element:labels.text.stroke%7Ccolor:0x242f3e&style=feature:administrative.locality%7Celement:labels.text.fill%7Ccolor:0xd59563&style=feature:poi%7Celement:labels.text.fill%7Ccolor:0xd59563&style=feature:poi.park%7Celement:geometry%7Ccolor:0x263c3f&style=feature:poi.park%7Celement:labels.text.fill%7Ccolor:0x6b9a76&style=feature:road%7Celement:geometry%7Ccolor:0x38414e&style=feature:road%7Celement:geometry.stroke%7Ccolor:0x212a37&style=feature:road%7Celement:labels.text.fill%7Ccolor:0x9ca5b3&style=feature:road.highway%7Celement:geometry%7Ccolor:0x746855&style=feature:road.highway%7Celement:geometry.stroke%7Ccolor:0x1f2835&style=feature:road.highway%7Celement:labels.text.fill%7Ccolor:0xf3d19c&style=feature:transit%7Celement:geometry%7Ccolor:0x2f3948&style=feature:transit.station%7Celement:labels.text.fill%7Ccolor:0xd59563&style=feature:water%7Celement:geometry%7Ccolor:0x17263c&style=feature:water%7Celement:labels.text.fill%7Ccolor:0x515c6d&style=feature:water%7Celement:labels.text.stroke%7Ccolor:0x17263c';
-            }
-            imageUrl +=
-                '&size=$widthBox'
-                'x'
-                '$heightBox';
-            return SmartImage(
-              key: ValueKey('map-preview-image-$imageUrl'),
-              url: imageUrl,
-            );
-          },
+                  '&markers=color:red%7C${widget.latitude},${widget.longitude}';
+              if (isDarkTheme) {
+                imageUrl +=
+                    '&style=element:geometry%7Ccolor:0x242f3e&style=element:labels.text.fill%7Ccolor:0x746855&style=element:labels.text.stroke%7Ccolor:0x242f3e&style=feature:administrative.locality%7Celement:labels.text.fill%7Ccolor:0xd59563&style=feature:poi%7Celement:labels.text.fill%7Ccolor:0xd59563&style=feature:poi.park%7Celement:geometry%7Ccolor:0x263c3f&style=feature:poi.park%7Celement:labels.text.fill%7Ccolor:0x6b9a76&style=feature:road%7Celement:geometry%7Ccolor:0x38414e&style=feature:road%7Celement:geometry.stroke%7Ccolor:0x212a37&style=feature:road%7Celement:labels.text.fill%7Ccolor:0x9ca5b3&style=feature:road.highway%7Celement:geometry%7Ccolor:0x746855&style=feature:road.highway%7Celement:geometry.stroke%7Ccolor:0x1f2835&style=feature:road.highway%7Celement:labels.text.fill%7Ccolor:0xf3d19c&style=feature:transit%7Celement:geometry%7Ccolor:0x2f3948&style=feature:transit.station%7Celement:labels.text.fill%7Ccolor:0xd59563&style=feature:water%7Celement:geometry%7Ccolor:0x17263c&style=feature:water%7Celement:labels.text.fill%7Ccolor:0x515c6d&style=feature:water%7Celement:labels.text.stroke%7Ccolor:0x17263c';
+              }
+              imageUrl +=
+                  '&size=$widthBox'
+                  'x'
+                  '$heightBox';
+              return SmartImage(
+                key: ValueKey('map-preview-image-$imageUrl'),
+                url: imageUrl,
+              );
+            },
+          ),
         ),
       );
     }
@@ -227,19 +264,23 @@ class _GoogleMapsPreviewState extends State<GoogleMapsPreview> {
       position: location,
       infoWindow: infoWindow,
     );
-    return AspectRatio(
-      aspectRatio: widget.aspectRatio,
-      child: GoogleMap(
-        minMaxZoomPreference: widget.minMaxZoomPreference,
-        liteModeEnabled: false,
-        mapType: widget.mapType,
-        initialCameraPosition: kGooglePlex,
-        onMapCreated: (GoogleMapController c) {
-          /// Defers custom map styling until the implementation is available.
-          controller.complete(c);
-        },
-        markers: <Marker>{marker},
-        myLocationButtonEnabled: false,
+    return Semantics(
+      container: true,
+      label: _resolveSemanticsLabel(locales),
+      child: AspectRatio(
+        aspectRatio: widget.aspectRatio,
+        child: GoogleMap(
+          minMaxZoomPreference: widget.minMaxZoomPreference,
+          liteModeEnabled: false,
+          mapType: widget.mapType,
+          initialCameraPosition: kGooglePlex,
+          onMapCreated: (GoogleMapController c) {
+            /// Defers custom map styling until the implementation is available.
+            controller.complete(c);
+          },
+          markers: <Marker>{marker},
+          myLocationButtonEnabled: false,
+        ),
       ),
     );
   }

@@ -146,6 +146,13 @@ class _ProfileEditState extends State<ProfileEdit> {
   /// keeps [build] from allocating a new [ImageProvider] on every pass.
   String? _previewSignature;
 
+  /// Tracks whether the user has attempted to submit the form at least once.
+  ///
+  /// Inline validation errors for [nameFirst] and [nameLast] only render once
+  /// this becomes `true`, so screen readers and sighted users aren't shown
+  /// error text before any submission attempt.
+  bool _attemptedSubmit = false;
+
   /// Initializes the editor with default loading, change, and avatar values.
   ///
   /// The initial state keeps both name fields at `null` so the first build can
@@ -233,6 +240,7 @@ class _ProfileEditState extends State<ProfileEdit> {
       assert(nameFirst != null, 'First Name must be defined');
       assert(nameLast != null, 'Last Name must be defined');
       assert(changed, 'No changes detected');
+      _attemptedSubmit = true;
       loading = true;
       alertData(
         context: context,
@@ -332,6 +340,20 @@ class _ProfileEditState extends State<ProfileEdit> {
         changed &&
         !loading &&
         ((nameFirst ?? '').length > 1 && (nameLast ?? '').length > 1);
+    final String? firstNameError =
+        _attemptedSubmit && (nameFirst ?? '').length <= 1
+        ? locales.get('label--too-short', {
+            'label': locales.get('label--first-name'),
+            'number': '3',
+          })
+        : null;
+    final String? lastNameError =
+        _attemptedSubmit && (nameLast ?? '').length <= 1
+        ? locales.get('label--too-short', {
+            'label': locales.get('label--last-name'),
+            'number': '3',
+          })
+        : null;
     return ListView(
       padding: const EdgeInsets.only(bottom: 64, left: 16, right: 16, top: 16),
       children: <Widget>[
@@ -345,69 +367,75 @@ class _ProfileEditState extends State<ProfileEdit> {
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Center(
-                  child: InkWell(
-                    hoverColor: Colors.transparent,
-                    onTap: _temporalImageBytes == null
-                        ? () async {
-                            Navigator.pushNamed(
-                              context,
-                              '/hero',
-                              arguments: {'url': userImage},
-                            );
-                          }
-                        : null,
-                    child: Container(
-                      constraints: const BoxConstraints(
-                        minWidth: 100,
-                        maxWidth: 300,
-                      ),
-                      child: AspectRatio(
-                        aspectRatio: 1 / 1,
-                        child: CircleAvatar(
-                          backgroundImage: previewImage,
-                          child: Stack(
-                            children: <Widget>[
-                              Positioned(
-                                bottom: 0,
-                                left: 15,
-                                child: FloatingActionButton(
-                                  tooltip: locales.get('label--gallery'),
-                                  backgroundColor: Colors.grey.shade50,
-                                  heroTag: 'image',
-                                  onPressed: loading
-                                      ? null
-                                      : () async {
-                                          await getImageFromOrigin(
-                                            MediaOrigin.gallery,
-                                          );
-                                        },
-                                  child: Icon(
-                                    Icons.image,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.secondary,
+                  child: Semantics(
+                    button: _temporalImageBytes == null,
+                    label: locales.get('label--open-label', {
+                      'label': locales.get('label--image'),
+                    }),
+                    child: InkWell(
+                      hoverColor: Colors.transparent,
+                      onTap: _temporalImageBytes == null
+                          ? () async {
+                              Navigator.pushNamed(
+                                context,
+                                '/hero',
+                                arguments: {'url': userImage},
+                              );
+                            }
+                          : null,
+                      child: Container(
+                        constraints: const BoxConstraints(
+                          minWidth: 100,
+                          maxWidth: 300,
+                        ),
+                        child: AspectRatio(
+                          aspectRatio: 1 / 1,
+                          child: CircleAvatar(
+                            backgroundImage: previewImage,
+                            child: Stack(
+                              children: <Widget>[
+                                Positioned(
+                                  bottom: 0,
+                                  left: 15,
+                                  child: FloatingActionButton(
+                                    tooltip: locales.get('label--gallery'),
+                                    backgroundColor: Colors.grey.shade50,
+                                    heroTag: 'image',
+                                    onPressed: loading
+                                        ? null
+                                        : () async {
+                                            await getImageFromOrigin(
+                                              MediaOrigin.gallery,
+                                            );
+                                          },
+                                    child: Icon(
+                                      Icons.image,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.secondary,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              !kIsWeb
-                                  ? Positioned(
-                                      bottom: 0,
-                                      right: 15,
-                                      child: FloatingActionButton(
-                                        heroTag: 'camera',
-                                        tooltip: locales.get('label--camera'),
-                                        onPressed: loading
-                                            ? null
-                                            : () async {
-                                                await getImageFromOrigin(
-                                                  MediaOrigin.camera,
-                                                );
-                                              },
-                                        child: const Icon(Icons.photo_camera),
-                                      ),
-                                    )
-                                  : Container(),
-                            ],
+                                !kIsWeb
+                                    ? Positioned(
+                                        bottom: 0,
+                                        right: 15,
+                                        child: FloatingActionButton(
+                                          heroTag: 'camera',
+                                          tooltip: locales.get('label--camera'),
+                                          onPressed: loading
+                                              ? null
+                                              : () async {
+                                                  await getImageFromOrigin(
+                                                    MediaOrigin.camera,
+                                                  );
+                                                },
+                                          child: const Icon(Icons.photo_camera),
+                                        ),
+                                      )
+                                    : Container(),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -428,6 +456,8 @@ class _ProfileEditState extends State<ProfileEdit> {
             type: InputDataType.string,
             value: nameFirst,
             label: locales.get('label--first-name'),
+            error: firstNameError,
+            textInputAction: TextInputAction.next,
             onChanged: (newValue) {
               String value = newValue?.toString() ?? '';
               value = value.replaceAll(RegexHelper.nameSanitize, '');
@@ -448,6 +478,8 @@ class _ProfileEditState extends State<ProfileEdit> {
             type: InputDataType.string,
             value: nameLast,
             label: locales.get('label--last-name'),
+            error: lastNameError,
+            textInputAction: TextInputAction.done,
             onChanged: (newValue) {
               String value = newValue?.toString() ?? '';
               value = value.replaceAll(RegexHelper.nameSanitize, '');

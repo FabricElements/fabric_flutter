@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:provider/provider.dart';
 
 import '../helper/app_localizations_delegate.dart';
@@ -97,6 +98,20 @@ class _ConnectionStatusState extends State<ConnectionStatus> {
           open = true;
           lastConnected = connected;
           _openBanner();
+          // Announce the transition (not every rebuild) so screen reader users
+          // learn about connectivity changes even while looking elsewhere.
+          final announcement = connected
+              ? locales.get('notification--you-are-back-online')
+              : locales.get('notification--you-are--offline');
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              SemanticsService.sendAnnouncement(
+                View.of(context),
+                announcement,
+                Directionality.of(context),
+              );
+            }
+          });
         }
         late IconData icon;
         late String message;
@@ -114,47 +129,60 @@ class _ConnectionStatusState extends State<ConnectionStatus> {
         return Theme(
           data: theme,
           child: SafeArea(
-            child: Container(
-              // height: kToolbarHeight,
-              margin: EdgeInsets.all(35),
-              padding: EdgeInsets.fromLTRB(16, 4, 4, 4),
-              constraints: BoxConstraints(
-                maxWidth: 300,
-                minWidth: 200,
-                maxHeight: kToolbarHeight,
-              ),
-              // width: 200,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                spacing: 16,
-                children: [
-                  Icon(icon, color: iconColor, size: 24),
-                  Expanded(
-                    child: Text(
-                      message,
-                      style: textTheme.bodyMedium,
-                      overflow: TextOverflow.ellipsis,
-                      softWrap: true,
+            child: Semantics(
+              // The banner text changes in place (online/offline), so mark it
+              // as a live region for assistive technology that supports it.
+              container: true,
+              liveRegion: true,
+              child: Container(
+                // height: kToolbarHeight,
+                margin: EdgeInsets.all(35),
+                padding: EdgeInsets.fromLTRB(16, 4, 4, 4),
+                constraints: BoxConstraints(
+                  maxWidth: 300,
+                  minWidth: 200,
+                  // No maxHeight so the banner can grow with a long message, or
+                  // with a larger text scale where the host app opted in,
+                  // instead of clipping it.
+                  minHeight: kToolbarHeight,
+                ),
+                // width: 200,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  spacing: 16,
+                  children: [
+                    Semantics(
+                      label: message,
+                      child: Icon(icon, color: iconColor, size: 24),
                     ),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.close),
-                    color: theme.colorScheme.onSurfaceVariant,
-                    onPressed: () {
-                      if (mounted) {
-                        setState(() {
-                          open = false;
-                        });
-                      }
-                    },
-                  ),
-                ],
+                    Expanded(
+                      child: Text(
+                        message,
+                        style: textTheme.bodyMedium,
+                        overflow: TextOverflow.ellipsis,
+                        softWrap: true,
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.close),
+                      color: theme.colorScheme.onSurfaceVariant,
+                      tooltip: locales.get('label--dismiss'),
+                      onPressed: () {
+                        if (mounted) {
+                          setState(() {
+                            open = false;
+                          });
+                        }
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

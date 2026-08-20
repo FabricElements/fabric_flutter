@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 
 import '../helper/app_localizations_delegate.dart';
 import '../helper/firebase_storage_helper.dart';
@@ -66,6 +67,7 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
   Widget build(BuildContext context) {
     final double effectiveIconSize = IconTheme.of(context).size ?? 24.0;
     final double boxSize = effectiveIconSize + 16;
+    final locales = AppLocalizations.of(context);
 
     if (loading) {
       return SizedBox(
@@ -74,13 +76,12 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
         child: RefreshProgressIndicator(
           indicatorPadding: EdgeInsets.all(4.0),
           elevation: 1,
-          semanticsLabel: 'Loading',
+          semanticsLabel: locales.get('label--loading'),
         ),
       );
     }
     final theme = Theme.of(context);
     final firebaseStorageHelper = FirebaseStorageHelper(context);
-    final locales = AppLocalizations.of(context);
 
     /// Upload function
     /// origin: MediaOrigin
@@ -93,7 +94,20 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
         await Future.microtask(
           () => firebaseStorageHelper.uploadImageMedia(
             origin: origin,
-            callback: widget.callback,
+            callback: (path, data) {
+              widget.callback(path, data);
+              // Upload failures are already surfaced through a visible,
+              // screen-reader-announced alert inside FirebaseStorageHelper,
+              // so only the success path needs an explicit announcement
+              // here.
+              if (mounted) {
+                SemanticsService.sendAnnouncement(
+                  View.of(context),
+                  locales.get('notification--upload-success'),
+                  Directionality.of(context),
+                );
+              }
+            },
             path: widget.path,
             maxDimensions: widget.maxDimensions,
             autoId: widget.autoId,
@@ -115,13 +129,14 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
         icon: const Icon(Icons.image_search),
         iconSize: effectiveIconSize,
         color: theme.colorScheme.primary,
+        constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
         onPressed: () => uploadFromOrigin(MediaOrigin.files),
       );
     }
 
     /// Mobile platform
     return PopupMenuButton<MediaOrigin>(
-      padding: EdgeInsets.zero,
+      padding: EdgeInsets.all(((48 - effectiveIconSize) / 2).clamp(0, 24)),
       iconSize: effectiveIconSize,
       icon: Icon(Icons.image_search, color: theme.colorScheme.primary),
       tooltip: locales.get('label--upload-label', {
@@ -134,10 +149,13 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
             spacing: 16,
             children: [
               const Icon(Icons.image),
-              Text(
-                locales.get('label--upload-image-from-label', {
-                  'label': locales.get('label--gallery'),
-                }),
+              Flexible(
+                child: Text(
+                  locales.get('label--upload-image-from-label', {
+                    'label': locales.get('label--gallery'),
+                  }),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ],
           ),
@@ -148,10 +166,13 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
             spacing: 16,
             children: [
               const Icon(Icons.image_search),
-              Text(
-                locales.get('label--upload-image-from-label', {
-                  'label': locales.get('label--file'),
-                }),
+              Flexible(
+                child: Text(
+                  locales.get('label--upload-image-from-label', {
+                    'label': locales.get('label--file'),
+                  }),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ],
           ),
@@ -162,10 +183,13 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
             spacing: 16,
             children: [
               const Icon(Icons.photo_camera),
-              Text(
-                locales.get('label--upload-image-from-label', {
-                  'label': locales.get('label--camera'),
-                }),
+              Flexible(
+                child: Text(
+                  locales.get('label--upload-image-from-label', {
+                    'label': locales.get('label--camera'),
+                  }),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ],
           ),

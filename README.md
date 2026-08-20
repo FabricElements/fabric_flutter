@@ -182,6 +182,59 @@ void main() {
 
 The host app is what runs on a device, emulator, or browser via its own `flutter run` (for example `flutter run -d chrome` for web). `InitApp` installs the provider tree so the package's components and state classes are available throughout the app.
 
+### Accessibility
+
+Accessibility is a first-class concern in this package. Three conventions apply across every interactive component.
+
+**1. Text scaling (opt-in).** `InitApp` renders text with `TextScaler.noScaling` by default, so the operating system text-size preference does **not** change the app's text.
+
+This is deliberate, not an oversight: honoring the OS text scale caused a layout bug on iOS, and applications built on this package are sized against the fixed-scale behavior. Please do not remove it — the default is load-bearing.
+
+Applications that want the standard Flutter behavior can opt in and are responsible for verifying their own layouts (especially on iOS):
+
+```dart
+const InitApp(
+  // Honor the user's preference, clamped to 1.0–1.4 by default.
+  honorSystemTextScale: true,
+  child: MyApp(),
+);
+
+const InitApp(
+  // Opt in and allow the user's full preference through, unclamped.
+  honorSystemTextScale: true,
+  minTextScaleFactor: null,
+  maxTextScaleFactor: null,
+  child: MyApp(),
+);
+```
+
+The bounds are exposed as `kDefaultMinTextScaleFactor` (`1.0`) and `kDefaultMaxTextScaleFactor` (`1.4`), and are only applied once `honorSystemTextScale` is `true`. The clamping itself is available as the standalone `clampedTextScaler` helper.
+
+**2. The semantics hook trio.** Interactive components accept three optional, nullable parameters that map directly onto Flutter's `Semantics`:
+
+| Parameter | Maps to | Purpose |
+|-----------|---------|---------|
+| `semanticsLabel` | `Semantics.label` | Human/agent-readable name; falls back to the visible label when `null`. |
+| `automationKey` | `Semantics.identifier` | Deterministic automation id, `[RouteName]_[ContextBlock]_[ComponentType]_[ActionOrId]`. |
+| `semanticHint` | `Semantics.hint` | Extra guidance, including why a control is disabled. |
+
+```dart
+SmartImage(
+  url: photoUrl,
+  semanticsLabel: 'Profile photo',
+  automationKey: 'profile_header_image_avatar',
+);
+
+// Purely decorative imagery is hidden from assistive technology instead.
+SmartImage(url: backgroundUrl, excludeSemantics: true);
+```
+
+Components implementing the trio include `SmartButton`, `CardButton`, `InputData`, `SmartImage`, `UserAvatar`, `CountryPicker`, `LanguagePicker`, `PhoneInput`, `PopupEntry`, and `UsersDropdown`, which forwards it to the widget it wraps.
+
+**3. Assistive-technology preferences.** Components that animate or auto-advance respect `MediaQuery.disableAnimationsOf` and `MediaQuery.accessibleNavigationOf` — `Tabs`, `StepperExtended`, `PaginationContainer`, `AlertData`, and `ViewFeatured` skip animations, suppress auto-advance, and offer explicit controls when a screen reader is active. Status changes (connection lost/restored, page changes, upload results, auth failures) are announced through `SemanticsService`, and `Breadcrumbs` exposes a navigation landmark with the current page marked (WCAG 2.4.8).
+
+All accessibility strings are localized through `AppLocalizations`; add or override them the same way as any other label.
+
 ### Voice dictation (`VoiceDictationButton`)
 
 `VoiceDictationButton` (`lib/component/voice_dictation_button.dart`) is a self-contained, press-and-hold microphone button built on `speech_to_text`. It never holds a `TextEditingController` or touches app-level state — it only reports transcripts and status through constructor callbacks, so the parent decides what to do with the text (including whether/when to submit it). It also fires a short haptic tap (`HapticFeedback.mediumImpact` on start, `HapticFeedback.lightImpact` on stop) so the user gets tactile confirmation without watching the icon; pass `enableHapticFeedback: false` to disable it:

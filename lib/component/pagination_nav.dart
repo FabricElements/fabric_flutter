@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 
 import '../helper/app_localizations_delegate.dart';
 import '../helper/options.dart';
@@ -121,6 +122,24 @@ class _PaginationNavState extends State<PaginationNav> {
   /// active async operation completes.
   bool loading = false;
 
+  /// Announces the current page to assistive technology whenever
+  /// [PaginationNav.page] changes.
+  ///
+  /// This keeps screen reader users informed after a pagination action even
+  /// though the visible page indicator does not receive keyboard/focus
+  /// changes on its own.
+  @override
+  void didUpdateWidget(covariant PaginationNav oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.page == widget.page) return;
+    final locales = AppLocalizations.of(context);
+    SemanticsService.sendAnnouncement(
+      View.of(context),
+      '${locales.get('label--page')} ${widget.page} / ${widget.totalPages}',
+      Directionality.of(context),
+    );
+  }
+
   /// Builds the pagination toolbar for the current [BuildContext].
   ///
   /// The layout switches between a horizontal [Row] and a wrapping [Wrap]
@@ -143,16 +162,40 @@ class _PaginationNavState extends State<PaginationNav> {
     }
     final pageStyle = textTheme.bodyMedium;
     const space = SizedBox(width: 16, height: 16);
+    // Ensures first/previous/next/last controls meet the 48x48 minimum
+    // recommended touch target size, regardless of the button theme's default.
+    final minTapTargetStyle = ButtonStyle(
+      minimumSize: WidgetStateProperty.all(const Size(48, 48)),
+    );
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         double width = constraints.maxWidth;
         bool mobileBreakpoint = width >= 800;
         List<Widget> actions = [
-          Text(
-            '${locales.get('label--page')}: ${widget.page}',
-            style: pageStyle?.copyWith(fontWeight: FontWeight.bold),
+          // MergeSemantics combines the "Page: N" and "/ total" fragments into
+          // one announcement instead of two, and selected:true marks this as
+          // the current page indicator.
+          MergeSemantics(
+            child: Semantics(
+              selected: true,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '${locales.get('label--page')}: ${widget.page}',
+                    style: pageStyle?.copyWith(fontWeight: FontWeight.bold),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    '/ ${widget.totalPages}',
+                    style: pageStyle,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
           ),
-          Text('/ ${widget.totalPages}', style: pageStyle),
           space,
           SizedBox(
             width: 152,
@@ -191,6 +234,7 @@ class _PaginationNavState extends State<PaginationNav> {
         if (widget.first != null) {
           actions.addAll([
             TextButton.icon(
+              style: minTapTargetStyle,
               onPressed: widget.page > widget.initialPage && !loading
                   ? () async {
                       try {
@@ -212,6 +256,7 @@ class _PaginationNavState extends State<PaginationNav> {
         }
         actions.addAll([
           OutlinedButton.icon(
+            style: minTapTargetStyle,
             onPressed: widget.page > widget.initialPage && !loading
                 ? () async {
                     try {
@@ -230,6 +275,7 @@ class _PaginationNavState extends State<PaginationNav> {
           ),
           space,
           OutlinedButton.icon(
+            style: minTapTargetStyle,
             onPressed: widget.canPaginate && !loading
                 ? () async {
                     try {
@@ -251,6 +297,7 @@ class _PaginationNavState extends State<PaginationNav> {
           actions.addAll([
             space,
             TextButton.icon(
+              style: minTapTargetStyle,
               onPressed: widget.page < widget.totalPages && !loading
                   ? () async {
                       try {

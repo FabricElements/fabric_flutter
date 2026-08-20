@@ -208,6 +208,13 @@ class _PaginationContainerState extends State<PaginationContainer> {
   /// The list is replaced wholesale whenever the stream publishes a new event.
   List<dynamic> data = [];
 
+  /// Tracks the current page number for the live-region announcement.
+  ///
+  /// Incremented only when [_requestNextPage] actually loads a non-empty page,
+  /// so the announcement fires once per real page transition instead of on
+  /// every rebuild.
+  int _pageNumber = 1;
+
   /// Initializes pagination flags and subscribes to scroll and stream updates.
   ///
   /// The method seeds the list from [PaginationContainer.initialData], restores
@@ -239,22 +246,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
       isBottom =
           _controller.position.atEdge && _controller.position.pixels != 0;
       if (!isBottom) return;
-      if (end) return;
-      if (loading) return;
-      loading = true;
-      if (mounted) setState(() {});
-      await Future.delayed(const Duration(milliseconds: 300));
-      try {
-        error = null;
-        final paginationData = await widget.paginate();
-        end = paginationData == null || paginationData.isEmpty;
-      } catch (e) {
-        error = e.toString();
-        _reportError(error!);
-      }
-      await Future.delayed(const Duration(milliseconds: 300));
-      loading = false;
-      if (mounted) setState(() {});
+      await _requestNextPage();
     });
 
     final subscription = widget.stream.listen((event) async {
@@ -263,6 +255,10 @@ class _PaginationContainerState extends State<PaginationContainer> {
       final eventData = event != null ? event as List<dynamic> : null;
       data = eventData ?? widget.initialData ?? [];
       end = false;
+      // A new stream snapshot replaces the whole list (e.g. a filter change),
+      // so page counting restarts here rather than being announced as a page
+      // transition.
+      _pageNumber = 1;
       loading = false;
       if (mounted) setState(() {});
     });
@@ -274,6 +270,51 @@ class _PaginationContainerState extends State<PaginationContainer> {
       if (mounted) setState(() {});
     });
     _streamSubscription = subscription;
+  }
+
+  /// Requests the next page from [PaginationContainer.paginate].
+  ///
+  /// Shared by the scroll-to-edge listener and, when
+  /// [MediaQuery.accessibleNavigationOf] reports a screen reader is active,
+  /// the explicit "load more" button rendered in the footer — reaching the
+  /// exact scroll edge is unreliable for assistive-technology users, so they
+  /// get a directly actionable control instead of relying on auto-loading.
+  Future<void> _requestNextPage() async {
+    if (end) return;
+    if (loading) return;
+    loading = true;
+    if (mounted) setState(() {});
+    await Future.delayed(const Duration(milliseconds: 300));
+    try {
+      error = null;
+      final paginationData = await widget.paginate();
+      end = paginationData == null || paginationData.isEmpty;
+      if (!end) {
+        _pageNumber++;
+        _announcePageChange();
+      }
+    } catch (e) {
+      error = e.toString();
+      _reportError(error!);
+    }
+    await Future.delayed(const Duration(milliseconds: 300));
+    loading = false;
+    if (mounted) setState(() {});
+  }
+
+  /// Announces the new page number to assistive technology.
+  ///
+  /// Called only from [_requestNextPage] right after a real page transition
+  /// succeeds — never from [build] — so the announcement never fires on a
+  /// plain rebuild (e.g. scrolling, a `setState` for `loading`, or resizing).
+  void _announcePageChange() {
+    if (!mounted) return;
+    final locales = AppLocalizations.of(context);
+    SemanticsService.sendAnnouncement(
+      View.of(context),
+      '${locales.get('label--page')} $_pageNumber',
+      Directionality.of(context),
+    );
   }
 
   /// Reports an error through [PaginationContainer.onError], falling back to
@@ -315,6 +356,11 @@ class _PaginationContainerState extends State<PaginationContainer> {
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    // Reaching the exact scroll edge that triggers auto-pagination is
+    // unreliable for screen-reader users, so an explicit "load more" control
+    // is offered instead of relying on scroll position when a screen reader
+    // is active.
+    final accessibleNavigation = MediaQuery.accessibleNavigationOf(context);
     int total = data.length;
     final widgetEmpty =
         widget.empty ??
@@ -376,7 +422,13 @@ class _PaginationContainerState extends State<PaginationContainer> {
       );
     } else {
       int totalCount = total;
-      if (loading || error != null || end || isBottom) totalCount++;
+      if (loading ||
+          error != null ||
+          end ||
+          isBottom ||
+          (accessibleNavigation && !end)) {
+        totalCount++;
+      }
       content = Scrollbar(
         thumbVisibility: true,
         trackVisibility: true,
@@ -416,21 +468,47 @@ class _PaginationContainerState extends State<PaginationContainer> {
               }
               return widget.itemBuilder(context, index, data[index]);
             }
-            Widget footer = widgetEnd;
+            Widget footer = Semantics(
+              label: locales.get('label--nothing-here-yet'),
+              child: widgetEnd,
+            );
             if (error != null) {
-              footer = Card(
-                margin: EdgeInsets.all(16),
-                color: theme.colorScheme.errorContainer,
-                child: ListTile(
-                  contentPadding: EdgeInsets.all(16),
-                  leading: Icon(Icons.error),
-                  title: Text(error!),
-                  textColor: theme.colorScheme.onErrorContainer,
-                  iconColor: theme.colorScheme.onErrorContainer,
+              footer = Semantics(
+                liveRegion: true,
+                child: Card(
+                  margin: EdgeInsets.all(16),
+                  color: theme.colorScheme.errorContainer,
+                  child: ListTile(
+                    contentPadding: EdgeInsets.all(16),
+                    leading: Icon(Icons.error),
+                    title: Text(error!),
+                    textColor: theme.colorScheme.onErrorContainer,
+                    iconColor: theme.colorScheme.onErrorContainer,
+                  ),
                 ),
               );
             } else if (loading) {
-              footer = widgetLoading;
+              footer = Semantics(
+                liveRegion: true,
+                label: locales.get('label--loading'),
+                child: widgetLoading,
+              );
+            } else if (!end && accessibleNavigation) {
+              // Explicit, focusable alternative to the scroll-edge trigger so
+              // assistive-technology users can reliably load more results.
+              footer = Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: OutlinedButton.icon(
+                    style: ButtonStyle(
+                      minimumSize: WidgetStateProperty.all(const Size(48, 48)),
+                    ),
+                    onPressed: _requestNextPage,
+                    icon: const Icon(Icons.expand_more),
+                    label: Text(locales.get('label--load-more').toUpperCase()),
+                  ),
+                ),
+              );
             }
             return ConstrainedBox(
               constraints: BoxConstraints(minHeight: kToolbarHeight * 2),
