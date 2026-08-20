@@ -33,8 +33,10 @@ class Tabs extends StatefulWidget {
 ///
 /// This state object creates and disposes the controller with the widget
 /// lifecycle, then updates its selected index from the current
-/// [ButtonOptions] list during each build.
-class _TabsState extends State<Tabs> with SingleTickerProviderStateMixin {
+/// [ButtonOptions] list during each build. [TickerProviderStateMixin] is used
+/// instead of the single-ticker variant because the controller is recreated
+/// whenever the number of tabs changes, which requires a second ticker.
+class _TabsState extends State<Tabs> with TickerProviderStateMixin {
   /// Stores the [TabController] that drives the rendered [TabBar].
   ///
   /// The controller length matches the current [Tabs.tabs] list so tap and
@@ -43,12 +45,44 @@ class _TabsState extends State<Tabs> with SingleTickerProviderStateMixin {
 
   /// Initializes the [TabController] when the state enters the tree.
   ///
-  /// Using [SingleTickerProviderStateMixin] lets the controller receive the
+  /// Using [TickerProviderStateMixin] lets the controller receive the
   /// required ticker from this state object.
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(vsync: this, length: widget.tabs.length);
+    _tabController = TabController(
+      vsync: this,
+      length: widget.tabs.length,
+      initialIndex: _selectedIndex,
+    );
+  }
+
+  /// Resolves the index of the currently selected tab.
+  ///
+  /// [ButtonOptions.selected] is optional, so `indexWhere` can return `-1` when
+  /// no entry is marked. That value is not a valid [TabController] index and
+  /// would throw, so it is clamped to the first tab. An empty tab list resolves
+  /// to `0` as well, matching the zero-length controller.
+  int get _selectedIndex {
+    final selected = widget.tabs.indexWhere((element) => element.selected);
+    return selected < 0 ? 0 : selected;
+  }
+
+  /// Rebuilds the [TabController] when the number of tabs changes.
+  ///
+  /// A [TabController] has a fixed length, so a parent that adds or removes tabs
+  /// would otherwise leave the controller describing a stale tab count and trip
+  /// a framework assertion inside [TabBar].
+  @override
+  void didUpdateWidget(covariant Tabs oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.tabs.length == widget.tabs.length) return;
+    _tabController.dispose();
+    _tabController = TabController(
+      vsync: this,
+      length: widget.tabs.length,
+      initialIndex: _selectedIndex,
+    );
   }
 
   /// Releases the [TabController] before the state is removed.
@@ -75,8 +109,8 @@ class _TabsState extends State<Tabs> with SingleTickerProviderStateMixin {
         icon: option.icon != null ? Icon(option.icon) : null,
       );
     });
-    final selected = widget.tabs.indexWhere((element) => element.selected);
-    _tabController.index = selected;
+    final selected = _selectedIndex;
+    if (widget.tabs.isNotEmpty) _tabController.index = selected;
     return TabBar(
       controller: _tabController,
       tabs: tabList,

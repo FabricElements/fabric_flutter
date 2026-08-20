@@ -25,6 +25,23 @@ final NumberFormat _chartRangeFormat = NumberFormat();
 /// hoisted [NumberFormat] instance.
 String chartRangeLabel(num value) => _chartRangeFormat.format(value);
 
+/// Normalizes raw [min]/[max] inputs into usable range-slider bounds.
+///
+/// A missing [min] falls back to `0` and a missing [max] to `100`. When the
+/// resulting lower bound is not below the upper bound the range would be empty
+/// or inverted, which [RangeSlider] rejects, so the upper bound is pushed above
+/// it instead.
+///
+/// Exposed as a pure top-level helper so the normalization can be verified
+/// without rendering the webview-backed chart, following the same pattern as
+/// [chartRangeLabel].
+({double min, double max}) chartRangeBounds({num? min, num? max}) {
+  final double lower = min != null ? min.floorToDouble() : 0;
+  double upper = max != null ? max.ceilToDouble() : 100;
+  if (lower >= upper) upper += (lower + 100);
+  return (min: lower, max: upper);
+}
+
 /// Wraps a [GoogleChart] with optional editing controls for persisted chart settings.
 ///
 /// This widget keeps a working copy of [preferences] so callers can preview edits,
@@ -197,11 +214,9 @@ class _GoogleChartContainerState extends State<GoogleChartContainer> {
         widget.max != null &&
         widget.min! < widget.max! &&
         preferencesCopy.vAxis != null;
-    min = widget.min != null ? widget.min!.floorToDouble() : 0;
-    max = widget.max != null ? widget.max!.ceilToDouble() : 100;
-    if (min >= min) {
-      max += (min + 100);
-    }
+    final bounds = chartRangeBounds(min: widget.min, max: widget.max);
+    min = bounds.min;
+    max = bounds.max;
     prefMin = preferencesCopy.min ?? min;
     prefMax = preferencesCopy.max ?? max;
     if (prefMin < min) prefMin = min;

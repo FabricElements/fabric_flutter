@@ -62,7 +62,12 @@ class ViewFeatured extends StatefulWidget {
 }
 
 class _ViewFeaturedState extends State<ViewFeatured> {
-  late Timer _timer;
+  /// Holds every pending stage timer for the reveal animation.
+  ///
+  /// All five stages are tracked so each one can be cancelled, both when the
+  /// sequence restarts and when the state leaves the tree. Assigning them to a
+  /// single field would leave the earlier timers unreachable and still running.
+  final List<Timer> _timers = [];
   double _actionOpacityLevel = 0;
   double _headlineOpacityLevel = 0;
   double _descriptionOpacityLevel = 0;
@@ -72,55 +77,52 @@ class _ViewFeaturedState extends State<ViewFeatured> {
   Color? _secondGradientAnimationColor;
   Color? _thirdGradientAnimationColor;
 
+  /// Cancels and clears every pending stage timer.
+  void _cancelTimers() {
+    for (final timer in _timers) {
+      timer.cancel();
+    }
+    _timers.clear();
+  }
+
+  /// Schedules a single animation stage and tracks its timer.
+  ///
+  /// The [step] value multiplies [_animationDuration] to stagger the stage, and
+  /// [apply] mutates the opacity or gradient state for that stage.
+  void _scheduleStage(int step, VoidCallback apply) {
+    _timers.add(
+      Timer(Duration(milliseconds: _animationDuration * step), () {
+        if (!mounted) return;
+        setState(apply);
+      }),
+    );
+  }
+
   /// Triggers the reveal animation sequence.
   ///
   /// The animation proceeds through five stages: gradient fade-ins for the
   /// background, followed by opacity transitions for the headline, description,
   /// custom child widget, and action button. Each stage duration is controlled
-  /// by [_animationDuration].
+  /// by [_animationDuration]. Any previously scheduled sequence is cancelled
+  /// first so stages cannot overlap or accumulate.
   void animationTrigger() {
-    _timer = Timer(Duration(milliseconds: _animationDuration), () {
-      if (mounted) {
-        setState(() {
-          _firstGradientAnimationColor = Colors.transparent;
-        });
-      }
+    _cancelTimers();
+    _scheduleStage(1, () {
+      _firstGradientAnimationColor = Colors.transparent;
     });
-    _timer = Timer(Duration(milliseconds: _animationDuration * 2), () {
-      if (mounted) {
-        setState(() {
-          _secondGradientAnimationColor = Colors.transparent;
-          _headlineOpacityLevel = 1.0;
-        });
-      }
+    _scheduleStage(2, () {
+      _secondGradientAnimationColor = Colors.transparent;
+      _headlineOpacityLevel = 1.0;
     });
-    _timer = Timer(Duration(milliseconds: _animationDuration * 3), () {
-      if (mounted) {
-        setState(() {
-          _descriptionOpacityLevel = 1.0;
-        });
-      }
+    _scheduleStage(3, () {
+      _descriptionOpacityLevel = 1.0;
     });
-    _timer = Timer(Duration(milliseconds: _animationDuration * 4), () {
-      if (mounted) {
-        setState(() {
-          _childOpacityLevel = 1.0;
-        });
-      }
+    _scheduleStage(4, () {
+      _childOpacityLevel = 1.0;
     });
-    _timer = Timer(Duration(milliseconds: _animationDuration * 5), () {
-      if (mounted) {
-        setState(() {
-          _actionOpacityLevel = 1.0;
-        });
-      }
+    _scheduleStage(5, () {
+      _actionOpacityLevel = 1.0;
     });
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    animationTrigger();
   }
 
   @override
@@ -130,11 +132,15 @@ class _ViewFeaturedState extends State<ViewFeatured> {
     _secondGradientAnimationColor = widget.secondGradientAnimationColor;
     _thirdGradientAnimationColor = widget.thirdGradientAnimationColor;
     _animationDuration = widget.animationDuration;
+    // Started once here rather than from didChangeDependencies, which fires
+    // again on every inherited-widget change (theme, locale, media query) and
+    // would otherwise restart the reveal and spawn a fresh set of timers.
+    animationTrigger();
   }
 
   @override
   void dispose() {
-    _timer.cancel();
+    _cancelTimers();
     super.dispose();
   }
 

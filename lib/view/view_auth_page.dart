@@ -61,8 +61,11 @@ class ViewAuthPage extends StatefulWidget {
   final bool apple;
   final bool anonymous;
 
-  /// @deprecated Google Sign-In Client ID is now set globally
-  /// On index.html for web, set the client ID in the meta tag and the script tag:
+  /// Holds a legacy Google Sign-In client id that is no longer read.
+  ///
+  /// The value is ignored: the client id is now configured globally instead of
+  /// per widget. On index.html for web, set the client ID in the meta tag and
+  /// the script tag:
   /// <meta name="google-signin-client_id" content="YOUR_CLIENT_ID.apps.googleusercontent.com">
   /// <script async defer src="https://accounts.google.com/gsi/client"></script>
   ///
@@ -81,6 +84,12 @@ class ViewAuthPage extends StatefulWidget {
   ///   }
   ///  ...
   ///
+  @Deprecated(
+    'The Google Sign-In client id is now configured globally with '
+    'GoogleSignIn.initialize (or the index.html meta tag on web) and this '
+    'value is ignored. Remove the argument; it will be deleted in a future '
+    'release.',
+  )
   final String? googleClientId;
 
   /// The Android package name of the application to open when the URL is pressed.
@@ -143,6 +152,9 @@ class ViewAuthPageState extends State<ViewAuthPage> {
 
     /// Reset view to initial state
     Future<void> resetView() async {
+      // Callers reach this from `catch`/`finally` blocks that follow awaited
+      // Firebase calls, so the view may already be gone.
+      if (!context.mounted) return;
       loading = true;
       // Close Keyboard
       FocusScope.of(context).unfocus();
@@ -152,9 +164,27 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       if (mounted) setState(() {});
     }
 
+    /// Presents a localized sign-in failure alert.
+    ///
+    /// Every caller reaches this from a `catch` block that follows an awaited
+    /// authentication call, so the element backing [context] may already have
+    /// been unmounted; in that case the alert is skipped rather than presented
+    /// against a defunct context. The optional [title] overrides the default
+    /// `alert--sign-in-failed` heading.
+    void alertSignInFailed(String? body, {String? title}) {
+      if (!context.mounted) return;
+      alertData(
+        context: context,
+        title: title ?? locales.get('alert--sign-in-failed'),
+        body: body,
+        type: AlertType.critical,
+      );
+    }
+
     /// Verification completed: Sign in with credentials
     verificationCompleted(AuthCredential phoneAuthCredential) async {
       await _auth.signInWithCredential(phoneAuthCredential);
+      if (!context.mounted) return;
       alertData(
         context: context,
         body: locales.get('alert--received-phone-auth-credential'),
@@ -224,12 +254,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
         success = true;
       } catch (error) {
         debugPrint(LogColor.error('ConfirmationResult Error: $error'));
-        alertData(
-          context: context,
-          title: locales.get('alert--sign-in-failed'),
-          body: error.toString(),
-          type: AlertType.critical,
-        );
+        alertSignInFailed(error.toString());
       }
       loading = false;
       if (success) {
@@ -260,12 +285,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
         await Future.delayed(const Duration(seconds: 3));
         resetView();
       } catch (error) {
-        alertData(
-          context: context,
-          title: locales.get('alert--sign-in-failed'),
-          body: error.toString(),
-          type: AlertType.critical,
-        );
+        alertSignInFailed(error.toString());
       } finally {
         loading = false;
         if (mounted) setState(() {});
@@ -293,12 +313,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
         await Future.delayed(const Duration(seconds: 3));
         resetView();
       } catch (error) {
-        alertData(
-          context: context,
-          title: locales.get('alert--sign-in-failed'),
-          body: error.toString(),
-          type: AlertType.critical,
-        );
+        alertSignInFailed(error.toString());
       } finally {
         loading = false;
         if (mounted) setState(() {});
@@ -361,27 +376,12 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       } on FirebaseAuthException catch (error) {
         bool authCanceled = error.code == 'canceled';
         if (!authCanceled) {
-          alertData(
-            context: context,
-            title: locales.get('alert--sign-in-failed'),
-            body: error.message,
-            type: AlertType.critical,
-          );
+          alertSignInFailed(error.message);
         }
       } on FirebaseException catch (error) {
-        alertData(
-          context: context,
-          title: locales.get('alert--sign-in-failed'),
-          body: error.message,
-          type: AlertType.critical,
-        );
+        alertSignInFailed(error.message);
       } catch (error) {
-        alertData(
-          context: context,
-          title: locales.get('alert--sign-in-failed'),
-          body: error.toString(),
-          type: AlertType.critical,
-        );
+        alertSignInFailed(error.toString());
       }
       loading = false;
       if (mounted) setState(() {});
@@ -395,6 +395,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
         final User currentUser = _auth.currentUser!;
         assert(user.uid == currentUser.uid);
 
+        if (!context.mounted) return;
         alertData(
           context: context,
           title: 'Signed in with temporary account.',
@@ -411,19 +412,10 @@ class ViewAuthPageState extends State<ViewAuthPage> {
         }
         bool authCanceled = e.code == 'canceled';
         if (!authCanceled) {
-          alertData(
-            context: context,
-            body: errorMessage,
-            type: AlertType.critical,
-          );
+          alertSignInFailed(errorMessage);
         }
       } on FirebaseException catch (error) {
-        alertData(
-          context: context,
-          title: locales.get('alert--sign-in-failed'),
-          body: error.message,
-          type: AlertType.critical,
-        );
+        alertSignInFailed(error.message);
       }
     }
 
@@ -442,26 +434,14 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       } on FirebaseAuthException catch (error) {
         bool authCanceled = error.code == 'canceled';
         if (!authCanceled) {
-          alertData(
-            context: context,
-            title: locales.get('alert--sign-in-failed'),
-            body: error.message,
-            type: AlertType.critical,
-          );
+          alertSignInFailed(error.message);
         }
       } on FirebaseException catch (error) {
-        alertData(
-          context: context,
-          title: locales.get('alert--sign-in-failed'),
-          body: error.message,
-          type: AlertType.critical,
-        );
+        alertSignInFailed(error.message);
       } catch (error) {
-        alertData(
-          context: context,
+        alertSignInFailed(
+          error.toString(),
           title: locales.get('alert--sign-in-failed: '),
-          body: error.toString(),
-          type: AlertType.critical,
         );
       } finally {
         resetView();
@@ -522,6 +502,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
         action = () async {
           try {
             String mdFromFile = await rootBundle.loadString(widget.policies!);
+            if (!context.mounted) return;
             alertData(
               context: context,
               type: AlertType.basic,
@@ -559,6 +540,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
               ),
             );
           } catch (error) {
+            if (!context.mounted) return;
             alertData(
               context: context,
               body: error.toString(),

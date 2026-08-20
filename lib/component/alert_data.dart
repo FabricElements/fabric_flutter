@@ -434,10 +434,11 @@ void alertData<T>({
               if (hasAction) {
                 await action!.onTap!();
               }
-              final BuildContext safeContext = context.mounted
+              final BuildContext? safeContext = context.mounted
                   ? context
-                  : AppGlobal.navigatorKey.currentContext ?? context;
-              dismissAlerts(widget: widget, context: context);
+                  : AppGlobal.navigatorKey.currentContext;
+              if (safeContext == null || !safeContext.mounted) return;
+              dismissAlerts(widget: widget, context: safeContext);
               if (hasValidPath) {
                 final path = action!.path!;
                 if (action.queryParameters != null) {

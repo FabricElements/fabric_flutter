@@ -709,11 +709,16 @@ getValue -------------------------------------
   }
 
   /// Releases any internally owned controllers when the widget leaves the tree.
+  ///
+  /// Controllers supplied through [InputData.textController] or
+  /// [InputData.searchController] are owned by the caller, which may reuse them
+  /// across rebuilds, so they are deliberately left untouched here.
   @override
   void dispose() {
     _closeSearch();
     try {
-      textController.dispose();
+      // Only dispose the text controller when it was created internally.
+      if (widget.textController == null) textController.dispose();
       // Dispose the search controller if it's not attached to the widget
       if (widget.searchController == null && searchController.isAttached) {
         searchController.dispose();

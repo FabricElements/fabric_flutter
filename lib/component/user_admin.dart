@@ -265,6 +265,7 @@ class UserAdmin extends StatelessWidget {
           onTap: () async {
             try {
               await UserRolesFirebase.onRemove(data, group: group);
+              if (!context.mounted) return;
               // Type indicates the data field to use in the function, admin level or collection.
               alertData(
                 context: context,
@@ -273,12 +274,14 @@ class UserAdmin extends StatelessWidget {
                 duration: 3,
               );
             } on FirebaseFunctionsException catch (error) {
+              if (!context.mounted) return;
               alertData(
                 context: context,
                 body: error.message ?? error.details['message'],
                 type: AlertType.critical,
               );
             } catch (error) {
+              if (!context.mounted) return;
               alertData(
                 context: context,
                 body: error.toString(),

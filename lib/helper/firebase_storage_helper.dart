@@ -1,5 +1,3 @@
-import 'dart:io' show File;
-
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -22,44 +20,6 @@ class FirebaseStorageHelper {
 
   /// Creates a storage helper bound to [context].
   FirebaseStorageHelper(this.context);
-
-  /// Uploads [file] to Firebase Storage using an explicit folder [path] and [name].
-  ///
-  /// This legacy helper remains available for callers that still work with
-  /// [File] instances directly. Prefer [save] for string-based uploads because
-  /// it supports the same storage backend while fitting better with the package's
-  /// media serialization flow. When [contentType] is omitted, Firebase infers it
-  /// from the file extension when possible, and [metadata] can attach extra
-  /// storage metadata such as ids or labels.
-  ///
-  /// ```dart
-  /// FirebaseStorageHelper.upload(
-  ///   file,
-  ///   'path/to/folder',
-  ///   'testFile.pdf',
-  ///   'application/pdf',
-  ///   {'name': 'testFile'},
-  /// );
-  /// ```
-  @Deprecated('use [FirebaseStorageHelper.save]')
-  static Future<TaskSnapshot> upload(
-    File file,
-    String path,
-    String name, [
-    String? contentType,
-    Map<String, dynamic>? metadata,
-  ]) async {
-    final storageRef = FirebaseStorage.instance.ref();
-    final ref = storageRef.child(path).child(name);
-    final uploadTask = ref.putFile(
-      file,
-      SettableMetadata(
-        contentType: contentType,
-        customMetadata: metadata as Map<String, String>?,
-      ),
-    );
-    return await uploadTask.then((value) => value);
-  }
 
   /// Saves raw string [data] to Firebase Storage at [path].
   ///
@@ -118,6 +78,26 @@ class FirebaseStorageHelper {
     return fileSaved.ref.fullPath;
   }
 
+  /// Surfaces a localized alert describing a failed media upload.
+  ///
+  /// Both upload flows reach this after awaiting the picker and the storage
+  /// write, so [context] may already be unmounted; in that case the alert is
+  /// skipped rather than presented against a defunct element.
+  void _reportMediaError(Object error) {
+    if (!context.mounted) return;
+    final locales = AppLocalizations.of(context);
+    final errorMessage = error.toString();
+    final errorType = errorMessage == 'alert--no-chosen-files'
+        ? AlertType.warning
+        : AlertType.critical;
+    alertData(
+      context: context,
+      body: locales.get(errorMessage),
+      type: errorType,
+      duration: 5,
+    );
+  }
+
   /// Lets the user pick an image, uploads it, and passes the result to [callback].
   ///
   /// Images are obtained through [MediaHelper.getImage], optionally resized with
@@ -131,7 +111,6 @@ class FirebaseStorageHelper {
     bool autoId = false,
     bool expiry = false,
   }) async {
-    final locales = AppLocalizations.of(context);
     try {
       final selectedFile = await MediaHelper.getImage(
         origin: origin,
@@ -146,16 +125,7 @@ class FirebaseStorageHelper {
       );
       return callback(finalPath, selectedFile);
     } catch (error) {
-      String errorMessage = error.toString();
-      final errorType = errorMessage == 'alert--no-chosen-files'
-          ? AlertType.warning
-          : AlertType.critical;
-      alertData(
-        context: context,
-        body: locales.get(errorMessage),
-        type: errorType,
-        duration: 5,
-      );
+      _reportMediaError(error);
     }
   }
 
@@ -174,7 +144,6 @@ class FirebaseStorageHelper {
     /// Optional maximum file size in bytes
     int? maxFileSize,
   }) async {
-    final locales = AppLocalizations.of(context);
     try {
       final selectedFile = await MediaHelper.getFile(
         allowedExtensions: fileExtensions,
@@ -189,16 +158,7 @@ class FirebaseStorageHelper {
       );
       return callback(finalPath, selectedFile);
     } catch (error) {
-      String errorMessage = error.toString();
-      final errorType = errorMessage == 'alert--no-chosen-files'
-          ? AlertType.warning
-          : AlertType.critical;
-      alertData(
-        context: context,
-        body: locales.get(errorMessage),
-        type: errorType,
-        duration: 5,
-      );
+      _reportMediaError(error);
     }
   }
 

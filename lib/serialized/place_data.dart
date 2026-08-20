@@ -277,10 +277,6 @@ class OpeningHoursPeriodDate {
   final String time;
 
   /// Returns the period as a UTC [DateTime].
-  @Deprecated('use `toDateTime()`')
-  DateTime get dateTime => toDateTime();
-
-  /// Converts [day] and [time] into a UTC [DateTime].
   ///
   /// The conversion uses [dayTimeToDateTime] so all Places opening-hours parsing
   /// follows the same interpretation rules.

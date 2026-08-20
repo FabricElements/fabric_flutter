@@ -43,6 +43,37 @@ class _ConnectionStatusState extends State<ConnectionStatus> {
   /// banner when the connection status has not actually changed.
   bool lastConnected = true;
 
+  /// Holds the pending auto-dismiss timer for the visible banner.
+  ///
+  /// Only one dismissal may be in flight at a time. The timer is replaced when a
+  /// new connectivity change reopens the banner and cancelled in [dispose] so it
+  /// can never call [setState] on an unmounted state.
+  Timer? _dismissTimer;
+
+  /// How long the banner remains visible before dismissing itself.
+  static const Duration _autoDismissDelay = Duration(seconds: 10);
+
+  /// Opens the banner and schedules its automatic dismissal.
+  ///
+  /// Scheduling happens outside the build phase so a rebuild never stacks
+  /// additional pending dismissals on top of the previous ones.
+  void _openBanner() {
+    _dismissTimer?.cancel();
+    _dismissTimer = Timer(_autoDismissDelay, () {
+      if (!mounted) return;
+      setState(() {
+        open = false;
+      });
+    });
+  }
+
+  /// Cancels any pending dismissal before the state leaves the tree.
+  @override
+  void dispose() {
+    _dismissTimer?.cancel();
+    super.dispose();
+  }
+
   /// Builds the connectivity banner for the current [BuildContext].
   ///
   /// The returned [Widget] listens to [StateGlobal.streamConnection], updates
@@ -60,17 +91,13 @@ class _ConnectionStatusState extends State<ConnectionStatus> {
       builder: (context, snapshot) {
         final connected = snapshot.data ?? stateGlobal.connected;
         if (lastConnected != connected) {
+          // Reflected immediately so the banner renders in this same frame; the
+          // dismissal is a timer rather than a per-build post-frame callback so
+          // unrelated rebuilds cannot stack additional pending dismissals.
           open = true;
           lastConnected = connected;
+          _openBanner();
         }
-        WidgetsBinding.instance.addPostFrameCallback((_) async {
-          if (mounted && open) {
-            await Future.delayed(const Duration(seconds: 10));
-            setState(() {
-              open = false;
-            });
-          }
-        });
         late IconData icon;
         late String message;
         late Color iconColor;
