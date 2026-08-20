@@ -558,6 +558,18 @@ const Map<String, Map<String, String>> defaultLocales = {
     'es': '¡Parece que aún no hay nada aquí!',
   },
   'label--loading': {'en': 'Loading', 'es': 'Cargando'},
+  'label--clear-all': {'en': 'Clear All', 'es': 'Borrar Todo'},
+  'label--drop-files-here': {
+    'en': 'Drop files here or click to choose files to upload.',
+    'es':
+        'Suelta los archivos aquí o haz clic para elegir los archivos que deseas subir.',
+  },
+  'label--drop-zone-hint': {
+    'en': 'Drop files here or activate to browse for files',
+    'es': 'Suelte archivos aquí o actívelo para buscar archivos',
+  },
+  'label--browse-files': {'en': 'Browse files', 'es': 'Buscar archivos'},
+  'label--upload-complete': {'en': 'Upload complete', 'es': 'Carga completa'},
   'label--info-phone-number-format': {
     'en':
         'Please enter your phone number as: +[Country Code][Phone Number] (e.g., +14155552671, +34912345678, +573001234567).',

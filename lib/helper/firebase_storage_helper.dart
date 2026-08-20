@@ -78,6 +78,64 @@ class FirebaseStorageHelper {
     return fileSaved.ref.fullPath;
   }
 
+  /// Saves raw byte [data] to Firebase Storage at [path].
+  ///
+  /// This is the binary counterpart to [save]: instead of encoding bytes to a
+  /// base64 string it uploads them directly with `putData`, avoiding the ~33%
+  /// memory overhead of base64. Like [save], it appends a timestamp when [autoId]
+  /// is `true` and an `_expiry` suffix when [expiry] is requested so the two
+  /// entry points produce identically shaped paths.
+  static Future<TaskSnapshot> saveBytes({
+    required Uint8List data,
+    required String path,
+    bool autoId = false,
+    SettableMetadata? metadata,
+    bool expiry = false,
+  }) async {
+    final storageRef = FirebaseStorage.instance.ref();
+    String finalPath = path;
+    if (autoId) {
+      final time = DateTime.now().millisecondsSinceEpoch.toString();
+      finalPath += '_$time';
+    }
+    if (expiry) {
+      finalPath += '_expiry';
+    }
+    final imagesRef = storageRef.child(finalPath);
+    return imagesRef.putData(data, metadata);
+  }
+
+  /// Saves raw [bytes] and returns the resulting storage path.
+  ///
+  /// This mirrors [saveFile] but keeps the payload as a [Uint8List] end-to-end so
+  /// callers that already hold decoded bytes (such as drag-and-drop uploads) skip
+  /// the base64 round-trip. The applied metadata is identical to [saveFile]: the
+  /// [contentType] and, when [fileName] is provided, a content disposition that
+  /// preserves a friendly download name, so objects written through either path
+  /// are indistinguishable.
+  Future<String> saveFileData({
+    required Uint8List bytes,
+    required String contentType,
+    required String path,
+    String? fileName,
+    bool autoId = false,
+    bool expiry = false,
+  }) async {
+    final fileSaved = await saveBytes(
+      data: bytes,
+      path: path,
+      autoId: autoId,
+      metadata: SettableMetadata(
+        contentType: contentType,
+        contentDisposition: fileName != null
+            ? 'inline; filename="$fileName"'
+            : null,
+      ),
+      expiry: expiry,
+    );
+    return fileSaved.ref.fullPath;
+  }
+
   /// Surfaces a localized alert describing a failed media upload.
   ///
   /// Both upload flows reach this after awaiting the picker and the storage
