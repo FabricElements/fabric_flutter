@@ -93,6 +93,44 @@ void main() {
         expect(result, 'Hello {name}');
       });
 
+      test(
+        'should replace every occurrence of a repeated placeholder',
+        () async {
+          // Arrange
+          final localizations = AppLocalizations(const Locale('en', 'US'));
+          localizations.keys = {
+            'label--echo': {'en': '{word} and {word} again'},
+          };
+          await localizations.load();
+
+          // Act
+          final result = localizations.get('label--echo', {'word': 'go'});
+
+          // Assert
+          expect(result, 'go and go again');
+        },
+      );
+
+      test(
+        'should treat replacement values with regex metacharacters literally',
+        () async {
+          // Arrange
+          final localizations = AppLocalizations(const Locale('en', 'US'));
+          localizations.keys = {
+            'label--amount': {'en': 'Total {value}'},
+          };
+          await localizations.load();
+
+          // Act
+          final result = localizations.get('label--amount', {
+            'value': r'$1.50 (a+b)',
+          });
+
+          // Assert
+          expect(result, r'Total $1.50 (a+b)');
+        },
+      );
+
       test('should stay stable across repeated calls', () {
         // Arrange
         final localizations = AppLocalizations(const Locale('en', 'US'));
