@@ -42,6 +42,14 @@ class AppLocalizations {
   /// Reused by [get] instead of being recompiled on each invocation.
   static final RegExp _camelCaseExp = RegExp(r'(?<=[a-z])[A-Z]');
 
+  /// Caches normalized key paths so repeated lookups of the same raw key skip
+  /// the regex passes and lowercasing in [get].
+  ///
+  /// Normalization depends only on the incoming key string (never on [keys] or
+  /// [locale]), so a single shared cache stays correct across every instance and
+  /// after [load] or custom [keys] assignments.
+  static final Map<String, String> _normalizedKeyCache = {};
+
   /// Returns whether an [AppLocalizations] instance is available in [context].
   ///
   /// This private guard lets [of] fall back to English when localization state
@@ -150,24 +158,31 @@ class AppLocalizations {
       return key;
     }
     String keyFinal = key?.toString() ?? 'label--unknown';
-    // Fix dash
-    keyFinal = keyFinal.replaceAll('_', '-');
-    try {
-      // Remove invalid characters
-      keyFinal = keyFinal.replaceAll(_invalidCharsExp, '');
-    } catch (e) {
-      //
+    final String rawKey = keyFinal;
+    final String? cachedKey = _normalizedKeyCache[rawKey];
+    if (cachedKey != null) {
+      keyFinal = cachedKey;
+    } else {
+      // Fix dash
+      keyFinal = keyFinal.replaceAll('_', '-');
+      try {
+        // Remove invalid characters
+        keyFinal = keyFinal.replaceAll(_invalidCharsExp, '');
+      } catch (e) {
+        //
+      }
+      try {
+        // Handle camelCase
+        keyFinal = keyFinal.replaceAllMapped(
+          _camelCaseExp,
+          (Match m) => ('-${m.group(0)!}'),
+        );
+      } catch (e) {
+        //
+      }
+      keyFinal = keyFinal.toLowerCase();
+      _normalizedKeyCache[rawKey] = keyFinal;
     }
-    try {
-      // Handle camelCase
-      keyFinal = keyFinal.replaceAllMapped(
-        _camelCaseExp,
-        (Match m) => ('-${m.group(0)!}'),
-      );
-    } catch (e) {
-      //
-    }
-    keyFinal = keyFinal.toLowerCase();
     String finalLocalization = _mergeLocales(keyFinal);
     if (options != null) {
       finalLocalization = _replaceOptions(finalLocalization, options);

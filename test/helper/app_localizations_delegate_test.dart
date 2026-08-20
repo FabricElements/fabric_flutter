@@ -143,6 +143,21 @@ void main() {
         expect(first, 'label--sample-key');
         expect(second, first);
       });
+
+      test('should normalize a key identically across instances', () {
+        // Arrange — the normalization cache is shared, so a second instance
+        // with a different locale must still normalize the raw key the same way.
+        final english = AppLocalizations(const Locale('en', 'US'));
+        final spanish = AppLocalizations(const Locale('es', 'ES'));
+
+        // Act
+        final fromEnglish = english.get('label--anotherCustomKey');
+        final fromSpanish = spanish.get('label--another_custom_key');
+
+        // Assert
+        expect(fromEnglish, 'label--another-custom-key');
+        expect(fromSpanish, fromEnglish);
+      });
     });
   });
 }
