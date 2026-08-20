@@ -55,6 +55,7 @@ class LiveAnnouncer extends StatefulWidget {
     this.assertiveness = Assertiveness.polite,
     this.announce = true,
     this.liveRegion = true,
+    this.announceOnMount = true,
   });
 
   /// Stores the message announced to assistive technology.
@@ -88,6 +89,21 @@ class LiveAnnouncer extends StatefulWidget {
   /// permanent live region into the semantics tree.
   final bool liveRegion;
 
+  /// Controls whether the initial [message] is announced when the widget mounts.
+  ///
+  /// Defaults to `true`, so a non-empty message present at first build is
+  /// spoken immediately — the platform-idiomatic behavior for a live region.
+  ///
+  /// Set to `false` to suppress that first announcement and speak only on
+  /// subsequent *transitions*. This is useful when the widget is mounted with a
+  /// message that reflects already-present state (for example, opening a screen
+  /// whose latest item would otherwise be read aloud on entry). When `false`,
+  /// the deduplication state is seeded with the current message, so a later
+  /// change to a *different* message still announces, while flipping back to the
+  /// seeded value stays silent. It does not affect the rendered [liveRegion]
+  /// node, only the direct [SemanticsService.sendAnnouncement] on mount.
+  final bool announceOnMount;
+
   /// Creates the mutable [State] used to track the announced message.
   ///
   /// Returns a [_LiveAnnouncerState] so deduplication survives rebuilds.
@@ -108,11 +124,17 @@ class _LiveAnnouncerState extends State<LiveAnnouncer> {
   /// Announces the initial message when the widget enters the tree.
   ///
   /// Uses a post-frame callback because [View.of] and [Directionality.of]
-  /// require a fully mounted element.
+  /// require a fully mounted element. When [LiveAnnouncer.announceOnMount] is
+  /// `false`, the deduplication state is seeded with the current message instead
+  /// so only later transitions are announced.
   @override
   void initState() {
     super.initState();
-    _schedule();
+    if (widget.announceOnMount) {
+      _schedule();
+    } else {
+      _announced = _message;
+    }
   }
 
   /// Announces the new message when [LiveAnnouncer.message] changes.
