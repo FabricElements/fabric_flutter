@@ -13,7 +13,7 @@ import 'input_data.dart';
 /// filtering. When [phoneNumberOrigin] is `true`, it limits choices to entries
 /// supported by the phone helper dataset so downstream phone-origin workflows
 /// only receive compatible values.
-class CountryPicker extends StatelessWidget {
+class CountryPicker extends StatefulWidget {
   /// Creates a country picker backed by ISO alpha-2 country codes.
   ///
   /// The picker defaults to `'US'` and forwards selection changes through
@@ -65,23 +65,33 @@ class CountryPicker extends StatelessWidget {
   /// [ISOCountries.phoneSupportedCountries] before building the dropdown.
   final bool phoneNumberOrigin;
 
-  /// Builds the localized dropdown used to select a country.
-  ///
-  /// The widget resolves labels through [BuildContext], converts each
-  /// [ISOCountry] into a [ButtonOptions] entry, and forwards changes to
-  /// [onChange].
+  /// Creates the mutable state that memoizes the country options.
   @override
-  Widget build(BuildContext context) {
-    final locales = AppLocalizations.of(context);
+  State<CountryPicker> createState() => _CountryPickerState();
+}
+
+/// Holds the pre-built dropdown options for [CountryPicker].
+///
+/// The option list is derived from the bundled ISO dataset once in
+/// [initState] instead of on every build, because it depends only on the
+/// immutable [CountryPicker.phoneNumberOrigin] flag.
+class _CountryPickerState extends State<CountryPicker> {
+  /// Caches the dropdown options built from the ISO country dataset.
+  late final List<ButtonOptions> _options;
+
+  /// Builds the country options once from the bundled ISO dataset.
+  @override
+  void initState() {
+    super.initState();
     List<ISOCountry> items = ISOCountries.countries;
-    if (phoneNumberOrigin) {
-      // Filter available voices by those available on WaveNet
+    if (widget.phoneNumberOrigin) {
+      // Filter available countries by those supported for phone origins.
       items = items.where((element) {
         return ISOCountries.phoneSupportedCountries.contains(element.alpha2);
       }).toList();
     }
     // List of iso's corresponding to the text widgets
-    List<ButtonOptions> options = List.generate(items.length, (index) {
+    _options = List.generate(items.length, (index) {
       final item = items[index];
       return ButtonOptions(
         label: '${item.flag} ${item.name} (${item.alpha2})',
@@ -89,20 +99,29 @@ class CountryPicker extends StatelessWidget {
         value: item.alpha2,
       );
     });
+  }
+
+  /// Builds the localized dropdown used to select a country.
+  ///
+  /// The widget resolves labels through [BuildContext] and forwards changes to
+  /// [CountryPicker.onChange] using the pre-built [_options].
+  @override
+  Widget build(BuildContext context) {
+    final locales = AppLocalizations.of(context);
     return InputData(
       autofillHints: const [],
       prefixIcon: const Icon(Icons.flag),
-      label: label ?? locales.get('label--country'),
+      label: widget.label ?? locales.get('label--country'),
       hintText:
-          hintText ??
+          widget.hintText ??
           locales.get('label--choose-label', {
             'label': locales.get('label--country'),
           }),
-      value: value,
+      value: widget.value,
       type: InputDataType.dropdown,
-      options: options,
-      onChanged: (dynamic value) => onChange(value as String?),
-      disabled: disabled,
+      options: _options,
+      onChanged: (dynamic value) => widget.onChange(value as String?),
+      disabled: widget.disabled,
     );
   }
 }
