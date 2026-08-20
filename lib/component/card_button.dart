@@ -11,6 +11,12 @@ import 'smart_image.dart';
 /// provides outer spacing, [image] supplies the background asset URL, and
 /// [onPressed] handles taps across the full card surface.
 ///
+/// The card is published to assistive technology as a single button node.
+/// [semanticsLabel], [automationKey], and [semanticHint] are all optional; when
+/// [semanticsLabel] is omitted the label is derived from [headline] and
+/// [description], so existing call sites are announced correctly without any
+/// change.
+///
 /// ```dart
 /// CardButton(
 ///   headline: 'Card Button Example',
@@ -79,7 +85,9 @@ class CardButton extends StatefulWidget {
 
   /// Overrides the label exposed to accessibility tools and autonomous agents.
   ///
-  /// Falls back to [headline] first, then [description], when `null`.
+  /// When `null` the label is derived from the visible content: [headline] and
+  /// [description] joined into a single sentence, so existing call sites gain a
+  /// meaningful announcement without any change.
   final String? semanticsLabel;
 
   /// Assigns a deterministic identifier to the semantics node.
@@ -105,85 +113,113 @@ class CardButton extends StatefulWidget {
 /// Keeps the widget in the [StatefulWidget] lifecycle while building the image,
 /// gradient overlay, and tap handling as a single visual control.
 class _CardButtonState extends State<CardButton> {
+  /// Resolves the single label announced for the whole card.
+  ///
+  /// Prefers [CardButton.semanticsLabel] and otherwise joins the visible
+  /// [CardButton.headline] and [CardButton.description] so assistive technology
+  /// reads one coherent sentence instead of several fragments. Returns `null`
+  /// when there is nothing to announce.
+  String? get _resolvedLabel {
+    final label = widget.semanticsLabel?.trim();
+    if (label != null && label.isNotEmpty) return label;
+    final parts = <String>[];
+    final headline = widget.headline?.trim();
+    final description = widget.description?.trim();
+    if (headline != null && headline.isNotEmpty) parts.add(headline);
+    if (description != null && description.isNotEmpty) parts.add(description);
+    if (parts.isEmpty) return null;
+    return parts.join('. ');
+  }
+
   /// Builds the card with a full-bleed image and readable text overlay.
   ///
   /// Uses the ambient [BuildContext] to read theme values and keeps the image
   /// and text in one tappable region so hit testing behaves like a single
-  /// button.
+  /// button. The whole card is published to assistive technology as a single
+  /// button node carrying the tap action: the background image is decorative
+  /// and excluded, and the overlay text is excluded because it is already
+  /// carried by the node's label, so the card is announced once as one button
+  /// instead of as several competing fragments.
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     return Semantics(
-      label: widget.semanticsLabel ?? widget.headline ?? widget.description,
+      label: _resolvedLabel,
       identifier: widget.automationKey,
       hint: widget.semanticHint,
+      button: true,
       enabled: true,
       container: true,
-      child: Container(
-        padding: widget.margin ?? const EdgeInsets.symmetric(vertical: 8),
-        child: Card(
-          color: theme.colorScheme.surfaceContainerHighest,
-          clipBehavior: Clip.hardEdge,
-          child: InkWell(
-            onTap: () => widget.onPressed(),
-            child: SizedBox(
-              height: widget.height,
-              child: Stack(
-                fit: StackFit.expand,
-                children: <Widget>[
-                  SizedBox.expand(
-                    child: SmartImage(
-                      key: ValueKey('card-button-image-${widget.image}'),
-                      url: widget.image,
-                      format: AvailableOutputFormats.jpeg,
-                    ),
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: Container(
-                      // padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          stops: const [0.0, 0.4, 0.7],
-                          colors: [
-                            theme.colorScheme.surface.withValues(alpha: 0.5),
-                            theme.colorScheme.surface.withValues(alpha: 0.9),
-                            theme.colorScheme.surface.withValues(alpha: 0.9),
-                          ],
+      onTap: widget.onPressed,
+      child: ExcludeSemantics(
+        child: Container(
+          padding: widget.margin ?? const EdgeInsets.symmetric(vertical: 8),
+          child: Card(
+            color: theme.colorScheme.surfaceContainerHighest,
+            clipBehavior: Clip.hardEdge,
+            child: InkWell(
+              onTap: () => widget.onPressed(),
+              child: SizedBox(
+                height: widget.height,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: <Widget>[
+                    ExcludeSemantics(
+                      child: SizedBox.expand(
+                        child: SmartImage(
+                          key: ValueKey('card-button-image-${widget.image}'),
+                          url: widget.image,
+                          format: AvailableOutputFormats.jpeg,
+                          excludeSemantics: true,
                         ),
                       ),
-                      child: ListTile(
-                        title: widget.headline != null
-                            ? Text(
-                                widget.headline!,
-                                style: textTheme.titleMedium?.copyWith(
-                                  color: theme.colorScheme.onSurface,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                                softWrap: true,
-                              )
-                            : null,
-                        subtitle: widget.description != null
-                            ? Padding(
-                                padding: const EdgeInsets.only(top: 8),
-                                child: Text(
-                                  widget.description!,
-                                  style: textTheme.bodyMedium?.copyWith(
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            stops: const [0.0, 0.4, 0.7],
+                            colors: [
+                              theme.colorScheme.surface.withValues(alpha: 0.5),
+                              theme.colorScheme.surface.withValues(alpha: 0.9),
+                              theme.colorScheme.surface.withValues(alpha: 0.9),
+                            ],
+                          ),
+                        ),
+                        child: ListTile(
+                          title: widget.headline != null
+                              ? Text(
+                                  widget.headline!,
+                                  style: textTheme.titleMedium?.copyWith(
                                     color: theme.colorScheme.onSurface,
                                   ),
+                                  overflow: TextOverflow.ellipsis,
                                   softWrap: true,
-                                ),
-                              )
-                            : null,
+                                )
+                              : null,
+                          subtitle: widget.description != null
+                              ? Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: Text(
+                                    widget.description!,
+                                    style: textTheme.bodyMedium?.copyWith(
+                                      color: theme.colorScheme.onSurface,
+                                    ),
+                                    softWrap: true,
+                                  ),
+                                )
+                              : null,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

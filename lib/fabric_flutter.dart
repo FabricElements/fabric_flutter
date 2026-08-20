@@ -29,6 +29,7 @@ export 'component/init_app.dart';
 export 'component/input_data.dart';
 export 'component/json_explorer_search.dart';
 export 'component/language_picker.dart';
+export 'component/live_announcer.dart';
 export 'component/logs_list.dart';
 export 'component/pagination_container.dart';
 export 'component/pagination_nav.dart';
