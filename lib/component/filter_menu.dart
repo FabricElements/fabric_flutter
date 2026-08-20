@@ -973,8 +973,13 @@ class _FilterMenuState extends State<FilterMenu> {
       activeOptions.insert(0, sortOption);
     }
 
-    /// Update index
-    activeOptions.map((e) => e.index = activeOptions.indexOf(e));
+    /// Rendering order comes from the list order established in
+    /// [_recomputeOptions], which already sorts by [FilterData.index]. The
+    /// previous renumbering pass here was a lazy `map` that never executed, and
+    /// enabling it would be wrong: it mutates shared [FilterData] objects from
+    /// `build`, assigns `0` to the first entry even though [FilterHelper]
+    /// treats a non-positive index as "unset", and renumbers the locally
+    /// constructed sort chip rather than the instance stored in [data].
 
     /// Menu List Options
     List<Widget> menuOptions = List.generate(activeOptions.length, (index) {

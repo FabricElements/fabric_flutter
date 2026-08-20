@@ -1,9 +1,13 @@
+import 'dart:async';
+import 'dart:math' show min;
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
 import '../helper/log_color.dart';
 import '../helper/serialization_error.dart';
 import '../serialized/user_data.dart';
+import '../variables.dart';
 import 'state_collection.dart';
 
 /// Provides the shared Firestore instance used by [StateUsers].
@@ -67,35 +71,149 @@ class StateUsers extends StateCollection {
   /// Returns the combined user cache keyed by user identifier.
   Map<String, UserData> get usersMap => _usersMap;
 
+  /// Limits how many identifiers a single Firestore `whereIn` query accepts.
+  ///
+  /// Firestore rejects `whereIn` filters with more than 30 values, so batched
+  /// lookups are split into chunks of this size.
+  static const int whereInLimit = 30;
+
+  /// Holds identifiers that were requested but not yet sent to Firestore.
+  final Set<String> _pendingUids = {};
+
+  /// Holds identifiers that belong to a batch currently awaiting a response.
+  ///
+  /// Combined with [_pendingUids] this guarantees that requesting the same
+  /// identifier repeatedly never produces more than one document read.
+  final Set<String> _inFlightUids = {};
+
+  /// Coalesces requests made during the same frame into a single batch.
+  Timer? _batchTimer;
+
+  /// Returns the cached [UserData] for [uid] without triggering a fetch.
+  ///
+  /// Widgets should call this from `build` and call [getUser] or
+  /// [prefetchUsers] from `initState` so that rendering never starts network
+  /// work. Returns `null` when the identifier has never been requested.
+  UserData? cachedUser(String uid) => _usersMap[uid];
+
+  /// Requests [uids] in a single batched Firestore read.
+  ///
+  /// Identifiers that are already cached, pending, or in flight are skipped, so
+  /// this is safe to call repeatedly. Prefer this over calling [getUser] in a
+  /// loop when a list of users is known up front.
+  void prefetchUsers(Iterable<String> uids) {
+    bool scheduled = false;
+    for (final uid in uids) {
+      if (_enqueueUser(uid)) scheduled = true;
+    }
+    if (scheduled) _scheduleBatch();
+  }
+
   /// Returns a user for [uid], fetching it lazily if needed.
   ///
   /// A temporary `Unknown` user is inserted immediately so callers can render a
-  /// placeholder while the Firestore lookup completes. Once the request
-  /// finishes, the cache is updated and listeners are notified.
+  /// placeholder while the Firestore lookup completes. The identifier is queued
+  /// rather than fetched on its own: every identifier requested during the same
+  /// frame is resolved with chunked `whereIn` queries and produces a single
+  /// [notifyListeners] call once the whole batch settles. That replaces the
+  /// previous behavior of one document read plus one notification per user.
   UserData getUser(String uid) {
-    if (_usersMap.containsKey(uid)) {
-      return _usersMap[uid]!;
+    final cached = _usersMap[uid];
+    if (cached != null) return cached;
+    final placeholder = UserData.fromJson({'id': uid, 'name': 'Unknown'});
+    _usersMap[uid] = placeholder;
+    if (_enqueueUser(uid)) _scheduleBatch();
+    return placeholder;
+  }
+
+  /// Adds [uid] to the pending batch and reports whether a flush is required.
+  ///
+  /// Returns `false` when the identifier is already queued or already being
+  /// fetched, which is what keeps duplicate requests from producing duplicate
+  /// reads.
+  bool _enqueueUser(String uid) {
+    if (uid.isEmpty) return false;
+    if (_inFlightUids.contains(uid)) return false;
+    return _pendingUids.add(uid);
+  }
+
+  /// Defers the flush so requests issued during one frame share a batch.
+  ///
+  /// Scheduling is skipped under [kIsTest] so widget tests never leave a
+  /// pending timer behind. Tests drive the queue with [flushPendingUsers].
+  void _scheduleBatch() {
+    if (kIsTest || _batchTimer != null) return;
+    _batchTimer = Timer(Duration.zero, _flushPendingUsers);
+  }
+
+  /// Splits [uids] into chunks that satisfy the Firestore `whereIn` limit.
+  @visibleForTesting
+  static List<List<String>> chunkUids(
+    List<String> uids, {
+    int size = whereInLimit,
+  }) {
+    assert(size > 0, 'size must be greater than zero');
+    final chunks = <List<String>>[];
+    for (int i = 0; i < uids.length; i += size) {
+      chunks.add(uids.sublist(i, min(i + size, uids.length)));
     }
-    _usersMap.addAll({
-      uid: UserData.fromJson({'id': uid, 'name': 'Unknown'}),
-    });
-    final userDocRef = db.collection('user').doc(uid);
-    userDocRef
-        .get()
-        .then((snapshot) async {
-          if (snapshot.exists) {
-            Map<String, dynamic> itemData =
-                snapshot.data() as Map<String, dynamic>;
-            itemData.addAll({'id': uid});
-            _usersMap.addAll({uid: UserData.fromJson(itemData)});
-            await Future.delayed(const Duration(milliseconds: 500));
-            notifyListeners();
-          }
-        })
-        .onError((error, stackTrace) {
-          debugPrint(LogColor.error('StateUsers.getUser: ${error.toString()}'));
+    return chunks;
+  }
+
+  /// Reads the documents for [uids] and returns their raw payloads by id.
+  ///
+  /// Returns an empty map under [kIsTest] so tests never open a real Firestore
+  /// connection. Override it in tests to supply canned documents.
+  @protected
+  @visibleForTesting
+  Future<Map<String, Map<String, dynamic>>> fetchUsersById(
+    List<String> uids,
+  ) async {
+    if (kIsTest || uids.isEmpty) return {};
+    final snapshot = await db
+        .collection('user')
+        .where(FieldPath.documentId, whereIn: uids)
+        .get();
+    return {for (final doc in snapshot.docs) doc.id: doc.data()};
+  }
+
+  /// Resolves every queued identifier and notifies listeners exactly once.
+  @visibleForTesting
+  Future<void> flushPendingUsers() async {
+    _batchTimer?.cancel();
+    _batchTimer = null;
+    if (_pendingUids.isEmpty) return;
+    final uids = _pendingUids.toList(growable: false);
+    _pendingUids.clear();
+    _inFlightUids.addAll(uids);
+    bool changed = false;
+    try {
+      final results = await Future.wait(chunkUids(uids).map(fetchUsersById));
+      for (final documents in results) {
+        documents.forEach((id, itemData) {
+          _usersMap[id] = UserData.fromJson({...itemData, 'id': id});
+          changed = true;
         });
-    return _usersMap[uid]!;
+      }
+    } catch (e) {
+      debugPrint(LogColor.error('StateUsers.getUser: ${e.toString()}'));
+    } finally {
+      _inFlightUids.removeAll(uids);
+    }
+    if (changed) notifyListeners();
+  }
+
+  /// Runs the queued batch, ignoring errors already reported by the flush.
+  void _flushPendingUsers() {
+    flushPendingUsers();
+  }
+
+  /// Cancels the pending batch timer before the notifier is torn down.
+  @override
+  void dispose() {
+    _batchTimer?.cancel();
+    _batchTimer = null;
+    super.dispose();
   }
 
   /// Returns the cached users as a list.
