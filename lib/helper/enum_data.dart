@@ -117,7 +117,10 @@ class EnumData {
     if (finalValue == null) {
       /// Find from string value
       try {
-        finalValue = enums.firstWhere((e) => describe(e) == describe(value));
+        // Describe the target once instead of on every comparison, since the
+        // value does not change while scanning the enum list.
+        final String? valueDescription = describe(value);
+        finalValue = enums.firstWhere((e) => describe(e) == valueDescription);
       } catch (e) {
         error = '!!!! Find from string: $e';
       }
