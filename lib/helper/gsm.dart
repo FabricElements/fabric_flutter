@@ -9,7 +9,7 @@ import '../serialized/gsm_data.dart';
 /// and segmentation logic throughout [GSM].
 /// https://github.com/vchatterji/gsm
 /// https://twiliodeved.github.io/message-segment-calculator/
-Map<String, int> charset7bit = {
+const Map<String, int> charset7bit = {
   '@': 1,
   '£': 1,
   '\$': 1,
@@ -154,7 +154,7 @@ Map<String, int> charset7bit = {
 /// The keys are Unicode code points and the values describe how unsupported
 /// input should be normalized before sending SMS content through systems that
 /// expect GSM-compatible text.
-final charMapToReplace = {
+const Map<int, Map<String, String>> charMapToReplace = {
   0: {'original': '', 'replace': ''},
   3: {'original': '', 'replace': ''},
   4: {'original': '', 'replace': ''},
