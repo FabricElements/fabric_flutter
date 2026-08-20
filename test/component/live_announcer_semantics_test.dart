@@ -285,6 +285,231 @@ void main() {
       );
     });
 
+    group('repeated events', () {
+      testWidgets(
+        'should announce an identical message again when the tag changes',
+        (WidgetTester tester) async {
+          // Arrange — the same label produced by two distinct send events.
+          final recorder = _AnnouncementRecorder()..start(tester);
+
+          // Act
+          await tester.pumpWidget(
+            _app(
+              const LiveAnnouncer(message: 'Message sent', announcementTag: 1),
+            ),
+          );
+          await tester.pumpAndSettle();
+          await tester.pumpWidget(
+            _app(
+              const LiveAnnouncer(message: 'Message sent', announcementTag: 2),
+            ),
+          );
+          await tester.pumpAndSettle();
+          await tester.pumpWidget(
+            _app(
+              const LiveAnnouncer(message: 'Message sent', announcementTag: 3),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          // Assert
+          expect(recorder.messages, <String>[
+            'Message sent',
+            'Message sent',
+            'Message sent',
+          ]);
+          recorder.stop(tester);
+        },
+      );
+
+      testWidgets(
+        'should not re-announce an identical message with an unchanged tag',
+        (WidgetTester tester) async {
+          // Arrange — incidental rebuilds must not re-announce the same event.
+          final recorder = _AnnouncementRecorder()..start(tester);
+
+          // Act
+          await tester.pumpWidget(
+            _app(
+              const LiveAnnouncer(message: 'Message sent', announcementTag: 7),
+            ),
+          );
+          await tester.pumpAndSettle();
+          await tester.pumpWidget(
+            _app(
+              const LiveAnnouncer(message: 'Message sent', announcementTag: 7),
+            ),
+          );
+          await tester.pumpAndSettle();
+          await tester.pumpWidget(
+            _app(
+              const LiveAnnouncer(message: 'Message sent', announcementTag: 7),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          // Assert
+          expect(recorder.messages, <String>['Message sent']);
+          recorder.stop(tester);
+        },
+      );
+
+      testWidgets(
+        'should keep deduplicating identical messages without a tag',
+        (WidgetTester tester) async {
+          // Arrange
+          final recorder = _AnnouncementRecorder()..start(tester);
+
+          // Act
+          await tester.pumpWidget(
+            _app(const LiveAnnouncer(message: 'Message sent')),
+          );
+          await tester.pumpAndSettle();
+          await tester.pumpWidget(
+            _app(const LiveAnnouncer(message: 'Message sent')),
+          );
+          await tester.pumpAndSettle();
+
+          // Assert
+          expect(recorder.messages, <String>['Message sent']);
+          recorder.stop(tester);
+        },
+      );
+
+      testWidgets('should announce a different message with no tag', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
+        final recorder = _AnnouncementRecorder()..start(tester);
+
+        // Act
+        await tester.pumpWidget(
+          _app(const LiveAnnouncer(message: 'Message sent')),
+        );
+        await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          _app(const LiveAnnouncer(message: 'Message failed')),
+        );
+        await tester.pumpAndSettle();
+
+        // Assert
+        expect(recorder.messages, <String>['Message sent', 'Message failed']);
+        recorder.stop(tester);
+      });
+
+      testWidgets(
+        'should stay silent on mount with a tag when announceOnMount is false, '
+        'then announce the same message on a later tag change',
+        (WidgetTester tester) async {
+          // Arrange
+          final recorder = _AnnouncementRecorder()..start(tester);
+
+          // Act
+          await tester.pumpWidget(
+            _app(
+              const LiveAnnouncer(
+                message: 'Message sent',
+                announcementTag: 1,
+                announceOnMount: false,
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+          // Same message and tag: still silent.
+          await tester.pumpWidget(
+            _app(
+              const LiveAnnouncer(
+                message: 'Message sent',
+                announcementTag: 1,
+                announceOnMount: false,
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+          // A new event with the same label must announce.
+          await tester.pumpWidget(
+            _app(
+              const LiveAnnouncer(
+                message: 'Message sent',
+                announcementTag: 2,
+                announceOnMount: false,
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          // Assert
+          expect(recorder.messages, <String>['Message sent']);
+          recorder.stop(tester);
+        },
+      );
+
+      testWidgets('should reset the tagged state on a blank message', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
+        final recorder = _AnnouncementRecorder()..start(tester);
+
+        // Act
+        await tester.pumpWidget(
+          _app(
+            const LiveAnnouncer(message: 'Message sent', announcementTag: 1),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          _app(const LiveAnnouncer(message: '   ', announcementTag: 1)),
+        );
+        await tester.pumpAndSettle();
+        // The same message and the same tag announce again after the reset.
+        await tester.pumpWidget(
+          _app(
+            const LiveAnnouncer(message: 'Message sent', announcementTag: 1),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Assert
+        expect(recorder.messages, <String>['Message sent', 'Message sent']);
+        recorder.stop(tester);
+      });
+
+      testWidgets('should keep the live region label across tag changes', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
+        final handle = tester.ensureSemantics();
+
+        // Act
+        await tester.pumpWidget(
+          _app(
+            const LiveAnnouncer(
+              message: 'Message sent',
+              announcementTag: 1,
+              child: Text('Composer'),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          _app(
+            const LiveAnnouncer(
+              message: 'Message sent',
+              announcementTag: 2,
+              child: Text('Composer'),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Assert
+        final node = tester.getSemantics(find.byType(LiveAnnouncer));
+        expect(node.flagsCollection.isLiveRegion, isTrue);
+        expect(node.label, contains('Message sent'));
+        handle.dispose();
+      });
+    });
+
     group('semantics', () {
       testWidgets('should expose a live region node carrying the message', (
         WidgetTester tester,

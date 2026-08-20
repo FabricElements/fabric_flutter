@@ -32,12 +32,44 @@ import 'package:flutter/semantics.dart';
 /// [State.mounted] check, so a widget that is disposed while the frame is in
 /// flight never announces.
 ///
+/// ## State versus events: when deduplication is wrong
+///
+/// Deduplication is deliberate and load-bearing for **state**: "3 results
+/// found" describes a condition, so announcing it once per *change* is exactly
+/// right and announcing it on every rebuild would be spam.
+///
 /// ```dart
+/// // State: the message describes a condition. Dedup is what you want.
 /// LiveAnnouncer(
 ///   message: state.loading ? 'Loading results' : '${state.items.length} results',
 ///   child: ResultsList(items: state.items),
 /// );
 /// ```
+///
+/// It is wrong for **events**. Two taps on *Send* are two distinct real-world
+/// occurrences that happen to share the label "Message sent"; with pure message
+/// deduplication the second one is silently dropped and the screen-reader user
+/// gets no confirmation that it happened. [announcementTag] exists for that
+/// case: the deduplication key becomes the pair ([message], [announcementTag])
+/// instead of [message] alone, so an identical message paired with a *new* tag
+/// is announced again.
+///
+/// ```dart
+/// // Event: the same label can legitimately repeat. Tag it with the event's
+/// // identity — a counter, a timestamp, or an id — so each occurrence speaks.
+/// LiveAnnouncer(
+///   message: sendResult, // 'Message sent'
+///   announcementTag: sendAttempt, // incremented once per tap on Send
+///   child: const ComposerActions(),
+/// );
+/// ```
+///
+/// A tag is used rather than a `forceRepeat` flag on purpose: a flag cannot
+/// tell "this is a new event" apart from "this widget rebuilt for an unrelated
+/// reason", so it would re-announce on incidental rebuilds and reintroduce the
+/// spam the deduplication prevents. A tag ties re-announcement to an explicit,
+/// caller-owned event identity — an unchanged tag still deduplicates, no matter
+/// how often the widget rebuilds.
 ///
 /// Use [assertiveness] to interrupt the user for genuinely urgent messages, and
 /// [announce] / [liveRegion] to opt out of either mechanism when a host
@@ -56,12 +88,14 @@ class LiveAnnouncer extends StatefulWidget {
     this.announce = true,
     this.liveRegion = true,
     this.announceOnMount = true,
+    this.announcementTag,
   });
 
   /// Stores the message announced to assistive technology.
   ///
-  /// Announced only when the value differs from the previously announced one.
-  /// `null`, empty, and whitespace-only values announce nothing.
+  /// Announced only when the value differs from the previously announced one,
+  /// or when [announcementTag] changed. `null`, empty, and whitespace-only
+  /// values announce nothing.
   final String? message;
 
   /// Stores the optional subtree rendered inside the live region.
@@ -104,6 +138,22 @@ class LiveAnnouncer extends StatefulWidget {
   /// node, only the direct [SemanticsService.sendAnnouncement] on mount.
   final bool announceOnMount;
 
+  /// Stores the caller-owned identity of the occurrence being announced.
+  ///
+  /// Extends deduplication from [message] alone to the pair ([message], this
+  /// value), which is what makes a *repeated event* announceable. Defaults to
+  /// `null`, in which case behavior is identical to deduplicating on [message]
+  /// only — existing call sites are unaffected.
+  ///
+  /// Pass a value that changes once per real occurrence — a send counter, a
+  /// timestamp, an event id — when the same text can legitimately be announced
+  /// again ("Message sent" after a second tap on *Send*). An identical message
+  /// carrying a *new* tag is announced again; an identical message carrying the
+  /// *same* tag is still suppressed, so incidental rebuilds never re-announce.
+  ///
+  /// Compared with `==`, so any value with meaningful equality works.
+  final Object? announcementTag;
+
   /// Creates the mutable [State] used to track the announced message.
   ///
   /// Returns a [_LiveAnnouncerState] so deduplication survives rebuilds.
@@ -113,20 +163,27 @@ class LiveAnnouncer extends StatefulWidget {
 
 /// Holds the deduplication state for [LiveAnnouncer].
 ///
-/// Remembers the last message handed to the platform so an unchanged message is
-/// never announced twice, and schedules announcements after the current frame.
+/// Remembers the last message handed to the platform, together with the tag it
+/// was paired with, so an unchanged pair is never announced twice, and schedules
+/// announcements after the current frame.
 class _LiveAnnouncerState extends State<LiveAnnouncer> {
   /// Stores the last message that was actually announced.
   ///
   /// Compared against the incoming [LiveAnnouncer.message] to suppress repeats.
   String? _announced;
 
+  /// Stores the tag that [_announced] was paired with when it was announced.
+  ///
+  /// Compared against the incoming [LiveAnnouncer.announcementTag] so an
+  /// identical message carrying a new tag is announced again.
+  Object? _announcedTag;
+
   /// Announces the initial message when the widget enters the tree.
   ///
   /// Uses a post-frame callback because [View.of] and [Directionality.of]
   /// require a fully mounted element. When [LiveAnnouncer.announceOnMount] is
-  /// `false`, the deduplication state is seeded with the current message instead
-  /// so only later transitions are announced.
+  /// `false`, the deduplication state is seeded with the current message *and*
+  /// tag instead, so only later transitions of either are announced.
   @override
   void initState() {
     super.initState();
@@ -134,6 +191,7 @@ class _LiveAnnouncerState extends State<LiveAnnouncer> {
       _schedule();
     } else {
       _announced = _message;
+      _announcedTag = widget.announcementTag;
     }
   }
 
@@ -158,17 +216,21 @@ class _LiveAnnouncerState extends State<LiveAnnouncer> {
 
   /// Schedules an announcement for the current message when it changed.
   ///
-  /// Resets the deduplication state for an empty message, skips unchanged
-  /// messages, and defers the platform call to the end of the frame so it is
+  /// Resets the deduplication state for an empty message, skips messages whose
+  /// ([LiveAnnouncer.message], [LiveAnnouncer.announcementTag]) pair is
+  /// unchanged, and defers the platform call to the end of the frame so it is
   /// safe to call from [initState] and [State.build] driven updates.
   void _schedule() {
     final message = _message;
+    final tag = widget.announcementTag;
     if (message == null) {
       _announced = null;
+      _announcedTag = null;
       return;
     }
-    if (message == _announced) return;
+    if (message == _announced && tag == _announcedTag) return;
     _announced = message;
+    _announcedTag = tag;
     if (!widget.announce) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
