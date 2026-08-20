@@ -151,10 +151,14 @@ class LogsList extends StatelessWidget {
       } else {
         textFormatted.add(TextSpan(text: text));
       }
-      dynamic id = item.id ?? Utils.createCryptoRandomString(8);
       List<PopupMenuEntry<String>> buttons = [];
       Widget? actionsWidgets;
       if (actions != null) {
+        // Only synthesize a fallback id when actions exist, since it is used
+        // solely as the argument passed to an action's onTap. Computing it for
+        // every entry on every build ran a secure RNG needlessly when the list
+        // had no actions (the common case).
+        dynamic id = item.id ?? Utils.createCryptoRandomString(8);
         for (ButtonOptions option in actions!) {
           buttons.add(
             PopupMenuItem<String>(
