@@ -781,11 +781,6 @@ class ViewAuthPageState extends State<ViewAuthPage> {
             FilteringTextInputFormatter.digitsOnly,
           ],
           onChanged: (value) {
-            state.phoneVerificationCode = (value ?? '').replaceAll(
-              RegExp(r'\D'),
-              '',
-            );
-
             state.phoneVerificationCode = value;
             if (mounted) setState(() {});
           },

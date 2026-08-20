@@ -11,6 +11,12 @@ import 'log_color.dart';
 /// Identifies the query dialect used when serializing filters.
 enum SQLQueryType { sql, openSearch, bigQuery }
 
+/// Formats a [DateTime] as a `yyyy-MM-dd` date string for date filters.
+///
+/// Hoisted to file scope so [FilterHelper.valueFromType] reuses one formatter
+/// instead of constructing a new [DateFormat] on every date value it serializes.
+final DateFormat _filterDateFormat = DateFormat('yyyy-MM-dd');
+
 /// Transforms [FilterData] objects into query strings, JSON, and in-memory filters.
 ///
 /// This helper is shared by state and data layers that need to serialize the same
@@ -31,13 +37,12 @@ class FilterHelper {
     switch (dataType) {
       case InputDataType.date:
         final baseDate = (value as DateTime).toUtc();
-        final DateFormat formatter = DateFormat('yyyy-MM-dd');
         final endDateFormatted = DateTime.utc(
           baseDate.year,
           baseDate.month,
           baseDate.day,
         );
-        final formatted = formatter.format(endDateFormatted);
+        final formatted = _filterDateFormat.format(endDateFormatted);
         response = '"$formatted"';
         break;
       case InputDataType.dateTime:

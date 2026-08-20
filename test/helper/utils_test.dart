@@ -43,4 +43,33 @@ void main() {
       expect(a, isNot(equals(b)));
     });
   });
+
+  group('Utils.dateToJson', () {
+    test('should return null for null input', () {
+      // Arrange, Act & Assert
+      expect(Utils.dateToJson(null), isNull);
+    });
+
+    test('should format a date as a UTC yyyy-MM-dd string', () {
+      // Arrange
+      final date = DateTime.utc(2024, 3, 7, 18, 45);
+
+      // Act
+      final result = Utils.dateToJson(date);
+
+      // Assert
+      expect(result, '2024-03-07');
+    });
+
+    test('should normalize the value to UTC before formatting', () {
+      // Arrange — a local time late in the day whose UTC date may differ.
+      final date = DateTime.utc(2024, 12, 31, 23, 59).toLocal();
+
+      // Act
+      final result = Utils.dateToJson(date);
+
+      // Assert
+      expect(result, '2024-12-31');
+    });
+  });
 }
