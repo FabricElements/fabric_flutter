@@ -98,6 +98,8 @@ export 'helper/redirect_app.dart';
 export 'helper/regex_helper.dart';
 export 'helper/route_helper.dart';
 export 'helper/serialization_error.dart';
+export 'helper/url_safety.dart';
+export 'helper/user_query.dart';
 export 'helper/user_roles.dart';
 export 'helper/user_roles_firebase.dart';
 export 'helper/utils.dart';

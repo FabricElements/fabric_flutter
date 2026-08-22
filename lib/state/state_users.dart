@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 
 import '../helper/log_color.dart';
 import '../helper/serialization_error.dart';
+import '../helper/user_query.dart';
 import '../serialized/user_data.dart';
 import '../variables.dart';
 import 'state_collection.dart';
@@ -63,10 +64,13 @@ class StateUsers extends StateCollection {
   /// Returns the combined user cache keyed by user identifier.
   Map<String, UserData> get usersMap => _usersMap;
 
-  /// Limits how many identifiers a single Firestore `whereIn` query accepts.
+  /// Limits how many identifiers a single batched lookup resolves at once.
   ///
-  /// Firestore rejects `whereIn` filters with more than 30 values, so batched
-  /// lookups are split into chunks of this size.
+  /// The value dates from the Firestore `whereIn` cap of 30 values. Lookups are
+  /// now issued as individual document `get` operations, so the constant no
+  /// longer satisfies a query restriction; it bounds how many reads are in
+  /// flight concurrently. The name is retained because it is part of the public
+  /// API.
   static const int whereInLimit = 30;
 
   /// Holds identifiers that were requested but not yet sent to Firestore.
@@ -138,7 +142,7 @@ class StateUsers extends StateCollection {
     _batchTimer = Timer(Duration.zero, _flushPendingUsers);
   }
 
-  /// Splits [uids] into chunks that satisfy the Firestore `whereIn` limit.
+  /// Splits [uids] into chunks that bound concurrent document reads.
   @visibleForTesting
   static List<List<String>> chunkUids(
     List<String> uids, {
@@ -154,6 +158,18 @@ class StateUsers extends StateCollection {
 
   /// Reads the documents for [uids] and returns their raw payloads by id.
   ///
+  /// Each identifier is fetched with `doc(uid).get()` rather than through a
+  /// single `whereIn` filter on [FieldPath.documentId]. Both forms bill one read
+  /// per returned document, but a `whereIn` filter is a Firestore **`list`**
+  /// operation while a document fetch is a **`get`**. Splitting them lets a
+  /// consuming project keep `allow get` open for the users a caller may resolve
+  /// while denying `allow list` on the collection outright, which is impossible
+  /// as long as the client issues a collection query. Reads run concurrently, so
+  /// a batch still resolves in roughly one round trip.
+  ///
+  /// Documents that do not exist are omitted, matching the previous behavior of
+  /// a `whereIn` query, which returned only the identifiers it found.
+  ///
   /// Returns an empty map under [kIsTest] so tests never open a real Firestore
   /// connection. Override it in tests to supply canned documents.
   @protected
@@ -162,11 +178,14 @@ class StateUsers extends StateCollection {
     List<String> uids,
   ) async {
     if (kIsTest || uids.isEmpty) return {};
-    final snapshot = await db
-        .collection('user')
-        .where(FieldPath.documentId, whereIn: uids)
-        .get();
-    return {for (final doc in snapshot.docs) doc.id: doc.data()};
+    final collection = UserQuery.collection();
+    final snapshots = await Future.wait(
+      uids.map((uid) => collection.doc(uid).get()),
+    );
+    return {
+      for (final doc in snapshots)
+        if (doc.exists) doc.id: doc.data() ?? <String, dynamic>{},
+    };
   }
 
   /// Resolves every queued identifier and notifies listeners exactly once.

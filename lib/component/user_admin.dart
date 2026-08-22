@@ -9,6 +9,7 @@ import '../helper/app_localizations_delegate.dart';
 import '../helper/options.dart';
 import '../helper/user_roles.dart';
 import '../helper/user_roles_firebase.dart';
+import '../helper/user_query.dart';
 import '../serialized/user_data.dart';
 import '../state/state_user.dart';
 import '../state/state_users.dart';
@@ -17,6 +18,31 @@ import 'content_container.dart';
 import 'pagination_container.dart';
 import 'user_add_update.dart';
 import 'user_avatar.dart';
+
+/// Resolves the Firestore query [UserAdmin] uses to list users.
+///
+/// Returns a query scoped to [group] when one is supplied, so the constraint
+/// travels in the query's filters where a Firestore `list` rule can require it.
+/// Without a group the listing is ordered by `name` across the whole
+/// collection, which a consuming project must explicitly permit; supply [query]
+/// to start from a reference already narrowed to the accounts the signed-in
+/// user belongs to.
+///
+/// Exposed separately from `build` so the scoping decision can be asserted
+/// without mounting the widget and its provider tree.
+@visibleForTesting
+Query<Map<String, dynamic>> resolveUserAdminQuery({
+  String? group,
+  Query<Map<String, dynamic>>? query,
+}) {
+  final Query<Map<String, dynamic>> baseQuery = query ?? UserQuery.collection();
+  final bool fromCollection = group != null && group.isNotEmpty;
+  if (!fromCollection) return baseQuery.orderBy('name');
+  // Scope with an explicit filter, not ordering alone. The result set is
+  // unchanged — Firestore already omitted documents without the ordered field —
+  // but the constraint is now something a `list` rule can match against.
+  return UserQuery.byGroup(group: group, query: baseQuery);
+}
 
 /// Builds a user administration interface for inviting and managing users.
 ///
@@ -53,6 +79,7 @@ class UserAdmin extends StatelessWidget {
     this.prefix,
     this.passwordError,
     this.passwordRegex,
+    this.query,
   });
 
   /// Provides the empty-state widget when no users are available.
@@ -192,6 +219,18 @@ class UserAdmin extends StatelessWidget {
   /// password.
   final String? passwordError;
 
+  /// Overrides the Firestore query used to list users.
+  ///
+  /// Supply a query already narrowed to the accounts the signed-in user belongs
+  /// to when neither [group] nor a collection-wide read is appropriate. The
+  /// widget applies its ordering on top of the supplied query and never widens
+  /// it, so this is the way to keep the listing scoped in a project whose
+  /// Firestore rules deny unscoped `list` on the user collection.
+  ///
+  /// Leaving this `null` preserves the previous behavior: a [group] read scoped
+  /// to `groups.<group>`, or an ordered read across the whole collection.
+  final Query<Map<String, dynamic>>? query;
+
   /// Builds the user administration interface.
   ///
   /// Connects [StateUser] and [StateUsers] to a Firestore-backed query,
@@ -226,18 +265,12 @@ class UserAdmin extends StatelessWidget {
     stateUser.onError = apiError;
     state.onError = apiError;
 
-    Query<Map<String, dynamic>> baseQuery = FirebaseFirestore.instance
-        .collection('user');
-    Query<Map<String, dynamic>> query = baseQuery;
-
-    // Order by role for global users, because the role key is only available for
-    // parent users.
-    query = query.orderBy('name');
+    final Query<Map<String, dynamic>> resolvedQuery = resolveUserAdminQuery(
+      group: group,
+      query: query,
+    );
     bool fromCollection = group != null && group!.isNotEmpty;
-    if (fromCollection) {
-      query = baseQuery.orderBy('groups.$group');
-    }
-    state.query = query;
+    state.query = resolvedQuery;
     state.listen();
 
     Widget space = Container(width: 16);

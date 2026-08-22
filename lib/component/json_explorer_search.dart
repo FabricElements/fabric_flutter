@@ -6,7 +6,7 @@ import 'package:gap/gap.dart';
 import 'package:json_explorer/json_explorer.dart';
 import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-import 'package:url_launcher/url_launcher_string.dart';
+import '../helper/url_safety.dart';
 
 import '../helper/app_localizations_delegate.dart';
 import 'alert_data.dart';
@@ -454,19 +454,25 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
   ///
   /// Restricting link behavior to recognizable absolute URLs keeps plain text
   /// values from looking interactive when they are only descriptive strings.
+  /// Reports whether [value] is a string that is safe to open as a link.
+  ///
+  /// Delegates to [UrlSafety.isSafe] so a `file:`, `data:`, or `javascript:`
+  /// value in the explored payload is never rendered as tappable. Parsing alone
+  /// is not a check: `Uri.tryParse('file:///etc/passwd')` succeeds and reports
+  /// an absolute path.
   bool _valueIsUrl(dynamic value) {
     if (value is String) {
-      return Uri.tryParse(value)?.hasAbsolutePath ?? false;
+      return UrlSafety.isSafe(value);
     }
     return false;
   }
 
   /// Launches the detected URL with the platform handler.
   ///
-  /// Delegating to [launchUrlString] preserves platform-specific behavior so the
-  /// widget does not need to know whether the target opens in a browser or a
-  /// native app.
+  /// Delegating to [UrlSafety.launch] preserves platform-specific behavior while
+  /// re-validating the scheme at the moment of launch, so the guard holds even
+  /// if the value changed after it was rendered.
   Future _launchUrl(String url) {
-    return launchUrlString(url);
+    return UrlSafety.launch(url);
   }
 }

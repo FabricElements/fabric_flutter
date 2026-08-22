@@ -93,6 +93,8 @@ lib/
 │   ├── firebase_storage_helper.dart, media_helper.dart
 │   ├── route_helper.dart       # Auth-aware route table builder (RouteHelper)
 │   ├── provider_helper.dart    # ProviderHelper.isProviderDefined<T>(context)
+│   ├── user_query.dart         # Account-scoped `user` collection queries (UserQuery)
+│   ├── url_safety.dart         # Scheme allow-list before launchUrl / WebView (UrlSafety)
 │   ├── options.dart, utils.dart, format_data.dart, input_validation.dart
 │   ├── iso_countries.dart, iso_language.dart, gsm.dart, jwt.dart, regex_helper.dart
 │   └── app_localizations_delegate.dart, log_color.dart, user_roles*.dart
@@ -359,6 +361,64 @@ Host apps must add the platform permissions below; the package itself ships no `
 
 ---
 
+## Security model & data access
+
+`fabric_flutter` ships inside an untrusted client. Assume the binary can be decompiled, patched, and re-signed. **Nothing in this package is a security control** — the security boundary is Firestore Security Rules, Cloud Functions, and Cloud Storage rules in the consuming project. Full rules with `file:line` citations live in [`.github/instructions/security.instructions.md`](.github/instructions/security.instructions.md).
+
+### Account-scoped user queries (`UserQuery`)
+
+Firestore evaluates a `list` operation by matching the rule against the query's **filters**. An `orderBy` restricts which documents come back, but it is *not* a constraint a rule can require, and `request.query` exposes only `limit`, `offset`, and `orderBy`. A `list` rule therefore cannot distinguish a legitimate ordered read from an enumeration of the whole collection — so a project **cannot tighten `list` at all** while a client still issues an unfiltered collection query.
+
+`UserQuery` (`lib/helper/user_query.dart`) expresses the scope as a filter, which is what lets a consuming project deny unscoped listing:
+
+```dart
+// Scoped: carries `groups.<group> != null` as a filter and leads the ordering
+// with the same field. Same documents as before; now visible to a `list` rule.
+final query = UserQuery.byGroup(group: 'acme');
+
+// Reports whether a query is constrained to an account, ignoring ordering.
+UserQuery.isScoped(query); // true
+```
+
+Both listing entry points scope automatically when given a `group`, and both accept a caller-supplied query so a project whose rules deny unscoped listing can pass one it has already narrowed:
+
+```dart
+// Scoped by group.
+UserAdmin(group: 'acme');
+await UserRolesFirebase.getUsers(group: 'acme');
+
+// Or supply a query narrowed however the project requires.
+UserAdmin(query: myScopedQuery);
+await UserRolesFirebase.getUsers(query: myScopedQuery);
+```
+
+Without a `group` and without a `query`, both still read across the whole collection. That default is preserved deliberately so pinned consumers do not break, and it requires the project to permit unscoped `list`.
+
+`StateUsers` resolves batched lookups with per-document `get` reads rather than a `whereIn` filter on `FieldPath.documentId`. A `whereIn` filter is a **`list`**; reading by id is a **`get`**. Splitting them lets a project keep `allow get` open for resolvable users while denying `allow list` outright. Billed reads are unchanged.
+
+### Untrusted URLs (`UrlSafety`)
+
+`Uri.parse` succeeding is not validation — it accepts `javascript:alert(1)` and `file:///etc/passwd`. `UrlSafety` (`lib/helper/url_safety.dart`) enforces an `https`/`http` **allow-list** plus a non-empty host before anything reaches `launchUrl`:
+
+```dart
+if (UrlSafety.isSafe(value)) await UrlSafety.launch(value);
+```
+
+`ExpansionTable`, `JsonExplorerSearch`, and `GoogleChartContainer` route through it, and render a value as tappable only when it passes.
+
+### What the consuming project must enforce
+
+Client-side role checks (`StateUser.admin`, `StateUser.accessByRole`, `UserRoles.roleFromData`) decide **what to render** and nothing more. The project must enforce server-side:
+
+- Every role and group check that gates data.
+- The `user-actions-add`, `user-actions-remove`, and `user-actions-role` callables — the client sends `UserData.toJson()` plus a `group`, so the function must **allow-list** the fields it accepts and never let a caller-supplied `role`, `roles`, or `groups` map reach a write.
+- `list` and `get` on the user collection.
+- Cloud Storage access: `FirebaseStorageHelper` reads and writes objects **directly**, with no application logic in between. Path, content type, size, and read access are governed *only* by Storage rules.
+
+`IframeMinimal` on native enables unrestricted JavaScript and permits every navigation request, so its `src` must be **trusted** content.
+
+---
+
 ## Testing, Goldens & Verification Suite
 
 The verification suite is built on `package:flutter_test`. Tests live under the root `test/` directory and **mirror the structure and naming of `lib/`**, suffixed with `_test.dart` (e.g. `lib/helper/jwt.dart` → `test/helper/jwt_test.dart`).
@@ -402,6 +462,9 @@ This repository is heavily optimized for AI-assisted workflows using **GitHub Co
 
 > [!IMPORTANT]
 > Before editing or generating code, review **[`.github/copilot-instructions.md`](.github/copilot-instructions.md)** — it is the canonical source of truth for conventions. Ensure your AI chat assistant is grounded in that file (and the scoped rules under `.github/instructions/`) so suggestions remain consistent with the codebase.
+
+> [!WARNING]
+> Changes under `lib/` must also follow **[`.github/instructions/security.instructions.md`](.github/instructions/security.instructions.md)**, which records the client trust boundary and the query-scoping rules with `file:line` citations. General practice for FabricElements shared packages lives in [`.github/instructions/cross-repo.instructions.md`](.github/instructions/cross-repo.instructions.md).
 
 Key parameters enforced for both humans and AI:
 

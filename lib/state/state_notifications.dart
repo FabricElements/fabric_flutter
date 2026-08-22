@@ -125,7 +125,11 @@ class StateNotifications extends ChangeNotifier {
       final apnsToken = await FirebaseMessaging.instance.getAPNSToken();
       if (apnsToken != null) {
         // APNS token is available, make FCM plugin API requests...
-        debugPrint(LogColor.success('APNS token: $apnsToken'));
+        // The token is a bearer credential for pushing to this device, so it is
+        // logged only in debug builds. `debugPrint` is not stripped in release.
+        if (kDebugMode) {
+          debugPrint(LogColor.success('APNS token resolved'));
+        }
       }
     } catch (error) {
       debugPrint(

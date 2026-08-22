@@ -2,6 +2,19 @@
 
 Trust these instructions. Only search the codebase if the information here is incomplete or found to be in error. This file is the **canonical, global source of truth** for conventions in this repository; the scoped rules under `.github/instructions/` refine it for specific file globs.
 
+## Instruction file index
+
+| File | `applyTo` | Covers |
+| --- | --- | --- |
+| `.github/instructions/security.instructions.md` | `lib/**/*.dart` + platform dirs | Client trust boundary, query scoping, public-vs-secret keys, in-flight locks, URL validation, what consumers must enforce server-side. **Read before changing `lib/`.** |
+| `.github/instructions/cross-repo.instructions.md` | `**` | Replicated FabricElements security & agent playbook: library-defaults-as-consumer-posture, evidence standards, breaking-change discipline, public-repo hygiene. Canonical elsewhere — do not edit locally. |
+| `.github/instructions/documentation.instructions.md` | `lib/**/*.dart` | Effective Dart doc comments for every public **and** private API element. |
+| `.github/instructions/serialized-models.instructions.md` | `lib/serialized/**/*.dart` | `@JsonSerializable` conventions, null-tolerant `fromJson`, regenerating `*.g.dart`. |
+| `.github/instructions/tests.instructions.md` | `test/**/*.dart` | Mirrored layout, Arrange–Act–Assert, no live I/O. |
+| `.github/instructions/readme.instructions.md` | `README.md`, `CHANGELOG.md` | Structure and tone for the two long-form docs. |
+
+**This repository is public.** Never add a reference to a private consumer repository, its infrastructure, project identifiers, service accounts, internal data model, brand, or security findings. Generic security lessons are fine; the identity of who was affected is not.
+
 ---
 
 ## 1. Project Overview & Tech Stack
@@ -154,11 +167,28 @@ Style rules:
 
 ## 6. Security Guardrails
 
+> **Full rules — including every `file:line` citation — live in `.github/instructions/security.instructions.md`. Read it before changing anything under `lib/`.**
+
 - **Never commit secrets, API keys, service-account files, or Firebase credentials.** They belong in the consumer app's environment/CI, never in this package.
 - **Never log tokens or credentials** (see §5). Treat `Authorization` headers, ID tokens, and custom claims as sensitive.
 - **Authorization is enforced server-side.** Client-side role/claim checks (`StateUser`, `user_roles.dart`) are for UX only; assume Firestore Security Rules and Cloud Functions are the real gate.
 - **Validate and sanitize input** with `InputValidation` / `regex_helper.dart` before use; never interpolate untrusted input into queries or dynamic code.
 - Use `kIsTest` (`lib/variables.dart`) so production code skips real Firebase/platform calls under `FLUTTER_TEST` — tests must never open real connections.
+
+### Security invariants
+
+These are the invariants an audit checks. Breaking one is never a patch release.
+
+1. **The client is untrusted.** This package ships in a binary the operator does not control. Nothing here is a security control; it produces a coherent UI. The boundary is Firestore rules, Cloud Functions, and Storage rules in the consuming project.
+2. **A collection query carries its scope in a `where` filter, never in an `orderBy` alone.** Firestore matches a `list` rule against the query's *filters*; `request.query` exposes only `limit`, `offset`, and `orderBy`. An ordered-but-unfiltered query is indistinguishable from an enumeration, so a project cannot tighten `list` while one exists. Build `user` queries through `UserQuery` (`lib/helper/user_query.dart`).
+3. **Prefer a `get` over a `list`.** A `whereIn` on `FieldPath.documentId` is still a `list`. Reading by id is a `get` and can be gated separately — see `StateUsers.fetchUsersById`.
+4. **Client-side role checks are UX.** `StateUser.admin`, `StateUser.accessByRole`, and `UserRoles.roleFromData` decide what to render, nothing more.
+5. **Public-by-design keys are not leaks.** Firebase Web API keys, Maps browser keys, reCAPTCHA *site* keys, and OAuth *client ids* ship to every client. Service-account JSON, private API keys, and attestation **debug tokens** are genuine secrets and must never appear here.
+6. **A paid or side-effecting action holds an in-flight lock set *before* the first `await`** and cleared in a `finally`. A guard set after an `await` is not a lock.
+7. **An untrusted URL never reaches a launcher or WebView unvalidated.** Use `UrlSafety` (`lib/helper/url_safety.dart`); a scheme allow-list, not a denylist. `Uri.parse` succeeding is not validation.
+8. **`debugPrint` runs in release builds.** Anything diagnostic is wrapped in `if (kDebugMode)`, and credentials, tokens, and PII are never logged at all.
+9. **Direct Cloud Storage access has no server-side logic in front of it.** Objects touched by `FirebaseStorageHelper` are governed *only* by the consuming project's Storage rules.
+10. **Never reference a private consumer** — its repository, infrastructure, project identifiers, brand, internal data model, or security findings. This repository is public.
 
 ---
 
