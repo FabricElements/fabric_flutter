@@ -41,6 +41,7 @@ class GoogleMapsSearch extends StatefulWidget {
     this.description,
     this.baseUrl = 'https://maps.googleapis.com/maps/api',
     this.autofocus = false,
+    this.clientFactory = http.Client.new,
   });
 
   /// Receives the fully populated [Place] after the user selects a search result.
@@ -118,6 +119,13 @@ class GoogleMapsSearch extends StatefulWidget {
   /// immediately.
   final bool autofocus;
 
+  /// Creates the HTTP client used for Google Places requests.
+  ///
+  /// The state creates one client when mounted, reuses it for autocomplete and
+  /// place-details requests, and closes it on disposal. The default creates a
+  /// standard [http.Client], while callers may inject a custom transport.
+  final http.Client Function() clientFactory;
+
   /// Narrows queries to supported Google Place types when provided.
   ///
   /// The list is joined into the comma-separated format expected by the Google
@@ -145,6 +153,11 @@ class GoogleMapsSearch extends StatefulWidget {
 /// The state keeps transient UI values local so [GoogleMapsSearch] can react to
 /// parent updates while still coordinating asynchronous Google Places requests.
 class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
+  /// Sends autocomplete and place-details requests for this state lifecycle.
+  ///
+  /// The client is created once in [initState] and closed in [dispose].
+  late final http.Client _httpClient;
+
   /// Controls the search field text so it can be cleared after parent updates.
   ///
   /// Keeping a dedicated [TextEditingController] lets the state reset the field
@@ -245,15 +258,17 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
   @override
   void initState() {
     super.initState();
+    _httpClient = widget.clientFactory();
     resetDefaultValues();
     getParentValues();
     loading = false;
     requiredFields = [...searchFields, 'geometry/location', ...widget.fields];
   }
 
-  /// Releases the search field controller when the widget is removed from the tree.
+  /// Releases owned resources when the widget is removed from the tree.
   @override
   void dispose() {
+    _httpClient.close();
     textController.dispose();
     super.dispose();
   }
@@ -293,7 +308,7 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
       };
       Uri url = Uri.parse('${widget.baseUrl}/place/details/json');
       url = url.replace(queryParameters: queryParameters);
-      final response = await http.get(url);
+      final response = await _httpClient.get(url);
       dynamic newData = HTTPRequest.response(response);
       if (newData != null) debugPrint('Place Response Data: $newData');
       final placeResponse = PlaceResponse.fromJson(newData);
@@ -387,7 +402,7 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
                           '${widget.baseUrl}/place/findplacefromtext/json',
                         );
                         url = url.replace(queryParameters: queryParameters);
-                        final response = await http.get(url);
+                        final response = await _httpClient.get(url);
                         dynamic newData = HTTPRequest.response(response);
                         final search = PlacesResponse.fromJson(newData);
                         if (search.errorMessage != null) {
