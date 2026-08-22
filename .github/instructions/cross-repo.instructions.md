@@ -209,10 +209,26 @@ yours.
   form is self-cancelling when wrong.
 - **State-dependent claims carry an implicit timestamp.** A hash, a test count or a merge check must
   be re-measured, not re-quoted.
+- **A control can exist, pass its tests, and still be inert.** The code is correct and the tests are
+  honest, but an **external precondition owned by someone else** is missing — a caller that never
+  supplies the input, a database index that was never created, an operational setting nobody
+  applied. For any control you ship, name what must be true *outside this package* for it to
+  actually run. Beware best-effort paths that degrade to a warning: their failure is
+  indistinguishable from "nothing to do".
+- **A green suite can be self-contradictory.** Two individually-passing tests can encode opposite
+  models of the same behaviour; no per-test review and no coverage metric reveals it, because
+  coverage is complete. Only the test that *composes* them fails. When a comment and the code
+  disagree, write the composed test before believing either.
 - **Never add co-authorship attribution.** No `Co-authored-by:` trailer on any commit, pull request
   or merge, regardless of tooling defaults. A rebase, amend or squash re-creates commit messages, so
   re-check after one: `git log <base>..HEAD --format='%B' | grep -ci 'co-authored-by'` must print
   `0` — and positive-control the grep, because a zero from an untested probe is not evidence.
+  **A clean message check is necessary but NOT sufficient.** GitHub's squash merge generates
+  `Co-authored-by:` trailers **server-side, from the authorship of the squashed commits**. A branch
+  whose every commit message greps clean still produces a merge commit carrying the trailer if any
+  commit's *author* differs from the merging identity, and a local `commit-msg` hook cannot
+  intercept it — it never runs. So also assert authorship:
+  `git log <base>..HEAD --format='%an|%cn'` must show only expected identities.
 - **Public repository hygiene:** never add a reference to a private consumer repository, its
   infrastructure, project identifiers, service accounts, internal data model or security findings.
   Generic security lessons are fine; the identity of who was affected is not.
