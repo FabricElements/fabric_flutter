@@ -219,6 +219,20 @@ yours.
   models of the same behaviour; no per-test review and no coverage metric reveals it, because
   coverage is complete. Only the test that *composes* them fails. When a comment and the code
   disagree, write the composed test before believing either.
+- **A change that removes capability is a REGRESSION, even when the motive is security.** A closed
+  grammar, allow-list or schema must be **complete, not minimal** — the risk usually comes from
+  accepting *arbitrary input*, not from the *number of legitimate options*. For a published package
+  this is sharper still: narrowing an accepted input set is a **breaking change** for consumers,
+  whatever the motivation. If a control cannot be built without losing behaviour, that is a
+  trade-off to surface explicitly, never a silent default.
+- **An automated gate cannot see a functionality regression.** Analyzer, tests and a build can all
+  pass on a change that silently removes features. Every automated gate is code-facing. When a
+  change **narrows** an interface, add an **inventory test** asserting what must still be there —
+  the capability equivalent of a positive control.
+- **Parameter binding protects values, not identifiers.** A column name, table name, sort field or
+  operator cannot be bound — it must come from an allow-list, with the caller sending a *key* that
+  is mapped, never a string that reaches the query text. "We bind everything, so we're safe" is a
+  plausible claim that becomes false the moment one input names an identifier.
 - **Never add co-authorship attribution.** No `Co-authored-by:` trailer on any commit, pull request
   or merge, regardless of tooling defaults. A rebase, amend or squash re-creates commit messages, so
   re-check after one: `git log <base>..HEAD --format='%B' | grep -ci 'co-authored-by'` must print
