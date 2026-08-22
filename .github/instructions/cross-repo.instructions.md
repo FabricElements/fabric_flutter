@@ -226,6 +226,12 @@ yours.
   models of the same behaviour; no per-test review and no coverage metric reveals it, because
   coverage is complete. Only the test that *composes* them fails. When a comment and the code
   disagree, write the composed test before believing either.
+- **A change owns the failure paths it makes more frequent, even ones it never edited.** If your
+  change converts a rarely-hit error path into a routine one — by adding validation, tightening a
+  schema, or surfacing refusals that used to be impossible — that path is now part of your blast
+  radius. A latent bug on it becomes an active one. A diff-based review structurally cannot surface
+  this, because the offending code is unchanged and therefore absent from the diff. For a published
+  package this compounds: consumers hit the newly-frequent path without having changed anything.
 - **A change that removes capability is a REGRESSION, even when the motive is security.** A closed
   grammar, allow-list or schema must be **complete, not minimal** — the risk usually comes from
   accepting *arbitrary input*, not from the *number of legitimate options*. For a published package
