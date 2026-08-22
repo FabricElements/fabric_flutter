@@ -28,7 +28,7 @@ import 'agent_registry.dart';
 /// ```dart
 /// AgentBridge.instance.configure(
 ///   enabled: true,
-///   appName: 'Furcata',
+///   appName: 'Example App',
 ///   appVersion: '1.0.0',
 ///   routes: [AgentRouteInfo(name: '/dashboard')],
 /// );
