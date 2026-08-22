@@ -168,6 +168,18 @@ A refuted finding is a real deliverable. Disproving a suspected vulnerability pr
 and wrong fixes. Never quietly drop a claim you disproved — write down what you checked and why it
 was clean.
 
+### 3.5 Order staged work so a partial landing is inert, not misleading
+
+When a change lands in stages — or is merged before you have finished — **sequence the stages so
+that stopping halfway leaves the repository safe rather than dishonest.**
+
+Code first, then the documentation and CHANGELOG that describe it. If the docs land first, the
+package advertises a guarantee it does not yet provide, and a consumer who reads the CHANGELOG will
+act on it. That is the failure mode nobody catches later.
+
+Same principle as §2.7: **false confidence is worse than a documented gap.** A documented gap gets
+fixed; a false one gets relied upon.
+
 ---
 
 ## 4. Breaking-change discipline for a published package
@@ -197,6 +209,10 @@ yours.
   form is self-cancelling when wrong.
 - **State-dependent claims carry an implicit timestamp.** A hash, a test count or a merge check must
   be re-measured, not re-quoted.
+- **Never add co-authorship attribution.** No `Co-authored-by:` trailer on any commit, pull request
+  or merge, regardless of tooling defaults. A rebase, amend or squash re-creates commit messages, so
+  re-check after one: `git log <base>..HEAD --format='%B' | grep -ci 'co-authored-by'` must print
+  `0` — and positive-control the grep, because a zero from an untested probe is not evidence.
 - **Public repository hygiene:** never add a reference to a private consumer repository, its
   infrastructure, project identifiers, service accounts, internal data model or security findings.
   Generic security lessons are fine; the identity of who was affected is not.
