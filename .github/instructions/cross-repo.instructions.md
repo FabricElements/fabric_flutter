@@ -229,6 +229,13 @@ yours.
   pass on a change that silently removes features. Every automated gate is code-facing. When a
   change **narrows** an interface, add an **inventory test** asserting what must still be there —
   the capability equivalent of a positive control.
+- **When a package and its consumers must change together, the PERMISSIVE side ships first.**
+  Whichever side *widens* what is accepted must be released and adopted before the side that starts
+  depending on it. Widening is backward-compatible; depending on a widening that hasn't shipped is
+  not. For a published package this is sharper than in a single service, because you cannot deploy
+  your consumers — a version that *requires* a new input is a breaking change the moment it
+  publishes, while a version that *accepts* one is safe. So: accept the new input in release N,
+  let consumers adopt it, and only require it in a later major.
 - **Parameter binding protects values, not identifiers.** A column name, table name, sort field or
   operator cannot be bound — it must come from an allow-list, with the caller sending a *key* that
   is mapped, never a string that reaches the query text. "We bind everything, so we're safe" is a
