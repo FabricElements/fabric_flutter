@@ -215,6 +215,13 @@ yours.
   applied. For any control you ship, name what must be true *outside this package* for it to
   actually run. Beware best-effort paths that degrade to a warning: their failure is
   indistinguishable from "nothing to do".
+- **Before using a record as a discriminator over historical data, ask whether it exists for the
+  WHOLE history — not merely whether it is durable.** These are different questions and the first is
+  the one that bites. A field introduced by your own recent change is the **highest-risk** case,
+  because it looks canonical precisely because it is clean, new and well-structured. Two cheap
+  habits beat insight here: ask questions that send you **to the artifact** rather than to reason
+  about it, and reason about **consequence-if-wrong** — noticing a tool would be *useless* is often
+  easier than noticing it would be *unsafe*, and arrives at the same fix.
 - **A green suite can be self-contradictory.** Two individually-passing tests can encode opposite
   models of the same behaviour; no per-test review and no coverage metric reveals it, because
   coverage is complete. Only the test that *composes* them fails. When a comment and the code
