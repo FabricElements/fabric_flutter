@@ -9,7 +9,7 @@ void main() {
       test('should deserialize nested routes and commands', () {
         // Arrange
         final json = <String, dynamic>{
-          'app': 'Furcata',
+          'app': 'Example App',
           'version': '1.0.0',
           'routes': [
             {'name': '/dashboard'},
@@ -23,7 +23,7 @@ void main() {
         final result = AgentDescribeResult.fromJson(json);
 
         // Assert
-        expect(result.app, 'Furcata');
+        expect(result.app, 'Example App');
         expect(result.version, '1.0.0');
         expect(result.routes.single.name, '/dashboard');
         expect(result.commands.single.id, 'navigate');
@@ -45,7 +45,7 @@ void main() {
       test('should round-trip without losing data', () {
         // Arrange
         final result = AgentDescribeResult(
-          app: 'Furcata',
+          app: 'Example App',
           version: '2.0.0',
           routes: [AgentRouteInfo(name: '/orders')],
           commands: [AgentCommandInfo(id: 'tap', title: 'Tap')],

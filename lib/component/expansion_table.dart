@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import '../helper/url_safety.dart';
 
 import '../helper/app_localizations_delegate.dart';
 import '../helper/format_data.dart';
@@ -283,9 +283,11 @@ class _ExpansionTableState extends State<ExpansionTable> {
                   break;
                 case TableDataType.link:
                   baseCell = TextButton(
-                    onPressed: () async {
-                      await launchUrl(Uri.parse(cellValue));
-                    },
+                    onPressed: UrlSafety.isSafe(cellValue)
+                        ? () async {
+                            await UrlSafety.launch(cellValue);
+                          }
+                        : null,
                     child: const Text('open'),
                   );
                   break;

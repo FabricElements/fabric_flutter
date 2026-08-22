@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
+import '../helper/url_safety.dart';
 
 import '../helper/app_localizations_delegate.dart';
 import '../helper/options.dart';
@@ -585,7 +585,7 @@ class _GoogleChartContainerState extends State<GoogleChartContainer> {
                         ? () async {
                             final url =
                                 '${widget.externalLink}?data=${widget.chartWrapper.encode()}';
-                            await launchUrl(Uri.parse(url));
+                            await UrlSafety.launch(url);
                           }
                         : null,
                   )
