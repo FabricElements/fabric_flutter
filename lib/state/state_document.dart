@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 
 import 'state_shared.dart';
 
@@ -28,9 +29,9 @@ abstract class StateDocument extends StateShared {
   /// Pass [notify] when listeners should also receive the cleared value.
   Future<void> cancel({bool notify = false}) async {
     baseRef = null;
-    if (_streamSubscription != null) {
+    if (streamSubscription != null) {
       try {
-        await _streamSubscription!.cancel();
+        await streamSubscription!.cancel();
       } catch (error) {
         //
       }
@@ -50,7 +51,7 @@ abstract class StateDocument extends StateShared {
     final oldReference = baseRef?.path ?? '';
     final newReference = reference?.path ?? '';
     if (newReference == oldReference) return;
-    _streamSubscription?.cancel();
+    streamSubscription?.cancel();
     baseRef = reference;
     super.clear(notify: true);
   }
@@ -65,7 +66,7 @@ abstract class StateDocument extends StateShared {
     if (loading) return data;
     if (initialized) return data;
     loading = true;
-    await _streamSubscription?.cancel();
+    await streamSubscription?.cancel();
     super.clear(notify: false);
     if (baseRef == null) {
       super.notifyListeners();
@@ -75,7 +76,7 @@ abstract class StateDocument extends StateShared {
     loading = true;
     data = null;
     try {
-      _streamSubscription = baseRef!.snapshots().listen(
+      streamSubscription = baseRef!.snapshots().listen(
         (snapshot) {
           loading = false;
           if (snapshot.exists) {
@@ -142,7 +143,7 @@ abstract class StateDocument extends StateShared {
     if (loading) return data;
     if (initialized) return data;
     loading = true;
-    await _streamSubscription?.cancel();
+    await streamSubscription?.cancel();
     super.clear(notify: false);
     if (baseRef == null) {
       data = null;
@@ -166,7 +167,12 @@ abstract class StateDocument extends StateShared {
   DocumentReference? get ref => baseRef;
 
   /// Holds the active Firestore snapshot subscription.
-  StreamSubscription<DocumentSnapshot<Object?>>? _streamSubscription;
+  ///
+  /// Typed as [StreamSubscription] rather than the narrower Firestore type so
+  /// subclasses and test helpers can assign any compatible subscription without
+  /// importing cloud_firestore.
+  @protected
+  StreamSubscription<dynamic>? streamSubscription;
 
   /// Updates fields on the current Firestore document.
   ///
@@ -187,6 +193,19 @@ abstract class StateDocument extends StateShared {
     _edit = false;
     _copy = null;
     super.clear(notify: notify);
+  }
+
+  /// Cancels the active snapshot subscription and releases shared resources.
+  ///
+  /// Without this override the Firestore snapshot listener started by [listen]
+  /// keeps firing after the widget is gone. Each snapshot calls
+  /// [notifyListeners] on a disposed [ChangeNotifier], which Flutter treats as
+  /// a programming error.
+  @override
+  void dispose() {
+    streamSubscription?.cancel();
+    streamSubscription = null;
+    super.dispose();
   }
 
   /// Tracks whether the document is currently open for editing.
