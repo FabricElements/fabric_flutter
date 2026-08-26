@@ -23,6 +23,33 @@ class FailingStateUsers extends FakeStateUsers {
   }
 }
 
+/// [StateUsers] override that succeeds for certain chunks and fails for others,
+/// to test that partial batch failures don't re-read successful chunks.
+class PartialFailingStateUsers extends FakeStateUsers {
+  late Set<String> failingUids;
+
+  PartialFailingStateUsers(this.failingUids) : super({});
+
+  @override
+  Future<Map<String, Map<String, dynamic>>> fetchUsersById(
+    List<String> uids,
+  ) async {
+    // Record the request (same as FakeStateUsers)
+    requests.add(List<String>.of(uids));
+
+    // Simulate a chunk where all UIDs are in failingUids throws
+    if (uids.every((uid) => failingUids.contains(uid))) {
+      throw 'Network error on chunk $uids';
+    }
+    // Other chunks succeed with canned data
+    return {
+      for (final uid in uids)
+        if (!failingUids.contains(uid))
+          uid: {'firstName': 'User', 'os': 'ios'},
+    };
+  }
+}
+
 void main() {
   group('StateUsers', () {
     setUp(() async {
@@ -327,6 +354,59 @@ void main() {
             isNull,
             reason: 'First placeholder has no real data (Unknown)',
           );
+        },
+      );
+
+      test(
+        'does not re-read successful chunks when one chunk fails',
+        () async {
+          // Arrange: Request UIDs across 3 chunks (whereInLimit=30 per chunk).
+          // Chunks: [uids 1-30], [uids 31-60], [uids 61-90]
+          // Fail only chunk 2 (uids 31-60).
+          final failingUids = <String>{
+            for (int i = 31; i <= 60; i++) 'user_$i',
+          };
+          final state = PartialFailingStateUsers(failingUids);
+
+          // Act - request all 90 UIDs across the 3 chunks
+          for (int i = 1; i <= 90; i++) {
+            state.getUser('user_$i');
+          }
+          await state.flushPendingUsers();
+
+          // Assert - chunk 1 and 3 UIDs are cached, chunk 2 UIDs are in _failedUids
+          for (int i = 1; i <= 30; i++) {
+            expect(state.cachedUser('user_$i')?.firstName, 'User',
+                reason: 'Chunk 1 UID $i should be cached from successful fetch');
+          }
+          for (int i = 31; i <= 60; i++) {
+            expect(state.cachedUser('user_$i')?.firstName, isNull,
+                reason: 'Chunk 2 UID $i should have placeholder (fetch failed)');
+          }
+          for (int i = 61; i <= 90; i++) {
+            expect(state.cachedUser('user_$i')?.firstName, 'User',
+                reason: 'Chunk 3 UID $i should be cached from successful fetch');
+          }
+
+          // Verify initial request count (3 chunks)
+          expect(state.requests.length, 3,
+              reason: 'Should have made 3 chunk requests initially');
+
+          // Act - retry all failed UIDs from chunk 2 by calling getUser for each
+          for (int i = 31; i <= 60; i++) {
+            state.getUser('user_$i');
+          }
+          await state.flushPendingUsers();
+
+          // Assert - should only re-fetch chunk 2 (the failed UIDs), not chunks 1 and 3
+          expect(state.requests.length, 4,
+              reason:
+                  'Should have made only 1 additional request (chunk 2), not 3 (re-reading all chunks)');
+          expect(state.requests.last.length, 30,
+              reason: 'Retry should request only the 30 failed UIDs from chunk 2');
+          expect(state.requests.last.every((uid) => failingUids.contains(uid)),
+              isTrue,
+              reason: 'Retry batch should contain only UIDs that actually failed');
         },
       );
     });
