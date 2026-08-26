@@ -3,7 +3,6 @@ import 'dart:io' show Platform;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:collection/collection.dart';
-import 'package:fabric_flutter/variables.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -159,8 +158,11 @@ class StateUser extends StateDocument {
   }
 
   /// Ping user
+  ///
+  /// Requires a document reference, so this is a no-op until [ref] is assigned
+  /// by a successful sign-in.
   void ping(String reference) async {
-    if (kIsTest || ref == null || reference == _pingReference) return;
+    if (ref == null || reference == _pingReference) return;
     _pingLast = serialized.ping ?? _pingLast;
     DateTime timeRef = DateTime.now().subtract(const Duration(minutes: 1));
     if (_pingLast.isAfter(timeRef)) return;
