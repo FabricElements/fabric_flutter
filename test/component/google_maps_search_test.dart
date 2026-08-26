@@ -200,6 +200,57 @@ void main() {
       },
     );
 
+    testWidgets('should allow 2-character queries by default (inventory test)', (
+      tester,
+    ) async {
+      // Arrange: Verify that default minimumQueryLength = 1 allows 2-char queries
+      final requests = <http.Request>[];
+      late final _TrackingClient client;
+      client = _TrackingClient((request) async {
+        requests.add(request);
+        if (request.url.path.endsWith('/place/findplacefromtext/json')) {
+          return http.Response(
+            jsonEncode({
+              'status': 'OK',
+              'candidates': [
+                {
+                  'formatted_address': 'Result',
+                  'name': 'Result',
+                  'place_id': 'place-1',
+                },
+              ],
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response('{}', 200);
+      });
+      await tester.pumpWidget(
+        _wrap(
+          GoogleMapsSearch(
+            apiKey: 'test-key',
+            clientFactory: () => client,
+            // Default minimumQueryLength (1) is used — do not override
+            debounceMilliseconds: 100,
+          ),
+        ),
+      );
+
+      // Act: Type a 2-character query (e.g., region code like 'NY' or 'CA')
+      await tester.enterText(find.byType(TextField), 'NY');
+      await tester.pumpAndSettle(const Duration(milliseconds: 200));
+
+      // Assert: Exactly one request was issued for the 2-char query
+      expect(
+        requests,
+        hasLength(1),
+        reason:
+            'Default settings must allow 2-char queries (region codes, country codes, etc)',
+      );
+      expect(requests[0].url.queryParameters['input'], 'NY');
+    });
+
     testWidgets('should not make duplicate requests for unchanged query', (
       tester,
     ) async {

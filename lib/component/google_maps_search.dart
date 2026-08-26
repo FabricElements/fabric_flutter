@@ -33,8 +33,10 @@ class GoogleMapsSearch extends StatefulWidget {
   /// scenarios. Set to 0 to disable debouncing (not recommended for production).
   ///
   /// The [minimumQueryLength] parameter skips search requests for input shorter
-  /// than this many characters, reducing wasted quota. A minimum of 3 characters
-  /// is a sensible default; set to 1 or 2 for more aggressive searching.
+  /// than this many characters. The default is 1, preserving behavior for existing
+  /// callers. Raise it to 2, 3, or higher to suppress searches on short queries
+  /// like two-letter region codes (`NY`, `CA`, `DC`) or country codes (`UK`).
+  /// Note: raising this value silently suppresses legitimate short queries.
   const GoogleMapsSearch({
     super.key,
     required this.apiKey,
@@ -54,7 +56,7 @@ class GoogleMapsSearch extends StatefulWidget {
     this.autofocus = false,
     this.clientFactory = http.Client.new,
     this.debounceMilliseconds = 400,
-    this.minimumQueryLength = 3,
+    this.minimumQueryLength = 1,
   });
 
   /// Receives the fully populated [Place] after the user selects a search result.
@@ -162,8 +164,11 @@ class GoogleMapsSearch extends StatefulWidget {
 
   /// Skips search requests for queries shorter than this many characters.
   ///
-  /// The default is 3 characters. Set to 1 or 2 for more aggressive searching,
-  /// or higher to further reduce quota usage.
+  /// The default is 1 character, preserving behavior for existing callers.
+  /// Increase to 2, 3, or higher to filter out short searches like two-letter
+  /// region codes (`NY`, `CA`, `DC`) or country codes (`UK`). Note that raising
+  /// this value silently suppresses legitimate short queries; callers should
+  /// consider the domain and adjust carefully.
   final int minimumQueryLength;
 
   /// Creates the state that owns search text, result lists, and selected coordinates.
