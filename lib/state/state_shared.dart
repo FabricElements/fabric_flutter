@@ -276,6 +276,7 @@ abstract class StateShared extends ChangeNotifier {
     // cachedSerialize keys on identical(), which cannot see a same-instance
     // reassignment, so the memo has to be dropped explicitly.
     invalidateSerialized();
+    invalidateCopy();
     _notifyData();
   }
 
@@ -638,6 +639,8 @@ abstract class StateShared extends ChangeNotifier {
     } else {
       privateData = null;
     }
+    _copy = null;
+    _copyDirty = true;
   }
 
   /// Names the filter group used when generating SQL expressions.
@@ -780,6 +783,7 @@ abstract class StateShared extends ChangeNotifier {
   /// cache entry untouched.
   @protected
   T cachedSerialize<T>(Object? source, T Function() build) {
+    if (_bypassSerializedCache) return build(); // fresh, not memoized
     if (_serializedCached && identical(_serializedSource, source)) {
       return _serializedCache as T;
     }
@@ -800,6 +804,73 @@ abstract class StateShared extends ChangeNotifier {
     _serializedSource = null;
     _serializedCache = null;
     _serializedCached = false;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Mutable working draft — copy
+  // ---------------------------------------------------------------------------
+
+  /// Backing value for [copy].
+  dynamic _copy;
+
+  /// Whether [_copy] must be rebuilt from [serialized] on the next read.
+  ///
+  /// Starts `true` so the first access forces a build.
+  bool _copyDirty = true;
+
+  /// When `true`, [cachedSerialize] skips the memo and calls [build] directly,
+  /// producing a fresh instance that is independent of the memoized [serialized].
+  bool _bypassSerializedCache = false;
+
+  /// A mutable working draft that is always an instance of [serialized].
+  ///
+  /// The draft is built lazily on first access after [data] changes and is
+  /// reset to `null` when [data] is `null`. Assigning [data] invalidates the
+  /// draft so the next read reflects the new payload; the rebuild is deferred
+  /// to the accessor rather than the setter to avoid notifying listeners during
+  /// a build phase.
+  ///
+  /// Callers may assign directly to replace the draft with an edited version.
+  /// Assigning does **not** notify listeners — the draft is local UI state and
+  /// notifying on every keystroke would fight the existing debounce. Persist
+  /// changes by calling the relevant save method; discard them by calling
+  /// [clear] or by reassigning [data].
+  dynamic get copy {
+    if (_copyDirty) {
+      _copy = data == null ? null : _freshSerialized();
+      _copyDirty = false;
+    }
+    return _copy;
+  }
+
+  /// Replaces the working draft without notifying listeners.
+  set copy(dynamic value) {
+    _copy = value;
+    _copyDirty = false;
+  }
+
+  /// Marks the working draft as stale so the next [copy] read rebuilds it.
+  ///
+  /// The [data] setter calls this automatically. Subclasses that mutate [data]
+  /// in place can call it to force a rebuild on the next access.
+  @protected
+  void invalidateCopy() {
+    _copyDirty = true;
+  }
+
+  /// Returns a fresh instance of [serialized] that is independent of the
+  /// memoized value, so mutating the draft cannot corrupt the canonical object.
+  ///
+  /// Bypasses [cachedSerialize]'s memo for the duration of the call and
+  /// restores the flag in a `finally` so a throwing [serialized] cannot
+  /// leave the bypass stuck on.
+  dynamic _freshSerialized() {
+    _bypassSerializedCache = true;
+    try {
+      return serialized;
+    } finally {
+      _bypassSerializedCache = false;
+    }
   }
 
   /// Stores the debounced listener timer used by [notifyListeners].

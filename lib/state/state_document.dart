@@ -191,7 +191,7 @@ abstract class StateDocument extends StateShared {
   void clear({bool notify = true}) {
     baseRef = null;
     _edit = false;
-    _copy = null;
+    _editSnapshot = null;
     super.clear(notify: notify);
   }
 
@@ -212,7 +212,7 @@ abstract class StateDocument extends StateShared {
   bool _edit = false;
 
   /// Holds the snapshot captured when editing started.
-  Map<String, dynamic>? _copy;
+  Map<String, dynamic>? _editSnapshot;
 
   /// Returns whether the document is currently open for editing.
   ///
@@ -225,16 +225,17 @@ abstract class StateDocument extends StateShared {
   /// Enters or leaves edit mode and notifies listeners.
   ///
   /// Entering edit mode captures a shallow snapshot of the current [data] into
-  /// [copy] so [revert] can restore it. Leaving edit mode discards that snapshot
-  /// and keeps whatever is currently in [data], which makes assigning `false`
-  /// the "accept the local changes" path. Use [revert] to discard them instead.
+  /// [editSnapshot] so [revert] can restore it. Leaving edit mode discards that
+  /// snapshot and keeps whatever is currently in [data], which makes assigning
+  /// `false` the "accept the local changes" path. Use [revert] to discard them
+  /// instead.
   ///
   /// Reassigning the current value is ignored, so a rebuild that re-applies the
   /// same flag will not clobber an existing snapshot.
   set edit(bool value) {
     if (_edit == value) return;
     _edit = value;
-    _copy = value ? _snapshot() : null;
+    _editSnapshot = value ? _snapshot() : null;
     notifyListeners();
   }
 
@@ -243,7 +244,7 @@ abstract class StateDocument extends StateShared {
   /// The value is `null` outside of edit mode, or when editing started while the
   /// document had no data. The returned map is the state's own copy: mutate it
   /// only if you intend to change what [revert] restores.
-  Map<String, dynamic>? get copy => _copy;
+  Map<String, dynamic>? get editSnapshot => _editSnapshot;
 
   /// Returns a defensive shallow copy of the current [data].
   ///
@@ -295,9 +296,9 @@ abstract class StateDocument extends StateShared {
   /// debounce coalesces those into a single rebuild in a release build, and a
   /// redundant rebuild is the right trade for never missing the edit-mode exit.
   void revert() {
-    final snapshot = _copy;
+    final snapshot = _editSnapshot;
     _edit = false;
-    _copy = null;
+    _editSnapshot = null;
     if (snapshot != null) {
       data = snapshot;
     }
@@ -324,7 +325,7 @@ abstract class StateDocument extends StateShared {
       rethrow;
     }
     _edit = false;
-    _copy = null;
+    _editSnapshot = null;
     notifyListeners();
   }
 }

@@ -37,7 +37,7 @@ void main() {
 
         // Assert
         expect(state.edit, isFalse);
-        expect(state.copy, isNull);
+        expect(state.editSnapshot, isNull);
       });
 
       test('should capture a snapshot and notify when entering edit', () async {
@@ -55,7 +55,7 @@ void main() {
 
         // Assert
         expect(state.edit, isTrue);
-        expect(state.copy, {'id': 'doc-1', 'name': 'original'});
+        expect(state.editSnapshot, {'id': 'doc-1', 'name': 'original'});
         expect(notified, 1);
       });
 
@@ -70,7 +70,7 @@ void main() {
 
         // Assert
         expect(state.data, {'id': 'doc-1', 'name': 'changed'});
-        expect(state.copy, {'id': 'doc-1', 'name': 'original'});
+        expect(state.editSnapshot, {'id': 'doc-1', 'name': 'original'});
       });
 
       test('should ignore a repeated assignment and keep the snapshot', () {
@@ -87,7 +87,7 @@ void main() {
 
         // Assert
         expect(notified, 0);
-        expect(state.copy, {'id': 'doc-1', 'name': 'original'});
+        expect(state.editSnapshot, {'id': 'doc-1', 'name': 'original'});
       });
 
       test('should keep local changes when edit mode is turned off', () {
@@ -102,7 +102,7 @@ void main() {
 
         // Assert
         expect(state.edit, isFalse);
-        expect(state.copy, isNull);
+        expect(state.editSnapshot, isNull);
         expect(state.data, {'id': 'doc-1', 'name': 'changed'});
       });
 
@@ -115,7 +115,7 @@ void main() {
 
         // Assert
         expect(state.edit, isTrue);
-        expect(state.copy, isNull);
+        expect(state.editSnapshot, isNull);
       });
     });
 
@@ -190,7 +190,7 @@ void main() {
         // Assert
         expect(state.data, {'id': 'doc-1', 'name': 'original'});
         expect(state.edit, isFalse);
-        expect(state.copy, isNull);
+        expect(state.editSnapshot, isNull);
       });
 
       test('should notify listeners when restoring', () async {
@@ -235,7 +235,7 @@ void main() {
         // Assert
         expect(notified, 1);
         expect(state.edit, isFalse);
-        expect(state.copy, isNull);
+        expect(state.editSnapshot, isNull);
         expect(state.data, {'id': 'doc-1', 'name': 'original'});
       });
 
@@ -290,7 +290,7 @@ void main() {
           expect(state.writes.single, {'name': 'changed'});
           expect(state.merges.single, isTrue);
           expect(state.edit, isFalse);
-          expect(state.copy, isNull);
+          expect(state.editSnapshot, isNull);
         },
       );
 
@@ -348,7 +348,7 @@ void main() {
 
           // Assert: the user's changes survive a failed write.
           expect(state.edit, isTrue);
-          expect(state.copy, {'id': 'doc-1', 'name': 'original'});
+          expect(state.editSnapshot, {'id': 'doc-1', 'name': 'original'});
           expect(state.data, {'id': 'doc-1', 'name': 'changed'});
           expect(state.error, 'write denied');
         },
@@ -367,7 +367,7 @@ void main() {
 
         // Assert
         expect(state.edit, isFalse);
-        expect(state.copy, isNull);
+        expect(state.editSnapshot, isNull);
         expect(state.data, isNull);
       });
     });

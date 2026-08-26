@@ -1,5 +1,13 @@
 ## [Unreleased]
 
+### Added
+
+* **`StateShared.copy` — a typed working draft that always holds an instance of `serialized`.** The draft is built lazily on the first access after `data` changes and reset to `null` when `data` is `null`. Assigning a new value to `data` invalidates the draft so the next read reflects the new payload; the rebuild is deferred to the accessor rather than the setter to avoid triggering listener notifications during a widget build phase. Mutating the draft does not mutate the memoized `serialized` — `copy` calls `_freshSerialized`, which bypasses `cachedSerialize`'s memo for the duration of the call so the returned instance is guaranteed to be a separate allocation. Assigning to `copy` stores the value without notifying listeners, because the draft is local UI state and a rebuild on every keystroke would fight the existing debounce. `clear()` resets both the value and the dirty flag. Subclasses do not need any changes.
+
+### Breaking changes
+
+* **`StateDocument.copy` (deprecated `Map<String, dynamic>?`) is removed.** The name now resolves to the typed `StateShared.copy` getter described above. The `Map`-based edit snapshot previously exposed by `StateDocument.copy` is now `StateDocument.editSnapshot`. Both refer to the same internal state, so only the call site name changes. **Action required:** rename every `state.copy` call that accessed the edit snapshot to `state.editSnapshot`. No call sites existed in this package's `lib/` directory; the only affected files were in `test/`.
+
 ### Security
 
 * **Firestore `user` collection queries now carry their account scope as a filter instead of only an ordering, so a project can deny unscoped listing.** Firestore evaluates a `list` operation by matching the rule against the query's **filters**; `request.query` exposes only `limit`, `offset`, and `orderBy`. An `orderBy` does restrict which documents are returned — Firestore omits documents that lack the ordered field — but a rule cannot *require* it, so a `list` rule cannot distinguish a legitimate ordered read from an enumeration of the entire collection. The practical consequence is that a project **cannot tighten `list` on a collection at all** while any client still issues an unfiltered query against it: the tightened rule would break the legitimate screen while the attacker simply reissues the same query. Because the queries live in this package rather than in the application, the fix has to land here before any consuming project can close the gap.
