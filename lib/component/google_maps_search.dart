@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -24,6 +25,16 @@ class GoogleMapsSearch extends StatefulWidget {
   /// supplied, then emits a populated [Place] through [onChange] after the user
   /// selects a result. [fields] extends the default Google Places response, and
   /// [types] narrows the search scope when Google supports those filters.
+  ///
+  /// The [debounceMilliseconds] parameter controls the delay before firing a
+  /// text search request after the user stops typing. A value of 400 ms provides
+  /// a good balance between responsiveness and quota conservation; increase it
+  /// if rate-limiting occurs, or decrease it for snappier feedback in low-traffic
+  /// scenarios. Set to 0 to disable debouncing (not recommended for production).
+  ///
+  /// The [minimumQueryLength] parameter skips search requests for input shorter
+  /// than this many characters, reducing wasted quota. A minimum of 3 characters
+  /// is a sensible default; set to 1 or 2 for more aggressive searching.
   const GoogleMapsSearch({
     super.key,
     required this.apiKey,
@@ -42,6 +53,8 @@ class GoogleMapsSearch extends StatefulWidget {
     this.baseUrl = 'https://maps.googleapis.com/maps/api',
     this.autofocus = false,
     this.clientFactory = http.Client.new,
+    this.debounceMilliseconds = 400,
+    this.minimumQueryLength = 3,
   });
 
   /// Receives the fully populated [Place] after the user selects a search result.
@@ -140,6 +153,19 @@ class GoogleMapsSearch extends StatefulWidget {
   /// https://developers.google.com/maps/documentation/places/web-service/place-data-fields.
   final List<String> fields;
 
+  /// Controls the debounce delay (in milliseconds) before firing a search request
+  /// after the user stops typing.
+  ///
+  /// The default is 400 ms, which balances responsiveness against quota usage.
+  /// Set to 0 to disable debouncing (not recommended for production use).
+  final int debounceMilliseconds;
+
+  /// Skips search requests for queries shorter than this many characters.
+  ///
+  /// The default is 3 characters. Set to 1 or 2 for more aggressive searching,
+  /// or higher to further reduce quota usage.
+  final int minimumQueryLength;
+
   /// Creates the state that owns search text, result lists, and selected coordinates.
   ///
   /// The returned [_GoogleMapsSearchState] coordinates network requests with the
@@ -157,6 +183,29 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
   ///
   /// The client is created once in [initState] and closed in [dispose].
   late final http.Client _httpClient;
+
+  /// Debounces text input so a request fires only after the user stops typing.
+  ///
+  /// The timer is cancelled and replaced each time the user types, then fires
+  /// after [widget.debounceMilliseconds] milliseconds of inactivity. This
+  /// conserves quota and reduces server load.
+  Timer? _debounceTimer;
+
+  /// Tracks the most recent search request by a unique identifier so responses
+  /// can be validated against out-of-order delivery.
+  ///
+  /// A timestamp is sufficient: if a newer search is initiated while an older
+  /// one is in flight, the older response is ignored when it arrives.
+  int _currentSearchId = 0;
+
+  /// Caches the last query string sent to avoid duplicate requests for identical input.
+  String? _lastSearchQuery;
+
+  /// Tracks if we recently received HTTP 429 (rate limit) to avoid tight loops.
+  ///
+  /// When a 429 is seen, the widget does not retry immediately. The flag is
+  /// cleared when the user submits a new query, allowing normal operation to resume.
+  bool _rateLimited = false;
 
   /// Controls the search field text so it can be cleared after parent updates.
   ///
@@ -268,9 +317,89 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
   /// Releases owned resources when the widget is removed from the tree.
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _httpClient.close();
     textController.dispose();
     super.dispose();
+  }
+
+  /// Performs a text search for places matching the given query.
+  ///
+  /// This method is called after the debounce timer expires. It skips the request
+  /// if: (1) the widget is unmounted, (2) the query is unchanged from the last
+  /// successful search, (3) the query is too short, or (4) we are rate-limited.
+  ///
+  /// Out-of-order responses are handled by assigning each request a unique ID
+  /// ([_currentSearchId]) and ignoring responses for superseded requests.
+  ///
+  /// HTTP 429 responses trigger a calm notification instead of a loud error alert,
+  /// and the widget stops retrying until the user submits a new query.
+  Future<void> _performSearch(String query) async {
+    if (!mounted) return;
+
+    if (_rateLimited) {
+      return;
+    }
+
+    if (query == _lastSearchQuery) {
+      return;
+    }
+
+    final searchId = ++_currentSearchId;
+
+    try {
+      Map<String, dynamic>? queryParameters = {
+        'key': widget.apiKey,
+        'input': query,
+        'inputtype': 'textquery',
+        'type': widget.types.isEmpty ? null : widget.types.join(','),
+        'fields': searchFields.join(','),
+      };
+      Uri url = Uri.parse('${widget.baseUrl}/place/findplacefromtext/json');
+      url = url.replace(queryParameters: queryParameters);
+      final response = await _httpClient.get(url);
+
+      if (response.statusCode == 429) {
+        _rateLimited = true;
+        if (mounted) {
+          alertData(
+            title:
+                'Search temporarily unavailable. Please try again in a moment.',
+            type: AlertType.basic,
+            duration: 3,
+          );
+        }
+        if (widget.onError != null) {
+          widget.onError!('Rate limited');
+        }
+        return;
+      }
+
+      if (searchId != _currentSearchId) {
+        return;
+      }
+
+      dynamic newData = HTTPRequest.response(response);
+      final search = PlacesResponse.fromJson(newData);
+      if (search.errorMessage != null) {
+        throw search.errorMessage!;
+      }
+
+      if (searchId != _currentSearchId) {
+        return;
+      }
+
+      _lastSearchQuery = query;
+      results = search.candidates;
+      totalItems = results.length;
+      if (mounted) setState(() {});
+    } catch (error) {
+      if (searchId != _currentSearchId) {
+        return;
+      }
+
+      alertData(title: error.toString(), type: AlertType.warning, duration: 5);
+    }
   }
 
   /// Resynchronizes the preview when parent-provided coordinates or labels change.
@@ -381,43 +510,21 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
                       hintText: name ?? locales.get('label--search'),
                       suffixIcon: const Icon(Icons.search),
                     ),
-                    onChanged: (val) async {
-                      if (val.length < 2) {
+                    onChanged: (val) {
+                      _rateLimited = false;
+                      _debounceTimer?.cancel();
+
+                      if (val.length < widget.minimumQueryLength) {
                         results = [];
                         totalItems = 0;
                         if (mounted) setState(() {});
                         return;
                       }
-                      try {
-                        Map<String, dynamic>? queryParameters = {
-                          'key': widget.apiKey,
-                          'input': val,
-                          'inputtype': 'textquery',
-                          'type': widget.types.isEmpty
-                              ? null
-                              : widget.types.join(','),
-                          'fields': searchFields.join(','),
-                        };
-                        Uri url = Uri.parse(
-                          '${widget.baseUrl}/place/findplacefromtext/json',
-                        );
-                        url = url.replace(queryParameters: queryParameters);
-                        final response = await _httpClient.get(url);
-                        dynamic newData = HTTPRequest.response(response);
-                        final search = PlacesResponse.fromJson(newData);
-                        if (search.errorMessage != null) {
-                          throw search.errorMessage!;
-                        }
-                        results = search.candidates;
-                        totalItems = results.length;
-                        if (mounted) setState(() {});
-                      } catch (error) {
-                        alertData(
-                          title: error.toString(),
-                          type: AlertType.warning,
-                          duration: 5,
-                        );
-                      }
+
+                      _debounceTimer = Timer(
+                        Duration(milliseconds: widget.debounceMilliseconds),
+                        () => _performSearch(val),
+                      );
                     },
                   ),
                 ),
