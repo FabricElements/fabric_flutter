@@ -35,6 +35,18 @@ class StateUser extends StateDocument {
   // Initialize the user status
   bool _ready = false;
 
+  /// Tracks whether a deserialization error occurred during the last [serialized] read.
+  ///
+  /// This flag complements the [error] property, which uses dedup logic to avoid
+  /// notifying listeners twice for the same error message. [hadSerializationError]
+  /// is not deduplicated, so consumers can reliably detect every deserialization
+  /// failure, including repeated failures on the same data. The flag is reset at
+  /// the start of each [serialized] read and reflects whether that specific read failed.
+  bool _hadSerializationError = false;
+
+  /// Returns whether a deserialization error occurred during the last [serialized] read.
+  bool get hadSerializationError => _hadSerializationError;
+
   @override
   int get debounceTime =>
       _ready && !loading && initialized ? super.debounceTime : 3000;
@@ -123,11 +135,13 @@ class StateUser extends StateDocument {
   UserData get serialized {
     final currentData = data;
     try {
+      _hadSerializationError = false;
       return cachedSerialize(
         currentData,
         () => UserData.fromJson(currentData ?? {}),
       );
     } catch (e) {
+      _hadSerializationError = true;
       error = serializationError(e);
       return UserData.fromJson(null);
     }

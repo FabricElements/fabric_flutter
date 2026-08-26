@@ -61,5 +61,74 @@ void main() {
       expect(identical(first, second), isFalse);
       expect(second.id, 'user-456');
     });
+
+    group('serialized deserialization error handling', () {
+      test('sets error when fromJson throws on invalid enum value', () {
+        // Arrange
+        final state = StateUser();
+        // os field has no unknownEnumValue, so invalid value will throw
+        state.data = {'id': 'user-123', 'os': 'invalid-os-value'};
+
+        // Act
+        final _ = state.serialized;
+
+        // Assert
+        expect(state.error, isNotNull);
+        expect(state.error, contains('Invalid'));
+      });
+
+      test('returns a fallback user when deserialization fails', () {
+        // Arrange
+        final state = StateUser();
+        state.data = {'id': 'user-123', 'os': 'invalid-os-value'};
+
+        // Act
+        final user = state.serialized;
+
+        // Assert: fallback has default values but still looks valid
+        expect(user.role, 'unknown');
+        expect(user.id, isNull);
+        expect(user.firstName, isNull);
+      });
+
+      test(
+        'sets hadSerializationError flag on deserialization failure',
+        () {
+          // Arrange
+          final state = StateUser();
+          state.data = {'id': 'user-123', 'os': 'invalid-os-value'};
+
+          // Act
+          final _ = state.serialized;
+
+          // Assert
+          expect(state.hadSerializationError, isTrue);
+        },
+      );
+
+      test(
+        'reports deserialization error on repeated reads of same failure',
+        () {
+          // Arrange
+          final state = StateUser();
+          state.data = {'id': 'user-123', 'os': 'invalid-os-value'};
+          List<bool> errorFlags = [];
+
+          // Act
+          final _ = state.serialized; // First read
+          errorFlags.add(state.hadSerializationError);
+
+          state.serialized; // Second read of same data
+          errorFlags.add(state.hadSerializationError);
+
+          // Assert - hadSerializationError flag is set on every read
+          expect(errorFlags.length, 2);
+          expect(errorFlags.every((flag) => flag), isTrue,
+              reason:
+                  'hadSerializationError flag should be true on every read of '
+                  'deserialization failure, not dedup\'d away');
+        },
+      );
+    });
   });
 }
