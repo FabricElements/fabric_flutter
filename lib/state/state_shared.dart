@@ -959,9 +959,9 @@ abstract class StateShared extends ChangeNotifier {
   /// Clears edit mode and invalidates the [copy] draft without notifying
   /// listeners.
   ///
-  /// Use this from [StateDocument.revert] and [StateDocument.save] where the
-  /// caller unconditionally calls [notifyListeners] immediately afterwards, so
-  /// an additional notification from the [edit] setter would be redundant.
+  /// Use this from [StateDocument.save] where the caller unconditionally calls
+  /// [notifyListeners] immediately afterwards, so an additional notification
+  /// from the [edit] setter would be redundant.
   @protected
   void exitEdit() {
     _edit = false;

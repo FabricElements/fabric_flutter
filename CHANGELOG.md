@@ -12,9 +12,11 @@
 
 * **`StateDocument.editSnapshot` and `StateDocument._snapshot()` are removed.** These were the interim rename of the old `copy` snapshot. Consumers that relied on either name must migrate to the `copy`-based workflow.
 
-* **`StateDocument.revert()` no longer restores `data`.** It discards the `copy` draft and leaves edit mode. Any consumer that mutated `data` directly during an edit session (for example via `editField`) and relied on `revert()` to roll it back will silently keep the mutation. Under the new model, staged edits should be written to `copy` and never applied to `data` until `save()`.
+* **`StateDocument.revert()` is removed.** The method had no callers within this package and was behaviourally identical to `edit = false` while in edit mode. The one difference — an unconditional `notifyListeners()` that fires even when not editing — is a defect that produces a spurious notification, not a feature worth preserving. The migration is mechanical.
+  * **Migration:** replace every `state.revert()` call with `state.edit = false`. The observable outcome is identical in all edit-mode scenarios; `edit = false` additionally no-ops when already out of edit mode rather than notifying unnecessarily.
 
-* **`StateDocument.editField()` writes directly to `data` and is not revertible.** Its old documentation promised that `revert()` would discard the change; that is no longer true. The preferred pattern for staging a field edit is to mutate `copy` instead, which leaves `data` untouched. `editField` is retained for compatibility but its contract has changed.
+* **`StateDocument.editField(key, value)` is removed.** The method wrote directly to canonical `data` with no undo path, making it inconsistent with the `copy`-based draft model where `data` should remain untouched until `save()` succeeds. There is no like-for-like replacement by design.
+  * **Migration:** callers staging an edit for later confirmation should mutate `copy` and call `save()` when the user commits. Callers that genuinely intend to overwrite canonical data immediately should assign `data` directly.
 
 * **`StateDocument.set edit` override is removed.** `StateDocument` now inherits `StateShared.set edit` directly. The edit-mode toggle still works identically; the only removed behaviour is the `_editSnapshot` management, which no longer exists.
 
