@@ -241,9 +241,10 @@ abstract class StateDocument extends StateShared {
   /// Applies a local, unsaved change to a single field while editing.
   ///
   /// Assigning through this method — rather than mutating `data[key]` directly —
-  /// is what makes the change visible: [data] compares payloads structurally, so
-  /// an in-place mutation of the existing map would be indistinguishable from
-  /// the previous value and would never notify listeners.
+  /// is what makes the change visible. A direct mutation never reaches the [data]
+  /// setter at all, so no listener is notified and nothing rebuilds. Copying the
+  /// map and assigning the copy also keeps the structural comparison in [data]
+  /// meaningful, because the previous value stays intact to compare against.
   ///
   /// The change is local only. Call [save] to persist it, or [revert] to discard
   /// it. Calling this outside of edit mode still updates [data] but leaves no
@@ -262,15 +263,26 @@ abstract class StateDocument extends StateShared {
   /// Leaves edit mode and notifies listeners. When no snapshot exists — because
   /// editing never started, or started on an empty document — the current [data]
   /// is left untouched and only the edit flag is cleared.
+  ///
+  /// The notification cannot be delegated to the [data] setter. [edit] is state
+  /// the setter knows nothing about, and the setter ignores a payload that is
+  /// structurally equal to the current one. Reverting an edit that changed
+  /// nothing produces exactly such a payload — [copy] is a snapshot of [data] —
+  /// so leaving edit mode would otherwise never reach listeners and the view
+  /// would stay stuck in edit mode after a cancel.
+  ///
+  /// Because the call is unconditional, reverting an edit that *did* change a
+  /// field notifies twice: once from the [data] setter and once here. The
+  /// debounce coalesces those into a single rebuild in a release build, and a
+  /// redundant rebuild is the right trade for never missing the edit-mode exit.
   void revert() {
     final snapshot = _copy;
     _edit = false;
     _copy = null;
     if (snapshot != null) {
       data = snapshot;
-    } else {
-      notifyListeners();
     }
+    notifyListeners();
   }
 
   /// Persists the current [data] to Firestore and leaves edit mode.

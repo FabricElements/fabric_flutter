@@ -91,15 +91,28 @@ abstract class StateShared extends ChangeNotifier {
 
   /// Merges [toMerge] into [base] by matching entries on their `id` values.
   ///
-  /// Existing items are replaced in place, while new items are appended. This
-  /// method intentionally mutates and returns [base], which keeps pagination and
-  /// stream-merge flows fast but means callers should pass a defensive copy when
-  /// they must preserve the original list.
+  /// Existing items are replaced at their current position, while new items are
+  /// appended. [base] is left untouched: the result is a new list, so callers do
+  /// not need to pass a defensive copy.
+  ///
+  /// The copy is what makes the merged result observable. Callers assign the
+  /// result straight back through [data] — `data = merge(base: data, …)` — and
+  /// [data] compares the incoming payload against the value it already holds. If
+  /// this method mutated [base] in place, the "new" value and the comparison
+  /// baseline would be the same object, so the change could never be detected.
+  ///
+  /// Only the list itself is copied. The entries are shared with [base] and
+  /// [toMerge], which is sufficient here because merging replaces and appends
+  /// elements without ever mutating one.
   List<dynamic> merge({
     required List<dynamic> base,
     required List<dynamic> toMerge,
   }) {
-    List<dynamic> newData = base;
+    // Copy before mutating: callers pass the state's own list as `base` and
+    // assign the result straight back to `data`. Mutating in place would make
+    // the "new" value and the comparison baseline the same object, so the
+    // change could never be detected.
+    List<dynamic> newData = List<dynamic>.from(base);
     // Index existing entries by id once so each incoming item is matched in
     // constant time instead of rescanning the whole list, turning the merge
     // from O(base * toMerge) into O(base + toMerge). First occurrences win, to
@@ -218,17 +231,51 @@ abstract class StateShared extends ChangeNotifier {
 
   /// Assigns new state data and publishes the change.
   ///
-  /// Reassigning data that is structurally equal to the current value is
-  /// ignored so listeners are not rebuilt for a snapshot that renders
+  /// A *fresh* payload that is structurally equal to the current value is
+  /// ignored, so listeners are not rebuilt for a snapshot that renders
   /// identically.
+  ///
+  /// Reassigning the object the state already holds always notifies. [data] and
+  /// [privateOldData] reference the same instance, so anything mutated in place
+  /// is already reflected in the comparison baseline and a structural comparison
+  /// could only ever report "unchanged". With no baseline left to compare
+  /// against, the payload is assumed to have changed.
+  ///
+  /// **Never reassign [data] from a listener without a condition that
+  /// terminates.** A listener that runs `state.data = state.data`
+  /// unconditionally recurses without bound: the assignment notifies, the
+  /// notification re-enters this setter, and the same-instance path notifies
+  /// again. Measured under `flutter test`, where notification is synchronous,
+  /// this overflows the stack, and the resulting `StackOverflowError` is
+  /// reported through `FlutterError` rather than thrown where a `try`/`catch`
+  /// around the assignment could contain it. In a release build the debounce in
+  /// [_notifyData] turns the same pattern into an endless timer loop that
+  /// rebuilds forever instead of crashing.
+  ///
+  /// This is a real behaviour change: the previous guard compared references, so
+  /// the same assignment used to be swallowed silently. Any listener that writes
+  /// back to [data] must first check that the value actually needs changing —
+  /// for example by comparing the field it is about to set — or it must write
+  /// through a path that does not notify.
   set data(dynamic dataObject) {
-    /// Basic check to prevent infinite loops and redundant rebuilds
-    if (privateOldData != null && _isSameData(privateOldData, dataObject)) {
+    // When the caller hands back the object the state already holds, the
+    // comparison baseline is that same object: anything mutated in place is
+    // already reflected in it, so a structural comparison can only ever report
+    // "unchanged". There is no baseline left to compare against, so assume the
+    // payload changed and notify. Dropping the notification here is what made
+    // in-place edits and merge() results invisible to listeners.
+    final bool sameInstance = identical(privateData, dataObject);
+    if (!sameInstance &&
+        privateOldData != null &&
+        _isSameData(privateOldData, dataObject)) {
       return;
     }
-    // Set data
     privateOldData = dataObject;
     privateData = dataObject;
+    // A new payload invalidates anything memoized against the previous one.
+    // cachedSerialize keys on identical(), which cannot see a same-instance
+    // reassignment, so the memo has to be dropped explicitly.
+    invalidateSerialized();
     _notifyData();
   }
 
