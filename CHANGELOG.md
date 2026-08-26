@@ -8,6 +8,8 @@
 
 ### Breaking changes
 
+* `StateDocument.save()` removed. It persisted the canonical `data` snapshot rather than the `copy` draft, so after the draft-based editing model landed it round-tripped unmodified data back to Firestore and could overwrite newer server-side values with an older local snapshot. Action required: persist explicitly with `set(...)`, passing a payload you build from your own serialized draft.
+
 * **`StateDocument.copy` (the old `Map<String, dynamic>?` edit snapshot) is removed entirely.** There is no replacement for the snapshot itself. `copy` now resolves to `StateShared.copy`, a typed working draft. Under the new model, edits are written to `copy` rather than to `data`, so `data` does not change during an edit session and a snapshot of the pre-edit `data` is not needed.
 
 * **`StateDocument.editSnapshot` and `StateDocument._snapshot()` are removed.** These were the interim rename of the old `copy` snapshot. Consumers that relied on either name must migrate to the `copy`-based workflow.

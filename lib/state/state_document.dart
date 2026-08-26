@@ -205,27 +205,4 @@ abstract class StateDocument extends StateShared {
     streamSubscription = null;
     super.dispose();
   }
-
-  /// Persists the current [data] to Firestore and leaves edit mode.
-  ///
-  /// The document `id` is stripped before writing because it is the document key
-  /// rather than a stored field. Edit mode is only exited after the write
-  /// succeeds, so a failed save leaves the user's changes on screen; the error is
-  /// recorded through [error] and rethrown for callers that want to react to it.
-  ///
-  /// [merge] defaults to `true` so unspecified fields are preserved, which is the
-  /// safe choice for partial document forms.
-  Future<void> save({bool merge = true}) async {
-    final current = data;
-    if (current is! Map) return;
-    final payload = Map<String, dynamic>.from(current)..remove('id');
-    try {
-      await set(payload, merge: merge);
-    } catch (e) {
-      error = e.toString();
-      rethrow;
-    }
-    exitEdit(); // _edit = false, invalidateCopy() — no extra notification
-    notifyListeners();
-  }
 }
