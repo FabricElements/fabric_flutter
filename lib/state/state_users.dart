@@ -25,6 +25,15 @@ class StateUsers extends StateCollection {
   @override
   int get limitDefault => 200;
 
+  /// Tracks whether a deserialization error occurred during [serialized] getter.
+  ///
+  /// This flag complements the [error] property, which uses dedup logic to avoid
+  /// notifying listeners twice for the same error message. [hadSerializationError]
+  /// is not deduplicated, so consumers can reliably detect every deserialization
+  /// failure, including repeated failures on the same data. The flag is reset when
+  /// [data] changes.
+  bool hadSerializationError = false;
+
   /// Caches the last serialized result together with the [data] reference it
   /// was built from.
   ///
@@ -44,6 +53,7 @@ class StateUsers extends StateCollection {
     final currentData = data;
     if (currentData == null) return [];
     try {
+      hadSerializationError = false;
       return cachedSerialize(currentData, () {
         List<UserData> items = (currentData as List<dynamic>)
             .map((value) => UserData.fromJson(value))
@@ -52,6 +62,7 @@ class StateUsers extends StateCollection {
         return items;
       });
     } catch (e) {
+      hadSerializationError = true;
       error = serializationError(e);
       return [];
     }
@@ -80,6 +91,15 @@ class StateUsers extends StateCollection {
   /// Combined with [_pendingUids] this guarantees that requesting the same
   /// identifier repeatedly never produces more than one document read.
   final Set<String> _inFlightUids = {};
+
+  /// Tracks identifiers whose fetch attempt failed, allowing retry on subsequent
+  /// [getUser] calls.
+  ///
+  /// When a batch fetch fails (e.g., network error), the UIDs are added here.
+  /// On the next [getUser] call for a failed UID, the placeholder is discarded
+  /// and the UID is re-enqueued for retry. This ensures transient network blips
+  /// do not permanently cache a failed lookup.
+  final Set<String> _failedUids = {};
 
   /// Coalesces requests made during the same frame into a single batch.
   Timer? _batchTimer;
@@ -112,7 +132,16 @@ class StateUsers extends StateCollection {
   /// frame is resolved with chunked `whereIn` queries and produces a single
   /// [notifyListeners] call once the whole batch settles. That replaces the
   /// previous behavior of one document read plus one notification per user.
+  ///
+  /// If a previous fetch for this [uid] failed, the cached placeholder is
+  /// discarded and the UID is re-enqueued for retry, allowing transient network
+  /// errors to be recovered.
   UserData getUser(String uid) {
+    // If a previous fetch failed, clear the failed flag and re-enqueue for retry.
+    if (_failedUids.contains(uid)) {
+      _failedUids.remove(uid);
+      _usersMap.remove(uid);
+    }
     final cached = _usersMap[uid];
     if (cached != null) return cached;
     final placeholder = UserData.fromJson({'id': uid, 'name': 'Unknown'});
@@ -200,13 +229,24 @@ class StateUsers extends StateCollection {
     bool changed = false;
     try {
       final results = await Future.wait(chunkUids(uids).map(fetchUsersById));
+      final fetchedIds = <String>{};
       for (final documents in results) {
         documents.forEach((id, itemData) {
           _usersMap[id] = UserData.fromJson({...itemData, 'id': id});
+          _failedUids.remove(id); // Clear failed flag on successful fetch
+          fetchedIds.add(id);
           changed = true;
         });
       }
+      // Mark any UIDs that were not found (not in the fetched results) as genuinely absent.
+      for (final uid in uids) {
+        if (!fetchedIds.contains(uid)) {
+          _failedUids.remove(uid); // Document does not exist, not a transient failure
+        }
+      }
     } catch (e) {
+      // Mark all attempted UIDs as failed so they can be retried.
+      _failedUids.addAll(uids);
       debugPrint(LogColor.error('StateUsers.getUser: ${e.toString()}'));
     } finally {
       _inFlightUids.removeAll(uids);

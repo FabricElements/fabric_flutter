@@ -5,6 +5,24 @@ import '../support/debounce.dart';
 import '../support/fake_state_users.dart';
 import '../support/firebase_test_harness.dart';
 
+/// [StateUsers] override that throws on first fetch attempt to test failure handling.
+class FailingStateUsers extends FakeStateUsers {
+  int fetchAttempts = 0;
+
+  FailingStateUsers() : super({});
+
+  @override
+  Future<Map<String, Map<String, dynamic>>> fetchUsersById(
+    List<String> uids,
+  ) async {
+    fetchAttempts++;
+    if (fetchAttempts == 1) {
+      throw 'Network error on first attempt';
+    }
+    return {}; // Would succeed on retry, but we never get here
+  }
+}
+
 void main() {
   group('StateUsers', () {
     setUp(() async {
@@ -237,6 +255,80 @@ void main() {
 
       // Assert
       expect(state.requests, isEmpty);
+    });
+
+    group('failed fetch handling', () {
+      test(
+        'caches Unknown placeholder when user is not found',
+        () async {
+          // Arrange
+          final state = FakeStateUsers({});
+          int notifications = 0;
+          state.addListener(() => notifications++);
+
+          // Act
+          final placeholder = state.getUser('missing');
+          await state.flushPendingUsers();
+          await settleDebounce();
+
+          // Assert
+          expect(placeholder.firstName, isNull);
+          expect(state.cachedUser('missing')!.firstName, isNull);
+          expect(notifications, 0); // No change notification for missing user
+        },
+      );
+
+      test(
+        'returns cached Unknown placeholder on repeated getUser for missing user',
+        () async {
+          // Arrange
+          final state = FakeStateUsers({});
+
+          // Act - first call
+          final first = state.getUser('missing');
+          await state.flushPendingUsers();
+
+          // Act - second call (should not re-fetch)
+          final second = state.getUser('missing');
+          await state.flushPendingUsers();
+
+          // Assert
+          expect(identical(first, second), isTrue);
+          expect(state.requests.length, 1); // Only one request total
+          expect(state.requests.single, ['missing']);
+        },
+      );
+
+      test(
+        'retries a failed lookup on repeated getUser calls',
+        () async {
+          // Arrange - FailingStateUsers throws on first fetch attempt
+          final state = FailingStateUsers();
+
+          // Act - first call triggers fetch that fails
+          final first = state.getUser('abc');
+          await state.flushPendingUsers();
+
+          // Act - second call should retry the failed lookup
+          state.getUser('abc');
+          await state.flushPendingUsers();
+
+          // Assert - fetch should have been attempted twice (retry after failure)
+          expect(state.fetchAttempts, greaterThan(1),
+              reason:
+                  'Failed lookup should be retryable, not cached as permanent placeholder');
+          expect(
+            first.id,
+            'abc',
+            reason: 'First placeholder has the requested ID',
+          );
+          expect(
+            first.firstName,
+            isNull,
+            reason: 'First placeholder has no real data (Unknown)',
+          );
+        },
+      );
     });
   });
 }
