@@ -86,83 +86,6 @@ void main() {
       });
     });
 
-    group('save', () {
-      test(
-        'should write the payload without the id and leave edit mode',
-        () async {
-          // Arrange
-          final state = _TestStateDocument();
-          state.data = {'id': 'doc-1', 'name': 'changed'};
-          state.edit = true;
-
-          // Act
-          await state.save();
-
-          // Assert
-          expect(state.writes.single, {'name': 'changed'});
-          expect(state.merges.single, isTrue);
-          expect(state.edit, isFalse);
-        },
-      );
-
-      test('should keep the committed data in place', () async {
-        // Arrange
-        final state = _TestStateDocument();
-        state.data = {'id': 'doc-1', 'name': 'changed'};
-        state.edit = true;
-
-        // Act
-        await state.save();
-
-        // Assert
-        expect(state.data, {'id': 'doc-1', 'name': 'changed'});
-      });
-
-      test('should forward a merge override', () async {
-        // Arrange
-        final state = _TestStateDocument();
-        state.data = {'id': 'doc-1', 'name': 'value'};
-
-        // Act
-        await state.save(merge: false);
-
-        // Assert
-        expect(state.merges.single, isFalse);
-      });
-
-      test('should do nothing when there is no payload', () async {
-        // Arrange
-        final state = _TestStateDocument();
-        state.edit = true;
-
-        // Act
-        await state.save();
-
-        // Assert
-        expect(state.writes, isEmpty);
-        expect(state.edit, isTrue);
-      });
-
-      test(
-        'should stay in edit mode and record the error when saving fails',
-        () async {
-          // Arrange
-          final state = _TestStateDocument();
-          state.data = {'id': 'doc-1', 'name': 'changed'};
-          state.edit = true;
-          state.failWith = 'write denied';
-
-          // Act
-          await expectLater(state.save(), throwsA('write denied'));
-
-          // Assert: the user's changes survive a failed write.
-          expect(state.edit, isTrue);
-          expect(state.data, {'id': 'doc-1', 'name': 'changed'});
-          expect(state.error, 'write denied');
-        },
-      );
-    });
-
     group('clear', () {
       test('should reset edit mode and data', () {
         // Arrange
@@ -198,7 +121,7 @@ void main() {
       test('setting edit = false should discard a stale draft and rebuild from data', () {
         // Arrange — inject a stale copy to verify draft invalidation fires on
         // edit-mode exit. Uses edit = false directly; same invalidation path
-        // as the old save() and the removed lifecycle methods.
+        // as the removed lifecycle methods.
         final state = _TestStateDocument();
         state.data = {'id': 'doc-1', 'name': 'original'};
         state.edit = true;
@@ -210,22 +133,6 @@ void main() {
 
         // Assert — draft is invalidated; next read rebuilds from unchanged data.
         expect(state.copy, {'id': 'doc-1', 'name': 'original'});
-        expect(state.edit, isFalse);
-      });
-
-      test('save() should invalidate the typed draft', () async {
-        // Arrange — enter edit and inject a stale copy.
-        final state = _TestStateDocument();
-        state.data = {'id': 'doc-1', 'name': 'changed'};
-        state.edit = true;
-        state.copy = {'stale': true}; // manually set to something wrong
-
-        // Act
-        await state.save();
-
-        // Assert — exitEdit() was called: draft is invalidated and the next
-        // read rebuilds from the current data (the stub leaves data in place).
-        expect(state.copy, state.data);
         expect(state.edit, isFalse);
       });
     });
