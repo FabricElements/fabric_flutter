@@ -241,9 +241,10 @@ abstract class StateDocument extends StateShared {
   /// Applies a local, unsaved change to a single field while editing.
   ///
   /// Assigning through this method — rather than mutating `data[key]` directly —
-  /// is what makes the change visible: [data] compares payloads structurally, so
-  /// an in-place mutation of the existing map would be indistinguishable from
-  /// the previous value and would never notify listeners.
+  /// is what makes the change visible. A direct mutation never reaches the [data]
+  /// setter at all, so no listener is notified and nothing rebuilds. Copying the
+  /// map and assigning the copy also keeps the structural comparison in [data]
+  /// meaningful, because the previous value stays intact to compare against.
   ///
   /// The change is local only. Call [save] to persist it, or [revert] to discard
   /// it. Calling this outside of edit mode still updates [data] but leaves no
