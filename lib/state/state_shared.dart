@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import '../helper/filter_helper.dart';
 import '../helper/log_color.dart';
@@ -305,7 +306,14 @@ abstract class StateShared extends ChangeNotifier {
   ///
   /// Duplicate messages are ignored so consumers do not react twice to the same
   /// failure.
+  ///
+  /// After [dispose] has been called this is a silent no-op.  When
+  /// [debounceTime] is `0` or less the listener notification is ordinarily
+  /// synchronous; however, if this setter is called during a widget build the
+  /// notification is deferred to the next post-frame callback to avoid the
+  /// `setState() or markNeedsBuild() called during build` assertion.
   set error(String? errorMessage) {
+    if (_disposed) return;
     if (_error == errorMessage) return;
     _error = errorMessage;
     notifyListeners();
@@ -692,6 +700,10 @@ abstract class StateShared extends ChangeNotifier {
     filters = baseFilters;
     if (fetch) {
       Future.delayed(const Duration(milliseconds: 400)).whenComplete(() {
+        // Guard mirrors the adjacent redirect path's context.mounted check: the
+        // delay outlives the caller's frame, so the state may have been disposed
+        // by the time this fires.
+        if (_disposed) return;
         call();
       });
     }
@@ -803,6 +815,19 @@ abstract class StateShared extends ChangeNotifier {
   int debounceCountData = 0;
 
   /// Defines the normal debounce interval in milliseconds.
+  ///
+  /// The default value of `10` coalesces rapid property updates (for example,
+  /// a burst of HTTP or Firestore events) so that listeners and widgets rebuild
+  /// at most once per debounce window.
+  ///
+  /// Setting this to `0` or less opts out of debouncing: every call to
+  /// [notifyListeners] and every [data] or [error] assignment dispatches
+  /// synchronously.  **Caveat:** if a dispatch lands during the Flutter build
+  /// phase (i.e. while a widget is building), the notification is automatically
+  /// deferred to the next post-frame callback instead of being issued inline, to
+  /// avoid the `setState() or markNeedsBuild() called during build` assertion.
+  /// Consumers relying on synchronous delivery must not trigger a notify from
+  /// inside a `build` method when `debounceTime <= 0`.
   int debounceTime = 10;
 
   /// Defines the longer debounce interval used before the first successful load.
@@ -828,6 +853,27 @@ abstract class StateShared extends ChangeNotifier {
   /// what keeps a debounced publish and an immediate publish indistinguishable
   /// to a consumer.
   void _publishData() {
+    if (_disposed) return;
+    // Guard against "setState() called during build" on the immediate
+    // (debounceTime <= 0) data path.  The deferred callback re-checks
+    // _disposed because the state may be disposed before the post-frame fires.
+    // The try/catch is scoped to just the phase probe so that errors from
+    // sink.add or super.notifyListeners() propagate normally.
+    SchedulerPhase? buildPhase;
+    try {
+      buildPhase = SchedulerBinding.instance.schedulerPhase;
+    } catch (_) {
+      // Binding not yet initialised; publish synchronously.
+    }
+    if (buildPhase == SchedulerPhase.persistentCallbacks) {
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        if (_disposed) return;
+        _controllerStream.sink.add(privateData);
+        super.notifyListeners();
+        _safeCallback(privateData);
+      });
+      return;
+    }
     _controllerStream.sink.add(privateData);
     super.notifyListeners();
     _safeCallback(privateData);
@@ -841,6 +887,7 @@ abstract class StateShared extends ChangeNotifier {
   /// [callback] — the two paths differ only in *when* they deliver, never in
   /// *what* they deliver.
   void _notifyData() {
+    if (_disposed) return;
     // Publish immediately when debouncing is disabled. Any timer already in
     // flight is dropped so a stale deferred delivery cannot arrive afterwards.
     if (debounceTime <= 0) {
@@ -867,14 +914,65 @@ abstract class StateShared extends ChangeNotifier {
   ///
   /// Subclasses call this indirectly through property setters so rapid state
   /// transitions coalesce into fewer rebuilds.
+  ///
+  /// **Post-dispose behaviour:** once [dispose] has been called this method is a
+  /// silent no-op.  In debug mode a diagnostic is printed so callers can detect
+  /// a leaked reference to a disposed state object.
+  ///
+  /// **Build-phase behaviour when `debounceTime <= 0`:** the notification is
+  /// normally synchronous, but if it is triggered during
+  /// [SchedulerPhase.persistentCallbacks] (i.e. while a widget is executing its
+  /// `build` method) the dispatch is deferred to the next post-frame callback to
+  /// prevent `setState() or markNeedsBuild() called during build`.  The
+  /// deferred callback re-checks the disposed flag, so disposal between the call
+  /// and the post-frame fires is safe.  Callers that require synchronous
+  /// delivery must not trigger a notify from inside a `build` method when
+  /// `debounceTime <= 0`.
   @override
   void notifyListeners() {
+    // Exit silently when the object has already been disposed.  A post-dispose
+    // call would otherwise schedule a Timer whose callback reaches
+    // super.notifyListeners() on a disposed ChangeNotifier, tripping its
+    // debugAssertNotDisposed check.  Emitting a debug-only diagnostic surfaces
+    // genuine consumer bugs (leaking a reference to a disposed state) without
+    // throwing in release builds.
+    if (_disposed) {
+      if (kDebugMode) {
+        debugPrint(LogColor.error(
+          'StateShared.notifyListeners() called after dispose() on $runtimeType.'
+          ' This is a bug in the caller.',
+        ));
+      }
+      return;
+    }
     // Notify immediately when debouncing is disabled. Any timer already in
     // flight is dropped so a stale deferred notification cannot arrive after.
     if (debounceTime <= 0) {
       _timerNotify?.cancel();
       _timerNotify = null;
       debounceCountNotify = 0;
+      // Guard against "setState() called during build."  The debounced path
+      // naturally defers past the build phase via a Timer; the immediate path
+      // needs an explicit check.  The try/catch is scoped to just the phase
+      // probe: when the binding is not yet initialised (pure unit-test contexts
+      // that do not call TestWidgetsFlutterBinding.ensureInitialized()) the
+      // probe throws, the catch falls through, and we dispatch inline — safe
+      // because there is no active framework to violate.  The addPostFrameCallback
+      // call and the super.notifyListeners() call are outside the catch so any
+      // error they raise propagates normally.
+      SchedulerPhase? buildPhase;
+      try {
+        buildPhase = SchedulerBinding.instance.schedulerPhase;
+      } catch (_) {
+        // Binding not yet initialised; dispatch inline.
+      }
+      if (buildPhase == SchedulerPhase.persistentCallbacks) {
+        SchedulerBinding.instance.addPostFrameCallback((_) {
+          if (_disposed) return;
+          super.notifyListeners();
+        });
+        return;
+      }
       super.notifyListeners();
       return;
     }
@@ -897,9 +995,23 @@ abstract class StateShared extends ChangeNotifier {
   /// returns, which keeps list-heavy workflows feeling continuous.
   double scrollOffset = 0.0;
 
+  /// Whether [dispose] has been called.
+  ///
+  /// Set to `true` at the very start of [dispose], before any teardown, so
+  /// every guarded dispatch site can test it and exit early. Cancelling the
+  /// in-flight timers in [dispose] is not sufficient on its own: a notify or
+  /// publish issued *after* [dispose] has already run creates a brand-new timer
+  /// that nothing will ever cancel.
+  bool _disposed = false;
+
   /// Releases streams and timers held by the state.
+  ///
+  /// Sets [_disposed] before tearing down resources so every guarded path
+  /// can exit early rather than operating on closed controllers or a disposed
+  /// [ChangeNotifier].
   @override
   void dispose() {
+    _disposed = true;
     _controllerStream.close();
     _controllerStreamError.close();
     _timerNotify?.cancel();
