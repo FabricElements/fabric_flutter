@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
+import '../support/debounce.dart';
+import '../support/fake_state_users.dart';
 import '../support/firebase_test_harness.dart';
 
 /// Pumps [child] with a [StateUsers] provider and loaded localization.
@@ -23,7 +25,7 @@ Future<void> _pump(WidgetTester tester, StateUsers state, Widget child) async {
       ),
     ),
   );
-  await tester.pump();
+  await pumpDebounce(tester);
 }
 
 void main() {
@@ -37,7 +39,7 @@ void main() {
       tester,
     ) async {
       // Arrange
-      final state = StateUsers();
+      final state = FakeStateUsers();
 
       // Act
       await _pump(tester, state, const UsersDropdown(uid: null));
@@ -51,7 +53,7 @@ void main() {
       tester,
     ) async {
       // Arrange
-      final state = StateUsers();
+      final state = FakeStateUsers();
       state.data = [
         {'id': 'b', 'firstName': 'Bob', 'lastName': 'Stone'},
         {'id': 'a', 'firstName': 'Ada', 'lastName': 'Byron'},
@@ -66,7 +68,7 @@ void main() {
 
     test('serialized returns users sorted by name', () {
       // Arrange
-      final state = StateUsers();
+      final state = FakeStateUsers();
       state.data = [
         {'id': 'b', 'firstName': 'Bob', 'lastName': 'Stone'},
         {'id': 'a', 'firstName': 'Ada', 'lastName': 'Byron'},
@@ -83,7 +85,7 @@ void main() {
       'keeps rendering across rebuilds without leaking a controller',
       (tester) async {
         // Arrange
-        final state = StateUsers();
+        final state = FakeStateUsers();
         state.data = [
           {'id': 'a', 'firstName': 'Ada', 'lastName': 'Byron'},
         ];

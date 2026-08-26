@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
-import 'package:fabric_flutter/variables.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -560,11 +559,22 @@ abstract class StateShared extends ChangeNotifier {
   /// Replaces the current selection.
   ///
   /// Passing `null` clears all selected items.
+  ///
+  /// The unchanged-selection guard is skipped when the caller hands back the
+  /// very list this state already holds, because [selected] exposes
+  /// [selectedItems] directly: a read-mutate-write round trip compares that
+  /// list against itself and can only ever report "unchanged", which would
+  /// swallow a real mutation. This mirrors the same-instance escape hatch used
+  /// by the [data] setter.
   set selected(List<dynamic>? items) {
     final newItems = items ?? [];
+    final bool sameInstance = identical(selectedItems, newItems);
     // Skip the notify when the selection is unchanged; the setter is commonly
     // re-assigned from a parent rebuild with an equivalent list.
-    if (const DeepCollectionEquality().equals(selectedItems, newItems)) return;
+    if (!sameInstance &&
+        const DeepCollectionEquality().equals(selectedItems, newItems)) {
+      return;
+    }
     selectedItems = newItems;
     notifyListeners();
   }
@@ -799,8 +809,8 @@ abstract class StateShared extends ChangeNotifier {
   int get debounceTimeNotInitialized => 500;
 
   /// Invokes [callback] safely, routing any exception it throws to a debug
-  /// log instead of letting it escape the debounce [Timer]/test-mode path
-  /// and interrupt [_notifyData].
+  /// log instead of letting it escape [_publishData] and interrupt the
+  /// listener notification or the [stream] emission that accompany it.
   void _safeCallback(dynamic data) {
     try {
       callback(data);
@@ -811,21 +821,33 @@ abstract class StateShared extends ChangeNotifier {
     }
   }
 
+  /// Delivers the current data to every channel a consumer can observe.
+  ///
+  /// [stream] subscribers, [ChangeNotifier] listeners and [callback] are always
+  /// served together. Routing every delivery path through this one method is
+  /// what keeps a debounced publish and an immediate publish indistinguishable
+  /// to a consumer.
+  void _publishData() {
+    _controllerStream.sink.add(privateData);
+    super.notifyListeners();
+    _safeCallback(privateData);
+  }
+
   /// Publishes [data] changes with debouncing.
   ///
-  /// Tests bypass debouncing for determinism, while production code batches
-  /// bursts of updates so widgets do not thrash during stream-heavy workflows.
+  /// Bursts of updates are coalesced so widgets do not thrash during
+  /// stream-heavy workflows. Setting [debounceTime] to `0` or less opts out and
+  /// publishes immediately, which still emits on [stream] and still invokes
+  /// [callback] — the two paths differ only in *when* they deliver, never in
+  /// *what* they deliver.
   void _notifyData() {
-    // Do not debounce in test mode
-    if (kIsTest) {
-      _controllerStream.sink.add(privateData);
-      super.notifyListeners();
-      _safeCallback(privateData);
-      return;
-    }
-    // Do not debounce if debounceTime is 0
+    // Publish immediately when debouncing is disabled. Any timer already in
+    // flight is dropped so a stale deferred delivery cannot arrive afterwards.
     if (debounceTime <= 0) {
-      super.notifyListeners();
+      _timerData?.cancel();
+      _timerData = null;
+      debounceCountData = 0;
+      _publishData();
       return;
     }
     // Make custom debounce effective only after the first call otherwise use 10ms as minimum
@@ -837,9 +859,7 @@ abstract class StateShared extends ChangeNotifier {
     _timerData?.cancel();
     _timerData = Timer(Duration(milliseconds: finalDebounceTime), () {
       debounceCountData = 0;
-      _controllerStream.sink.add(privateData);
-      super.notifyListeners();
-      _safeCallback(privateData);
+      _publishData();
     });
   }
 
@@ -849,13 +869,12 @@ abstract class StateShared extends ChangeNotifier {
   /// transitions coalesce into fewer rebuilds.
   @override
   void notifyListeners() {
-    // Do not debounce in test mode
-    if (kIsTest) {
-      super.notifyListeners();
-      return;
-    }
-    // Do not debounce if debounceTime is 0
+    // Notify immediately when debouncing is disabled. Any timer already in
+    // flight is dropped so a stale deferred notification cannot arrive after.
     if (debounceTime <= 0) {
+      _timerNotify?.cancel();
+      _timerNotify = null;
+      debounceCountNotify = 0;
       super.notifyListeners();
       return;
     }

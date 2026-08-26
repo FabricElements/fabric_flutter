@@ -1,32 +1,9 @@
 import 'package:fabric_flutter/state/state_users.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../support/debounce.dart';
+import '../support/fake_state_users.dart';
 import '../support/firebase_test_harness.dart';
-
-/// Records the batched lookups issued by [StateUsers] and returns canned docs.
-///
-/// Overriding the fetch keeps the batching assertions free of Firestore while
-/// still exercising the real queue, chunking, and notification logic.
-class _RecordingStateUsers extends StateUsers {
-  _RecordingStateUsers(this.documents);
-
-  /// Holds the payload returned for each requested identifier.
-  final Map<String, Map<String, dynamic>> documents;
-
-  /// Captures every chunk handed to the fetch so tests can assert batching.
-  final List<List<String>> requests = [];
-
-  @override
-  Future<Map<String, Map<String, dynamic>>> fetchUsersById(
-    List<String> uids,
-  ) async {
-    requests.add(List<String>.of(uids));
-    return {
-      for (final uid in uids)
-        if (documents.containsKey(uid)) uid: documents[uid]!,
-    };
-  }
-}
 
 void main() {
   group('StateUsers', () {
@@ -127,7 +104,7 @@ void main() {
 
     test('getUser returns a placeholder without blocking', () {
       // Arrange
-      final state = _RecordingStateUsers({});
+      final state = FakeStateUsers({});
 
       // Act
       final user = state.getUser('abc');
@@ -140,7 +117,7 @@ void main() {
 
     test('cachedUser returns null before the identifier is requested', () {
       // Arrange
-      final state = _RecordingStateUsers({});
+      final state = FakeStateUsers({});
 
       // Act & Assert
       expect(state.cachedUser('abc'), isNull);
@@ -148,7 +125,7 @@ void main() {
 
     test('resolves many identifiers with one batched read', () async {
       // Arrange
-      final state = _RecordingStateUsers({
+      final state = FakeStateUsers({
         'a': {'firstName': 'Ada'},
         'b': {'firstName': 'Grace'},
         'c': {'firstName': 'Alan'},
@@ -169,7 +146,7 @@ void main() {
 
     test('notifies listeners once for the whole batch', () async {
       // Arrange
-      final state = _RecordingStateUsers({
+      final state = FakeStateUsers({
         'a': {'firstName': 'Ada'},
         'b': {'firstName': 'Grace'},
       });
@@ -180,6 +157,7 @@ void main() {
       state.getUser('a');
       state.getUser('b');
       await state.flushPendingUsers();
+      await settleDebounce();
 
       // Assert
       expect(notifications, 1);
@@ -187,13 +165,16 @@ void main() {
 
     test('does not notify when the batch resolves nothing', () async {
       // Arrange
-      final state = _RecordingStateUsers({});
+      final state = FakeStateUsers({});
       int notifications = 0;
       state.addListener(() => notifications++);
 
       // Act
       state.getUser('missing');
       await state.flushPendingUsers();
+      // Wait out the debounce window before asserting an absence, so the
+      // expectation cannot pass merely because delivery has not happened yet.
+      await settleDebounce();
 
       // Assert
       expect(notifications, 0);
@@ -202,7 +183,7 @@ void main() {
 
     test('requesting the same identifier twice reads it once', () async {
       // Arrange
-      final state = _RecordingStateUsers({
+      final state = FakeStateUsers({
         'a': {'firstName': 'Ada'},
       });
 
@@ -218,7 +199,7 @@ void main() {
 
     test('does not re-read an identifier already resolved', () async {
       // Arrange
-      final state = _RecordingStateUsers({
+      final state = FakeStateUsers({
         'a': {'firstName': 'Ada'},
       });
       state.getUser('a');
@@ -234,7 +215,7 @@ void main() {
 
     test('prefetchUsers chunks large requests', () async {
       // Arrange
-      final state = _RecordingStateUsers({});
+      final state = FakeStateUsers({});
       final uids = List<String>.generate(45, (index) => 'u$index');
 
       // Act
@@ -249,7 +230,7 @@ void main() {
 
     test('flushPendingUsers is a no-op when nothing is queued', () async {
       // Arrange
-      final state = _RecordingStateUsers({});
+      final state = FakeStateUsers({});
 
       // Act
       await state.flushPendingUsers();

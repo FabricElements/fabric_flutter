@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
+import '../support/debounce.dart';
+import '../support/fake_state_users.dart';
 import '../support/firebase_test_harness.dart';
 
 /// Pumps [child] with a [StateUsers] provider and loaded localization.
@@ -21,11 +23,11 @@ Future<void> _pump(WidgetTester tester, StateUsers state, Widget child) async {
       ),
     ),
   );
-  await tester.pump();
+  await pumpDebounce(tester);
 }
 
 /// Builds a state populated with two selectable users.
-StateUsers _populatedState() => StateUsers()
+StateUsers _populatedState() => FakeStateUsers()
   ..data = [
     {'id': 'a', 'firstName': 'Ada', 'lastName': 'Byron'},
     {'id': 'b', 'firstName': 'Bob', 'lastName': 'Stone'},

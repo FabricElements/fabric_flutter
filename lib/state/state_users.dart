@@ -8,7 +8,6 @@ import '../helper/log_color.dart';
 import '../helper/serialization_error.dart';
 import '../helper/user_query.dart';
 import '../serialized/user_data.dart';
-import '../variables.dart';
 import 'state_collection.dart';
 
 /// Provides the shared Firestore instance used by [StateUsers].
@@ -135,10 +134,10 @@ class StateUsers extends StateCollection {
 
   /// Defers the flush so requests issued during one frame share a batch.
   ///
-  /// Scheduling is skipped under [kIsTest] so widget tests never leave a
-  /// pending timer behind. Tests drive the queue with [flushPendingUsers].
+  /// Tests can drive the queue deterministically with [flushPendingUsers], and
+  /// supply canned documents by overriding [fetchUsersById].
   void _scheduleBatch() {
-    if (kIsTest || _batchTimer != null) return;
+    if (_batchTimer != null) return;
     _batchTimer = Timer(Duration.zero, _flushPendingUsers);
   }
 
@@ -170,14 +169,15 @@ class StateUsers extends StateCollection {
   /// Documents that do not exist are omitted, matching the previous behavior of
   /// a `whereIn` query, which returned only the identifiers it found.
   ///
-  /// Returns an empty map under [kIsTest] so tests never open a real Firestore
-  /// connection. Override it in tests to supply canned documents.
+  /// This method is the seam for tests: override it to supply canned documents
+  /// so the surrounding batching, caching and notification logic runs exactly
+  /// as it does in production, with only the data source replaced.
   @protected
   @visibleForTesting
   Future<Map<String, Map<String, dynamic>>> fetchUsersById(
     List<String> uids,
   ) async {
-    if (kIsTest || uids.isEmpty) return {};
+    if (uids.isEmpty) return {};
     final collection = UserQuery.collection();
     final snapshots = await Future.wait(
       uids.map((uid) => collection.doc(uid).get()),
