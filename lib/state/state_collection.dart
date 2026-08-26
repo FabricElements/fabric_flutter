@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 
 import 'state_shared.dart';
 
@@ -34,9 +35,9 @@ abstract class StateCollection extends StateShared {
   /// Stops listening to the current query and clears the state.
   Future<void> cancel({bool notify = false}) async {
     baseQuery = null;
-    if (_streamSubscription != null) {
+    if (streamSubscription != null) {
       try {
-        await _streamSubscription!.cancel();
+        await streamSubscription!.cancel();
       } catch (error) {
         //
       }
@@ -88,7 +89,7 @@ abstract class StateCollection extends StateShared {
     if (loading) return;
     if (isSameQuery(reference)) return;
     baseQuery = reference;
-    _streamSubscription?.cancel();
+    streamSubscription?.cancel();
     super.clear(notify: true);
   }
 
@@ -96,7 +97,12 @@ abstract class StateCollection extends StateShared {
   Query? get query => baseQuery?.limit(limit * page);
 
   /// Holds the active Firestore query snapshot subscription.
-  StreamSubscription<QuerySnapshot<Object?>>? _streamSubscription;
+  ///
+  /// Typed as [StreamSubscription] rather than the narrower Firestore type so
+  /// subclasses and test helpers can assign any compatible subscription without
+  /// importing cloud_firestore.
+  @protected
+  StreamSubscription<dynamic>? streamSubscription;
 
   /// Starts listening to live updates for the current [query].
   ///
@@ -108,7 +114,7 @@ abstract class StateCollection extends StateShared {
     if (loading) return data;
     if (initialized) return data;
     loading = true;
-    await _streamSubscription?.cancel();
+    await streamSubscription?.cancel();
     if (query == null) {
       loading = false;
       data = null;
@@ -116,7 +122,7 @@ abstract class StateCollection extends StateShared {
     }
     initialized = true;
     try {
-      _streamSubscription = query!.snapshots().listen(
+      streamSubscription = query!.snapshots().listen(
         (snapshot) {
           loading = false;
 
@@ -157,7 +163,7 @@ abstract class StateCollection extends StateShared {
   /// limit, so the old listener must be torn down first.
   @override
   void onPageChange(int newPage) async {
-    await _streamSubscription?.cancel();
+    await streamSubscription?.cancel();
   }
 
   /// Fetches the current query once without keeping a live listener attached.
@@ -167,12 +173,12 @@ abstract class StateCollection extends StateShared {
     isSameBaseQuery(baseQuery);
     if (loading) return data;
     if (initialized) return data;
-    await _streamSubscription?.cancel();
+    await streamSubscription?.cancel();
     if (query == null) {
       super.clear(notify: false);
       return data;
     }
-    if (_streamSubscription != null) return listen();
+    if (streamSubscription != null) return listen();
     initialized = true;
     loading = true;
     try {
@@ -204,5 +210,18 @@ abstract class StateCollection extends StateShared {
   void clear({bool notify = false}) {
     super.clear(notify: notify);
     baseQuery = null;
+  }
+
+  /// Cancels the active query subscription and releases shared resources.
+  ///
+  /// Without this override the Firestore snapshot listener started by [listen]
+  /// keeps firing after the widget is gone. Each snapshot calls
+  /// [notifyListeners] on a disposed [ChangeNotifier], which Flutter treats as
+  /// a programming error.
+  @override
+  void dispose() {
+    streamSubscription?.cancel();
+    streamSubscription = null;
+    super.dispose();
   }
 }

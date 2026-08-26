@@ -51,6 +51,24 @@ http.Response jsonOk(Object body, {Map<String, String> headers = const {}}) =>
       headers: {'content-type': 'application/json', ...headers},
     );
 
+/// [http.BaseClient] stub that records whether [close] was called.
+class _CloseTrackingClient extends http.BaseClient {
+  _CloseTrackingClient({required this.onClose});
+
+  final void Function() onClose;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    throw UnsupportedError('_CloseTrackingClient is for disposal tests only');
+  }
+
+  @override
+  void close() {
+    onClose();
+    super.close();
+  }
+}
+
 void main() {
   setUp(_TestStateAPI.requests.clear);
 
@@ -432,6 +450,35 @@ void main() {
         // Assert: clearing the cached endpoint allows a fresh request.
         expect(state.headers, isNotEmpty);
         expect(_TestStateAPI.requests, hasLength(2));
+      });
+    });
+
+    group('dispose', () {
+      test('should not throw when disposed without a prior call', () {
+        // Arrange — positive control: dispose must succeed even when no request
+        // was ever sent and no streaming subscription exists.
+        final state = _TestStateAPI((_) async => jsonOk({'id': '1'}));
+
+        // Act & Assert
+        expect(() => state.dispose(), returnsNormally);
+      });
+
+      test('should close the HTTP client on dispose', () {
+        // Arrange
+        var closeCalled = false;
+        final state = _TestStateAPI(
+          (_) async => jsonOk({'id': '1'}),
+        );
+        // Replace the client with one that records close() calls.
+        state.httpClient = _CloseTrackingClient(onClose: () {
+          closeCalled = true;
+        });
+
+        // Act
+        state.dispose();
+
+        // Assert — the client is closed so its connections are not leaked.
+        expect(closeCalled, isTrue);
       });
     });
   });

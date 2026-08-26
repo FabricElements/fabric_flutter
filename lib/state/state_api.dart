@@ -539,4 +539,19 @@ Error: $error
       super.clear(notify: notify);
     });
   }
+
+  /// Cancels any active JSON-stream subscription and closes the HTTP client.
+  ///
+  /// Without this override a streaming response that is still in flight after
+  /// the widget is gone keeps firing chunk callbacks, which call
+  /// [notifyListeners] on a disposed [ChangeNotifier].
+  @override
+  void dispose() {
+    _streamSubscription?.cancel();
+    _streamSubscription = null;
+    try {
+      httpClient.close();
+    } catch (_) {}
+    super.dispose();
+  }
 }
