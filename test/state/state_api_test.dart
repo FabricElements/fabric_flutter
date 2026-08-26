@@ -6,6 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
+import '../support/debounce.dart';
+
 /// Concrete [StateAPI] used to exercise the abstract base class.
 ///
 /// The state records every request it sends so tests can assert on the final
@@ -407,7 +409,7 @@ void main() {
 
         // Act
         await state.call();
-        await Future<void>.delayed(Duration.zero);
+        await settleDebounce();
 
         // Assert
         expect(received.last, {'id': '1'});

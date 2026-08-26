@@ -1,6 +1,8 @@
 import 'package:fabric_flutter/state/state_document.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../support/debounce.dart';
+
 /// Concrete [StateDocument] that captures writes instead of reaching Firestore.
 ///
 /// Overriding [set] keeps the edit lifecycle testable without a live backend or
@@ -38,15 +40,18 @@ void main() {
         expect(state.copy, isNull);
       });
 
-      test('should capture a snapshot and notify when entering edit', () {
+      test('should capture a snapshot and notify when entering edit', () async {
         // Arrange
         final state = _TestStateDocument();
         state.data = {'id': 'doc-1', 'name': 'original'};
+        // Let the seed's debounced publish land before counting.
+        await settleDebounce();
         var notified = 0;
         state.addListener(() => notified++);
 
         // Act
         state.edit = true;
+        await settleDebounce();
 
         // Assert
         expect(state.edit, isTrue);
@@ -115,16 +120,18 @@ void main() {
     });
 
     group('editField', () {
-      test('should replace the payload so listeners are notified', () {
+      test('should replace the payload so listeners are notified', () async {
         // Arrange
         final state = _TestStateDocument();
         state.data = {'id': 'doc-1', 'name': 'original'};
         state.edit = true;
+        await settleDebounce();
         var notified = 0;
         state.addListener(() => notified++);
 
         // Act
         state.editField('name', 'changed');
+        await settleDebounce();
 
         // Assert
         expect(notified, 1);
@@ -186,26 +193,28 @@ void main() {
         expect(state.copy, isNull);
       });
 
-      test('should notify listeners when restoring', () {
+      test('should notify listeners when restoring', () async {
         // Arrange
         final state = _TestStateDocument();
         state.data = {'id': 'doc-1', 'name': 'original'};
         state.edit = true;
         state.editField('name', 'changed');
+        await settleDebounce();
         var notified = 0;
         state.addListener(() => notified++);
 
         // Act
         state.revert();
+        await settleDebounce();
 
         // Assert — twice on purpose: once from the `data` setter accepting the
         // restored snapshot, once from the unconditional call that guarantees
-        // the edit-mode exit is delivered. The debounce coalesces them into a
-        // single rebuild outside of tests, where `kIsTest` bypasses it.
+        // the edit-mode exit is delivered. `data` and `notifyListeners` run on
+        // two independent debounce timers, so both are delivered.
         expect(notified, 2);
       });
 
-      test('should notify when cancelling without changing anything', () {
+      test('should notify when cancelling without changing anything', () async {
         // Arrange — the cancel-with-no-edits path. `copy` is a snapshot of
         // `data`, so restoring it hands the setter a fresh but structurally
         // equal payload, which the setter deliberately suppresses. Before the
@@ -215,11 +224,13 @@ void main() {
         final state = _TestStateDocument();
         state.data = {'id': 'doc-1', 'name': 'original'};
         state.edit = true;
+        await settleDebounce();
         var notified = 0;
         state.addListener(() => notified++);
 
         // Act
         state.revert();
+        await settleDebounce();
 
         // Assert
         expect(notified, 1);
@@ -228,15 +239,17 @@ void main() {
         expect(state.data, {'id': 'doc-1', 'name': 'original'});
       });
 
-      test('should only clear the flag when no snapshot exists', () {
+      test('should only clear the flag when no snapshot exists', () async {
         // Arrange
         final state = _TestStateDocument();
         state.data = {'id': 'doc-1', 'name': 'original'};
+        await settleDebounce();
         var notified = 0;
         state.addListener(() => notified++);
 
         // Act
         state.revert();
+        await settleDebounce();
 
         // Assert
         expect(state.edit, isFalse);

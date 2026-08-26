@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
+import '../support/debounce.dart';
+import '../support/fake_state_users.dart';
 import '../support/firebase_test_harness.dart';
 
 /// Wraps [child] in a minimal app that provides a [StateUsers] instance.
@@ -27,7 +29,7 @@ void main() {
 
     testWidgets('renders nothing when uid is null', (tester) async {
       // Arrange
-      final state = StateUsers();
+      final state = FakeStateUsers();
 
       // Act
       await tester.pumpWidget(_wrap(state, const UserChip(uid: null)));
@@ -39,7 +41,7 @@ void main() {
 
     testWidgets('renders the resolved name in minimal mode', (tester) async {
       // Arrange
-      final state = StateUsers();
+      final state = FakeStateUsers();
       state.usersMap['abc'] = UserData.fromJson({
         'id': 'abc',
         'firstName': 'Ada',
@@ -58,7 +60,7 @@ void main() {
 
     testWidgets('renders a Chip with the resolved name', (tester) async {
       // Arrange
-      final state = StateUsers();
+      final state = FakeStateUsers();
       state.usersMap['abc'] = UserData.fromJson({
         'id': 'abc',
         'firstName': 'Grace',
@@ -75,7 +77,7 @@ void main() {
 
     testWidgets('does not start a lookup from build', (tester) async {
       // Arrange
-      final state = StateUsers();
+      final state = FakeStateUsers();
 
       // Act
       await tester.pumpWidget(
@@ -85,7 +87,7 @@ void main() {
       await tester.pumpWidget(
         _wrap(state, const UserChip(uid: 'abc', minimal: true)),
       );
-      await tester.pump();
+      await pumpDebounce(tester);
 
       // Assert: the placeholder was inserted exactly once, by initState.
       expect(state.usersMap.keys.toList(), ['abc']);
@@ -96,15 +98,17 @@ void main() {
       tester,
     ) async {
       // Arrange
-      final state = StateUsers();
+      final state = FakeStateUsers();
       await tester.pumpWidget(
         _wrap(state, const UserChip(uid: 'abc', minimal: true)),
       );
+      await pumpDebounce(tester);
 
       // Act
       await tester.pumpWidget(
         _wrap(state, const UserChip(uid: 'xyz', minimal: true)),
       );
+      await pumpDebounce(tester);
 
       // Assert
       expect(state.cachedUser('xyz'), isNotNull);
