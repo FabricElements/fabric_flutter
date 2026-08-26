@@ -206,51 +206,6 @@ abstract class StateDocument extends StateShared {
     super.dispose();
   }
 
-  /// Applies a local, unsaved change to a single field.
-  ///
-  /// The change is written **directly to [data]** and is immediately visible to
-  /// listeners. Because the write goes to [data], **it is not revertible**:
-  /// calling [revert] after [editField] will discard the [copy] draft but leave
-  /// [data] — and therefore the `editField` change — in place.
-  ///
-  /// **Preferred approach:** stage changes on the [copy] draft instead. Assign
-  /// `copy` a modified copy of [serialized], mutate its fields, and call [save]
-  /// when the user confirms. This leaves [data] untouched until the write
-  /// succeeds, so [revert] can discard the draft without side effects.
-  ///
-  /// This method is retained for backward compatibility. New code should prefer
-  /// the [copy]-based workflow described above.
-  void editField(String key, dynamic value) {
-    final current = data;
-    final updated = current is Map
-        ? Map<String, dynamic>.from(current)
-        : <String, dynamic>{};
-    updated[key] = value;
-    data = updated;
-  }
-
-  /// Discards the in-progress [copy] draft and leaves edit mode.
-  ///
-  /// This call **does not restore [data]**. Because the recommended editing
-  /// workflow stages changes on [copy] rather than writing them to [data]
-  /// directly, [data] is unchanged during a typical edit session and there is
-  /// nothing to restore. The draft is discarded by invalidating [copy]; the
-  /// next read returns a fresh instance from the current [data].
-  ///
-  /// **Important:** if [editField] was called during the edit session, those
-  /// changes are in [data] and will **not** be rolled back by this call.
-  /// [editField] writes directly to [data]; see its documentation for the
-  /// recommended alternative.
-  ///
-  /// The unconditional [notifyListeners] call guarantees that listeners observe
-  /// the edit-mode exit even when no draft mutations were ever made, which
-  /// would otherwise produce no notification and leave the view stuck in edit
-  /// mode after a cancel.
-  void revert() {
-    exitEdit(); // _edit = false, invalidateCopy() — no extra notification
-    notifyListeners();
-  }
-
   /// Persists the current [data] to Firestore and leaves edit mode.
   ///
   /// The document `id` is stripped before writing because it is the document key
