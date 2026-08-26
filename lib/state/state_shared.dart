@@ -276,6 +276,7 @@ abstract class StateShared extends ChangeNotifier {
     // cachedSerialize keys on identical(), which cannot see a same-instance
     // reassignment, so the memo has to be dropped explicitly.
     invalidateSerialized();
+    invalidateCopy();
     _notifyData();
   }
 
@@ -638,6 +639,9 @@ abstract class StateShared extends ChangeNotifier {
     } else {
       privateData = null;
     }
+    _copy = null;
+    _copyDirty = true;
+    _edit = false;
   }
 
   /// Names the filter group used when generating SQL expressions.
@@ -780,6 +784,7 @@ abstract class StateShared extends ChangeNotifier {
   /// cache entry untouched.
   @protected
   T cachedSerialize<T>(Object? source, T Function() build) {
+    if (_bypassSerializedCache) return build(); // fresh, not memoized
     if (_serializedCached && identical(_serializedSource, source)) {
       return _serializedCache as T;
     }
@@ -800,6 +805,167 @@ abstract class StateShared extends ChangeNotifier {
     _serializedSource = null;
     _serializedCache = null;
     _serializedCached = false;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Mutable working draft — copy
+  // ---------------------------------------------------------------------------
+
+  /// Backing value for [copy].
+  dynamic _copy;
+
+  /// Whether [_copy] must be rebuilt from [serialized] on the next read.
+  ///
+  /// Starts `true` so the first access forces a build.
+  bool _copyDirty = true;
+
+  /// When `true`, [cachedSerialize] skips the memo and calls [build] directly,
+  /// producing a fresh instance that is independent of the memoized [serialized].
+  bool _bypassSerializedCache = false;
+
+  /// A mutable working draft that is always an instance of [serialized].
+  ///
+  /// The draft is built lazily on the first access after [data] changes and is
+  /// `null` when [data] is `null`. Rebuilding is deferred to the accessor so
+  /// the [data] setter never triggers a listener notification during a widget
+  /// build phase.
+  ///
+  /// **Identity stability.** Once built, repeated reads return the *same
+  /// instance* until [data] changes or [clear] is called. Field mutations on
+  /// the returned object therefore persist across reads:
+  ///
+  /// ```dart
+  /// state.copy.name = 'draft';
+  /// print(state.copy.name); // 'draft'
+  /// ```
+  ///
+  /// **Type shape.** `serialized` (and therefore `copy`) is always either a
+  /// single model instance (`MyModel`) or a list of model instances
+  /// (`List<MyModel>`), depending on the subclass.  The base field is `dynamic`
+  /// because this class cannot know which shape a given subclass produces; use
+  /// subclass narrowing (see below) to avoid casts at call sites.
+  ///
+  /// **Subclass narrowing.** Concrete states may override the getter to expose
+  /// a typed surface without a cast at every call site. Getter-only narrowing
+  /// (inheriting the dynamic setter) is the simplest form:
+  ///
+  /// ```dart
+  /// // Single-model subclass
+  /// @override
+  /// MyModel? get copy => super.copy as MyModel?;
+  ///
+  /// // List subclass
+  /// @override
+  /// List<MyModel>? get copy => super.copy as List<MyModel>?;
+  /// ```
+  ///
+  /// When the setter also needs narrowing, the parameter must be `covariant`:
+  ///
+  /// ```dart
+  /// @override
+  /// set copy(covariant MyModel? value) => super.copy = value;
+  /// ```
+  ///
+  /// **No listener notifications.** Neither direct field mutation nor assigning
+  /// `copy =` notifies listeners — the draft is local UI state. Callers are
+  /// responsible for calling their own `setState` (or equivalent) when they
+  /// want the UI to reflect an in-progress edit. Persist changes by calling the
+  /// relevant save method; discard them by calling [clear] or reassigning
+  /// [data].
+  ///
+  /// **Edits are discarded when data updates.** When a new payload arrives
+  /// (e.g. from a live Firestore snapshot), the draft is invalidated and the
+  /// next read returns a fresh instance from the new payload. Any in-progress
+  /// field edits that were not saved are silently dropped. This is the
+  /// intentional behaviour — "re-instantiate from the updated data" — but
+  /// callers should be aware that a background update while a user is editing a
+  /// form will discard the unsaved edits.
+  dynamic get copy {
+    if (_copyDirty) {
+      _copy = data == null ? null : _freshSerialized();
+      _copyDirty = false;
+    }
+    return _copy;
+  }
+
+  /// Replaces the working draft without notifying listeners.
+  set copy(dynamic value) {
+    _copy = value;
+    _copyDirty = false;
+  }
+
+  /// Marks the working draft as stale so the next [copy] read rebuilds it.
+  ///
+  /// The [data] setter calls this automatically. Subclasses that mutate [data]
+  /// in place can call it to force a rebuild on the next access.
+  @protected
+  void invalidateCopy() {
+    _copyDirty = true;
+  }
+
+  /// Returns a fresh instance of [serialized] that is independent of the
+  /// memoized value, so mutating the draft cannot corrupt the canonical object.
+  ///
+  /// Bypasses [cachedSerialize]'s memo for the duration of the call and
+  /// restores the flag in a `finally` so a throwing [serialized] cannot
+  /// leave the bypass stuck on.
+  dynamic _freshSerialized() {
+    _bypassSerializedCache = true;
+    try {
+      return serialized;
+    } finally {
+      _bypassSerializedCache = false;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Edit mode
+  // ---------------------------------------------------------------------------
+
+  /// Tracks whether the state is currently open for editing.
+  bool _edit = false;
+
+  /// Returns whether the state is currently open for editing.
+  ///
+  /// This flag is purely local UI state: it does not gate any write and never
+  /// changes on its own when a new payload arrives. Views typically bind it to
+  /// an "Edit" / "Done" toggle and use it to decide whether to render form
+  /// fields or read-only content.
+  bool get edit => _edit;
+
+  /// Enters or leaves edit mode, invalidates the [copy] draft, and notifies
+  /// listeners.
+  ///
+  /// Entering edit mode marks the draft dirty so the next [copy] read returns a
+  /// fresh instance from the current payload. Leaving edit mode marks the draft
+  /// dirty again so any in-progress mutations are discarded on the next read.
+  ///
+  /// Reassigning the current value is a no-op, so a rebuild that re-applies the
+  /// same flag will not discard an actively-used draft.
+  ///
+  /// Subclasses that need to capture or clear extra state (e.g. [StateDocument]
+  /// which needs to perform its own logic before delegating) should
+  /// override this setter, perform their own work **before** calling
+  /// `super.edit = value`, and then delegate. This ordering guarantees that
+  /// listeners observe a fully consistent state: when the notification fires,
+  /// all subclass fields are already up to date.
+  set edit(bool value) {
+    if (_edit == value) return;
+    invalidateCopy();
+    _edit = value;
+    notifyListeners();
+  }
+
+  /// Clears edit mode and invalidates the [copy] draft without notifying
+  /// listeners.
+  ///
+  /// Use this from [StateDocument.revert] and [StateDocument.save] where the
+  /// caller unconditionally calls [notifyListeners] immediately afterwards, so
+  /// an additional notification from the [edit] setter would be redundant.
+  @protected
+  void exitEdit() {
+    _edit = false;
+    invalidateCopy();
   }
 
   /// Stores the debounced listener timer used by [notifyListeners].

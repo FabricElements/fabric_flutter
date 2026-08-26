@@ -190,8 +190,6 @@ abstract class StateDocument extends StateShared {
   @override
   void clear({bool notify = true}) {
     baseRef = null;
-    _edit = false;
-    _copy = null;
     super.clear(notify: notify);
   }
 
@@ -208,66 +206,20 @@ abstract class StateDocument extends StateShared {
     super.dispose();
   }
 
-  /// Tracks whether the document is currently open for editing.
-  bool _edit = false;
-
-  /// Holds the snapshot captured when editing started.
-  Map<String, dynamic>? _copy;
-
-  /// Returns whether the document is currently open for editing.
+  /// Applies a local, unsaved change to a single field.
   ///
-  /// This flag is purely local UI state: it does not gate Firestore writes and
-  /// it never changes on its own when a snapshot arrives. Views typically bind
-  /// it to an "Edit" / "Done" toggle and read it to decide whether to render
-  /// form fields or read-only content.
-  bool get edit => _edit;
-
-  /// Enters or leaves edit mode and notifies listeners.
+  /// The change is written **directly to [data]** and is immediately visible to
+  /// listeners. Because the write goes to [data], **it is not revertible**:
+  /// calling [revert] after [editField] will discard the [copy] draft but leave
+  /// [data] — and therefore the `editField` change — in place.
   ///
-  /// Entering edit mode captures a shallow snapshot of the current [data] into
-  /// [copy] so [revert] can restore it. Leaving edit mode discards that snapshot
-  /// and keeps whatever is currently in [data], which makes assigning `false`
-  /// the "accept the local changes" path. Use [revert] to discard them instead.
+  /// **Preferred approach:** stage changes on the [copy] draft instead. Assign
+  /// `copy` a modified copy of [serialized], mutate its fields, and call [save]
+  /// when the user confirms. This leaves [data] untouched until the write
+  /// succeeds, so [revert] can discard the draft without side effects.
   ///
-  /// Reassigning the current value is ignored, so a rebuild that re-applies the
-  /// same flag will not clobber an existing snapshot.
-  set edit(bool value) {
-    if (_edit == value) return;
-    _edit = value;
-    _copy = value ? _snapshot() : null;
-    notifyListeners();
-  }
-
-  /// Returns the snapshot captured when edit mode was entered.
-  ///
-  /// The value is `null` outside of edit mode, or when editing started while the
-  /// document had no data. The returned map is the state's own copy: mutate it
-  /// only if you intend to change what [revert] restores.
-  Map<String, dynamic>? get copy => _copy;
-
-  /// Returns a defensive shallow copy of the current [data].
-  ///
-  /// A shallow copy is enough to undo the top-level field edits that document
-  /// forms perform. Nested maps and lists are shared with [data], so subclasses
-  /// that edit nested structures should replace them wholesale rather than
-  /// mutating them in place.
-  Map<String, dynamic>? _snapshot() {
-    final current = data;
-    if (current is! Map) return null;
-    return Map<String, dynamic>.from(current);
-  }
-
-  /// Applies a local, unsaved change to a single field while editing.
-  ///
-  /// Assigning through this method — rather than mutating `data[key]` directly —
-  /// is what makes the change visible. A direct mutation never reaches the [data]
-  /// setter at all, so no listener is notified and nothing rebuilds. Copying the
-  /// map and assigning the copy also keeps the structural comparison in [data]
-  /// meaningful, because the previous value stays intact to compare against.
-  ///
-  /// The change is local only. Call [save] to persist it, or [revert] to discard
-  /// it. Calling this outside of edit mode still updates [data] but leaves no
-  /// snapshot to revert to.
+  /// This method is retained for backward compatibility. New code should prefer
+  /// the [copy]-based workflow described above.
   void editField(String key, dynamic value) {
     final current = data;
     final updated = current is Map
@@ -277,30 +229,25 @@ abstract class StateDocument extends StateShared {
     data = updated;
   }
 
-  /// Discards local edits and restores the snapshot taken when editing started.
+  /// Discards the in-progress [copy] draft and leaves edit mode.
   ///
-  /// Leaves edit mode and notifies listeners. When no snapshot exists — because
-  /// editing never started, or started on an empty document — the current [data]
-  /// is left untouched and only the edit flag is cleared.
+  /// This call **does not restore [data]**. Because the recommended editing
+  /// workflow stages changes on [copy] rather than writing them to [data]
+  /// directly, [data] is unchanged during a typical edit session and there is
+  /// nothing to restore. The draft is discarded by invalidating [copy]; the
+  /// next read returns a fresh instance from the current [data].
   ///
-  /// The notification cannot be delegated to the [data] setter. [edit] is state
-  /// the setter knows nothing about, and the setter ignores a payload that is
-  /// structurally equal to the current one. Reverting an edit that changed
-  /// nothing produces exactly such a payload — [copy] is a snapshot of [data] —
-  /// so leaving edit mode would otherwise never reach listeners and the view
-  /// would stay stuck in edit mode after a cancel.
+  /// **Important:** if [editField] was called during the edit session, those
+  /// changes are in [data] and will **not** be rolled back by this call.
+  /// [editField] writes directly to [data]; see its documentation for the
+  /// recommended alternative.
   ///
-  /// Because the call is unconditional, reverting an edit that *did* change a
-  /// field notifies twice: once from the [data] setter and once here. The
-  /// debounce coalesces those into a single rebuild in a release build, and a
-  /// redundant rebuild is the right trade for never missing the edit-mode exit.
+  /// The unconditional [notifyListeners] call guarantees that listeners observe
+  /// the edit-mode exit even when no draft mutations were ever made, which
+  /// would otherwise produce no notification and leave the view stuck in edit
+  /// mode after a cancel.
   void revert() {
-    final snapshot = _copy;
-    _edit = false;
-    _copy = null;
-    if (snapshot != null) {
-      data = snapshot;
-    }
+    exitEdit(); // _edit = false, invalidateCopy() — no extra notification
     notifyListeners();
   }
 
@@ -323,8 +270,7 @@ abstract class StateDocument extends StateShared {
       error = e.toString();
       rethrow;
     }
-    _edit = false;
-    _copy = null;
+    exitEdit(); // _edit = false, invalidateCopy() — no extra notification
     notifyListeners();
   }
 }

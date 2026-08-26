@@ -1,5 +1,25 @@
 ## [Unreleased]
 
+### Added
+
+* **`StateShared.copy` — a typed working draft that always holds an instance of `serialized`.** The draft is always either a single model instance (`MyModel`) or a list (`List<MyModel>`), matching the shape returned by the subclass's `serialized` getter. The draft is built lazily on the first access after `data` changes and reset to `null` when `data` is `null`. Assigning a new value to `data` invalidates the draft so the next read reflects the new payload; the rebuild is deferred to the accessor rather than the setter to avoid triggering listener notifications during a widget build phase. Mutating the draft does not mutate the memoized `serialized` — `copy` calls `_freshSerialized`, which bypasses `cachedSerialize`'s memo for the duration of the call so the returned instance is guaranteed to be a separate allocation. Assigning to `copy` stores the value without notifying listeners, because the draft is local UI state and a rebuild on every keystroke would fight the existing debounce. `clear()` resets both the value and the dirty flag. Subclasses do not need any changes; they may narrow the type with `@override MyModel? get copy => super.copy as MyModel?;` (or the `List<MyModel>?` equivalent) to avoid casts at call sites.
+
+* **`StateShared.edit` / `StateShared.set edit` — edit mode hoisted from `StateDocument` to the common base class.** Every state that extends `StateShared` — including `StateAPI` subclasses — now has edit mode. Entering edit mode (`edit = true`) invalidates the `copy` draft so the first read after entry returns a fresh instance built from the current `data`. Leaving edit mode (`edit = false`) discards the draft so a subsequent entry starts clean rather than resuming a stale session.
+
+### Breaking changes
+
+* **`StateDocument.copy` (the old `Map<String, dynamic>?` edit snapshot) is removed entirely.** There is no replacement for the snapshot itself. `copy` now resolves to `StateShared.copy`, a typed working draft. Under the new model, edits are written to `copy` rather than to `data`, so `data` does not change during an edit session and a snapshot of the pre-edit `data` is not needed.
+
+* **`StateDocument.editSnapshot` and `StateDocument._snapshot()` are removed.** These were the interim rename of the old `copy` snapshot. Consumers that relied on either name must migrate to the `copy`-based workflow.
+
+* **`StateDocument.revert()` no longer restores `data`.** It discards the `copy` draft and leaves edit mode. Any consumer that mutated `data` directly during an edit session (for example via `editField`) and relied on `revert()` to roll it back will silently keep the mutation. Under the new model, staged edits should be written to `copy` and never applied to `data` until `save()`.
+
+* **`StateDocument.editField()` writes directly to `data` and is not revertible.** Its old documentation promised that `revert()` would discard the change; that is no longer true. The preferred pattern for staging a field edit is to mutate `copy` instead, which leaves `data` untouched. `editField` is retained for compatibility but its contract has changed.
+
+* **`StateDocument.set edit` override is removed.** `StateDocument` now inherits `StateShared.set edit` directly. The edit-mode toggle still works identically; the only removed behaviour is the `_editSnapshot` management, which no longer exists.
+
+* **`StateShared.edit` shadows any `edit` member on a `StateAPI` subclass.** A consumer that declared its own `bool _edit` field and a `set edit` override on a class extending `StateAPI` now has two separate `_edit` values — the local one and the inherited `StateShared._edit`. The custom setter never calls `super.edit = value`, so the `copy` draft is never invalidated on toggle, and the two flags diverge silently with no compile error. **Action required:** delete any hand-rolled `_edit` / `edit` / `set edit` on `StateAPI` subclasses, or have the setter call `super.edit = value`.
+
 ### Security
 
 * **Firestore `user` collection queries now carry their account scope as a filter instead of only an ordering, so a project can deny unscoped listing.** Firestore evaluates a `list` operation by matching the rule against the query's **filters**; `request.query` exposes only `limit`, `offset`, and `orderBy`. An `orderBy` does restrict which documents are returned — Firestore omits documents that lack the ordered field — but a rule cannot *require* it, so a `list` rule cannot distinguish a legitimate ordered read from an enumeration of the entire collection. The practical consequence is that a project **cannot tighten `list` on a collection at all** while any client still issues an unfiltered query against it: the tightened rule would break the legitimate screen while the attacker simply reissues the same query. Because the queries live in this package rather than in the application, the fix has to land here before any consuming project can close the gap.

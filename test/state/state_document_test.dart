@@ -31,20 +31,18 @@ class _TestStateDocument extends StateDocument {
 void main() {
   group('StateDocument edit lifecycle', () {
     group('edit', () {
-      test('should default to disabled with no snapshot', () {
+      test('should default to disabled', () {
         // Arrange & Act
         final state = _TestStateDocument();
 
         // Assert
         expect(state.edit, isFalse);
-        expect(state.copy, isNull);
       });
 
-      test('should capture a snapshot and notify when entering edit', () async {
+      test('should notify when entering edit mode', () async {
         // Arrange
         final state = _TestStateDocument();
         state.data = {'id': 'doc-1', 'name': 'original'};
-        // Let the seed's debounced publish land before counting.
         await settleDebounce();
         var notified = 0;
         state.addListener(() => notified++);
@@ -55,25 +53,10 @@ void main() {
 
         // Assert
         expect(state.edit, isTrue);
-        expect(state.copy, {'id': 'doc-1', 'name': 'original'});
         expect(notified, 1);
       });
 
-      test('should snapshot a copy that is detached from data', () {
-        // Arrange
-        final state = _TestStateDocument();
-        state.data = {'id': 'doc-1', 'name': 'original'};
-        state.edit = true;
-
-        // Act
-        state.editField('name', 'changed');
-
-        // Assert
-        expect(state.data, {'id': 'doc-1', 'name': 'changed'});
-        expect(state.copy, {'id': 'doc-1', 'name': 'original'});
-      });
-
-      test('should ignore a repeated assignment and keep the snapshot', () {
+      test('should ignore a repeated assignment and not notify', () async {
         // Arrange
         final state = _TestStateDocument();
         state.data = {'id': 'doc-1', 'name': 'original'};
@@ -82,12 +65,11 @@ void main() {
         var notified = 0;
         state.addListener(() => notified++);
 
-        // Act
+        // Act — re-applying the same flag is a no-op.
         state.edit = true;
 
         // Assert
         expect(notified, 0);
-        expect(state.copy, {'id': 'doc-1', 'name': 'original'});
       });
 
       test('should keep local changes when edit mode is turned off', () {
@@ -100,22 +82,9 @@ void main() {
         // Act
         state.edit = false;
 
-        // Assert
+        // Assert — turning off edit simply discards the draft; data is unchanged.
         expect(state.edit, isFalse);
-        expect(state.copy, isNull);
         expect(state.data, {'id': 'doc-1', 'name': 'changed'});
-      });
-
-      test('should leave a null snapshot when data is empty', () {
-        // Arrange
-        final state = _TestStateDocument();
-
-        // Act
-        state.edit = true;
-
-        // Assert
-        expect(state.edit, isTrue);
-        expect(state.copy, isNull);
       });
     });
 
@@ -177,28 +146,30 @@ void main() {
     });
 
     group('revert', () {
-      test('should restore the snapshot and leave edit mode', () {
-        // Arrange
+      test('should discard the copy draft and leave edit mode', () {
+        // Arrange — under the new model, edits are written to [copy] rather
+        // than [data], so [data] is unchanged during an edit session. Reverting
+        // discards the in-progress draft; there is nothing to restore in [data].
         final state = _TestStateDocument();
         state.data = {'id': 'doc-1', 'name': 'original'};
         state.edit = true;
-        state.editField('name', 'changed');
+        // Simulate an in-progress draft mutation.
+        state.copy = {'id': 'doc-1', 'name': 'in-progress'};
 
         // Act
         state.revert();
 
-        // Assert
-        expect(state.data, {'id': 'doc-1', 'name': 'original'});
+        // Assert — draft is discarded; data is unchanged; edit mode is off.
         expect(state.edit, isFalse);
-        expect(state.copy, isNull);
+        expect(state.data, {'id': 'doc-1', 'name': 'original'});
+        expect(state.copy, {'id': 'doc-1', 'name': 'original'});
       });
 
-      test('should notify listeners when restoring', () async {
+      test('should notify listeners', () async {
         // Arrange
         final state = _TestStateDocument();
         state.data = {'id': 'doc-1', 'name': 'original'};
         state.edit = true;
-        state.editField('name', 'changed');
         await settleDebounce();
         var notified = 0;
         state.addListener(() => notified++);
@@ -207,20 +178,14 @@ void main() {
         state.revert();
         await settleDebounce();
 
-        // Assert — twice on purpose: once from the `data` setter accepting the
-        // restored snapshot, once from the unconditional call that guarantees
-        // the edit-mode exit is delivered. `data` and `notifyListeners` run on
-        // two independent debounce timers, so both are delivered.
-        expect(notified, 2);
+        // Assert — exactly one notification from the unconditional
+        // notifyListeners() call; no data-setter notification fires because
+        // data does not change.
+        expect(notified, 1);
       });
 
-      test('should notify when cancelling without changing anything', () async {
-        // Arrange — the cancel-with-no-edits path. `copy` is a snapshot of
-        // `data`, so restoring it hands the setter a fresh but structurally
-        // equal payload, which the setter deliberately suppresses. Before the
-        // fix `revert()` relied on that setter as its only notification, so
-        // `edit` flipped to false with nothing rebuilding and the view stayed
-        // stuck in edit mode.
+      test('should notify even when no draft was ever touched', () async {
+        // Arrange — cancel without making any draft mutation.
         final state = _TestStateDocument();
         state.data = {'id': 'doc-1', 'name': 'original'};
         state.edit = true;
@@ -232,14 +197,13 @@ void main() {
         state.revert();
         await settleDebounce();
 
-        // Assert
+        // Assert — listeners still observe the edit-mode exit.
         expect(notified, 1);
         expect(state.edit, isFalse);
-        expect(state.copy, isNull);
         expect(state.data, {'id': 'doc-1', 'name': 'original'});
       });
 
-      test('should only clear the flag when no snapshot exists', () async {
+      test('should notify even when edit mode was never entered', () async {
         // Arrange
         final state = _TestStateDocument();
         state.data = {'id': 'doc-1', 'name': 'original'};
@@ -257,19 +221,23 @@ void main() {
         expect(notified, 1);
       });
 
-      test('should discard several field edits at once', () {
-        // Arrange
+      test('editField changes should NOT be rolled back by revert()', () {
+        // This pins the breaking-change contract: editField writes directly
+        // to [data], so revert() cannot undo it. Any consumer that used
+        // editField + revert() expecting a rollback must migrate to the
+        // copy-based workflow.
         final state = _TestStateDocument();
-        state.data = {'id': 'doc-1', 'name': 'original', 'count': 1};
+        state.data = {'id': 'doc-1', 'name': 'original'};
         state.edit = true;
         state.editField('name', 'changed');
-        state.editField('count', 99);
+        expect(state.data, {'id': 'doc-1', 'name': 'changed'});
 
         // Act
         state.revert();
 
-        // Assert
-        expect(state.data, {'id': 'doc-1', 'name': 'original', 'count': 1});
+        // Assert — data retains the editField change; only edit mode is cleared.
+        expect(state.edit, isFalse);
+        expect(state.data, {'id': 'doc-1', 'name': 'changed'});
       });
     });
 
@@ -290,7 +258,6 @@ void main() {
           expect(state.writes.single, {'name': 'changed'});
           expect(state.merges.single, isTrue);
           expect(state.edit, isFalse);
-          expect(state.copy, isNull);
         },
       );
 
@@ -348,7 +315,6 @@ void main() {
 
           // Assert: the user's changes survive a failed write.
           expect(state.edit, isTrue);
-          expect(state.copy, {'id': 'doc-1', 'name': 'original'});
           expect(state.data, {'id': 'doc-1', 'name': 'changed'});
           expect(state.error, 'write denied');
         },
@@ -356,7 +322,7 @@ void main() {
     });
 
     group('clear', () {
-      test('should reset edit mode and drop the snapshot', () {
+      test('should reset edit mode and data', () {
         // Arrange
         final state = _TestStateDocument();
         state.data = {'id': 'doc-1', 'name': 'original'};
@@ -367,8 +333,57 @@ void main() {
 
         // Assert
         expect(state.edit, isFalse);
-        expect(state.copy, isNull);
         expect(state.data, isNull);
+      });
+
+      test('should invalidate the typed draft', () {
+        // Arrange — prime the draft then replace it with a stale value.
+        final state = _TestStateDocument();
+        state.data = {'id': 'doc-1', 'name': 'original'};
+        state.edit = true;
+        state.copy = {'stale': true}; // manually inject a stale draft
+        expect(state.copy, {'stale': true}); // confirm it's there
+
+        // Act
+        state.clear();
+
+        // Assert — after clear, data is null so the draft is also null.
+        expect(state.copy, isNull);
+      });
+    });
+
+    group('copy draft invalidation', () {
+      test('revert() should discard an in-progress draft and rebuild from data', () {
+        // Arrange — inject a stale copy to verify invalidation fires.
+        final state = _TestStateDocument();
+        state.data = {'id': 'doc-1', 'name': 'original'};
+        state.edit = true;
+        state.copy = {'stale': true}; // manually set to something wrong
+        expect(state.copy, {'stale': true});
+
+        // Act
+        state.revert();
+
+        // Assert — draft is invalidated; next read rebuilds from unchanged data.
+        expect(state.copy, {'id': 'doc-1', 'name': 'original'});
+        expect(state.edit, isFalse);
+      });
+
+      test('save() should invalidate the typed draft', () async {
+        // Arrange — enter edit and inject a stale copy.
+        final state = _TestStateDocument();
+        state.data = {'id': 'doc-1', 'name': 'original'};
+        state.edit = true;
+        state.editField('name', 'changed');
+        state.copy = {'stale': true}; // manually set to something wrong
+
+        // Act
+        await state.save();
+
+        // Assert — exitEdit() was called: draft is invalidated and the next
+        // read rebuilds from the current data (the stub leaves data in place).
+        expect(state.copy, state.data);
+        expect(state.edit, isFalse);
       });
     });
   });
