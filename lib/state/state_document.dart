@@ -263,15 +263,26 @@ abstract class StateDocument extends StateShared {
   /// Leaves edit mode and notifies listeners. When no snapshot exists — because
   /// editing never started, or started on an empty document — the current [data]
   /// is left untouched and only the edit flag is cleared.
+  ///
+  /// The notification cannot be delegated to the [data] setter. [edit] is state
+  /// the setter knows nothing about, and the setter ignores a payload that is
+  /// structurally equal to the current one. Reverting an edit that changed
+  /// nothing produces exactly such a payload — [copy] is a snapshot of [data] —
+  /// so leaving edit mode would otherwise never reach listeners and the view
+  /// would stay stuck in edit mode after a cancel.
+  ///
+  /// Because the call is unconditional, reverting an edit that *did* change a
+  /// field notifies twice: once from the [data] setter and once here. The
+  /// debounce coalesces those into a single rebuild in a release build, and a
+  /// redundant rebuild is the right trade for never missing the edit-mode exit.
   void revert() {
     final snapshot = _copy;
     _edit = false;
     _copy = null;
     if (snapshot != null) {
       data = snapshot;
-    } else {
-      notifyListeners();
     }
+    notifyListeners();
   }
 
   /// Persists the current [data] to Firestore and leaves edit mode.

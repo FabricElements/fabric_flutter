@@ -198,8 +198,34 @@ void main() {
         // Act
         state.revert();
 
+        // Assert — twice on purpose: once from the `data` setter accepting the
+        // restored snapshot, once from the unconditional call that guarantees
+        // the edit-mode exit is delivered. The debounce coalesces them into a
+        // single rebuild outside of tests, where `kIsTest` bypasses it.
+        expect(notified, 2);
+      });
+
+      test('should notify when cancelling without changing anything', () {
+        // Arrange — the cancel-with-no-edits path. `copy` is a snapshot of
+        // `data`, so restoring it hands the setter a fresh but structurally
+        // equal payload, which the setter deliberately suppresses. Before the
+        // fix `revert()` relied on that setter as its only notification, so
+        // `edit` flipped to false with nothing rebuilding and the view stayed
+        // stuck in edit mode.
+        final state = _TestStateDocument();
+        state.data = {'id': 'doc-1', 'name': 'original'};
+        state.edit = true;
+        var notified = 0;
+        state.addListener(() => notified++);
+
+        // Act
+        state.revert();
+
         // Assert
         expect(notified, 1);
+        expect(state.edit, isFalse);
+        expect(state.copy, isNull);
+        expect(state.data, {'id': 'doc-1', 'name': 'original'});
       });
 
       test('should only clear the flag when no snapshot exists', () {
