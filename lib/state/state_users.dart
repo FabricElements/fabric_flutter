@@ -104,6 +104,18 @@ class StateUsers extends StateCollection {
   /// do not permanently cache a failed lookup.
   final Set<String> _failedUids = {};
 
+  /// Limits how many times a single UID can be retried after a fetch failure.
+  ///
+  /// Allows recovery from transient failures (network blips) while preventing
+  /// unbounded retry loops on permanent failures (rules denials, missing users).
+  static const int maxRetryAttempts = 2;
+
+  /// Tracks the number of failed fetch attempts per UID.
+  ///
+  /// When a UID is marked failed, this counter increments. After [maxRetryAttempts],
+  /// the UID stops being retried and the cached placeholder becomes permanent.
+  final Map<String, int> _failedAttempts = {};
+
   /// Coalesces requests made during the same frame into a single batch.
   Timer? _batchTimer;
 
@@ -138,12 +150,19 @@ class StateUsers extends StateCollection {
   ///
   /// If a previous fetch for this [uid] failed, the cached placeholder is
   /// discarded and the UID is re-enqueued for retry, allowing transient network
-  /// errors to be recovered.
+  /// errors to be recovered. Retries are bounded: after [maxRetryAttempts]
+  /// consecutive failures, the placeholder becomes permanent.
   UserData getUser(String uid) {
-    // If a previous fetch failed, clear the failed flag and re-enqueue for retry.
+    // If a previous fetch failed and we haven't exhausted retries, clear the
+    // failed flag and re-enqueue for retry.
     if (_failedUids.contains(uid)) {
-      _failedUids.remove(uid);
-      _usersMap.remove(uid);
+      final attemptCount = _failedAttempts[uid] ?? 0;
+      if (attemptCount < maxRetryAttempts) {
+        _failedUids.remove(uid);
+        _failedAttempts[uid] = attemptCount + 1;
+        _usersMap.remove(uid);
+      }
+      // else: attempt limit reached, keep the placeholder and stop retrying
     }
     final cached = _usersMap[uid];
     if (cached != null) return cached;
@@ -231,25 +250,65 @@ class StateUsers extends StateCollection {
     _inFlightUids.addAll(uids);
     bool changed = false;
     try {
-      final results = await Future.wait(chunkUids(uids).map(fetchUsersById));
+      // Wrap each chunk fetch so success/failure are captured as values, not thrown.
+      // This preserves documents from successful chunks and only retries UIDs from
+      // chunks that actually failed, rather than marking all UIDs as failed.
+      final chunks = chunkUids(uids);
+      final chunkResults = await Future.wait(
+        chunks.map((chunk) => fetchUsersById(chunk).then(
+          (docs) => {'success': true, 'documents': docs, 'chunk': chunk},
+          onError: (e) => {'success': false, 'chunk': chunk},
+        )),
+      );
+
       final fetchedIds = <String>{};
-      for (final documents in results) {
-        documents.forEach((id, itemData) {
-          _usersMap[id] = UserData.fromJson({...itemData, 'id': id});
-          _failedUids.remove(id); // Clear failed flag on successful fetch
-          fetchedIds.add(id);
-          changed = true;
-        });
+      final failedChunks = <List<String>>[];
+
+      // Process results, separating successful from failed chunks.
+      for (final result in chunkResults) {
+        if (result['success'] == true) {
+          final documents = result['documents'] as Map<String, Map<String, dynamic>>;
+          documents.forEach((id, itemData) {
+            _usersMap[id] = UserData.fromJson({...itemData, 'id': id});
+            _failedAttempts.remove(id); // Clear attempt count on success
+            _failedUids.remove(id);
+            fetchedIds.add(id);
+            changed = true;
+          });
+        } else {
+          // Track this chunk for retry.
+          failedChunks.add(result['chunk'] as List<String>);
+        }
       }
-      // Mark any UIDs that were not found (not in the fetched results) as genuinely absent.
+
+      // Mark UIDs from failed chunks as failed (to be retried).
+      for (final chunk in failedChunks) {
+        for (final uid in chunk) {
+          final attemptCount = (_failedAttempts[uid] ?? 0) + 1;
+          _failedAttempts[uid] = attemptCount;
+          if (attemptCount <= maxRetryAttempts) {
+            _failedUids.add(uid);
+          }
+        }
+      }
+
+      // Mark UIDs that were not found (not in the fetched results) as genuinely
+      // absent. They won't be retried.
       for (final uid in uids) {
-        if (!fetchedIds.contains(uid)) {
-          _failedUids.remove(uid); // Document does not exist, not a transient failure
+        if (!fetchedIds.contains(uid) && !_failedUids.contains(uid)) {
+          _failedAttempts.remove(uid); // Not a transient failure, don't count attempts
         }
       }
     } catch (e) {
-      // Mark all attempted UIDs as failed so they can be retried.
-      _failedUids.addAll(uids);
+      // Fallback: mark all attempted UIDs as failed so they can be retried.
+      // This catches cases where Future.wait itself throws (not the futures it awaits).
+      for (final uid in uids) {
+        final attemptCount = (_failedAttempts[uid] ?? 0) + 1;
+        _failedAttempts[uid] = attemptCount;
+        if (attemptCount <= maxRetryAttempts) {
+          _failedUids.add(uid);
+        }
+      }
       debugPrint(LogColor.error('StateUsers.getUser: ${e.toString()}'));
     } finally {
       _inFlightUids.removeAll(uids);
