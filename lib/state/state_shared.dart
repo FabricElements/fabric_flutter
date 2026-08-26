@@ -641,6 +641,7 @@ abstract class StateShared extends ChangeNotifier {
     }
     _copy = null;
     _copyDirty = true;
+    _edit = false;
   }
 
   /// Names the filter group used when generating SQL expressions.
@@ -838,13 +839,24 @@ abstract class StateShared extends ChangeNotifier {
   /// print(state.copy.name); // 'draft'
   /// ```
   ///
+  /// **Type shape.** `serialized` (and therefore `copy`) is always either a
+  /// single model instance (`MyModel`) or a list of model instances
+  /// (`List<MyModel>`), depending on the subclass.  The base field is `dynamic`
+  /// because this class cannot know which shape a given subclass produces; use
+  /// subclass narrowing (see below) to avoid casts at call sites.
+  ///
   /// **Subclass narrowing.** Concrete states may override the getter to expose
   /// a typed surface without a cast at every call site. Getter-only narrowing
   /// (inheriting the dynamic setter) is the simplest form:
   ///
   /// ```dart
+  /// // Single-model subclass
   /// @override
   /// MyModel? get copy => super.copy as MyModel?;
+  ///
+  /// // List subclass
+  /// @override
+  /// List<MyModel>? get copy => super.copy as List<MyModel>?;
   /// ```
   ///
   /// When the setter also needs narrowing, the parameter must be `covariant`:
@@ -904,6 +916,56 @@ abstract class StateShared extends ChangeNotifier {
     } finally {
       _bypassSerializedCache = false;
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Edit mode
+  // ---------------------------------------------------------------------------
+
+  /// Tracks whether the state is currently open for editing.
+  bool _edit = false;
+
+  /// Returns whether the state is currently open for editing.
+  ///
+  /// This flag is purely local UI state: it does not gate any write and never
+  /// changes on its own when a new payload arrives. Views typically bind it to
+  /// an "Edit" / "Done" toggle and use it to decide whether to render form
+  /// fields or read-only content.
+  bool get edit => _edit;
+
+  /// Enters or leaves edit mode, invalidates the [copy] draft, and notifies
+  /// listeners.
+  ///
+  /// Entering edit mode marks the draft dirty so the next [copy] read returns a
+  /// fresh instance from the current payload. Leaving edit mode marks the draft
+  /// dirty again so any in-progress mutations are discarded on the next read.
+  ///
+  /// Reassigning the current value is a no-op, so a rebuild that re-applies the
+  /// same flag will not discard an actively-used draft.
+  ///
+  /// Subclasses that need to capture or clear extra state (e.g. [StateDocument]
+  /// which needs to perform its own logic before delegating) should
+  /// override this setter, perform their own work **before** calling
+  /// `super.edit = value`, and then delegate. This ordering guarantees that
+  /// listeners observe a fully consistent state: when the notification fires,
+  /// all subclass fields are already up to date.
+  set edit(bool value) {
+    if (_edit == value) return;
+    invalidateCopy();
+    _edit = value;
+    notifyListeners();
+  }
+
+  /// Clears edit mode and invalidates the [copy] draft without notifying
+  /// listeners.
+  ///
+  /// Use this from [StateDocument.revert] and [StateDocument.save] where the
+  /// caller unconditionally calls [notifyListeners] immediately afterwards, so
+  /// an additional notification from the [edit] setter would be redundant.
+  @protected
+  void exitEdit() {
+    _edit = false;
+    invalidateCopy();
   }
 
   /// Stores the debounced listener timer used by [notifyListeners].

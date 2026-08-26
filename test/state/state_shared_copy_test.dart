@@ -1,5 +1,7 @@
+import 'package:fabric_flutter/state/state_api.dart';
 import 'package:fabric_flutter/state/state_shared.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 
 import '../support/debounce.dart';
 
@@ -48,7 +50,23 @@ class _ThrowingState extends StateShared {
   dynamic get serialized => throw 'boom';
 }
 
-/// A subclass that narrows [copy] to the concrete model type.
+/// A concrete [StateAPI] subclass that deserialises its payload into [_Item].
+///
+/// This fixture is the primary guard for the `edit` hoist: `edit` and `copy`
+/// are now inherited from [StateShared] rather than [StateDocument], so a
+/// [StateAPI] subclass (which does not extend [StateDocument]) must be able to
+/// use them without any extra code.
+class _APIItemState extends StateAPI {
+  _APIItemState() : super(httpClient: http.Client());
+
+  @override
+  _Item? get serialized {
+    if (data == null) return null;
+    return cachedSerialize(data, () => _Item.fromJson(data as Map<String, dynamic>?));
+  }
+}
+
+
 ///
 /// Uses getter-only narrowing — the inherited dynamic setter is kept — which
 /// is the simplest and recommended form for consumers. Tests confirm that
@@ -290,6 +308,110 @@ void main() {
         // still hits the memo path (no throw) — but for ThrowingState we can
         // only check that copy throws again (not a stale bypass).
         expect(() => state.copy, throwsA('boom'));
+      });
+    });
+
+    group('edit mode integration', () {
+      test('should provide a fresh draft when entering edit mode', () {
+        // Arrange
+        final state = _TestItemState();
+        state.data = {'name': 'original'};
+
+        // Act — enter edit mode
+        state.edit = true;
+        final draft = state.copy as _Item?;
+
+        // Assert
+        expect(draft, isA<_Item>());
+        expect(draft!.name, 'original');
+      });
+
+      test('stale draft should be discarded when leaving and re-entering edit mode', () {
+        // Arrange
+        final state = _TestItemState();
+        state.data = {'name': 'original'};
+
+        // Enter edit mode and mutate the draft.
+        state.edit = true;
+        (state.copy as _Item).name = 'in-progress';
+        expect((state.copy as _Item).name, 'in-progress');
+
+        // Act — leave edit mode (cancel without saving).
+        state.edit = false;
+        // Re-enter edit mode.
+        state.edit = true;
+
+        // Assert — the draft is rebuilt from data, not kept from the abandoned session.
+        expect((state.copy as _Item).name, 'original');
+      });
+
+      test('redundant edit assignment should not discard an active draft', () {
+        // Arrange
+        final state = _TestItemState();
+        state.data = {'name': 'original'};
+        state.edit = true;
+        (state.copy as _Item).name = 'in-progress';
+
+        // Act — re-applying the same flag value (no-op by the early return).
+        state.edit = true;
+
+        // Assert — the in-progress draft is preserved.
+        expect((state.copy as _Item).name, 'in-progress');
+      });
+    });
+
+    group('StateAPI subclass (the reason edit was hoisted)', () {
+      // [StateAPI] and [StateDocument] are siblings — both extend [StateShared].
+      // Moving `edit` and `copy` to the common ancestor means [StateAPI]
+      // subclasses inherit them without any per-class boilerplate. This test
+      // is the structural guard: if `edit` were ever moved back to
+      // [StateDocument], this would fail to compile.
+      test('a StateAPI subclass should support edit mode and copy draft', () {
+        // Arrange
+        final state = _APIItemState();
+        state.data = {'name': 'api-data'};
+
+        // Act — enter edit mode and mutate the draft.
+        state.edit = true;
+        (state.copy as _Item).name = 'api-draft';
+
+        // Assert — edit is active and the draft holds the mutation.
+        expect(state.edit, isTrue);
+        expect((state.copy as _Item).name, 'api-draft');
+      });
+
+      test('a StateAPI subclass should provide a fresh draft on edit re-entry', () {
+        // Arrange
+        final state = _APIItemState();
+        state.data = {'name': 'api-data'};
+
+        // Enter edit mode, mutate, then leave (cancel).
+        state.edit = true;
+        (state.copy as _Item).name = 'abandoned-edit';
+        state.edit = false;
+
+        // Act — re-enter edit mode.
+        state.edit = true;
+
+        // Assert — the abandoned edit is gone; draft is rebuilt from data.
+        expect((state.copy as _Item).name, 'api-data');
+      });
+
+      test('a StateAPI subclass clear() should reset edit and draft', () async {
+        // Arrange
+        final state = _APIItemState();
+        state.data = {'name': 'api-data'};
+        state.edit = true;
+        state.copy; // ignore: unnecessary_statements — prime the draft
+
+        // Act — StateAPI.clear() delegates to super inside a whenComplete, so
+        // we must let the event loop settle before asserting.
+        state.clear();
+        await settleDebounce();
+
+        // Assert
+        expect(state.edit, isFalse);
+        expect(state.copy, isNull);
       });
     });
   });
