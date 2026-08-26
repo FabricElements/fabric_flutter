@@ -48,6 +48,16 @@ class _ThrowingState extends StateShared {
   dynamic get serialized => throw 'boom';
 }
 
+/// A subclass that narrows [copy] to the concrete model type.
+///
+/// Uses getter-only narrowing — the inherited dynamic setter is kept — which
+/// is the simplest and recommended form for consumers. Tests confirm that
+/// direct field mutation through the narrowed getter is stable across reads.
+class _TypedItemState extends _TestItemState {
+  @override
+  _Item? get copy => super.copy as _Item?;
+}
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
@@ -183,6 +193,84 @@ void main() {
 
         // Assert
         expect(state.copy, isNull);
+      });
+    });
+
+    group('identity stability', () {
+      test('should return the same instance on repeated reads', () {
+        // Arrange
+        final state = _TestItemState();
+        state.data = {'name': 'alpha'};
+
+        // Assert — two consecutive reads must be identical.
+        // If the getter rebuilt on every call, field mutations would silently
+        // evaporate because they would land on a throwaway object.
+        expect(identical(state.copy, state.copy), isTrue);
+      });
+
+      test('field mutation should survive a re-read of copy', () {
+        // Arrange
+        final state = _TestItemState();
+        state.data = {'name': 'alpha'};
+
+        // Act
+        (state.copy as _Item).name = 'in-progress';
+
+        // Assert — re-reading copy returns the same instance with the mutation.
+        expect((state.copy as _Item).name, 'in-progress');
+      });
+    });
+
+    group('edits discarded on data update', () {
+      test('should discard in-flight mutations when data is reassigned', () {
+        // Arrange — prime the draft and mutate it.
+        final state = _TestItemState();
+        state.data = {'name': 'original'};
+        (state.copy as _Item).name = 'in-progress';
+        expect((state.copy as _Item).name, 'in-progress');
+
+        // Act — a new payload arrives (e.g. a server push).
+        state.data = {'name': 'server'};
+
+        // Assert — the draft is rebuilt from the new payload; the in-flight
+        // edit is gone. This is the documented, intentional contract.
+        expect((state.copy as _Item).name, 'server');
+      });
+    });
+
+    group('typed subclass narrowing', () {
+      test('getter-only override should return the concrete type without a cast', () {
+        // Arrange
+        final state = _TypedItemState();
+        state.data = {'name': 'alpha'};
+
+        // Act — copy is _Item? with no cast at the call site.
+        final draft = state.copy;
+
+        // Assert
+        expect(draft, isA<_Item>());
+        expect(draft!.name, 'alpha');
+      });
+
+      test('field mutation through the narrowed getter should survive a re-read', () {
+        // Arrange
+        final state = _TypedItemState();
+        state.data = {'name': 'alpha'};
+
+        // Act — mutate directly on the typed getter; no cast required.
+        state.copy!.name = 'typed-edit';
+
+        // Assert — the mutation is visible on the next read.
+        expect(state.copy!.name, 'typed-edit');
+      });
+
+      test('narrowed copy should be a different instance from serialized', () {
+        // Arrange
+        final state = _TypedItemState();
+        state.data = {'name': 'alpha'};
+
+        // Assert — aliasing guard still holds for the narrowed subclass.
+        expect(identical(state.copy, state.serialized), isFalse);
       });
     });
 

@@ -824,17 +824,50 @@ abstract class StateShared extends ChangeNotifier {
 
   /// A mutable working draft that is always an instance of [serialized].
   ///
-  /// The draft is built lazily on first access after [data] changes and is
-  /// reset to `null` when [data] is `null`. Assigning [data] invalidates the
-  /// draft so the next read reflects the new payload; the rebuild is deferred
-  /// to the accessor rather than the setter to avoid notifying listeners during
-  /// a build phase.
+  /// The draft is built lazily on the first access after [data] changes and is
+  /// `null` when [data] is `null`. Rebuilding is deferred to the accessor so
+  /// the [data] setter never triggers a listener notification during a widget
+  /// build phase.
   ///
-  /// Callers may assign directly to replace the draft with an edited version.
-  /// Assigning does **not** notify listeners — the draft is local UI state and
-  /// notifying on every keystroke would fight the existing debounce. Persist
-  /// changes by calling the relevant save method; discard them by calling
-  /// [clear] or by reassigning [data].
+  /// **Identity stability.** Once built, repeated reads return the *same
+  /// instance* until [data] changes or [clear] is called. Field mutations on
+  /// the returned object therefore persist across reads:
+  ///
+  /// ```dart
+  /// state.copy.name = 'draft';
+  /// print(state.copy.name); // 'draft'
+  /// ```
+  ///
+  /// **Subclass narrowing.** Concrete states may override the getter to expose
+  /// a typed surface without a cast at every call site. Getter-only narrowing
+  /// (inheriting the dynamic setter) is the simplest form:
+  ///
+  /// ```dart
+  /// @override
+  /// MyModel? get copy => super.copy as MyModel?;
+  /// ```
+  ///
+  /// When the setter also needs narrowing, the parameter must be `covariant`:
+  ///
+  /// ```dart
+  /// @override
+  /// set copy(covariant MyModel? value) => super.copy = value;
+  /// ```
+  ///
+  /// **No listener notifications.** Neither direct field mutation nor assigning
+  /// `copy =` notifies listeners — the draft is local UI state. Callers are
+  /// responsible for calling their own `setState` (or equivalent) when they
+  /// want the UI to reflect an in-progress edit. Persist changes by calling the
+  /// relevant save method; discard them by calling [clear] or reassigning
+  /// [data].
+  ///
+  /// **Edits are discarded when data updates.** When a new payload arrives
+  /// (e.g. from a live Firestore snapshot), the draft is invalidated and the
+  /// next read returns a fresh instance from the new payload. Any in-progress
+  /// field edits that were not saved are silently dropped. This is the
+  /// intentional behaviour — "re-instantiate from the updated data" — but
+  /// callers should be aware that a background update while a user is editing a
+  /// form will discard the unsaved edits.
   dynamic get copy {
     if (_copyDirty) {
       _copy = data == null ? null : _freshSerialized();
