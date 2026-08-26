@@ -104,16 +104,19 @@ class StateUsers extends StateCollection {
   /// do not permanently cache a failed lookup.
   final Set<String> _failedUids = {};
 
-  /// Limits how many times a single UID can be retried after a fetch failure.
+  /// Limits how many total fetch attempts a single UID can have.
   ///
-  /// Allows recovery from transient failures (network blips) while preventing
+  /// Includes the initial attempt plus retries. With `maxAttempts = 3`, a UID
+  /// can be attempted once initially, then retried up to 2 more times. This
+  /// allows recovery from transient failures (network blips) while preventing
   /// unbounded retry loops on permanent failures (rules denials, missing users).
-  static const int maxRetryAttempts = 2;
+  static const int maxAttempts = 3;
 
-  /// Tracks the number of failed fetch attempts per UID.
+  /// Tracks the number of fetch attempts per UID (initial + retries).
   ///
-  /// When a UID is marked failed, this counter increments. After [maxRetryAttempts],
-  /// the UID stops being retried and the cached placeholder becomes permanent.
+  /// Incremented in [flushPendingUsers] when a fetch fails. When a UID reaches
+  /// [maxAttempts], it stops being retried and the placeholder becomes permanent.
+  /// This is the authoritative mechanism for enforcement; the counter is never wiped.
   final Map<String, int> _failedAttempts = {};
 
   /// Coalesces requests made during the same frame into a single batch.
@@ -150,16 +153,15 @@ class StateUsers extends StateCollection {
   ///
   /// If a previous fetch for this [uid] failed, the cached placeholder is
   /// discarded and the UID is re-enqueued for retry, allowing transient network
-  /// errors to be recovered. Retries are bounded: after [maxRetryAttempts]
-  /// consecutive failures, the placeholder becomes permanent.
+  /// errors to be recovered. Retries are bounded: after [maxAttempts]
+  /// total attempts, the placeholder becomes permanent.
   UserData getUser(String uid) {
-    // If a previous fetch failed and we haven't exhausted retries, clear the
+    // If a previous fetch failed and we haven't exhausted attempts, clear the
     // failed flag and re-enqueue for retry.
     if (_failedUids.contains(uid)) {
       final attemptCount = _failedAttempts[uid] ?? 0;
-      if (attemptCount < maxRetryAttempts) {
+      if (attemptCount < maxAttempts) {
         _failedUids.remove(uid);
-        _failedAttempts[uid] = attemptCount + 1;
         _usersMap.remove(uid);
       }
       // else: attempt limit reached, keep the placeholder and stop retrying
@@ -286,7 +288,7 @@ class StateUsers extends StateCollection {
         for (final uid in chunk) {
           final attemptCount = (_failedAttempts[uid] ?? 0) + 1;
           _failedAttempts[uid] = attemptCount;
-          if (attemptCount <= maxRetryAttempts) {
+          if (attemptCount < maxAttempts) {
             _failedUids.add(uid);
           }
         }
@@ -296,7 +298,7 @@ class StateUsers extends StateCollection {
       // absent. They won't be retried.
       for (final uid in uids) {
         if (!fetchedIds.contains(uid) && !_failedUids.contains(uid)) {
-          _failedAttempts.remove(uid); // Not a transient failure, don't count attempts
+          // Not a transient failure. The counter is kept for observability.
         }
       }
     } catch (e) {
@@ -305,7 +307,7 @@ class StateUsers extends StateCollection {
       for (final uid in uids) {
         final attemptCount = (_failedAttempts[uid] ?? 0) + 1;
         _failedAttempts[uid] = attemptCount;
-        if (attemptCount <= maxRetryAttempts) {
+        if (attemptCount < maxAttempts) {
           _failedUids.add(uid);
         }
       }

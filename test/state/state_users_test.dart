@@ -50,6 +50,19 @@ class PartialFailingStateUsers extends FakeStateUsers {
   }
 }
 
+/// [StateUsers] override that always fails to test retry bounds.
+class AlwaysFailingStateUsers extends FakeStateUsers {
+  AlwaysFailingStateUsers() : super({});
+
+  @override
+  Future<Map<String, Map<String, dynamic>>> fetchUsersById(
+    List<String> uids,
+  ) async {
+    requests.add(List<String>.of(uids));
+    throw 'Network error: always fails';
+  }
+}
+
 void main() {
   group('StateUsers', () {
     setUp(() async {
@@ -408,6 +421,38 @@ void main() {
               isTrue,
               reason: 'Retry batch should contain only UIDs that actually failed');
         },
+      );
+
+      test(
+       'bounds retry attempts for always-failing uid',
+       () async {
+         // Arrange
+         final state = AlwaysFailingStateUsers();
+
+         // Act - trigger initial fetch and multiple retries
+         state.getUser('u1');
+         await state.flushPendingUsers();
+
+         state.getUser('u1');
+         await state.flushPendingUsers();
+
+         state.getUser('u1');
+         await state.flushPendingUsers();
+
+         state.getUser('u1');
+         await state.flushPendingUsers();
+
+         state.getUser('u1');
+         await state.flushPendingUsers();
+
+         state.getUser('u1');
+         await state.flushPendingUsers();
+
+         // Assert - maxAttempts=3 means 1 initial + 2 retries (3 total attempts)
+         expect(state.requests.length, equals(StateUsers.maxAttempts),
+             reason:
+                 'maxAttempts=${StateUsers.maxAttempts} should limit total fetch attempts to exactly ${StateUsers.maxAttempts}');
+       },
       );
     });
   });
