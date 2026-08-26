@@ -559,11 +559,22 @@ abstract class StateShared extends ChangeNotifier {
   /// Replaces the current selection.
   ///
   /// Passing `null` clears all selected items.
+  ///
+  /// The unchanged-selection guard is skipped when the caller hands back the
+  /// very list this state already holds, because [selected] exposes
+  /// [selectedItems] directly: a read-mutate-write round trip compares that
+  /// list against itself and can only ever report "unchanged", which would
+  /// swallow a real mutation. This mirrors the same-instance escape hatch used
+  /// by the [data] setter.
   set selected(List<dynamic>? items) {
     final newItems = items ?? [];
+    final bool sameInstance = identical(selectedItems, newItems);
     // Skip the notify when the selection is unchanged; the setter is commonly
     // re-assigned from a parent rebuild with an equivalent list.
-    if (const DeepCollectionEquality().equals(selectedItems, newItems)) return;
+    if (!sameInstance &&
+        const DeepCollectionEquality().equals(selectedItems, newItems)) {
+      return;
+    }
     selectedItems = newItems;
     notifyListeners();
   }
