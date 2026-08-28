@@ -22,7 +22,7 @@ The single workflow file is `.github/workflows/ci.yml`. It runs on:
 | Step | Command | Purpose |
 |------|---------|---------|
 | Checkout | `actions/checkout@v7` | Clean source snapshot. |
-| Setup Flutter | `subosito/flutter-action@v2`, channel `stable`, version `3.44.7`, cache enabled | Pins the exact toolchain so results are reproducible. |
+| Setup Flutter | `subosito/flutter-action@v2`, channel `stable`, version `3.44.8`, cache enabled | Pins the exact toolchain so results are reproducible. |
 | Install dependencies | `flutter pub get` | Must always run first. |
 | Rebuild generated code | `dart run build_runner build --delete-conflicting-outputs` | Regenerates `*.g.dart` before analysis/tests; catches drift between models and generated files. |
 | Analyze | `flutter analyze` | Must exit 0; zero issues is the gate. |
@@ -45,7 +45,7 @@ symbols; tests before analysis may mask type errors.
 - **`version`** — the single source of truth. Must match the latest `CHANGELOG.md` release heading
   and the version badge in `README.md`. The three move together; never update one without the others.
 - **`environment.sdk`** — Dart SDK constraint (currently `^3.12.2`).
-- **`environment.flutter`** — Flutter SDK constraint (currently `>=3.44.7 <4.0.0`).
+- **`environment.flutter`** — Flutter SDK constraint (currently `>=3.44.8 <4.0.0`).
 - **Dependency versions** — keep them in sync with the `Core Dependencies` table in `README.md`.
   When bumping a dependency, update both files and add a `### Dependencies` entry in `CHANGELOG.md`.
 
