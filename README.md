@@ -1,6 +1,6 @@
 # fabric_flutter
 
-**Version:** 2.2.5  
+**Version:** 2.6.0  
 **License:** [BSD 3-Clause](LICENSE)
 
 [![CI](https://github.com/FabricElements/fabric_flutter/actions/workflows/ci.yml/badge.svg)](https://github.com/FabricElements/fabric_flutter/actions/workflows/ci.yml)

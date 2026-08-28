@@ -229,7 +229,7 @@ Projects that pin this package by exact commit must bump the pin before the rule
 * Bumped CI Flutter SDK version from 3.44.4 to 3.44.6.
 * Bumped CI Flutter SDK version from 3.44.1 to 3.44.4.
 
-## [2.2.5] - 2026-07-15
+## [2.6.0] - 2026-07-15
 
 ### Web/WASM Modernization
 * **[Deprecation]** Replaced `universal_html` (`dart:html`) with `package:web` and `dart:ui_web` in `lib/component/iframe_minimal_web.dart`, removing the last `dart:html` dependency and unblocking `flutter build web --wasm` (issue #175).
