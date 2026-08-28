@@ -169,24 +169,6 @@ Each task summary must include a short Prompt Quality Review:
 - Even with paid orchestration, execution should default to local child sessions whenever feasible.
 - Parent must enforce local-first routing and cost-aware decomposition continuously.
 
-## Daily human-effort cap
-- For repositories where a daily human-effort cap is enforced, the orchestrator must enforce a cap of:
-    - Maximum 10 hours/day of estimated human work executed
-- This cap is based on estimated manual effort equivalent, not wall-clock runtime.
-- Before starting new task groups, compute:
-    - `today_estimated_human_hours_completed`
-    - `today_estimated_human_hours_planned`
-    - `remaining_daily_capacity = 10h - completed`
-- If planned work exceeds remaining capacity:
-    1. Re-prioritize critical tasks only.
-    2. Defer non-critical task groups to next day.
-    3. Split large tasks into smaller chunks that fit within remaining capacity.
-- Required reporting (for daily summary when cap is active):
-    - Estimated human hours completed today
-    - Estimated human hours deferred
-    - Remaining capacity (hours)
-    - Repositories/tasks moved to next execution window
-
 ## Session lifecycle and remote trace elimination
 - After task completion, DELETE child sessions (not just archive) to leave no remote trace.
 - Use session deletion to remove all GitHub agent traces.
