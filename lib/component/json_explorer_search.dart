@@ -6,9 +6,9 @@ import 'package:gap/gap.dart';
 import 'package:json_explorer/json_explorer.dart';
 import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-import '../helper/url_safety.dart';
 
 import '../helper/app_localizations_delegate.dart';
+import '../helper/url_safety.dart';
 import 'alert_data.dart';
 import 'input_data.dart';
 

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../helper/url_safety.dart';
 
 import '../helper/app_localizations_delegate.dart';
 import '../helper/format_data.dart';
+import '../helper/url_safety.dart';
 import '../serialized/table_data.dart';
 
 /// Builds a hierarchical table from [TableData] with expandable child rows.

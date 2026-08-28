@@ -6,9 +6,6 @@
 /// purely additive for existing consumers.
 library;
 
-// Globals
-export 'variables.dart';
-
 // Components
 export 'component/alert_data.dart';
 export 'component/breadcrumbs.dart';
@@ -54,7 +51,6 @@ export 'component/user_avatar.dart';
 export 'component/user_chip.dart';
 export 'component/users_dropdown.dart';
 export 'component/voice_dictation_button.dart';
-
 // Helpers
 export 'helper/agent/agent_audit.dart';
 export 'helper/agent/agent_authorizer.dart';
@@ -103,11 +99,9 @@ export 'helper/user_query.dart';
 export 'helper/user_roles.dart';
 export 'helper/user_roles_firebase.dart';
 export 'helper/utils.dart';
-
 // Placeholders
 export 'placeholder/default_locales.dart';
 export 'placeholder/loading_screen.dart';
-
 // Serialized models
 export 'serialized/agent_audit_record.dart';
 export 'serialized/agent_command_info.dart';
@@ -135,7 +129,6 @@ export 'serialized/place_data.dart';
 export 'serialized/table_data.dart';
 export 'serialized/user_data.dart';
 export 'serialized/user_status.dart';
-
 // State containers
 export 'state/state_analytics.dart';
 export 'state/state_api.dart';
@@ -151,7 +144,8 @@ export 'state/state_user.dart';
 // here to keep the barrel unambiguous. Deep imports are unaffected.
 export 'state/state_users.dart' hide db;
 export 'state/state_view_auth.dart';
-
+// Globals
+export 'variables.dart';
 // Views
 export 'view/view_auth_page.dart';
 export 'view/view_featured.dart';

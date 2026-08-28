@@ -1104,10 +1104,12 @@ abstract class StateShared extends ChangeNotifier {
     // throwing in release builds.
     if (_disposed) {
       if (kDebugMode) {
-        debugPrint(LogColor.error(
-          'StateShared.notifyListeners() called after dispose() on $runtimeType.'
-          ' This is a bug in the caller.',
-        ));
+        debugPrint(
+          LogColor.error(
+            'StateShared.notifyListeners() called after dispose() on $runtimeType.'
+            ' This is a bug in the caller.',
+          ),
+        );
       }
       return;
     }

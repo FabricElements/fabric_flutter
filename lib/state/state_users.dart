@@ -257,10 +257,12 @@ class StateUsers extends StateCollection {
       // chunks that actually failed, rather than marking all UIDs as failed.
       final chunks = chunkUids(uids);
       final chunkResults = await Future.wait(
-        chunks.map((chunk) => fetchUsersById(chunk).then(
-          (docs) => {'success': true, 'documents': docs, 'chunk': chunk},
-          onError: (e) => {'success': false, 'chunk': chunk},
-        )),
+        chunks.map(
+          (chunk) => fetchUsersById(chunk).then(
+            (docs) => {'success': true, 'documents': docs, 'chunk': chunk},
+            onError: (e) => {'success': false, 'chunk': chunk},
+          ),
+        ),
       );
 
       final fetchedIds = <String>{};
@@ -269,7 +271,8 @@ class StateUsers extends StateCollection {
       // Process results, separating successful from failed chunks.
       for (final result in chunkResults) {
         if (result['success'] == true) {
-          final documents = result['documents'] as Map<String, Map<String, dynamic>>;
+          final documents =
+              result['documents'] as Map<String, Map<String, dynamic>>;
           documents.forEach((id, itemData) {
             _usersMap[id] = UserData.fromJson({...itemData, 'id': id});
             _failedAttempts.remove(id); // Clear attempt count on success

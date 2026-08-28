@@ -7,9 +7,9 @@ import 'package:provider/provider.dart';
 
 import '../helper/app_localizations_delegate.dart';
 import '../helper/options.dart';
+import '../helper/user_query.dart';
 import '../helper/user_roles.dart';
 import '../helper/user_roles_firebase.dart';
-import '../helper/user_query.dart';
 import '../serialized/user_data.dart';
 import '../state/state_user.dart';
 import '../state/state_users.dart';
