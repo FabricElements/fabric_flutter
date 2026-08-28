@@ -12,6 +12,7 @@ Trust these instructions. Only search the codebase if the information here is in
 | `.github/instructions/serialized-models.instructions.md` | `lib/serialized/**/*.dart` | `@JsonSerializable` conventions, null-tolerant `fromJson`, regenerating `*.g.dart`. |
 | `.github/instructions/tests.instructions.md` | `test/**/*.dart` | Mirrored layout, Arrange–Act–Assert, no live I/O. |
 | `.github/instructions/readme.instructions.md` | `README.md`, `CHANGELOG.md` | Structure and tone for the two long-form docs. |
+| `.github/instructions/deployment.instructions.md` | `.github/workflows/**`, `pubspec.yaml`, `CHANGELOG.md` | CI pipeline steps, Flutter version pinning, pub.dev release process, breaking-change discipline. |
 
 **This repository is public.** Never add a reference to a private consumer repository, its infrastructure, project identifiers, service accounts, internal data model, brand, or security findings. Generic security lessons are fine; the identity of who was affected is not.
 
@@ -32,8 +33,8 @@ Trust these instructions. Only search the codebase if the information here is in
 Consumers wrap their widget tree with `InitApp` (`lib/component/init_app.dart`), which bootstraps the provider tree. `StateUser` listens to `FirebaseAuth.authStateChanges()`, resolves the ID token and custom claims, and loads the Firestore user document; widgets react via `context.watch` / `Provider.of`.
 
 - **License:** BSD 3-Clause.
-- **Version:** `pubspec.yaml` is the **single source of truth** for the version (currently `2.3.0`). Never hardcode a version elsewhere without also updating `pubspec.yaml`, the README badge, and `CHANGELOG.md`.
-- **SDK:** Dart `^3.12.1`, Flutter stable channel (CI pins `3.44.6`).
+- **Version:** `pubspec.yaml` is the **single source of truth** for the version (currently `2.6.0`). Never hardcode a version elsewhere without also updating `pubspec.yaml`, the README badge, and `CHANGELOG.md`.
+- **SDK:** Dart `^3.12.2`, Flutter stable channel (CI pins `3.44.8`).
 
 ### Architectural Map
 
@@ -262,7 +263,7 @@ flutter test --update-goldens                             # only when a golden's
 ```
 
 - `package.json` shortcut: `npm run serialize` → `build_runner build --delete-conflicting-outputs` (prefer `dart run build_runner …`).
-- **CI:** `.github/workflows/ci.yml` runs on push and PRs to `main`. It sets up Flutter stable (pinned `3.44.6`), then `flutter pub get` → `build_runner build` → `flutter analyze` → `flutter test`. **Analyze and tests must pass.**
+- **CI:** `.github/workflows/ci.yml` runs on push and PRs to `main`. It sets up Flutter stable (pinned `3.44.8`), then `flutter pub get` → `build_runner build` → `flutter analyze` → `flutter test`. **Analyze and tests must pass.**
 - **Pre-commit hooks:** install with `scripts/install-hooks.sh` (see `scripts/README.md`) to auto-format, run `flutter analyze`, and block `print()` before commit.
 - Always run `flutter analyze` and `flutter test` after any `lib/` change and confirm both are green before finishing.
 
