@@ -187,3 +187,4 @@ Each task summary must include a short Prompt Quality Review:
 - `qwen2.5-coder:7b-instruct` (fastest/cheapest)
 - `qwen2.5-coder:14b` (primary balance)
 - `devstral:latest` (local reliability fallback)
+
