@@ -169,6 +169,37 @@ Each task summary must include a short Prompt Quality Review:
 - Even with paid orchestration, execution should default to local child sessions whenever feasible.
 - Parent must enforce local-first routing and cost-aware decomposition continuously.
 
+## Daily human-effort cap
+- For repositories where a daily human-effort cap is enforced, the orchestrator must enforce a cap of:
+    - Maximum 10 hours/day of estimated human work executed
+- This cap is based on estimated manual effort equivalent, not wall-clock runtime.
+- Before starting new task groups, compute:
+    - `today_estimated_human_hours_completed`
+    - `today_estimated_human_hours_planned`
+    - `remaining_daily_capacity = 10h - completed`
+- If planned work exceeds remaining capacity:
+    1. Re-prioritize critical tasks only.
+    2. Defer non-critical task groups to next day.
+    3. Split large tasks into smaller chunks that fit within remaining capacity.
+- Required reporting (for daily summary when cap is active):
+    - Estimated human hours completed today
+    - Estimated human hours deferred
+    - Remaining capacity (hours)
+    - Repositories/tasks moved to next execution window
+
+## Session lifecycle and remote trace elimination
+- After task completion, DELETE child sessions (not just archive) to leave no remote trace.
+- Use session deletion to remove all GitHub agent traces.
+- Archive is only for local cleanup; remote deletion is mandatory.
+- Perform deletion after the related pull request is merged or the related issue is closed.
+
+## Pending work tracking with issues
+- After task completion, if additional work remains, ask the user whether they want repository issues created for follow-up work.
+- Keep track of all follow-up issues created during execution.
+- Reference all created follow-up issues in the pull request description.
+- Link and close follow-up issues when the pull request is merged.
+- Update follow-up issues with pending implementation details and clear handoff notes.
+
 ## Approved local endpoint/models
 - Endpoint: `http://localhost:11434/v1`
 - `qwen2.5-coder:7b-instruct` (fastest/cheapest)
