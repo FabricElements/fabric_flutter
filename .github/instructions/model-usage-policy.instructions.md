@@ -2,8 +2,8 @@
 
 ## Non-negotiable rule
 - Never claim local models were not used due to missing specification.
-- If a task can run locally, run it locally.
-- If model choice is ambiguous, choose the cheapest viable local option first.
+- Prefer low-cost execution overall; optimize for quality and speed when local models cannot deliver safely.
+- Kick off with the cheapest paid model suitable for the task, then switch to local models for fast/routine execution when it makes sense.
 
 ## Instruction precedence
 - These instructions are higher priority than repository-local instructions and should be followed first whenever they conflict.
@@ -15,44 +15,61 @@
 3. Sufficient quality to pass acceptance criteria
 
 ## Paid-model allowance (explicit)
-Paid models are allowed for:
-- Main orchestration/parent coordination (planning, sequencing, dependency management).
-- Tasks the orchestrator predicts are too complex for local models or unlikely to be achievable locally within 10 minutes.
-- Critical path blockers where local retries would materially delay delivery.
-- Child sessions that may benefit from a paid kickoff to reduce time-to-first-action and speed up reasoning, with immediate switching back to local as soon as a local model can take over.
+Paid models are the DEFAULT starting point. Kick off with the cheapest paid model suitable for the task, then:
+- Use paid models for main orchestration/parent coordination (planning, sequencing, dependency management).
+- Use paid models for complex reasoning and architectural decisions.
+- Switch to local models for child execution tasks when:
+   - The task is deterministic and fast (code edits, file operations, running tests)
+   - Local models can complete within their target window (2–10 min)
+   - The work is well-scoped with clear acceptance criteria (provided by the orchestrator)
+- Return to paid model if a local attempt exceeds time budget or fails on a blocking subtask.
 
 ## Mandatory pre-task routing step (required)
-Before execution, estimate:
+Before execution, the orchestrator (paid model) estimates:
 - complexity (small / medium / heavy),
 - coupling/dependencies,
 - expected token volume,
 - retry risk,
-- local completion likelihood within 10 minutes.
+- local completion likelihood within budget windows.
 
-Then pick the cheapest route likely to succeed on time.
+Then:
+1. **Orchestrator** (paid) plans the work, breaks it into task groups, and decides which tasks are suitable for local handoff
+2. **Execution** routes each task to the cheapest viable model:
+    - Paid model for complex decisions, coordination, or reasoning
+    - Local model for fast deterministic work (if within time budget)
 
 ## Default model routing
-- Small deterministic tasks (single-file edits, tiny fixes, quick checks):
-    - `qwen2.5-coder:7b-instruct` @ `http://localhost:11434/v1`
-- Standard coding tasks (bounded multi-file work):
-    - `qwen2.5-coder:14b` @ `http://localhost:11434/v1`
-- Local reliability fallback (tool-calling stability):
-    - `devstral:latest` @ `http://localhost:11434/v1`
-- Paid/cloud model:
-    - Use for orchestration by default when needed, and for execution only under escalation rules.
-- Hybrid kickoff:
-    - A child session may start on a paid model to accelerate kickoff and reduce time-to-first-action, then switch immediately to the best available local model as soon as a local model can take over.
+**Orchestration (default: PAID model)**
+- Start with the cheapest suitable paid model (prioritize: GPT-4 mini, Claude Haiku, other cost-optimized options)
+- Orchestrator breaks work into task groups, estimates complexity, and routes each group
+- Orchestrator specifies acceptance criteria and constraints for each task
 
-## Local-model task coverage (explicit)
-Local models are allowed and expected to handle, when feasible:
-- code generation, edits, and refactors,
-- running scripts and automation commands,
-- dependency installs and dependency updates,
-- running tests and interpreting standard test output,
-- tracking PR status checks and CI check states,
-- routine repository maintenance tasks.
+**Execution routing (dynamic: PAID or LOCAL)**
+- Small deterministic tasks (2–4 min window): Route to local model (discover available models at runtime)
+- Standard coding tasks (5–8 min window): Route to local model if time budget permits; otherwise paid
+- Complex tasks requiring reasoning or coordination: Keep on paid model
+- Tasks with unclear requirements or high integration risk: Keep on paid model
 
-Use paid models for these only if local execution is blocked by complexity, reliability, or time-budget constraints.
+**Model discovery for local execution:** Query the local LLM service endpoint at the time of execution to discover available models. Select based on:
+1. Task complexity and required capabilities (code generation, tool-calling)
+2. Available models and their performance characteristics
+3. Time budget compatibility
+
+**Fallback to paid model:** If local execution fails or exceeds time budget, immediately escalate to paid model for remediation.
+
+## Local-model task coverage (when to use)
+Local models execute tasks when:
+- The work is deterministic and well-scoped (provided by paid orchestrator)
+- The task completes within time budget (2–10 min depending on complexity)
+- The work involves code generation, edits, refactors, script execution, test running
+- Tool-calling support is available for the task
+- The acceptance criteria are clear and unambiguous
+
+Local execution saves cost on routine, fast work. Escalate to paid model if:
+- The task exceeds time budget
+- Tool-calling reliability becomes an issue
+- The work requires cross-cutting reasoning or decision-making
+- Two attempts at local execution have failed
 
 ## Orchestration approval gate (required)
 Before running any orchestration workflow, the main/parent session must present a comprehensive execution plan and wait for approval.
@@ -60,7 +77,7 @@ Before running any orchestration workflow, the main/parent session must present 
 Plan must include:
 1. Task groups (clearly separated by scope/repo/dependency).
 2. Child sessions to be created per group.
-3. Exact model assignment per group/session.
+3. Model selection strategy per group/session (criteria for choosing among available local models, or escalation trigger for paid model use).
 4. Estimated runtime per group and overall.
 5. Escalation triggers and fallback model path.
 6. Expected outputs and acceptance criteria per group.
@@ -68,14 +85,14 @@ Plan must include:
 No execution starts until plan approval is received.
 
 ## Plan adherence and anti-divergence rule
-- After approval, follow the approved model assignments exactly.
-- Do not switch to different models unless escalation criteria are met.
-- Any model switch must be explicitly logged with reason:
-    - `Switching to [model] because [reason].`
-- Keep switches minimal and return to planned local models once blocker is resolved.
+- After approval, follow the approved orchestration plan and model allocation strategy.
+- Paid model makes the high-level decisions and coordinates; local models execute fast deterministic tasks.
+- If a local task exceeds time budget or fails, immediately escalate back to the paid model.
+- Any escalation must be explicitly logged with reason and timing.
+- Do not retry failed local tasks repeatedly; escalate on the second failure.
 
 ## Task decomposition policy (cost control)
-- Split heavy work into smaller independent chunks that 7B/14B can finish quickly.
+- Split heavy work into smaller independent chunks that lighter local models can finish quickly.
 - Run local child sessions in parallel when it lowers total runtime.
 - Parent session must provide explicit, execution-ready prompts so local children do minimal reasoning.
 - Use sequential execution only for true dependencies.
@@ -159,15 +176,26 @@ Each task summary must include a short Prompt Quality Review:
 4. Whether stricter constraints or better file targeting would have avoided retries.
 
 ## Cost governance rules
-- Always try fastest/cheapest viable path first.
-- Do not use paid models for routine work local models can complete within budget.
-- Prefer multiple small local steps over one expensive large-model run when outcomes are equivalent.
-- Re-evaluate model choice at each phase; avoid staying on paid models longer than necessary.
+- Kick off with the **cheapest suitable paid model** for orchestration and planning (not the most powerful).
+- Switch execution to local models for fast/deterministic tasks when time budget permits.
+- Do not use paid models for routine work if local models can complete within time windows (2–10 min).
+- Prefer multiple small local task executions over staying on paid model for the whole work.
+- Re-evaluate model choice at each phase; return to paid model immediately if local execution is blocked.
 
 ## Orchestrator behavior
-- Main session may use GitHub Copilot Auto / paid model for orchestration quality.
-- Even with paid orchestration, execution should default to local child sessions whenever feasible.
-- Parent must enforce local-first routing and cost-aware decomposition continuously.
+- **Main session MUST use a paid model** (cheapest suitable tier) for orchestration, planning, and parent coordination.
+- Paid orchestrator breaks work into clear task groups and specifies which are suitable for local execution.
+- Paid orchestrator provides execution-ready prompts to local child sessions to minimize reasoning overhead.
+- Paid orchestrator monitors execution; escalates immediately if a local task exceeds time budget or fails.
+- Paid orchestrator maintains plan coherence and prevents drift across task groups.
+
+## Approved local endpoint
+- Endpoint: `http://localhost:11434/v1` (or compatible OpenAI-compatible LLM service)
+
+**Available models:** Discover at runtime by querying the local endpoint. Agents should list available models and select the best fit for the task type, prioritizing:
+1. Models with reliable tool-calling support
+2. Fastest execution for the task complexity level
+3. Lowest resource consumption when multiple viable options exist
 
 ## Session lifecycle and remote trace elimination
 - After task completion, DELETE child sessions (not just archive) to leave no remote trace.
@@ -181,10 +209,3 @@ Each task summary must include a short Prompt Quality Review:
 - Reference all created follow-up issues in the pull request description.
 - Link and close follow-up issues when the pull request is merged.
 - Update follow-up issues with pending implementation details and clear handoff notes.
-
-## Approved local endpoint/models
-- Endpoint: `http://localhost:11434/v1`
-- `qwen2.5-coder:7b-instruct` (fastest/cheapest)
-- `qwen2.5-coder:14b` (primary balance)
-- `devstral:latest` (local reliability fallback)
-
