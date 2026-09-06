@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 
 import '../helper/app_localizations_delegate.dart';
+import '../helper/density_spacing.dart';
 import '../helper/enum_data.dart';
 import '../helper/filter_helper.dart';
 import '../helper/format_data.dart';
@@ -185,6 +186,7 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final locales = AppLocalizations.of(context);
+    final density = DensitySpacing(theme.visualDensity);
     bool isSort =
         widget.data.operator == FilterOperator.sort || widget.data.id == 'sort';
     final enumData = EnumData(locales: locales);
@@ -235,7 +237,7 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
           ),
         )
         .toList();
-    const space = SizedBox(height: 16, width: 16);
+    final space = SizedBox(height: density.gap(16), width: density.gap(16));
 
     /// Options
     late Widget optionInput;
@@ -943,6 +945,7 @@ class _FilterMenuState extends State<FilterMenu> {
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final density = DensitySpacing(theme.visualDensity);
 
     /// Ignore options that are included on the filters data.
     /// The filtering and sorting happen in [_recomputeOptions] so they only run
@@ -1168,8 +1171,8 @@ class _FilterMenuState extends State<FilterMenu> {
       container: true,
       label: locales.get('label--filters'),
       child: Wrap(
-        spacing: 8,
-        runSpacing: 8,
+        spacing: density.gap(8),
+        runSpacing: density.gap(8),
         runAlignment: WrapAlignment.center,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: menuOptions,
