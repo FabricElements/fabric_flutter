@@ -173,7 +173,7 @@ class _ManagedDropZoneState extends State<ManagedDropZone> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Gap(16),
+        Gap(density.gap(16)),
         LinearProgressIndicator(
           value: _dropState.loading ? null : 0,
           minHeight: 8,
