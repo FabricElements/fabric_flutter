@@ -6,6 +6,7 @@ import 'package:pointer_interceptor/pointer_interceptor.dart';
 
 import '../helper/app_global.dart';
 import '../helper/app_localizations_delegate.dart';
+import '../helper/density_spacing.dart';
 import '../helper/log_color.dart';
 import '../helper/options.dart';
 import '../helper/utils.dart';
@@ -295,6 +296,7 @@ void alertData<T>({
   double contentWidth = width - (basePadding * 4);
   final locales = AppLocalizations.of(ctx);
   final theme = Theme.of(ctx);
+  final density = DensitySpacing(theme.visualDensity);
   final textTheme = theme.textTheme;
   Color buttonColor = theme.colorScheme.primary;
   Color buttonColorForeground = theme.colorScheme.onPrimary;
@@ -555,7 +557,13 @@ void alertData<T>({
   }
 
   if (actions.isNotEmpty && widget == AlertWidget.snackBar) {
-    onColumn.add(Wrap(spacing: 16, runSpacing: 16, children: actions));
+    onColumn.add(
+      Wrap(
+        spacing: density.gap(16),
+        runSpacing: density.gap(16),
+        children: actions,
+      ),
+    );
   }
   mainItems.add(
     Flex(

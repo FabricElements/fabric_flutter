@@ -6,6 +6,7 @@ import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:provider/provider.dart';
 
 import '../helper/app_localizations_delegate.dart';
+import '../helper/density_spacing.dart';
 import '../helper/options.dart';
 import '../helper/user_query.dart';
 import '../helper/user_roles.dart';
@@ -241,6 +242,7 @@ class UserAdmin extends StatelessWidget {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final locales = AppLocalizations.of(context);
+    final density = DensitySpacing(theme.visualDensity);
     if (group != null) {
       assert(group != null && group!.isNotEmpty, 'group can\'t be empty');
     }
@@ -500,8 +502,8 @@ class UserAdmin extends StatelessWidget {
                       child: SizedBox(
                         width: double.maxFinite,
                         child: Wrap(
-                          spacing: 8,
-                          runSpacing: 4,
+                          spacing: density.gap(8),
+                          runSpacing: density.gap(4),
                           crossAxisAlignment: WrapCrossAlignment.center,
                           children: roleChips,
                         ),
@@ -570,7 +572,7 @@ class UserAdmin extends StatelessWidget {
     List<Widget> items = [content];
     if (!disabled) {
       items.addAll([
-        const SizedBox(height: 16),
+        SizedBox(height: density.gap(16)),
         Align(
           alignment: Alignment.center,
           child: PointerInterceptor(

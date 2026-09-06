@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
 import '../helper/app_localizations_delegate.dart';
+import '../helper/density_spacing.dart';
 import '../helper/drop_file_format.dart';
 import '../helper/format_data.dart';
 import '../state/state_drop_zone.dart';
@@ -153,6 +154,7 @@ class _ManagedDropZoneState extends State<ManagedDropZone> {
     final locales = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final density = DensitySpacing(theme.visualDensity);
     final itemCount = _dropState.mediaList.length;
 
     /// Opens the platform file picker and surfaces any failure to the user.
@@ -171,7 +173,7 @@ class _ManagedDropZoneState extends State<ManagedDropZone> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Gap(16),
+        Gap(density.gap(16)),
         LinearProgressIndicator(
           value: _dropState.loading ? null : 0,
           minHeight: 8,
@@ -317,7 +319,7 @@ class _ManagedDropZoneState extends State<ManagedDropZone> {
         Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
-            spacing: 16,
+            spacing: density.gap(16),
             children: [
               if (_dropState.mediaList.isNotEmpty && !_dropState.loading) ...[
                 FilledButton.tonalIcon(

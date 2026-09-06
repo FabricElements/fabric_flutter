@@ -3,6 +3,7 @@ import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
 
 import '../helper/app_localizations_delegate.dart';
+import '../helper/density_spacing.dart';
 import '../helper/options.dart';
 import '../helper/url_safety.dart';
 import '../serialized/chart_preferences.dart';
@@ -258,6 +259,7 @@ class _GoogleChartContainerState extends State<GoogleChartContainer> {
     final locales = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final density = DensitySpacing(theme.visualDensity);
     final isValid = widget.chartWrapper.isValid();
     List<Widget> sections = [];
     final editControls = EditSaveButton(
@@ -284,7 +286,7 @@ class _GoogleChartContainerState extends State<GoogleChartContainer> {
 
     if (widget.edit && editMode) {
       sections = [
-        const Gap(8),
+        Gap(density.gap(8)),
         Row(
           children: [
             OutlinedButton.icon(
@@ -305,7 +307,7 @@ class _GoogleChartContainerState extends State<GoogleChartContainer> {
           ],
         ),
         const Divider(),
-        const Gap(16),
+        Gap(density.gap(16)),
         InputData(
           value: preferencesCopy.name,
           type: InputDataType.string,
@@ -315,7 +317,7 @@ class _GoogleChartContainerState extends State<GoogleChartContainer> {
             widget.onUpdate(preferencesCopy);
           },
         ),
-        const Gap(16),
+        Gap(density.gap(16)),
         InputData(
           value: preferencesCopy.type,
           type: InputDataType.enums,
@@ -326,7 +328,7 @@ class _GoogleChartContainerState extends State<GoogleChartContainer> {
             widget.onUpdate(preferencesCopy);
           },
         ),
-        const Gap(16),
+        Gap(density.gap(16)),
         Row(
           children: [
             Expanded(
@@ -352,7 +354,7 @@ class _GoogleChartContainerState extends State<GoogleChartContainer> {
             ),
           ],
         ),
-        const Gap(16),
+        Gap(density.gap(16)),
         Row(
           children: [
             Expanded(
@@ -382,7 +384,7 @@ class _GoogleChartContainerState extends State<GoogleChartContainer> {
             ),
           ],
         ),
-        const Gap(16),
+        Gap(density.gap(16)),
         if (showRange)
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -480,9 +482,9 @@ class _GoogleChartContainerState extends State<GoogleChartContainer> {
               ),
             ],
           ),
-        const Gap(16),
+        Gap(density.gap(16)),
         const Divider(),
-        const Gap(16),
+        Gap(density.gap(16)),
         Row(
           children: [
             Expanded(
@@ -508,7 +510,7 @@ class _GoogleChartContainerState extends State<GoogleChartContainer> {
             ),
           ],
         ),
-        const Gap(16),
+        Gap(density.gap(16)),
         Row(
           children: [
             Expanded(
@@ -534,7 +536,7 @@ class _GoogleChartContainerState extends State<GoogleChartContainer> {
             ),
           ],
         ),
-        const Gap(16),
+        Gap(density.gap(16)),
         Row(
           children: [
             Expanded(
@@ -560,7 +562,7 @@ class _GoogleChartContainerState extends State<GoogleChartContainer> {
             ),
           ],
         ),
-        const Gap(16),
+        Gap(density.gap(16)),
       ];
     } else {
       final chart = ClipRect(child: GoogleChart(data: widget.chartWrapper));
@@ -592,7 +594,7 @@ class _GoogleChartContainerState extends State<GoogleChartContainer> {
                 : null,
             trailing: widget.edit ? editControls : null,
           ),
-        const Gap(16),
+        Gap(density.gap(16)),
         AspectRatio(aspectRatio: 1.1, child: chart),
       ];
     }

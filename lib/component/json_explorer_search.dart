@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 import '../helper/app_localizations_delegate.dart';
+import '../helper/density_spacing.dart';
 import '../helper/url_safety.dart';
 import 'alert_data.dart';
 import 'input_data.dart';
@@ -105,6 +106,7 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final locales = AppLocalizations.of(context);
+    final density = DensitySpacing(theme.visualDensity);
 
     final widgetEmpty =
         widget.empty ??
@@ -213,7 +215,7 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
                   ),
                   if (state.searchResults.length > 1) ...[
                     /// Builds the button that focuses the previous match.
-                    Gap(16),
+                    Gap(density.gap(16)),
                     IconButton(
                       onPressed: () async {
                         state.focusPreviousSearchResult(loop: true);
@@ -225,7 +227,7 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
                     ),
 
                     /// Builds the button that focuses the next match.
-                    Gap(16),
+                    Gap(density.gap(16)),
                     IconButton(
                       onPressed: () async {
                         state.focusNextSearchResult(loop: true);
@@ -245,7 +247,7 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
                     label: Text(locales.get('label--expand-all')),
                     icon: const Icon(Icons.expand),
                   ),
-                  const Gap(8),
+                  Gap(density.gap(8)),
                   TextButton.icon(
                     onPressed: state.areAllCollapsed()
                         ? null
@@ -253,7 +255,7 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
                     label: Text(locales.get('label--collapse-all')),
                     icon: const Icon(Icons.expand_less),
                   ),
-                  const Gap(8),
+                  Gap(density.gap(8)),
                   TextButton.icon(
                     icon: const Icon(Icons.copy),
                     label: Text(locales.get('label--copy')),
@@ -383,7 +385,7 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
                                 },
                               ),
                             )
-                          : const Gap(32),
+                          : Gap(density.gap(32)),
 
                       /// Formats root names without altering their display text.
                       ///
