@@ -16,6 +16,7 @@ import '../component/phone_input.dart';
 import '../component/smart_image.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/auth_service.dart';
+import '../helper/density_spacing.dart';
 import '../helper/log_color.dart';
 import '../helper/options.dart';
 import '../placeholder/loading_screen.dart';
@@ -172,6 +173,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
     final theme = Theme.of(context);
     final locales = AppLocalizations.of(context);
     final textTheme = Theme.of(context).textTheme;
+    final density = DensitySpacing(theme.visualDensity);
     final height = MediaQuery.of(context).size.height;
     stateAnalytics.screenName = 'auth';
     // Initialize after first build
@@ -535,8 +537,11 @@ class ViewAuthPageState extends State<ViewAuthPage> {
     String backgroundImage =
         widget.image ??
         'https://images.unsplash.com/photo-1615406020658-6c4b805f1f30';
-    Widget spacer = const SizedBox(width: 8, height: 8);
-    Widget spacerLarge = const SizedBox(width: 16, height: 16);
+    Widget spacer = SizedBox(width: density.gap(8), height: density.gap(8));
+    Widget spacerLarge = SizedBox(
+      width: density.gap(16),
+      height: density.gap(16),
+    );
     List<Widget> homeButtonOptions = [];
     if (widget.apple && !kIsWeb && (Platform.isIOS || Platform.isMacOS)) {
       homeButtonOptions.add(authButton('apple'));

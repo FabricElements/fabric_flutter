@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../helper/app_localizations_delegate.dart';
+import '../helper/density_spacing.dart';
 import '../helper/input_validation.dart';
 import '../helper/iso_countries.dart';
 import '../helper/options.dart';
@@ -371,6 +372,7 @@ class _PhoneInputState extends State<PhoneInput> {
     final isValidMatch =
         isValid || InputValidation.isPhoneValid(formattedNumber);
     final locales = AppLocalizations.of(context);
+    final density = DensitySpacing.of(context);
     final selectedAlpha2 = (country?.alpha2 ?? widget.country ?? 'US')
         .split(',')
         .first
@@ -465,7 +467,11 @@ class _PhoneInputState extends State<PhoneInput> {
         final small = width < 400;
         if (small) {
           return Column(
-            children: [countryPicker, const SizedBox(height: 16), phoneInput],
+            children: [
+              countryPicker,
+              SizedBox(height: density.gap(16)),
+              phoneInput,
+            ],
           );
         }
         return Row(
@@ -475,7 +481,7 @@ class _PhoneInputState extends State<PhoneInput> {
               constraints: BoxConstraints(maxWidth: 210),
               child: countryPicker,
             ),
-            const SizedBox(width: 16),
+            SizedBox(width: density.gap(16)),
             Expanded(child: phoneInput),
           ],
         );

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 
 import '../helper/app_localizations_delegate.dart';
+import '../helper/density_spacing.dart';
 import '../helper/input_validation.dart';
 import '../helper/options.dart';
 import '../helper/regex_helper.dart';
@@ -299,7 +300,8 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
 
     canCall = canCall && identifierValid;
 
-    const spacer = SizedBox(height: 16, width: 16);
+    final density = DensitySpacing(theme.visualDensity);
+    final spacer = SizedBox(height: density.gap(16), width: density.gap(16));
     String title = locales.get(
       data.id == null ? 'label--add-label' : 'label--update',
       {'label': locales.get('label--user')},

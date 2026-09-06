@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 
 import '../helper/app_localizations_delegate.dart';
+import '../helper/density_spacing.dart';
 import '../helper/options.dart';
 import 'input_data.dart';
 
@@ -161,7 +162,8 @@ class _PaginationNavState extends State<PaginationNav> {
       defaultLimit = widget.limit;
     }
     final pageStyle = textTheme.bodyMedium;
-    const space = SizedBox(width: 16, height: 16);
+    final density = DensitySpacing(theme.visualDensity);
+    final space = SizedBox(width: density.gap(16), height: density.gap(16));
     // Ensures first/previous/next/last controls meet the 48x48 minimum
     // recommended touch target size, regardless of the button theme's default.
     final minTapTargetStyle = ButtonStyle(
@@ -329,7 +331,7 @@ class _PaginationNavState extends State<PaginationNav> {
         return Wrap(
           alignment: WrapAlignment.center,
           crossAxisAlignment: WrapCrossAlignment.center,
-          runSpacing: 8,
+          runSpacing: density.gap(8),
           children: actions,
         );
       },

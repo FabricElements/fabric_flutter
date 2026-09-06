@@ -2,6 +2,7 @@ import 'package:fabric_flutter/component/alert_data.dart';
 import 'package:flutter/material.dart';
 
 import '../helper/app_localizations_delegate.dart';
+import '../helper/density_spacing.dart';
 import '../helper/options.dart';
 
 /// Toggles between an edit action and save or cancel actions for inline editors.
@@ -118,6 +119,7 @@ class _EditSaveButtonState extends State<EditSaveButton> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final locales = AppLocalizations.of(context);
+    final density = DensitySpacing(theme.visualDensity);
 
     void update() async {
       if (!widget.confirm) {
@@ -218,7 +220,7 @@ class _EditSaveButtonState extends State<EditSaveButton> {
     List<Widget> buttons = [];
 
     if (widget.active) {
-      buttons = [cancelButton, const SizedBox(width: 8), updateButton];
+      buttons = [cancelButton, SizedBox(width: density.gap(8)), updateButton];
     } else {
       buttons = [editButton];
     }
