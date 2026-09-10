@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../helper/density_spacing.dart';
 import '../helper/regex_helper.dart';
 
 /// Displays a prominent section heading with optional emphasized segments.
@@ -48,6 +49,7 @@ class SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final density = DensitySpacing(theme.visualDensity);
     TextStyle? defaultHeadlineStyle = headlineStyle ?? textTheme.headlineMedium;
     TextStyle? defaultDescriptionStyle =
         descriptionStyle ?? textTheme.bodyMedium;
@@ -103,7 +105,7 @@ class SectionTitle extends StatelessWidget {
 
     List<Widget> items = [
       Padding(
-        padding: const EdgeInsets.only(bottom: 16),
+        padding: density.only(bottom: 16, minVertical: 8),
         child: Semantics(
           header: true,
           child: Text.rich(
@@ -115,7 +117,7 @@ class SectionTitle extends StatelessWidget {
     if (description != null) {
       items.add(
         Padding(
-          padding: const EdgeInsets.only(bottom: 4),
+          padding: density.only(bottom: 4, minVertical: 4),
           child: Text.rich(
             TextSpan(
               children: importantData(description!, defaultDescriptionStyle),
@@ -127,7 +129,7 @@ class SectionTitle extends StatelessWidget {
     return SafeArea(
       bottom: false,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: density.symmetric(vertical: 16, minVertical: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: items,

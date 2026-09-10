@@ -394,8 +394,8 @@ class _GoogleChartContainerState extends State<GoogleChartContainer> {
                 child: Stack(
                   children: [
                     Container(
-                      margin: const EdgeInsets.only(top: 8),
-                      padding: const EdgeInsets.only(top: 8),
+                      margin: density.only(top: 8, minVertical: 4),
+                      padding: density.only(top: 8, minVertical: 4),
                       decoration: BoxDecoration(
                         border: Border.all(
                           color:

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../helper/agent/agent_element_binding.dart';
+import '../helper/density_spacing.dart';
 import '../serialized/agent_element_snapshot.dart';
 import 'smart_image.dart';
 
@@ -146,6 +147,7 @@ class _CardButtonState extends State<CardButton> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final density = DensitySpacing.of(context);
     return AgentElement(
       id: widget.automationKey,
       type: AgentElementType.button,
@@ -162,7 +164,8 @@ class _CardButtonState extends State<CardButton> {
         onTap: widget.onPressed,
         child: ExcludeSemantics(
           child: Container(
-            padding: widget.margin ?? const EdgeInsets.symmetric(vertical: 8),
+            padding:
+                widget.margin ?? density.symmetric(vertical: 8, minVertical: 4),
             child: Card(
               color: theme.colorScheme.surfaceContainerHighest,
               clipBehavior: Clip.hardEdge,
@@ -219,7 +222,10 @@ class _CardButtonState extends State<CardButton> {
                                 : null,
                             subtitle: widget.description != null
                                 ? Padding(
-                                    padding: const EdgeInsets.only(top: 8),
+                                    padding: density.only(
+                                      top: 8,
+                                      minVertical: 4,
+                                    ),
                                     child: Text(
                                       widget.description!,
                                       style: textTheme.bodyMedium?.copyWith(

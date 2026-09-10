@@ -202,7 +202,7 @@ class _ManagedDropZoneState extends State<ManagedDropZone> {
                     child: Container(
                       height: kMinInteractiveDimension * 4,
                       width: double.maxFinite,
-                      margin: const EdgeInsets.all(16),
+                      margin: density.all(16, min: 8),
                       child: CustomPaint(
                         foregroundPainter: _DashedBorderPainter(
                           color: _dropState.dragging
@@ -214,7 +214,7 @@ class _ManagedDropZoneState extends State<ManagedDropZone> {
                           gapLength: 5,
                         ),
                         child: Padding(
-                          padding: const EdgeInsets.all(4),
+                          padding: density.all(4, min: 2),
                           child: DecoratedBox(
                             decoration: BoxDecoration(
                               borderRadius: const BorderRadius.all(
@@ -231,7 +231,7 @@ class _ManagedDropZoneState extends State<ManagedDropZone> {
                               ),
                               child: Center(
                                 child: Padding(
-                                  padding: const EdgeInsets.all(8),
+                                  padding: density.all(8, min: 4),
                                   child: Text(
                                     locales.get('label--drop-files-here'),
                                     textAlign: TextAlign.center,
@@ -256,7 +256,7 @@ class _ManagedDropZoneState extends State<ManagedDropZone> {
         ),
         // Keyboard and screen reader accessible alternative to the drop target.
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: density.symmetric(horizontal: 16, minHorizontal: 8),
           child: Align(
             alignment: Alignment.centerLeft,
             child: TextButton.icon(
@@ -317,7 +317,7 @@ class _ManagedDropZoneState extends State<ManagedDropZone> {
           );
         }),
         Padding(
-          padding: const EdgeInsets.all(16),
+          padding: density.all(16, min: 8),
           child: Row(
             spacing: density.gap(16),
             children: [

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 
 import '../helper/app_localizations_delegate.dart';
+import '../helper/density_spacing.dart';
 import '../helper/firebase_storage_helper.dart';
 import '../helper/media_helper.dart';
 import '../serialized/media_data.dart';
@@ -68,13 +69,14 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
     final double effectiveIconSize = IconTheme.of(context).size ?? 24.0;
     final double boxSize = effectiveIconSize + 16;
     final locales = AppLocalizations.of(context);
+    final density = DensitySpacing.of(context);
 
     if (loading) {
       return SizedBox(
         height: boxSize,
         width: boxSize,
         child: RefreshProgressIndicator(
-          indicatorPadding: EdgeInsets.all(4.0),
+          indicatorPadding: density.all(4, min: 2),
           elevation: 1,
           semanticsLabel: locales.get('label--loading'),
         ),
@@ -151,7 +153,7 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
           PopupMenuItem(
             value: origin,
             child: Row(
-              spacing: 16,
+              spacing: density.gap(16),
               children: [
                 Icon(icon),
                 Flexible(

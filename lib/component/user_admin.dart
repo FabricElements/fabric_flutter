@@ -275,7 +275,7 @@ class UserAdmin extends StatelessWidget {
     state.query = resolvedQuery;
     state.listen();
 
-    Widget space = Container(width: 16);
+    Widget space = SizedBox(width: density.gap(16));
 
     /// Confirms and removes the selected user.
     ///
@@ -356,11 +356,13 @@ class UserAdmin extends StatelessWidget {
     }
 
     final content = PaginationContainer(
-      padding: EdgeInsets.only(
+      padding: density.only(
         top: 32,
         right: 16,
         bottom: primary ? 80 : 16,
         left: 16,
+        minHorizontal: 8,
+        minVertical: 8,
       ),
       stream: state.stream,
       paginate: state.next,
@@ -369,7 +371,13 @@ class UserAdmin extends StatelessWidget {
       shrinkWrap: !primary,
       top: ContentContainer(
         child: UsersDropdown(
-          padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
+          padding: density.only(
+            left: 16,
+            right: 16,
+            bottom: 8,
+            minHorizontal: 8,
+            minVertical: 4,
+          ),
           showTrailing: true,
           prefix: prefix,
           onChanged: (value) {
@@ -472,9 +480,9 @@ class UserAdmin extends StatelessWidget {
           child: ContentContainer(
             size: size,
             child: Card(
-              margin: const EdgeInsets.all(16),
+              margin: density.all(16, min: 8),
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: density.symmetric(vertical: 16, minVertical: 8),
                 child: Flex(
                   direction: Axis.vertical,
                   mainAxisSize: MainAxisSize.min,
@@ -498,7 +506,7 @@ class UserAdmin extends StatelessWidget {
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.all(16),
+                      padding: density.all(16, min: 8),
                       child: SizedBox(
                         width: double.maxFinite,
                         child: Wrap(
@@ -510,7 +518,10 @@ class UserAdmin extends StatelessWidget {
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: density.symmetric(
+                        horizontal: 16,
+                        minHorizontal: 8,
+                      ),
                       child: Row(children: trailing),
                     ),
                   ],

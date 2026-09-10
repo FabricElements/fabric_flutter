@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../helper/app_localizations_delegate.dart';
+import '../helper/density_spacing.dart';
 import '../helper/log_color.dart';
 import '../helper/media_helper.dart';
 import '../helper/regex_helper.dart';
@@ -174,6 +175,7 @@ class _ProfileEditState extends State<ProfileEdit> {
   @override
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context);
+    final density = DensitySpacing.of(context);
     final stateUser = Provider.of<StateUser>(context, listen: false);
     final user = stateUser.serialized;
     userImage = widget.prefix != null && user.avatar != null
@@ -355,17 +357,24 @@ class _ProfileEditState extends State<ProfileEdit> {
           })
         : null;
     return ListView(
-      padding: const EdgeInsets.only(bottom: 64, left: 16, right: 16, top: 16),
+      padding: density.only(
+        bottom: 64,
+        left: 16,
+        right: 16,
+        top: 16,
+        minHorizontal: 8,
+        minVertical: 8,
+      ),
       children: <Widget>[
         ContentContainer(
           size: ContentContainerSize.small,
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: density.symmetric(vertical: 8, minVertical: 4),
           child: Container(
             constraints: const BoxConstraints(maxWidth: 300, maxHeight: 300),
             child: AspectRatio(
               aspectRatio: 1 / 1,
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: density.all(16, min: 8),
                 child: Center(
                   child: Semantics(
                     button: _temporalImageBytes == null,
@@ -448,7 +457,7 @@ class _ProfileEditState extends State<ProfileEdit> {
         ),
         ContentContainer(
           size: ContentContainerSize.small,
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: density.symmetric(vertical: 8, minVertical: 4),
           child: InputData(
             autofillHints: const [AutofillHints.givenName],
             disabled: loading,
@@ -470,7 +479,7 @@ class _ProfileEditState extends State<ProfileEdit> {
         ),
         ContentContainer(
           size: ContentContainerSize.small,
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: density.symmetric(vertical: 8, minVertical: 4),
           child: InputData(
             autofillHints: const [AutofillHints.familyName],
             disabled: loading,
@@ -490,10 +499,10 @@ class _ProfileEditState extends State<ProfileEdit> {
             },
           ),
         ),
-        const SizedBox(height: 32),
+        SizedBox(height: density.vertical(32, min: 16)),
         ContentContainer(
           size: ContentContainerSize.small,
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: density.symmetric(vertical: 8, minVertical: 4),
           child: FilledButton.icon(
             key: const Key('update-button'),
             label: Text(locales.get('label--update')),
