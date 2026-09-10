@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../helper/density_spacing.dart';
 import '../component/smart_image.dart';
 
 /// Displays a full-screen hero animation view for media content.
@@ -18,6 +19,7 @@ class ViewHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final density = DensitySpacing.of(context);
     final args = Map.from(
       ModalRoute.of(context)!.settings.arguments as Map<dynamic, dynamic>? ??
           {},
@@ -27,9 +29,9 @@ class ViewHero extends StatelessWidget {
     // arguments (e.g. `{'url': ..., 'title': 'Photo of ...'}'). Falls back to
     // SmartImage's default localized image label when omitted.
     String? mediaSemanticLabel = args['title'] as String?;
-    Widget content = const Padding(
-      padding: EdgeInsets.all(16),
-      child: Text('Your media file can\'t be loaded'),
+    Widget content = Padding(
+      padding: density.all(16, min: 8),
+      child: const Text('Your media file can\'t be loaded'),
     );
     if (mediaUrl != null) {
       content = SizedBox.expand(

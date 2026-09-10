@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../helper/density_spacing.dart';
 import '../component/smart_image.dart';
 
 /// Provides an informative full-screen view with headline, description, and action button.
@@ -204,6 +205,7 @@ class _ViewFeaturedState extends State<ViewFeatured> {
     }
 
     final textTheme = Theme.of(context).textTheme;
+    final density = DensitySpacing.of(context);
     List<Widget> options = [];
     if (widget.description != null) {
       options.add(
@@ -214,7 +216,7 @@ class _ViewFeaturedState extends State<ViewFeatured> {
             top: false,
             bottom: widget.actionLabel == null && widget.child == null,
             child: Padding(
-              padding: const EdgeInsets.only(top: 8),
+              padding: density.only(top: 8, minVertical: 4),
               child: Text(
                 widget.description!,
                 style: textTheme.titleLarge,
@@ -227,7 +229,7 @@ class _ViewFeaturedState extends State<ViewFeatured> {
     }
     if (widget.child != null) {
       options.addAll([
-        Container(height: 32),
+        SizedBox(height: density.vertical(32, min: 16)),
         AnimatedOpacity(
           opacity: _childOpacityLevel,
           duration: Duration(milliseconds: _animationDuration),
@@ -237,7 +239,7 @@ class _ViewFeaturedState extends State<ViewFeatured> {
     }
     if (widget.actionLabel != null) {
       options.addAll([
-        Container(height: 32),
+        SizedBox(height: density.vertical(32, min: 16)),
         AnimatedOpacity(
           opacity: _actionOpacityLevel,
           duration: Duration(milliseconds: _animationDuration),
@@ -279,7 +281,7 @@ class _ViewFeaturedState extends State<ViewFeatured> {
                   top: 0,
                   child: AnimatedContainer(
                     duration: Duration(milliseconds: _animationDuration),
-                    padding: const EdgeInsets.all(16),
+                    padding: density.all(16, min: 8),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
@@ -299,12 +301,12 @@ class _ViewFeaturedState extends State<ViewFeatured> {
                   left: 0,
                   right: 0,
                   child: Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: density.all(16, min: 8),
                     child: AnimatedOpacity(
                       duration: Duration(milliseconds: _animationDuration),
                       opacity: _headlineOpacityLevel,
                       child: Padding(
-                        padding: const EdgeInsets.only(top: 64),
+                        padding: density.only(top: 64, minVertical: 32),
                         child: SafeArea(
                           top: false,
                           bottom: false,
@@ -328,11 +330,13 @@ class _ViewFeaturedState extends State<ViewFeatured> {
             ),
           ),
           Padding(
-            padding: EdgeInsets.only(
+            padding: density.only(
               top: 16,
               bottom: widget.child == null ? 16 : 0,
               left: 16,
               right: 16,
+              minHorizontal: 8,
+              minVertical: 8,
             ),
             child: SafeArea(
               top: false,

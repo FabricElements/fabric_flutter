@@ -47,6 +47,7 @@ class ContentContainer extends StatelessWidget {
     this.padding,
     this.margin,
     this.children,
+    this.spacing = 0,
     this.direction = Axis.vertical,
     this.mainAxisSize = MainAxisSize.max,
     this.crossAxisAlignment = CrossAxisAlignment.start,
@@ -67,6 +68,12 @@ class ContentContainer extends StatelessWidget {
   ///
   /// This list is used only when [child] is `null`.
   final List<Widget>? children;
+
+  /// Stores the spacing applied between internal [Flex] children.
+  ///
+  /// This value is forwarded directly to the underlying [Flex.spacing] when
+  /// [children] are rendered and is ignored when [child] provides the content.
+  final double spacing;
 
   /// Stores the maximum width selection applied before the content is centered.
   ///
@@ -146,6 +153,7 @@ class ContentContainer extends StatelessWidget {
           mainAxisSize: mainAxisSize,
           crossAxisAlignment: crossAxisAlignment,
           mainAxisAlignment: mainAxisAlignment,
+          spacing: spacing,
           children: children!,
         );
     Widget result = Center(

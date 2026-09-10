@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../helper/app_localizations_delegate.dart';
+import '../helper/density_spacing.dart';
 import '../helper/options.dart';
 import 'smart_image.dart';
 
@@ -24,8 +25,8 @@ class Breadcrumbs extends StatelessWidget {
     required this.buttons,
     this.buttonStyle,
     this.dividerStyle,
-    this.padding = const EdgeInsets.symmetric(horizontal: 16),
-    this.spacing = 8,
+    this.padding,
+    this.spacing,
     this.textStyle,
   });
 
@@ -48,12 +49,12 @@ class Breadcrumbs extends StatelessWidget {
   /// Padding around the entire breadcrumb container.
   ///
   /// Defaults to 16px horizontal padding to provide comfortable edge spacing.
-  final EdgeInsetsGeometry padding;
+  final EdgeInsetsGeometry? padding;
 
   /// Horizontal spacing between breadcrumb items and dividers.
   ///
   /// Defaults to 8px for balanced visual separation.
-  final double spacing;
+  final double? spacing;
 
   /// Text style applied to breadcrumb labels.
   ///
@@ -65,6 +66,7 @@ class Breadcrumbs extends StatelessWidget {
     final locales = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final density = DensitySpacing.of(context);
     List<Widget> items = [];
     TextStyle? textStyleDefault = textStyle ?? textTheme.bodySmall;
     TextStyle? dividerStyleDefault =
@@ -173,11 +175,11 @@ class Breadcrumbs extends StatelessWidget {
       container: true,
       label: locales.get('label--breadcrumb'),
       child: SingleChildScrollView(
-        padding: padding,
+        padding: padding ?? density.symmetric(horizontal: 16, minHorizontal: 8),
         scrollDirection: Axis.horizontal,
         child: Wrap(
-          spacing: spacing,
-          runSpacing: spacing,
+          spacing: spacing ?? density.gap(8),
+          runSpacing: spacing ?? density.gap(8),
           alignment: WrapAlignment.start,
           runAlignment: WrapAlignment.center,
           crossAxisAlignment: WrapCrossAlignment.center,

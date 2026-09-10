@@ -327,7 +327,7 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
                   );
                 }
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
+                  padding: density.only(bottom: 16, minVertical: 8),
                   child: button,
                 );
               }),
@@ -405,7 +405,7 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
     if (!isSort) {
       sections.addAll([
         Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: density.all(8, min: 4),
           child: Text(widget.data.label, style: textTheme.titleMedium),
         ),
         const Divider(),
@@ -427,7 +427,7 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
     }
     return PointerInterceptor(
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: density.all(8, min: 4),
         child: Flex(
           direction: Axis.vertical,
           mainAxisSize: MainAxisSize.min,

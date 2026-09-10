@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 import '../helper/agent/agent_element_binding.dart';
+import '../helper/density_spacing.dart';
 import '../helper/options.dart';
 import '../serialized/agent_element_snapshot.dart';
 
@@ -84,6 +85,7 @@ class _SmartButtonState extends State<SmartButton> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final density = DensitySpacing.of(context);
     final Brightness brightness =
         widget.brightness ?? theme.colorScheme.brightness;
     final bool isDark = brightness == Brightness.dark;
@@ -139,8 +141,8 @@ class _SmartButtonState extends State<SmartButton> {
     // TODO: Implement scale when possible using MediaQuery.textScalerOf(context)
     const double scale = 1;
     final double gap = scale <= 1
-        ? 8
-        : lerpDouble(8, 4, math.min(scale - 1, 1))!;
+        ? density.gap(8)
+        : lerpDouble(density.gap(8), density.gap(4), math.min(scale - 1, 1))!;
 
     /// Main Button
     List<Widget> mainButtonWidgets = [];
@@ -167,7 +169,7 @@ class _SmartButtonState extends State<SmartButton> {
     Widget mainButton = TextButton(
       onPressed: _activate,
       child: Padding(
-        padding: const EdgeInsets.all(8),
+        padding: density.all(8, min: 4),
         child: Row(mainAxisSize: MainAxisSize.min, children: mainButtonWidgets),
       ),
     );

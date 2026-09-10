@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 import '../helper/app_localizations_delegate.dart';
+import '../helper/density_spacing.dart';
 import '../helper/log_color.dart';
 import 'content_container.dart';
 
@@ -356,6 +357,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final density = DensitySpacing.of(context);
     // Reaching the exact scroll edge that triggers auto-pagination is
     // unreliable for screen-reader users, so an explicit "load more" control
     // is offered instead of relying on scroll position when a screen reader
@@ -365,16 +367,19 @@ class _PaginationContainerState extends State<PaginationContainer> {
     final widgetEmpty =
         widget.empty ??
         Card(
-          margin: EdgeInsets.all(16),
+          margin: density.all(16, min: 8),
           child: ListTile(
-            contentPadding: EdgeInsets.all(16),
+            contentPadding: density.all(16, min: 8),
             leading: Icon(Icons.info),
             title: Text(locales.get('label--nothing-here-yet')),
           ),
         );
     final widgetLoading =
         widget.loading ??
-        Padding(padding: EdgeInsets.all(16), child: LinearProgressIndicator());
+        Padding(
+          padding: density.all(16, min: 8),
+          child: LinearProgressIndicator(),
+        );
     final widgetEnd =
         widget.end ??
         Center(
@@ -396,7 +401,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
         physics: widget.shrinkWrap ? null : const ClampingScrollPhysics(),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          spacing: 16,
+          spacing: density.gap(16),
           children: [
             ?widget.top,
             ContentContainer(padding: widget.padding, child: widgetLoading),
@@ -412,7 +417,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
         physics: widget.shrinkWrap ? null : const ClampingScrollPhysics(),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          spacing: 16,
+          spacing: density.gap(16),
           children: [
             ?widget.top,
             ContentContainer(padding: widget.padding, child: widgetEmpty),
@@ -450,7 +455,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
               if (index == 0 && widget.top != null) {
                 return Column(
                   mainAxisSize: MainAxisSize.min,
-                  spacing: 16,
+                  spacing: density.gap(16),
                   children: [
                     widget.top!,
                     widget.itemBuilder(context, index, data[index]),
@@ -459,7 +464,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
               } else if (index == (total - 1) && widget.bottom != null) {
                 return Column(
                   mainAxisSize: MainAxisSize.min,
-                  spacing: 16,
+                  spacing: density.gap(16),
                   children: [
                     widget.bottom!,
                     widget.itemBuilder(context, index, data[index]),
@@ -476,10 +481,10 @@ class _PaginationContainerState extends State<PaginationContainer> {
               footer = Semantics(
                 liveRegion: true,
                 child: Card(
-                  margin: EdgeInsets.all(16),
+                  margin: density.all(16, min: 8),
                   color: theme.colorScheme.errorContainer,
                   child: ListTile(
-                    contentPadding: EdgeInsets.all(16),
+                    contentPadding: density.all(16, min: 8),
                     leading: Icon(Icons.error),
                     title: Text(error!),
                     textColor: theme.colorScheme.onErrorContainer,
@@ -498,7 +503,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
               // assistive-technology users can reliably load more results.
               footer = Center(
                 child: Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: density.all(16, min: 8),
                   child: OutlinedButton.icon(
                     style: ButtonStyle(
                       minimumSize: WidgetStateProperty.all(const Size(48, 48)),

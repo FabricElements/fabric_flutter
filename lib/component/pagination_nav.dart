@@ -188,7 +188,7 @@ class _PaginationNavState extends State<PaginationNav> {
                     style: pageStyle?.copyWith(fontWeight: FontWeight.bold),
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(width: 4),
+                  SizedBox(width: density.gap(4, min: 0)),
                   Text(
                     '/ ${widget.totalPages}',
                     style: pageStyle,

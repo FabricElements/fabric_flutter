@@ -1,3 +1,13 @@
+## [3.0.1] - 2026-09-10
+
+### Added
+
+* **`ContentContainer.spacing` for internal `Flex` layouts.** `ContentContainer` can now forward an optional `spacing` value directly to the `Flex.spacing` of its internal multi-child layout. The default remains `0`, so existing call sites keep the same behavior unless they opt in to explicit spacing.
+
+### Fixed
+
+* **Safe content-spacing conversions continue to use `DensitySpacing` where a fixed gap was clearly a content separator.** The existing density-aware spacing pass remains limited to obviously safe UI gaps and leaves structural, navigation-sensitive, and touch-target sizing untouched.
+
 ## [3.0.0] - 2026-09-06
 
 ### Added

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../helper/app_localizations_delegate.dart';
+import '../helper/density_spacing.dart';
 import '../helper/options.dart';
 import '../helper/regex_helper.dart';
 import '../serialized/password_data.dart';
@@ -92,6 +93,7 @@ class _UpdatePasswordState extends State<UpdatePassword> {
   @override
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context);
+    final density = DensitySpacing.of(context);
 
     String? errorValidation;
     String? errorValidation2;
@@ -206,7 +208,7 @@ class _UpdatePasswordState extends State<UpdatePassword> {
         .map(
           (e) => Container(
             constraints: const BoxConstraints(maxWidth: 500),
-            margin: const EdgeInsets.only(bottom: 16),
+            margin: density.only(bottom: 16, minVertical: 8),
             child: e,
           ),
         )

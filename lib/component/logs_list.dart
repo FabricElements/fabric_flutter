@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../helper/app_localizations_delegate.dart';
+import '../helper/density_spacing.dart';
 import '../helper/options.dart';
 import '../helper/regex_helper.dart';
 import '../helper/utils.dart';
@@ -27,13 +28,8 @@ class LogsList extends StatelessWidget {
     this.minimal = false,
     this.highlightColor,
     this.scrollable = false,
-    this.padding = const EdgeInsets.only(
-      top: 16,
-      left: 16,
-      right: 16,
-      bottom: 8,
-    ),
-    this.margin = const EdgeInsets.symmetric(vertical: 8),
+    this.padding,
+    this.margin,
   });
 
   /// Provides the ordered [LogsData] entries to render.
@@ -52,10 +48,10 @@ class LogsList extends StatelessWidget {
   final bool scrollable;
 
   /// Provides the [EdgeInsetsGeometry] applied around each rendered entry.
-  final EdgeInsetsGeometry padding;
+  final EdgeInsetsGeometry? padding;
 
   /// Provides the [EdgeInsetsGeometry] applied around the entire list.
-  final EdgeInsetsGeometry margin;
+  final EdgeInsetsGeometry? margin;
 
   /// Formats each entry's timestamp as a localized date and time.
   ///
@@ -72,7 +68,8 @@ class LogsList extends StatelessWidget {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final locales = AppLocalizations.of(context);
-    Widget container = const SizedBox(height: 0);
+    final density = DensitySpacing.of(context);
+    Widget container = const SizedBox.shrink();
     if (logs == null || logs!.isEmpty) return container;
 
     final TextStyle? textThemeBase = textTheme.bodyLarge?.copyWith(
@@ -91,7 +88,7 @@ class LogsList extends StatelessWidget {
       int? initialPosition = 0;
       Iterable matches = RegexHelper.placeholder.allMatches(text);
       final timestampWidget = Padding(
-        padding: const EdgeInsets.only(bottom: 4.0),
+        padding: density.only(bottom: 4, minVertical: 4),
         child: Text(
           _timestampFormat.format(timestamp),
           style: textTheme.bodySmall,
@@ -168,7 +165,7 @@ class LogsList extends StatelessWidget {
       Widget? dataIcon;
       if (item.data != null) {
         dataIcon = Padding(
-          padding: const EdgeInsets.only(left: 8.0),
+          padding: density.only(left: 8, minHorizontal: 4),
           child: IconButton(
             icon: const Icon(Icons.account_tree),
             color: theme.colorScheme.onSurface,
@@ -201,7 +198,7 @@ class LogsList extends StatelessWidget {
       }
       if (buttons.isNotEmpty) {
         actionsWidgets = Padding(
-          padding: const EdgeInsets.only(left: 8.0),
+          padding: density.only(left: 8, minHorizontal: 4),
           child: PopupMenuButton<String>(
             padding: EdgeInsets.zero,
             tooltip: locales.get('label--more-actions'),
@@ -216,7 +213,10 @@ class LogsList extends StatelessWidget {
       ];
       if (item.child != null) {
         vertical.add(
-          Padding(padding: const EdgeInsets.only(top: 8), child: item.child!),
+          Padding(
+            padding: density.only(top: 8, minVertical: 4),
+            child: item.child!,
+          ),
         );
       }
       List<Widget> horizontal = [
@@ -236,7 +236,16 @@ class LogsList extends StatelessWidget {
       if (dataIcon != null) horizontal.add(dataIcon);
       if (actionsWidgets != null) horizontal.add(actionsWidgets);
       return Padding(
-        padding: padding,
+        padding:
+            padding ??
+            density.only(
+              top: 16,
+              left: 16,
+              right: 16,
+              bottom: 8,
+              minHorizontal: 8,
+              minVertical: 8,
+            ),
         child: Flex(
           direction: Axis.horizontal,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -249,7 +258,7 @@ class LogsList extends StatelessWidget {
       return ListView.builder(
         itemCount: logs!.length,
         itemBuilder: (BuildContext context, int index) => getItem(logs![index]),
-        padding: margin,
+        padding: margin ?? density.symmetric(vertical: 8, minVertical: 4),
       );
     } else {
       final cellsBase = List.generate(
@@ -257,7 +266,7 @@ class LogsList extends StatelessWidget {
         (index) => getItem(logs![index]),
       );
       return Padding(
-        padding: margin,
+        padding: margin ?? density.symmetric(vertical: 8, minVertical: 4),
         child: Flex(direction: Axis.vertical, children: cellsBase),
       );
     }

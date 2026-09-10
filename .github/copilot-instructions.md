@@ -326,6 +326,20 @@ These are the load-bearing guardrails. They are cumulative — none may be dropp
 
 ---
 
+## Density-aware spacing
+
+- Use `DensitySpacing` for ordinary, user-configurable UI spacing: `Gap`, spacer-only `SizedBox` dimensions, `Padding`/`EdgeInsets`/margins, and `Flex`/`Wrap` spacing or run spacing. Import it directly from `package:fabric_flutter/helper/density_spacing.dart`.
+- Prefer `horizontal`, `vertical`, `gap`, `all`, `symmetric`, and `only` with an explicit accessible minimum. Match the closest established local pattern and preserve the standard-density appearance.
+- Do not apply density scaling to intrinsic or structural geometry: icon/avatar/image sizes, minimum interactive/tap targets, fixed form/control dimensions, chart/canvas/drop-zone geometry, border geometry, or position/constraint values that define component structure.
+- Do not change navigation or route-shell geometry without dedicated responsive coverage: headers, app bars, drawers, navigation rails, bottom navigation, tabs, overflow actions, and route layout containers are excluded by default.
+- When adding or changing first-party widget spacing, keep the DensitySpacing source-scan guard green. Its default allowlist is empty: replace a literal content-spacing value with DensitySpacing. The preserved exception mechanism is for a future reviewed case only; any future entry must identify the exact source pattern/path and justify why it is intentionally fixed for accessibility, structural, or navigation reasons, never to bypass ordinary UI spacing.
+- For reusable flex-based components, expose a spacing parameter only when it maps directly to the underlying layout widget and its default preserves current behavior. Prefer that parameter over manually inserting repeated spacer children at call sites.
+- Whenever a Flutter UI change can affect rendered output, regenerate every affected existing golden using the repository's established golden-update command and run the corresponding golden tests. Do not leave stale golden baselines after UI changes.
+
+Do not add any private consumer references.
+
+---
+
 ## 14. Pull Request & Contribution Workflow
 
 - Follow `CONTRIBUTING.md`: feature branches, an issue per change, at least one test per bug fix or feature, squashed commits where practical.

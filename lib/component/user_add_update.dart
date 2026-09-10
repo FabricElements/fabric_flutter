@@ -650,7 +650,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
 
     inviteWidgets.addAll([
       Padding(
-        padding: const EdgeInsets.only(top: 16),
+        padding: density.only(top: 16, minVertical: 8),
         child: Row(
           children: [
             FilledButton.tonalIcon(
@@ -685,11 +685,13 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
         controller: _controller,
         child: SingleChildScrollView(
           controller: _controller,
-          padding: const EdgeInsets.only(
+          padding: density.only(
             bottom: 64,
             left: 16,
             right: 16,
             top: 16,
+            minHorizontal: 8,
+            minVertical: 8,
           ),
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: height - 80),
@@ -708,7 +710,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
                           automaticallyImplyActions: false,
                         ),
                         Padding(
-                          padding: const EdgeInsets.all(16.0),
+                          padding: density.all(16, min: 8),
                           child: Column(children: inviteWidgets),
                         ),
                       ],

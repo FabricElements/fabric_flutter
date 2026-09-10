@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 
 import '../../serialized/place_data.dart';
 import '../helper/app_localizations_delegate.dart';
+import '../helper/density_spacing.dart';
 import '../helper/http_request.dart';
 import 'alert_data.dart';
 import 'google_maps_preview.dart';
@@ -428,6 +429,7 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final locales = AppLocalizations.of(context);
+    final density = DensitySpacing.of(context);
 
     /// Resolves a selected autocomplete result into a full [Place].
     ///
@@ -510,7 +512,7 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      contentPadding: const EdgeInsets.all(16),
+                      contentPadding: density.all(16, min: 8),
                       filled: true,
                       hintText: name ?? locales.get('label--search'),
                       suffixIcon: const Icon(Icons.search),
@@ -541,7 +543,7 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
             mapComponents.add(
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
+                  padding: density.symmetric(vertical: 16, minVertical: 8),
                   child: Material(
                     clipBehavior: Clip.hardEdge,
                     color: theme.colorScheme.surfaceContainerHighest,

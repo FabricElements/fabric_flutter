@@ -5,6 +5,7 @@ import 'package:flutter/semantics.dart';
 import 'package:provider/provider.dart';
 
 import '../helper/app_localizations_delegate.dart';
+import '../helper/density_spacing.dart';
 import '../state/state_global.dart';
 
 /// Shows a transient banner when network connectivity changes.
@@ -87,6 +88,7 @@ class _ConnectionStatusState extends State<ConnectionStatus> {
     final locales = AppLocalizations.of(context);
     ThemeData theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final density = DensitySpacing.of(context);
     return StreamBuilder(
       stream: stateGlobal.streamConnection,
       builder: (context, snapshot) {
@@ -136,8 +138,15 @@ class _ConnectionStatusState extends State<ConnectionStatus> {
               liveRegion: true,
               child: Container(
                 // height: kToolbarHeight,
-                margin: EdgeInsets.all(35),
-                padding: EdgeInsets.fromLTRB(16, 4, 4, 4),
+                margin: density.all(35, min: 8),
+                padding: density.only(
+                  left: 16,
+                  top: 4,
+                  right: 4,
+                  bottom: 4,
+                  minHorizontal: 4,
+                  minVertical: 4,
+                ),
                 constraints: BoxConstraints(
                   maxWidth: 300,
                   minWidth: 200,
@@ -155,7 +164,7 @@ class _ConnectionStatusState extends State<ConnectionStatus> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.center,
-                  spacing: 16,
+                  spacing: density.gap(16),
                   children: [
                     Semantics(
                       label: message,

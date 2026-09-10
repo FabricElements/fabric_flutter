@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../helper/app_localizations_delegate.dart';
+import '../helper/density_spacing.dart';
 import '../helper/iso_language.dart';
 
 /// Formats the optional total count shown beside the language code.
@@ -55,6 +56,7 @@ class FlagChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final locales = AppLocalizations.of(context);
+    final density = DensitySpacing.of(context);
     List<Widget> items = [];
     late Widget icon;
 
@@ -65,7 +67,7 @@ class FlagChip extends StatelessWidget {
     }
     items.add(
       Padding(
-        padding: const EdgeInsets.only(right: 8),
+        padding: density.only(right: 8, minHorizontal: 4),
         child: Text(language.toUpperCase()),
       ),
     );

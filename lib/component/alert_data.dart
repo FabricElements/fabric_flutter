@@ -292,11 +292,12 @@ void alertData<T>({
 
   final queryData = MediaQuery.of(ctx);
   double width = queryData.size.width;
-  double basePadding = 16;
-  double contentWidth = width - (basePadding * 4);
   final locales = AppLocalizations.of(ctx);
   final theme = Theme.of(ctx);
   final density = DensitySpacing(theme.visualDensity);
+  final double horizontalPadding = density.horizontal(16);
+  final EdgeInsetsGeometry contentPadding = density.all(16, min: 8);
+  double contentWidth = width - (horizontalPadding * 4);
   final textTheme = theme.textTheme;
   Color buttonColor = theme.colorScheme.primary;
   Color buttonColorForeground = theme.colorScheme.onPrimary;
@@ -570,12 +571,12 @@ void alertData<T>({
       direction: Axis.vertical,
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 8,
+      spacing: density.gap(8),
       children: onColumn,
     ),
   );
   Widget content = Container(
-    padding: EdgeInsets.all(basePadding),
+    padding: contentPadding,
     color: color,
     child: PointerInterceptor(
       child: SizedBox(
@@ -584,7 +585,7 @@ void alertData<T>({
           direction: Axis.vertical,
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 16,
+          spacing: density.gap(16),
           children: mainItems,
         ),
       ),
@@ -636,7 +637,7 @@ void alertData<T>({
             showCloseIcon: false,
             closeIconColor: textColor,
             width: kIsWeb ? 900 : null,
-            margin: kIsWeb ? null : EdgeInsets.all(16),
+            margin: kIsWeb ? null : density.all(16, min: 8),
           ),
         );
         break;
@@ -657,8 +658,8 @@ void alertData<T>({
                   backgroundColor: color,
                   contentPadding: EdgeInsets.zero,
                   clipBehavior: Clip.hardEdge,
-                  actionsPadding: const EdgeInsets.all(16),
-                  buttonPadding: const EdgeInsets.all(16),
+                  actionsPadding: contentPadding,
+                  buttonPadding: contentPadding,
                 ),
               ),
             ),

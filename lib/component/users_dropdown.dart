@@ -1,6 +1,7 @@
 import 'package:fabric_flutter/component/input_data.dart';
 import 'package:fabric_flutter/component/user_avatar.dart';
 import 'package:fabric_flutter/helper/app_localizations_delegate.dart';
+import 'package:fabric_flutter/helper/density_spacing.dart';
 import 'package:fabric_flutter/helper/options.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -101,6 +102,7 @@ class UsersDropdown extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context);
+    final density = DensitySpacing.of(context);
     final state = Provider.of<StateUsers>(context);
     final serialized = state.serialized;
     List<ButtonOptions> items = List.generate(serialized.length, (index) {
@@ -138,7 +140,7 @@ class UsersDropdown extends StatelessWidget implements PreferredSizeWidget {
         label: nameForTitle,
         labelAlt: labelAlt,
         leading: Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: density.all(8, min: 4),
           child: UserAvatar(
             key: ValueKey(avatar ?? 'user-dropdown-avatar-${item.id}'),
             avatar: avatar,

@@ -111,7 +111,7 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
     final widgetEmpty =
         widget.empty ??
         ListTile(
-          contentPadding: EdgeInsets.all(16),
+          contentPadding: density.all(16, min: 8),
           leading: Icon(Icons.info),
           title: Text(locales.get('label--nothing-here-yet')),
         );
@@ -178,13 +178,13 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
 
     /// Provides the shared [JsonExplorerStore] to the explorer subtree.
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: density.all(16, min: 8),
       child: ChangeNotifierProvider.value(
         value: store,
         child: Consumer<JsonExplorerStore>(
           builder: (context, state, child) => Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            spacing: 16,
+            spacing: density.gap(16),
             children: [
               Row(
                 children: [
@@ -268,11 +268,11 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
                   color: theme.colorScheme.surfaceContainer,
                   margin: EdgeInsets.zero,
                   child: Padding(
-                    padding: const EdgeInsets.all(8.0),
+                    padding: density.all(8, min: 4),
                     child: JsonExplorer(
                       nodes: state.displayNodes,
                       itemScrollController: itemScrollController,
-                      itemSpacing: 8,
+                      itemSpacing: density.gap(8),
                       maxRootNodeWidth: 300,
 
                       /// Builds a child-count badge for each root node.
@@ -286,9 +286,11 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
                           borderRadius: BorderRadius.all(Radius.circular(2)),
                         ),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(
+                          padding: density.symmetric(
                             horizontal: 4,
                             vertical: 2,
+                            minHorizontal: 2,
+                            minVertical: 2,
                           ),
                           child: Text(
                             node.isClass
@@ -330,7 +332,12 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
                       /// inspected branch or value.
                       trailingBuilder: (context, node) => node.isFocused
                           ? Container(
-                              margin: const EdgeInsets.only(top: 4, right: 4),
+                              margin: density.only(
+                                top: 4,
+                                right: 4,
+                                minVertical: 4,
+                                minHorizontal: 4,
+                              ),
                               child: IconButton(
                                 visualDensity: VisualDensity.compact,
                                 icon: const Icon(Icons.copy),

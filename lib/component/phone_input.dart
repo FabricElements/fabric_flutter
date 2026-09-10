@@ -421,7 +421,7 @@ class _PhoneInputState extends State<PhoneInput> {
       disabled: widget.disabled || callingCode == null,
       prefix: country != null
           ? Padding(
-              padding: const EdgeInsets.only(right: 8),
+              padding: density.only(right: 8, minHorizontal: 4),
               child: Text('+${country!.callingCode}'),
             )
           : null,
