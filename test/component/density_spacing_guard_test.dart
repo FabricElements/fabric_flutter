@@ -61,7 +61,7 @@ void main() {
       // bypass ordinary UI spacing that should still flow through
       // DensitySpacing.
       final root = Directory.current.path;
-      final sourceRoots = <String>['lib/component', 'lib/view'];
+      final sourceRoots = <String>['lib'];
       final allowed = <_GuardSnippet>[];
 
       final issues = <String>[];
