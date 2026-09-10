@@ -2,38 +2,20 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
-class _AllowedSnippet {
-  const _AllowedSnippet(this.path, this.snippet, this.reason);
+class _GuardSnippet {
+  const _GuardSnippet(this.path, this.snippet, this.reason);
 
   final String path;
   final String snippet;
   final String reason;
 }
 
-class _ExcludedSnippet {
-  const _ExcludedSnippet(this.path, this.snippet, this.reason);
-
-  final String path;
-  final String snippet;
-  final String reason;
-}
-
-bool _isAllowedSnippet({
+bool _matchesGuardSnippet({
   required String relativePath,
   required String line,
-  required List<_AllowedSnippet> allowed,
+  required List<_GuardSnippet> snippets,
 }) {
-  return allowed.any(
-    (entry) => entry.path == relativePath && line.contains(entry.snippet),
-  );
-}
-
-bool _isExcludedSnippet({
-  required String relativePath,
-  required String line,
-  required List<_ExcludedSnippet> excluded,
-}) {
-  return excluded.any(
+  return snippets.any(
     (entry) => entry.path == relativePath && line.contains(entry.snippet),
   );
 }
@@ -60,57 +42,57 @@ void main() {
       // DensitySpacing.
       final root = Directory.current.path;
       final sourceRoots = <String>['lib/component', 'lib/view'];
-      final allowed = <_AllowedSnippet>[];
-      final excluded = <_ExcludedSnippet>[
+      final allowed = <_GuardSnippet>[];
+      final structuralScopeFilters = <_GuardSnippet>[
         // These are not content-spacing exceptions; they are scope filters for
         // known structural or navigation geometry that intentionally stays
         // fixed even when DensitySpacing is available.
-        const _ExcludedSnippet(
+        const _GuardSnippet(
           'lib/component/pagination_nav.dart',
           'const SizedBox(width: 4)',
           'pagination controls use a fixed chrome gap',
         ),
-        const _ExcludedSnippet(
+        const _GuardSnippet(
           'lib/component/managed_drop_zone.dart',
           'kMinInteractiveDimension * 4',
           'drop-zone surface uses a fixed accessibility shell',
         ),
-        const _ExcludedSnippet(
+        const _GuardSnippet(
           'lib/component/managed_drop_zone.dart',
           'const EdgeInsets.all(16)',
           'drop-zone outer margin is structural geometry',
         ),
-        const _ExcludedSnippet(
+        const _GuardSnippet(
           'lib/component/managed_drop_zone.dart',
           'const EdgeInsets.all(4)',
           'drop-zone painter padding is part of the shell',
         ),
-        const _ExcludedSnippet(
+        const _GuardSnippet(
           'lib/component/managed_drop_zone.dart',
           'const EdgeInsets.all(8)',
           'drop-zone label inset is part of the shell',
         ),
-        const _ExcludedSnippet(
+        const _GuardSnippet(
           'lib/component/logs_list.dart',
           'const SizedBox(height: 0)',
           'logs list placeholder keeps a fixed zero-height sentinel',
         ),
-        const _ExcludedSnippet(
+        const _GuardSnippet(
           'lib/component/user_admin.dart',
           'const EdgeInsets.all(0)',
           'role chips intentionally keep zero internal padding',
         ),
-        const _ExcludedSnippet(
+        const _GuardSnippet(
           'lib/component/upload_image_media.dart',
           'EdgeInsets.all(((48 - effectiveIconSize) / 2).clamp(0, 24))',
           'icon-button padding is derived from a fixed control size',
         ),
-        const _ExcludedSnippet(
+        const _GuardSnippet(
           'lib/component/card_button.dart',
           'const EdgeInsets.symmetric(vertical: 8)',
           'pressable card shell keeps a fixed outer touch target',
         ),
-        const _ExcludedSnippet(
+        const _GuardSnippet(
           'lib/view/view_hero.dart',
           'boundaryMargin: const EdgeInsets.all(16)',
           'hero route boundary margin is navigation geometry',
@@ -134,17 +116,17 @@ void main() {
 
             if (!_matchesLiteralSpacingPattern(line)) continue;
 
-            final isExcluded = _isExcludedSnippet(
+            final isExcluded = _matchesGuardSnippet(
               relativePath: relativePath,
               line: line,
-              excluded: excluded,
+              snippets: structuralScopeFilters,
             );
             if (isExcluded) continue;
 
-            final isAllowed = _isAllowedSnippet(
+            final isAllowed = _matchesGuardSnippet(
               relativePath: relativePath,
               line: line,
-              allowed: allowed,
+              snippets: allowed,
             );
             if (isAllowed) continue;
 
@@ -172,18 +154,18 @@ void main() {
       'should keep the exception mechanism available with an empty baseline',
       () {
         // Arrange
-        const allowed = <_AllowedSnippet>[];
-        const allowedEntry = _AllowedSnippet(
+        const allowed = <_GuardSnippet>[];
+        const allowedEntry = _GuardSnippet(
           'lib/component/example.dart',
           'const EdgeInsets.all(12)',
           'example structural geometry',
         );
 
         // Act
-        final matches = _isAllowedSnippet(
+        final matches = _matchesGuardSnippet(
           relativePath: allowedEntry.path,
           line: 'padding: const EdgeInsets.all(12),',
-          allowed: <_AllowedSnippet>[allowedEntry, ...allowed],
+          snippets: <_GuardSnippet>[allowedEntry, ...allowed],
         );
 
         // Assert
