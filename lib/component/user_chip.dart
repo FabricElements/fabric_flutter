@@ -99,7 +99,7 @@ class _UserChipState extends State<UserChip> {
   /// [initState] and [didUpdateWidget].
   @override
   Widget build(BuildContext context) {
-    if (widget.uid == null) return const SizedBox(width: 0, height: 0);
+    if (widget.uid == null) return const SizedBox.shrink();
     final locales = AppLocalizations.of(context);
     final stateUsers = Provider.of<StateUsers>(context, listen: true);
     final user =

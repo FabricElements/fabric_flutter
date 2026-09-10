@@ -38,6 +38,16 @@ bool _isExcludedSnippet({
   );
 }
 
+bool _matchesLiteralSpacingPattern(String line) {
+  final literalSpacingPatterns = <RegExp>[
+    RegExp(r'\bGap\(\s*(?:const\s+)?\d+(?:\.\d+)?'),
+    RegExp(r'\bSizedBox\([^)]*(?:width|height):\s*(?:const\s+)?\d+(?:\.\d+)?'),
+    RegExp(r'\bEdgeInsets\.(?:all|symmetric|only)\([^)]*\d+(?:\.\d+)?'),
+    RegExp(r'\b(?:spacing|runSpacing):\s*(?:const\s+)?\d+(?:\.\d+)?'),
+  ];
+  return literalSpacingPatterns.any((pattern) => pattern.hasMatch(line));
+}
+
 void main() {
   group('Density spacing source guard', () {
     test('should keep literal content spacing on the DensitySpacing path', () {
@@ -55,11 +65,6 @@ void main() {
         // These are not content-spacing exceptions; they are scope filters for
         // known structural or navigation geometry that intentionally stays
         // fixed even when DensitySpacing is available.
-        const _ExcludedSnippet(
-          'lib/component/user_chip.dart',
-          'const SizedBox(width: 0, height: 0)',
-          'zero-sized chip placeholder is structural',
-        ),
         const _ExcludedSnippet(
           'lib/component/pagination_nav.dart',
           'const SizedBox(width: 4)',
@@ -112,15 +117,6 @@ void main() {
         ),
       ];
 
-      final literalSpacingPatterns = <RegExp>[
-        RegExp(r'\bGap\(\s*(?:const\s+)?\d+(?:\.\d+)?'),
-        RegExp(
-          r'\bSizedBox\([^)]*(?:width|height):\s*(?:const\s+)?\d+(?:\.\d+)?',
-        ),
-        RegExp(r'\bEdgeInsets\.(?:all|symmetric|only)\([^)]*\d+(?:\.\d+)?'),
-        RegExp(r'\b(?:spacing|runSpacing):\s*(?:const\s+)?\d+(?:\.\d+)?'),
-      ];
-
       final issues = <String>[];
 
       for (final sourceRoot in sourceRoots) {
@@ -136,10 +132,7 @@ void main() {
             final line = lines[index].trim();
             if (line.startsWith('//') || line.startsWith('*')) continue;
 
-            final matchedPattern = literalSpacingPatterns.any(
-              (pattern) => pattern.hasMatch(line),
-            );
-            if (!matchedPattern) continue;
+            if (!_matchesLiteralSpacingPattern(line)) continue;
 
             final isExcluded = _isExcludedSnippet(
               relativePath: relativePath,
@@ -198,5 +191,19 @@ void main() {
         expect(matches, isTrue);
       },
     );
+
+    test('should accept shrink boxes and detect explicit zero-sized boxes', () {
+      // Arrange
+      const shrinkLine = 'return const SizedBox.shrink();';
+      const zeroLine = 'return const SizedBox(width: 0, height: 0);';
+
+      // Act
+      final shrinkMatches = _matchesLiteralSpacingPattern(shrinkLine);
+      final zeroMatches = _matchesLiteralSpacingPattern(zeroLine);
+
+      // Assert
+      expect(shrinkMatches, isFalse);
+      expect(zeroMatches, isTrue);
+    });
   });
 }
