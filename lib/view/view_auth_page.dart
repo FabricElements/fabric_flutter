@@ -525,7 +525,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
         };
       }
       return Padding(
-        padding: const EdgeInsets.only(top: 16),
+        padding: density.only(top: 16, minVertical: 8),
         child: FilledButton.icon(
           onPressed: () => action(),
           label: Text(text.toUpperCase()),
@@ -593,9 +593,11 @@ class ViewAuthPageState extends State<ViewAuthPage> {
                     children: <Widget>[
                       widget.logo != null
                           ? ContentContainer(
-                              padding: const EdgeInsets.symmetric(
+                              padding: density.symmetric(
                                 vertical: 32,
                                 horizontal: 16,
+                                minHorizontal: 8,
+                                minVertical: 16,
                               ),
                               child: Align(
                                 alignment: Alignment.centerLeft,
@@ -622,7 +624,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
                         color: theme.colorScheme.surface,
                         child: SafeArea(
                           child: ContentContainer(
-                            padding: const EdgeInsets.all(16),
+                            padding: density.all(16, min: 8),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
@@ -639,7 +641,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
                                     ),
                                   ),
                                 ),
-                                Container(height: 16),
+                                SizedBox(height: density.gap(16)),
                                 SizedBox(
                                   width: double.infinity,
                                   child: Text(
@@ -650,10 +652,13 @@ class ViewAuthPageState extends State<ViewAuthPage> {
                                     ),
                                   ),
                                 ),
-                                Container(height: 16),
+                                SizedBox(height: density.gap(16)),
                                 ...homeButtonOptions,
                                 Padding(
-                                  padding: const EdgeInsets.only(top: 16),
+                                  padding: density.only(
+                                    top: 16,
+                                    minVertical: 8,
+                                  ),
                                   child: Text(
                                     stateGlobal.appVersion ?? '',
                                     style: textTheme.bodySmall?.copyWith(
@@ -682,7 +687,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
         duration: const Duration(milliseconds: 300),
         child: Center(
           child: Container(
-            padding: const EdgeInsets.all(16),
+            padding: density.all(16, min: 8),
             constraints: const BoxConstraints(maxWidth: 600),
             child: SafeArea(
               child: Flex(
