@@ -69,7 +69,7 @@ class LogsList extends StatelessWidget {
     final textTheme = theme.textTheme;
     final locales = AppLocalizations.of(context);
     final density = DensitySpacing.of(context);
-    Widget container = const SizedBox(height: 0);
+    Widget container = const SizedBox.shrink();
     if (logs == null || logs!.isEmpty) return container;
 
     final TextStyle? textThemeBase = textTheme.bodyLarge?.copyWith(
