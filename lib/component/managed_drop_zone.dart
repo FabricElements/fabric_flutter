@@ -202,7 +202,7 @@ class _ManagedDropZoneState extends State<ManagedDropZone> {
                     child: Container(
                       height: kMinInteractiveDimension * 4,
                       width: double.maxFinite,
-                      margin: density.all(16, min: 8),
+                      margin: const EdgeInsets.all(16),
                       child: CustomPaint(
                         foregroundPainter: _DashedBorderPainter(
                           color: _dropState.dragging
@@ -214,7 +214,7 @@ class _ManagedDropZoneState extends State<ManagedDropZone> {
                           gapLength: 5,
                         ),
                         child: Padding(
-                          padding: density.all(4, min: 2),
+                          padding: const EdgeInsets.all(4),
                           child: DecoratedBox(
                             decoration: BoxDecoration(
                               borderRadius: const BorderRadius.all(
@@ -231,7 +231,7 @@ class _ManagedDropZoneState extends State<ManagedDropZone> {
                               ),
                               child: Center(
                                 child: Padding(
-                                  padding: density.all(8, min: 4),
+                                  padding: const EdgeInsets.all(8),
                                   child: Text(
                                     locales.get('label--drop-files-here'),
                                     textAlign: TextAlign.center,

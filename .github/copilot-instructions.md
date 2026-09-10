@@ -326,6 +326,19 @@ These are the load-bearing guardrails. They are cumulative — none may be dropp
 
 ---
 
+## Density-aware spacing
+
+- Use `DensitySpacing` for ordinary, user-configurable UI spacing: `Gap`, spacer-only `SizedBox` dimensions, `Padding`/`EdgeInsets`/margins, and `Flex`/`Wrap` spacing or run spacing. Import it directly from `package:fabric_flutter/helper/density_spacing.dart`.
+- Prefer `horizontal`, `vertical`, `gap`, `all`, `symmetric`, and `only` with an explicit accessible minimum. Match the closest established local pattern and preserve the standard-density appearance.
+- Do not apply density scaling to intrinsic or structural geometry: icon/avatar/image sizes, minimum interactive/tap targets, fixed form/control dimensions, chart/canvas/drop-zone geometry, border geometry, or position/constraint values that define component structure.
+- Do not change navigation or route-shell geometry without dedicated responsive coverage: headers, app bars, drawers, navigation rails, bottom navigation, tabs, overflow actions, and route layout containers are excluded by default.
+- When adding or changing first-party widget spacing, keep the DensitySpacing source-scan guard green. Replace a newly introduced literal content-spacing value with `DensitySpacing`, or add a narrowly scoped, documented exception only when the value is intentionally fixed for accessibility, structural, or navigation reasons.
+- For reusable flex-based components, expose a spacing parameter only when it maps directly to the underlying layout widget and its default preserves current behavior. Prefer that parameter over manually inserting repeated spacer children at call sites.
+
+Do not add any private consumer references.
+
+---
+
 ## 14. Pull Request & Contribution Workflow
 
 - Follow `CONTRIBUTING.md`: feature branches, an issue per change, at least one test per bug fix or feature, squashed commits where practical.
