@@ -394,8 +394,8 @@ class _GoogleChartContainerState extends State<GoogleChartContainer> {
                 child: Stack(
                   children: [
                     Container(
-                      margin: const EdgeInsets.only(top: 8),
-                      padding: const EdgeInsets.only(top: 8),
+                      margin: density.only(top: 8, minVertical: 4),
+                      padding: density.only(top: 8, minVertical: 4),
                       decoration: BoxDecoration(
                         border: Border.all(
                           color:
@@ -456,9 +456,11 @@ class _GoogleChartContainerState extends State<GoogleChartContainer> {
                       left: 12,
                       child: Container(
                         color: theme.colorScheme.surface,
-                        padding: const EdgeInsets.symmetric(
+                        padding: density.symmetric(
                           horizontal: 4,
                           vertical: 2,
+                          minHorizontal: 4,
+                          minVertical: 2,
                         ),
                         child: Text(
                           '${locales.get('label--range')} (${chartRangeLabel(_currentRangeValues.start.floor())} - ${chartRangeLabel(_currentRangeValues.end.ceil())})',
@@ -600,10 +602,10 @@ class _GoogleChartContainerState extends State<GoogleChartContainer> {
     }
 
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+      margin: density.all(16, min: 8),
       clipBehavior: Clip.antiAlias,
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: density.all(16, min: 8),
         child: Flex(
           direction: Axis.vertical,
           mainAxisSize: MainAxisSize.min,

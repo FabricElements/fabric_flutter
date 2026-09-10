@@ -494,9 +494,11 @@ class ViewAuthPageState extends State<ViewAuthPage> {
                   selectable: true,
                   // shrinkWrap: true,
                   data: mdFromFile,
-                  padding: const EdgeInsets.symmetric(
+                  padding: density.symmetric(
                     vertical: 32,
                     horizontal: 16,
+                    minHorizontal: 8,
+                    minVertical: 8,
                   ),
                 ),
               ),

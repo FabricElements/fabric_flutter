@@ -8,6 +8,7 @@ import 'package:pointer_interceptor/pointer_interceptor.dart';
 
 import '../helper/agent/agent_element_binding.dart';
 import '../helper/app_localizations_delegate.dart';
+import '../helper/density_spacing.dart';
 import '../helper/enum_data.dart';
 import '../helper/gsm.dart';
 import '../helper/input_validation.dart';
@@ -236,8 +237,8 @@ class InputData extends StatefulWidget {
     this.hintText,
     this.isDense = false,
     this.maxLength,
-    this.padding = const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-    this.margin = EdgeInsets.zero,
+    this.padding,
+    this.margin,
     this.utcOffset,
     this.validator,
     this.backgroundColor,
@@ -295,10 +296,10 @@ class InputData extends StatefulWidget {
   final bool isDense;
 
   /// Overrides the internal content padding applied by the generated [InputDecoration].
-  final EdgeInsets padding;
+  final EdgeInsetsGeometry? padding;
 
   /// Wraps the field with outer spacing so forms can align adjacent inputs cleanly.
-  final EdgeInsets margin;
+  final EdgeInsetsGeometry? margin;
 
   /// Adjusts serialized date values when the caller stores a non-local UTC offset.
   final int? utcOffset;
@@ -988,6 +989,7 @@ getValue -------------------------------------
     final enumData = EnumData(locales: locales);
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final density = DensitySpacing.of(context);
     final width = MediaQuery.sizeOf(context).width;
     final height = MediaQuery.sizeOf(context).height;
     bool isDense = widget.isDense || theme.inputDecorationTheme.isDense;
@@ -1214,8 +1216,19 @@ getValue -------------------------------------
       labelStyle: theme.textTheme.bodyMedium,
       floatingLabelBehavior: widget.floatingLabelBehavior,
       contentPadding: isDense
-          ? const EdgeInsets.symmetric(horizontal: 4, vertical: 4)
-          : widget.padding,
+          ? density.symmetric(
+              horizontal: 4,
+              vertical: 4,
+              minHorizontal: 4,
+              minVertical: 4,
+            )
+          : widget.padding ??
+                density.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                  minHorizontal: 4,
+                  minVertical: 4,
+                ),
       border: isDisabled
           ? theme.inputDecorationTheme.disabledBorder
           : theme.inputDecorationTheme.border,
@@ -1805,7 +1818,10 @@ getValue -------------------------------------
               hoverColor: textTheme.bodyLarge?.color,
             ),
           ),
-          child: Container(margin: widget.margin, child: endWidget),
+          child: Container(
+            margin: widget.margin ?? EdgeInsets.zero,
+            child: endWidget,
+          ),
         ),
       ),
     );

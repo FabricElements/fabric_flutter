@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../helper/app_localizations_delegate.dart';
+import '../helper/density_spacing.dart';
 import '../helper/log_color.dart';
 import 'content_container.dart';
 
@@ -121,6 +122,7 @@ class _StepperExtendedState extends State<StepperExtended> {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final locales = AppLocalizations.of(context);
+    final density = DensitySpacing.of(context);
     List<Widget> children = List.generate(widget.steps.length, (index) {
       Step step = widget.steps[index];
       TextStyle? leadingStyle = textTheme.titleMedium?.copyWith(
@@ -177,12 +179,19 @@ class _StepperExtendedState extends State<StepperExtended> {
       );
       return ContentContainer(
         key: ValueKey('stepper_extended_step_$index'),
-        margin: const EdgeInsets.only(top: 16, bottom: 32, left: 0, right: 16),
+        margin: density.only(
+          top: 16,
+          bottom: 32,
+          left: 0,
+          right: 16,
+          minVertical: 8,
+          minHorizontal: 8,
+        ),
         size: widget.size,
         child: Flex(
           direction: Axis.vertical,
           crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 16,
+          spacing: density.gap(16),
           children: [
             // MergeSemantics combines the leading state, title, and subtitle
             // into a single announcement per step; selected:true marks the
@@ -201,7 +210,7 @@ class _StepperExtendedState extends State<StepperExtended> {
                   titleTextStyle: widget.titleTextStyle,
                   subtitle: step.subtitle != null
                       ? Padding(
-                          padding: const EdgeInsets.only(top: 8),
+                          padding: density.only(top: 8, minVertical: 4),
                           child: step.subtitle,
                         )
                       : null,
@@ -212,8 +221,8 @@ class _StepperExtendedState extends State<StepperExtended> {
               ),
             ),
             Container(
-              padding: const EdgeInsets.only(left: 32),
-              margin: const EdgeInsets.only(left: 32),
+              padding: density.only(left: 32, minHorizontal: 8),
+              margin: density.only(left: 32, minHorizontal: 8),
               decoration: BoxDecoration(
                 border: Border(
                   left: BorderSide(

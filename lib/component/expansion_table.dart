@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../helper/app_localizations_delegate.dart';
+import '../helper/density_spacing.dart';
 import '../helper/format_data.dart';
 import '../helper/url_safety.dart';
 import '../serialized/table_data.dart';
@@ -181,6 +182,7 @@ class _ExpansionTableState extends State<ExpansionTable> {
     TableData data = widget.data!;
     final theme = Theme.of(context);
     final locales = AppLocalizations.of(context);
+    final density = DensitySpacing.of(context);
     Set<WidgetState> states = <WidgetState>{};
     final BorderSide borderSide = Divider.createBorderSide(
       context,
@@ -416,7 +418,7 @@ class _ExpansionTableState extends State<ExpansionTable> {
             row.child!.level = (data.level) + 1;
             row.child!.header = data.header;
             content.add(ExpansionTable(data: row.child!));
-            content.add(const SizedBox(height: 32));
+            content.add(SizedBox(height: density.gap(32)));
           }
           return Container(
             decoration: BoxDecoration(border: border),

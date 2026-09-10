@@ -332,7 +332,12 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
                       /// inspected branch or value.
                       trailingBuilder: (context, node) => node.isFocused
                           ? Container(
-                              margin: const EdgeInsets.only(top: 4, right: 4),
+                              margin: density.only(
+                                top: 4,
+                                right: 4,
+                                minVertical: 4,
+                                minHorizontal: 4,
+                              ),
                               child: IconButton(
                                 visualDensity: VisualDensity.compact,
                                 icon: const Icon(Icons.copy),
