@@ -107,6 +107,13 @@ dart pub publish
 This requires pub.dev credentials. Publishing is done by a maintainer with the appropriate pub.dev
 publisher access.
 
+> **Agent guardrail:** an AI agent must never run `dart pub publish` / `flutter pub publish`, create
+> or push a version tag, or trigger any release workflow on its own initiative — CI
+> (`.github/workflows/ci.yml`) never publishes automatically, and there is no automated release job
+> to defer to. Only proceed if the human operator has explicitly authorized that exact publish/tag
+> action in the current request; otherwise stop and hand the release step back to a maintainer. See
+> `.github/copilot-instructions.md` §0.2 for the repo-wide version of this rule.
+
 ---
 
 ## 4. Breaking-change discipline

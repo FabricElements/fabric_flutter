@@ -40,7 +40,8 @@ Then:
 
 ## Default model routing
 **Orchestration (default: PAID model)**
-- Start with the cheapest suitable paid model (prioritize: GPT-4 mini, Claude Haiku, other cost-optimized options)
+- Start with the cheapest suitable paid model tier available (any cost-optimized option that meets the task's
+  reasoning and tool-calling requirements — do not default to the most powerful tier)
 - Orchestrator breaks work into task groups, estimates complexity, and routes each group
 - Orchestrator specifies acceptance criteria and constraints for each task
 
@@ -138,9 +139,9 @@ The parent session must track and report per child session:
     - Child start timestamp
     - Child completion timestamp
     - Total wall-clock duration
-3. Human-effort estimate
-    - Estimated manual implementation time (minutes/hours)
-    - Brief basis for estimate (scope, files touched, complexity)
+3. Relative effort tier
+    - Scope tier for the task (small / medium / large)
+    - Brief basis for the tier (files touched, complexity, coupling)
 4. Model cost accounting
     - Model(s) used per task (local and/or paid)
     - Estimated token usage when available
@@ -158,14 +159,13 @@ Provide a per-task record in a structured table with columns:
 - Start Time
 - End Time
 - Duration
-- Est. Human Time
+- Scope Tier
 - Actual/Estimated Cost (USD)
 - Notes
 
 Also provide rolling totals:
 - Total child tasks completed
 - Total elapsed runtime
-- Total estimated human time saved
 - Total cost (USD), split by local vs paid
 
 ## Mandatory prompt-quality retrospective
