@@ -286,6 +286,13 @@ Keep these synchronized when introducing a domain feature or entity:
 
 ## 12. Guardrails & Implementation Rules
 
+### Multi-Repo / Multi-Session Guardrail (Critical)
+
+- Every commit, push, and pull request must target the exact repository the current task explicitly names — never a different repository, even one visited earlier in the same orchestrated workflow. Before any git commit, push, or pull-request creation, confirm the working directory's remote matches the task's named repository; stop instead of proceeding if they do not match.
+- When orchestrating or spawning child sessions across repositories, state explicitly which repository each session is scoped to commit, push, or open a pull request in. A child session must never commit, push, or open a pull request in a repository it was not explicitly told to act on for that task.
+- A task naming one specific repository authorizes action in that repository only — not "for consistency," not because a sibling checkout had leftover changes, and not because the same fix "probably applies there too."
+- If it is unclear which repository an instruction applies to, ask before acting rather than guessing from context or from the repository currently open.
+
 These are the load-bearing guardrails. They are cumulative — none may be dropped — and each is refined by the section it references.
 
 - **fabric_flutter first (mandatory):** when creating or editing components and helpers, always use the `fabric_flutter` package as the primary base. Search `lib/component/`, `lib/helper/`, `lib/state/`, and `lib/serialized/` for an existing widget, helper, state class, or model that solves (or can be **extended** to solve) the need before writing anything new. Only if the solution genuinely cannot be built with `fabric_flutter` may you fall back to other options — and then always prefer the approach officially recommended by Flutter (Flutter SDK / Material widgets, first-party `flutter.dev`/`dart.dev` packages, or Flutter Favorite packages) over third-party alternatives.
@@ -312,6 +319,7 @@ These are the load-bearing guardrails. They are cumulative — none may be dropp
 - ✅ Regenerate `*.g.dart` and commit it with the model.
 - ✅ Surface errors through `state.error` / `onError`; log with `debugPrint`/`LogColor` under `kDebugMode`.
 - ✅ Wire `semanticsLabel` / `automationKey` / `semanticHint` on interactive widgets.
+- ✅ Verify the git remote/repository matches the task's named target before every commit, push, or pull-request creation.
 
 **DON'T**
 - ❌ Call Firebase SDKs, run network requests, or embed business logic inside a widget `build`.
@@ -323,6 +331,7 @@ These are the load-bearing guardrails. They are cumulative — none may be dropp
 - ❌ Log secrets/tokens, commit credentials, or rely on client-side checks for real authorization.
 - ❌ Weaken or delete existing tests to make a change pass.
 - ❌ Open real network/Firebase connections in tests.
+- ❌ Commit, push, or open a pull request in any repository other than the one explicitly named for that action.
 
 ---
 
