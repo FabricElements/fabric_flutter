@@ -1,3 +1,19 @@
+## [3.1.0] - 2026-09-11
+
+### Added
+
+* **`StateShared.filtersEncoded` — the active filter set as a compact, declarative payload.** Mirrors the existing `sql` getter in shape and nullability, so a caller assembling the query-parameter map can use either. Unlike `sql`, the payload is a closed `{id, type, operator, value, index}` grammar: it carries no SQL text and no table name, so a server decoding it can only reconstruct a filter list, never an executable fragment. Returns `null` when no filter is active or when encoding fails, which lets callers omit the parameter instead of sending an empty payload. `queryParameters` now sources its existing `filters` entry from this getter; the emitted value is unchanged.
+
+### Changed
+
+* **`FilterHelper.encode` now requires both an operator and a value.** Previously a row was encoded whenever it carried an operator, regardless of its value, while `FilterHelper.toJSON` kept rows based on their value alone. The two rules disagreed, so a row could be encoded and then dropped by a consumer applying the other rule — a lossy round-trip. `encode` now emits a row only when it has a non-null operator that is not `FilterOperator.any` and a value that is neither `null` nor an empty string. A row failing either half describes no constraint, and is the normal intermediate state of a filter the user is still configuring. Falsy-but-meaningful values such as `0` and `false` are retained. The encoded bytes for fully configured filters are **unchanged**, so existing decoders need no update, and narrowing what is emitted is backward compatible for anything already parsing the wider set. One consequence is local rather than on the wire: a partially configured filter row no longer survives an `encode` → query parameter → `decode` round-trip, so it is not restored when filter state is rebuilt from a URL. `StateShared.applyFilters` already stripped `FilterOperator.any` before storing filters, so that half of the rule was already in effect on the main path. The rule is stated once, in a single predicate that is deliberately independent of `FilterHelper.filter`, so a future change to on-screen filtering cannot silently alter the encoded payload.
+
+* **`FilterHelper.decode` no longer throws on a malformed payload.** The encoded filters value travels as a query parameter, so it is attacker-controlled: it can be edited, truncated, or replaced by whoever issues the request. Previously a payload that was not valid base64, not valid JSON, or whose JSON root was not a list threw a `FormatException` or a cast error out of the public API; a single malformed entry discarded the entire payload. `decode` now returns an empty list for an unusable payload and skips individual entries that fail to deserialize, keeping the ones that decoded correctly. Input length and entry count are bounded so an abusive payload cannot force unbounded parsing work. This **widens** what `decode` accepts, so it is backward compatible — every payload that decoded before decodes identically now.
+
+### Notes
+
+* The existing SQL generation path (`FilterHelper.toSQL`, `toSQLEncoded`, `valueFromType`, `SQLQueryType`, and `StateShared.sql`) is **unchanged**, and `queryParameters` still emits its `sql` entry. This release adds the declarative payload **alongside** the existing behavior rather than replacing it, so no consumer needs to migrate. Consumers that want to stop sending client-generated SQL should treat that as a separate, deliberate migration.
+
 ## [3.0.1] - 2026-09-10
 
 ### Added

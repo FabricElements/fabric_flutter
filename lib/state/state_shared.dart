@@ -434,11 +434,10 @@ abstract class StateShared extends ChangeNotifier {
     Map<String, List<String>> queryParametersBase = _queryParameters;
     if (filters.isNotEmpty) {
       // Merge filter parameter
-      final filterParameter = FilterHelper.encode(filters);
-      if (filterParameter != null) {
+      if (filtersEncoded != null) {
         queryParametersBase = {
           ...queryParametersBase,
-          'filters': [filterParameter],
+          'filters': [filtersEncoded!],
         };
       }
       if (sql != null) {
@@ -678,6 +677,25 @@ abstract class StateShared extends ChangeNotifier {
       );
     } catch (e) {
       debugPrint(LogColor.error('sql decode error: $e'));
+      return null;
+    }
+  }
+
+  /// Serializes [filters] into the encoded, declarative filter payload.
+  ///
+  /// Mirrors [sql] in shape and nullability so callers assembling the
+  /// query-parameter map can swap one for the other. Unlike [sql], the payload
+  /// is a closed `{id, type, operator, value, index}` grammar that carries no
+  /// SQL text and no table name, so a server decoding it can only ever
+  /// reconstruct a filter list — never an executable fragment.
+  ///
+  /// Returns `null` when no active filter remains or when encoding fails, which
+  /// lets callers omit the parameter instead of sending an empty payload.
+  String? get filtersEncoded {
+    try {
+      return FilterHelper.encode(filters);
+    } catch (e) {
+      debugPrint(LogColor.error('filtersEncoded error: $e'));
       return null;
     }
   }

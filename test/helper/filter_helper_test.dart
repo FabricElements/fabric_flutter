@@ -1,8 +1,303 @@
+import 'dart:convert';
+
 import 'package:fabric_flutter/component/input_data.dart';
 import 'package:fabric_flutter/helper/filter_helper.dart';
+import 'package:fabric_flutter/serialized/filter_data.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+/// Builds the canonical filter set backing the cross-repo golden vector.
+///
+/// Every entry carries both a non-null operator and a non-null value, so the
+/// encoded bytes are stable across the inclusion-rule change and can be handed
+/// to the TypeScript decoder as a conformance fixture.
+List<FilterData> canonicalFilters() => [
+  FilterData(
+    id: 'status',
+    type: InputDataType.string,
+    operator: FilterOperator.equal,
+    value: 'active',
+    index: 0,
+  ),
+  FilterData(
+    id: 'amount',
+    type: InputDataType.int,
+    operator: FilterOperator.greaterThan,
+    value: 100,
+    index: 1,
+  ),
+  FilterData(
+    id: 'created',
+    type: InputDataType.date,
+    operator: FilterOperator.between,
+    value: [DateTime.utc(2024, 1, 1), DateTime.utc(2024, 3, 31)],
+    index: 2,
+  ),
+  FilterData(
+    id: 'sort',
+    type: InputDataType.string,
+    operator: FilterOperator.sort,
+    value: ['created', 'desc'],
+    index: 3,
+  ),
+];
+
+/// Golden payload produced by [FilterHelper.encode] for [canonicalFilters].
+///
+/// Measured from a live encode rather than transcribed from the source, so it
+/// is evidence of the wire format instead of a restatement of the intent.
+const String canonicalEncoded =
+    'W3siaWQiOiJzdGF0dXMiLCJ0eXBlIjoic3RyaW5nIiwib3BlcmF0b3IiOiJlcXVhbCIsInZh'
+    'bHVlIjoiYWN0aXZlIiwiaW5kZXgiOjB9LHsiaWQiOiJhbW91bnQiLCJ0eXBlIjoiaW50Iiwi'
+    'b3BlcmF0b3IiOiJncmVhdGVyVGhhbiIsInZhbHVlIjoxMDAsImluZGV4IjoxfSx7ImlkIjoi'
+    'Y3JlYXRlZCIsInR5cGUiOiJkYXRlIiwib3BlcmF0b3IiOiJiZXR3ZWVuIiwidmFsdWUiOlsi'
+    'MjAyNC0wMS0wMVQwMDowMDowMC4wMDBaIiwiMjAyNC0wMy0zMVQwMDowMDowMC4wMDBaIl0s'
+    'ImluZGV4IjoyfSx7ImlkIjoic29ydCIsInR5cGUiOiJzdHJpbmciLCJvcGVyYXRvciI6InNv'
+    'cnQiLCJ2YWx1ZSI6WyJjcmVhdGVkIiwiZGVzYyJdLCJpbmRleCI6M31d';
+
 void main() {
+  group('FilterHelper.encode', () {
+    test('should produce the byte-exact golden payload', () {
+      // Arrange
+      final filters = canonicalFilters();
+
+      // Act
+      final encoded = FilterHelper.encode(filters);
+
+      // Assert — pins the cross-repo wire format. A change here is a breaking
+      // change for every decoder, not a refactor.
+      expect(encoded, canonicalEncoded);
+    });
+
+    test('should emit exactly the five serialized keys and nothing else', () {
+      // Arrange — the security claim is structural: the payload has no slot a
+      // table name or SQL fragment could occupy.
+      final filters = canonicalFilters();
+
+      // Act
+      final encoded = FilterHelper.encode(filters)!;
+      final decoded =
+          json.decode(utf8.fuse(base64).decode(encoded)) as List<dynamic>;
+
+      // Assert
+      for (final entry in decoded) {
+        expect((entry as Map<String, dynamic>).keys.toSet(), {
+          'id',
+          'type',
+          'operator',
+          'value',
+          'index',
+        });
+      }
+    });
+
+    test('should carry no SQL keyword or backtick-quoted identifier', () {
+      // Arrange
+      final filters = canonicalFilters();
+
+      // Act
+      final plain = utf8.fuse(base64).decode(FilterHelper.encode(filters)!);
+
+      // Assert — a denylist is the wrong control for input, but it is a valid
+      // assertion about output we fully generate.
+      expect(plain, isNot(contains('`')));
+      for (final token in ['select ', ' from ', ' where ', '--', ';']) {
+        expect(plain.toLowerCase(), isNot(contains(token)));
+      }
+    });
+
+    test('should return null for an empty filter list', () {
+      // Arrange, Act & Assert
+      expect(FilterHelper.encode([]), isNull);
+    });
+
+    test('should return null when no filter carries an operator', () {
+      // Arrange — every entry is an inactive shell.
+      final filters = [
+        FilterData(id: 'a', operator: null, value: 'x'),
+        FilterData(id: 'b', operator: null, value: 'y'),
+      ];
+
+      // Act & Assert
+      expect(FilterHelper.encode(filters), isNull);
+    });
+
+    test('should drop entries that have no operator', () {
+      // Arrange — positive control for the two null-returning tests above:
+      // proves the list is reachable and that exclusion is per-entry, not a
+      // blanket failure.
+      final filters = [
+        FilterData(id: 'kept', operator: FilterOperator.equal, value: 'yes'),
+        FilterData(id: 'noOperator', operator: null, value: 'orphan'),
+      ];
+
+      // Act
+      final plain = utf8.fuse(base64).decode(FilterHelper.encode(filters)!);
+
+      // Assert
+      expect(plain, contains('"id":"kept"'));
+      expect(plain, isNot(contains('noOperator')));
+    });
+
+    test('should drop entries that have an operator but no value', () {
+      // Arrange — the previously encoded shape: an operator alone was enough to
+      // be included, which put a constraint-free row on the wire.
+      final filters = [
+        FilterData(id: 'kept', operator: FilterOperator.equal, value: 'yes'),
+        FilterData(id: 'noValue', operator: FilterOperator.equal, value: null),
+      ];
+
+      // Act
+      final plain = utf8.fuse(base64).decode(FilterHelper.encode(filters)!);
+
+      // Assert
+      expect(plain, contains('"id":"kept"'));
+      expect(plain, isNot(contains('noValue')));
+    });
+
+    test('should drop entries whose value is an empty string', () {
+      // Arrange — a field and operator chosen before the user typed anything.
+      final filters = [
+        FilterData(id: 'kept', operator: FilterOperator.equal, value: 'yes'),
+        FilterData(id: 'emptyValue', operator: FilterOperator.equal, value: ''),
+      ];
+
+      // Act
+      final plain = utf8.fuse(base64).decode(FilterHelper.encode(filters)!);
+
+      // Assert
+      expect(plain, contains('"id":"kept"'));
+      expect(plain, isNot(contains('emptyValue')));
+    });
+
+    test('should drop placeholder any-operator entries', () {
+      // Arrange — `any` matches everything, so it constrains nothing.
+      final filters = [
+        FilterData(id: 'kept', operator: FilterOperator.equal, value: 'yes'),
+        FilterData(id: 'anyOp', operator: FilterOperator.any, value: 'ignored'),
+      ];
+
+      // Act
+      final plain = utf8.fuse(base64).decode(FilterHelper.encode(filters)!);
+
+      // Assert
+      expect(plain, contains('"id":"kept"'));
+      expect(plain, isNot(contains('anyOp')));
+    });
+
+    test('should require both an operator and a value, not either alone', () {
+      // Arrange — the conjunction stated as one case: each rejected row fails
+      // exactly one half of the rule, so neither half can be dropped silently.
+      final filters = [
+        FilterData(id: 'both', operator: FilterOperator.equal, value: 'yes'),
+        FilterData(id: 'valueOnly', operator: null, value: 'orphan'),
+        FilterData(
+          id: 'operatorOnly',
+          operator: FilterOperator.equal,
+          value: null,
+        ),
+      ];
+
+      // Act
+      final restored = FilterHelper.decode(FilterHelper.encode(filters));
+
+      // Assert
+      expect(restored.map((e) => e.id).toList(), ['both']);
+    });
+
+    test('should keep falsy but meaningful values such as zero and false', () {
+      // Arrange — guards against a truthiness-style check replacing the explicit
+      // null/empty test. Zero and false are legitimate constraints.
+      final filters = [
+        FilterData(id: 'zero', operator: FilterOperator.equal, value: 0),
+        FilterData(id: 'flag', operator: FilterOperator.equal, value: false),
+      ];
+
+      // Act
+      final restored = FilterHelper.decode(FilterHelper.encode(filters));
+
+      // Assert
+      expect(restored.map((e) => e.id).toList(), ['zero', 'flag']);
+    });
+
+    test('should round-trip through decode preserving ids and operators', () {
+      // Arrange
+      final filters = canonicalFilters();
+
+      // Act
+      final restored = FilterHelper.decode(FilterHelper.encode(filters));
+
+      // Assert
+      expect(restored.map((e) => e.id).toList(), [
+        'status',
+        'amount',
+        'created',
+        'sort',
+      ]);
+      expect(restored.map((e) => e.operator).toList(), [
+        FilterOperator.equal,
+        FilterOperator.greaterThan,
+        FilterOperator.between,
+        FilterOperator.sort,
+      ]);
+    });
+  });
+
+  group('FilterHelper.decode', () {
+    test('should return an empty list for a null payload', () {
+      // Arrange, Act & Assert
+      expect(FilterHelper.decode(null), isEmpty);
+    });
+
+    test('should return an empty list for a non-base64 payload', () {
+      // Arrange, Act & Assert — must not throw out of a published API.
+      expect(FilterHelper.decode('not base64 at all !!!'), isEmpty);
+    });
+
+    test('should return an empty list for base64 that is not JSON', () {
+      // Arrange
+      final payload = utf8.fuse(base64).encode('this is not json');
+
+      // Act & Assert
+      expect(FilterHelper.decode(payload), isEmpty);
+    });
+
+    test('should return an empty list when the JSON root is not a list', () {
+      // Arrange — a JSON object parses cleanly but is the wrong shape.
+      final payload = utf8.fuse(base64).encode('{"id":"status"}');
+
+      // Act & Assert
+      expect(FilterHelper.decode(payload), isEmpty);
+    });
+
+    test('should skip malformed entries instead of discarding the payload', () {
+      // Arrange — one good entry beside a primitive and a bad-shaped map.
+      final payload = utf8
+          .fuse(base64)
+          .encode(
+            '[{"id":"good","type":"string","operator":"equal",'
+            '"value":"v","index":0},"junk",42]',
+          );
+
+      // Act
+      final restored = FilterHelper.decode(payload);
+
+      // Assert
+      expect(restored, hasLength(1));
+      expect(restored.first.id, 'good');
+    });
+
+    test('should decode a well-formed payload', () {
+      // Arrange — positive control: every negative test above would also pass
+      // if decode returned an empty list unconditionally.
+      // Act
+      final restored = FilterHelper.decode(canonicalEncoded);
+
+      // Assert
+      expect(restored, hasLength(4));
+      expect(restored.first.id, 'status');
+    });
+  });
+
   group('FilterHelper.valueFromType', () {
     test('should return the value unchanged when it is null', () {
       // Arrange, Act & Assert
