@@ -723,18 +723,30 @@ void main() {
         return state;
       }
 
-      test('should default to true', () {
+      test('should default to false', () {
         // Arrange & Act
         final state = _TestState();
 
-        // Assert — existing callers keep the current request shape.
-        expect(state.includeSql, isTrue);
+        // Assert
+        expect(state.includeSql, isFalse);
       });
 
-      test('should emit sql decoding to the frozen statement by default', () {
-        // Arrange — positive control. An absence test alone would still pass if
-        // the parameter had quietly stopped carrying the right statement.
+      test('should omit sql by default while preserving filters', () {
+        // Arrange
         final state = stateWithFilter();
+
+        // Act
+        final parameters = state.queryParameters;
+
+        // Assert
+        expect(parameters.containsKey('filters'), isTrue);
+        expect(parameters.containsKey('sql'), isFalse);
+      });
+
+      test('should emit sql when explicitly enabled', () {
+        // Arrange
+        final state = stateWithFilter();
+        state.includeSql = true;
 
         // Act
         final parameters = state.queryParameters;
@@ -745,20 +757,6 @@ void main() {
           utf8.fuse(base64).decode(parameters['sql']!.single),
           canonicalSql,
         );
-      });
-
-      test('should omit the sql parameter when false', () {
-        // Arrange
-        final state = stateWithFilter();
-        state.includeSql = false;
-
-        // Act
-        final parameters = state.queryParameters;
-
-        // Assert — `filters` is the positive control: the map is populated, so
-        // the missing `sql` key is a real omission, not an empty map.
-        expect(parameters.containsKey('filters'), isTrue);
-        expect(parameters.containsKey('sql'), isFalse);
       });
 
       test('should leave the sql getter readable when false', () {
@@ -809,6 +807,7 @@ void main() {
         // Arrange
         final state = _TestState();
         state.passParameters = true;
+        state.includeSql = true;
         state.filters = [
           FilterData(
             id: 'status',

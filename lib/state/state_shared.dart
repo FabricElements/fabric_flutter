@@ -666,16 +666,16 @@ abstract class StateShared extends ChangeNotifier {
 
   /// Controls whether [queryParameters] carries the encoded `sql` parameter.
   ///
-  /// Defaults to `true`, which leaves the outgoing request shape byte-for-byte
-  /// unchanged for every caller that has not opted out.
+  /// Defaults to `false`, so outgoing requests do not include client-generated
+  /// SQL unless a caller explicitly opts in.
   ///
-  /// Set this to `false` when the receiving service rejects a `sql` parameter.
+  /// Set this to `true` when the receiving service accepts client-generated SQL.
   /// A service that builds its own statement from [filtersEncoded] has no use
   /// for a client-supplied fragment and may fail the request closed rather than
   /// ignore it, so sending one breaks the call outright. Flipping this changes
   /// only what leaves this state: [sql] keeps returning the same value for
   /// callers that read it directly.
-  bool includeSql = true;
+  bool includeSql = false;
 
   /// Serializes [filters] into an encoded SQL fragment.
   ///

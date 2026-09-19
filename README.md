@@ -112,7 +112,7 @@ test/                   # Mirrors lib/ structure, files suffixed _test.dart
 | Layer | Directory | Responsibility |
 |-------|-----------|----------------|
 | **UI / Presentation** | `component/`, `view/` | Self-contained, reusable widgets and full-page composed views. Accept callbacks (`VoidCallback`, `ValueChanged<T>`); never call Firebase SDKs directly. |
-| **State containers** | `state/` | `ChangeNotifier`-based business logic. `StateShared` provides pagination, filters, debounce, and streams; `StateDocument`/`StateCollection`/`StateAPI` back data sources. |
+| **State containers** | `state/` | `ChangeNotifier`-based business logic. `StateShared` provides pagination, filters, debounce, and streams; `StateDocument`/`StateCollection`/`StateAPI` back data sources. Client-generated SQL is excluded from outgoing query parameters by default and can be enabled with `includeSql`. |
 | **Serialization models** | `serialized/` | `@JsonSerializable(explicitToJson: true)` domain entities with null-tolerant `fromJson` and matching `toJson`. Each model has a generated `*.g.dart` twin. |
 | **Helpers / Infrastructure** | `helper/` | Stateless utilities: networking, Firestore/Storage helpers, validation, formatting, routing, localization. |
 
