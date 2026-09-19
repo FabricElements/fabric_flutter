@@ -493,4 +493,106 @@ void main() {
       expect(result, '"2024-12-31"');
     });
   });
+
+  group('FilterHelper sort order round-trip', () {
+    /// Builds a single sort filter so each test varies only the sort pair.
+    List<FilterData> sortFilters(dynamic field, dynamic order) => [
+      FilterData(
+        id: 'sort',
+        type: InputDataType.string,
+        operator: FilterOperator.sort,
+        value: [field, order],
+        index: 0,
+      ),
+    ];
+
+    test('should encode a sort filter whose order is a FilterOrder enum', () {
+      // Arrange
+      final filters = sortFilters('created', FilterOrder.desc);
+
+      // Act
+      final encoded = FilterHelper.encode(filters);
+
+      // Assert — a null payload means the whole filter set was discarded and
+      // the query would run unfiltered.
+      expect(
+        encoded,
+        isNotNull,
+        reason: 'an enum sort order must not discard the encoded payload',
+      );
+    });
+
+    test('should decode an enum sort order back to its direction name', () {
+      // Arrange
+      final filters = sortFilters('created', FilterOrder.desc);
+
+      // Act
+      final decoded = FilterHelper.decode(FilterHelper.encode(filters));
+
+      // Assert
+      expect(decoded, hasLength(1));
+      expect(decoded.first.value, ['created', 'desc']);
+    });
+
+    test('should decode a string sort order back to its direction name', () {
+      // Arrange — positive control. Proves these assertions can observe a
+      // success, so the enum cases above are not passing vacuously.
+      final filters = sortFilters('created', 'asc');
+
+      // Act
+      final decoded = FilterHelper.decode(FilterHelper.encode(filters));
+
+      // Assert
+      expect(decoded, hasLength(1));
+      expect(decoded.first.value, ['created', 'asc']);
+    });
+
+    test('should encode an enum sort order identically to its string name', () {
+      // Arrange — the wire format must not fork by the caller's argument type.
+      final withEnum = sortFilters('created', FilterOrder.desc);
+      final withString = sortFilters('created', 'desc');
+
+      // Act
+      final encodedEnum = FilterHelper.encode(withEnum);
+      final encodedString = FilterHelper.encode(withString);
+
+      // Assert
+      expect(encodedEnum, encodedString);
+    });
+
+    test('should preserve a dotted sort field alongside an enum order', () {
+      // Arrange — the sort field is a document path and must survive intact.
+      // Normalizing it the way the order is normalized would truncate it to
+      // its last segment.
+      final filters = sortFilters('sentiment.text', FilterOrder.asc);
+
+      // Act
+      final decoded = FilterHelper.decode(FilterHelper.encode(filters));
+
+      // Assert
+      expect(decoded, hasLength(1));
+      expect(decoded.first.value, ['sentiment.text', 'asc']);
+    });
+
+    test('should keep other filters when a sort order is an enum', () {
+      // Arrange — the user-visible symptom of an unencodable sort value is
+      // that every unrelated constraint disappears with it.
+      final filters = [
+        FilterData(
+          id: 'status',
+          type: InputDataType.string,
+          operator: FilterOperator.equal,
+          value: 'active',
+          index: 0,
+        ),
+        ...sortFilters('created', FilterOrder.desc),
+      ];
+
+      // Act
+      final decoded = FilterHelper.decode(FilterHelper.encode(filters));
+
+      // Assert
+      expect(decoded.map((e) => e.id), containsAll(['status', 'sort']));
+    });
+  });
 }
