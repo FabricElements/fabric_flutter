@@ -440,7 +440,7 @@ abstract class StateShared extends ChangeNotifier {
           'filters': [filtersEncoded!],
         };
       }
-      if (sql != null) {
+      if (includeSql && sql != null) {
         // Merge SQL parameters
         queryParametersBase = {
           ...queryParametersBase,
@@ -663,6 +663,19 @@ abstract class StateShared extends ChangeNotifier {
     _filters = newFilters;
     notifyListeners();
   }
+
+  /// Controls whether [queryParameters] carries the encoded `sql` parameter.
+  ///
+  /// Defaults to `true`, which leaves the outgoing request shape byte-for-byte
+  /// unchanged for every caller that has not opted out.
+  ///
+  /// Set this to `false` when the receiving service rejects a `sql` parameter.
+  /// A service that builds its own statement from [filtersEncoded] has no use
+  /// for a client-supplied fragment and may fail the request closed rather than
+  /// ignore it, so sending one breaks the call outright. Flipping this changes
+  /// only what leaves this state: [sql] keeps returning the same value for
+  /// callers that read it directly.
+  bool includeSql = true;
 
   /// Serializes [filters] into an encoded SQL fragment.
   ///

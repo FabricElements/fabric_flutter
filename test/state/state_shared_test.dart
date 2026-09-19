@@ -703,6 +703,88 @@ void main() {
       });
     });
 
+    group('includeSql', () {
+      /// Decoded form of [StateShared.sql] for a single `status = active`
+      /// filter, frozen so the default path can be proven byte-identical to the
+      /// pre-flag behaviour rather than merely present.
+      const canonicalSql = 'select * from `filters` where status = "active" ;';
+
+      /// Builds a state that emits query parameters carrying one filter.
+      _TestState stateWithFilter() {
+        final state = _TestState();
+        state.passParameters = true;
+        state.filters = [
+          FilterData(
+            id: 'status',
+            operator: FilterOperator.equal,
+            value: 'active',
+          ),
+        ];
+        return state;
+      }
+
+      test('should default to true', () {
+        // Arrange & Act
+        final state = _TestState();
+
+        // Assert — existing callers keep the current request shape.
+        expect(state.includeSql, isTrue);
+      });
+
+      test('should emit sql decoding to the frozen statement by default', () {
+        // Arrange — positive control. An absence test alone would still pass if
+        // the parameter had quietly stopped carrying the right statement.
+        final state = stateWithFilter();
+
+        // Act
+        final parameters = state.queryParameters;
+
+        // Assert
+        expect(parameters.containsKey('sql'), isTrue);
+        expect(
+          utf8.fuse(base64).decode(parameters['sql']!.single),
+          canonicalSql,
+        );
+      });
+
+      test('should omit the sql parameter when false', () {
+        // Arrange
+        final state = stateWithFilter();
+        state.includeSql = false;
+
+        // Act
+        final parameters = state.queryParameters;
+
+        // Assert — `filters` is the positive control: the map is populated, so
+        // the missing `sql` key is a real omission, not an empty map.
+        expect(parameters.containsKey('filters'), isTrue);
+        expect(parameters.containsKey('sql'), isFalse);
+      });
+
+      test('should leave the sql getter readable when false', () {
+        // Arrange — the flag gates emission only, as its documentation claims.
+        final state = stateWithFilter();
+        state.includeSql = false;
+
+        // Act & Assert
+        expect(state.sql, isNotNull);
+        expect(utf8.fuse(base64).decode(state.sql!), canonicalSql);
+      });
+
+      test('should not disturb the filters payload either way', () {
+        // Arrange
+        final state = stateWithFilter();
+
+        // Act — same state, both settings, so the flag is the only variable.
+        final withSql = state.queryParameters['filters']!.single;
+        state.includeSql = false;
+        final withoutSql = state.queryParameters['filters']!.single;
+
+        // Assert
+        expect(withoutSql, withSql);
+      });
+    });
+
     group('SQL path freeze', () {
       test('should still expose the sql getter unchanged', () {
         // Arrange — inventory test. The filters payload was added beside the
