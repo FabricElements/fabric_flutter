@@ -22,6 +22,20 @@ final DateFormat _filterDateFormat = DateFormat('yyyy-MM-dd');
 /// This helper is shared by state and data layers that need to serialize the same
 /// filter definitions for different backends or apply them to local collections.
 class FilterHelper {
+  /// Caps the encoded payload length accepted by [decode].
+  ///
+  /// The payload arrives as a query parameter, so an unbounded input would let
+  /// a caller force an arbitrarily large base64 and JSON parse before any
+  /// shape check could reject it.
+  static const int _maxEncodedLength = 64 * 1024;
+
+  /// Caps how many entries [decode] materializes from a single payload.
+  ///
+  /// Bounds the work done for a syntactically valid but abusive payload. The
+  /// limit sits far above any realistic filter editor, so legitimate callers
+  /// never reach it.
+  static const int _maxFilterEntries = 200;
+
   /// Converts [value] into a backend-friendly literal for [dataType].
   ///
   /// Dates and timestamps are normalized to UTC to avoid locale-dependent query
@@ -425,13 +439,58 @@ class FilterHelper {
         .toList();
   }
 
+  /// Whether [filterData] describes a concrete constraint worth encoding.
+  ///
+  /// This is the single statement of the wire-inclusion rule, kept deliberately
+  /// independent of [filter] so that a future UI-motivated change to the
+  /// on-screen filtering cannot silently alter the encoded payload.
+  ///
+  /// A row is excluded unless it carries both an operator and a value. Partially
+  /// configured rows are a normal intermediate UI state — a user picks a field
+  /// and an operator before typing a value — and they describe no constraint, so
+  /// encoding them would ask a consumer to narrow a query by nothing.
+  /// [FilterOperator.any] is excluded for the same reason: it is a placeholder
+  /// that matches everything.
+  ///
+  /// When [includeSort] is `false`, [FilterOperator.sort] rows are excluded as
+  /// well. A sort directive describes ordering rather than a constraint, so a
+  /// consumer that receives ordering through its own dedicated parameter has no
+  /// field to match it against. The test is deliberately the operator alone,
+  /// mirroring [filterData], so a genuine constraint on a field that happens to
+  /// be named `sort` is still encoded.
+  static bool _isEncodable(FilterData filterData, {required bool includeSort}) {
+    if (filterData.operator == null) return false;
+    if (filterData.operator == FilterOperator.any) return false;
+    if (!includeSort && filterData.operator == FilterOperator.sort) {
+      return false;
+    }
+    final value = filterData.value;
+    if (value == null) return false;
+    if (value is String && value.isEmpty) return false;
+    return true;
+  }
+
   /// Encodes active [filters] as a base64 JSON string.
+  ///
+  /// Only rows satisfying [_isEncodable] are included, so the payload matches
+  /// what [toJSON] would keep and round-trips losslessly through [decode].
   ///
   /// Returning `null` for an empty active filter set makes it easy for callers to
   /// omit query parameters entirely instead of sending empty payloads.
-  static String? encode(List<FilterData> filters) {
+  ///
+  /// [includeSort] defaults to `true`, which keeps sort directives inside the
+  /// payload so an encoded value round-trips the complete on-screen state
+  /// through [decode]. Pass `false` when the payload is bound for a consumer
+  /// that receives ordering through its own parameter; the remaining entries
+  /// keep their original `index`, so excluding a sort row may leave a gap rather
+  /// than renumbering the rows around it.
+  static String? encode(List<FilterData> filters, {bool includeSort = true}) {
     try {
-      final filterDataValid = filter(filters: filters);
+      final filterDataValid = toJSON(
+        filters
+            .where((element) => _isEncodable(element, includeSort: includeSort))
+            .toList(),
+      );
       if (filterDataValid.isEmpty) return null;
       dynamic jsonParsed = json.encode(filterDataValid);
       final filterString = jsonParsed.toString();
@@ -447,17 +506,48 @@ class FilterHelper {
 
   /// Decodes a base64 JSON [filters] payload into [FilterData] objects.
   ///
+  /// The payload is untrusted: it travels as a query parameter and can be
+  /// edited, truncated, or replaced by whoever issues the request. Every
+  /// failure mode therefore degrades to a value rather than an exception, so a
+  /// hostile or corrupt payload cannot throw out of a published API and into a
+  /// caller that has no reasonable way to recover.
+  ///
   /// A `null` input yields an empty list so callers can treat absent filter state
-  /// and unparseable optional query parameters uniformly.
+  /// and unparseable optional query parameters uniformly. A payload that is not
+  /// base64, not JSON, or whose root is not a list also yields an empty list.
+  /// Individual entries that fail to deserialize are skipped so one bad element
+  /// does not discard the filters that decoded correctly.
   static List<FilterData> decode(String? filters) {
-    List<FilterData> response = [];
-    if (filters != null) {
+    if (filters == null || filters.isEmpty) return [];
+    if (filters.length > _maxEncodedLength) {
+      debugPrint(
+        LogColor.error(
+          'FilterHelper.decode: payload exceeds $_maxEncodedLength characters',
+        ),
+      );
+      return [];
+    }
+    late final List<dynamic> entries;
+    try {
       Codec<String, dynamic> stringToBase64 = utf8.fuse(base64);
-      final decodeBase = stringToBase64.decode(filters);
-      final decodeJSON = (json.decode(decodeBase) as List<dynamic>)
-          .map((e) => FilterData.fromJson(e))
-          .toList();
-      response = decodeJSON;
+      final decoded = json.decode(stringToBase64.decode(filters));
+      if (decoded is! List) {
+        debugPrint(LogColor.error('FilterHelper.decode: root is not a list'));
+        return [];
+      }
+      entries = decoded;
+    } catch (e) {
+      debugPrint(LogColor.error('FilterHelper.decode: $e'));
+      return [];
+    }
+    final response = <FilterData>[];
+    for (final entry in entries.take(_maxFilterEntries)) {
+      if (entry is! Map<String, dynamic>) continue;
+      try {
+        response.add(FilterData.fromJson(entry));
+      } catch (e) {
+        debugPrint(LogColor.error('FilterHelper.decode entry: $e'));
+      }
     }
     return response;
   }

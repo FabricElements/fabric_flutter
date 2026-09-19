@@ -1,3 +1,7 @@
+import 'dart:convert';
+
+import 'package:fabric_flutter/helper/filter_helper.dart';
+import 'package:fabric_flutter/serialized/filter_data.dart';
 import 'package:fabric_flutter/state/state_shared.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -540,6 +544,205 @@ void main() {
           expect(notifications, 1);
         },
       );
+    });
+
+    group('filtersEncoded', () {
+      test('should return null when no filter is active', () {
+        // Arrange
+        final state = _TestState();
+
+        // Act & Assert
+        expect(state.filtersEncoded, isNull);
+      });
+
+      test('should encode an active filter into a decodable payload', () {
+        // Arrange — positive control for the null case above: proves the
+        // getter can produce a payload at all, so `isNull` is a real branch.
+        final state = _TestState();
+        state.filters = [
+          FilterData(
+            id: 'status',
+            operator: FilterOperator.equal,
+            value: 'active',
+          ),
+        ];
+
+        // Act
+        final encoded = state.filtersEncoded;
+
+        // Assert
+        expect(encoded, isNotNull);
+        final restored = FilterHelper.decode(encoded);
+        expect(restored, hasLength(1));
+        expect(restored.first.id, 'status');
+        expect(restored.first.operator, FilterOperator.equal);
+      });
+
+      test('should never emit a table name or SQL text', () {
+        // Arrange — `filterGroup` is the table name used by the SQL path, so
+        // it is the exact token that must not appear in this payload.
+        final state = _TestState();
+        state.filters = [
+          FilterData(
+            id: 'status',
+            operator: FilterOperator.equal,
+            value: 'active',
+          ),
+        ];
+
+        // Act
+        final plain = utf8.fuse(base64).decode(state.filtersEncoded!);
+
+        // Assert
+        expect(plain, isNot(contains(state.filterGroup)));
+        expect(plain, isNot(contains('`')));
+        expect(plain.toLowerCase(), isNot(contains('select ')));
+      });
+
+      test('should not throw when filters cannot be encoded', () {
+        // Arrange — the getter's contract is "a value, never an exception".
+        final state = _TestState();
+        state.filters = [FilterData(id: 'orphan', operator: null)];
+
+        // Act & Assert
+        expect(() => state.filtersEncoded, returnsNormally);
+        expect(state.filtersEncoded, isNull);
+      });
+    });
+
+    group('filtersIncludeSort', () {
+      /// Builds a state carrying one real filter and one sort directive.
+      _TestState stateWithSort() {
+        final state = _TestState();
+        state.filters = [
+          FilterData(
+            id: 'status',
+            operator: FilterOperator.equal,
+            value: 'active',
+          ),
+          FilterData(
+            id: 'sort',
+            operator: FilterOperator.sort,
+            value: ['created', 'desc'],
+          ),
+        ];
+        return state;
+      }
+
+      test('should default to true', () {
+        // Arrange & Act
+        final state = _TestState();
+
+        // Assert — existing callers must keep the full round-trip.
+        expect(state.filtersIncludeSort, isTrue);
+      });
+
+      test('should keep sort in the payload by default', () {
+        // Arrange
+        final state = stateWithSort();
+
+        // Act
+        final restored = FilterHelper.decode(state.filtersEncoded);
+
+        // Assert
+        expect(restored.any((e) => e.operator == FilterOperator.sort), isTrue);
+      });
+
+      test('should drop sort from the payload when false', () {
+        // Arrange
+        final state = stateWithSort();
+        state.filtersIncludeSort = false;
+
+        // Act
+        final restored = FilterHelper.decode(state.filtersEncoded);
+
+        // Assert — the constraint survives, only the directive is removed.
+        expect(restored.any((e) => e.operator == FilterOperator.sort), isFalse);
+        expect(restored.map((e) => e.id).toList(), ['status']);
+      });
+
+      test('should reach the emitted filters query parameter', () {
+        // Arrange — the getter is only useful if the flag survives into the map
+        // that builds the request URL. Without this the control could pass its
+        // own tests while never affecting an outgoing request.
+        final state = stateWithSort();
+        state.passParameters = true;
+
+        // Act — same state, both settings, so the flag is the only variable.
+        final withSort = FilterHelper.decode(
+          state.queryParameters['filters']?.first,
+        );
+        state.filtersIncludeSort = false;
+        final withoutSort = FilterHelper.decode(
+          state.queryParameters['filters']?.first,
+        );
+
+        // Assert
+        expect(withSort.any((e) => e.operator == FilterOperator.sort), isTrue);
+        expect(
+          withoutSort.any((e) => e.operator == FilterOperator.sort),
+          isFalse,
+        );
+        expect(withoutSort.map((e) => e.id).toList(), ['status']);
+      });
+
+      test('should not add a sort query parameter of its own', () {
+        // Arrange — callers flipping the flag must supply ordering themselves,
+        // so this state must not be assumed to emit it.
+        final state = stateWithSort();
+        state.passParameters = true;
+        state.filtersIncludeSort = false;
+
+        // Act
+        final parameters = state.queryParameters;
+
+        // Assert — positive control: `filters` proves the map is populated.
+        expect(parameters.containsKey('filters'), isTrue);
+        expect(parameters.containsKey('sort'), isFalse);
+        expect(parameters.containsKey('order'), isFalse);
+      });
+    });
+
+    group('SQL path freeze', () {
+      test('should still expose the sql getter unchanged', () {
+        // Arrange — inventory test. The filters payload was added beside the
+        // SQL path, not instead of it; removing capability would be a
+        // regression an analyzer and a green suite cannot detect.
+        final state = _TestState();
+        state.filters = [
+          FilterData(
+            id: 'status',
+            operator: FilterOperator.equal,
+            value: 'active',
+          ),
+        ];
+
+        // Act & Assert — `sql` is base64-encoded, so decode before asserting.
+        expect(state.sql, isNotNull);
+        final decodedSql = utf8.fuse(base64).decode(state.sql!);
+        expect(decodedSql, contains(state.filterGroup));
+      });
+
+      test('should still emit both sql and filters query parameters', () {
+        // Arrange
+        final state = _TestState();
+        state.passParameters = true;
+        state.filters = [
+          FilterData(
+            id: 'status',
+            operator: FilterOperator.equal,
+            value: 'active',
+          ),
+        ];
+
+        // Act
+        final parameters = state.queryParameters;
+
+        // Assert — the two payloads coexist.
+        expect(parameters.keys, contains('sql'));
+        expect(parameters.keys, contains('filters'));
+        expect(parameters['filters']!.single, state.filtersEncoded);
+      });
     });
   });
 }

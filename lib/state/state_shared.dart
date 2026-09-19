@@ -434,11 +434,10 @@ abstract class StateShared extends ChangeNotifier {
     Map<String, List<String>> queryParametersBase = _queryParameters;
     if (filters.isNotEmpty) {
       // Merge filter parameter
-      final filterParameter = FilterHelper.encode(filters);
-      if (filterParameter != null) {
+      if (filtersEncoded != null) {
         queryParametersBase = {
           ...queryParametersBase,
-          'filters': [filterParameter],
+          'filters': [filtersEncoded!],
         };
       }
       if (sql != null) {
@@ -678,6 +677,40 @@ abstract class StateShared extends ChangeNotifier {
       );
     } catch (e) {
       debugPrint(LogColor.error('sql decode error: $e'));
+      return null;
+    }
+  }
+
+  /// Controls whether [filtersEncoded] carries sort directives.
+  ///
+  /// Defaults to `true`, which preserves the full on-screen state in the encoded
+  /// payload so a deep link restores both the filters and the chosen ordering.
+  ///
+  /// Set this to `false` when the receiving service takes ordering through its
+  /// own dedicated parameter and validates filter fields against a closed
+  /// allow-list: a sort directive names no filterable field, so leaving it in
+  /// the payload asks that service to match it against a field it will never
+  /// declare. Callers that flip this are responsible for sending the ordering
+  /// themselves, because this state never writes a `sort` parameter of its own.
+  bool filtersIncludeSort = true;
+
+  /// Serializes [filters] into the encoded, declarative filter payload.
+  ///
+  /// Mirrors [sql] in shape and nullability so callers assembling the
+  /// query-parameter map can swap one for the other. Unlike [sql], the payload
+  /// is a closed `{id, type, operator, value, index}` grammar that carries no
+  /// SQL text and no table name, so a server decoding it can only ever
+  /// reconstruct a filter list — never an executable fragment.
+  ///
+  /// Sort directives are included unless [filtersIncludeSort] is `false`.
+  ///
+  /// Returns `null` when no active filter remains or when encoding fails, which
+  /// lets callers omit the parameter instead of sending an empty payload.
+  String? get filtersEncoded {
+    try {
+      return FilterHelper.encode(filters, includeSort: filtersIncludeSort);
+    } catch (e) {
+      debugPrint(LogColor.error('filtersEncoded error: $e'));
       return null;
     }
   }
