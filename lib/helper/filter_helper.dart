@@ -451,9 +451,19 @@ class FilterHelper {
   /// encoding them would ask a consumer to narrow a query by nothing.
   /// [FilterOperator.any] is excluded for the same reason: it is a placeholder
   /// that matches everything.
-  static bool _isEncodable(FilterData filterData) {
+  ///
+  /// When [includeSort] is `false`, [FilterOperator.sort] rows are excluded as
+  /// well. A sort directive describes ordering rather than a constraint, so a
+  /// consumer that receives ordering through its own dedicated parameter has no
+  /// field to match it against. The test is deliberately the operator alone,
+  /// mirroring [filterData], so a genuine constraint on a field that happens to
+  /// be named `sort` is still encoded.
+  static bool _isEncodable(FilterData filterData, {required bool includeSort}) {
     if (filterData.operator == null) return false;
     if (filterData.operator == FilterOperator.any) return false;
+    if (!includeSort && filterData.operator == FilterOperator.sort) {
+      return false;
+    }
     final value = filterData.value;
     if (value == null) return false;
     if (value is String && value.isEmpty) return false;
@@ -467,9 +477,20 @@ class FilterHelper {
   ///
   /// Returning `null` for an empty active filter set makes it easy for callers to
   /// omit query parameters entirely instead of sending empty payloads.
-  static String? encode(List<FilterData> filters) {
+  ///
+  /// [includeSort] defaults to `true`, which keeps sort directives inside the
+  /// payload so an encoded value round-trips the complete on-screen state
+  /// through [decode]. Pass `false` when the payload is bound for a consumer
+  /// that receives ordering through its own parameter; the remaining entries
+  /// keep their original `index`, so excluding a sort row may leave a gap rather
+  /// than renumbering the rows around it.
+  static String? encode(List<FilterData> filters, {bool includeSort = true}) {
     try {
-      final filterDataValid = toJSON(filters.where(_isEncodable).toList());
+      final filterDataValid = toJSON(
+        filters
+            .where((element) => _isEncodable(element, includeSort: includeSort))
+            .toList(),
+      );
       if (filterDataValid.isEmpty) return null;
       dynamic jsonParsed = json.encode(filterDataValid);
       final filterString = jsonParsed.toString();

@@ -54,6 +54,20 @@ const String canonicalEncoded =
     'ImluZGV4IjoyfSx7ImlkIjoic29ydCIsInR5cGUiOiJzdHJpbmciLCJvcGVyYXRvciI6InNv'
     'cnQiLCJ2YWx1ZSI6WyJjcmVhdGVkIiwiZGVzYyJdLCJpbmRleCI6M31d';
 
+/// Golden payload for `FilterHelper.encode(canonicalFilters(), includeSort: false)`.
+///
+/// Measured from a live encode, like [canonicalEncoded]. This is the fixture a
+/// service that receives ordering through its own parameter should validate
+/// against: it is [canonicalEncoded] minus the sort row, with the surviving
+/// rows keeping their original indices.
+const String canonicalEncodedNoSort =
+    'W3siaWQiOiJzdGF0dXMiLCJ0eXBlIjoic3RyaW5nIiwib3BlcmF0b3IiOiJlcXVhbCIsInZh'
+    'bHVlIjoiYWN0aXZlIiwiaW5kZXgiOjB9LHsiaWQiOiJhbW91bnQiLCJ0eXBlIjoiaW50Iiwi'
+    'b3BlcmF0b3IiOiJncmVhdGVyVGhhbiIsInZhbHVlIjoxMDAsImluZGV4IjoxfSx7ImlkIjoi'
+    'Y3JlYXRlZCIsInR5cGUiOiJkYXRlIiwib3BlcmF0b3IiOiJiZXR3ZWVuIiwidmFsdWUiOlsi'
+    'MjAyNC0wMS0wMVQwMDowMDowMC4wMDBaIiwiMjAyNC0wMy0zMVQwMDowMDowMC4wMDBaIl0s'
+    'ImluZGV4IjoyfV0=';
+
 void main() {
   group('FilterHelper.encode', () {
     test('should produce the byte-exact golden payload', () {
@@ -66,6 +80,144 @@ void main() {
       // Assert — pins the cross-repo wire format. A change here is a breaking
       // change for every decoder, not a refactor.
       expect(encoded, canonicalEncoded);
+    });
+
+    test('should include sort directives by default', () {
+      // Arrange — the default must not change, or every existing caller's
+      // deep-link round-trip silently loses its ordering.
+      final filters = canonicalFilters();
+
+      // Act
+      final decoded = FilterHelper.decode(FilterHelper.encode(filters));
+
+      // Assert
+      expect(
+        decoded.any((e) => e.operator == FilterOperator.sort),
+        isTrue,
+        reason: 'default encode must keep sort so the UI can restore it',
+      );
+    });
+
+    test('should produce the byte-exact sort-free golden payload', () {
+      // Arrange
+      final filters = canonicalFilters();
+
+      // Act
+      final encoded = FilterHelper.encode(filters, includeSort: false);
+
+      // Assert — the second cross-repo fixture. Pinned for the same reason as
+      // the default vector: a change here breaks a decoder, not a refactor.
+      expect(encoded, canonicalEncodedNoSort);
+    });
+
+    test('should drop sort rows when includeSort is false', () {
+      // Arrange
+      final filters = canonicalFilters();
+
+      // Act
+      final decoded = FilterHelper.decode(
+        FilterHelper.encode(filters, includeSort: false),
+      );
+
+      // Assert
+      expect(decoded.any((e) => e.operator == FilterOperator.sort), isFalse);
+    });
+
+    test('should keep the non-sort rows intact when includeSort is false', () {
+      // Arrange — positive control for the drop test above. Without it that
+      // assertion would also pass on an encoder that dropped everything.
+      final filters = canonicalFilters();
+
+      // Act
+      final decoded = FilterHelper.decode(
+        FilterHelper.encode(filters, includeSort: false),
+      );
+
+      // Assert
+      expect(decoded.map((e) => e.id).toList(), [
+        'status',
+        'amount',
+        'created',
+      ]);
+    });
+
+    test('should preserve original indices when a sort row is dropped', () {
+      // Arrange — a sort row in the middle, so renumbering would be visible.
+      final filters = [
+        FilterData(
+          id: 'status',
+          type: InputDataType.string,
+          operator: FilterOperator.equal,
+          value: 'active',
+          index: 0,
+        ),
+        FilterData(
+          id: 'sort',
+          type: InputDataType.string,
+          operator: FilterOperator.sort,
+          value: ['created', 'desc'],
+          index: 1,
+        ),
+        FilterData(
+          id: 'amount',
+          type: InputDataType.int,
+          operator: FilterOperator.greaterThan,
+          value: 100,
+          index: 2,
+        ),
+      ];
+
+      // Act
+      final decoded = FilterHelper.decode(
+        FilterHelper.encode(filters, includeSort: false),
+      );
+
+      // Assert — indices come from the model, not the list position, so the
+      // surviving rows keep 0 and 2 rather than being renumbered to 0 and 1.
+      expect(decoded.map((e) => e.index).toList(), [0, 2]);
+    });
+
+    test('should keep a real constraint on a field named sort', () {
+      // Arrange — capability guard. The exclusion tests the operator alone, so
+      // a legitimate filter on a field called `sort` must survive.
+      final filters = [
+        FilterData(
+          id: 'sort',
+          type: InputDataType.string,
+          operator: FilterOperator.equal,
+          value: 'manual',
+          index: 0,
+        ),
+      ];
+
+      // Act
+      final decoded = FilterHelper.decode(
+        FilterHelper.encode(filters, includeSort: false),
+      );
+
+      // Assert
+      expect(decoded.length, 1);
+      expect(decoded.first.operator, FilterOperator.equal);
+    });
+
+    test('should return null when only sort remains and includeSort is '
+        'false', () {
+      // Arrange
+      final filters = [
+        FilterData(
+          id: 'sort',
+          type: InputDataType.string,
+          operator: FilterOperator.sort,
+          value: ['created', 'desc'],
+          index: 0,
+        ),
+      ];
+
+      // Act
+      final encoded = FilterHelper.encode(filters, includeSort: false);
+
+      // Assert — an empty payload must stay omittable rather than encode `[]`.
+      expect(encoded, isNull);
     });
 
     test('should emit exactly the five serialized keys and nothing else', () {

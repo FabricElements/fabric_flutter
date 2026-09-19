@@ -610,6 +610,99 @@ void main() {
       });
     });
 
+    group('filtersIncludeSort', () {
+      /// Builds a state carrying one real filter and one sort directive.
+      _TestState stateWithSort() {
+        final state = _TestState();
+        state.filters = [
+          FilterData(
+            id: 'status',
+            operator: FilterOperator.equal,
+            value: 'active',
+          ),
+          FilterData(
+            id: 'sort',
+            operator: FilterOperator.sort,
+            value: ['created', 'desc'],
+          ),
+        ];
+        return state;
+      }
+
+      test('should default to true', () {
+        // Arrange & Act
+        final state = _TestState();
+
+        // Assert — existing callers must keep the full round-trip.
+        expect(state.filtersIncludeSort, isTrue);
+      });
+
+      test('should keep sort in the payload by default', () {
+        // Arrange
+        final state = stateWithSort();
+
+        // Act
+        final restored = FilterHelper.decode(state.filtersEncoded);
+
+        // Assert
+        expect(restored.any((e) => e.operator == FilterOperator.sort), isTrue);
+      });
+
+      test('should drop sort from the payload when false', () {
+        // Arrange
+        final state = stateWithSort();
+        state.filtersIncludeSort = false;
+
+        // Act
+        final restored = FilterHelper.decode(state.filtersEncoded);
+
+        // Assert — the constraint survives, only the directive is removed.
+        expect(restored.any((e) => e.operator == FilterOperator.sort), isFalse);
+        expect(restored.map((e) => e.id).toList(), ['status']);
+      });
+
+      test('should reach the emitted filters query parameter', () {
+        // Arrange — the getter is only useful if the flag survives into the map
+        // that builds the request URL. Without this the control could pass its
+        // own tests while never affecting an outgoing request.
+        final state = stateWithSort();
+        state.passParameters = true;
+
+        // Act — same state, both settings, so the flag is the only variable.
+        final withSort = FilterHelper.decode(
+          state.queryParameters['filters']?.first,
+        );
+        state.filtersIncludeSort = false;
+        final withoutSort = FilterHelper.decode(
+          state.queryParameters['filters']?.first,
+        );
+
+        // Assert
+        expect(withSort.any((e) => e.operator == FilterOperator.sort), isTrue);
+        expect(
+          withoutSort.any((e) => e.operator == FilterOperator.sort),
+          isFalse,
+        );
+        expect(withoutSort.map((e) => e.id).toList(), ['status']);
+      });
+
+      test('should not add a sort query parameter of its own', () {
+        // Arrange — callers flipping the flag must supply ordering themselves,
+        // so this state must not be assumed to emit it.
+        final state = stateWithSort();
+        state.passParameters = true;
+        state.filtersIncludeSort = false;
+
+        // Act
+        final parameters = state.queryParameters;
+
+        // Assert — positive control: `filters` proves the map is populated.
+        expect(parameters.containsKey('filters'), isTrue);
+        expect(parameters.containsKey('sort'), isFalse);
+        expect(parameters.containsKey('order'), isFalse);
+      });
+    });
+
     group('SQL path freeze', () {
       test('should still expose the sql getter unchanged', () {
         // Arrange — inventory test. The filters payload was added beside the
