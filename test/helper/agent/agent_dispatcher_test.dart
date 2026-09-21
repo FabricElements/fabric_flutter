@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:fabric_flutter/helper/agent/agent_audit.dart';
+import 'package:fabric_flutter/helper/agent/agent_authorizer.dart';
 import 'package:fabric_flutter/helper/agent/agent_bridge.dart';
 import 'package:fabric_flutter/helper/agent/agent_command.dart';
 import 'package:fabric_flutter/helper/agent/agent_dispatcher.dart';
@@ -26,7 +27,7 @@ AgentBridge _bridge({bool authenticated = false}) {
     appVersion: '1.0.0',
     authorizer: authenticated
         ? AgentTokenAuthorizer(principals: _resolver())
-        : null,
+        : const AgentAllowAllAuthorizer(),
   );
   bridge.registry.register(
     AgentCommand.define(
@@ -80,6 +81,8 @@ void main() {
         // Assert
         expect(response['ok'], isFalse);
         expect(response['error']['code'], 'invalid_params');
+        expect(response['error']['message'], 'The request is not valid JSON.');
+        expect(response['error']['message'], isNot(contains('not json')));
       });
 
       test('should answer a non-object payload with invalid_params', () async {

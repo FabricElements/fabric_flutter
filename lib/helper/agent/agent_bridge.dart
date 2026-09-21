@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+
 import '../../serialized/agent_describe_result.dart';
 import '../../serialized/agent_error.dart';
 import '../../serialized/agent_request.dart';
@@ -100,10 +102,11 @@ class AgentBridge {
   /// Decides whether each request may run.
   ///
   /// This is the seam where the authentication and role layer plugs in. The
-  /// default [AgentAllowAllAuthorizer] approves everything, keeping this core
-  /// free of access control.
+  /// Defaults to [AgentDenyAllAuthorizer]. Hosts that intentionally run an
+  /// unauthenticated bridge must explicitly configure
+  /// [AgentAllowAllAuthorizer].
   AgentAuthorizer get authorizer => _authorizer;
-  AgentAuthorizer _authorizer = const AgentAllowAllAuthorizer();
+  AgentAuthorizer _authorizer = const AgentDenyAllAuthorizer();
 
   /// Limits how long a single `invoke` may run before it fails.
   ///
@@ -147,7 +150,7 @@ class AgentBridge {
     _appName = '';
     _appVersion = '';
     _routes = <AgentRouteInfo>[];
-    _authorizer = const AgentAllowAllAuthorizer();
+    _authorizer = const AgentDenyAllAuthorizer();
     _commandTimeout = const Duration(seconds: 30);
     registry.clear();
   }
@@ -240,7 +243,14 @@ class AgentBridge {
         'The command timed out after ${error.duration?.inMilliseconds}ms.',
       );
     } catch (error) {
-      return _failure(request.id, AgentErrorCode.failed, error.toString());
+      if (kDebugMode) {
+        debugPrint('Agent bridge command failed: $error');
+      }
+      return _failure(
+        request.id,
+        AgentErrorCode.failed,
+        'The command failed unexpectedly.',
+      );
     }
   }
 
@@ -256,6 +266,7 @@ class AgentBridge {
         'Parameter "commandId" is required by invoke.',
       );
     }
+    await _authorize(request);
     final command = registry.byId(commandId);
     if (command == null) {
       throw AgentException.notFound(
@@ -270,7 +281,7 @@ class AgentBridge {
         ? <String, dynamic>{}
         : Map<String, dynamic>.from(rawParams as Map);
     command.validate(commandParams);
-    final authorization = await _authorize(request, command: command);
+    final commandAuthorization = await _authorize(request, command: command);
     final timeoutMs = params['timeoutMs'];
     final timeout = timeoutMs is int
         ? Duration(milliseconds: timeoutMs)
@@ -279,7 +290,7 @@ class AgentBridge {
       commandId: commandId,
       requestId: request.id,
       params: commandParams,
-      meta: Map<String, dynamic>.from(authorization.meta),
+      meta: Map<String, dynamic>.from(commandAuthorization.meta),
     );
     return Future<Object?>.sync(
       () => command.handler(context),

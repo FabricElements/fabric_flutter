@@ -103,12 +103,12 @@ class AgentDispatcher {
         );
       }
       request = Map<String, dynamic>.from(decoded);
-    } on FormatException catch (error) {
+    } on FormatException {
       return jsonEncode(
         _error(
           '',
           AgentErrorCode.invalidParams,
-          'The request is not valid JSON: ${error.message}',
+          'The request is not valid JSON.',
         ),
       );
     }

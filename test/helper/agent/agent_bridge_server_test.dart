@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:fabric_flutter/helper/agent/agent_bridge.dart';
+import 'package:fabric_flutter/helper/agent/agent_authorizer.dart';
 import 'package:fabric_flutter/helper/agent/agent_bridge_server.dart';
 import 'package:fabric_flutter/helper/agent/agent_bridge_server_options.dart';
 import 'package:fabric_flutter/helper/agent/agent_command.dart';
@@ -17,7 +18,12 @@ AgentBridge _bridge() {
     elements: AgentElementIndex(),
     navigatorObserver: AgentNavigatorObserver(),
   );
-  bridge.configure(enabled: true, appName: 'Fabric', appVersion: '1.0.0');
+  bridge.configure(
+    enabled: true,
+    appName: 'Fabric',
+    appVersion: '1.0.0',
+    authorizer: const AgentAllowAllAuthorizer(),
+  );
   bridge.registry.register(
     AgentCommand.define(
       id: 'echo',

@@ -1,4 +1,5 @@
 import 'package:fabric_flutter/helper/agent/agent_bridge.dart';
+import 'package:fabric_flutter/helper/agent/agent_authorizer.dart';
 import 'package:fabric_flutter/helper/agent/agent_command.dart';
 import 'package:fabric_flutter/helper/agent/agent_element_binding.dart';
 import 'package:fabric_flutter/helper/agent/agent_element_index.dart';
@@ -95,6 +96,7 @@ void main() {
         enabled: true,
         appName: 'Sample',
         appVersion: '1.0.0',
+        authorizer: const AgentAllowAllAuthorizer(),
         routes: [
           AgentRouteInfo(name: '/', title: 'Home'),
           AgentRouteInfo(name: '/settings', title: 'Settings'),

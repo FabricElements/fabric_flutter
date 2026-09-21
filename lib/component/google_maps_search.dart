@@ -6,7 +6,9 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 
 import '../../serialized/place_data.dart';
+import '../../serialized/agent_element_snapshot.dart';
 import '../helper/app_localizations_delegate.dart';
+import '../helper/agent/agent_element_binding.dart';
 import '../helper/density_spacing.dart';
 import '../helper/http_request.dart';
 import 'alert_data.dart';
@@ -58,6 +60,7 @@ class GoogleMapsSearch extends StatefulWidget {
     this.clientFactory = http.Client.new,
     this.debounceMilliseconds = 400,
     this.minimumQueryLength = 1,
+    this.automationKey,
   });
 
   /// Receives the fully populated [Place] after the user selects a search result.
@@ -172,6 +175,12 @@ class GoogleMapsSearch extends StatefulWidget {
   /// consider the domain and adjust carefully.
   final int minimumQueryLength;
 
+  /// Identifies the search field for accessibility and agent automation.
+  ///
+  /// When omitted, a deterministic identifier is derived from the current
+  /// route and the localized search label.
+  final String? automationKey;
+
   /// Creates the state that owns search text, result lists, and selected coordinates.
   ///
   /// The returned [_GoogleMapsSearchState] coordinates network requests with the
@@ -245,6 +254,51 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
   /// The value is cleared while a new selection is loading so stale labels are
   /// not shown.
   String? name;
+
+  /// Derives the stable agent identifier when the caller did not provide one.
+  String _resolveAutomationKey(BuildContext context, String label) {
+    if (widget.automationKey != null && widget.automationKey!.isNotEmpty) {
+      return widget.automationKey!;
+    }
+    final route = ModalRoute.of(context)?.settings.name;
+    final routeSegment = (route == null || route.isEmpty ? 'app' : route)
+        .replaceFirst(RegExp(r'^/'), '')
+        .replaceAll(RegExp(r'[^A-Za-z0-9]+'), '_')
+        .toLowerCase();
+    final labelSegment = label
+        .replaceAll(RegExp(r'[^A-Za-z0-9]+'), '_')
+        .toLowerCase();
+    return '${routeSegment.isEmpty ? 'root' : routeSegment}_${labelSegment}_input_search';
+  }
+
+  /// Applies agent-provided text through the same path as user input.
+  Future<void> _setAgentValue(Object? value) async {
+    final text = value?.toString() ?? '';
+    textController.value = textController.value.copyWith(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
+      composing: TextRange.empty,
+    );
+    _handleTextChanged(text);
+  }
+
+  /// Handles a changed query and schedules the corresponding search.
+  void _handleTextChanged(String val) {
+    _rateLimited = false;
+    _debounceTimer?.cancel();
+
+    if (val.length < widget.minimumQueryLength) {
+      results = [];
+      totalItems = 0;
+      if (mounted) setState(() {});
+      return;
+    }
+
+    _debounceTimer = Timer(
+      Duration(milliseconds: widget.debounceMilliseconds),
+      () => _performSearch(val),
+    );
+  }
 
   /// Tracks whether an asynchronous lookup is currently updating the selection.
   ///
@@ -498,41 +552,47 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
             SafeArea(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(minHeight: 50),
-                child: Semantics(
-                  textField: true,
+                child: AgentElement(
+                  id: _resolveAutomationKey(
+                    context,
+                    locales.get('label--search-by-label', {
+                      'label': locales.get('label--location'),
+                    }),
+                  ),
+                  type: AgentElementType.textInput,
                   label: locales.get('label--search-by-label', {
                     'label': locales.get('label--location'),
                   }),
-                  child: TextField(
-                    controller: textController,
-                    autofocus: widget.autofocus,
-                    keyboardType: TextInputType.text,
-                    textInputAction: TextInputAction.search,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      contentPadding: density.all(16, min: 8),
-                      filled: true,
-                      hintText: name ?? locales.get('label--search'),
-                      suffixIcon: const Icon(Icons.search),
+                  valueGetter: () => textController.text,
+                  setter: _setAgentValue,
+                  activator: () => FocusScope.of(context).requestFocus(),
+                  child: Semantics(
+                    textField: true,
+                    label: locales.get('label--search-by-label', {
+                      'label': locales.get('label--location'),
+                    }),
+                    identifier: _resolveAutomationKey(
+                      context,
+                      locales.get('label--search-by-label', {
+                        'label': locales.get('label--location'),
+                      }),
                     ),
-                    onChanged: (val) {
-                      _rateLimited = false;
-                      _debounceTimer?.cancel();
-
-                      if (val.length < widget.minimumQueryLength) {
-                        results = [];
-                        totalItems = 0;
-                        if (mounted) setState(() {});
-                        return;
-                      }
-
-                      _debounceTimer = Timer(
-                        Duration(milliseconds: widget.debounceMilliseconds),
-                        () => _performSearch(val),
-                      );
-                    },
+                    child: TextField(
+                      controller: textController,
+                      autofocus: widget.autofocus,
+                      keyboardType: TextInputType.text,
+                      textInputAction: TextInputAction.search,
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        contentPadding: density.all(16, min: 8),
+                        filled: true,
+                        hintText: name ?? locales.get('label--search'),
+                        suffixIcon: const Icon(Icons.search),
+                      ),
+                      onChanged: _handleTextChanged,
+                    ),
                   ),
                 ),
               ),

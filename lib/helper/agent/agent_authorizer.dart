@@ -85,3 +85,21 @@ class AgentAllowAllAuthorizer extends AgentAuthorizer {
     AgentCommand? command,
   }) => const AgentAuthorization.allow();
 }
+
+/// Denies every request until a host explicitly configures an authorizer.
+///
+/// This is the bridge's in-process default. Hosts that intentionally run an
+/// unauthenticated bridge must opt in with [AgentAllowAllAuthorizer].
+class AgentDenyAllAuthorizer extends AgentAuthorizer {
+  /// Creates a fail-closed authorizer.
+  const AgentDenyAllAuthorizer();
+
+  /// Denies [request] without resolving a command.
+  @override
+  FutureOr<AgentAuthorization> authorize(
+    AgentRequest request, {
+    AgentCommand? command,
+  }) => const AgentAuthorization.deny(
+    'The agent bridge has no authorizer configured.',
+  );
+}

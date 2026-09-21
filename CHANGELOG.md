@@ -1,3 +1,25 @@
+## Unreleased
+
+### Fixed
+
+* **`GoogleMapsSearch` now exposes its search field through the agent
+  automation surface** with a deterministic identifier, live value, setter, and
+  activation support. (#234)
+* **Agent command authorization now runs before command lookup**, so callers
+  cannot distinguish registered commands from unknown commands without access.
+  (#235)
+* **Agent bridge failures no longer expose unexpected exception details to
+  remote callers**, and malformed JSON responses use a generic validation
+  message. (#238)
+* **Agent bridge authorization now fails closed by default.** Hosts that intend
+  to allow unauthenticated in-process access must explicitly configure
+  `AgentAllowAllAuthorizer`. (#239)
+* **Agent bridge documentation no longer uses consumer-specific example
+  branding.** (#236)
+* **Pinned the FlutterFire dependency set to the versions compatible with the
+  package's current Flutter SDK.** This keeps `flutter pub get` and the test
+  compiler on a mutually compatible API surface.
+
 ## [3.1.0] - 2026-09-11
 
 ### Added
