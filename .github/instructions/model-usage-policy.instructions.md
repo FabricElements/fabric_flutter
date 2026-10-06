@@ -5,6 +5,14 @@
 - Prefer low-cost execution overall; optimize for quality and speed when local models cannot deliver safely.
 - Kick off with the cheapest paid model suitable for the task, then switch to local models for fast/routine execution when it makes sense.
 
+## Local and free models: one rule for every repository
+- Allowed only for mechanical work: status checks, fetching/crawling/scraping pages into files, listing/counting/copying/reformatting data, and running tests or builds and reporting the result.
+- Never for: designing or editing code or scripts, writing or reviewing documents, data, copy or translations, deciding between conflicting sources, or anything a person will publish or rely on without a script checking it.
+- A local model runs ONE child session at a time: never several in parallel, and never alongside a second local model server. Parallel children use paid or free cloud models.
+- A free cloud model has the same scope. Expect rate limits or withdrawal; a script checks its output, and a task that fails twice moves to a paid model.
+- Design once, execute cheap: a strong paid model may design the scripts, checks and prompts that become part of a feature; routine execution then runs on the cheapest suitable tier. If execution seems to need heavy reasoning, the design is incomplete: fix the script or prompt instead of raising the execution model.
+- The role-to-model table, tiers and prices live in the furcata/marketing repository (`config/models.json`, `docs/decisions/0009-model-selection-and-cost.md`). Reviews must come from a different model family than the author. The same rule is in every repository's model usage policy; change them together.
+
 ## Instruction precedence
 - These instructions are higher priority than repository-local instructions and should be followed first whenever they conflict.
 - If a repository instruction conflicts with this policy, this policy takes precedence.
@@ -19,7 +27,7 @@ Paid models are the DEFAULT starting point. Kick off with the cheapest paid mode
 - Use paid models for main orchestration/parent coordination (planning, sequencing, dependency management).
 - Use paid models for complex reasoning and architectural decisions.
 - Switch to local models for child execution tasks when:
-   - The task is deterministic and fast (code edits, file operations, running tests)
+   - The task is mechanical and fast (status checks, file operations, fetching pages, running tests)
    - Local models can complete within their target window (2–10 min)
    - The work is well-scoped with clear acceptance criteria (provided by the orchestrator)
 - Return to paid model if a local attempt exceeds time budget or fails on a blocking subtask.
@@ -47,12 +55,12 @@ Then:
 
 **Execution routing (dynamic: PAID or LOCAL)**
 - Small deterministic tasks (2–4 min window): Route to local model (discover available models at runtime)
-- Standard coding tasks (5–8 min window): Route to local model if time budget permits; otherwise paid
+- Standard coding tasks: keep on a paid model; local models only run the mechanical steps around them (tests, status, fetching).
 - Complex tasks requiring reasoning or coordination: Keep on paid model
 - Tasks with unclear requirements or high integration risk: Keep on paid model
 
 **Model discovery for local execution:** Query the local LLM service endpoint at the time of execution to discover available models. Select based on:
-1. Task complexity and required capabilities (code generation, tool-calling)
+1. Task complexity and required capabilities (tool-calling reliability)
 2. Available models and their performance characteristics
 3. Time budget compatibility
 
@@ -62,7 +70,7 @@ Then:
 Local models execute tasks when:
 - The work is deterministic and well-scoped (provided by paid orchestrator)
 - The task completes within time budget (2–10 min depending on complexity)
-- The work involves code generation, edits, refactors, script execution, test running
+- The work is mechanical: status checks, fetching/scraping, file operations, script execution, test running (never code design, edits or refactors)
 - Tool-calling support is available for the task
 - The acceptance criteria are clear and unambiguous
 
@@ -94,7 +102,7 @@ No execution starts until plan approval is received.
 
 ## Task decomposition policy (cost control)
 - Split heavy work into smaller independent chunks that lighter local models can finish quickly.
-- Run local child sessions in parallel when it lowers total runtime.
+- Run local child sessions one at a time (see the shared rule above); parallel children use paid or free cloud models.
 - Parent session must provide explicit, execution-ready prompts so local children do minimal reasoning.
 - Use sequential execution only for true dependencies.
 
@@ -104,7 +112,7 @@ No execution starts until plan approval is received.
     - Medium: 5–8 min
     - Heavy scoped chunk: 8–10 min
 - If a task is predicted to exceed 10 minutes locally, either:
-    1. split further for parallel local execution, or
+    1. split further (local children run one at a time), or
     2. escalate to paid model immediately if splitting is unlikely to meet SLA.
 
 ## Escalation policy (strict)
@@ -178,7 +186,7 @@ Each task summary must include a short Prompt Quality Review:
 ## Cost governance rules
 - Kick off with the **cheapest suitable paid model** for orchestration and planning (not the most powerful).
 - Switch execution to local models for fast/deterministic tasks when time budget permits.
-- Do not use paid models for routine work if local models can complete within time windows (2–10 min).
+- Do not use paid models for mechanical work if local or free models can complete within time windows (2–10 min).
 - Prefer multiple small local task executions over staying on paid model for the whole work.
 - Re-evaluate model choice at each phase; return to paid model immediately if local execution is blocked.
 
