@@ -438,7 +438,10 @@ class UserAdmin extends StatelessWidget {
         if (user.phone != null) {
           roleChips.add(
             Chip(
-              avatar: Icon(Icons.phone, color: Colors.grey.shade600),
+              avatar: Icon(
+                Icons.phone,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
               backgroundColor: Colors.transparent,
               padding: const EdgeInsets.all(0),
               label: SelectableText(user.phone!),

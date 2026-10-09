@@ -408,7 +408,9 @@ class _ProfileEditState extends State<ProfileEdit> {
                                   left: 15,
                                   child: FloatingActionButton(
                                     tooltip: locales.get('label--gallery'),
-                                    backgroundColor: Colors.grey.shade50,
+                                    backgroundColor: Theme.of(
+                                      context,
+                                    ).colorScheme.surfaceContainerHigh,
                                     heroTag: 'image',
                                     onPressed: loading
                                         ? null

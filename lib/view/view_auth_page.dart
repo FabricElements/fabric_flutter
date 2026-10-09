@@ -575,7 +575,11 @@ class ViewAuthPageState extends State<ViewAuthPage> {
             child: Stack(
               fit: StackFit.expand,
               children: <Widget>[
-                SizedBox.expand(child: Container(color: Colors.grey.shade50)),
+                SizedBox.expand(
+                  child: Container(
+                    color: Theme.of(context).colorScheme.surface,
+                  ),
+                ),
                 SizedBox.expand(
                   child: SmartImage(
                     key: ValueKey('auth-page-background-$backgroundImage'),

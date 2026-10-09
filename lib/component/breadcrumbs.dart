@@ -95,7 +95,9 @@ class Breadcrumbs extends StatelessWidget {
       }
       if (button.image != null) {
         iconButton = CircleAvatar(
-          backgroundColor: Colors.grey.shade100,
+          backgroundColor: Theme.of(
+            context,
+          ).colorScheme.surfaceContainerHighest,
           child: ClipOval(
             child: SmartImage(
               key: ValueKey('breadcrumb-image-${button.image}'),
