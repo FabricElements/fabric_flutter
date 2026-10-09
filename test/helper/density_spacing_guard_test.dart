@@ -11,7 +11,7 @@ final RegExp _spacingCall = RegExp(
   r'\bEdgeInsets(?:Directional)?\.(?:all|symmetric|only|fromLTRB|fromSTEB)\('
   r'|\bSizedBox\('
   r'|\bGap\('
-  r'|\b(?:spacing|runSpacing)\s*:',
+  r'|\b(?:spacing|runSpacing|indent|endIndent|horizontalTitleGap)\s*:',
 );
 
 /// Matches a numeric literal that is not part of an identifier.
@@ -200,6 +200,28 @@ void main() {
       test('should not flag a SizedBox that wraps a child', () {
         // Arrange
         const source = 'SizedBox(width: 152, child: Text("x"))';
+
+        // Act
+        final hits = findLiteralSpacing(source);
+
+        // Assert
+        expect(hits, isEmpty);
+      });
+
+      test('should flag indent and horizontalTitleGap set to a literal', () {
+        // Arrange
+        const source = 'Divider(indent: 16), ListTile(horizontalTitleGap: 8)';
+
+        // Act
+        final hits = findLiteralSpacing(source);
+
+        // Assert
+        expect(hits, hasLength(2));
+      });
+
+      test('should not flag icon geometry such as minLeadingWidth', () {
+        // Arrange
+        const source = 'ListTile(minLeadingWidth: 32)';
 
         // Act
         final hits = findLiteralSpacing(source);
