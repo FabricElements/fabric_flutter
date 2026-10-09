@@ -69,7 +69,7 @@ class StatusChip extends StatelessWidget {
       avatar: ExcludeSemantics(child: Icon(iconData, color: Colors.white)),
       label: width != null ? SizedBox(width: width, child: text) : text,
       backgroundColor: statusColor,
-      elevation: 1,
+      elevation: 0,
       side: BorderSide.none,
     );
   }

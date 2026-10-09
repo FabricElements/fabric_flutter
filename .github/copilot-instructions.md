@@ -185,6 +185,13 @@ Style rules:
 - Keep functions small and single-purpose; extract private helpers (`_name`) rather than growing a method.
 - **Do not add new dependencies** unless absolutely necessary — prefer packages already in `pubspec.yaml`, then the Flutter SDK / Material, then first-party `flutter.dev`/`dart.dev` or Flutter Favorite packages.
 
+### Theme access
+
+- Read the ambient theme once per `build` (or helper) into a local: `final theme = Theme.of(context);`.
+- Take `colorScheme` and `textTheme` from that local (`final colorScheme = theme.colorScheme;`, `final textTheme = theme.textTheme;`) and use those locals for every color and text style.
+- Do not call `Theme.of(context)` inline more than once per scope, including inside nested widget arguments.
+- Use the `DensitySpacing.of(context)` local the same way for spacing (see the density-aware spacing section).
+
 ---
 
 ## 5. Error Handling & Logging Standards

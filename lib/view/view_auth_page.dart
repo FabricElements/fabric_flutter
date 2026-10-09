@@ -171,6 +171,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
     final stateAnalytics = Provider.of<StateAnalytics>(context, listen: false);
     final state = Provider.of<StateViewAuth>(context);
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final locales = AppLocalizations.of(context);
     final textTheme = Theme.of(context).textTheme;
     final density = DensitySpacing(theme.visualDensity);
@@ -575,7 +576,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
             child: Stack(
               fit: StackFit.expand,
               children: <Widget>[
-                SizedBox.expand(child: Container(color: Colors.grey.shade50)),
+                SizedBox.expand(child: Container(color: colorScheme.surface)),
                 SizedBox.expand(
                   child: SmartImage(
                     key: ValueKey('auth-page-background-$backgroundImage'),
