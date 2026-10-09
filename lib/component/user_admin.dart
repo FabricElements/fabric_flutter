@@ -240,6 +240,7 @@ class UserAdmin extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
     final locales = AppLocalizations.of(context);
     final density = DensitySpacing(theme.visualDensity);
@@ -438,10 +439,7 @@ class UserAdmin extends StatelessWidget {
         if (user.phone != null) {
           roleChips.add(
             Chip(
-              avatar: Icon(
-                Icons.phone,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+              avatar: Icon(Icons.phone, color: colorScheme.onSurfaceVariant),
               backgroundColor: Colors.transparent,
               padding: const EdgeInsets.all(0),
               label: SelectableText(user.phone!),

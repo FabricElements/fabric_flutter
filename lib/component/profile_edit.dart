@@ -176,6 +176,8 @@ class _ProfileEditState extends State<ProfileEdit> {
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context);
     final density = DensitySpacing.of(context);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final stateUser = Provider.of<StateUser>(context, listen: false);
     final user = stateUser.serialized;
     userImage = widget.prefix != null && user.avatar != null
@@ -408,9 +410,8 @@ class _ProfileEditState extends State<ProfileEdit> {
                                   left: 15,
                                   child: FloatingActionButton(
                                     tooltip: locales.get('label--gallery'),
-                                    backgroundColor: Theme.of(
-                                      context,
-                                    ).colorScheme.surfaceContainerHigh,
+                                    backgroundColor:
+                                        colorScheme.surfaceContainerHigh,
                                     heroTag: 'image',
                                     onPressed: loading
                                         ? null
@@ -421,9 +422,7 @@ class _ProfileEditState extends State<ProfileEdit> {
                                           },
                                     child: Icon(
                                       Icons.image,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.secondary,
+                                      color: colorScheme.secondary,
                                     ),
                                   ),
                                 ),
