@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
 import '../helper/log_color.dart';
+import '../helper/material_theme.dart';
 import '../placeholder/loading_screen.dart';
 import '../serialized/user_status.dart';
 import '../state/state_analytics.dart';
@@ -329,6 +330,7 @@ class _InitAppChildState extends State<InitAppChild> {
     } else {
       theme = theme.copyWith(colorScheme: ThemeData.light().colorScheme);
     }
+    theme = MaterialThemeM3.apply(theme);
 
     final stateUser = Provider.of<StateUser>(context, listen: false);
     final textScaler = _resolveTextScaler(context);

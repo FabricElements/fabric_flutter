@@ -75,6 +75,7 @@ export 'helper/app_localizations_delegate.dart';
 export 'helper/auth_service.dart';
 export 'helper/byte_count_transformer.dart';
 export 'helper/density_spacing.dart';
+export 'helper/material_theme.dart';
 export 'helper/drop_file_format.dart';
 export 'helper/enum_data.dart';
 export 'helper/filter_helper.dart';
