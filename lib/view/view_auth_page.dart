@@ -173,7 +173,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final locales = AppLocalizations.of(context);
-    final textTheme = Theme.of(context).textTheme;
+    final textTheme = theme.textTheme;
     final density = DensitySpacing(theme.visualDensity);
     final height = MediaQuery.of(context).size.height;
     stateAnalytics.screenName = 'auth';
