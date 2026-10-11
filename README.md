@@ -44,6 +44,7 @@ Sourced directly from [`pubspec.yaml`](pubspec.yaml).
 | **Localization & i18n** | `flutter_localizations`, `devicelocale` ^0.9.0, `intl` ^0.20.2, `dlibphonenumber` ^1.1.67 |
 | **UI & content** | `google_fonts` ^8.1.0, `cupertino_icons` ^1.0.9, `omni_datetime_picker` ^2.3.2, `flutter_markdown_plus` ^1.0.12, `scrollable_positioned_list` ^0.3.8, `gap` ^3.0.1, `json_explorer` ^0.1.2 |
 | **Utilities** | `package_info_plus` ^10.2.1, `url_launcher` ^6.3.2, `collection` ^1.19.1, `ansicolor` ^2.0.3 |
+| **Dev only** | `widgetbook` ^3.25.0 (catalog in `widgetbook/`, not exported from `lib/`) |
 | **Testing & linting** | `flutter_test`, `integration_test`, `flutter_lints` ^6.0.0 |
 
 ### Architectural Map
@@ -478,6 +479,20 @@ flutter test --update-goldens
 ```
 
 Run goldens in the same isolated, mock-only manner as the rest of the suite (no live services). Commit updated golden images only when the visual change is intentional and reviewed.
+
+### Widgetbook catalog (development only)
+
+`widgetbook/` holds a dev-only [Widgetbook](https://www.widgetbook.io/) catalog for the shared widgets (`CardButton`, `SmartButton`, `StatusChip`, `SectionTitle`, `AdaptiveNavigationScaffold`). Every use case covers light and dark, the `VisualDensity` values used by `DensitySpacing`, and compact, medium, and expanded widths. Run it with:
+
+```bash
+flutter run -t widgetbook/main.dart
+```
+
+The catalog is not exported from `lib/`, nothing under `lib/` imports it, and `widgetbook` is a dev dependency only. `test/widgetbook/catalog_golden_test.dart` renders the same use cases as golden tests (`test/widgetbook/goldens/`). Regenerate them only for the new catalog test:
+
+```bash
+flutter test test/widgetbook/catalog_golden_test.dart --update-goldens
+```
 
 ---
 
