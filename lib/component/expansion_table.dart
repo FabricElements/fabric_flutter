@@ -440,7 +440,10 @@ class _ExpansionTableState extends State<ExpansionTable> {
             theme.dataTableTheme.headingRowHeight ??
             56;
         Widget columns = Material(
-          elevation: 1,
+          elevation: 0,
+          shape: Border(
+            bottom: BorderSide(color: theme.colorScheme.outlineVariant),
+          ),
           textStyle:
               widget.headingTextStyle ?? theme.dataTableTheme.headingTextStyle,
           color:

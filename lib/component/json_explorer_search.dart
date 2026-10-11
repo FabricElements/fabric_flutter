@@ -9,6 +9,7 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 import '../helper/app_localizations_delegate.dart';
 import '../helper/density_spacing.dart';
+import '../helper/m3_tokens.dart';
 import '../helper/url_safety.dart';
 import 'alert_data.dart';
 import 'input_data.dart';
@@ -339,7 +340,6 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
                                 minHorizontal: 4,
                               ),
                               child: IconButton(
-                                visualDensity: VisualDensity.compact,
                                 icon: const Icon(Icons.copy),
                                 iconSize: 18,
                                 constraints: const BoxConstraints(
@@ -449,12 +449,18 @@ class _JsonExplorerSearchState extends State<JsonExplorerSearch> {
     /// Waits for the store-driven rebuild before resolving the target index.
     await Future.delayed(const Duration(milliseconds: 300));
     final index = store.displayNodes.indexOf(store.focusedSearchResult.node);
-    if (index >= 0) {
+    if (index >= 0 && mounted) {
+      /// Jumps instead of animating when the platform asks to reduce motion.
+      if (M3Motion.reduceMotion(context)) {
+        itemScrollController.jumpTo(index: index);
+        return;
+      }
+
       /// Scrolls to the currently focused search result.
       itemScrollController.scrollTo(
         index: index,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.linear,
+        duration: M3Motion.medium2,
+        curve: M3Motion.standard,
       );
     }
   }

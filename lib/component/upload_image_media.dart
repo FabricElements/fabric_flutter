@@ -77,7 +77,7 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
         width: boxSize,
         child: RefreshProgressIndicator(
           indicatorPadding: density.all(4, min: 2),
-          elevation: 1,
+          elevation: 0,
           semanticsLabel: locales.get('label--loading'),
         ),
       );
