@@ -12,6 +12,10 @@
 * **`MaterialThemeM3.schemeFromSeed`** derives a light or dark Material 3
   `ColorScheme` from a brand seed using the fidelity variant, and **`InitApp`
   / `InitAppChild` accept an optional `seedColor`**.
+* **`AdaptiveNavigationScaffold`** (`lib/component/adaptive_navigation_scaffold.dart`)
+  shows a `NavigationBar` below 600dp, a `NavigationRail` from 600dp and an
+  extended rail from 1200dp, choosing by `WindowSizeClass`, and pads the body
+  with the 16dp/24dp window margin.
 
 ### Changed
 
