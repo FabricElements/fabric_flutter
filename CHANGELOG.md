@@ -1,3 +1,15 @@
+## [Unreleased]
+
+### Added
+
+* **`WindowSizeClass`** (`lib/helper/window_size.dart`) maps a width to the
+  Material 3 window size classes (compact, medium, expanded, large,
+  extra-large) and exposes the recommended 16dp/24dp window margins.
+* **`M3Shape` and `M3Motion`** (`lib/helper/m3_tokens.dart`) expose the
+  Material 3 corner radius scale, motion durations and easing curves, plus a
+  `M3Motion.resolve` helper that returns `Duration.zero` when the platform
+  requests reduced motion.
+
 ## [3.1.1] - 2026-09-23
 
 ### Fixed
