@@ -16,6 +16,17 @@
   shows a `NavigationBar` below 600dp, a `NavigationRail` from 600dp and an
   extended rail from 1200dp, choosing by `WindowSizeClass`, and pads the body
   with the 16dp/24dp window margin.
+* **Widgetbook catalog** (`widgetbook/`, dev only, not exported from `lib/`)
+  covers `CardButton`, `SmartButton`, `StatusChip`, `SectionTitle`, and
+  `AdaptiveNavigationScaffold` across light and dark, every `VisualDensity`
+  used by `DensitySpacing`, and compact, medium, and expanded widths. Golden
+  tests in `test/widgetbook/` render the same use cases.
+
+### Dependencies
+
+* **`widgetbook` ^3.25.0** added as a dev dependency for the development-only
+  catalog in `widgetbook/`. It is not a runtime dependency and is excluded from
+  publishing via `.pubignore`.
 
 ### Changed
 
