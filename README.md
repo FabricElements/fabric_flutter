@@ -205,6 +205,22 @@ const InitApp(
 );
 ```
 
+### Adaptive navigation (`AdaptiveNavigationScaffold`)
+
+`AdaptiveNavigationScaffold` switches the top-level navigation by `WindowSizeClass`: a bottom `NavigationBar` below 600dp, a `NavigationRail` from 600dp, and an extended rail from 1200dp. The body gets the Material 3 window margin (16dp compact, 24dp medium and up) unless `applyMargin` is `false`.
+
+```dart
+AdaptiveNavigationScaffold(
+  destinations: const [
+    AdaptiveDestination(icon: Icon(Icons.home_outlined), label: 'Home'),
+    AdaptiveDestination(icon: Icon(Icons.settings_outlined), label: 'Settings'),
+  ],
+  selectedIndex: index,
+  onDestinationSelected: (value) => setState(() => index = value),
+  body: pages[index],
+)
+```
+
 ### Accessibility
 
 Accessibility is a first-class concern in this package. Three conventions apply across every interactive component.
