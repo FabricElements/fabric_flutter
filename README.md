@@ -196,6 +196,15 @@ void main() {
 
 The host app is what runs on a device, emulator, or browser via its own `flutter run` (for example `flutter run -d chrome` for web). `InitApp` installs the provider tree so the package's components and state classes are available throughout the app.
 
+**Brand color.** Pass `seedColor` to derive the light and dark color schemes from your brand color with `MaterialThemeM3.schemeFromSeed` (Material 3 fidelity variant, which keeps the brand hue recognisable in both brightnesses). Without it, the scheme is seeded from the ambient theme's primary color.
+
+```dart
+const InitApp(
+  seedColor: Color(0xFF0B57D0),
+  child: MyApp(),
+);
+```
+
 ### Accessibility
 
 Accessibility is a first-class concern in this package. Three conventions apply across every interactive component.

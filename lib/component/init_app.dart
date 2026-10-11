@@ -77,7 +77,15 @@ class InitApp extends StatelessWidget {
     this.honorSystemTextScale = false,
     this.minTextScaleFactor = kDefaultMinTextScaleFactor,
     this.maxTextScaleFactor = kDefaultMaxTextScaleFactor,
+    this.seedColor,
   });
+
+  /// Stores the brand seed used to derive the light and dark color schemes.
+  ///
+  /// When `null`, the ambient theme's [ColorScheme.primary] is used as the
+  /// seed. Both schemes come from [MaterialThemeM3.schemeFromSeed], so the
+  /// brand primary survives in both brightnesses with M3 tonal contrast.
+  final Color? seedColor;
 
   /// Stores additional providers inserted ahead of the default Fabric providers.
   ///
@@ -151,6 +159,7 @@ class InitApp extends StatelessWidget {
         honorSystemTextScale: honorSystemTextScale,
         minTextScaleFactor: minTextScaleFactor,
         maxTextScaleFactor: maxTextScaleFactor,
+        seedColor: seedColor,
         child: child,
       ),
     );
@@ -175,7 +184,14 @@ class InitAppChild extends StatefulWidget {
     this.honorSystemTextScale = false,
     this.minTextScaleFactor = kDefaultMinTextScaleFactor,
     this.maxTextScaleFactor = kDefaultMaxTextScaleFactor,
+    this.seedColor,
   });
+
+  /// Stores the brand seed used to derive the light and dark color schemes.
+  ///
+  /// Matches [InitApp.seedColor]. When `null`, the ambient theme's
+  /// [ColorScheme.primary] is used as the seed.
+  final Color? seedColor;
 
   /// Stores the application subtree shown once bootstrap work is complete.
   ///
@@ -316,7 +332,8 @@ class _InitAppChildState extends State<InitAppChild> {
 
   /// Returns either the loading screen or the application [InitAppChild.child].
   ///
-  /// The method derives a theme from the current platform brightness and delays
+  /// The method derives a color scheme from [InitAppChild.seedColor] (or the
+  /// ambient primary) for the current platform brightness and delays
   /// rendering the child until the [UserStatus] stream reports a resolved state.
   /// Text is rendered at a fixed scale unless
   /// [InitAppChild.honorSystemTextScale] is enabled; see [_resolveTextScaler]
@@ -325,11 +342,11 @@ class _InitAppChildState extends State<InitAppChild> {
   Widget build(BuildContext context) {
     ThemeData theme = Theme.of(context);
     final brightness = MediaQuery.platformBrightnessOf(context);
-    if (brightness == Brightness.dark) {
-      theme = theme.copyWith(colorScheme: ThemeData.dark().colorScheme);
-    } else {
-      theme = theme.copyWith(colorScheme: ThemeData.light().colorScheme);
-    }
+    final seed = widget.seedColor ?? theme.colorScheme.primary;
+    theme = theme.copyWith(
+      brightness: brightness,
+      colorScheme: MaterialThemeM3.schemeFromSeed(seed, brightness),
+    );
     theme = MaterialThemeM3.apply(theme);
 
     final stateUser = Provider.of<StateUser>(context, listen: false);

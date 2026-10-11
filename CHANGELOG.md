@@ -9,8 +9,17 @@
   Material 3 corner radius scale, motion durations and easing curves, plus a
   `M3Motion.resolve` helper that returns `Duration.zero` when the platform
   requests reduced motion.
+* **`MaterialThemeM3.schemeFromSeed`** derives a light or dark Material 3
+  `ColorScheme` from a brand seed using the fidelity variant, and **`InitApp`
+  / `InitAppChild` accept an optional `seedColor`**.
 
 ### Changed
+
+* **`InitApp` color schemes are now seed-derived.** The light and dark schemes
+  come from `MaterialThemeM3.schemeFromSeed`, using `seedColor` or, when it is
+  omitted, the ambient theme's primary color, instead of the baseline
+  `ThemeData.light()` / `ThemeData.dark()` schemes. Colors change visibly after
+  upgrading; pass `seedColor` to keep your brand hue.
 
 * **`MaterialThemeM3.apply` now fills flat, tonal Material 3 component
   themes** for the app bar, navigation bar, rail and drawer, FAB, chips,
