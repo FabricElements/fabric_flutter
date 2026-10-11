@@ -20,6 +20,28 @@ import 'm3_tokens.dart';
 class MaterialThemeM3 {
   const MaterialThemeM3._();
 
+  /// Returns a Material 3 [ColorScheme] derived from a brand [seed] for the
+  /// given [brightness].
+  ///
+  /// Uses [DynamicSchemeVariant.fidelity] so the light and dark primary roles
+  /// stay close to the seed's hue and chroma, while the tonal palette keeps
+  /// the M3 contrast pairs (`on*` roles against their containers) legible in
+  /// both brightnesses.
+  ///
+  /// ```dart
+  /// final dark = MaterialThemeM3.schemeFromSeed(
+  ///   const Color(0xFF6750A4),
+  ///   Brightness.dark,
+  /// );
+  /// ```
+  static ColorScheme schemeFromSeed(Color seed, Brightness brightness) {
+    return ColorScheme.fromSeed(
+      seedColor: seed,
+      brightness: brightness,
+      dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
+    );
+  }
+
   /// Returns [base] with M3 surface roles applied to card and dialog themes
   /// and M3 defaults applied to unset component theme values.
   ///
