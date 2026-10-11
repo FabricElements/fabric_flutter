@@ -1058,7 +1058,7 @@ getValue -------------------------------------
 
     Widget endWidget = Text(
       'Type "${widget.type}" not implemented',
-      style: const TextStyle(color: Colors.orange),
+      style: TextStyle(color: theme.colorScheme.error),
     );
     TextInputType keyboardType = TextInputType.text;
     TextInputAction? textInputAction = widget.textInputAction;
