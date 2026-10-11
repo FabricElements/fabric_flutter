@@ -10,6 +10,22 @@
   `M3Motion.resolve` helper that returns `Duration.zero` when the platform
   requests reduced motion.
 
+### Fixed
+
+* **Hardcoded palette colors now use Material 3 color roles** so components
+  follow light and dark themes: `UserAvatar` presence badges (`primary`,
+  `error`, `surface` border), `UserAdmin` remove and chip avatars (`error`,
+  `onSurfaceVariant`), and the `InputData` error text (`error`). Google brand
+  colors are intentionally unchanged.
+* **Flat surfaces:** the `ExpansionTable` heading and the `UploadImageMedia`
+  refresh indicator no longer cast shadows; the table heading uses an
+  `outlineVariant` divider instead.
+* **Reduced motion is respected:** `SmartImage` fades in instantly and
+  `JsonExplorerSearch` jumps to results instead of scrolling when the platform
+  requests reduced motion.
+* **`JsonExplorerSearch` copy action keeps a 48dp touch target** instead of
+  forcing compact visual density.
+
 ## [3.1.1] - 2026-09-23
 
 ### Fixed

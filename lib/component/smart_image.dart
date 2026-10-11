@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:image_network/image_network.dart';
 
 import '../helper/app_localizations_delegate.dart';
+import '../helper/m3_tokens.dart';
 import '../helper/utils.dart';
 
 /// Enumerates the output formats supported by the backing image service.
@@ -496,8 +497,8 @@ class _SmartImageState extends State<SmartImage> {
                       if (wasSynchronouslyLoaded) return child;
                       return AnimatedOpacity(
                         opacity: frame == null ? 0 : 1,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeOut,
+                        duration: M3Motion.resolve(context, M3Motion.medium2),
+                        curve: M3Motion.standardDecelerate,
                         child: child,
                       );
                     },
