@@ -10,6 +10,17 @@
   `M3Motion.resolve` helper that returns `Duration.zero` when the platform
   requests reduced motion.
 
+### Changed
+
+* **`MaterialThemeM3.apply` now fills flat, tonal Material 3 component
+  themes** for the app bar, navigation bar, rail and drawer, FAB, chips,
+  inputs, snackbars, bottom sheets, menus and tooltips. Surfaces use elevation
+  0 with `surfaceContainer` roles and `outlineVariant` borders, inputs are
+  outlined, the FAB is flat, and corner radii come from `M3Shape`. Each
+  default applies only when the base theme leaves that value unset, so an
+  explicit consumer theme is preserved. Apps that relied on the previous
+  elevated or filled defaults will render flatter after upgrading.
+
 ### Fixed
 
 * **Hardcoded palette colors now use Material 3 color roles** so components
