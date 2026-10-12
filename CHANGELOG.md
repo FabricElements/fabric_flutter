@@ -2,6 +2,11 @@
 
 ### Added
 
+* **`WebPointerInterceptor`** (`lib/helper/web_pointer_interceptor.dart`) wraps
+  its child in `PointerInterceptor` on the web only. On iOS and Android the
+  plugin inserts a native view that can paint above Flutter menus and dropdowns,
+  so the helper returns the child unchanged there. Fabric's inputs, dialogs and
+  filter menus use it.
 * **`scopedAutomationKey`** (`lib/helper/automation_key.dart`) builds a
   `<screen>.<control>` automation key from the active named route, so the same
   control name stays unique per screen. It moved here from the app so every

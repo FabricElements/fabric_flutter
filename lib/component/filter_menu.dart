@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:pointer_interceptor/pointer_interceptor.dart';
+import '../helper/web_pointer_interceptor.dart';
 
 import '../helper/app_localizations_delegate.dart';
 import '../helper/density_spacing.dart';
@@ -425,7 +425,7 @@ class _FilterMenuOptionDataState extends State<FilterMenuOptionData> {
         space,
       ]);
     }
-    return PointerInterceptor(
+    return WebPointerInterceptor(
       child: Padding(
         padding: density.all(8, min: 4),
         child: Flex(
@@ -709,7 +709,7 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
     if (isSort) {
       icon = Icons.sort;
     }
-    return PointerInterceptor(
+    return WebPointerInterceptor(
       child: PopupMenuButton(
         tooltip: locales.get('label--edit-label', {'label': data.label}),
         padding: EdgeInsets.zero,
@@ -1026,7 +1026,7 @@ class _FilterMenuState extends State<FilterMenu> {
           //     (isMediumScreen && pendingOptions.length >= 10),
           searchController: searchController,
           builder: (BuildContext context, SearchController controller) {
-            return PointerInterceptor(
+            return WebPointerInterceptor(
               child: OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
                   foregroundColor:
@@ -1080,7 +1080,7 @@ class _FilterMenuState extends State<FilterMenu> {
                   selected.operator == FilterOperator.sort ||
                   selected.id == 'sort';
               if (isSort) icon = Icons.sort;
-              return PointerInterceptor(
+              return WebPointerInterceptor(
                 child: ListTile(
                   leading: Icon(icon),
                   title: Text(
@@ -1108,7 +1108,7 @@ class _FilterMenuState extends State<FilterMenu> {
                       barrierDismissible: false, // user must tap button!
                       context: c,
                       builder: (BuildContext ctx) {
-                        return PointerInterceptor(
+                        return WebPointerInterceptor(
                           child: AlertDialog(
                             key: ValueKey(
                               'filter-menu-option-data-pop-up-${item.id}',

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:omni_datetime_picker/omni_datetime_picker.dart';
-import 'package:pointer_interceptor/pointer_interceptor.dart';
+import '../helper/web_pointer_interceptor.dart';
 
 import '../helper/agent/agent_element_binding.dart';
 import '../helper/app_localizations_delegate.dart';
@@ -1519,7 +1519,7 @@ getValue -------------------------------------
               return MouseRegion(
                 cursor: SystemMouseCursors.click,
                 opaque: false,
-                child: PointerInterceptor(child: widgetInput),
+                child: WebPointerInterceptor(child: widgetInput),
               );
             },
             suggestionsBuilder: (BuildContext context, SearchController controller) {
@@ -1603,7 +1603,7 @@ getValue -------------------------------------
                   return Semantics(
                     inMutuallyExclusiveGroup: true,
                     selected: item.value == this.value,
-                    child: PointerInterceptor(
+                    child: WebPointerInterceptor(
                       // MergeSemantics combines the leading/trailing avatar
                       // and the title into a single announced unit instead of
                       // two separate stops; the avatar's own accessible name
