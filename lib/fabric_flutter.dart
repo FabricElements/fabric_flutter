@@ -79,6 +79,7 @@ export 'helper/auth_service.dart';
 export 'helper/byte_count_transformer.dart';
 export 'helper/density_spacing.dart';
 export 'helper/density_text_scale.dart';
+export 'helper/m3_expressive_shape_border.dart';
 export 'helper/m3_tokens.dart';
 export 'helper/material_theme.dart';
 export 'helper/drop_file_format.dart';

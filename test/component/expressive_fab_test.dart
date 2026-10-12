@@ -1,7 +1,7 @@
-import 'package:fabric_flutter/component/expressive_fab.dart';
-import 'package:fabric_flutter/helper/m3_tokens.dart';
 import 'dart:ui' as ui;
 
+import 'package:fabric_flutter/component/expressive_fab.dart';
+import 'package:fabric_flutter/helper/m3_expressive_shape_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -15,14 +15,26 @@ Future<void> _pump(WidgetTester tester, Widget child) async {
   await tester.pumpAndSettle();
 }
 
-/// Returns the corner radius that the FAB's animated decoration currently uses.
-double _currentRadius(WidgetTester tester) {
-  final container = tester.widget<AnimatedContainer>(
-    find.byType(AnimatedContainer),
+/// Returns the outline the FAB's surface currently uses.
+ExpressiveShapeBorder _currentShape(WidgetTester tester) {
+  final material = tester.widget<Material>(
+    find
+        .descendant(
+          of: find.byType(ExpressiveFab),
+          matching: find.byType(Material),
+        )
+        .first,
   );
-  final decoration = container.decoration! as ShapeDecoration;
-  final shape = decoration.shape as RoundedRectangleBorder;
-  return (shape.borderRadius as BorderRadius).topLeft.x;
+  return material.shape! as ExpressiveShapeBorder;
+}
+
+/// Asserts [shape] is within a small tolerance of [target].
+///
+/// Springs settle near their target rather than exactly on it, so the shape is
+/// compared by its fields with a tolerance instead of by equality.
+void _expectShape(ExpressiveShapeBorder shape, ExpressiveShapeBorder target) {
+  expect(shape.amplitude, closeTo(target.amplitude, 0.002));
+  expect(shape.exponent, closeTo(target.exponent, 0.02));
 }
 
 void main() {
@@ -38,12 +50,11 @@ void main() {
             icon: Icons.add,
             semanticsLabel: 'Add',
             size: ExpressiveFabSize.small,
-            onPressed: null,
           ),
         );
 
         // Assert
-        expect(tester.getSize(find.byType(ExpressiveFab)).width, 56);
+        expect(tester.getSize(find.byType(SizedBox).first).width, 56);
       });
 
       testWidgets('should use the 80dp container by default', (
@@ -56,7 +67,7 @@ void main() {
         );
 
         // Assert
-        expect(tester.getSize(find.byType(ExpressiveFab)).width, 80);
+        expect(tester.getSize(find.byType(SizedBox).first).width, 80);
       });
 
       testWidgets('should use the 96dp container for the large size', (
@@ -69,12 +80,11 @@ void main() {
             icon: Icons.add,
             semanticsLabel: 'Add',
             size: ExpressiveFabSize.large,
-            onPressed: null,
           ),
         );
 
         // Assert
-        expect(tester.getSize(find.byType(ExpressiveFab)).width, 96);
+        expect(tester.getSize(find.byType(SizedBox).first).width, 96);
       });
     });
 
@@ -101,26 +111,9 @@ void main() {
         expect(taps, 1);
       });
 
-      testWidgets('should mark the button disabled when onPressed is null', (
-        WidgetTester tester,
-      ) async {
-        final handle = tester.ensureSemantics();
-        // Arrange & Act
-        await _pump(
-          tester,
-          const ExpressiveFab(icon: Icons.add, semanticsLabel: 'Add'),
-        );
-
-        // Assert
-        final semantics = tester.getSemantics(find.bySemanticsLabel('Add'));
-        expect(semantics.flagsCollection.isEnabled, ui.Tristate.isFalse);
-        handle.dispose();
-      });
-
       testWidgets('should expose the semantics label to assistive tech', (
         WidgetTester tester,
       ) async {
-        final handle = tester.ensureSemantics();
         // Arrange & Act
         await _pump(
           tester,
@@ -133,12 +126,29 @@ void main() {
 
         // Assert
         expect(find.bySemanticsLabel('Create'), findsOneWidget);
+      });
+
+      testWidgets('should mark the button disabled when onPressed is null', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
+        final handle = tester.ensureSemantics();
+
+        // Act
+        await _pump(
+          tester,
+          const ExpressiveFab(icon: Icons.add, semanticsLabel: 'Add'),
+        );
+
+        // Assert
+        final semantics = tester.getSemantics(find.bySemanticsLabel('Add'));
+        expect(semantics.flagsCollection.isEnabled, ui.Tristate.isFalse);
         handle.dispose();
       });
     });
 
     group('press morph', () {
-      testWidgets('should rest at the size radius before any press', (
+      testWidgets('should rest as a squircle with no lobes', (
         WidgetTester tester,
       ) async {
         // Arrange & Act
@@ -152,10 +162,10 @@ void main() {
         );
 
         // Assert
-        expect(_currentRadius(tester), M3ExpressiveShape.fabLarge);
+        _expectShape(_currentShape(tester), ExpressiveShapeBorder.squircle);
       });
 
-      testWidgets('should morph to a full circle while held', (
+      testWidgets('should settle into the cookie while held', (
         WidgetTester tester,
       ) async {
         // Arrange
@@ -175,14 +185,44 @@ void main() {
         await tester.pumpAndSettle();
 
         // Assert
-        expect(_currentRadius(tester), M3ExpressiveShape.fabPressed);
+        _expectShape(_currentShape(tester), ExpressiveShapeBorder.cookie);
 
         // Cleanup
         await gesture.up();
         await tester.pumpAndSettle();
       });
 
-      testWidgets('should return to the resting radius after release', (
+      testWidgets('should pass through intermediate shapes while springing', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
+        await _pump(
+          tester,
+          ExpressiveFab(
+            icon: Icons.add,
+            semanticsLabel: 'Add',
+            onPressed: () {},
+          ),
+        );
+
+        // Act
+        final gesture = await tester.startGesture(
+          tester.getCenter(find.byType(InkWell)),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 40));
+
+        // Assert: the morph is a spring, so an early frame is between the two.
+        final amplitude = _currentShape(tester).amplitude;
+        expect(amplitude, greaterThan(0));
+        expect(amplitude, lessThan(ExpressiveShapeBorder.cookie.amplitude));
+
+        // Cleanup
+        await gesture.up();
+        await tester.pumpAndSettle();
+      });
+
+      testWidgets('should spring back to the squircle after release', (
         WidgetTester tester,
       ) async {
         // Arrange
@@ -204,7 +244,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Assert
-        expect(_currentRadius(tester), M3ExpressiveShape.fabLarge);
+        _expectShape(_currentShape(tester), ExpressiveShapeBorder.squircle);
       });
 
       testWidgets('should not morph when disabled', (
@@ -223,7 +263,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Assert
-        expect(_currentRadius(tester), M3ExpressiveShape.fabLarge);
+        _expectShape(_currentShape(tester), ExpressiveShapeBorder.squircle);
 
         // Cleanup
         await gesture.up();

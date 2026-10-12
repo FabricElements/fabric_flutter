@@ -1,7 +1,7 @@
-import 'package:fabric_flutter/component/expressive_button_group.dart';
-import 'package:fabric_flutter/helper/m3_tokens.dart';
 import 'dart:ui' as ui;
 
+import 'package:fabric_flutter/component/expressive_button_group.dart';
+import 'package:fabric_flutter/helper/m3_expressive_shape_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -17,19 +17,12 @@ Future<void> _pump(WidgetTester tester, Widget group) async {
   await tester.pumpAndSettle();
 }
 
-/// Returns the corner radii that the segment labelled [label] currently uses.
-BorderRadius _radiusOf(WidgetTester tester, String label) {
-  final container = tester.widget<AnimatedContainer>(
-    find
-        .ancestor(
-          of: find.text(label),
-          matching: find.byType(AnimatedContainer),
-        )
-        .first,
+/// Returns the outline of the segment labelled [label].
+ExpressiveShapeBorder _shapeOf(WidgetTester tester, String label) {
+  final material = tester.widget<Material>(
+    find.ancestor(of: find.text(label), matching: find.byType(Material)).first,
   );
-  final decoration = container.decoration! as ShapeDecoration;
-  final shape = decoration.shape as RoundedRectangleBorder;
-  return shape.borderRadius as BorderRadius;
+  return material.shape! as ExpressiveShapeBorder;
 }
 
 const _items = [
@@ -37,6 +30,15 @@ const _items = [
   ExpressiveButtonItem(value: 'week', label: 'Week'),
   ExpressiveButtonItem(value: 'month', label: 'Month'),
 ];
+
+/// Asserts [shape] is within a small tolerance of [target].
+///
+/// Springs settle near their target rather than exactly on it, so the shape is
+/// compared by its fields with a tolerance instead of by equality.
+void _expectShape(ExpressiveShapeBorder shape, ExpressiveShapeBorder target) {
+  expect(shape.amplitude, closeTo(target.amplitude, 0.002));
+  expect(shape.exponent, closeTo(target.exponent, 0.02));
+}
 
 void main() {
   group('ExpressiveButtonGroup', () {
@@ -66,8 +68,10 @@ void main() {
       testWidgets('should mark every segment disabled when the group is', (
         WidgetTester tester,
       ) async {
+        // Arrange
         final handle = tester.ensureSemantics();
-        // Arrange & Act
+
+        // Act
         await _pump(
           tester,
           const ExpressiveButtonGroup<String>(
@@ -86,8 +90,10 @@ void main() {
       testWidgets('should expose each segment as a labelled button', (
         WidgetTester tester,
       ) async {
+        // Arrange
         final handle = tester.ensureSemantics();
-        // Arrange & Act
+
+        // Act
         await _pump(
           tester,
           ExpressiveButtonGroup<String>(
@@ -106,25 +112,7 @@ void main() {
     });
 
     group('shape', () {
-      testWidgets('should keep fully rounded outer ends on the edge segments', (
-        WidgetTester tester,
-      ) async {
-        // Arrange & Act
-        await _pump(
-          tester,
-          ExpressiveButtonGroup<String>(
-            items: _items,
-            selected: 'week',
-            onChanged: (_) {},
-          ),
-        );
-
-        // Assert
-        expect(_radiusOf(tester, 'Day').topLeft.x, M3Shape.full);
-        expect(_radiusOf(tester, 'Month').topRight.x, M3Shape.full);
-      });
-
-      testWidgets('should keep small inner corners on unselected segments', (
+      testWidgets('should rest unselected segments as squircles', (
         WidgetTester tester,
       ) async {
         // Arrange & Act
@@ -138,17 +126,10 @@ void main() {
         );
 
         // Assert
-        expect(
-          _radiusOf(tester, 'Week').topLeft.x,
-          M3ExpressiveShape.segmentInner,
-        );
-        expect(
-          _radiusOf(tester, 'Week').topRight.x,
-          M3ExpressiveShape.segmentInner,
-        );
+        _expectShape(_shapeOf(tester, 'Week'), ExpressiveShapeBorder.squircle);
       });
 
-      testWidgets('should morph the selected segment to the selected radius', (
+      testWidgets('should spring the selected segment into the cookie', (
         WidgetTester tester,
       ) async {
         // Arrange
@@ -172,10 +153,45 @@ void main() {
         );
 
         // Assert
-        expect(
-          _radiusOf(tester, 'Week').topLeft.x,
-          M3ExpressiveShape.segmentSelected,
+        _expectShape(_shapeOf(tester, 'Week'), ExpressiveShapeBorder.cookie);
+        _expectShape(_shapeOf(tester, 'Day'), ExpressiveShapeBorder.squircle);
+      });
+
+      testWidgets('should pass through intermediate shapes while springing', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
+        await _pump(
+          tester,
+          ExpressiveButtonGroup<String>(
+            items: _items,
+            selected: 'day',
+            onChanged: (_) {},
+          ),
         );
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Padding(
+                padding: const EdgeInsets.all(16),
+                child: ExpressiveButtonGroup<String>(
+                  items: _items,
+                  selected: 'week',
+                  onChanged: (_) {},
+                ),
+              ),
+            ),
+          ),
+        );
+
+        // Act
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 40));
+
+        // Assert
+        final amplitude = _shapeOf(tester, 'Week').amplitude;
+        expect(amplitude, greaterThan(0));
+        expect(amplitude, lessThan(ExpressiveShapeBorder.cookie.amplitude));
       });
     });
   });
