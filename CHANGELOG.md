@@ -1,3 +1,108 @@
+## [Unreleased]
+
+### Added
+
+* **`WindowSizeClass`** (`lib/helper/window_size.dart`) maps a width to the
+  Material 3 window size classes (compact, medium, expanded, large,
+  extra-large) and exposes the recommended 16dp/24dp window margins.
+* **`M3Shape` and `M3Motion`** (`lib/helper/m3_tokens.dart`) expose the
+  Material 3 corner radius scale, motion durations and easing curves, plus a
+  `M3Motion.resolve` helper that returns `Duration.zero` when the platform
+  requests reduced motion.
+* **`MaterialThemeM3.schemeFromSeed`** derives a light or dark Material 3
+  `ColorScheme` from a brand seed using the fidelity variant, and **`InitApp`
+  / `InitAppChild` accept an optional `seedColor`**.
+* **`AdaptiveNavigationScaffold`** (`lib/component/adaptive_navigation_scaffold.dart`)
+  shows a `NavigationBar` below 600dp, a `NavigationRail` from 600dp and an
+  extended rail from 1200dp, choosing by `WindowSizeClass`, and pads the body
+  with the 16dp/24dp window margin.
+* **Widgetbook catalog** (`widgetbook/`, dev only, not exported from `lib/`)
+  covers `CardButton`, `SmartButton`, `StatusChip`, `SectionTitle`, and
+  `AdaptiveNavigationScaffold` across light and dark, every `VisualDensity`
+  used by `DensitySpacing`, and compact, medium, and expanded widths. Golden
+  tests in `test/widgetbook/` render the same use cases.
+
+### Dependencies
+
+* **`widgetbook` ^3.25.0** added as a dev dependency for the development-only
+  catalog in `widgetbook/`. It is not a runtime dependency and is excluded from
+  publishing via `.pubignore`.
+
+### Changed
+
+* **`InitApp` color schemes are now seed-derived.** The light and dark schemes
+  come from `MaterialThemeM3.schemeFromSeed`, using `seedColor` or, when it is
+  omitted, the ambient theme's primary color, instead of the baseline
+  `ThemeData.light()` / `ThemeData.dark()` schemes. Colors change visibly after
+  upgrading; pass `seedColor` to keep your brand hue.
+
+* **`MaterialThemeM3.apply` now fills flat, tonal Material 3 component
+  themes** for the app bar, navigation bar, rail and drawer, FAB, chips,
+  inputs, snackbars, bottom sheets, menus and tooltips. Surfaces use elevation
+  0 with `surfaceContainer` roles and `outlineVariant` borders, inputs are
+  outlined, the FAB is flat, and corner radii come from `M3Shape`. Each
+  default applies only when the base theme leaves that value unset, so an
+  explicit consumer theme is preserved. Apps that relied on the previous
+  elevated or filled defaults will render flatter after upgrading.
+
+### Fixed
+
+* **Hardcoded palette colors now use Material 3 color roles** so components
+  follow light and dark themes: `UserAvatar` presence badges (`primary`,
+  `error`, `surface` border), `UserAdmin` remove and chip avatars (`error`,
+  `onSurfaceVariant`), and the `InputData` error text (`error`). Google brand
+  colors are intentionally unchanged.
+* **Flat surfaces:** the `ExpansionTable` heading and the `UploadImageMedia`
+  refresh indicator no longer cast shadows; the table heading uses an
+  `outlineVariant` divider instead.
+* **Reduced motion is respected:** `SmartImage` fades in instantly and
+  `JsonExplorerSearch` jumps to results instead of scrolling when the platform
+  requests reduced motion.
+* **`JsonExplorerSearch` copy action keeps a 48dp touch target** instead of
+  forcing compact visual density.
+
+## [3.1.1] - 2026-09-23
+
+### Fixed
+
+* **`GoogleMapsSearch` now exposes its search field through the agent
+  automation surface** with a deterministic identifier, live value, setter, and
+  activation support. (#234)
+* **Agent command authorization now runs before command lookup**, so callers
+  cannot distinguish registered commands from unknown commands without access.
+  (#235)
+* **Agent bridge failures no longer expose unexpected exception details to
+  remote callers**, and malformed JSON responses use a generic validation
+  message. (#238)
+* **Agent bridge authorization now fails closed by default.** Hosts that intend
+  to allow unauthenticated in-process access must explicitly configure
+  `AgentAllowAllAuthorizer`. (#239)
+* **Agent bridge documentation no longer uses consumer-specific example
+  branding.** (#236)
+* **Pinned the FlutterFire dependency set to the versions compatible with the
+  package's current Flutter SDK.** This keeps `flutter pub get` and the test
+  compiler on a mutually compatible API surface.
+
+## [3.1.0] - 2026-09-11
+
+### Added
+
+* **`StateShared.includeSql` now defaults to `false`.** Client-generated SQL is no longer added to outgoing query parameters unless a caller explicitly sets `includeSql = true`; the readable `sql` getter remains available.
+
+### Changed
+
+* **`StateShared.filtersEncoded` — the active filter set as a compact, declarative payload.** Mirrors the existing `sql` getter in shape and nullability, so a caller assembling the query-parameter map can use either. Unlike `sql`, the payload is a closed `{id, type, operator, value, index}` grammar: it carries no SQL text and no table name, so a server decoding it can only reconstruct a filter list, never an executable fragment. Returns `null` when no filter is active or when encoding fails, which lets callers omit the parameter instead of sending an empty payload. `queryParameters` now sources its existing `filters` entry from this getter; the emitted value is unchanged.
+
+* **`FilterHelper.encode` accepts an `includeSort` flag, and `StateShared.filtersIncludeSort` exposes it.** A sort directive is stored as an ordinary `FilterData` carrying `FilterOperator.sort` in the same list as real filters, so it was encoded alongside them. That is correct for this package's own round-trip — sort selection travels exclusively inside the encoded payload and is restored from it when filter state is rebuilt from a URL, because this state never writes a `sort` query parameter of its own. It is wrong for a service that receives ordering through its own dedicated parameter and validates filter fields against a closed allow-list, because a sort directive names no filterable field and can only be rejected. `encode` now takes `includeSort`, and `StateShared` exposes `filtersIncludeSort`, both defaulting to `true`: the encoded bytes and the round-trip are **unchanged** unless a caller opts in. Setting `filtersIncludeSort = false` removes sort directives from `filtersEncoded` and therefore from the `filters` query parameter; a caller that does so is responsible for sending the ordering itself. The flag is a settable field rather than a method parameter because `queryParameters` reads the getter internally when assembling the request, so a parameter defaulting to `true` would never reach the wire. Exclusion tests the operator alone, so a genuine constraint on a field that happens to be named `sort` is still encoded, and the surviving rows keep their original `index` rather than being renumbered.
+
+* **`FilterHelper.encode` now requires both an operator and a value.** Previously a row was encoded whenever it carried an operator, regardless of its value, while `FilterHelper.toJSON` kept rows based on their value alone. The two rules disagreed, so a row could be encoded and then dropped by a consumer applying the other rule — a lossy round-trip. `encode` now emits a row only when it has a non-null operator that is not `FilterOperator.any` and a value that is neither `null` nor an empty string. A row failing either half describes no constraint, and is the normal intermediate state of a filter the user is still configuring. Falsy-but-meaningful values such as `0` and `false` are retained. The encoded bytes for fully configured filters are **unchanged**, so existing decoders need no update, and narrowing what is emitted is backward compatible for anything already parsing the wider set. One consequence is local rather than on the wire: a partially configured filter row no longer survives an `encode` → query parameter → `decode` round-trip, so it is not restored when filter state is rebuilt from a URL. `StateShared.applyFilters` already stripped `FilterOperator.any` before storing filters, so that half of the rule was already in effect on the main path. The rule is stated once, in a single predicate that is deliberately independent of `FilterHelper.filter`, so a future change to on-screen filtering cannot silently alter the encoded payload.
+
+* **`FilterHelper.decode` no longer throws on a malformed payload.** The encoded filters value travels as a query parameter, so it is attacker-controlled: it can be edited, truncated, or replaced by whoever issues the request. Previously a payload that was not valid base64, not valid JSON, or whose JSON root was not a list threw a `FormatException` or a cast error out of the public API; a single malformed entry discarded the entire payload. `decode` now returns an empty list for an unusable payload and skips individual entries that fail to deserialize, keeping the ones that decoded correctly. Input length and entry count are bounded so an abusive payload cannot force unbounded parsing work. This **widens** what `decode` accepts, so it is backward compatible — every payload that decoded before decodes identically now.
+
+### Notes
+
+* The existing SQL generation path (`FilterHelper.toSQL`, `toSQLEncoded`, `valueFromType`, `SQLQueryType`, and `StateShared.sql`) is **unchanged**, and `queryParameters` still emits its `sql` entry. This release adds the declarative payload **alongside** the existing behavior rather than replacing it, so no consumer needs to migrate. Consumers that want to stop sending client-generated SQL should treat that as a separate, deliberate migration.
+
 ## [3.0.1] - 2026-09-10
 
 ### Added

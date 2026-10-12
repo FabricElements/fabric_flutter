@@ -54,7 +54,7 @@ AgentBridge _bridge({
     enabled: true,
     appName: 'Fabric',
     appVersion: '1.0.0',
-    authorizer: authorizer,
+    authorizer: authorizer ?? const AgentAllowAllAuthorizer(),
     routes: [AgentRouteInfo(name: '/dashboard', title: 'Dashboard')],
   );
   return bridge;
@@ -338,7 +338,10 @@ void main() {
 
         // Assert
         expect((response['error'] as Map)['code'], 'failed');
-        expect((response['error'] as Map)['message'], contains('kaboom'));
+        expect(
+          (response['error'] as Map)['message'],
+          'The command failed unexpectedly.',
+        );
       });
 
       test('should honor an AgentException code thrown by a handler', () async {
@@ -393,6 +396,44 @@ void main() {
     });
 
     group('authorizer', () {
+      test('should deny requests when no authorizer is configured', () async {
+        // Arrange
+        final bridge = AgentBridge(elements: AgentElementIndex());
+        bridge.configure(enabled: true, appName: 'Fabric', appVersion: '1.0.0');
+
+        // Act
+        final response = await bridge.handle(_request('describe'));
+
+        // Assert
+        expect((response['error'] as Map)['code'], 'unauthorized');
+      });
+
+      test('should authorize before resolving an invoke command', () async {
+        // Arrange
+        final bridge = _bridge(authorizer: const AgentDenyAllAuthorizer());
+        bridge.registry.register(
+          AgentCommand.define(
+            id: 'known_command',
+            title: 'Known command',
+            handler: (context) => 'ok',
+          ),
+        );
+
+        // Act
+        final knownResponse = await bridge.handle(_invoke('known_command'));
+        final unknownResponse = await bridge.handle(_invoke('unknown_command'));
+
+        // Assert
+        expect(
+          (knownResponse['error'] as Map)['code'],
+          (unknownResponse['error'] as Map)['code'],
+        );
+        expect(
+          (knownResponse['error'] as Map)['message'],
+          (unknownResponse['error'] as Map)['message'],
+        );
+      });
+
       test('should deny a request with the authorizer message', () async {
         // Arrange
         final bridge = _bridge(authorizer: const _DenyAllAuthorizer());

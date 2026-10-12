@@ -156,11 +156,11 @@ class UserAvatar extends StatelessWidget {
     String? presenceLabel;
     switch (presence) {
       case UserPresence.active:
-        statusColor = Colors.green;
+        statusColor = theme.colorScheme.primary;
         presenceLabel = locales.get('label--active');
         break;
       case UserPresence.inactive:
-        statusColor = Colors.deepOrange;
+        statusColor = theme.colorScheme.error;
         presenceLabel = locales.get('label--inactive');
         break;
       case UserPresence.away:
@@ -175,7 +175,7 @@ class UserAvatar extends StatelessWidget {
         decoration: BoxDecoration(
           color: statusColor,
           shape: BoxShape.circle,
-          border: Border.all(color: Colors.white, width: 1),
+          border: Border.all(color: theme.colorScheme.surface, width: 1),
         ),
       ),
     );

@@ -1,6 +1,7 @@
 # fabric_flutter
 
 **Version:** 3.0.1
+**Version:** 3.1.1
 **License:** [BSD 3-Clause](LICENSE)
 
 [![CI](https://github.com/FabricElements/fabric_flutter/actions/workflows/ci.yml/badge.svg)](https://github.com/FabricElements/fabric_flutter/actions/workflows/ci.yml)
@@ -44,6 +45,7 @@ Sourced directly from [`pubspec.yaml`](pubspec.yaml).
 | **Localization & i18n** | `flutter_localizations`, `devicelocale` ^0.9.0, `intl` ^0.20.2, `dlibphonenumber` ^1.1.67 |
 | **UI & content** | `google_fonts` ^8.1.0, `cupertino_icons` ^1.0.9, `omni_datetime_picker` ^2.3.2, `flutter_markdown_plus` ^1.0.12, `scrollable_positioned_list` ^0.3.8, `gap` ^3.0.1, `json_explorer` ^0.1.2 |
 | **Utilities** | `package_info_plus` ^10.2.1, `url_launcher` ^6.3.2, `collection` ^1.19.1, `ansicolor` ^2.0.3 |
+| **Dev only** | `widgetbook` ^3.25.0 (catalog in `widgetbook/`, not exported from `lib/`) |
 | **Testing & linting** | `flutter_test`, `integration_test`, `flutter_lints` ^6.0.0 |
 
 ### Architectural Map
@@ -112,7 +114,7 @@ test/                   # Mirrors lib/ structure, files suffixed _test.dart
 | Layer | Directory | Responsibility |
 |-------|-----------|----------------|
 | **UI / Presentation** | `component/`, `view/` | Self-contained, reusable widgets and full-page composed views. Accept callbacks (`VoidCallback`, `ValueChanged<T>`); never call Firebase SDKs directly. |
-| **State containers** | `state/` | `ChangeNotifier`-based business logic. `StateShared` provides pagination, filters, debounce, and streams; `StateDocument`/`StateCollection`/`StateAPI` back data sources. |
+| **State containers** | `state/` | `ChangeNotifier`-based business logic. `StateShared` provides pagination, filters, debounce, and streams; `StateDocument`/`StateCollection`/`StateAPI` back data sources. Client-generated SQL is excluded from outgoing query parameters by default and can be enabled with `includeSql`. |
 | **Serialization models** | `serialized/` | `@JsonSerializable(explicitToJson: true)` domain entities with null-tolerant `fromJson` and matching `toJson`. Each model has a generated `*.g.dart` twin. |
 | **Helpers / Infrastructure** | `helper/` | Stateless utilities: networking, Firestore/Storage helpers, validation, formatting, routing, localization. |
 
@@ -195,6 +197,31 @@ void main() {
 ```
 
 The host app is what runs on a device, emulator, or browser via its own `flutter run` (for example `flutter run -d chrome` for web). `InitApp` installs the provider tree so the package's components and state classes are available throughout the app.
+
+**Brand color.** Pass `seedColor` to derive the light and dark color schemes from your brand color with `MaterialThemeM3.schemeFromSeed` (Material 3 fidelity variant, which keeps the brand hue recognisable in both brightnesses). Without it, the scheme is seeded from the ambient theme's primary color.
+
+```dart
+const InitApp(
+  seedColor: Color(0xFF0B57D0),
+  child: MyApp(),
+);
+```
+
+### Adaptive navigation (`AdaptiveNavigationScaffold`)
+
+`AdaptiveNavigationScaffold` switches the top-level navigation by `WindowSizeClass`: a bottom `NavigationBar` below 600dp, a `NavigationRail` from 600dp, and an extended rail from 1200dp. The body gets the Material 3 window margin (16dp compact, 24dp medium and up) unless `applyMargin` is `false`.
+
+```dart
+AdaptiveNavigationScaffold(
+  destinations: const [
+    AdaptiveDestination(icon: Icon(Icons.home_outlined), label: 'Home'),
+    AdaptiveDestination(icon: Icon(Icons.settings_outlined), label: 'Settings'),
+  ],
+  selectedIndex: index,
+  onDestinationSelected: (value) => setState(() => index = value),
+  body: pages[index],
+)
+```
 
 ### Accessibility
 
@@ -453,6 +480,20 @@ flutter test --update-goldens
 ```
 
 Run goldens in the same isolated, mock-only manner as the rest of the suite (no live services). Commit updated golden images only when the visual change is intentional and reviewed.
+
+### Widgetbook catalog (development only)
+
+`widgetbook/` holds a dev-only [Widgetbook](https://www.widgetbook.io/) catalog for the shared widgets (`CardButton`, `SmartButton`, `StatusChip`, `SectionTitle`, `AdaptiveNavigationScaffold`). Every use case covers light and dark, the `VisualDensity` values used by `DensitySpacing`, and compact, medium, and expanded widths. Run it with:
+
+```bash
+flutter run -t widgetbook/main.dart
+```
+
+The catalog is not exported from `lib/`, nothing under `lib/` imports it, and `widgetbook` is a dev dependency only. `test/widgetbook/catalog_golden_test.dart` renders the same use cases as golden tests (`test/widgetbook/goldens/`). Regenerate them only for the new catalog test:
+
+```bash
+flutter test test/widgetbook/catalog_golden_test.dart --update-goldens
+```
 
 ---
 

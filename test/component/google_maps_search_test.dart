@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:fabric_flutter/component/google_maps_search.dart';
+import 'package:fabric_flutter/helper/agent/agent_element_index.dart';
 import 'package:fabric_flutter/serialized/place_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -27,6 +28,34 @@ class _TrackingClient extends MockClient {
 
 void main() {
   group('GoogleMapsSearch', () {
+    testWidgets('should expose its search field to agent automation', (
+      tester,
+    ) async {
+      // Arrange
+      final index = AgentElementIndex.instance;
+      index.reset();
+      await tester.pumpWidget(
+        _wrap(
+          const GoogleMapsSearch(
+            apiKey: 'test',
+            automationKey: 'places_form_input_search',
+          ),
+        ),
+      );
+
+      // Act
+      final handle = index.handle('places_form_input_search');
+      await handle?.setter?.call('Paris');
+      await tester.pump();
+
+      // Assert
+      expect(handle, isNotNull);
+      expect(handle?.value, 'Paris');
+      expect(handle?.canSetValue, isTrue);
+      expect(handle?.canActivate, isTrue);
+      expect(find.text('Paris'), findsOneWidget);
+    });
+
     testWidgets('should render without throwing', (tester) async {
       // Arrange & Act
       await tester.pumpWidget(_wrap(const GoogleMapsSearch(apiKey: 'test')));

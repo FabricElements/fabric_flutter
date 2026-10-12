@@ -65,6 +65,7 @@ class Breadcrumbs extends StatelessWidget {
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
     final density = DensitySpacing.of(context);
     List<Widget> items = [];
@@ -95,7 +96,7 @@ class Breadcrumbs extends StatelessWidget {
       }
       if (button.image != null) {
         iconButton = CircleAvatar(
-          backgroundColor: Colors.grey.shade100,
+          backgroundColor: colorScheme.surfaceContainerHighest,
           child: ClipOval(
             child: SmartImage(
               key: ValueKey('breadcrumb-image-${button.image}'),

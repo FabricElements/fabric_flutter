@@ -38,7 +38,7 @@ class ViewHero extends StatelessWidget {
         child: Hero(
           tag: 'hero-media',
           child: InteractiveViewer(
-            boundaryMargin: const EdgeInsets.all(16),
+            boundaryMargin: density.all(16),
             child: SmartImage(
               key: ValueKey('hero-media-image-$mediaUrl'),
               url: mediaUrl,

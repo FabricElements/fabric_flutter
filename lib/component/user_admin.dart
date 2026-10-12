@@ -240,6 +240,7 @@ class UserAdmin extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
     final locales = AppLocalizations.of(context);
     final density = DensitySpacing(theme.visualDensity);
@@ -422,7 +423,7 @@ class UserAdmin extends StatelessWidget {
                     ? user.name
                     : locales.get('label--user'),
               }),
-              color: Colors.deepOrange,
+              color: colorScheme.error,
               onPressed: () => removeUser(user),
               icon: const Icon(Icons.person_remove),
             ),
@@ -438,7 +439,7 @@ class UserAdmin extends StatelessWidget {
         if (user.phone != null) {
           roleChips.add(
             Chip(
-              avatar: Icon(Icons.phone, color: Colors.grey.shade600),
+              avatar: Icon(Icons.phone, color: colorScheme.onSurfaceVariant),
               backgroundColor: Colors.transparent,
               padding: const EdgeInsets.all(0),
               label: SelectableText(user.phone!),
@@ -448,7 +449,7 @@ class UserAdmin extends StatelessWidget {
         if (user.email != null) {
           roleChips.add(
             Chip(
-              avatar: Icon(Icons.email, color: Colors.grey.shade600),
+              avatar: Icon(Icons.email, color: colorScheme.onSurfaceVariant),
               backgroundColor: Colors.transparent,
               padding: const EdgeInsets.all(0),
               label: SelectableText(user.email!),
@@ -458,7 +459,10 @@ class UserAdmin extends StatelessWidget {
         if (user.username != null && user.username!.isNotEmpty) {
           roleChips.add(
             Chip(
-              avatar: Icon(Icons.alternate_email, color: Colors.grey.shade600),
+              avatar: Icon(
+                Icons.alternate_email,
+                color: colorScheme.onSurfaceVariant,
+              ),
               backgroundColor: Colors.transparent,
               padding: const EdgeInsets.all(0),
               label: SelectableText(user.username!),
@@ -468,7 +472,7 @@ class UserAdmin extends StatelessWidget {
         if (stateUser.admin) {
           roleChips.add(
             Chip(
-              avatar: Icon(Icons.person, color: Colors.grey.shade600),
+              avatar: Icon(Icons.person, color: colorScheme.onSurfaceVariant),
               backgroundColor: Colors.transparent,
               padding: const EdgeInsets.all(0),
               label: SelectableText(user.id),

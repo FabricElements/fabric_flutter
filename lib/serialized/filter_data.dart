@@ -130,7 +130,10 @@ class FilterData {
     final isSort = operator == FilterOperator.sort || id == 'sort';
     if (isSort) {
       finalValue = value != null && value[0] != null && value[1] != null
-          ? [value[0], value[1]]
+          ? [
+              value[0],
+              value[1] is Enum ? EnumData.describe(value[1]) : value[1],
+            ]
           : null;
     } else if (value is bool) {
       finalValue = value;

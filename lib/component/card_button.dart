@@ -164,7 +164,7 @@ class _CardButtonState extends State<CardButton> {
         onTap: widget.onPressed,
         child: ExcludeSemantics(
           child: Container(
-            padding: widget.margin ?? const EdgeInsets.symmetric(vertical: 8),
+            padding: widget.margin ?? density.symmetric(vertical: 8),
             child: Card(
               color: theme.colorScheme.surfaceContainerHighest,
               clipBehavior: Clip.hardEdge,
