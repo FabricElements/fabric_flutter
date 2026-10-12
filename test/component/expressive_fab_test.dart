@@ -105,9 +105,35 @@ void main() {
 
         // Act
         await tester.tap(find.byType(InkWell));
-        await tester.pump();
+        await tester.pumpAndSettle();
 
         // Assert
+        expect(taps, 1);
+      });
+
+      testWidgets('should run onPressed only after the press morph settles', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
+        var taps = 0;
+        await _pump(
+          tester,
+          ExpressiveFab(
+            icon: Icons.add,
+            semanticsLabel: 'Add',
+            onPressed: () => taps++,
+          ),
+        );
+
+        // Act
+        await tester.tap(find.byType(InkWell));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 40));
+        final beforeSettled = taps;
+        await tester.pumpAndSettle();
+
+        // Assert
+        expect(beforeSettled, 0);
         expect(taps, 1);
       });
 
