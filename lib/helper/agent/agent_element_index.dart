@@ -36,6 +36,13 @@ class AgentElementIndex {
   /// Guards against scheduling more than one change notification per frame.
   bool _notificationScheduled = false;
 
+  /// Handles replaced by a newer registration that have not been unregistered.
+  final Map<String, AgentElementHandle> _superseded =
+      <String, AgentElementHandle>{};
+
+  /// Ids whose duplicate check is queued for the end of the current pass.
+  final Set<String> _pendingDuplicateIds = <String>{};
+
   /// Emits an event whenever elements are registered or unregistered.
   ///
   /// Events are delivered asynchronously so registration during a build phase
@@ -61,13 +68,10 @@ class AgentElementIndex {
   /// tree. A debug-only warning is emitted so the duplicate can be fixed.
   void register(AgentElementHandle handle) {
     if (handle.id.isEmpty) return;
-    if (kDebugMode && _elements.containsKey(handle.id)) {
-      debugPrint(
-        LogColor.warning(
-          'AgentElementIndex: duplicate automationKey "${handle.id}"; '
-          'the most recently mounted element wins.',
-        ),
-      );
+    final existing = _elements[handle.id];
+    if (kDebugMode && existing != null && !identical(existing, handle)) {
+      _superseded[handle.id] = existing;
+      _queueDuplicateCheck(handle.id);
     }
     _elements[handle.id] = handle;
     _scheduleNotification();
@@ -79,6 +83,9 @@ class AgentElementIndex {
   /// element that reused the same identifier. Returns `true` when the handle
   /// was removed.
   bool unregister(AgentElementHandle handle) {
+    if (identical(_superseded[handle.id], handle)) {
+      _superseded.remove(handle.id);
+    }
     if (!identical(_elements[handle.id], handle)) return false;
     _elements.remove(handle.id);
     _scheduleNotification();
@@ -110,10 +117,38 @@ class AgentElementIndex {
   void reset() {
     if (_elements.isEmpty) return;
     _elements.clear();
+    _superseded.clear();
     _scheduleNotification();
   }
 
   /// Queues a single change notification for the next microtask.
+  /// Warns about [id] once the current pass finishes, if an element it
+  /// replaced is still mounted.
+  ///
+  /// Replacing a subtree builds the new element before the old one is
+  /// disposed, so the check waits for the pass to end. A warning therefore
+  /// means two live elements share the id, not a transient overlap.
+  void _queueDuplicateCheck(String id) {
+    if (_pendingDuplicateIds.isEmpty) {
+      scheduleMicrotask(_flushDuplicateChecks);
+    }
+    _pendingDuplicateIds.add(id);
+  }
+
+  void _flushDuplicateChecks() {
+    final ids = _pendingDuplicateIds.toList();
+    _pendingDuplicateIds.clear();
+    for (final id in ids) {
+      if (!_superseded.containsKey(id)) continue;
+      debugPrint(
+        LogColor.warning(
+          'AgentElementIndex: duplicate automationKey "$id"; '
+          'the most recently mounted element wins.',
+        ),
+      );
+    }
+  }
+
   void _scheduleNotification() {
     if (_notificationScheduled || _controller.isClosed) return;
     _notificationScheduled = true;
