@@ -1,0 +1,37 @@
+name: TEMP regenerate widgetbook goldens
+
+on:
+  push:
+    branches:
+      - feat/expressive-widgetbook
+
+permissions:
+  contents: write
+
+jobs:
+  regen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: feat/expressive-widgetbook
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.44.7
+          cache: true
+
+      - run: flutter pub get
+
+      - name: Update goldens
+        run: flutter test --update-goldens test/widgetbook/catalog_golden_test.dart
+
+      - name: Commit goldens
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add test/widgetbook/goldens
+          git commit -m "test: add Linux goldens for expressive FAB and button group" || echo "no changes"
+          git push origin HEAD:feat/expressive-widgetbook

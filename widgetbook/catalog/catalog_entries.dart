@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fabric_flutter/component/adaptive_navigation_scaffold.dart';
 import 'package:fabric_flutter/component/card_button.dart';
+import 'package:fabric_flutter/component/expressive_button_group.dart';
+import 'package:fabric_flutter/component/expressive_fab.dart';
 import 'package:fabric_flutter/component/section_title.dart';
 import 'package:fabric_flutter/component/smart_button.dart';
 import 'package:fabric_flutter/component/status_chip.dart';
@@ -97,6 +99,54 @@ final List<CatalogEntry> catalogEntries = [
       body: const Center(child: Text('Body')),
       semanticsLabel: 'Main navigation',
       automationKey: 'catalog_nav_main',
+    ),
+  ),
+  CatalogEntry(
+    name: 'expressive_fab',
+    content: (context) {
+      final density = DensitySpacing.of(context);
+      return Padding(
+        padding: density.all(8),
+        child: Wrap(
+          spacing: density.gap(8),
+          runSpacing: density.gap(8),
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            ExpressiveFab(
+              icon: Icons.add,
+              semanticsLabel: 'Add small',
+              size: ExpressiveFabSize.small,
+              onPressed: () {},
+            ),
+            ExpressiveFab(
+              icon: Icons.add,
+              semanticsLabel: 'Add medium',
+              onPressed: () {},
+            ),
+            ExpressiveFab(
+              icon: Icons.add,
+              semanticsLabel: 'Add large',
+              size: ExpressiveFabSize.large,
+              onPressed: () {},
+            ),
+          ],
+        ),
+      );
+    },
+  ),
+  CatalogEntry(
+    name: 'expressive_button_group',
+    content: (context) => Padding(
+      padding: DensitySpacing.of(context).all(8),
+      child: ExpressiveButtonGroup<String>(
+        items: const [
+          ExpressiveButtonItem(value: 'day', label: 'Day'),
+          ExpressiveButtonItem(value: 'week', label: 'Week'),
+          ExpressiveButtonItem(value: 'month', label: 'Month'),
+        ],
+        selected: 'week',
+        onChanged: (_) {},
+      ),
     ),
   ),
 ];
