@@ -1224,10 +1224,10 @@ getValue -------------------------------------
             )
           : widget.padding ??
                 density.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                  minHorizontal: 4,
-                  minVertical: 4,
+                  horizontal: 16,
+                  vertical: 12,
+                  minHorizontal: 8,
+                  minVertical: 8,
                 ),
       border: isDisabled
           ? theme.inputDecorationTheme.disabledBorder
