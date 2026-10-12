@@ -81,6 +81,7 @@ export 'helper/density_spacing.dart';
 export 'helper/density_text_scale.dart';
 export 'helper/m3_expressive_shape_border.dart';
 export 'helper/m3_tokens.dart';
+export 'helper/web_pointer_interceptor.dart';
 export 'helper/material_theme.dart';
 export 'helper/drop_file_format.dart';
 export 'helper/enum_data.dart';

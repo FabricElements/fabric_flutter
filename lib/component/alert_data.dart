@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
-import 'package:pointer_interceptor/pointer_interceptor.dart';
+import '../helper/web_pointer_interceptor.dart';
 
 import '../helper/app_global.dart';
 import '../helper/app_localizations_delegate.dart';
@@ -489,7 +489,7 @@ void alertData<T>({
   bool showAction = hasAction || hasValidPath;
   bool hasDismissAction = dismiss.onTap != null;
   actions.add(
-    PointerInterceptor(
+    WebPointerInterceptor(
       child: TextButton.icon(
         style: TextButton.styleFrom(
           backgroundColor: theme.colorScheme.surface,
@@ -513,7 +513,7 @@ void alertData<T>({
   );
   if (showAction) {
     actions.add(
-      PointerInterceptor(
+      WebPointerInterceptor(
         child: FilledButton.icon(
           style: FilledButton.styleFrom(
             iconColor: buttonColorForeground,
@@ -578,7 +578,7 @@ void alertData<T>({
   Widget content = Container(
     padding: contentPadding,
     color: color,
-    child: PointerInterceptor(
+    child: WebPointerInterceptor(
       child: SizedBox(
         width: double.maxFinite,
         child: Flex(
@@ -650,7 +650,7 @@ void alertData<T>({
             primary: false,
             backgroundColor: theme.colorScheme.surface.withValues(alpha: 0.3),
             body: ContentContainer(
-              child: PointerInterceptor(
+              child: WebPointerInterceptor(
                 child: AlertDialog(
                   scrollable: scrollable,
                   actions: actions,

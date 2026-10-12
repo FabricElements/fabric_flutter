@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:fabric_flutter/component/users_dropdown.dart';
 import 'package:flutter/material.dart';
-import 'package:pointer_interceptor/pointer_interceptor.dart';
+import '../helper/web_pointer_interceptor.dart';
 import 'package:provider/provider.dart';
 
 import '../helper/app_localizations_delegate.dart';
@@ -333,7 +333,7 @@ class UserAdmin extends StatelessWidget {
         context: context,
         barrierDismissible: false, // user must tap button!
         fullscreenDialog: true,
-        builder: (context) => PointerInterceptor(
+        builder: (context) => WebPointerInterceptor(
           child: UserAddUpdate(
             key: Key('user-update-component-${user.id}'),
             successMessage: 'notification--updated',
@@ -536,7 +536,7 @@ class UserAdmin extends StatelessWidget {
         );
       },
     );
-    Widget userAddWidget = PointerInterceptor(
+    Widget userAddWidget = WebPointerInterceptor(
       child: UserAddUpdate(
         key: const Key('user-add-update'),
         successMessage: 'notification--added',
@@ -563,7 +563,7 @@ class UserAdmin extends StatelessWidget {
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
         floatingActionButton: disabled
             ? null
-            : PointerInterceptor(
+            : WebPointerInterceptor(
                 child: FloatingActionButton.extended(
                   icon: const Icon(Icons.person_add),
                   label: Text(
@@ -590,7 +590,7 @@ class UserAdmin extends StatelessWidget {
         SizedBox(height: density.gap(16)),
         Align(
           alignment: Alignment.center,
-          child: PointerInterceptor(
+          child: WebPointerInterceptor(
             child: FilledButton.icon(
               icon: const Icon(Icons.person_add),
               label: Text(
