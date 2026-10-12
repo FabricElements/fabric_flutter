@@ -73,6 +73,7 @@ export 'helper/agent/agent_registry.dart';
 export 'helper/agent/agent_token_authorizer.dart';
 export 'helper/agent/agent_transport.dart';
 export 'helper/app_global.dart';
+export 'helper/automation_key.dart';
 export 'helper/app_localizations_delegate.dart';
 export 'helper/auth_service.dart';
 export 'helper/byte_count_transformer.dart';

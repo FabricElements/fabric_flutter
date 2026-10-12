@@ -2,6 +2,10 @@
 
 ### Added
 
+* **`scopedAutomationKey`** (`lib/helper/automation_key.dart`) builds a
+  `<screen>.<control>` automation key from the active named route, so the same
+  control name stays unique per screen. It moved here from the app so every
+  app shares one implementation.
 * **`ExpressiveFab`** (`lib/component/expressive_fab.dart`) is a Material 3
   Expressive FAB in small (56dp), medium (80dp) and large (96dp) sizes. It
   morphs from a rounded square to a circle while pressed, and publishes to the
