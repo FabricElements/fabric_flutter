@@ -50,6 +50,52 @@ void main() {
       });
     });
 
+    group('duplicate warnings', () {
+      late List<String> logs;
+      late void Function(String?, {int? wrapWidth}) originalDebugPrint;
+
+      setUp(() {
+        logs = <String>[];
+        originalDebugPrint = debugPrint;
+        debugPrint = (String? message, {int? wrapWidth}) {
+          logs.add(message ?? '');
+        };
+      });
+
+      tearDown(() => debugPrint = originalDebugPrint);
+
+      test('should not warn when the replaced handle is disposed', () async {
+        // Arrange
+        final index = AgentElementIndex();
+        final replaced = AgentElementHandle(id: 'dup');
+        index.register(replaced);
+        index.register(AgentElementHandle(id: 'dup'));
+
+        // Act
+        index.unregister(replaced);
+        await Future<void>.delayed(Duration.zero);
+
+        // Assert
+        expect(logs.where((log) => log.contains('duplicate')), isEmpty);
+      });
+
+      test('should warn when the replaced handle is still mounted', () async {
+        // Arrange
+        final index = AgentElementIndex();
+        index.register(AgentElementHandle(id: 'dup'));
+        index.register(AgentElementHandle(id: 'dup'));
+
+        // Act
+        await Future<void>.delayed(Duration.zero);
+
+        // Assert
+        expect(
+          logs.where((log) => log.contains('duplicate automationKey "dup"')),
+          hasLength(1),
+        );
+      });
+    });
+
     group('unregister', () {
       test('should remove the matching handle', () {
         // Arrange
