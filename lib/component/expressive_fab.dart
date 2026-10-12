@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/physics.dart';
 
+import '../helper/m3_expressive_shape_border.dart';
+import '../helper/m3_tokens.dart';
 import '../serialized/agent_element_snapshot.dart';
 import '../helper/agent/agent_element_binding.dart';
-import '../helper/m3_tokens.dart';
 
 /// Size presets for [ExpressiveFab], following the Material 3 Expressive FAB sizes.
 enum ExpressiveFabSize {
@@ -16,13 +18,13 @@ enum ExpressiveFabSize {
   large,
 }
 
-/// Floating action button that morphs its shape while pressed.
+/// Floating action button that springs into a lobed cookie shape while pressed.
 ///
-/// The FAB rests as a rounded square and morphs into a circle while the user
-/// holds it, so the press itself is visible without a separate ripple. Three
-/// [ExpressiveFabSize] presets cover the Material 3 Expressive sizes. The
-/// button is published to the agent element index when [automationKey] is set,
-/// in the same way as `SmartButton`.
+/// At rest the FAB is a soft squircle. While the user holds it, the outline
+/// morphs into a cookie and the button scales down slightly. Releasing springs
+/// it back with a small overshoot, which is the Material 3 Expressive motion.
+/// The button is published to the agent element index when [automationKey] is
+/// set, in the same way as `SmartButton`.
 class ExpressiveFab extends StatefulWidget {
   /// Creates a FAB showing [icon] that runs [onPressed] when tapped.
   ///
@@ -61,12 +63,24 @@ class ExpressiveFab extends StatefulWidget {
   State<ExpressiveFab> createState() => _ExpressiveFabState();
 }
 
-class _ExpressiveFabState extends State<ExpressiveFab> {
-  bool _pressed = false;
+class _ExpressiveFabState extends State<ExpressiveFab>
+    with SingleTickerProviderStateMixin {
+  /// Drives the press morph: 0 is the resting squircle, 1 is the pressed cookie.
+  late final AnimationController _press = AnimationController.unbounded(
+    vsync: this,
+  );
 
-  void _setPressed(bool value) {
-    if (_pressed == value) return;
-    setState(() => _pressed = value);
+  @override
+  void dispose() {
+    _press.dispose();
+    super.dispose();
+  }
+
+  void _springTo(double target) {
+    if (widget.onPressed == null) return;
+    _press.animateWith(
+      SpringSimulation(M3ExpressiveMotion.spring, _press.value, target, 0),
+    );
   }
 
   @override
@@ -75,8 +89,6 @@ class _ExpressiveFabState extends State<ExpressiveFab> {
     final colorScheme = theme.colorScheme;
     final spec = _ExpressiveFabSpec.of(widget.size);
     final enabled = widget.onPressed != null;
-    final radius = _pressed ? M3ExpressiveShape.fabPressed : spec.radius;
-    final shape = M3ExpressiveShape.rounded(radius);
     final background = enabled
         ? colorScheme.primaryContainer
         : colorScheme.surfaceContainerHighest;
@@ -86,18 +98,33 @@ class _ExpressiveFabState extends State<ExpressiveFab> {
 
     Widget button = SizedBox.square(
       dimension: spec.container,
-      child: AnimatedContainer(
-        duration: M3Motion.medium2,
-        curve: M3Motion.standard,
-        decoration: ShapeDecoration(color: background, shape: shape),
-        child: InkWell(
-          customBorder: shape,
-          onTap: widget.onPressed,
-          onHighlightChanged: enabled ? _setPressed : null,
-          child: Center(
-            child: Icon(widget.icon, size: spec.icon, color: foreground),
-          ),
-        ),
+      child: AnimatedBuilder(
+        animation: _press,
+        builder: (context, child) {
+          final t = _press.value;
+          final shape = ExpressiveShapeBorder.lerp(
+            ExpressiveShapeBorder.squircle,
+            ExpressiveShapeBorder.cookie,
+            t,
+          );
+          return Transform.scale(
+            scale: 1 - 0.08 * t,
+            child: Material(
+              color: background,
+              shape: shape,
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                customBorder: shape,
+                onTap: widget.onPressed,
+                onHighlightChanged: (highlighted) =>
+                    _springTo(highlighted ? 1 : 0),
+                child: Center(
+                  child: Icon(widget.icon, size: spec.icon, color: foreground),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
 
@@ -123,13 +150,9 @@ class _ExpressiveFabState extends State<ExpressiveFab> {
   }
 }
 
-/// Container, icon and resting radius for one [ExpressiveFabSize].
+/// Container and icon size for one [ExpressiveFabSize].
 class _ExpressiveFabSpec {
-  const _ExpressiveFabSpec({
-    required this.container,
-    required this.icon,
-    required this.radius,
-  });
+  const _ExpressiveFabSpec({required this.container, required this.icon});
 
   /// Returns the spec for [size].
   factory _ExpressiveFabSpec.of(ExpressiveFabSize size) {
@@ -137,17 +160,14 @@ class _ExpressiveFabSpec {
       ExpressiveFabSize.small => const _ExpressiveFabSpec(
         container: 56,
         icon: 24,
-        radius: M3ExpressiveShape.fabSmall,
       ),
       ExpressiveFabSize.medium => const _ExpressiveFabSpec(
         container: 80,
         icon: 28,
-        radius: M3ExpressiveShape.fabLarge,
       ),
       ExpressiveFabSize.large => const _ExpressiveFabSpec(
         container: 96,
         icon: 36,
-        radius: M3ExpressiveShape.fabLarge,
       ),
     };
   }
@@ -157,7 +177,4 @@ class _ExpressiveFabSpec {
 
   /// Icon size, in logical pixels.
   final double icon;
-
-  /// Resting corner radius, before the press morph.
-  final double radius;
 }

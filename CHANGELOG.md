@@ -7,15 +7,18 @@
   control name stays unique per screen. It moved here from the app so every
   app shares one implementation.
 * **`ExpressiveFab`** (`lib/component/expressive_fab.dart`) is a Material 3
-  Expressive FAB in small (56dp), medium (80dp) and large (96dp) sizes. It
-  morphs from a rounded square to a circle while pressed, and publishes to the
-  agent element index through `automationKey`.
-* **`ExpressiveButtonGroup`** (`lib/component/expressive_button_group.dart`)
-  is a connected, single-selection button row. The selected segment morphs all
-  its corners to a larger radius and takes the primary container colour, so
-  selection reads through shape as well as colour.
-* **`M3ExpressiveShape`** (`lib/helper/m3_tokens.dart`) exposes the resting and
-  pressed radii that the expressive components morph between.
+  Expressive FAB in small (56dp), medium (80dp) and large (96dp) sizes. Pressing
+  springs its outline into a lobed cookie while it scales down; release springs
+  it back with an overshoot. It publishes to the agent element index through
+  `automationKey`.
+* **`ExpressiveButtonGroup`** (`lib/component/expressive_button_group.dart`) is a
+  single-selection row of separate segments. The selected segment springs into
+  the cookie and takes the primary container colour.
+* **`ExpressiveShapeBorder`** (`lib/helper/m3_expressive_shape_border.dart`)
+  morphs between a superellipse and a lobed cookie. Its path fits the rect it is
+  given.
+* **`M3ExpressiveMotion.spring`** (`lib/helper/m3_tokens.dart`) is the shared
+  spring for expressive state changes.
 * **`WindowSizeClass`** (`lib/helper/window_size.dart`) maps a width to the
   Material 3 window size classes (compact, medium, expanded, large,
   extra-large) and exposes the recommended 16dp/24dp window margins.

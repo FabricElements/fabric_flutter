@@ -31,34 +31,18 @@ abstract final class M3Shape {
       BorderRadius.all(Radius.circular(radius));
 }
 
-/// Material 3 Expressive corner radii for the components that morph between
-/// shapes.
+/// Spring motion shared by the Material 3 Expressive components.
 ///
-/// Expressive components move between a resting radius and an active radius
-/// instead of keeping one fixed shape, so each value here is a pair with a
-/// clear role. Values reuse [M3Shape] so the expressive scale stays on the
-/// same grid as the rest of the system.
-abstract final class M3ExpressiveShape {
-  /// Resting radius of a small FAB (56dp), which keeps a rounded square.
-  static const double fabSmall = M3Shape.large;
-
-  /// Resting radius of a medium or large FAB, which keeps a squircle-like
-  /// rounded square.
-  static const double fabLarge = M3Shape.extraLarge;
-
-  /// Radius a FAB morphs to while pressed, which rounds it fully into a circle.
-  static const double fabPressed = M3Shape.full;
-
-  /// Radius of the inner corners of an unselected segment in a connected group.
-  static const double segmentInner = M3Shape.small;
-
-  /// Radius of every corner of the selected segment, which morphs from
-  /// [segmentInner] when the selection changes.
-  static const double segmentSelected = M3Shape.large;
-
-  /// Returns a [RoundedRectangleBorder] with the same [radius] on every corner.
-  static RoundedRectangleBorder rounded(double radius) =>
-      RoundedRectangleBorder(borderRadius: M3Shape.circular(radius));
+/// Expressive state changes overshoot and settle instead of easing in a fixed
+/// curve. The damping ratio is about 0.45, so a change overshoots once and
+/// settles within roughly 400ms.
+abstract final class M3ExpressiveMotion {
+  /// Spring that drives press and selection changes.
+  static const SpringDescription spring = SpringDescription(
+    mass: 1,
+    stiffness: 700,
+    damping: 24,
+  );
 }
 
 /// Material 3 motion duration and easing tokens.
