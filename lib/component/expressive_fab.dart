@@ -76,11 +76,29 @@ class _ExpressiveFabState extends State<ExpressiveFab>
     super.dispose();
   }
 
-  void _springTo(double target) {
-    if (widget.onPressed == null) return;
-    _press.animateWith(
+  /// Whether a tap is playing its press morph before [ExpressiveFab.onPressed].
+  bool _tapping = false;
+
+  /// Springs the morph to [target] and returns a future that completes once settled.
+  TickerFuture _springTo(double target) {
+    return _press.animateWith(
       SpringSimulation(M3ExpressiveMotion.spring, _press.value, target, 0),
     );
+  }
+
+  /// Plays the full press morph, runs [ExpressiveFab.onPressed], then releases.
+  ///
+  /// The action waits for the cookie to settle, so the morph is visible even
+  /// when the action navigates away and disposes this button.
+  Future<void> _handleTap() async {
+    final onPressed = widget.onPressed;
+    if (onPressed == null) return;
+    _tapping = true;
+    await _springTo(1);
+    if (!mounted) return;
+    onPressed();
+    _tapping = false;
+    if (mounted) _springTo(0);
   }
 
   @override
@@ -115,9 +133,13 @@ class _ExpressiveFabState extends State<ExpressiveFab>
               clipBehavior: Clip.antiAlias,
               child: InkWell(
                 customBorder: shape,
-                onTap: widget.onPressed,
-                onHighlightChanged: (highlighted) =>
-                    _springTo(highlighted ? 1 : 0),
+                onTap: enabled ? _handleTap : null,
+                onHighlightChanged: (highlighted) {
+                  if (!enabled) return;
+                  if (highlighted || !_tapping) {
+                    _springTo(highlighted ? 1 : 0);
+                  }
+                },
                 child: Center(
                   child: Icon(widget.icon, size: spec.icon, color: foreground),
                 ),
