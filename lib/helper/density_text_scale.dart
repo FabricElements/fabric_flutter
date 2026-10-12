@@ -6,6 +6,10 @@ import 'package:flutter/material.dart';
 /// standard shrinks text by 4%, and each step above standard grows it by 8%, so
 /// the largest setting is noticeably bigger without overflowing typical layouts.
 /// Density values outside −2 to 2 are clamped. Standard density returns `1.0`.
+///
+/// Pass only an explicit user choice. [VisualDensity.adaptivePlatformDensity]
+/// resolves to compact on desktop, which would shrink all text. Map an
+/// adaptive setting to [VisualDensity.standard] before calling this.
 double densityTextScale(VisualDensity density) {
   final steps = density.vertical.clamp(-2.0, 2.0);
   if (steps < 0) return 1.0 + 0.04 * steps;
