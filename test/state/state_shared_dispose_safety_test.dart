@@ -140,20 +140,17 @@ void main() {
   group('StateShared post-dispose safety', () {
     // ── D-1: notifyListeners after dispose ──────────────────────────────────
     group('D-1 notifyListeners after dispose', () {
-      test(
-        'should not throw when notifyListeners is called synchronously after '
-        'dispose (debounceTime = 0)',
-        () {
-          // Arrange
-          final state = _ImmediateState();
-          state.dispose();
+      test('should not throw when notifyListeners is called synchronously after '
+          'dispose (debounceTime = 0)', () {
+        // Arrange
+        final state = _ImmediateState();
+        state.dispose();
 
-          // Act & Assert — with debounceTime=0 super.notifyListeners() is called
-          // synchronously on a disposed ChangeNotifier; without the fix it trips
-          // debugAssertNotDisposed and throws FlutterError.
-          expect(() => state.notifyListeners(), returnsNormally);
-        },
-      );
+        // Act & Assert — with debounceTime=0 super.notifyListeners() is called
+        // synchronously on a disposed ChangeNotifier; without the fix it trips
+        // debugAssertNotDisposed and throws FlutterError.
+        expect(() => state.notifyListeners(), returnsNormally);
+      });
 
       testWidgets(
         'should not throw when notifyListeners is called after dispose and its '
@@ -179,21 +176,18 @@ void main() {
 
     // ── D-2: closed-sink throws after dispose ───────────────────────────────
     group('D-2 closed-sink guard', () {
-      test(
-        'should not throw when error is set on a disposed state '
-        '(closed error-stream sink)',
-        () {
-          // Arrange — debounced state so notifyListeners() schedules a timer
-          // rather than throwing synchronously, isolating the sink.add issue.
-          final state = _DebouncedState();
-          state.dispose();
+      test('should not throw when error is set on a disposed state '
+          '(closed error-stream sink)', () {
+        // Arrange — debounced state so notifyListeners() schedules a timer
+        // rather than throwing synchronously, isolating the sink.add issue.
+        final state = _DebouncedState();
+        state.dispose();
 
-          // Act & Assert — _controllerStreamError.sink.add is called
-          // synchronously inside the error setter; without the fix it throws
-          // "Bad state: Cannot add new events after calling close".
-          expect(() => state.error = 'post-dispose error', returnsNormally);
-        },
-      );
+        // Act & Assert — _controllerStreamError.sink.add is called
+        // synchronously inside the error setter; without the fix it throws
+        // "Bad state: Cannot add new events after calling close".
+        expect(() => state.error = 'post-dispose error', returnsNormally);
+      });
 
       testWidgets(
         'should not throw when data is set after dispose and its publish timer '
@@ -377,4 +371,3 @@ void main() {
     });
   });
 }
-

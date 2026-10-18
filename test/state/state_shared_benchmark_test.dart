@@ -399,9 +399,7 @@ void main() {
         ..writeln(
           '                |  scenario C: same length, different content',
         )
-        ..writeln(
-          '-' * 80,
-        )
+        ..writeln('-' * 80)
         ..writeln(
           '${'N'.padRight(4)} '
           '${' Scen-A cur µs'.padLeft(18)}'
@@ -448,37 +446,31 @@ void main() {
         const readsPerUpdate = 10; // realistic: 1 internal + up to 9 widgets
         final singleSnapshot = _makeUserList(n);
 
-        final hitUs = _benchmarkBatchedUs(
-          () {
-            // Assign a fresh-allocated list (as Firestore would deliver).
-            state.privateData = List<dynamic>.from(singleSnapshot);
-            // Invalidate so the first read is a real miss, subsequent are hits.
-            state.invalidateForBenchmark();
-            for (int i = 0; i < readsPerUpdate; i++) {
-              state.serialized; // ignore: unnecessary_statements
-            }
-          },
-        );
-        // Isolate just the cost of a single-read miss (1 fromJson * N + sort).
-        final missUs = _benchmarkBatchedUs(
-          () {
-            state.privateData = List<dynamic>.from(singleSnapshot);
-            state.invalidateForBenchmark();
+        final hitUs = _benchmarkBatchedUs(() {
+          // Assign a fresh-allocated list (as Firestore would deliver).
+          state.privateData = List<dynamic>.from(singleSnapshot);
+          // Invalidate so the first read is a real miss, subsequent are hits.
+          state.invalidateForBenchmark();
+          for (int i = 0; i < readsPerUpdate; i++) {
             state.serialized; // ignore: unnecessary_statements
-          },
-        );
+          }
+        });
+        // Isolate just the cost of a single-read miss (1 fromJson * N + sort).
+        final missUs = _benchmarkBatchedUs(() {
+          state.privateData = List<dynamic>.from(singleSnapshot);
+          state.invalidateForBenchmark();
+          state.serialized; // ignore: unnecessary_statements
+        });
 
         // Scenario B: cost of repeated hits ONLY (no miss in the loop).
         state.privateData = List<dynamic>.from(singleSnapshot);
         state.invalidateForBenchmark();
         state.serialized; // prime the cache
-        final hitOnlyUs = _benchmarkBatchedUs(
-          () {
-            for (int i = 0; i < readsPerUpdate; i++) {
-              state.serialized; // ignore: unnecessary_statements
-            }
-          },
-        );
+        final hitOnlyUs = _benchmarkBatchedUs(() {
+          for (int i = 0; i < readsPerUpdate; i++) {
+            state.serialized; // ignore: unnecessary_statements
+          }
+        });
 
         results['N=$n'] = {
           'miss_us': missUs,
@@ -522,22 +514,22 @@ void main() {
       final b = state.serialized;
 
       // Assert
-      expect(identical(a, b), isTrue, reason: 'cache should return same instance');
+      expect(
+        identical(a, b),
+        isTrue,
+        reason: 'cache should return same instance',
+      );
     });
 
     tearDownAll(() {
       final sb = StringBuffer()
         ..writeln()
         ..writeln('=== Candidate 2: cachedSerialize hit/miss rate ===')
-        ..writeln(
-          'miss_us: cost of 1 fromJson*N + sort (cache miss)',
-        )
+        ..writeln('miss_us: cost of 1 fromJson*N + sort (cache miss)')
         ..writeln(
           'hit_then_reads_us: 1 miss + ${10 - 1} hits (realistic per-frame cost)',
         )
-        ..writeln(
-          'hit_only_us: 10 reads, all hits (lower bound)',
-        )
+        ..writeln('hit_only_us: 10 reads, all hits (lower bound)')
         ..writeln('-' * 72)
         ..writeln(
           '${'N'.padRight(4)}'
@@ -580,22 +572,13 @@ void main() {
         );
 
         // Act — _snapshot() (Map.from shallow copy)
-        final snapshotUs = _benchmarkBatchedUs(
-          () => _snapshot(mapData),
-        );
+        final snapshotUs = _benchmarkBatchedUs(() => _snapshot(mapData));
 
-        results['N=$n'] = {
-          'merge_us': mergeUs,
-          'snapshot_us': snapshotUs,
-        };
+        results['N=$n'] = {'merge_us': mergeUs, 'snapshot_us': snapshotUs};
 
         // Correctness: merge produces the right length.
         final merged = _merge(base: base, toMerge: toMerge);
-        expect(
-          merged.length,
-          n + 5,
-          reason: '5 new items should be appended',
-        );
+        expect(merged.length, n + 5, reason: '5 new items should be appended');
       });
     }
 

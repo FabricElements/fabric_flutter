@@ -466,13 +466,13 @@ void main() {
       test('should close the HTTP client on dispose', () {
         // Arrange
         var closeCalled = false;
-        final state = _TestStateAPI(
-          (_) async => jsonOk({'id': '1'}),
-        );
+        final state = _TestStateAPI((_) async => jsonOk({'id': '1'}));
         // Replace the client with one that records close() calls.
-        state.httpClient = _CloseTrackingClient(onClose: () {
-          closeCalled = true;
-        });
+        state.httpClient = _CloseTrackingClient(
+          onClose: () {
+            closeCalled = true;
+          },
+        );
 
         // Act
         state.dispose();

@@ -291,11 +291,19 @@ class StateUser extends StateDocument {
   /// Refresh auth state
   Future<void> _refreshAuth(User? userObject) async {
     if (!_init) return;
-    _ready = false;
     if (userObject == null) {
+      _ready = false;
       await cancel(notify: true);
       clearAuth(notify: true);
     } else {
+      /// Only transition to not-ready when the user identity actually changes
+      /// (fresh sign-in, account switch). Keep [ready] true for same-user
+      /// re-emits (token refresh ~every 60 min, Firestore user-doc ping
+      /// writes) so route-level guards reading [userStatus.ready] do not
+      /// replace content with a loading spinner during a transient refresh.
+      final bool sameUser = _userObject?.uid == userObject.uid;
+      if (!sameUser) _ready = false;
+
       /// Load user data if the user is authenticated but the user data is not loaded yet
       await _loadUserData(userObject.uid);
       try {
