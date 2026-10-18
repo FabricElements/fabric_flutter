@@ -23,7 +23,8 @@ class _Item {
   ///
   /// Returns a fresh allocation on every call — exactly what [serialized] is
   /// expected to do so that [copy] remains independent.
-  _Item.fromJson(Map<String, dynamic>? json) : name = (json?['name'] as String?) ?? '';
+  _Item.fromJson(Map<String, dynamic>? json)
+    : name = (json?['name'] as String?) ?? '';
 }
 
 // ---------------------------------------------------------------------------
@@ -38,7 +39,10 @@ class _TestItemState extends StateShared {
   @override
   _Item? get serialized {
     if (data == null) return null;
-    return cachedSerialize(data, () => _Item.fromJson(data as Map<String, dynamic>?));
+    return cachedSerialize(
+      data,
+      () => _Item.fromJson(data as Map<String, dynamic>?),
+    );
   }
 }
 
@@ -62,10 +66,12 @@ class _APIItemState extends StateAPI {
   @override
   _Item? get serialized {
     if (data == null) return null;
-    return cachedSerialize(data, () => _Item.fromJson(data as Map<String, dynamic>?));
+    return cachedSerialize(
+      data,
+      () => _Item.fromJson(data as Map<String, dynamic>?),
+    );
   }
 }
-
 
 ///
 /// Uses getter-only narrowing — the inherited dynamic setter is kept — which
@@ -257,30 +263,36 @@ void main() {
     });
 
     group('typed subclass narrowing', () {
-      test('getter-only override should return the concrete type without a cast', () {
-        // Arrange
-        final state = _TypedItemState();
-        state.data = {'name': 'alpha'};
+      test(
+        'getter-only override should return the concrete type without a cast',
+        () {
+          // Arrange
+          final state = _TypedItemState();
+          state.data = {'name': 'alpha'};
 
-        // Act — copy is _Item? with no cast at the call site.
-        final draft = state.copy;
+          // Act — copy is _Item? with no cast at the call site.
+          final draft = state.copy;
 
-        // Assert
-        expect(draft, isA<_Item>());
-        expect(draft!.name, 'alpha');
-      });
+          // Assert
+          expect(draft, isA<_Item>());
+          expect(draft!.name, 'alpha');
+        },
+      );
 
-      test('field mutation through the narrowed getter should survive a re-read', () {
-        // Arrange
-        final state = _TypedItemState();
-        state.data = {'name': 'alpha'};
+      test(
+        'field mutation through the narrowed getter should survive a re-read',
+        () {
+          // Arrange
+          final state = _TypedItemState();
+          state.data = {'name': 'alpha'};
 
-        // Act — mutate directly on the typed getter; no cast required.
-        state.copy!.name = 'typed-edit';
+          // Act — mutate directly on the typed getter; no cast required.
+          state.copy!.name = 'typed-edit';
 
-        // Assert — the mutation is visible on the next read.
-        expect(state.copy!.name, 'typed-edit');
-      });
+          // Assert — the mutation is visible on the next read.
+          expect(state.copy!.name, 'typed-edit');
+        },
+      );
 
       test('narrowed copy should be a different instance from serialized', () {
         // Arrange
@@ -326,24 +338,27 @@ void main() {
         expect(draft!.name, 'original');
       });
 
-      test('stale draft should be discarded when leaving and re-entering edit mode', () {
-        // Arrange
-        final state = _TestItemState();
-        state.data = {'name': 'original'};
+      test(
+        'stale draft should be discarded when leaving and re-entering edit mode',
+        () {
+          // Arrange
+          final state = _TestItemState();
+          state.data = {'name': 'original'};
 
-        // Enter edit mode and mutate the draft.
-        state.edit = true;
-        (state.copy as _Item).name = 'in-progress';
-        expect((state.copy as _Item).name, 'in-progress');
+          // Enter edit mode and mutate the draft.
+          state.edit = true;
+          (state.copy as _Item).name = 'in-progress';
+          expect((state.copy as _Item).name, 'in-progress');
 
-        // Act — leave edit mode (cancel without saving).
-        state.edit = false;
-        // Re-enter edit mode.
-        state.edit = true;
+          // Act — leave edit mode (cancel without saving).
+          state.edit = false;
+          // Re-enter edit mode.
+          state.edit = true;
 
-        // Assert — the draft is rebuilt from data, not kept from the abandoned session.
-        expect((state.copy as _Item).name, 'original');
-      });
+          // Assert — the draft is rebuilt from data, not kept from the abandoned session.
+          expect((state.copy as _Item).name, 'original');
+        },
+      );
 
       test('redundant edit assignment should not discard an active draft', () {
         // Arrange
@@ -380,22 +395,25 @@ void main() {
         expect((state.copy as _Item).name, 'api-draft');
       });
 
-      test('a StateAPI subclass should provide a fresh draft on edit re-entry', () {
-        // Arrange
-        final state = _APIItemState();
-        state.data = {'name': 'api-data'};
+      test(
+        'a StateAPI subclass should provide a fresh draft on edit re-entry',
+        () {
+          // Arrange
+          final state = _APIItemState();
+          state.data = {'name': 'api-data'};
 
-        // Enter edit mode, mutate, then leave (cancel).
-        state.edit = true;
-        (state.copy as _Item).name = 'abandoned-edit';
-        state.edit = false;
+          // Enter edit mode, mutate, then leave (cancel).
+          state.edit = true;
+          (state.copy as _Item).name = 'abandoned-edit';
+          state.edit = false;
 
-        // Act — re-enter edit mode.
-        state.edit = true;
+          // Act — re-enter edit mode.
+          state.edit = true;
 
-        // Assert — the abandoned edit is gone; draft is rebuilt from data.
-        expect((state.copy as _Item).name, 'api-data');
-      });
+          // Assert — the abandoned edit is gone; draft is rebuilt from data.
+          expect((state.copy as _Item).name, 'api-data');
+        },
+      );
 
       test('a StateAPI subclass clear() should reset edit and draft', () async {
         // Arrange

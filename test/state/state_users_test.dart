@@ -44,8 +44,7 @@ class PartialFailingStateUsers extends FakeStateUsers {
     // Other chunks succeed with canned data
     return {
       for (final uid in uids)
-        if (!failingUids.contains(uid))
-          uid: {'firstName': 'User', 'os': 'ios'},
+        if (!failingUids.contains(uid)) uid: {'firstName': 'User', 'os': 'ios'},
     };
   }
 }
@@ -298,25 +297,22 @@ void main() {
     });
 
     group('failed fetch handling', () {
-      test(
-        'caches Unknown placeholder when user is not found',
-        () async {
-          // Arrange
-          final state = FakeStateUsers({});
-          int notifications = 0;
-          state.addListener(() => notifications++);
+      test('caches Unknown placeholder when user is not found', () async {
+        // Arrange
+        final state = FakeStateUsers({});
+        int notifications = 0;
+        state.addListener(() => notifications++);
 
-          // Act
-          final placeholder = state.getUser('missing');
-          await state.flushPendingUsers();
-          await settleDebounce();
+        // Act
+        final placeholder = state.getUser('missing');
+        await state.flushPendingUsers();
+        await settleDebounce();
 
-          // Assert
-          expect(placeholder.firstName, isNull);
-          expect(state.cachedUser('missing')!.firstName, isNull);
-          expect(notifications, 0); // No change notification for missing user
-        },
-      );
+        // Assert
+        expect(placeholder.firstName, isNull);
+        expect(state.cachedUser('missing')!.firstName, isNull);
+        expect(notifications, 0); // No change notification for missing user
+      });
 
       test(
         'returns cached Unknown placeholder on repeated getUser for missing user',
@@ -339,121 +335,136 @@ void main() {
         },
       );
 
-      test(
-        'retries a failed lookup on repeated getUser calls',
-        () async {
-          // Arrange - FailingStateUsers throws on first fetch attempt
-          final state = FailingStateUsers();
+      test('retries a failed lookup on repeated getUser calls', () async {
+        // Arrange - FailingStateUsers throws on first fetch attempt
+        final state = FailingStateUsers();
 
-          // Act - first call triggers fetch that fails
-          final first = state.getUser('abc');
-          await state.flushPendingUsers();
+        // Act - first call triggers fetch that fails
+        final first = state.getUser('abc');
+        await state.flushPendingUsers();
 
-          // Act - second call should retry the failed lookup
-          state.getUser('abc');
-          await state.flushPendingUsers();
+        // Act - second call should retry the failed lookup
+        state.getUser('abc');
+        await state.flushPendingUsers();
 
-          // Assert - fetch should have been attempted twice (retry after failure)
-          expect(state.fetchAttempts, greaterThan(1),
-              reason:
-                  'Failed lookup should be retryable, not cached as permanent placeholder');
+        // Assert - fetch should have been attempted twice (retry after failure)
+        expect(
+          state.fetchAttempts,
+          greaterThan(1),
+          reason:
+              'Failed lookup should be retryable, not cached as permanent placeholder',
+        );
+        expect(
+          first.id,
+          'abc',
+          reason: 'First placeholder has the requested ID',
+        );
+        expect(
+          first.firstName,
+          isNull,
+          reason: 'First placeholder has no real data (Unknown)',
+        );
+      });
+
+      test('does not re-read successful chunks when one chunk fails', () async {
+        // Arrange: Request UIDs across 3 chunks (whereInLimit=30 per chunk).
+        // Chunks: [uids 1-30], [uids 31-60], [uids 61-90]
+        // Fail only chunk 2 (uids 31-60).
+        final failingUids = <String>{for (int i = 31; i <= 60; i++) 'user_$i'};
+        final state = PartialFailingStateUsers(failingUids);
+
+        // Act - request all 90 UIDs across the 3 chunks
+        for (int i = 1; i <= 90; i++) {
+          state.getUser('user_$i');
+        }
+        await state.flushPendingUsers();
+
+        // Assert - chunk 1 and 3 UIDs are cached, chunk 2 UIDs are in _failedUids
+        for (int i = 1; i <= 30; i++) {
           expect(
-            first.id,
-            'abc',
-            reason: 'First placeholder has the requested ID',
+            state.cachedUser('user_$i')?.firstName,
+            'User',
+            reason: 'Chunk 1 UID $i should be cached from successful fetch',
           );
+        }
+        for (int i = 31; i <= 60; i++) {
           expect(
-            first.firstName,
+            state.cachedUser('user_$i')?.firstName,
             isNull,
-            reason: 'First placeholder has no real data (Unknown)',
+            reason: 'Chunk 2 UID $i should have placeholder (fetch failed)',
           );
-        },
-      );
+        }
+        for (int i = 61; i <= 90; i++) {
+          expect(
+            state.cachedUser('user_$i')?.firstName,
+            'User',
+            reason: 'Chunk 3 UID $i should be cached from successful fetch',
+          );
+        }
 
-      test(
-        'does not re-read successful chunks when one chunk fails',
-        () async {
-          // Arrange: Request UIDs across 3 chunks (whereInLimit=30 per chunk).
-          // Chunks: [uids 1-30], [uids 31-60], [uids 61-90]
-          // Fail only chunk 2 (uids 31-60).
-          final failingUids = <String>{
-            for (int i = 31; i <= 60; i++) 'user_$i',
-          };
-          final state = PartialFailingStateUsers(failingUids);
+        // Verify initial request count (3 chunks)
+        expect(
+          state.requests.length,
+          3,
+          reason: 'Should have made 3 chunk requests initially',
+        );
 
-          // Act - request all 90 UIDs across the 3 chunks
-          for (int i = 1; i <= 90; i++) {
-            state.getUser('user_$i');
-          }
-          await state.flushPendingUsers();
+        // Act - retry all failed UIDs from chunk 2 by calling getUser for each
+        for (int i = 31; i <= 60; i++) {
+          state.getUser('user_$i');
+        }
+        await state.flushPendingUsers();
 
-          // Assert - chunk 1 and 3 UIDs are cached, chunk 2 UIDs are in _failedUids
-          for (int i = 1; i <= 30; i++) {
-            expect(state.cachedUser('user_$i')?.firstName, 'User',
-                reason: 'Chunk 1 UID $i should be cached from successful fetch');
-          }
-          for (int i = 31; i <= 60; i++) {
-            expect(state.cachedUser('user_$i')?.firstName, isNull,
-                reason: 'Chunk 2 UID $i should have placeholder (fetch failed)');
-          }
-          for (int i = 61; i <= 90; i++) {
-            expect(state.cachedUser('user_$i')?.firstName, 'User',
-                reason: 'Chunk 3 UID $i should be cached from successful fetch');
-          }
+        // Assert - should only re-fetch chunk 2 (the failed UIDs), not chunks 1 and 3
+        expect(
+          state.requests.length,
+          4,
+          reason:
+              'Should have made only 1 additional request (chunk 2), not 3 (re-reading all chunks)',
+        );
+        expect(
+          state.requests.last.length,
+          30,
+          reason: 'Retry should request only the 30 failed UIDs from chunk 2',
+        );
+        expect(
+          state.requests.last.every((uid) => failingUids.contains(uid)),
+          isTrue,
+          reason: 'Retry batch should contain only UIDs that actually failed',
+        );
+      });
 
-          // Verify initial request count (3 chunks)
-          expect(state.requests.length, 3,
-              reason: 'Should have made 3 chunk requests initially');
+      test('bounds retry attempts for always-failing uid', () async {
+        // Arrange
+        final state = AlwaysFailingStateUsers();
 
-          // Act - retry all failed UIDs from chunk 2 by calling getUser for each
-          for (int i = 31; i <= 60; i++) {
-            state.getUser('user_$i');
-          }
-          await state.flushPendingUsers();
+        // Act - trigger initial fetch and multiple retries
+        state.getUser('u1');
+        await state.flushPendingUsers();
 
-          // Assert - should only re-fetch chunk 2 (the failed UIDs), not chunks 1 and 3
-          expect(state.requests.length, 4,
-              reason:
-                  'Should have made only 1 additional request (chunk 2), not 3 (re-reading all chunks)');
-          expect(state.requests.last.length, 30,
-              reason: 'Retry should request only the 30 failed UIDs from chunk 2');
-          expect(state.requests.last.every((uid) => failingUids.contains(uid)),
-              isTrue,
-              reason: 'Retry batch should contain only UIDs that actually failed');
-        },
-      );
+        state.getUser('u1');
+        await state.flushPendingUsers();
 
-      test(
-       'bounds retry attempts for always-failing uid',
-       () async {
-         // Arrange
-         final state = AlwaysFailingStateUsers();
+        state.getUser('u1');
+        await state.flushPendingUsers();
 
-         // Act - trigger initial fetch and multiple retries
-         state.getUser('u1');
-         await state.flushPendingUsers();
+        state.getUser('u1');
+        await state.flushPendingUsers();
 
-         state.getUser('u1');
-         await state.flushPendingUsers();
+        state.getUser('u1');
+        await state.flushPendingUsers();
 
-         state.getUser('u1');
-         await state.flushPendingUsers();
+        state.getUser('u1');
+        await state.flushPendingUsers();
 
-         state.getUser('u1');
-         await state.flushPendingUsers();
-
-         state.getUser('u1');
-         await state.flushPendingUsers();
-
-         state.getUser('u1');
-         await state.flushPendingUsers();
-
-         // Assert - maxAttempts=3 means 1 initial + 2 retries (3 total attempts)
-         expect(state.requests.length, equals(StateUsers.maxAttempts),
-             reason:
-                 'maxAttempts=${StateUsers.maxAttempts} should limit total fetch attempts to exactly ${StateUsers.maxAttempts}');
-       },
-      );
+        // Assert - maxAttempts=3 means 1 initial + 2 retries (3 total attempts)
+        expect(
+          state.requests.length,
+          equals(StateUsers.maxAttempts),
+          reason:
+              'maxAttempts=${StateUsers.maxAttempts} should limit total fetch attempts to exactly ${StateUsers.maxAttempts}',
+        );
+      });
     });
   });
 }
