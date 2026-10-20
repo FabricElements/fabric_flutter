@@ -147,10 +147,13 @@ The parent session must track and report per child session:
     - Child start timestamp
     - Child completion timestamp
     - Total wall-clock duration
-3. Relative effort tier
+3. Human-effort estimate
+    - Estimated manual implementation time (minutes/hours)
+    - Brief basis for the estimate (scope, files touched, complexity)
+4. Relative effort tier
     - Scope tier for the task (small / medium / large)
     - Brief basis for the tier (files touched, complexity, coupling)
-4. Model cost accounting
+5. Model cost accounting
     - Model(s) used per task (local and/or paid)
     - Estimated token usage when available
     - Actual dollar cost for paid model usage when available from tooling/provider
@@ -167,9 +170,14 @@ Provide a per-task record in a structured table with columns:
 - Start Time
 - End Time
 - Duration
+- Est. Human Time
 - Scope Tier
 - Actual/Estimated Cost (USD)
 - Notes
+
+`Est. Human Time` is the estimated manual implementation time (minutes/hours) for the same work done by a person, with
+the basis stated alongside it. It is an effort estimate, not a duration measurement — never derive it from the task's
+wall-clock runtime.
 
 Also provide rolling totals:
 - Total child tasks completed
