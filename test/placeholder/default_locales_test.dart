@@ -132,6 +132,34 @@ void main() {
       expect(malformed, isEmpty);
     });
 
+    test('should spell the clipboard confirmation correctly in Spanish', () {
+      // Arrange: a copy-paste slip in this literal shipped "Popiado" instead of
+      // "Copiado" to every Spanish user, so the exact wording is pinned.
+
+      // Act
+      final spanish = defaultLocales['alert--copy-clipboard']?['es'];
+
+      // Assert
+      expect(spanish, 'Copiado al portapapeles');
+    });
+
+    test('should not contain the misspelled clipboard verb anywhere', () {
+      // Arrange: the same copy-paste slip could reappear in another Spanish
+      // literal, so the whole table is scanned for it.
+
+      // Act
+      final misspelled = <String>[];
+      defaultLocales.forEach((key, translations) {
+        final spanish = translations['es'];
+        if (spanish != null && spanish.contains('Popiado')) {
+          misspelled.add(key);
+        }
+      });
+
+      // Assert
+      expect(misspelled, isEmpty);
+    });
+
     test('should keep placeholder tokens consistent across languages', () {
       // Arrange
       final mismatched = <String>[];
