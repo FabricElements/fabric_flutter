@@ -65,7 +65,10 @@ class AgentElementIndex {
   ///
   /// When another handle already uses the same identifier the new handle wins,
   /// matching the behavior of a duplicated `automationKey` in the accessibility
-  /// tree. A debug-only warning is emitted so the duplicate can be fixed.
+  /// tree. A debug-only warning is emitted so the duplicate can be fixed, but
+  /// only when both elements are visible: two same-key elements that are merely
+  /// mounted, such as a covered route or a nested navigator, are not a
+  /// duplicate an agent could ever observe at once.
   void register(AgentElementHandle handle) {
     if (handle.id.isEmpty) return;
     final existing = _elements[handle.id];
@@ -123,11 +126,12 @@ class AgentElementIndex {
 
   /// Queues a single change notification for the next microtask.
   /// Warns about [id] once the current pass finishes, if an element it
-  /// replaced is still mounted.
+  /// replaced is still mounted and both elements are visible.
   ///
   /// Replacing a subtree builds the new element before the old one is
   /// disposed, so the check waits for the pass to end. A warning therefore
-  /// means two live elements share the id, not a transient overlap.
+  /// means two live, visible elements share the id, not a transient overlap
+  /// and not two elements that are mounted but off screen.
   void _queueDuplicateCheck(String id) {
     if (_pendingDuplicateIds.isEmpty) {
       scheduleMicrotask(_flushDuplicateChecks);
@@ -139,7 +143,10 @@ class AgentElementIndex {
     final ids = _pendingDuplicateIds.toList();
     _pendingDuplicateIds.clear();
     for (final id in ids) {
-      if (!_superseded.containsKey(id)) continue;
+      final replaced = _superseded[id];
+      final current = _elements[id];
+      if (replaced == null || current == null) continue;
+      if (!replaced.visible || !current.visible) continue;
       debugPrint(
         LogColor.warning(
           'AgentElementIndex: duplicate automationKey "$id"; '

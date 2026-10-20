@@ -151,7 +151,7 @@ const Map<String, Map<String, String>> defaultLocales = {
   },
   'alert--copy-clipboard': {
     'en': 'Copied to clipboard',
-    'es': 'Popiado al portapapeles',
+    'es': 'Copiado al portapapeles',
   },
   'alert--password-must-be-different': {
     'en': 'The new password must be different.',

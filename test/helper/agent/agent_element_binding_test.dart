@@ -171,7 +171,7 @@ void main() {
         expect(taps, 1);
       });
 
-      testWidgets('should report visibility from the mounted state', (
+      testWidgets('should report a current route element as visible', (
         WidgetTester tester,
       ) async {
         // Arrange
@@ -186,6 +186,148 @@ void main() {
 
         // Assert
         expect(index.handle('a')?.visible, isTrue);
+      });
+    });
+
+    group('visibility', () {
+      /// Runs [body] with `debugPrint` captured into a list.
+      ///
+      /// The swap is scoped to the body rather than a `setUp`/`tearDown` pair
+      /// because `testWidgets` asserts that no foundation debug variable is
+      /// still overridden when the body returns, which runs before `tearDown`.
+      Future<void> withCapturedLogs(
+        Future<void> Function(List<String> logs) body,
+      ) async {
+        final logs = <String>[];
+        final originalDebugPrint = debugPrint;
+        debugPrint = (String? message, {int? wrapWidth}) {
+          logs.add(message ?? '');
+        };
+        try {
+          await body(logs);
+        } finally {
+          debugPrint = originalDebugPrint;
+        }
+      }
+
+      testWidgets('should report a covered route element as invisible', (
+        WidgetTester tester,
+      ) async {
+        await withCapturedLogs((logs) async {
+          // Arrange
+          final index = AgentElementIndex();
+          final navigatorKey = GlobalKey<NavigatorState>();
+          await tester.pumpWidget(
+            MaterialApp(
+              navigatorKey: navigatorKey,
+              home: AgentElement(
+                id: 'a',
+                index: index,
+                child: const SizedBox(),
+              ),
+            ),
+          );
+          final covered = index.handle('a')!;
+          expect(covered.visible, isTrue);
+
+          // Act
+          navigatorKey.currentState!.push(
+            MaterialPageRoute<void>(
+              builder: (_) =>
+                  AgentElement(id: 'a', index: index, child: const SizedBox()),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          // Assert
+          expect(covered.visible, isFalse);
+          expect(index.handle('a')?.visible, isTrue);
+          expect(logs.where((log) => log.contains('duplicate')), isEmpty);
+        });
+      });
+
+      testWidgets('should report a muted subtree as invisible', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
+        final index = AgentElementIndex();
+
+        // Act
+        await tester.pumpWidget(
+          MaterialApp(
+            home: TickerMode(
+              enabled: false,
+              child: AgentElement(
+                id: 'a',
+                index: index,
+                child: const SizedBox(),
+              ),
+            ),
+          ),
+        );
+
+        // Assert
+        expect(index.handle('a')?.visible, isFalse);
+      });
+
+      testWidgets('should warn when two visible elements share a key', (
+        WidgetTester tester,
+      ) async {
+        await withCapturedLogs((logs) async {
+          // Arrange
+          final index = AgentElementIndex();
+
+          // Act
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Column(
+                children: [
+                  AgentElement(id: 'a', index: index, child: const SizedBox()),
+                  AgentElement(id: 'a', index: index, child: const SizedBox()),
+                ],
+              ),
+            ),
+          );
+          await tester.pump();
+
+          // Assert
+          expect(
+            logs.where((log) => log.contains('duplicate automationKey "a"')),
+            hasLength(1),
+          );
+        });
+      });
+
+      testWidgets('should not warn when a covered element shares a key', (
+        WidgetTester tester,
+      ) async {
+        await withCapturedLogs((logs) async {
+          // Arrange
+          final index = AgentElementIndex();
+          final navigatorKey = GlobalKey<NavigatorState>();
+          await tester.pumpWidget(
+            MaterialApp(
+              navigatorKey: navigatorKey,
+              home: AgentElement(
+                id: 'a',
+                index: index,
+                child: const SizedBox(),
+              ),
+            ),
+          );
+
+          // Act
+          navigatorKey.currentState!.push(
+            MaterialPageRoute<void>(
+              builder: (_) =>
+                  AgentElement(id: 'a', index: index, child: const SizedBox()),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          // Assert
+          expect(logs.where((log) => log.contains('duplicate')), isEmpty);
+        });
       });
     });
   });

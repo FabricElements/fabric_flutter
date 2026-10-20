@@ -1,3 +1,24 @@
+## [3.1.2] - 2026-10-20
+
+### Fixed
+
+* **`AgentElementIndex` no longer reports duplicate `automationKey` warnings for
+  elements that are not actually visible.** Visibility previously meant only
+  "mounted", so two same-key elements mounted at once — during a route
+  transition, in a nested navigator, in a two-pane layout, or on an offstage
+  route — both counted as visible and produced a false positive. An element is
+  now visible only while it is mounted, its route is the current one, and its
+  subtree is not muted because an opaque route covers it. The warning still
+  fires when two genuinely visible elements share a key.
+* **`StateNotifications.getToken()` requests permission and fetches the token
+  once per session.** It previously re-ran the permission request on every
+  signed-in stream event, and the granted-permission line was printed twice.
+  Repeated and concurrent calls now share the first in-flight request, a failed
+  request is not cached so a later call can retry, and `reset()` clears the
+  cached request.
+* **Spanish locale typo:** the `alert--copy-clipboard` message read
+  "Popiado al portapapeles" and now reads "Copiado al portapapeles".
+
 ## [Unreleased]
 
 ### Added

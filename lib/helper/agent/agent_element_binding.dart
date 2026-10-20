@@ -12,7 +12,8 @@ import 'agent_element_index.dart';
 /// so wrapping a widget that has no `automationKey` is free.
 ///
 /// The registered entry is created on mount, refreshed whenever the owning
-/// widget rebuilds, and removed on dispose.
+/// widget rebuilds or the enclosing route becomes current or covered, and
+/// removed on dispose.
 ///
 /// ```dart
 /// AgentElement(
@@ -68,7 +69,10 @@ class AgentElement extends StatefulWidget {
 
   /// Reports whether the element is currently rendered.
   ///
-  /// Defaults to the widget's mounted state when omitted.
+  /// Defaults to the widget's mounted state combined with the enclosing
+  /// route's state when omitted: an element is visible only while it is
+  /// mounted, its route is the current one, and its subtree is not muted
+  /// because an opaque route covers it.
   final AgentStateGetter? visibleGetter;
 
   /// Applies a new value, exactly as user input would.
@@ -121,6 +125,20 @@ class _AgentElementState extends State<AgentElement> {
     _handle?.updateFrom(_buildHandle()!);
   }
 
+  /// Refreshes the element when the enclosing route or ticker mode changes.
+  ///
+  /// [ModalRoute.isCurrent] and [TickerMode] are inherited lookups, so a route
+  /// becoming current or covered does not rebuild this widget on its own. The
+  /// dependency registered by [build] brings us here instead, which is what
+  /// keeps the indexed visibility in step with the route.
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final handle = _handle;
+    if (handle == null) return;
+    handle.updateFrom(_buildHandle()!);
+  }
+
   /// Removes the element from the index when it leaves the tree.
   @override
   void dispose() {
@@ -158,13 +176,39 @@ class _AgentElementState extends State<AgentElement> {
       hint: widget.hint,
       valueGetter: widget.valueGetter,
       enabledGetter: widget.enabledGetter,
-      visibleGetter: widget.visibleGetter ?? () => mounted,
+      visibleGetter: widget.visibleGetter ?? _isVisible,
       setter: widget.setter,
       activator: widget.activator,
     );
   }
 
+  /// Reports whether this element is rendered on screen right now.
+  ///
+  /// Being mounted is not enough. A route that another route covers keeps its
+  /// subtree mounted, an outgoing route stays mounted for the whole push
+  /// transition, and a nested navigator or a two-pane layout can hold several
+  /// routes at once. An element therefore counts as visible only while its
+  /// route is the current one and its subtree is not muted because an opaque
+  /// route covers it, so two same-key elements that are merely mounted no
+  /// longer look like a duplicate.
+  ///
+  /// Both lookups default to visible when there is no route or [TickerMode]
+  /// ancestor, which keeps bare widget tests unchanged. A route covered by a
+  /// non-opaque route such as a dialog is not current either, so its elements
+  /// report invisible while that route is on top.
+  bool _isVisible() {
+    if (!mounted) return false;
+    if (ModalRoute.of(context)?.isCurrent == false) return false;
+    return TickerMode.valuesOf(context).enabled;
+  }
+
   /// Returns [AgentElement.child] unchanged.
+  ///
+  /// The [TickerMode] lookup is what registers the dependency that refreshes
+  /// the indexed visibility when another route covers this one.
   @override
-  Widget build(BuildContext context) => widget.child;
+  Widget build(BuildContext context) {
+    TickerMode.valuesOf(context);
+    return widget.child;
+  }
 }

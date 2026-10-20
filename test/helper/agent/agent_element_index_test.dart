@@ -79,7 +79,7 @@ void main() {
         expect(logs.where((log) => log.contains('duplicate')), isEmpty);
       });
 
-      test('should warn when the replaced handle is still mounted', () async {
+      test('should warn when both handles are visible', () async {
         // Arrange
         final index = AgentElementIndex();
         index.register(AgentElementHandle(id: 'dup'));
@@ -89,6 +89,83 @@ void main() {
         await Future<void>.delayed(Duration.zero);
 
         // Assert
+        expect(
+          logs.where((log) => log.contains('duplicate automationKey "dup"')),
+          hasLength(1),
+        );
+      });
+
+      test('should not warn when both handles are invisible', () async {
+        // Arrange
+        final index = AgentElementIndex();
+        index.register(
+          AgentElementHandle(id: 'dup', visibleGetter: () => false),
+        );
+        index.register(
+          AgentElementHandle(id: 'dup', visibleGetter: () => false),
+        );
+
+        // Act
+        await Future<void>.delayed(Duration.zero);
+
+        // Assert
+        expect(logs.where((log) => log.contains('duplicate')), isEmpty);
+      });
+
+      test(
+        'should not warn when only the replaced handle is invisible',
+        () async {
+          // Arrange
+          final index = AgentElementIndex();
+          index.register(
+            AgentElementHandle(id: 'dup', visibleGetter: () => false),
+          );
+          index.register(AgentElementHandle(id: 'dup'));
+
+          // Act
+          await Future<void>.delayed(Duration.zero);
+
+          // Assert
+          expect(logs.where((log) => log.contains('duplicate')), isEmpty);
+        },
+      );
+
+      test(
+        'should not warn when only the current handle is invisible',
+        () async {
+          // Arrange
+          final index = AgentElementIndex();
+          index.register(AgentElementHandle(id: 'dup'));
+          index.register(
+            AgentElementHandle(id: 'dup', visibleGetter: () => false),
+          );
+
+          // Act
+          await Future<void>.delayed(Duration.zero);
+
+          // Assert
+          expect(logs.where((log) => log.contains('duplicate')), isEmpty);
+        },
+      );
+
+      test('should warn when a covered handle becomes visible again', () async {
+        // Arrange
+        final index = AgentElementIndex();
+        var covered = true;
+        index.register(
+          AgentElementHandle(id: 'dup', visibleGetter: () => !covered),
+        );
+        index.register(AgentElementHandle(id: 'dup'));
+        await Future<void>.delayed(Duration.zero);
+        final whileCovered = logs.length;
+
+        // Act
+        covered = false;
+        index.register(AgentElementHandle(id: 'dup'));
+        await Future<void>.delayed(Duration.zero);
+
+        // Assert
+        expect(whileCovered, 0);
         expect(
           logs.where((log) => log.contains('duplicate automationKey "dup"')),
           hasLength(1),

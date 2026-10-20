@@ -55,6 +55,50 @@ class StateNotifications extends ChangeNotifier {
   /// Prevents notification listeners from being registered more than once.
   bool _initialized = false;
 
+  /// Caches the in-flight permission request and token fetch.
+  ///
+  /// [getToken] is reached from the signed-in stream, which can fire more than
+  /// once per session. Sharing a single future keeps the permission prompt and
+  /// the token fetch to one run and makes concurrent callers safe. [reset]
+  /// clears it so a later session can request again.
+  Future<String?>? _tokenRequest;
+
+  /// Requests notification permission and returns the resulting status.
+  ///
+  /// Exposed as an overridable seam so tests can exercise the permission and
+  /// token flow without reaching the real messaging plugin.
+  @protected
+  @visibleForTesting
+  Future<AuthorizationStatus> requestPermission() async {
+    final settings = await FirebaseMessaging.instance.requestPermission(
+      alert: true,
+      announcement: true,
+      badge: true,
+      carPlay: true,
+      // criticalAlert: true, // DO NOT ENABLE THIS UNLESS YOU UNDERSTAND THE IMPLICATIONS. Custom entitlements are required
+      provisional: true,
+      sound: true,
+      providesAppNotificationSettings: true,
+    );
+    return settings.authorizationStatus;
+  }
+
+  /// Returns the Apple push token, or `null` when it is not available yet.
+  ///
+  /// Exposed as an overridable seam so tests can exercise the permission and
+  /// token flow without reaching the real messaging plugin.
+  @protected
+  @visibleForTesting
+  Future<String?> getApnsToken() => FirebaseMessaging.instance.getAPNSToken();
+
+  /// Returns the current FCM registration token.
+  ///
+  /// Exposed as an overridable seam so tests can exercise the permission and
+  /// token flow without reaching the real messaging plugin.
+  @protected
+  @visibleForTesting
+  Future<String?> getFcmToken() => FirebaseMessaging.instance.getToken();
+
   /// Stores an optional callback used for foreground or fallback handling.
   Function(NotificationData message)? _callback;
 
@@ -90,39 +134,43 @@ class StateNotifications extends ChangeNotifier {
 
   /// Requests notification permissions and returns the current FCM token.
   ///
-  /// Returns `null` when the user declines permission or when Apple push token
-  /// setup fails. Callers typically invoke this from the main app flow so the
-  /// permission prompt does not block unrelated state initialization.
+  /// The permission request and the token fetch run once per session: repeated
+  /// or concurrent calls share the first in-flight request instead of prompting
+  /// the user again. Returns `null` when the user declines permission or when
+  /// Apple push token setup fails. Callers typically invoke this from the main
+  /// app flow so the permission prompt does not block unrelated state
+  /// initialization.
   Future<String?> getToken() async {
     if (!initialized) throw 'Initialize Firebase app first';
+    final pending = _tokenRequest;
+    if (pending != null) return pending;
+    final request = _fetchToken();
+    _tokenRequest = request;
+    try {
+      return await request;
+    } catch (_) {
+      // A failed request is not cached, so a later call can retry.
+      if (identical(_tokenRequest, request)) _tokenRequest = null;
+      rethrow;
+    }
+  }
+
+  /// Performs the one-time permission request and token fetch behind [getToken].
+  Future<String?> _fetchToken() async {
     // You may set the permission requests to "provisional" which allows the user to choose what type
     // of notifications they would like to receive once the user receives a notification.
-    final notificationSettings = await FirebaseMessaging.instance.requestPermission(
-      alert: true,
-      announcement: true,
-      badge: true,
-      carPlay: true,
-      // criticalAlert: true, // DO NOT ENABLE THIS UNLESS YOU UNDERSTAND THE IMPLICATIONS. Custom entitlements are required
-      provisional: true,
-      sound: true,
-      providesAppNotificationSettings: true,
-    );
-    debugPrint(
-      'User granted permission: ${notificationSettings.authorizationStatus}',
-    );
-    switch (notificationSettings.authorizationStatus) {
+    final authorizationStatus = await requestPermission();
+    debugPrint('User granted permission: $authorizationStatus');
+    switch (authorizationStatus) {
       case AuthorizationStatus.authorized:
       case AuthorizationStatus.provisional:
-        debugPrint(
-          'User granted permission: ${notificationSettings.authorizationStatus}',
-        );
         break;
       default:
         return null;
     }
     try {
       // For apple platforms, make sure the APNS token is available before making any FCM plugin API calls
-      final apnsToken = await FirebaseMessaging.instance.getAPNSToken();
+      final apnsToken = await getApnsToken();
       if (apnsToken != null) {
         // APNS token is available, make FCM plugin API requests...
         // The token is a bearer credential for pushing to this device, so it is
@@ -138,7 +186,7 @@ class StateNotifications extends ChangeNotifier {
       return null;
     }
 
-    String? token = await FirebaseMessaging.instance.getToken();
+    String? token = await getFcmToken();
     return token;
   }
 
@@ -425,6 +473,7 @@ class StateNotifications extends ChangeNotifier {
     _notification = null;
     _uid = null;
     _initialized = false;
+    _tokenRequest = null;
   }
 
   /// Registers the callback used for foreground and fallback notification work.
