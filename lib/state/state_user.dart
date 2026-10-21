@@ -89,7 +89,6 @@ class StateUser extends StateDocument {
         debugPrint(LogColor.error(e));
       }
     }
-    if (userObject != null && initialized) notifyListeners();
     await _userStatusUpdate();
   }
 
