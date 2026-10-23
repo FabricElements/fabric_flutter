@@ -73,6 +73,10 @@
 
 ### Changed
 
+* **Flutter toolchain upgraded to 3.47.8.** CI pin, `environment.flutter`
+  (`>=3.47.8 <4.0.0`), and contributor docs now target 3.47.8. This includes the
+  eMudhra CA certificate compromise fix (Flutter 3.47.8 / Dart 3.13.7).
+
 * **`InitApp` color schemes are now seed-derived.** The light and dark schemes
   come from `MaterialThemeM3.schemeFromSeed`, using `seedColor` or, when it is
   omitted, the ambient theme's primary color, instead of the baseline
