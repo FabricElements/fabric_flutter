@@ -3,7 +3,7 @@
 ### Quick Start
 
 1. **Fork and clone** the repository locally
-2. **Install Flutter SDK** (stable channel, `^3.12.1` or higher)
+2. **Install Flutter SDK** (stable channel, `^3.13.7` or higher)
 3. **Install dependencies:**
    ```bash
    flutter pub get

@@ -41,6 +41,6 @@ rm .git/hooks/pre-commit
 
 ## Requirements
 
-- Flutter SDK (stable channel, ^3.12.1 or higher)
+- Flutter SDK (stable channel, ^3.13.7 or higher)
 - Git repository
 - Bash shell (Linux/macOS) or Git Bash (Windows)

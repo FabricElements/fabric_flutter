@@ -54,6 +54,7 @@
 
 ### Changed
 
+* **Dart SDK minimum raised to `^3.13.7`** (`environment.sdk`) for the eMudhra CA TLS advisory GHSA-frr6-h895-5pxp, which is fixed in Dart 3.13.7 and later. Dart 3.12.x is no longer accepted.
 * **Flutter toolchain upgraded to 3.47.8.** CI pin, `environment.flutter`
   (`>=3.47.8 <4.0.0`), and contributor docs now target 3.47.8. This includes the
   eMudhra CA certificate compromise fix (Flutter 3.47.8 / Dart 3.13.7).

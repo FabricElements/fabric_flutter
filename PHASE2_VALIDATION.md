@@ -4,7 +4,7 @@ This document outlines the validation steps required to complete the Phase 2 cod
 
 ## Prerequisites
 
-Ensure you have Flutter SDK installed (stable channel, compatible with SDK `^3.12.1`):
+Ensure you have Flutter SDK installed (stable channel, compatible with SDK `^3.13.7`):
 ```bash
 flutter --version
 ```
