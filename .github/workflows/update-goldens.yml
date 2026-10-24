@@ -1,0 +1,162 @@
+# Regenerate the Widgetbook golden baselines on Linux.
+#
+# Golden baselines are pixel images, and Flutter's comparator is
+# platform-sensitive: the same widget rasterises slightly differently on macOS
+# and Linux. CI runs on ubuntu-latest, so baselines generated on a developer's
+# Mac fail there with sub-1% pixel diffs even when nothing changed.
+#
+# The fix is not a tolerance or comparator change. It is regenerating the
+# baselines on the same platform and toolchain CI uses. This workflow does that
+# on demand, so nobody has to reproduce the Linux toolchain locally.
+#
+# What it does:
+#   1. Checks out the default branch and installs the CI Flutter version.
+#   2. Runs `flutter pub get` and build_runner, mirroring CI.
+#   3. Runs the golden test with `--update-goldens` to rewrite the baselines.
+#   4. Re-runs the same test WITHOUT the flag. `--update-goldens` always passes,
+#      so only this second run shows the baselines match on Linux.
+#   5. Commits ONLY the changed PNGs under `test/widgetbook/goldens` to a new
+#      branch and opens a pull request for review. It never merges.
+
+name: Update golden baselines
+
+on:
+  workflow_dispatch:
+
+# A second dispatch while one is running would race on the same branch name and
+# the same baselines. Cancel the older run instead.
+concurrency:
+  group: update-goldens
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  update-goldens:
+    name: Regenerate widgetbook goldens on Linux
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      # Push the regenerated baselines to a new branch.
+      contents: write
+      # Open the pull request with the built-in GITHUB_TOKEN.
+      pull-requests: write
+    steps:
+      # Pin the ref to the default branch so the pull request targets the tree
+      # the baselines were regenerated from.
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.47.8
+          channel: 'stable'
+          cache: true
+
+      - name: Flutter version
+        run: flutter --version
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate serialized models
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Regenerate golden baselines
+        run: flutter test --update-goldens test/widgetbook/catalog_golden_test.dart
+
+      # The load-bearing step. `--update-goldens` cannot fail on a pixel diff,
+      # so this run compares the baselines just written against a fresh render
+      # on the same platform.
+      - name: Verify baselines match on Linux
+        run: flutter test test/widgetbook/catalog_golden_test.dart
+
+      - name: Commit changed baselines
+        id: commit
+        run: |
+          set -euo pipefail
+
+          # Fail closed if anything outside the goldens directory is dirty.
+          other=$(git status --porcelain --untracked-files=no | grep -vE '^.. test/widgetbook/goldens/' || true)
+          if [ -n "$other" ]; then
+            echo "::error::unexpected working-tree changes outside test/widgetbook/goldens:"
+            echo "$other"
+            exit 1
+          fi
+
+          # `:(glob)` stops `*` at `/`, so failure diff images in subfolders are
+          # never staged. Only top-level baselines match.
+          git add -- ':(glob)test/widgetbook/goldens/*.png'
+
+          staged=$(git diff --cached --name-only)
+          if [ -z "$staged" ]; then
+            echo "No golden changes. The committed baselines already match Linux."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          bad=$(echo "$staged" | grep -vE '^test/widgetbook/goldens/[^/]+\.png$' || true)
+          if [ -n "$bad" ]; then
+            echo "::error::refusing to commit paths that are not golden PNGs:"
+            echo "$bad"
+            exit 1
+          fi
+
+          echo "Staged $(echo "$staged" | wc -l | tr -d ' ') golden file(s)."
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+          # Attribute the commit to the human who dispatched the run.
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
+
+          printf '%s\n' \
+            'chore(test): regenerate widgetbook golden baselines on Linux' \
+            '' \
+            'Baselines are platform-sensitive and CI runs on ubuntu-latest.' \
+            'Regenerated with Flutter 3.47.8 on ubuntu-latest using the same test' \
+            'command, then re-run without --update-goldens to confirm they match.' \
+            'No comparator or tolerance change.' > /tmp/goldens-commit-msg.txt
+
+          branch="chore/update-goldens-${{ github.run_id }}"
+          git checkout -b "$branch"
+          git commit -F /tmp/goldens-commit-msg.txt
+          git push --set-upstream origin "$branch"
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+
+      - name: Open pull request
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_BODY: |
+            Regenerates every baseline in `test/widgetbook/goldens` on Linux, the
+            platform CI runs on.
+
+            ## Why
+
+            Flutter's golden comparator is platform-sensitive, so a baseline
+            generated on macOS fails on ubuntu-latest with sub-1% pixel diffs even
+            when the widget is unchanged.
+
+            ## What changed
+
+            PNG baselines under `test/widgetbook/goldens` only. No code, comparator,
+            or tolerance change.
+
+            ## Verification
+
+            Generated with Flutter 3.47.8 on `ubuntu-latest` by the
+            `Update golden baselines` workflow, then re-run **without**
+            `--update-goldens` on the same runner to confirm the committed baselines
+            match.
+
+            Opened automatically. Review the pixel diffs before merging.
+        run: |
+          set -euo pipefail
+
+          gh pr create \
+            --base "${{ github.event.repository.default_branch }}" \
+            --head "${{ steps.commit.outputs.branch }}" \
+            --title 'chore(test): regenerate widgetbook golden baselines on Linux' \
+            --body "$PR_BODY"
