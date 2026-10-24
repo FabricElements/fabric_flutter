@@ -46,7 +46,7 @@ symbols; tests before analysis may mask type errors.
 - **`version`** — the single source of truth. Must match the latest `CHANGELOG.md` release heading
   and the version badge in `README.md`. The three move together; never update one without the others.
 - **`environment.sdk`** — Dart SDK constraint (currently `^3.13.7`).
-- **`environment.flutter`** — Flutter SDK constraint (currently `>=3.47.8 <4.0.0`).
+- **`environment.flutter`** — Flutter SDK constraint (currently `>=3.47.8`).
 - **Dependency versions** — keep them in sync with the `Core Dependencies` table in `README.md`.
   When bumping a dependency, update both files and add a `### Dependencies` entry in `CHANGELOG.md`.
 
