@@ -189,10 +189,10 @@ bool isDialogOpen(BuildContext context) {
 /// throws.
 void alertData<T>({
   /// Notification title
-  final String? title,
+  String? title,
 
   /// Notification body
-  final String? body,
+  String? body,
 
   /// Alert duration in seconds
   int? duration,
@@ -201,13 +201,13 @@ void alertData<T>({
   AlertType type = AlertType.basic,
 
   /// AlertWidget changes the type of widget used for the alert
-  final AlertWidget widget = AlertWidget.snackBar,
+  AlertWidget widget = AlertWidget.snackBar,
 
   /// typeString used to return [AlertType]
-  final String? typeString,
+  String? typeString,
 
   /// Image URL
-  final String? image,
+  String? image,
 
   /// Customizes the primary action button and optional navigation behavior.
   ButtonOptions? action,

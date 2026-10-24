@@ -71,7 +71,7 @@ Consumers wrap their widget tree with `InitApp` (`lib/component/init_app.dart`),
 
 - **License:** BSD 3-Clause.
 - **Version:** `pubspec.yaml` is the **single source of truth** for the version (currently `3.2.0`). Never hardcode a version elsewhere without also updating `pubspec.yaml`, the README badge, and `CHANGELOG.md`.
-- **SDK:** Dart `^3.12.2`, Flutter stable channel (CI pins `3.47.8`).
+- **SDK:** Dart `^3.13.7`, Flutter stable channel (CI pins `3.47.8`).
 
 ### Architectural Map
 
