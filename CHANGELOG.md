@@ -1,25 +1,6 @@
-## [3.1.2] - 2026-10-20
-
-### Fixed
-
-* **`AgentElementIndex` no longer reports duplicate `automationKey` warnings for
-  elements that are not actually visible.** Visibility previously meant only
-  "mounted", so two same-key elements mounted at once — during a route
-  transition, in a nested navigator, in a two-pane layout, or on an offstage
-  route — both counted as visible and produced a false positive. An element is
-  now visible only while it is mounted, its route is the current one, and its
-  subtree is not muted because an opaque route covers it. The warning still
-  fires when two genuinely visible elements share a key.
-* **`StateNotifications.getToken()` requests permission and fetches the token
-  once per session.** It previously re-ran the permission request on every
-  signed-in stream event, and the granted-permission line was printed twice.
-  Repeated and concurrent calls now share the first in-flight request, a failed
-  request is not cached so a later call can retry, and `reset()` clears the
-  cached request.
-* **Spanish locale typo:** the `alert--copy-clipboard` message read
-  "Popiado al portapapeles" and now reads "Copiado al portapapeles".
-
 ## [Unreleased]
+
+## [3.2.0] - 2026-10-23
 
 ### Added
 
@@ -107,6 +88,45 @@
   requests reduced motion.
 * **`JsonExplorerSearch` copy action keeps a 48dp touch target** instead of
   forcing compact visual density.
+
+### Dependencies
+
+* Upgraded direct dependencies within their current major versions, including
+  `cloud_firestore` ^6.10.2, `cloud_functions` ^6.5.1, `firebase_auth` ^6.7.1,
+  `firebase_analytics` ^12.6.1, `firebase_storage` ^13.6.1,
+  `firebase_database` ^12.6.1, `firebase_messaging` ^16.7.1,
+  `firebase_core` ^4.15.2, `google_fonts` ^9.0.0, `cupertino_icons` ^2.0.0,
+  `google_maps_flutter` ^2.19.0, `image_picker` ^1.2.4, `image` ^4.12.0,
+  `intl` ^0.20.3, `speech_to_text` ^7.5.0, `build_runner` ^2.17.1,
+  `json_serializable` ^6.15.2, and others listed in the README.
+* Held back, pending a migration: the Firebase family to its next major
+  (`firebase_core` 5, `cloud_firestore` 7, `firebase_auth` 7, and related
+  packages), `file_picker` 13 (removed the APIs used by `MediaHelper` and
+  `StateDropZone`), `firebase_messaging` 17 (deprecates `getToken` and
+  `onTokenRefresh`), `package_info_plus` 10 (requires `win32` 6, which conflicts
+  with `file_picker` 11), and `connectivity_plus` 7.3.2 (its `nm` 0.6 chain
+  conflicts with `file_picker` 11).
+
+## [3.1.2] - 2026-10-20
+
+### Fixed
+
+* **`AgentElementIndex` no longer reports duplicate `automationKey` warnings for
+  elements that are not actually visible.** Visibility previously meant only
+  "mounted", so two same-key elements mounted at once — during a route
+  transition, in a nested navigator, in a two-pane layout, or on an offstage
+  route — both counted as visible and produced a false positive. An element is
+  now visible only while it is mounted, its route is the current one, and its
+  subtree is not muted because an opaque route covers it. The warning still
+  fires when two genuinely visible elements share a key.
+* **`StateNotifications.getToken()` requests permission and fetches the token
+  once per session.** It previously re-ran the permission request on every
+  signed-in stream event, and the granted-permission line was printed twice.
+  Repeated and concurrent calls now share the first in-flight request, a failed
+  request is not cached so a later call can retry, and `reset()` clears the
+  cached request.
+* **Spanish locale typo:** the `alert--copy-clipboard` message read
+  "Popiado al portapapeles" and now reads "Copiado al portapapeles".
 
 ## [3.1.1] - 2026-09-23
 
