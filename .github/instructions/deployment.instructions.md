@@ -37,6 +37,7 @@ symbols; tests before analysis may mask type errors.
 2. Update the SDK constraint in `pubspec.yaml` (`environment.flutter`) to match.
 3. Update the version reference in `.github/copilot-instructions.md` §1 and §10.
 4. Keep all three in sync — a mismatch causes `flutter pub get` to reject the lock file in CI.
+5. The `environment.flutter` minimum must equal the new CI `flutter-version` on every upgrade, and the CHANGELOG entry for the release must state the new minimum.
 
 ---
 
