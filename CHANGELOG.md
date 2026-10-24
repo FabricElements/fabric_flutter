@@ -1,5 +1,13 @@
 ## [Unreleased]
 
+### Dependencies
+
+* Upgraded direct dependencies to their latest major versions: `cloud_firestore` 6 → 7, `cloud_functions` 6 → 7, `connectivity_plus` 7.3.2, `file_picker` 11 → 13, `firebase_analytics` 12 → 13, `firebase_auth` 6 → 7, `firebase_core` 4 → 5, `firebase_database` 12 → 13, `firebase_messaging` 16 → 17, `firebase_storage` 13 → 14, `package_info_plus` 9 → 10.
+* **Breaking for consumers:** `firebase_core` 5, `cloud_firestore` 7, and `firebase_auth` 7 raise their Firebase SDK floors. Check your own pins before adopting this release.
+* `file_picker` 13 removed `withData`, `allowMultiple`, and `PlatformFile.bytes`/`size`. `MediaHelper` and `StateDropZone` now read bytes with `readAsBytes()` and take sizes from the byte length.
+* `firebase_messaging` 17 deprecates `getToken()` and `onTokenRefresh`. They still return the FCM token, which consumer backends store, so they are kept with an explicit `deprecated_member_use` ignore. The replacement (`register()` + `onRegistered`) returns Firebase Installation IDs, so migrating needs backend work.
+* Dart 3.13 rejects `final` on optional named parameters. Removed `final` from five `alertData` parameters. Callers are unaffected.
+
 ## [3.2.0] - 2026-10-23
 
 ### Added

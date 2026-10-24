@@ -34,16 +34,16 @@ Sourced directly from [`pubspec.yaml`](pubspec.yaml).
 |----------|----------|
 | **SDK** | Dart `^3.13.7`, Flutter (stable channel, `>=3.47.8`) |
 | **State management** | `provider` ^6.1.5+1 (`ChangeNotifier` — no Riverpod/Bloc/GetX) |
-| **Firebase / backend** | `firebase_core` ^4.15.2, `firebase_auth` ^6.7.1, `cloud_firestore` ^6.10.2, `cloud_functions` ^6.5.1, `firebase_storage` ^13.6.1, `firebase_analytics` ^12.6.1, `firebase_messaging` ^16.7.1, `firebase_database` ^12.6.1 |
+| **Firebase / backend** | `firebase_core` ^5.1.0, `firebase_auth` ^7.0.1, `cloud_firestore` ^7.1.0, `cloud_functions` ^7.0.1, `firebase_storage` ^14.0.1, `firebase_analytics` ^13.0.1, `firebase_messaging` ^17.0.1, `firebase_database` ^13.0.1 |
 | **Authentication** | `firebase_auth`, `google_sign_in` ^7.2.0, `google_sign_in_web` ^1.1.3 |
 | **Serialization** | `json_annotation` ^4.12.0 (dev: `json_serializable` ^6.15.2, `build_runner` ^2.17.1) |
-| **Networking** | `http` ^1.6.0, `connectivity_plus` ^7.3.1 |
+| **Networking** | `http` ^1.6.0, `connectivity_plus` ^7.3.2 |
 | **Voice & speech** | `speech_to_text` ^7.5.0 (push-to-talk dictation, `VoiceDictationButton`) |
-| **Media** | `image_picker` ^1.2.4, `file_picker` ^11.0.3, `image` ^4.12.0, `video_player` ^2.14.1, `mime` ^2.1.0, `image_network` ^2.6.0 |
+| **Media** | `image_picker` ^1.2.4, `file_picker` ^13.1.0, `image` ^4.12.0, `video_player` ^2.14.1, `mime` ^2.1.0, `image_network` ^2.6.0 |
 | **Maps & web views** | `google_maps_flutter` ^2.19.0, `webview_flutter` ^4.14.1, `webview_flutter_android` ^4.14.1, `webview_flutter_wkwebview` ^3.27.2, `web` ^1.1.2, `pointer_interceptor` ^0.10.1+3 |
 | **Localization & i18n** | `flutter_localizations`, `devicelocale` ^0.9.1, `intl` ^0.20.3, `dlibphonenumber` ^1.1.74 |
 | **UI & content** | `google_fonts` ^9.0.0, `cupertino_icons` ^2.0.0, `omni_datetime_picker` ^2.3.3, `flutter_markdown_plus` ^1.0.12, `scrollable_positioned_list` ^0.3.8, `gap` ^3.0.1, `json_explorer` ^0.1.2 |
-| **Utilities** | `package_info_plus` ^9.0.1, `url_launcher` ^6.3.3, `collection` ^1.19.1, `ansicolor` ^2.0.3 |
+| **Utilities** | `package_info_plus` ^10.2.2, `url_launcher` ^6.3.3, `collection` ^1.19.1, `ansicolor` ^2.0.3 |
 | **Dev only** | `widgetbook` ^3.25.0 (catalog in `widgetbook/`, not exported from `lib/`) |
 | **Testing & linting** | `flutter_test`, `integration_test`, `flutter_lints` ^6.0.0 |
 
