@@ -115,16 +115,14 @@ class MediaHelper {
     try {
       switch (origin) {
         case MediaOrigin.gallery:
-          FilePickerResult? result = await FilePicker.pickFiles(
-            type: FileType.image,
-            withData: true,
-          );
-          if (result == null || result.files.isEmpty) {
+          final files = await FilePicker.pickFiles(type: FileType.image);
+          if (files.isEmpty) {
             throw 'alert--no-chosen-files';
           }
-          final file = result.files.first;
-          if (file.size < 10) throw 'alert--file-is-too-small';
-          fileData = file.bytes;
+          final file = files.first;
+          final bytes = await file.readAsBytes();
+          if (bytes.lengthInBytes < 10) throw 'alert--file-is-too-small';
+          fileData = bytes;
           extension = file.extension;
           fileName = file.name;
           contentType = lookupMimeType(file.name);
@@ -167,7 +165,7 @@ class MediaHelper {
       throw 'alert--unsupported-image-format';
     }
     try {
-      if (fileData != null && maxDimensions != null) {
+      if (maxDimensions != null) {
         fileData = await resize(
           imageByes: fileData,
           imageType: extension.toString(),
@@ -258,15 +256,14 @@ class MediaHelper {
     String? extension;
     String? contentType;
     String? fileName;
-    FilePickerResult? result = await FilePicker.pickFiles(
+    final files = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: allowedExtensions,
-      withData: true,
     );
-    if (result == null || result.files.isEmpty) throw 'alert--no-chosen-files';
-    final file = result.files.first;
-    if (file.size == 0) throw 'alert--file-is-too-small';
-    fileData = file.bytes!;
+    if (files.isEmpty) throw 'alert--no-chosen-files';
+    final file = files.first;
+    fileData = await file.readAsBytes();
+    if (fileData.isEmpty) throw 'alert--file-is-too-small';
     extension = file.extension;
     fileName = file.name;
     int width = 0;
@@ -296,7 +293,7 @@ class MediaHelper {
       }
     }
 
-    final fileSize = file.size;
+    final fileSize = fileData.lengthInBytes;
     if (!kIsWeb) await FilePicker.clearTemporaryFiles();
     if (maxFileSize != null && fileSize > maxFileSize) {
       throw 'label--warning-file-is-too-large';
@@ -307,7 +304,7 @@ class MediaHelper {
       extension: extension!,
       contentType: contentType,
       fileName: fileName,
-      size: file.size,
+      size: fileSize,
       width: width,
       height: height,
     );

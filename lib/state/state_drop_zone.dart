@@ -281,19 +281,16 @@ class StateDropZone extends ChangeNotifier {
   /// performed on the picked files.
   Future<void> pickFiles() async {
     loading = true;
-    final result = await FilePicker.pickFiles(
+    final files = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: extensions,
-      withData: true,
-      allowMultiple: true,
     );
-    if (result == null || result.files.isEmpty) {
+    if (files.isEmpty) {
       loading = false;
       return;
     }
-    for (final file in result.files) {
-      final bytes = file.bytes;
-      if (bytes == null) continue;
+    for (final file in files) {
+      final bytes = await file.readAsBytes();
       final name = file.name;
       final mime = lookupMimeType(name, headerBytes: bytes);
       final ext = name.contains('.') ? name.split('.').last : '';
@@ -303,7 +300,7 @@ class StateDropZone extends ChangeNotifier {
           fileName: name,
           extension: ext,
           contentType: mime ?? 'application/octet-stream',
-          size: file.size,
+          size: bytes.lengthInBytes,
         ),
       );
     }

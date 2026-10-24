@@ -97,6 +97,10 @@ class StateNotifications extends ChangeNotifier {
   /// token flow without reaching the real messaging plugin.
   @protected
   @visibleForTesting
+  // `getToken` returns the FCM registration token that consumer backends store.
+  // The replacement (`register()` + `onRegistered`) yields Firebase Installation
+  // IDs for direct send, a different identifier, so migrating needs backend work.
+  // ignore: deprecated_member_use
   Future<String?> getFcmToken() => FirebaseMessaging.instance.getToken();
 
   /// Stores an optional callback used for foreground or fallback handling.
@@ -410,6 +414,7 @@ class StateNotifications extends ChangeNotifier {
       await Future.delayed(const Duration(milliseconds: 300));
     }
     // Any time the token refreshes, store this in the database too.
+    // ignore: deprecated_member_use
     FirebaseMessaging.instance.onTokenRefresh.listen(_updateUserToken);
     initNotifications();
   }
