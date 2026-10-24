@@ -1,5 +1,7 @@
 ## [Unreleased]
 
+## [3.3.0] - 2026-10-24
+
 ### Dependencies
 
 * Upgraded direct dependencies to their latest major versions: `cloud_firestore` 6 → 7, `cloud_functions` 6 → 7, `connectivity_plus` 7.3.2, `file_picker` 11 → 13, `firebase_analytics` 12 → 13, `firebase_auth` 6 → 7, `firebase_core` 4 → 5, `firebase_database` 12 → 13, `firebase_messaging` 16 → 17, `firebase_storage` 13 → 14, `package_info_plus` 9 → 10.
