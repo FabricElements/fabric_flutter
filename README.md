@@ -32,7 +32,7 @@ Sourced directly from [`pubspec.yaml`](pubspec.yaml).
 
 | Category | Packages |
 |----------|----------|
-| **SDK** | Dart `^3.13.7`, Flutter (stable channel, `>=3.47.8 <4.0.0`) |
+| **SDK** | Dart `^3.13.7`, Flutter (stable channel, `>=3.47.8`) |
 | **State management** | `provider` ^6.1.5+1 (`ChangeNotifier` — no Riverpod/Bloc/GetX) |
 | **Firebase / backend** | `firebase_core` ^4.15.2, `firebase_auth` ^6.7.1, `cloud_firestore` ^6.10.2, `cloud_functions` ^6.5.1, `firebase_storage` ^13.6.1, `firebase_analytics` ^12.6.1, `firebase_messaging` ^16.7.1, `firebase_database` ^12.6.1 |
 | **Authentication** | `firebase_auth`, `google_sign_in` ^7.2.0, `google_sign_in_web` ^1.1.3 |
