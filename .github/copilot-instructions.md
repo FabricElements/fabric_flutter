@@ -70,7 +70,7 @@ Verified directly against this repository's real CI (`.github/workflows/ci.yml`,
 Consumers wrap their widget tree with `InitApp` (`lib/component/init_app.dart`), which bootstraps the provider tree. `StateUser` listens to `FirebaseAuth.authStateChanges()`, resolves the ID token and custom claims, and loads the Firestore user document; widgets react via `context.watch` / `Provider.of`.
 
 - **License:** BSD 3-Clause.
-- **Version:** `pubspec.yaml` is the **single source of truth** for the version (currently `3.2.0`). Never hardcode a version elsewhere without also updating `pubspec.yaml`, the README badge, and `CHANGELOG.md`.
+- **Version:** `pubspec.yaml` is the **single source of truth** for the version (currently `3.3.0`). Never hardcode a version elsewhere without also updating `pubspec.yaml`, the README badge, and `CHANGELOG.md`.
 - **SDK:** Dart `^3.13.7`, Flutter stable channel (CI pins `3.47.8`).
 
 ### Architectural Map

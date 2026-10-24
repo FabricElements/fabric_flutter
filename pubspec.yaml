@@ -1,7 +1,7 @@
 name: fabric_flutter
 description: Native components and helpers
 repository: https://github.com/FabricElements/fabric_flutter
-version: 3.2.0
+version: 3.3.0
 
 environment:
   sdk: ^3.13.7
