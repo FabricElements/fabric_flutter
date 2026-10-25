@@ -622,7 +622,9 @@ class _InputDataState extends State<InputData> {
           } else {
             value = null;
           }
-          dynamic newFormattedValue = valueChanged(newValue)?.toString() ?? '';
+          dynamic newFormattedValue = newValue == null
+              ? null
+              : (valueChanged(newValue)?.toString() ?? '');
           bool sameValue = value == newFormattedValue;
           if (!sameValue) {
             value = newFormattedValue;
@@ -747,13 +749,23 @@ getValue -------------------------------------
   }
 
   /// Reapplies the incoming value whenever the parent rebuilds with new field data.
+  ///
+  /// When the value or type has changed the controller sync is deferred to the
+  /// post-frame callback so that [TextEditingController] updates — which trigger
+  /// [FormState] rebuilds via the form-field listener chain — never happen
+  /// during the build phase.  Rebuilds that carry the same value are no-ops.
   @override
   void didUpdateWidget(covariant InputData oldWidget) {
-    if (oldWidget.type != widget.type) {
+    final typeChanged = oldWidget.type != widget.type;
+    if (typeChanged) {
       _formFieldKey = GlobalKey<FormFieldState<String>>();
     }
     super.didUpdateWidget(oldWidget);
-    getValue(notify: false, newValue: widget.value);
+    if (typeChanged || oldWidget.value != widget.value) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) getValue(notify: false, newValue: widget.value);
+      });
+    }
   }
 
   /// Releases any internally owned controllers when the widget leaves the tree.

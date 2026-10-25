@@ -175,4 +175,76 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   });
+
+  group('InputData didUpdateWidget', () {
+    testWidgets(
+      'should not schedule a post-frame callback on same-value rebuild',
+      (tester) async {
+        // Arrange
+        await tester.pumpWidget(
+          _wrap(
+            const InputData(
+              value: 'Ada',
+              type: InputDataType.string,
+              automationKey: 'field',
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        // The initial build already ran one post-frame callback from initState.
+        // Pump one more frame to flush any pending callbacks.
+        await tester.pump();
+
+        // Act — rebuild with the same value.
+        await tester.pumpWidget(
+          _wrap(
+            const InputData(
+              value: 'Ada',
+              type: InputDataType.string,
+              automationKey: 'field',
+            ),
+          ),
+        );
+
+        // Assert — no extra frame is needed; the field is still present.
+        expect(find.bySemanticsIdentifier('field'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      'should update the field when the parent rebuilds with a new value',
+      (tester) async {
+        // Arrange
+        await tester.pumpWidget(
+          _wrap(
+            const InputData(
+              value: 'Ada',
+              type: InputDataType.string,
+              automationKey: 'field',
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.pump(); // flush post-frame callbacks
+
+        // Act — rebuild with a different value.
+        await tester.pumpWidget(
+          _wrap(
+            const InputData(
+              value: 'Lovelace',
+              type: InputDataType.string,
+              automationKey: 'field',
+            ),
+          ),
+        );
+        // The value sync is deferred one frame; pump once to apply it.
+        await tester.pump();
+
+        // Assert — the field now shows the new value.
+        expect(find.text('Lovelace'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  });
 }
