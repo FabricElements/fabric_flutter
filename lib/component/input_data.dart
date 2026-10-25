@@ -712,6 +712,21 @@ getValue -------------------------------------
     widget.onSubmit?.call(null);
   }
 
+  /// Builds the semantic actions map for the agent element.
+  ///
+  /// Exposes "Clear" when the input is not disabled and carries a non-empty
+  /// value, matching the visual clear button shown for date/time/dropdown/enums
+  /// types. Returns `null` when no actions apply.
+  Map<String, VoidCallback>? _buildSemanticActions() {
+    if (widget.disabled) return null;
+    final currentValue = value;
+    if (currentValue == null ||
+        (currentValue is String && currentValue.isEmpty)) {
+      return null;
+    }
+    return <String, VoidCallback>{'Clear': _clear};
+  }
+
   /// Reapplies the incoming value whenever the parent rebuilds with new field data.
   @override
   void didUpdateWidget(covariant InputData oldWidget) {
@@ -1820,6 +1835,7 @@ getValue -------------------------------------
         return validator?.call(parsed?.toString() ?? '');
       },
       errorGetter: () => _formFieldKey.currentState?.errorText,
+      semanticActions: _buildSemanticActions(),
       child: Semantics(
         label: _resolveSemanticLabel(locales),
         hint: _resolveSemanticHint(),

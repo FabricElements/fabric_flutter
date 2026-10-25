@@ -1,3 +1,4 @@
+import 'package:flutter/semantics.dart';
 import 'package:flutter/widgets.dart';
 
 import '../../serialized/agent_element_snapshot.dart';
@@ -17,6 +18,13 @@ import 'agent_element_index.dart';
 /// one node together. When [id] is `null` or empty it registers nothing and
 /// returns [child] unchanged, so wrapping a widget that has no `automationKey`
 /// is free.
+///
+/// [semanticActions] exposes named callbacks as
+/// [Semantics.customSemanticsActions] on the same merged node, so assistive
+/// technology and the agent see the same verbs. Each label maps to a
+/// [VoidCallback] that the agent can invoke through the `tap` command's
+/// `action` parameter. Only expose actions the UI already offers — do not
+/// invent new ones.
 ///
 /// The registered entry is created on mount, refreshed whenever the owning
 /// widget rebuilds or the enclosing route becomes current or covered, and
@@ -53,6 +61,7 @@ class AgentElement extends StatefulWidget {
     this.applySemanticsIdentifier = true,
     this.container = true,
     this.explicitChildNodes = false,
+    this.semanticActions,
   });
 
   /// Holds the widget subtree published to the index.
@@ -85,6 +94,15 @@ class AgentElement extends StatefulWidget {
   /// `false` the label and hint are left to the child's own `Semantics` node,
   /// which merges them up into this fold.
   final bool explicitChildNodes;
+
+  /// Named actions exposed as [Semantics.customSemanticsActions] on the
+  /// merged semantics node.
+  ///
+  /// Each label maps to a [VoidCallback] that the agent can invoke through the
+  /// `tap` command's `action` parameter. Only expose actions the UI already
+  /// offers — do not invent new ones. When `null` or empty, no custom actions
+  /// are added and the semantics tree is unchanged.
+  final Map<String, VoidCallback>? semanticActions;
 
   /// Classifies how an agent can interact with the element.
   final AgentElementType type;
@@ -233,6 +251,7 @@ class _AgentElementState extends State<AgentElement> {
       activator: widget.activator,
       validatorFn: widget.validatorFn,
       errorGetter: widget.errorGetter,
+      semanticActions: widget.semanticActions,
       contextGetter: mounted
           ? () {
               // Walk past the Semantics wrapper so Actions and Form
@@ -312,12 +331,20 @@ class _AgentElementState extends State<AgentElement> {
     if (!widget.applySemanticsIdentifier || id == null || id.isEmpty) {
       return child;
     }
+    final actions = widget.semanticActions;
+    final customActions = actions != null && actions.isNotEmpty
+        ? <CustomSemanticsAction, VoidCallback>{
+            for (final entry in actions.entries)
+              CustomSemanticsAction(label: entry.key): entry.value,
+          }
+        : null;
     return Semantics(
       identifier: id,
       container: widget.container,
       explicitChildNodes: widget.explicitChildNodes,
       label: widget.explicitChildNodes ? widget.label : null,
       hint: widget.explicitChildNodes ? widget.hint : null,
+      customSemanticsActions: customActions,
       child: child,
     );
   }

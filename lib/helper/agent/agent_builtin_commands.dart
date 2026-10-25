@@ -176,10 +176,11 @@ class AgentBuiltInCommands {
     id: 'tap',
     title: 'Tap',
     description:
-        'Activates an indexed button or tappable element. Tries '
-        'ActivateIntent (Actions API) first so the standard enablement '
-        'and keyboard paths run; falls back to the element\'s own '
-        'activator when no ActivateIntent handler is registered.',
+        'Activates an indexed button or tappable element. When `action` is '
+        'supplied, invokes the named custom semantics action on the element '
+        'instead of the default tap. Tries ActivateIntent (Actions API) first '
+        'so the standard enablement and keyboard paths run; falls back to the '
+        'element\'s own activator when no ActivateIntent handler is registered.',
     category: 'interaction',
     params: [
       AgentParam(
@@ -187,10 +188,36 @@ class AgentBuiltInCommands {
         required: true,
         description: 'Identifier of the element, matching its automationKey.',
       ),
+      AgentParam(
+        name: 'action',
+        description:
+            'Label of a custom semantics action to invoke on the element. '
+            'When omitted, the default tap behavior runs.',
+      ),
     ],
     handler: (context) async {
       final id = context.require<String>('elementId');
       final handle = _requireElement(id);
+      final actionLabel = context.optional<String>('action');
+      if (actionLabel != null) {
+        final actions = handle.semanticActions;
+        if (actions == null || !actions.containsKey(actionLabel)) {
+          throw AgentException.notFound(
+            'Element "$id" has no custom action "$actionLabel".',
+          );
+        }
+        if (!handle.enabled) {
+          throw AgentException.failed('Element "$id" is disabled.');
+        }
+        await handle.reveal();
+        actions[actionLabel]!();
+        return <String, dynamic>{
+          'id': id,
+          'method': 'custom_action',
+          'action': actionLabel,
+          'activated': true,
+        };
+      }
       if (!handle.enabled) {
         throw AgentException.failed('Element "$id" is disabled.');
       }

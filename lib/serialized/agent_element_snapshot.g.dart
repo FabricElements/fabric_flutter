@@ -19,6 +19,9 @@ AgentElementSnapshot _$AgentElementSnapshotFromJson(
   enabled: json['enabled'] as bool? ?? true,
   visible: json['visible'] as bool? ?? true,
   error: json['error'] as String?,
+  actions: (json['actions'] as List<dynamic>?)
+      ?.map((e) => e as String)
+      .toList(),
 );
 
 Map<String, dynamic> _$AgentElementSnapshotToJson(
@@ -32,6 +35,7 @@ Map<String, dynamic> _$AgentElementSnapshotToJson(
   'enabled': instance.enabled,
   'visible': instance.visible,
   'error': instance.error,
+  'actions': instance.actions,
 };
 
 const _$AgentElementTypeEnumMap = {

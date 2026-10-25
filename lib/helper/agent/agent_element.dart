@@ -47,6 +47,7 @@ class AgentElementHandle {
     this.contextGetter,
     this.errorGetter,
     this.validatorFn,
+    this.semanticActions,
   });
 
   /// Identifies the element, mirroring the widget's `automationKey`.
@@ -101,6 +102,13 @@ class AgentElementHandle {
   /// Runs the element's validator on a raw value and returns any error.
   AgentValidator? validatorFn;
 
+  /// Named actions exposed as custom semantics actions on the element.
+  ///
+  /// Each label maps to a [VoidCallback] that the agent can invoke through the
+  /// `tap` command's `action` parameter. When `null` or empty, no custom
+  /// actions are available.
+  Map<String, VoidCallback>? semanticActions;
+
   /// Reports whether `set_value` can act on this element.
   bool get canSetValue => setter != null;
 
@@ -149,6 +157,7 @@ class AgentElementHandle {
     contextGetter = other.contextGetter;
     errorGetter = other.errorGetter;
     validatorFn = other.validatorFn;
+    semanticActions = other.semanticActions;
   }
 
   /// Returns the element's observable state as a serializable snapshot.
@@ -161,6 +170,7 @@ class AgentElementHandle {
     enabled: enabled,
     visible: visible,
     error: errorGetter?.call(),
+    actions: semanticActions?.keys.toList(growable: false),
   );
 
   /// Converts [value] into a JSON-safe primitive.

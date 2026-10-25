@@ -64,6 +64,7 @@ class AgentElementSnapshot {
     this.enabled = true,
     this.visible = true,
     this.error,
+    this.actions,
   });
 
   /// Builds an [AgentElementSnapshot] from serialized JSON.
@@ -100,6 +101,13 @@ class AgentElementSnapshot {
 
   /// Carries the current validation error text, or `null` when valid.
   final String? error;
+
+  /// Lists the labels of custom semantics actions available on this element.
+  ///
+  /// Each label corresponds to a [CustomSemanticsAction] that the agent can
+  /// invoke through the `tap` command's `action` parameter. When `null` or
+  /// empty, no custom actions are available.
+  final List<String>? actions;
 
   /// Converts this snapshot into JSON.
   Map<String, dynamic> toJson() => _$AgentElementSnapshotToJson(this);

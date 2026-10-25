@@ -49,6 +49,7 @@ void main() {
           id: 'home_toolbar_button_save',
           type: AgentElementType.button,
           label: 'Save',
+          actions: ['Clear', 'Reset'],
         );
 
         // Act
@@ -60,6 +61,21 @@ void main() {
         expect(restored.id, 'home_toolbar_button_save');
         expect(restored.type, AgentElementType.button);
         expect(restored.label, 'Save');
+        expect(restored.actions, containsAll(['Clear', 'Reset']));
+      });
+
+      test('should round-trip with null actions', () {
+        // Arrange
+        final snapshot = AgentElementSnapshot(
+          id: 'a',
+          type: AgentElementType.textInput,
+        );
+
+        // Act
+        final restored = AgentElementSnapshot.fromJson(snapshot.toJson());
+
+        // Assert
+        expect(restored.actions, isNull);
       });
     });
   });
