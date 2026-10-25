@@ -7,6 +7,7 @@ import 'package:flutter/rendering.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/density_spacing.dart';
 import '../helper/log_color.dart';
+import '../helper/scroll_reveal.dart';
 import 'content_container.dart';
 
 /// Renders an infinitely scrollable list that reacts to streamed page results.
@@ -42,7 +43,58 @@ class PaginationContainer extends StatefulWidget {
     this.onError,
     this.top,
     this.bottom,
+    this.embedded = false,
+    this.controller,
   });
+
+  /// Creates an embeddable list that renders a fixed, JSON-friendly [items]
+  /// snapshot without any pagination wiring.
+  ///
+  /// The list is [embedded], so it sizes itself to its content and lets the
+  /// enclosing scrollable own every drag. No stream is required; the list is
+  /// seeded with [items] and never requests another page.
+  const PaginationContainer.items({
+    super.key,
+    required List<dynamic> items,
+    required this.itemBuilder,
+    this.padding = EdgeInsets.zero,
+    this.empty,
+    this.top,
+    this.bottom,
+    this.onError,
+    this.controller,
+  }) : paginate = _noMorePages,
+       stream = const Stream<dynamic>.empty(),
+       initialData = items,
+       primary = false,
+       reverse = false,
+       scrollDirection = Axis.vertical,
+       cacheExtent = 2,
+       loading = null,
+       end = null,
+       clipBehavior = Clip.hardEdge,
+       shrinkWrap = true,
+       initialScrollOffset = 0.0,
+       onScrollOffsetChanged = null,
+       embedded = true;
+
+  /// Reports that no further page exists.
+  static Future<dynamic> _noMorePages() async => null;
+
+  /// Renders the list inside a parent scrollable instead of owning scrolling.
+  ///
+  /// When `true` the list sizes itself to its items ([shrinkWrap] behavior),
+  /// ignores [primary], never captures drag gestures, and replaces the
+  /// scroll-edge pagination trigger with the explicit "load more" button.
+  /// Use it inside chat lists or any other vertical scroll view. Defaults to
+  /// `false`, which keeps the existing behavior.
+  final bool embedded;
+
+  /// Optional handle used to reveal items by index or predicate.
+  ///
+  /// See [PaginationContainerController]. Attaching a controller wraps each
+  /// item in a keyed subtree; without one the item tree is unchanged.
+  final PaginationContainerController? controller;
 
   /// Builds each visible item from its index and matching streamed data.
   ///
@@ -171,6 +223,40 @@ class PaginationContainer extends StatefulWidget {
   State<PaginationContainer> createState() => _PaginationContainerState();
 }
 
+/// Reveals items of a [PaginationContainer] that may not be built yet.
+///
+/// Pass one instance to [PaginationContainer.controller]. Calls return `false`
+/// while no container is attached.
+class PaginationContainerController {
+  _PaginationContainerState? _state;
+
+  /// The items currently loaded, or an empty list when detached.
+  List<dynamic> get items => _state?.data ?? const [];
+
+  /// Scrolls to the item at [index], building it first if needed.
+  ///
+  /// When [index] is beyond the loaded items, further pages are requested, at
+  /// most [maxPages] times. The scroll then moves toward the estimated offset
+  /// until the item is built and finally hands over to
+  /// [ScrollReveal.reveal] with [alignment]. Returns `true` when the item
+  /// ended in view.
+  Future<bool> revealIndex(
+    int index, {
+    double alignment = 0.1,
+    int maxPages = 5,
+  }) async => await _state?._revealIndex(index, alignment, maxPages) ?? false;
+
+  /// Scrolls to the first loaded item for which [test] returns `true`.
+  ///
+  /// Loads up to [maxPages] further pages when no loaded item matches. Returns
+  /// `false` when nothing matches within that bound.
+  Future<bool> revealWhere(
+    bool Function(dynamic item) test, {
+    double alignment = 0.1,
+    int maxPages = 5,
+  }) async => await _state?._revealWhere(test, alignment, maxPages) ?? false;
+}
+
 /// Stores pagination progress, transient errors, and scroll restoration state.
 ///
 /// The state object reacts to both user scrolling and external stream updates so
@@ -225,9 +311,13 @@ class _PaginationContainerState extends State<PaginationContainer> {
   /// cancelled when the widget is disposed.
   StreamSubscription<dynamic>? _streamSubscription;
 
+  /// Keys that locate built items for [PaginationContainerController].
+  final Map<int, GlobalKey> _itemKeys = {};
+
   @override
   void initState() {
     super.initState();
+    widget.controller?._state = this;
 
     end = false;
     error = null;
@@ -303,6 +393,89 @@ class _PaginationContainerState extends State<PaginationContainer> {
     if (mounted) setState(() {});
   }
 
+  /// Waits for [frames] rendered frames.
+  Future<void> _frames([int frames = 1]) async {
+    for (var i = 0; i < frames; i++) {
+      final completer = Completer<void>();
+      WidgetsBinding.instance.addPostFrameCallback((_) => completer.complete());
+      WidgetsBinding.instance.scheduleFrame();
+      await completer.future;
+    }
+  }
+
+  /// Requests pages until [done] holds, the list ends, or [maxPages] is hit.
+  Future<void> _loadUntil(bool Function() done, int maxPages) async {
+    var pages = 0;
+    while (mounted && !done() && !end && pages < maxPages) {
+      if (loading) {
+        await _frames(2);
+        continue;
+      }
+      pages++;
+      await _requestNextPage();
+      await _frames(2);
+    }
+  }
+
+  /// Implements [PaginationContainerController.revealWhere].
+  Future<bool> _revealWhere(
+    bool Function(dynamic item) test,
+    double alignment,
+    int maxPages,
+  ) async {
+    int find() => data.indexWhere(test);
+    await _loadUntil(() => find() >= 0, maxPages);
+    final index = find();
+    if (index < 0) return false;
+    return _revealIndex(index, alignment, 0);
+  }
+
+  /// Implements [PaginationContainerController.revealIndex].
+  Future<bool> _revealIndex(int index, double alignment, int maxPages) async {
+    if (index < 0) return false;
+    await _loadUntil(() => index < data.length, maxPages);
+    if (!mounted || index >= data.length) return false;
+    final key = _itemKeys.putIfAbsent(index, GlobalKey.new);
+    // Drives the lazy list toward the item until it is built. The estimate
+    // uses the scrollable extent, then walks by viewport pages toward the
+    // nearest built neighbour when the estimate undershoots.
+    for (
+      var attempt = 0;
+      attempt < 24 && key.currentContext == null;
+      attempt++
+    ) {
+      if (!mounted) return false;
+      if (_controller.hasClients && _controller.position.hasContentDimensions) {
+        final position = _controller.position;
+        final total = data.length;
+        final extent = position.maxScrollExtent + position.viewportDimension;
+        var target = attempt == 0
+            ? extent * index / total
+            : position.pixels +
+                  _directionToward(index) * position.viewportDimension * 0.8;
+        target = target.clamp(
+          position.minScrollExtent,
+          position.maxScrollExtent,
+        );
+        if ((target - position.pixels).abs() > 1) _controller.jumpTo(target);
+      }
+      await _frames();
+    }
+    final context = key.currentContext;
+    if (context == null || !context.mounted) return false;
+    return ScrollReveal.reveal(context, alignment: alignment);
+  }
+
+  /// Returns `1` when the built items sit before [index] and `-1` when after.
+  double _directionToward(int index) {
+    for (final entry in _itemKeys.entries) {
+      if (entry.value.currentContext != null) {
+        return entry.key < index ? 1 : -1;
+      }
+    }
+    return 1;
+  }
+
   /// Announces the new page number to assistive technology.
   ///
   /// Called only from [_requestNextPage] right after a real page transition
@@ -341,6 +514,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
   /// been removed from the tree.
   @override
   void dispose() {
+    if (widget.controller?._state == this) widget.controller?._state = null;
     _controller.dispose();
     // `drain()` attaches a *second* listener instead of releasing the first one,
     // so the original subscription kept firing after dispose. Cancel it.
@@ -354,6 +528,17 @@ class _PaginationContainerState extends State<PaginationContainer> {
   /// The returned widget switches between placeholder scroll views and a
   /// paginated [ListView] so the layout stays consistent across data states.
   @override
+  void didUpdateWidget(covariant PaginationContainer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      if (oldWidget.controller?._state == this) {
+        oldWidget.controller?._state = null;
+      }
+      widget.controller?._state = this;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context);
     final theme = Theme.of(context);
@@ -362,7 +547,11 @@ class _PaginationContainerState extends State<PaginationContainer> {
     // unreliable for screen-reader users, so an explicit "load more" control
     // is offered instead of relying on scroll position when a screen reader
     // is active.
-    final accessibleNavigation = MediaQuery.accessibleNavigationOf(context);
+    final accessibleNavigation =
+        MediaQuery.accessibleNavigationOf(context) || widget.embedded;
+    final lockedPhysics = widget.embedded
+        ? const NeverScrollableScrollPhysics()
+        : (widget.shrinkWrap ? null : const ClampingScrollPhysics());
     int total = data.length;
     final widgetEmpty =
         widget.empty ??
@@ -398,7 +587,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
         restorationId: 'pagination-container-loading',
         primary: false,
         padding: widget.padding,
-        physics: widget.shrinkWrap ? null : const ClampingScrollPhysics(),
+        physics: lockedPhysics,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           spacing: density.gap(16),
@@ -414,7 +603,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
         restorationId: 'pagination-container-empty',
         primary: false,
         padding: widget.padding,
-        physics: widget.shrinkWrap ? null : const ClampingScrollPhysics(),
+        physics: lockedPhysics,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           spacing: density.gap(16),
@@ -434,98 +623,112 @@ class _PaginationContainerState extends State<PaginationContainer> {
           (accessibleNavigation && !end)) {
         totalCount++;
       }
-      content = Scrollbar(
-        thumbVisibility: true,
-        trackVisibility: true,
-        interactive: true,
+      final list = ListView.builder(
+        key: const PageStorageKey('pagination-container-scroll'),
+        restorationId: 'pagination-container',
+        physics: lockedPhysics,
+        clipBehavior: widget.clipBehavior,
+        primary: widget.embedded ? false : widget.primary,
+        scrollCacheExtent: ScrollCacheExtent.viewport(widget.cacheExtent),
         controller: _controller,
-        child: ListView.builder(
-          key: const PageStorageKey('pagination-container-scroll'),
-          restorationId: 'pagination-container',
-          physics: widget.shrinkWrap ? null : const ClampingScrollPhysics(),
-          clipBehavior: widget.clipBehavior,
-          primary: widget.primary,
-          scrollCacheExtent: ScrollCacheExtent.viewport(widget.cacheExtent),
-          controller: _controller,
-          itemCount: totalCount,
-          padding: widget.padding,
-          shrinkWrap: widget.shrinkWrap,
-          itemBuilder: (BuildContext context, int index) {
-            if (index < total) {
-              if (index == 0 && widget.top != null) {
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  spacing: density.gap(16),
-                  children: [
-                    widget.top!,
-                    widget.itemBuilder(context, index, data[index]),
-                  ],
-                );
-              } else if (index == (total - 1) && widget.bottom != null) {
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  spacing: density.gap(16),
-                  children: [
-                    widget.bottom!,
-                    widget.itemBuilder(context, index, data[index]),
-                  ],
-                );
-              }
-              return widget.itemBuilder(context, index, data[index]);
-            }
-            Widget footer = Semantics(
-              label: locales.get('label--nothing-here-yet'),
-              child: widgetEnd,
+        itemCount: totalCount,
+        padding: widget.padding,
+        shrinkWrap: widget.shrinkWrap || widget.embedded,
+        itemBuilder: (BuildContext context, int index) {
+          if (index < total) {
+            final item = _buildItem(context, index, total, density);
+            if (widget.controller == null) return item;
+            return KeyedSubtree(
+              key: _itemKeys.putIfAbsent(index, GlobalKey.new),
+              child: item,
             );
-            if (error != null) {
-              footer = Semantics(
-                liveRegion: true,
-                child: Card(
-                  margin: density.all(16, min: 8),
-                  color: theme.colorScheme.errorContainer,
-                  child: ListTile(
-                    contentPadding: density.all(16, min: 8),
-                    leading: Icon(Icons.error),
-                    title: Text(error!),
-                    textColor: theme.colorScheme.onErrorContainer,
-                    iconColor: theme.colorScheme.onErrorContainer,
-                  ),
+          }
+          Widget footer = Semantics(
+            label: locales.get('label--nothing-here-yet'),
+            child: widgetEnd,
+          );
+          if (error != null) {
+            footer = Semantics(
+              liveRegion: true,
+              child: Card(
+                margin: density.all(16, min: 8),
+                color: theme.colorScheme.errorContainer,
+                child: ListTile(
+                  contentPadding: density.all(16, min: 8),
+                  leading: Icon(Icons.error),
+                  title: Text(error!),
+                  textColor: theme.colorScheme.onErrorContainer,
+                  iconColor: theme.colorScheme.onErrorContainer,
                 ),
-              );
-            } else if (loading) {
-              footer = Semantics(
-                liveRegion: true,
-                label: locales.get('label--loading'),
-                child: widgetLoading,
-              );
-            } else if (!end && accessibleNavigation) {
-              // Explicit, focusable alternative to the scroll-edge trigger so
-              // assistive-technology users can reliably load more results.
-              footer = Center(
-                child: Padding(
-                  padding: density.all(16, min: 8),
-                  child: OutlinedButton.icon(
-                    style: ButtonStyle(
-                      minimumSize: WidgetStateProperty.all(const Size(48, 48)),
-                    ),
-                    onPressed: _requestNextPage,
-                    icon: const Icon(Icons.expand_more),
-                    label: Text(locales.get('label--load-more').toUpperCase()),
-                  ),
-                ),
-              );
-            }
-            return ConstrainedBox(
-              constraints: BoxConstraints(minHeight: kToolbarHeight * 2),
-              child: ContentContainer(child: footer),
+              ),
             );
-          },
-          reverse: widget.reverse,
-          scrollDirection: widget.scrollDirection,
-        ),
+          } else if (loading) {
+            footer = Semantics(
+              liveRegion: true,
+              label: locales.get('label--loading'),
+              child: widgetLoading,
+            );
+          } else if (!end && accessibleNavigation) {
+            // Explicit, focusable alternative to the scroll-edge trigger so
+            // assistive-technology users can reliably load more results.
+            footer = Center(
+              child: Padding(
+                padding: density.all(16, min: 8),
+                child: OutlinedButton.icon(
+                  style: ButtonStyle(
+                    minimumSize: WidgetStateProperty.all(const Size(48, 48)),
+                  ),
+                  onPressed: _requestNextPage,
+                  icon: const Icon(Icons.expand_more),
+                  label: Text(locales.get('label--load-more').toUpperCase()),
+                ),
+              ),
+            );
+          }
+          return ConstrainedBox(
+            constraints: BoxConstraints(minHeight: kToolbarHeight * 2),
+            child: ContentContainer(child: footer),
+          );
+        },
+        reverse: widget.reverse,
+        scrollDirection: widget.scrollDirection,
       );
+      content = widget.embedded
+          ? list
+          : Scrollbar(
+              thumbVisibility: true,
+              trackVisibility: true,
+              interactive: true,
+              controller: _controller,
+              child: list,
+            );
     }
 
     return content;
+  }
+
+  /// Builds the item at [index], adding [PaginationContainer.top] before the
+  /// first and [PaginationContainer.bottom] before the last entry.
+  Widget _buildItem(
+    BuildContext context,
+    int index,
+    int total,
+    DensitySpacing density,
+  ) {
+    final child = widget.itemBuilder(context, index, data[index]);
+    if (index == 0 && widget.top != null) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        spacing: density.gap(16),
+        children: [widget.top!, child],
+      );
+    } else if (index == (total - 1) && widget.bottom != null) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        spacing: density.gap(16),
+        children: [widget.bottom!, child],
+      );
+    }
+    return child;
   }
 }

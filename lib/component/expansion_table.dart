@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/density_spacing.dart';
 import '../helper/format_data.dart';
+import '../helper/scroll_reveal.dart';
 import '../helper/url_safety.dart';
 import '../serialized/table_data.dart';
 
@@ -33,6 +34,8 @@ class ExpansionTable extends StatefulWidget {
     this.columnSpacing,
     this.dividerThickness,
     this.border,
+    this.columnWidth,
+    this.controller,
   }) : assert(data == null || data.header!.isNotEmpty);
 
   /// Stores the hierarchical table model rendered by this widget.
@@ -139,12 +142,64 @@ class ExpansionTable extends StatefulWidget {
   /// reporting-style tables without altering row composition.
   final TableBorder? border;
 
+  /// Overrides the fixed width of every column, in logical pixels.
+  ///
+  /// Defaults to `null`, which keeps the built-in 300 px columns. A narrower
+  /// value lets a table fit a compact surface such as a 360 px chat column
+  /// without horizontal scrolling.
+  final double? columnWidth;
+
+  /// Optional handle used to reveal rows and columns.
+  ///
+  /// See [ExpansionTableController]. Nested tables inherit it automatically.
+  final ExpansionTableController? controller;
+
   /// Creates the mutable state for [ExpansionTable].
   ///
   /// Using a dedicated [_ExpansionTableState] preserves expansion toggles while
   /// rows rebuild in response to user interaction.
   @override
   State<ExpansionTable> createState() => _ExpansionTableState();
+}
+
+/// Reveals rows and columns of an [ExpansionTable].
+///
+/// Pass one instance to [ExpansionTable.controller]. Calls return `false`
+/// while no table is attached.
+class ExpansionTableController {
+  _ExpansionTableState? _root;
+
+  /// Keys that locate built rows, by row identity.
+  final Map<TableRowData, GlobalKey> _rowKeys = Map.identity();
+
+  GlobalKey _keyFor(TableRowData row) =>
+      _rowKeys.putIfAbsent(row, GlobalKey.new);
+
+  /// Scrolls [row] into view, expanding its ancestors first.
+  ///
+  /// [row] must be one of the [TableRowData] objects of the table's data. When
+  /// [column] is given, the horizontal scroll also moves so that column is
+  /// visible. Returns `true` when the row ended in view.
+  Future<bool> revealRow(
+    TableRowData row, {
+    int? column,
+    double alignment = 0.1,
+  }) async => await _root?._revealRow(row, column, alignment) ?? false;
+
+  /// Scrolls the root row at [index] into view. See [revealRow].
+  Future<bool> revealRowAt(
+    int index, {
+    int? column,
+    double alignment = 0.1,
+  }) async {
+    final rows = _root?.widget.data?.rows;
+    if (rows == null || index < 0 || index >= rows.length) return false;
+    return revealRow(rows[index], column: column, alignment: alignment);
+  }
+
+  /// Scrolls the horizontal axis so the column at [index] is visible.
+  Future<bool> revealColumn(int index) async =>
+      await _root?._revealColumn(index) ?? false;
 }
 
 /// Stores the fixed width assigned to each column.
@@ -164,9 +219,95 @@ class _ExpansionTableState extends State<ExpansionTable> {
   /// reallocated (and leaked) on every [build] pass.
   final ScrollController _controllerHorizontal = ScrollController();
 
+  /// Registers the root table with [ExpansionTable.controller].
+  @override
+  void initState() {
+    super.initState();
+    if ((widget.data?.level ?? 0) == 0) widget.controller?._root = this;
+  }
+
+  @override
+  void didUpdateWidget(covariant ExpansionTable oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      if (oldWidget.controller?._root == this) {
+        oldWidget.controller?._root = null;
+      }
+      if ((widget.data?.level ?? 0) == 0) widget.controller?._root = this;
+    }
+  }
+
+  /// Returns the ancestors (outermost first) of [row] in [data], or `null`.
+  List<TableRowData>? _ancestorsOf(TableData data, TableRowData row) {
+    for (final candidate in data.rows) {
+      if (identical(candidate, row)) return [];
+      final child = candidate.child;
+      if (child == null) continue;
+      final path = _ancestorsOf(child, row);
+      if (path != null) return [candidate, ...path];
+    }
+    return null;
+  }
+
+  /// Width of one column, shared with the layout code.
+  double get _columnWidth => widget.columnWidth ?? 300;
+
+  /// Implements [ExpansionTableController.revealRow].
+  Future<bool> _revealRow(
+    TableRowData row,
+    int? column,
+    double alignment,
+  ) async {
+    final data = widget.data;
+    final controller = widget.controller;
+    if (data == null || controller == null) return false;
+    final ancestors = _ancestorsOf(data, row);
+    if (ancestors == null) return false;
+    if (ancestors.any((ancestor) => !ancestor.active)) {
+      for (final ancestor in ancestors) {
+        ancestor.active = true;
+      }
+      if (mounted) setState(() {});
+    }
+    await WidgetsBinding.instance.endOfFrame;
+    final context = controller._rowKeys[row]?.currentContext;
+    if (!mounted || context == null || !context.mounted) return false;
+    final revealed = await ScrollReveal.reveal(context, alignment: alignment);
+    if (column != null) await _revealColumn(column);
+    return revealed;
+  }
+
+  /// Implements [ExpansionTableController.revealColumn].
+  Future<bool> _revealColumn(int index) async {
+    final count = widget.data?.header?.length ?? 0;
+    if (index < 0 || index >= count || !_controllerHorizontal.hasClients) {
+      return false;
+    }
+    final position = _controllerHorizontal.position;
+    final left = index * _columnWidth;
+    final visibleStart = position.pixels;
+    final visibleEnd = visibleStart + position.viewportDimension;
+    if (left >= visibleStart && left + _columnWidth <= visibleEnd) return true;
+    final target = left
+        .clamp(position.minScrollExtent, position.maxScrollExtent)
+        .toDouble();
+    final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    if (reduceMotion) {
+      _controllerHorizontal.jumpTo(target);
+    } else {
+      await _controllerHorizontal.animateTo(
+        target,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeInOut,
+      );
+    }
+    return true;
+  }
+
   /// Releases the horizontal scroll controller when the widget is removed.
   @override
   void dispose() {
+    if (widget.controller?._root == this) widget.controller?._root = null;
     _controllerHorizontal.dispose();
     super.dispose();
   }
@@ -191,7 +332,7 @@ class _ExpansionTableState extends State<ExpansionTable> {
     );
     final List<TableColumnWidth> tableColumns = List<TableColumnWidth>.filled(
       data.header!.length,
-      const FixedColumnWidth(300.0),
+      FixedColumnWidth(widget.columnWidth ?? 300.0),
     );
     final Map<int, TableColumnWidth> tableColumnWidths = tableColumns.asMap();
     final double effectiveHorizontalMargin =
@@ -206,8 +347,8 @@ class _ExpansionTableState extends State<ExpansionTable> {
         clipBehavior: Clip.antiAlias,
         child: Container(
           constraints: BoxConstraints(
-            maxWidth: _widthColumn,
-            minWidth: _widthColumn,
+            maxWidth: widget.columnWidth ?? _widthColumn,
+            minWidth: widget.columnWidth ?? _widthColumn,
           ),
           child: Align(
             alignment: Alignment.centerLeft,
@@ -359,8 +500,8 @@ class _ExpansionTableState extends State<ExpansionTable> {
                 clipBehavior: Clip.antiAlias,
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
-                    maxWidth: _widthColumn,
-                    minWidth: _widthColumn,
+                    maxWidth: widget.columnWidth ?? _widthColumn,
+                    minWidth: widget.columnWidth ?? _widthColumn,
                     minHeight:
                         widget.dataRowHeight ??
                         theme.dataTableTheme.dataRowMinHeight ??
@@ -417,10 +558,17 @@ class _ExpansionTableState extends State<ExpansionTable> {
             row.child!.active = false;
             row.child!.level = (data.level) + 1;
             row.child!.header = data.header;
-            content.add(ExpansionTable(data: row.child!));
+            content.add(
+              ExpansionTable(
+                data: row.child!,
+                columnWidth: widget.columnWidth,
+                controller: widget.controller,
+              ),
+            );
             content.add(SizedBox(height: density.gap(32)));
           }
           return Container(
+            key: isFooter ? null : widget.controller?._keyFor(row),
             decoration: BoxDecoration(border: border),
             child: Flex(direction: Axis.vertical, children: content),
           );
