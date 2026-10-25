@@ -158,9 +158,9 @@ class AgentBuiltInCommands {
       }
       final rawValue = context['value'];
       // Reject a value not in the allowed options when the element is
-      // a choice input (dropdown, enum, radio).
+      // a choice input (dropdown, enum, radio). Null still clears it.
       final options = handle.options;
-      if (options != null) {
+      if (options != null && rawValue != null) {
         final validValues = options.map((o) => o.value).toSet();
         if (!validValues.contains(rawValue)) {
           throw AgentException.invalidParams(
