@@ -383,7 +383,7 @@ void main() {
             .customSemanticsActionIds!
             .first;
         // Invoke the custom action through the semantics owner.
-        tester.binding.pipelineOwner.semanticsOwner!.performAction(
+        node.owner!.performAction(
           node.id,
           SemanticsAction.customAction,
           actionId,
