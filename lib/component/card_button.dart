@@ -156,11 +156,9 @@ class _CardButtonState extends State<CardButton> {
       activator: widget.onPressed,
       child: Semantics(
         label: _resolvedLabel,
-        identifier: widget.automationKey,
         hint: widget.semanticHint,
         button: true,
         enabled: true,
-        container: true,
         onTap: widget.onPressed,
         child: ExcludeSemantics(
           child: Container(

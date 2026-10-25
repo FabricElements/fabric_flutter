@@ -40,5 +40,7 @@ const _$AgentElementTypeEnumMap = {
   AgentElementType.radio: 'radio',
   AgentElementType.datePicker: 'date_picker',
   AgentElementType.text: 'text',
+  AgentElementType.image: 'image',
+  AgentElementType.navigation: 'navigation',
   AgentElementType.other: 'other',
 };

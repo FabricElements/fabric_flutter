@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../helper/agent/agent_element_binding.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/utils.dart';
+import '../serialized/agent_element_snapshot.dart';
 import '../serialized/user_data.dart';
 import 'smart_image.dart';
 
@@ -142,10 +144,13 @@ class UserAvatar extends StatelessWidget {
     }
 
     if (presence == null) {
-      return MergeSemantics(
+      return AgentElement(
+        id: automationKey,
+        type: AgentElementType.image,
+        label: accessibleName,
+        hint: semanticHint,
         child: Semantics(
           label: accessibleName,
-          identifier: automationKey,
           hint: semanticHint,
           child: Tooltip(message: accessibleName, child: avatarContainer),
         ),
@@ -182,10 +187,13 @@ class UserAvatar extends StatelessWidget {
     final combinedLabel = presenceLabel != null
         ? '$accessibleName, $presenceLabel'
         : accessibleName;
-    return MergeSemantics(
+    return AgentElement(
+      id: automationKey,
+      type: AgentElementType.image,
+      label: combinedLabel,
+      hint: semanticHint,
       child: Semantics(
         label: combinedLabel,
-        identifier: automationKey,
         hint: semanticHint,
         child: AspectRatio(
           aspectRatio: 1 / 1,

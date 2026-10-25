@@ -81,10 +81,14 @@ void main() {
         );
 
         // Assert
-        final Semantics node = tester
-            .widgetList<Semantics>(find.byType(Semantics))
-            .firstWhere((s) => s.properties.label == label);
-        expect(node.properties.identifier, equals(automationKey));
+        // The identifier is applied by AgentElement and merged into the node
+        // that also carries the label, so the key and the label resolve to a
+        // single semantic identity.
+        final node = tester.getSemantics(
+          find.bySemanticsIdentifier(automationKey),
+        );
+        expect(node.identifier, automationKey);
+        expect(node.label, label);
       });
 
       testWidgets('should mark enabled when button has an actionable path', (
@@ -194,6 +198,7 @@ void main() {
         // Arrange
         const routeName = '/dashboard';
         const expectedIdentifier = 'screen_/dashboard';
+        final handle = tester.ensureSemantics();
 
         // Act
         await tester.pumpWidget(
@@ -203,12 +208,11 @@ void main() {
         );
 
         // Assert
-        expect(
-          tester
-              .widgetList<Semantics>(find.byType(Semantics))
-              .any((s) => s.properties.identifier == expectedIdentifier),
-          isTrue,
+        final node = tester.getSemantics(
+          find.bySemanticsIdentifier(expectedIdentifier),
         );
+        expect(node.identifier, expectedIdentifier);
+        handle.dispose();
       });
 
       testWidgets('should have explicitChildNodes set to true', (
@@ -225,6 +229,8 @@ void main() {
         );
 
         // Assert
+        // The identifier fold carries explicitChildNodes so the route node is
+        // an explicit container for its children (never merged into a child).
         final Semantics node = tester
             .widgetList<Semantics>(find.byType(Semantics))
             .firstWhere((s) => s.properties.identifier == 'screen_$routeName');
@@ -244,10 +250,8 @@ void main() {
           );
 
           // Assert
-          final Semantics node = tester
-              .widgetList<Semantics>(find.byType(Semantics))
-              .firstWhere((s) => s.container == true);
-          expect(node.properties.identifier, isNull);
+          // With no route, AgentElement adds no identifier and no index entry.
+          expect(find.byType(Semantics), findsNothing);
         },
       );
     });

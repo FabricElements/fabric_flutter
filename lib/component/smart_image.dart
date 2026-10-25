@@ -4,9 +4,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_network/image_network.dart';
 
+import '../helper/agent/agent_element_binding.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/m3_tokens.dart';
 import '../helper/utils.dart';
+import '../serialized/agent_element_snapshot.dart';
 
 /// Enumerates the output formats supported by the backing image service.
 enum AvailableOutputFormats {
@@ -393,9 +395,8 @@ class _SmartImageState extends State<SmartImage> {
             // Depend only on devicePixelRatio instead of the whole
             // MediaQueryData, which would also rebuild on every resize,
             // rotation, text-scale, and safe-area change.
-            devicePixelRatio = MediaQuery.devicePixelRatioOf(
-              context,
-            ).floorToDouble();
+            devicePixelRatio = MediaQuery.devicePixelRatioOf(context)
+                .floorToDouble();
             if (devicePixelRatio < 1) devicePixelRatio = 1;
             realHeight = constraints.maxHeight;
             realWidth = constraints.maxWidth;
@@ -566,20 +567,24 @@ class _SmartImageState extends State<SmartImage> {
   ///
   /// Uses [ExcludeSemantics] when [SmartImage.excludeSemantics] is `true` so
   /// decorative imagery is skipped by assistive technology. Otherwise wraps
-  /// [child] in a [Semantics] node using [SmartImage.semanticsLabel],
-  /// [SmartImage.automationKey], and [SmartImage.semanticHint], falling back
-  /// to a localized generic image label from [locales] when no label is
-  /// supplied.
+  /// [child] in an [AgentElement] that publishes the image to the agent index,
+  /// with an inner [Semantics] node carrying the label, identifier, hint, and
+  /// image role.
   Widget _wrapSemantics(Widget child, AppLocalizations locales) {
     if (widget.excludeSemantics) {
       return ExcludeSemantics(child: child);
     }
-    return Semantics(
+    return AgentElement(
+      id: widget.automationKey,
+      type: AgentElementType.image,
       label: widget.semanticsLabel ?? locales.get('label--image'),
-      identifier: widget.automationKey,
       hint: widget.semanticHint,
-      image: true,
-      child: child,
+      child: Semantics(
+        label: widget.semanticsLabel ?? locales.get('label--image'),
+        hint: widget.semanticHint,
+        image: true,
+        child: child,
+      ),
     );
   }
 }

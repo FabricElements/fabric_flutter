@@ -238,10 +238,8 @@ class _SmartButtonState extends State<SmartButton> {
       activator: isActionable ? _activate : null,
       child: Semantics(
         label: widget.semanticsLabel ?? widget.button.label,
-        identifier: widget.automationKey,
         hint: widget.semanticHint,
         enabled: isActionable,
-        container: true,
         child: child,
       ),
     );

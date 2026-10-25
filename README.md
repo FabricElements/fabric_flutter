@@ -275,6 +275,23 @@ Components implementing the trio include `SmartButton`, `CardButton`, `InputData
 
 All accessibility strings are localized through `AppLocalizations`; add or override them the same way as any other label.
 
+### Agent identity
+
+A component's `automationKey` is a **single identity** across four surfaces, so an agent, an accessibility tool, and a test all refer to the same element by the same key:
+
+| Key surface | Consumer | Reads the key from |
+|-------------|----------|--------------------|
+| Agent registry id | `AgentElementIndex` / in-app `AgentElement` | `id` of the registered element |
+| Semantics identifier | `Semantics.identifier` | `find.bySemanticsIdentifier(key)` |
+| Web DOM attribute | `flt-semantics-identifier` | the browser / DOM queries |
+| Test finder | `find.bySemanticsIdentifier(key)` | the same semantics node |
+
+One key = agent id = semantics identifier = test finder = web DOM attribute. The same
+`automationKey` that a query uses to locate the widget on the web is the id the in-app agent
+registers and the id a widget test asserts against — there is no second, parallel metadata to
+maintain. A null or empty `automationKey` registers nothing and adds no identifier, so unkeyed
+widgets cost nothing.
+
 ### Scroll reveal & embedding in parent surfaces
 
 An agent that works on a long page needs to bring the section it is editing into view — and keep it there. `Scrollable.ensureVisible` runs once, so it misses targets whose surroundings keep changing after the call: content that loads asynchronously above the target, images that finish decoding, expandable tiles that open. Reveal here means "scroll the target to an alignment, then re-check until the layout stops moving".

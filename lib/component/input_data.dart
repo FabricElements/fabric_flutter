@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:omni_datetime_picker/omni_datetime_picker.dart';
+
 import '../helper/web_pointer_interceptor.dart';
 
 import '../helper/agent/agent_element_binding.dart';
@@ -472,9 +473,9 @@ class _InputDataState extends State<InputData> {
   DateFormat formatDate = DateFormat.yMd('en_US');
 
   /// Formats date-time values for display after picker selections are normalized.
-  DateFormat formatDateTime = DateFormat.yMd(
-    'en_US',
-  ).addPattern(' - ').add_jm();
+  DateFormat formatDateTime = DateFormat.yMd('en_US')
+      .addPattern(' - ')
+      .add_jm();
 
   /// Formats time-only values for display inside read-only picker fields.
   DateFormat formatTime = DateFormat.jm();
@@ -1806,10 +1807,8 @@ getValue -------------------------------------
       setter: agentSetValue,
       child: Semantics(
         label: _resolveSemanticLabel(locales),
-        identifier: _resolveAutomationKey(context),
         hint: _resolveSemanticHint(),
         enabled: !widget.disabled,
-        container: true,
         child: Theme(
           data: theme.copyWith(
             disabledColor: textTheme.bodyMedium?.color,

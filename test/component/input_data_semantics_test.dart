@@ -1,6 +1,7 @@
 import 'package:fabric_flutter/component/input_data.dart';
 import 'package:fabric_flutter/helper/app_localizations_delegate.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Pumps [child] inside a minimal [MaterialApp] so localization and theme are
@@ -60,11 +61,11 @@ Future<void> _pumpWithUnnamedRoute(WidgetTester tester, Widget child) async {
   await tester.pump();
 }
 
-/// Retrieves the outermost [Semantics] node that has [container] set to `true`.
-Semantics _findContainer(WidgetTester tester) {
-  return tester
-      .widgetList<Semantics>(find.byType(Semantics))
-      .firstWhere((s) => s.container == true);
+/// Retrieves the rendering-semantics [SemanticsNode] produced by an
+/// [InputData] widget. This is the merged node (container + label + hint +
+/// identifier) as flattened by the `AgentElement` fold.
+SemanticsNode _findInputNode(WidgetTester tester) {
+  return tester.getSemantics(find.byType(InputData));
 }
 
 void main() {
@@ -88,8 +89,8 @@ void main() {
         );
 
         // Assert
-        final node = _findContainer(tester);
-        expect(node.properties.label, equals(explicitLabel));
+        final node = _findInputNode(tester);
+        expect(node.label, equals(explicitLabel));
       });
 
       testWidgets('should fall back to label when semanticsLabel is null', (
@@ -105,8 +106,8 @@ void main() {
         );
 
         // Assert
-        final node = _findContainer(tester);
-        expect(node.properties.label, equals(widgetLabel));
+        final node = _findInputNode(tester);
+        expect(node.label, equals(widgetLabel));
       });
 
       testWidgets(
@@ -118,9 +119,9 @@ void main() {
           await _pump(tester, InputData(value: '', type: InputDataType.email));
 
           // Assert – AppLocalizations returns 'Email' for 'label--email'
-          final node = _findContainer(tester);
-          expect(node.properties.label, isNotNull);
-          expect(node.properties.label, isNotEmpty);
+          final node = _findInputNode(tester);
+          expect(node.label, isNotNull);
+          expect(node.label, isNotEmpty);
         },
       );
 
@@ -133,9 +134,9 @@ void main() {
           await _pump(tester, InputData(value: '', type: InputDataType.phone));
 
           // Assert – 'label--phone-number' resolves to a non-empty string
-          final node = _findContainer(tester);
-          expect(node.properties.label, isNotNull);
-          expect(node.properties.label, isNotEmpty);
+          final node = _findInputNode(tester);
+          expect(node.label, isNotNull);
+          expect(node.label, isNotEmpty);
         },
       );
 
@@ -148,9 +149,9 @@ void main() {
           await _pump(tester, InputData(value: null, type: InputDataType.date));
 
           // Assert – 'label--date' resolves to a non-empty string
-          final node = _findContainer(tester);
-          expect(node.properties.label, isNotNull);
-          expect(node.properties.label, isNotEmpty);
+          final node = _findInputNode(tester);
+          expect(node.label, isNotNull);
+          expect(node.label, isNotEmpty);
         },
       );
 
@@ -163,9 +164,9 @@ void main() {
           await _pump(tester, InputData(value: '', type: InputDataType.secret));
 
           // Assert – 'label--password' resolves to a non-empty string
-          final node = _findContainer(tester);
-          expect(node.properties.label, isNotNull);
-          expect(node.properties.label, isNotEmpty);
+          final node = _findInputNode(tester);
+          expect(node.label, isNotNull);
+          expect(node.label, isNotEmpty);
         },
       );
 
@@ -177,9 +178,10 @@ void main() {
           // Act
           await _pump(tester, InputData(value: '', type: InputDataType.string));
 
-          // Assert – string type has no type-level fallback label
-          final node = _findContainer(tester);
-          expect(node.properties.label, isNull);
+          // Assert – string type has no type-level fallback label, so the
+          // rendered node's label is empty (unset rendered labels are '').
+          final node = _findInputNode(tester);
+          expect(node.label, isEmpty);
         },
       );
     });
@@ -198,8 +200,8 @@ void main() {
         );
 
         // Assert
-        final node = _findContainer(tester);
-        expect(node.properties.identifier, equals(key));
+        final node = _findInputNode(tester);
+        expect(node.identifier, equals(key));
       });
 
       testWidgets(
@@ -221,11 +223,8 @@ void main() {
           );
 
           // Assert – route 'profile', contextBlock 'email', type 'email'
-          final node = _findContainer(tester);
-          expect(
-            node.properties.identifier,
-            equals('profile_email_input_email'),
-          );
+          final node = _findInputNode(tester);
+          expect(node.identifier, equals('profile_email_input_email'));
         },
       );
 
@@ -248,11 +247,8 @@ void main() {
           );
 
           // Assert – 'settings/account' → 'settings_account'
-          final node = _findContainer(tester);
-          expect(
-            node.properties.identifier,
-            equals('settings_account_phone_input_phone'),
-          );
+          final node = _findInputNode(tester);
+          expect(node.identifier, equals('settings_account_phone_input_phone'));
         },
       );
 
@@ -271,8 +267,8 @@ void main() {
         );
 
         // Assert
-        final node = _findContainer(tester);
-        final id = node.properties.identifier;
+        final node = _findInputNode(tester);
+        final id = node.identifier;
         expect(id, isNotNull);
         expect(id, startsWith('root_'));
       });
@@ -292,8 +288,8 @@ void main() {
           );
 
           // Assert – contextBlock = 'int', type = 'int'
-          final node = _findContainer(tester);
-          expect(node.properties.identifier, equals('form_int_input_int'));
+          final node = _findInputNode(tester);
+          expect(node.identifier, equals('form_int_input_int'));
         },
       );
 
@@ -309,9 +305,9 @@ void main() {
           );
 
           // Assert – falls back to 'app' as route segment
-          final node = _findContainer(tester);
-          expect(node.properties.identifier, isNotNull);
-          expect(node.properties.identifier, equals('app_name_input_string'));
+          final node = _findInputNode(tester);
+          expect(node.identifier, isNotNull);
+          expect(node.identifier, equals('app_name_input_string'));
         },
       );
     });
@@ -330,8 +326,8 @@ void main() {
         );
 
         // Assert
-        final node = _findContainer(tester);
-        expect(node.properties.hint, equals(hint));
+        final node = _findInputNode(tester);
+        expect(node.hint, equals(hint));
       });
 
       testWidgets('should infer email format hint for InputDataType.email', (
@@ -343,9 +339,9 @@ void main() {
         await _pump(tester, InputData(value: '', type: InputDataType.email));
 
         // Assert
-        final node = _findContainer(tester);
+        final node = _findInputNode(tester);
         expect(
-          node.properties.hint,
+          node.hint,
           equals('Enter a valid email address, e.g. user@example.com'),
         );
       });
@@ -359,9 +355,9 @@ void main() {
         await _pump(tester, InputData(value: '', type: InputDataType.phone));
 
         // Assert
-        final node = _findContainer(tester);
+        final node = _findInputNode(tester);
         expect(
-          node.properties.hint,
+          node.hint,
           equals('Enter a phone number with country code, e.g. +12223334444'),
         );
       });
@@ -375,11 +371,8 @@ void main() {
         await _pump(tester, InputData(value: '', type: InputDataType.url));
 
         // Assert
-        final node = _findContainer(tester);
-        expect(
-          node.properties.hint,
-          equals('Enter a valid URL starting with https://'),
-        );
+        final node = _findInputNode(tester);
+        expect(node.hint, equals('Enter a valid URL starting with https://'));
       });
 
       testWidgets('should infer date picker hint for InputDataType.date', (
@@ -391,11 +384,8 @@ void main() {
         await _pump(tester, InputData(value: null, type: InputDataType.date));
 
         // Assert
-        final node = _findContainer(tester);
-        expect(
-          node.properties.hint,
-          equals('Select a date using the calendar picker'),
-        );
+        final node = _findInputNode(tester);
+        expect(node.hint, equals('Select a date using the calendar picker'));
       });
 
       testWidgets('should infer bool toggle hint for InputDataType.bool', (
@@ -407,11 +397,8 @@ void main() {
         await _pump(tester, InputData(value: false, type: InputDataType.bool));
 
         // Assert
-        final node = _findContainer(tester);
-        expect(
-          node.properties.hint,
-          equals('Toggle to enable or disable this option'),
-        );
+        final node = _findInputNode(tester);
+        expect(node.hint, equals('Toggle to enable or disable this option'));
       });
 
       testWidgets(
@@ -426,11 +413,8 @@ void main() {
           );
 
           // Assert
-          final node = _findContainer(tester);
-          expect(
-            node.properties.hint,
-            equals('Select one option from the list'),
-          );
+          final node = _findInputNode(tester);
+          expect(node.hint, equals('Select one option from the list'));
         },
       );
 
@@ -442,9 +426,10 @@ void main() {
         // Act
         await _pump(tester, InputData(value: '', type: InputDataType.string));
 
-        // Assert – string has no type-specific format constraint
-        final node = _findContainer(tester);
-        expect(node.properties.hint, isNull);
+        // Assert – string has no type-specific format constraint, so the
+        // rendered node's hint is empty (unset rendered hints are '').
+        final node = _findInputNode(tester);
+        expect(node.hint, isEmpty);
       });
 
       testWidgets('should return null hint for generic text type', (
@@ -455,9 +440,10 @@ void main() {
         // Act
         await _pump(tester, InputData(value: '', type: InputDataType.text));
 
-        // Assert
-        final node = _findContainer(tester);
-        expect(node.properties.hint, isNull);
+        // Assert – text has no type-specific format constraint, so the
+        // rendered node's hint is empty (unset rendered hints are '').
+        final node = _findInputNode(tester);
+        expect(node.hint, isEmpty);
       });
     });
 
@@ -479,9 +465,9 @@ void main() {
           );
 
           // Assert
-          final node = _findContainer(tester);
+          final node = _findInputNode(tester);
           expect(
-            node.properties.hint,
+            node.hint,
             equals('Required field, currently empty and pending input.'),
           );
         },
@@ -504,8 +490,8 @@ void main() {
           );
 
           // Assert
-          final node = _findContainer(tester);
-          expect(node.properties.hint, equals('Required field.'));
+          final node = _findInputNode(tester);
+          expect(node.hint, equals('Required field.'));
         },
       );
 
@@ -526,9 +512,9 @@ void main() {
           );
 
           // Assert
-          final node = _findContainer(tester);
+          final node = _findInputNode(tester);
           expect(
-            node.properties.hint,
+            node.hint,
             equals(
               'Enter a valid email address, e.g. user@example.com '
               'Required field, currently empty and pending input.',
@@ -589,9 +575,9 @@ void main() {
           InputData(value: '', type: InputDataType.string, label: 'Name'),
         );
 
-        // Assert – no helper, no asterisk, no required hint
-        final node = _findContainer(tester);
-        expect(node.properties.hint, isNull);
+        // Assert – no helper, no asterisk, no required hint (empty hint)
+        final node = _findInputNode(tester);
+        expect(node.hint, isEmpty);
         expect(find.text('Required'), findsNothing);
         expect(find.textContaining('*'), findsNothing);
       });

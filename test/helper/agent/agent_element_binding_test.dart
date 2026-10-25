@@ -122,7 +122,35 @@ void main() {
         );
       });
 
-      testWidgets('should add no semantics node of its own', (
+      testWidgets(
+        'should merge the identifier into the child node without adding a boundary',
+        (WidgetTester tester) async {
+          // Arrange
+          final index = AgentElementIndex();
+          final handle = tester.ensureSemantics();
+
+          // Act
+          await tester.pumpWidget(
+            AgentElement(
+              id: 'a',
+              index: index,
+              child: const Text('content', textDirection: TextDirection.ltr),
+            ),
+          );
+          final node = tester.getSemantics(find.text('content'));
+
+          // Assert
+          // The identifier folds into the child's single node: the label is
+          // preserved, the identifier is applied, and no extra boundary node is
+          // introduced (a bare Text contributes exactly one leaf node).
+          expect(node.label, 'content');
+          expect(node.identifier, 'a');
+          expect(node.childrenCount, 0);
+          handle.dispose();
+        },
+      );
+
+      testWidgets('should apply no identifier when the id is null', (
         WidgetTester tester,
       ) async {
         // Arrange
@@ -132,7 +160,6 @@ void main() {
         // Act
         await tester.pumpWidget(
           AgentElement(
-            id: 'a',
             index: index,
             child: const Text('content', textDirection: TextDirection.ltr),
           ),
@@ -142,6 +169,7 @@ void main() {
         // Assert
         expect(node.label, 'content');
         expect(node.identifier, isEmpty);
+        expect(index.length, 0);
         handle.dispose();
       });
     });

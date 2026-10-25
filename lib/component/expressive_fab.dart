@@ -164,8 +164,6 @@ class _ExpressiveFabState extends State<ExpressiveFab>
         button: true,
         enabled: enabled,
         label: widget.semanticsLabel,
-        identifier: widget.automationKey,
-        container: true,
         child: button,
       ),
     );

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../helper/agent/agent_element_binding.dart';
 import '../helper/window_size.dart';
+import '../serialized/agent_element_snapshot.dart';
 
 /// A single top-level destination shown by [AdaptiveNavigationScaffold].
 ///
@@ -103,14 +105,16 @@ class AdaptiveNavigationScaffold extends StatelessWidget {
   /// [Semantics.hint].
   final String? semanticHint;
 
-  /// Wraps [navigation] in the configured [Semantics] container.
+  /// Wraps [navigation] in an [AgentElement] that publishes the navigation
+  /// region to the agent index, with an inner [Semantics] container carrying
+  /// the label, hint, and identifier.
   Widget _withSemantics(Widget navigation) {
-    return Semantics(
-      container: true,
-      explicitChildNodes: true,
+    return AgentElement(
+      id: automationKey,
+      type: AgentElementType.navigation,
       label: semanticsLabel,
-      identifier: automationKey,
       hint: semanticHint,
+      explicitChildNodes: true,
       child: navigation,
     );
   }

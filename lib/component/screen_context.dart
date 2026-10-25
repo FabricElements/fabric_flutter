@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../helper/agent/agent_element_binding.dart';
+import '../serialized/agent_element_snapshot.dart';
+
 /// Wraps a screen's widget tree with a semantic container that identifies the active route.
 ///
 /// [ScreenContext] is a non-visual widget that injects a deterministic [Semantics]
@@ -39,14 +42,17 @@ class ScreenContext extends StatelessWidget {
   ///
   /// Uses [routeName] when provided; otherwise reads [ModalRoute.settings.name]
   /// from the ambient [BuildContext]. When neither value is available, the
-  /// [Semantics.identifier] is left unset.
+  /// [Semantics.identifier] is left unset. The screen is wrapped in an
+  /// [AgentElement] so the route is visible to the agent index under the same
+  /// `screen_<route>` id.
   @override
   Widget build(BuildContext context) {
     final route = routeName ?? ModalRoute.of(context)?.settings.name;
-    return Semantics(
-      container: true,
+    final id = route != null ? 'screen_$route' : null;
+    return AgentElement(
+      id: id,
+      type: AgentElementType.navigation,
       explicitChildNodes: true,
-      identifier: route != null ? 'screen_$route' : null,
       child: child,
     );
   }
