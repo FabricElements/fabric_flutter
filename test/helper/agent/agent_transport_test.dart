@@ -112,7 +112,7 @@ void main() {
         });
 
         // Assert
-        expect(response['ok'], isTrue);
+        expect(response!['ok'], isTrue);
         await transport.stop();
       });
 
@@ -130,7 +130,7 @@ void main() {
         }, token: 'good');
 
         // Assert
-        expect(response['ok'], isTrue);
+        expect(response!['ok'], isTrue);
         await transport.stop();
       });
 
@@ -148,7 +148,7 @@ void main() {
         });
 
         // Assert
-        expect(response['ok'], isFalse);
+        expect(response!['ok'], isFalse);
         expect(response['error']['code'], 'unauthorized');
         await transport.stop();
       });
@@ -170,7 +170,7 @@ void main() {
 
         // Assert
         expect(transport.isRunning, isFalse);
-        expect(response['ok'], isFalse);
+        expect(response!['ok'], isFalse);
         expect(response['error']['code'], 'disabled');
         expect(response['id'], '4');
       });
@@ -186,11 +186,11 @@ void main() {
         // Act — no token at all, across the whole method surface.
         final responses = <String, Map<String, dynamic>>{
           for (final method in <String>['ping', 'describe', 'state', 'invoke'])
-            method: await transport.send(<String, dynamic>{
+            method: (await transport.send(<String, dynamic>{
               'id': method,
               'method': method,
               'params': <String, dynamic>{'commandId': 'echo'},
-            }),
+            }))!,
         };
 
         // Assert — nothing is enumerable: no capability catalog, no route
@@ -228,8 +228,8 @@ void main() {
         });
 
         // Assert — discovery opens, but state and execution stay closed.
-        expect(describe['ok'], isTrue);
-        expect(state['ok'], isFalse);
+        expect(describe!['ok'], isTrue);
+        expect(state!['ok'], isFalse);
         expect(state['error']['code'], 'unauthorized');
         await transport.stop();
       });
@@ -245,7 +245,7 @@ void main() {
 
         // Act
         final response = jsonDecode(
-          await transport.sendJson(
+          (await transport.sendJson(
             jsonEncode(<String, dynamic>{
               'id': '2',
               'method': 'invoke',
@@ -255,7 +255,7 @@ void main() {
                 'params': <String, dynamic>{'note': 'hi'},
               },
             }),
-          ),
+          ))!,
         );
 
         // Assert
@@ -272,7 +272,7 @@ void main() {
         );
 
         // Act
-        final response = jsonDecode(await transport.sendJson('}{'));
+        final response = jsonDecode((await transport.sendJson('}{'))!);
 
         // Assert
         expect(response['ok'], isFalse);

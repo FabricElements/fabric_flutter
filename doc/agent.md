@@ -537,3 +537,106 @@ AgentBridge.instance.registry.register(
 Registering an id that already exists throws unless `override: true` is passed. Because
 `configure` never overwrites an existing id, registering your own version of a built-in
 command before calling `configure` is how you specialize it.
+
+---
+
+## 8. MCP facade
+
+`AgentMcpAdapter` (`lib/helper/agent/agent_mcp_adapter.dart`) is an MCP JSON-RPC 2.0
+facade over the existing `AgentBridge`. Any MCP client can drive a fabric_flutter
+application through the bridge transports that already exist — no new network server, no
+new authentication layer. The adapter reuses the bridge's configured `AgentAuthorizer`
+exactly as `AgentBridge.handle` does.
+
+### 8.1 Protocol version
+
+The adapter speaks MCP protocol version `2025-06-18` and JSON-RPC 2.0. It detects MCP
+frames by the presence of `"jsonrpc": "2.0"` in the request map.
+
+### 8.2 Method mapping
+
+| MCP method | Bridge method | Notes |
+| --- | --- | --- |
+| `initialize` | — | Returns `serverInfo` and `capabilities` |
+| `ping` | `ping` | Returns `{}` |
+| `tools/list` | `describe` | Each bridge command becomes an MCP tool with JSON Schema |
+| `tools/call` | `invoke` | Maps MCP tool name back to bridge command id |
+| `notifications/*` | — | Returns `null` (no response) |
+
+### 8.3 Name mapping
+
+MCP tool names must match `^[a-zA-Z0-9_-]{1,64}$`. Dots in bridge command identifiers
+are replaced with double underscores:
+
+| Bridge command id | MCP tool name |
+| --- | --- |
+| `element.reveal` | `element__reveal` |
+| `element.focus` | `element__focus` |
+| `form.submit` | `form__submit` |
+| `set_value` | `set_value` (unchanged) |
+
+The reverse mapping is applied on `tools/call` so the bridge receives the original dotted
+identifier. `screen_state` is a built-in command and appears as a tool — it is not
+duplicated.
+
+### 8.4 Error mapping
+
+| Bridge error code | MCP response |
+| --- | --- |
+| `not_found` | Tool result with `isError: true` |
+| `invalid_params` | Tool result with `isError: true` |
+| `failed` | Tool result with `isError: true` |
+| `unauthorized` | JSON-RPC error `-32001` with `data.code: "unauthorized"` |
+| `disabled` | JSON-RPC error `-32002` with `data.code: "disabled"` |
+| Unknown tool | JSON-RPC error `-32602` (invalid params) |
+| Unknown method | JSON-RPC error `-32601` |
+| Malformed request | JSON-RPC error `-32600` |
+
+Tool execution errors (`not_found`, `invalid_params`, `failed`) are reported as successful
+tool results with `isError: true`, not as protocol errors. This follows the MCP convention
+that a tool that runs and fails is still a successful tool execution.
+
+### 8.5 Authentication
+
+The adapter passes through the same auth envelope the bridge expects. A bearer token
+travels in the MCP `params._meta.token` field and is injected into the reserved `auth`
+request parameter before the bridge sees it, matching the envelope described in
+[`doc/agent-bridge-protocol.md`](agent-bridge-protocol.md).
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "1",
+  "method": "tools/call",
+  "params": {
+    "name": "set_value",
+    "arguments": { "elementId": "name_input", "value": "Hello" },
+    "_meta": { "token": "******" }
+  }
+}
+```
+
+The `_meta` object is stripped from the bridge request; only the token is forwarded.
+
+### 8.6 Where MCP is served
+
+MCP is served by `AgentDispatcher`, so **every transport** — the native WebSocket/POST
+server, the web `window.fabricAgentBridge` entry point, and `AgentInProcessTransport` —
+speaks it with no per-transport code. A frame carrying `"jsonrpc": "2.0"` is routed to the
+dispatcher-owned adapter (`AgentDispatcher.mcp`); legacy frames (no `jsonrpc`) are
+unchanged. The adapter's bridge calls re-enter the dispatcher's normal path, so MCP
+traffic gets the request size limit, the rate limit, the audit log (an MCP `tools/call`
+is audited as an `invoke` of the mapped command), principal resolution, and the
+transport credential (`Authorization` header or `token`, used when `params._meta.token`
+is absent).
+
+The tool-name map is built from `describe`. A `tools/call` for a name not yet known
+refreshes the map once, so a client need not call `tools/list` first.
+
+### 8.7 Notifications
+
+An MCP notification (a frame without `id`) has no response. `AgentDispatcher.handle`
+and `handleJson`, and `AgentInProcessTransport.send` and `sendJson`, return `null`; the
+WebSocket server sends no frame, the POST server answers `202 Accepted` with an empty
+body, and the web entry point resolves with `null`. A transport must never send a frame
+for a `null` result.

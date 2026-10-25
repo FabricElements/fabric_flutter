@@ -133,11 +133,11 @@ void main() {
         String? token,
         Map<String, dynamic>? params,
         String id = '1',
-      }) => transport.send(<String, dynamic>{
+      }) async => (await transport.send(<String, dynamic>{
         'id': id,
         'method': method,
         'params': <String, dynamic>{...?params, 'auth': ?token},
-      });
+      }))!;
 
       /// Invokes [commandId] on behalf of [token].
       Future<Map<String, dynamic>> invoke(
@@ -245,10 +245,7 @@ void main() {
       );
       expect(notFound['ok'], isFalse);
       expect((notFound['error'] as Map)['code'], 'not_found');
-      expect(
-        (notFound['error'] as Map)['message'],
-        contains('bogus'),
-      );
+      expect((notFound['error'] as Map)['message'], contains('bogus'));
 
       // Act & Assert — a command the caller's role forbids is refused.
       final forbidden = await invoke('archive_order', token: 'member-token');

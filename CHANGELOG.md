@@ -2,6 +2,34 @@
 
 ### Added
 
+* **MCP facade over the agent bridge.** New `AgentMcpAdapter`
+  (`lib/helper/agent/agent_mcp_adapter.dart`) translates MCP JSON-RPC 2.0
+  (protocol version `2025-06-18`) onto the existing `AgentBridge` so any MCP
+  client can drive a fabric_flutter application through the bridge transports
+  that already exist. No new network server, no new authentication layer — the
+  adapter reuses the bridge's configured `AgentAuthorizer` exactly as `handle`
+  does. Supports `initialize`, `ping`, `tools/list` (with JSON Schema built
+  from `AgentParam`), and `tools/call`. Bridge command ids with dots are mapped
+  to MCP-safe names (`element.reveal` → `element__reveal`). Bridge errors are
+  mapped to MCP tool results or JSON-RPC errors per the specification. Auth
+  tokens travel in `params._meta.token`. See the new "MCP" section in
+  [`doc/agent.md`](doc/agent.md) for the full mapping table, name mapping,
+  error mapping, and auth details.
+
+  MCP is served by `AgentDispatcher` on every transport (native WebSocket and
+  POST, web, in-process): frames carrying `jsonrpc: "2.0"` go to a
+  dispatcher-owned adapter whose bridge calls use the dispatcher's normal path,
+  so the size limit, rate limit, audit log, principal resolution and transport
+  token apply. `tools/call` refreshes the tool-name map from `describe` on a
+  miss, so no prior `tools/list` is needed.
+
+  **Breaking:** `AgentDispatcher.handle` / `handleJson` and
+  `AgentInProcessTransport.send` / `sendJson` now return a nullable result —
+  `null` for an MCP notification (no `id`), which must produce no frame; the
+  POST server answers `202`. `AgentMcpAdapter` now takes an `AgentMcpDispatch`
+  function plus `appName` / `appVersion` callbacks instead of an `AgentBridge`
+  (use `AgentMcpAdapter.forBridge(bridge)` to call a bridge directly).
+
 * **Agent interface documentation.** New [`doc/agent.md`](doc/agent.md) is the practical
   reference for the agent bridge: how an app configures `AgentBridge`, how
   `AgentElement` and `automationKey` form the single identity shared by

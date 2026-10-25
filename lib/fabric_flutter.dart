@@ -58,6 +58,7 @@ export 'helper/agent/agent_audit.dart';
 export 'helper/agent/agent_authorizer.dart';
 export 'helper/agent/agent_bridge.dart';
 export 'helper/agent/agent_bridge_server.dart';
+export 'helper/agent/agent_mcp_adapter.dart';
 export 'helper/agent/agent_bridge_server_options.dart';
 export 'helper/agent/agent_builtin_commands.dart';
 export 'helper/agent/agent_command.dart';

@@ -164,11 +164,14 @@ class AgentInProcessTransport extends AgentTransport {
 
   /// Sends a decoded [request] map and returns the decoded response map.
   ///
+  /// An MCP frame (`jsonrpc: "2.0"`) is served by the dispatcher like any
+  /// other. An MCP notification has no response, so the result is `null`.
+  ///
   /// [connectionId] buckets the rate limit for unauthenticated callers and
   /// [token] supplies a credential when the envelope carries none. A request
   /// sent after [stop] answers with [AgentErrorCode.disabled] instead of
   /// reaching the bridge.
-  Future<Map<String, dynamic>> send(
+  Future<Map<String, dynamic>?> send(
     Map<String, dynamic>? request, {
     String? connectionId,
     String? token,
@@ -180,8 +183,9 @@ class AgentInProcessTransport extends AgentTransport {
   /// Sends an encoded JSON [payload] and returns the encoded response.
   ///
   /// Malformed JSON produces an `invalid_params` error response rather than
-  /// throwing, exactly as it does on a network transport.
-  Future<String> sendJson(
+  /// throwing, exactly as it does on a network transport. Returns `null` for
+  /// an MCP notification, which has no response frame.
+  Future<String?> sendJson(
     String payload, {
     String? connectionId,
     String? token,

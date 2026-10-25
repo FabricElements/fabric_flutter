@@ -31,6 +31,13 @@ enum AgentParamType {
   /// Accepts a JSON array of values.
   @JsonValue('array')
   array,
+
+  /// Accepts any JSON value — string, number, boolean, object, array, or null.
+  ///
+  /// When this type is used the JSON Schema property omits the `type` key
+  /// entirely so an MCP client does not constrain the value.
+  @JsonValue('any')
+  any,
 }
 
 /// Describes a single parameter accepted by an agent command.

@@ -6,6 +6,7 @@ import '../../serialized/agent_error.dart';
 import '../../serialized/agent_response.dart';
 import 'agent_audit.dart';
 import 'agent_bridge.dart';
+import 'agent_mcp_adapter.dart';
 import 'agent_principal_resolver.dart';
 import 'agent_rate_limiter.dart';
 
@@ -17,6 +18,13 @@ import 'agent_rate_limiter.dart';
 /// JSON, or when the caller has exhausted its rate limit; otherwise it reaches
 /// the bridge, and an `invoke` is recorded in the audit log with its outcome
 /// and duration.
+///
+/// A frame carrying `jsonrpc: "2.0"` is an MCP request. It is served by a
+/// dispatcher-owned [AgentMcpAdapter] whose bridge calls re-enter this
+/// dispatcher, so MCP traffic gets the same rate limit, audit trail, and
+/// principal resolution as a legacy frame on every transport. An MCP
+/// notification (no `id`) has no response: [handle] and [handleJson] return
+/// `null` and a transport must send nothing.
 ///
 /// The dispatcher never throws and never returns a malformed frame: every
 /// failure becomes a well-formed error response carrying one of the codes in
@@ -61,6 +69,14 @@ class AgentDispatcher {
   /// Names the transport in audit records, such as `websocket` or `web`.
   final String transportName;
 
+  /// Serves MCP frames; one per dispatcher so its tool-name map persists.
+  late final AgentMcpAdapter mcp = AgentMcpAdapter(
+    dispatch: (envelope, {connectionId, token}) =>
+        _dispatch(envelope, connectionId: connectionId, token: token),
+    appName: () => bridge.appName,
+    appVersion: () => bridge.appVersion,
+  );
+
   /// Sets the default maximum encoded request size, 64 KiB.
   static const int defaultMaxRequestBytes = 64 * 1024;
 
@@ -74,7 +90,9 @@ class AgentDispatcher {
   /// exception, so a transport can forward the result blindly. [connectionId]
   /// buckets the rate limit for unauthenticated callers, and [token] carries a
   /// transport-level credential such as an `Authorization` header.
-  Future<String> handleJson(
+  ///
+  /// Returns `null` for an MCP notification, which must produce no frame.
+  Future<String?> handleJson(
     String payload, {
     String? connectionId,
     String? token,
@@ -117,7 +135,7 @@ class AgentDispatcher {
       connectionId: connectionId,
       token: token,
     );
-    return jsonEncode(response);
+    return response == null ? null : jsonEncode(response);
   }
 
   /// Dispatches a decoded [request] map and returns a decoded response map.
@@ -125,7 +143,22 @@ class AgentDispatcher {
   /// When [token] is supplied and the envelope carries no `auth` parameter, the
   /// transport credential is injected so the authorizer sees a single, uniform
   /// token location regardless of transport.
-  Future<Map<String, dynamic>> handle(
+  ///
+  /// A `jsonrpc: "2.0"` frame is served as MCP and yields `null` when it is a
+  /// notification; every other frame always yields a response.
+  Future<Map<String, dynamic>?> handle(
+    Map<String, dynamic>? request, {
+    String? connectionId,
+    String? token,
+  }) async {
+    if (AgentMcpAdapter.isMcpFrame(request)) {
+      return mcp.handle(request!, connectionId: connectionId, token: token);
+    }
+    return _dispatch(request, connectionId: connectionId, token: token);
+  }
+
+  /// Runs one bridge envelope through rate limiting, the bridge, and audit.
+  Future<Map<String, dynamic>> _dispatch(
     Map<String, dynamic>? request, {
     String? connectionId,
     String? token,
