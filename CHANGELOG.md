@@ -1,5 +1,64 @@
 ## [Unreleased]
 
+### Added
+
+* **`ScrollReveal`** (`lib/helper/scroll_reveal.dart`) scrolls a target into view
+  and keeps it there while the layout settles, so async content that grows above
+  the target — or an expanding tile that shifts it — no longer strands it
+  offscreen. `ScrollReveal.reveal(BuildContext target, {alignment = 0.1, settle =
+  1500ms, quiet = 500ms, duration = 250ms, curve = Curves.easeInOut})` walks
+  every enclosing `Scrollable`, re-checks the alignment once per frame, stops as
+  soon as the user scrolls or the target unmounts, and jumps (no animation) when
+  the platform requests reduced motion. It returns `true` only when the target
+  ended in view, and `false` when it unmounted, has no enclosing scrollable, or
+  the user took over. The helper is stateless and does nothing unless called.
+* **`PaginationContainerController`** (`lib/component/pagination_container.dart`)
+  reveals items by index or predicate through `ScrollReveal`:
+  `revealIndex(int index, {alignment = 0.1, maxPages = 5})` and
+  `revealWhere(bool Function(dynamic item) test, {alignment = 0.1, maxPages = 5})`.
+  Both load further pages (bounded by `maxPages`) when the target is not yet
+  built, and return `false` instead of throwing when nothing matches. Pass the
+  controller to `PaginationContainer.controller`; item keys are only added when a
+  controller is attached, so existing trees are unchanged.
+* **`PaginationContainer.embedded`** renders the list inside a parent scrollable
+  instead of owning scrolling: it sizes to its content (`shrinkWrap`), ignores
+  `primary`, never captures drag gestures, and swaps the scroll-edge pagination
+  trigger for an explicit "load more" button. Defaults to `false`, which keeps the
+  previous behavior.
+* **`PaginationContainer.items(items: ..., itemBuilder: ...)`** is a const,
+  data-only constructor that renders a fixed JSON-friendly snapshot — no stream
+  and no further pages — with `embedded`/`shrinkWrap` already on. Intended for
+  generative surfaces rendered inside a parent chat list.
+* **`StepperExtendedController`** (`lib/component/stepper_extended.dart`) reveals
+  steps with `revealStep(int index, {GlobalKey? within, alignment = 0.1})`. When
+  `within` is a mounted key (for example a field inside a step), that widget is
+  revealed instead of the step, so an agent can land on the exact control it is
+  working on. Works with `scrollable` both on and off — with it off, the
+  enclosing scrollable moves. Pass it to `StepperExtended.controller`.
+* **`StepperExtended.stepsFromJson(List?)`** converts JSON-like step maps into
+  `Step`s so a surface can render the stepper from plain props. Reads `title`
+  (required), `subtitle`, `content`, and `state` (`indexed`, `editing`,
+  `complete`, `disabled`, `error`); non-map entries are skipped and `null` yields
+  no steps.
+* **`ExpansionTableController`** (`lib/component/expansion_table.dart`) reveals
+  rows and columns: `revealRow(row, {column, alignment = 0.1})`,
+  `revealRowAt(int index, {alignment = 0.1})`, and `revealColumn(int index,
+  {alignment = 0.1})`. Unknown rows, out-of-range indices, and a detached
+  controller return `false`. Nested tables inherit the root controller. Pass it
+  to `ExpansionTable.controller`.
+* **`ExpansionTable.columnWidth`** overrides the fixed column width so a table can
+  be sized for a narrow generative surface. Defaults to the existing behavior
+  when `null`.
+
+### Notes for consumers embedding in generative UI surfaces
+
+`contact_table` maps onto `ExpansionTable` and `plan_stepper` onto
+`StepperExtended`; in a parent chat `ListView`, use `PaginationContainer.items(...)`
+or `PaginationContainer(embedded: true)`, `StepperExtended(scrollable: false)`
+(the default), `ExpansionTable(columnWidth: ...)`, and `LogsList(scrollable: false)`
+(the default). All of these are opt-in: no existing signature, callback, or
+rendered behavior changes unless the new arguments are supplied.
+
 ## [3.3.0] - 2026-10-24
 
 ### Dependencies

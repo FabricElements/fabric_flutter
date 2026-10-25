@@ -275,6 +275,72 @@ Components implementing the trio include `SmartButton`, `CardButton`, `InputData
 
 All accessibility strings are localized through `AppLocalizations`; add or override them the same way as any other label.
 
+### Scroll reveal & embedding in parent surfaces
+
+An agent that works on a long page needs to bring the section it is editing into view — and keep it there. `Scrollable.ensureVisible` runs once, so it misses targets whose surroundings keep changing after the call: content that loads asynchronously above the target, images that finish decoding, expandable tiles that open. Reveal here means "scroll the target to an alignment, then re-check every frame until the layout stops moving".
+
+`ScrollReveal` (`lib/helper/scroll_reveal.dart`) is a stateless helper. It works through nested scrollables, stops as soon as the user scrolls or the target unmounts, and jumps instead of animating when the platform asks for reduced motion:
+
+```dart
+final revealed = await ScrollReveal.reveal(
+  sectionKey.currentContext!,
+  alignment: 0.1,                                   // 0 = leading edge, 1 = trailing edge
+  settle: const Duration(milliseconds: 1500),       // give up after this long
+  quiet: const Duration(milliseconds: 500),         // ...or once it has held still this long
+);
+// `false` when the target unmounted, has no enclosing scrollable, or the user took over.
+```
+
+Three components expose that helper through an opt-in controller, so a surface can name the row, step, or item it cares about without knowing the scroll geometry:
+
+| Component | API | Reveals |
+|-----------|-----|---------|
+| `PaginationContainer` | `PaginationContainerController.revealIndex(int, {alignment, maxPages = 5})` | the item at an index, loading further pages as needed |
+| `PaginationContainer` | `PaginationContainerController.revealWhere(bool Function(dynamic), {alignment, maxPages = 5})` | the first loaded item matching a predicate |
+| `StepperExtended` | `StepperExtendedController.revealStep(int, {within, alignment})` | a step, or — when `within` is a mounted `GlobalKey` — a field inside it |
+| `ExpansionTable` | `ExpansionTableController.revealRow(row, {column, alignment})` | a row, and a column when `column` is given |
+| `ExpansionTable` | `ExpansionTableController.revealRowAt(int, {alignment})` / `revealColumn(int)` | by index |
+| `ExpansionTable` | `ExpansionTableController.revealRow(row, {column, alignment})` | the row, plus the column |
+
+Each call returns `true` only when the target actually ended up in view, so a caller can branch on it rather than assume. A controller that is not attached to a mounted component — or an out-of-range index — returns `false` without side effects.
+
+**Embedding in a generative surface.** When a component renders inside a parent chat `ListView`, it must not fight the parent for gestures or claim its own scroll extent. Four opt-in entry points cover that:
+
+- `PaginationContainer(embedded: true)` sizes itself to its items, never captures a drag, and replaces the scroll-edge pagination trigger with an explicit "load more" button. `PaginationContainer.items(items: ..., itemBuilder: ...)` is the const, data-only constructor that turns all of that on at once (`shrinkWrap`, `embedded`, no stream, no further pages).
+- `StepperExtended(scrollable: false)` (the default) renders a fixed column; `revealStep` then scrolls the *enclosing* scrollable.
+- `ExpansionTable(columnWidth: ...)` keeps its horizontal panning on the inner viewport, so vertical drags still reach the parent list.
+- `LogsList(scrollable: false)` (the default) is the fixed-column mode.
+
+Example for a chat-embedded tile:
+
+```dart
+ListView(
+  children: [
+    SomeBuilderSurface(
+      table: ExpansionTable(
+        data: contactTable,
+        columnWidth: 300,
+        // The agent scrolls to a specific contact later:
+        controller: contactTableController,
+      ),
+    ),
+    PaginationContainer.items(
+      items: suggestions,
+      itemBuilder: (context, index, item) => ListTile(title: Text('$item')),
+    ),
+  ],
+);
+```
+
+To land on a specific row of a contact table, or a specific plan step:
+
+```dart
+await contactTableController.revealRow(contactRow, column: 1);
+await planStepperController.revealStep(3, within: planTitleKey);
+```
+
+Both are no-ops until the component is mounted, and both report `false` instead of throwing when it is not.
+
 ### Agent bridge (`lib/helper/agent/`)
 
 The agent bridge lets an external agent — an MCP client, a cloud workflow, an automated test — drive the app the way a user can: read the current screen, set any input, tap any button, navigate, and run host-registered actions. It **reuses the accessibility metadata above as its contract**: `automationKey` is the element identifier, `semanticsLabel` the label, `semanticHint` the description. There is no parallel metadata to maintain, and the binding adds no `Semantics` node, so the accessibility tree is unchanged.
