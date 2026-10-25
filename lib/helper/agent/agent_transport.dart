@@ -8,6 +8,7 @@ import 'agent_authorizer.dart';
 import 'agent_bridge.dart';
 import 'agent_bridge_server_options.dart';
 import 'agent_dispatcher.dart';
+import 'agent_mcp_adapter.dart';
 import 'agent_principal_resolver.dart';
 import 'agent_rate_limiter.dart';
 import 'agent_token_authorizer.dart';
@@ -164,6 +165,10 @@ class AgentInProcessTransport extends AgentTransport {
 
   /// Sends a decoded [request] map and returns the decoded response map.
   ///
+  /// When [request] carries `jsonrpc: "2.0"` it is routed to an
+  /// [AgentMcpAdapter] so an MCP client can drive the bridge through the same
+  /// transport as a legacy agent. Otherwise the request is dispatched normally.
+  ///
   /// [connectionId] buckets the rate limit for unauthenticated callers and
   /// [token] supplies a credential when the envelope carries none. A request
   /// sent after [stop] answers with [AgentErrorCode.disabled] instead of
@@ -174,10 +179,18 @@ class AgentInProcessTransport extends AgentTransport {
     String? token,
   }) async {
     if (!_running) return _stopped(request);
+    if (AgentMcpAdapter.isMcpFrame(request)) {
+      final adapter = AgentMcpAdapter(bridge: dispatcher.bridge);
+      return (await adapter.handle(request!)) ?? <String, dynamic>{};
+    }
     return dispatcher.handle(request, connectionId: connectionId, token: token);
   }
 
   /// Sends an encoded JSON [payload] and returns the encoded response.
+  ///
+  /// When the decoded payload carries `jsonrpc: "2.0"` it is routed to an
+  /// [AgentMcpAdapter] so an MCP client can drive the bridge through the same
+  /// transport as a legacy agent. Otherwise the request is dispatched normally.
   ///
   /// Malformed JSON produces an `invalid_params` error response rather than
   /// throwing, exactly as it does on a network transport.
@@ -187,6 +200,20 @@ class AgentInProcessTransport extends AgentTransport {
     String? token,
   }) async {
     if (!_running) return jsonEncode(_stopped(null));
+    Map<String, dynamic>? request;
+    try {
+      final decoded = jsonDecode(payload);
+      if (decoded is Map) {
+        request = Map<String, dynamic>.from(decoded);
+      }
+    } on FormatException {
+      // Fall through to the dispatcher, which produces a well-formed error.
+    }
+    if (AgentMcpAdapter.isMcpFrame(request)) {
+      final adapter = AgentMcpAdapter(bridge: dispatcher.bridge);
+      final response = await adapter.handle(request!);
+      return jsonEncode(response ?? <String, dynamic>{});
+    }
     return dispatcher.handleJson(
       payload,
       connectionId: connectionId,

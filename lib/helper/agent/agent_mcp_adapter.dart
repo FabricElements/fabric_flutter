@@ -23,7 +23,11 @@ import 'agent_principal_resolver.dart';
 /// ## Name mapping
 ///
 /// MCP tool names must match `^[a-zA-Z0-9_-]{1,64}$`, so dots in bridge
-/// command identifiers are replaced with double underscores:
+/// command identifiers are replaced with double underscores. The mapping is
+/// built from the bridge's `describe` result so the reverse lookup is exact
+/// — it never guesses by replacing `__` back to `.`, which would break any
+/// bridge command id that genuinely contains `__`. Commands whose mapped name
+/// does not match the MCP pattern are skipped with a [debugPrint].
 ///
 /// | Bridge command id | MCP tool name |
 /// | --- | --- |
@@ -31,9 +35,6 @@ import 'agent_principal_resolver.dart';
 /// | `element.focus` | `element__focus` |
 /// | `form.submit` | `form__submit` |
 /// | `set_value` | `set_value` (unchanged) |
-///
-/// The reverse mapping is applied on `tools/call` so the bridge receives the
-/// original dotted identifier.
 ///
 /// ## Error mapping
 ///
@@ -50,11 +51,8 @@ class AgentMcpAdapter {
   ///
   /// [appName] and [appVersion] are published in the `initialize` response.
   /// When omitted they are read from the bridge's current configuration.
-  AgentMcpAdapter({
-    AgentBridge? bridge,
-    this.appName,
-    this.appVersion,
-  }) : bridge = bridge ?? AgentBridge.instance;
+  AgentMcpAdapter({AgentBridge? bridge, this.appName, this.appVersion})
+    : bridge = bridge ?? AgentBridge.instance;
 
   /// Dispatches authorized requests against the running application.
   final AgentBridge bridge;
@@ -65,6 +63,19 @@ class AgentMcpAdapter {
   /// Reports the application version published by `initialize`.
   final String? appVersion;
 
+  /// MCP tool name → bridge command id, built from the last `tools/list`.
+  final Map<String, String> _nameToId = <String, String>{};
+
+  /// Pattern an MCP tool name must match.
+  static final RegExp _mcpNamePattern = RegExp(r'^[a-zA-Z0-9_-]{1,64}$');
+
+  /// Returns `true` when [frame] carries the JSON-RPC 2.0 version marker.
+  ///
+  /// Transports can use this to route MCP frames to [AgentMcpAdapter.handle]
+  /// while legacy bridge frames continue unchanged.
+  static bool isMcpFrame(Map<String, dynamic>? frame) =>
+      frame != null && frame['jsonrpc'] == '2.0';
+
   /// Handles a decoded MCP JSON-RPC 2.0 [jsonRpc] request.
   ///
   /// Returns `null` for notifications (requests without an `id`), which carry
@@ -72,13 +83,29 @@ class AgentMcpAdapter {
   /// decoded response map. This method never throws.
   Future<Map<String, dynamic>?> handle(Map<String, dynamic> jsonRpc) async {
     try {
+      // JSON-RPC 2.0 framing: require the version marker.
+      if (jsonRpc['jsonrpc'] != '2.0') {
+        return _error(
+          jsonRpc['id'],
+          -32600,
+          'The "jsonrpc" field must be "2.0".',
+        );
+      }
+
+      // Any message without an id is a notification — no response.
+      if (!jsonRpc.containsKey('id')) {
+        return null;
+      }
+
       final method = jsonRpc['method'];
       if (method is! String || method.isEmpty) {
-        return _error(null, -32600, 'A "method" is required.');
+        return _error(jsonRpc['id'], -32600, 'A "method" is required.');
       }
       final id = jsonRpc['id'];
       final params = jsonRpc['params'];
-      final paramsMap = params is Map<String, dynamic> ? params : <String, dynamic>{};
+      final paramsMap = params is Map<String, dynamic>
+          ? params
+          : <String, dynamic>{};
 
       switch (method) {
         case 'initialize':
@@ -90,9 +117,6 @@ class AgentMcpAdapter {
         case 'tools/call':
           return await _toolsCall(id, paramsMap);
         default:
-          if (method.startsWith('notifications/')) {
-            return null;
-          }
           return _error(id, -32601, 'Unknown method: $method');
       }
     } catch (error) {
@@ -104,10 +128,7 @@ class AgentMcpAdapter {
   }
 
   /// Returns the MCP server information and capabilities.
-  Map<String, dynamic> _initialize(
-    Object? id,
-    Map<String, dynamic> params,
-  ) {
+  Map<String, dynamic> _initialize(Object? id, Map<String, dynamic> params) {
     final name = appName ?? bridge.appName;
     final version = appVersion ?? bridge.appVersion;
     return <String, dynamic>{
@@ -115,10 +136,7 @@ class AgentMcpAdapter {
       'id': id,
       'result': <String, dynamic>{
         'protocolVersion': '2025-06-18',
-        'serverInfo': <String, dynamic>{
-          'name': name,
-          'version': version,
-        },
+        'serverInfo': <String, dynamic>{'name': name, 'version': version},
         'capabilities': <String, dynamic>{
           'tools': <String, dynamic>{'listChanged': false},
         },
@@ -134,22 +152,40 @@ class AgentMcpAdapter {
   };
 
   /// Lists every bridge command as an MCP tool.
+  ///
+  /// Builds the name→id map from the `describe` result so `tools/call` can
+  /// reverse-lookup exactly without guessing.
   Future<Map<String, dynamic>> _toolsList(
     Object? id,
     Map<String, dynamic> params,
   ) async {
-    final bridgeRequest = _bridgeEnvelope('describe', params);
+    final bridgeRequest = _bridgeEnvelope('describe', params, id: id);
     final response = await bridge.handle(bridgeRequest);
     if (response['ok'] != true) {
-      return _bridgeErrorToJsonRpc(id, response);
+      return _bridgeErrorToMcp(id, response);
     }
-    final result = response['result'] as Map<String, dynamic>? ?? <String, dynamic>{};
+    final result =
+        response['result'] as Map<String, dynamic>? ?? <String, dynamic>{};
     final commands = result['commands'] as List? ?? <dynamic>[];
     final tools = <Map<String, dynamic>>[];
+    _nameToId.clear();
     for (final command in commands) {
       if (command is! Map) continue;
-      final info = AgentCommandInfo.fromJson(Map<String, dynamic>.from(command));
-      tools.add(_commandToTool(info));
+      final info = AgentCommandInfo.fromJson(
+        Map<String, dynamic>.from(command),
+      );
+      final mcpName = _bridgeIdToMcpName(info.id);
+      if (!_mcpNamePattern.hasMatch(mcpName)) {
+        if (kDebugMode) {
+          debugPrint(
+            'AgentMcpAdapter: skipping command "${info.id}" — '
+            'mapped name "$mcpName" does not match MCP tool name pattern.',
+          );
+        }
+        continue;
+      }
+      _nameToId[mcpName] = info.id;
+      tools.add(_commandToTool(info, mcpName));
     }
     return <String, dynamic>{
       'jsonrpc': '2.0',
@@ -167,13 +203,22 @@ class AgentMcpAdapter {
     if (toolName is! String || toolName.isEmpty) {
       return _error(id, -32602, 'A tool "name" is required.');
     }
-    final commandId = _mcpNameToBridgeId(toolName);
+    final commandId = _nameToId[toolName];
+    if (commandId == null) {
+      return _error(id, -32602, 'Unknown tool: $toolName');
+    }
     final arguments = params['arguments'];
     final commandParams = arguments is Map<String, dynamic>
         ? Map<String, dynamic>.from(arguments)
         : <String, dynamic>{};
 
-    final bridgeRequest = _bridgeEnvelope('invoke', params, commandId: commandId, commandParams: commandParams);
+    final bridgeRequest = _bridgeEnvelope(
+      'invoke',
+      params,
+      id: id,
+      commandId: commandId,
+      commandParams: commandParams,
+    );
     final response = await bridge.handle(bridgeRequest);
 
     if (response['ok'] == true) {
@@ -195,34 +240,19 @@ class AgentMcpAdapter {
       };
     }
 
-    final error = response['error'] as Map<String, dynamic>?;
-    final code = error?['code'] as String?;
-    switch (code) {
-      case 'unauthorized':
-        return _error(id, -32001, error?['message'] as String? ?? 'Unauthorized.',
-            data: <String, dynamic>{'code': 'unauthorized'});
-      case 'disabled':
-        return _error(id, -32002, error?['message'] as String? ?? 'The agent bridge is disabled.',
-            data: <String, dynamic>{'code': 'disabled'});
-      case 'not_found':
-        return _toolError(id, error?['message'] as String? ?? 'Not found.');
-      case 'invalid_params':
-        return _toolError(id, error?['message'] as String? ?? 'Invalid parameters.');
-      case 'failed':
-        return _toolError(id, error?['message'] as String? ?? 'The command failed.');
-      default:
-        return _toolError(id, error?['message'] as String? ?? 'Unknown error.');
-    }
+    return _bridgeErrorToMcp(id, response);
   }
 
   /// Builds a bridge request envelope from MCP parameters.
   ///
   /// Extracts the bearer token from `params._meta.token` and injects it into
   /// the reserved `auth` field so the bridge authorizer sees it in the same
-  /// location as every other transport.
+  /// location as every other transport. The JSON-RPC [id] is forwarded as the
+  /// bridge request id for audit correlation.
   Map<String, dynamic> _bridgeEnvelope(
     String method,
     Map<String, dynamic> mcpParams, {
+    required Object? id,
     String? commandId,
     Map<String, dynamic>? commandParams,
   }) {
@@ -239,14 +269,18 @@ class AgentMcpAdapter {
       bridgeParams['params'] = commandParams ?? <String, dynamic>{};
     }
     return <String, dynamic>{
-      'id': 'mcp-1',
+      'id': id,
       'method': method,
       'params': bridgeParams,
     };
   }
 
-  /// Converts a bridge error response into a JSON-RPC error.
-  Map<String, dynamic> _bridgeErrorToJsonRpc(
+  /// Converts a bridge error response into an MCP result or JSON-RPC error.
+  ///
+  /// Unauthorized and disabled become JSON-RPC protocol errors; every other
+  /// bridge error becomes a tool result with `isError: true` per the MCP
+  /// convention that tool execution errors are results, not protocol errors.
+  Map<String, dynamic> _bridgeErrorToMcp(
     Object? id,
     Map<String, dynamic> response,
   ) {
@@ -255,13 +289,21 @@ class AgentMcpAdapter {
     final message = error?['message'] as String? ?? 'Unknown error.';
     switch (code) {
       case 'unauthorized':
-        return _error(id, -32001, message,
-            data: <String, dynamic>{'code': 'unauthorized'});
+        return _error(
+          id,
+          -32001,
+          message,
+          data: <String, dynamic>{'code': 'unauthorized'},
+        );
       case 'disabled':
-        return _error(id, -32002, message,
-            data: <String, dynamic>{'code': 'disabled'});
+        return _error(
+          id,
+          -32002,
+          message,
+          data: <String, dynamic>{'code': 'disabled'},
+        );
       default:
-        return _error(id, -32603, message);
+        return _toolError(id, message);
     }
   }
 
@@ -272,37 +314,31 @@ class AgentMcpAdapter {
     String message, {
     Map<String, dynamic>? data,
   }) {
-    final error = <String, dynamic>{
-      'code': code,
-      'message': message,
-    };
+    final error = <String, dynamic>{'code': code, 'message': message};
     if (data != null) {
       error['data'] = data;
     }
-    return <String, dynamic>{
-      'jsonrpc': '2.0',
-      'id': id,
-      'error': error,
-    };
+    return <String, dynamic>{'jsonrpc': '2.0', 'id': id, 'error': error};
   }
 
   /// Builds an MCP tool result that reports an error.
   ///
   /// Per the MCP specification, tool execution errors are reported as
   /// successful tool results with `isError: true`, not as protocol errors.
-  Map<String, dynamic> _toolError(Object? id, String message) => <String, dynamic>{
-    'jsonrpc': '2.0',
-    'id': id,
-    'result': <String, dynamic>{
-      'content': <Map<String, dynamic>>[
-        <String, dynamic>{'type': 'text', 'text': message},
-      ],
-      'isError': true,
-    },
-  };
+  Map<String, dynamic> _toolError(Object? id, String message) =>
+      <String, dynamic>{
+        'jsonrpc': '2.0',
+        'id': id,
+        'result': <String, dynamic>{
+          'content': <Map<String, dynamic>>[
+            <String, dynamic>{'type': 'text', 'text': message},
+          ],
+          'isError': true,
+        },
+      };
 
   /// Converts an [AgentCommandInfo] into an MCP tool definition.
-  Map<String, dynamic> _commandToTool(AgentCommandInfo info) {
+  Map<String, dynamic> _commandToTool(AgentCommandInfo info, String mcpName) {
     final properties = <String, dynamic>{};
     final required = <String>[];
     for (final param in info.params) {
@@ -312,7 +348,7 @@ class AgentMcpAdapter {
       }
     }
     return <String, dynamic>{
-      'name': _bridgeIdToMcpName(info.id),
+      'name': mcpName,
       'title': info.title,
       'description': info.description ?? '',
       'inputSchema': <String, dynamic>{
@@ -324,10 +360,14 @@ class AgentMcpAdapter {
   }
 
   /// Converts an [AgentParam] into a JSON Schema property.
+  ///
+  /// When [AgentParam.type] is [AgentParamType.any] the `type` key is omitted
+  /// so an MCP client does not constrain the value.
   Map<String, dynamic> _paramToSchema(AgentParam param) {
-    final schema = <String, dynamic>{
-      'type': _paramTypeName(param.type),
-    };
+    final schema = <String, dynamic>{};
+    if (param.type != AgentParamType.any) {
+      schema['type'] = _paramTypeName(param.type);
+    }
     if (param.description != null && param.description!.isNotEmpty) {
       schema['description'] = param.description;
     }
@@ -345,6 +385,7 @@ class AgentMcpAdapter {
     AgentParamType.boolean => 'boolean',
     AgentParamType.object => 'object',
     AgentParamType.array => 'array',
+    AgentParamType.any => 'any',
   };
 
   /// Maps a bridge command identifier to an MCP-safe tool name.
@@ -353,10 +394,4 @@ class AgentMcpAdapter {
   /// match `^[a-zA-Z0-9_-]{1,64}$`.
   static String _bridgeIdToMcpName(String bridgeId) =>
       bridgeId.replaceAll('.', '__');
-
-  /// Maps an MCP tool name back to a bridge command identifier.
-  ///
-  /// Double underscores are replaced with dots.
-  static String _mcpNameToBridgeId(String mcpName) =>
-      mcpName.replaceAll('__', '.');
 }

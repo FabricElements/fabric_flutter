@@ -34,4 +34,5 @@ const _$AgentParamTypeEnumMap = {
   AgentParamType.boolean: 'boolean',
   AgentParamType.object: 'object',
   AgentParamType.array: 'array',
+  AgentParamType.any: 'any',
 };

@@ -141,6 +141,7 @@ class AgentBuiltInCommands {
       ),
       AgentParam(
         name: 'value',
+        type: AgentParamType.any,
         description:
             'New value. Any JSON primitive is accepted; null clears the field.',
       ),
@@ -319,6 +320,7 @@ class AgentBuiltInCommands {
       ),
       AgentParam(
         name: 'value',
+        type: AgentParamType.any,
         description:
             'Expected value, compared as a string. Implies the value '
             'condition.',
