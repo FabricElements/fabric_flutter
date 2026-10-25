@@ -793,6 +793,29 @@ void main() {
         expect((response['error'] as Map)['message'], contains('disabled'));
       });
 
+      test('tap should reject a disabled element with no activator', () async {
+        // Arrange — a disabled GestureDetector-only element (no activator,
+        // no ActivateIntent handler, semantics report disabled).
+        final index = AgentElementIndex()
+          ..register(
+            AgentElementHandle(
+              id: 'gesture',
+              type: AgentElementType.other,
+              enabledGetter: () => false,
+            ),
+          );
+        final bridge = _bridge(index: index);
+
+        // Act
+        final response = await bridge.handle(
+          _invoke('tap', params: {'elementId': 'gesture'}),
+        );
+
+        // Assert — rejected before either path runs.
+        expect((response['error'] as Map)['code'], 'failed');
+        expect((response['error'] as Map)['message'], contains('disabled'));
+      });
+
       test('set_value should return validation errors', () async {
         // Arrange
         final index = AgentElementIndex()
