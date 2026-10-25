@@ -618,9 +618,25 @@ request parameter before the bridge sees it, matching the envelope described in
 
 The `_meta` object is stripped from the bridge request; only the token is forwarded.
 
-### 8.6 Transport opt-in
+### 8.6 Where MCP is served
 
-Existing transports can route JSON-RPC frames to `AgentMcpAdapter` by checking for the
-`"jsonrpc": "2.0"` field. Legacy bridge frames (without `jsonrpc`) continue to work
-unchanged. The adapter is a pure function of the bridge — it creates no sockets, starts no
-servers, and requires no new configuration.
+MCP is served by `AgentDispatcher`, so **every transport** — the native WebSocket/POST
+server, the web `window.fabricAgentBridge` entry point, and `AgentInProcessTransport` —
+speaks it with no per-transport code. A frame carrying `"jsonrpc": "2.0"` is routed to the
+dispatcher-owned adapter (`AgentDispatcher.mcp`); legacy frames (no `jsonrpc`) are
+unchanged. The adapter's bridge calls re-enter the dispatcher's normal path, so MCP
+traffic gets the request size limit, the rate limit, the audit log (an MCP `tools/call`
+is audited as an `invoke` of the mapped command), principal resolution, and the
+transport credential (`Authorization` header or `token`, used when `params._meta.token`
+is absent).
+
+The tool-name map is built from `describe`. A `tools/call` for a name not yet known
+refreshes the map once, so a client need not call `tools/list` first.
+
+### 8.7 Notifications
+
+An MCP notification (a frame without `id`) has no response. `AgentDispatcher.handle`
+and `handleJson`, and `AgentInProcessTransport.send` and `sendJson`, return `null`; the
+WebSocket server sends no frame, the POST server answers `202 Accepted` with an empty
+body, and the web entry point resolves with `null`. A transport must never send a frame
+for a `null` result.

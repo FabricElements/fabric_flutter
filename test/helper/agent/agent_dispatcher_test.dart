@@ -76,7 +76,9 @@ void main() {
         final dispatcher = AgentDispatcher(bridge: _bridge());
 
         // Act
-        final response = jsonDecode(await dispatcher.handleJson('{not json'));
+        final response = jsonDecode(
+          (await dispatcher.handleJson('{not json'))!,
+        );
 
         // Assert
         expect(response['ok'], isFalse);
@@ -90,7 +92,7 @@ void main() {
         final dispatcher = AgentDispatcher(bridge: _bridge());
 
         // Act
-        final response = jsonDecode(await dispatcher.handleJson('[1,2,3]'));
+        final response = jsonDecode((await dispatcher.handleJson('[1,2,3]'))!);
 
         // Assert
         expect(response['ok'], isFalse);
@@ -108,7 +110,7 @@ void main() {
         );
 
         // Act
-        final response = jsonDecode(await dispatcher.handleJson(payload));
+        final response = jsonDecode((await dispatcher.handleJson(payload))!);
 
         // Assert
         expect(response['ok'], isFalse);
@@ -122,9 +124,9 @@ void main() {
 
         // Act
         final response = jsonDecode(
-          await dispatcher.handleJson(
+          (await dispatcher.handleJson(
             jsonEncode(<String, dynamic>{'id': '9', 'method': 'ping'}),
-          ),
+          ))!,
         );
 
         // Assert
@@ -146,8 +148,8 @@ void main() {
         final second = await dispatcher.handle(_invoke('echo'));
 
         // Assert
-        expect(first['ok'], isTrue);
-        expect(second['ok'], isFalse);
+        expect(first!['ok'], isTrue);
+        expect(second!['ok'], isFalse);
         expect(second['error']['code'], 'failed');
         expect(second['error']['message'], contains('rate limit'));
       });
@@ -170,8 +172,8 @@ void main() {
         );
 
         // Assert
-        expect(first['ok'], isTrue);
-        expect(second['ok'], isTrue);
+        expect(first!['ok'], isTrue);
+        expect(second!['ok'], isTrue);
       });
 
       test('should bucket an authenticated caller by principal', () async {
@@ -194,8 +196,8 @@ void main() {
         );
 
         // Assert
-        expect(first['ok'], isTrue);
-        expect(second['ok'], isFalse);
+        expect(first!['ok'], isTrue);
+        expect(second!['ok'], isFalse);
       });
     });
 
@@ -215,7 +217,7 @@ void main() {
         );
 
         // Assert
-        expect(response['ok'], isTrue);
+        expect(response!['ok'], isTrue);
       });
 
       test('should not override a token already in the envelope', () async {
@@ -233,7 +235,7 @@ void main() {
         );
 
         // Assert
-        expect(response['ok'], isFalse);
+        expect(response!['ok'], isFalse);
         expect(response['error']['code'], 'unauthorized');
       });
     });
@@ -352,7 +354,7 @@ void main() {
         final response = await dispatcher.handle(null);
 
         // Assert
-        expect(response['ok'], isFalse);
+        expect(response!['ok'], isFalse);
         expect(response['error']['code'], 'invalid_params');
       });
     });

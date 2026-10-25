@@ -1,13 +1,9 @@
-import 'dart:convert';
-
 import 'package:fabric_flutter/helper/agent/agent_authorizer.dart';
 import 'package:fabric_flutter/helper/agent/agent_bridge.dart';
-import 'package:fabric_flutter/helper/agent/agent_bridge_server_options.dart';
 import 'package:fabric_flutter/helper/agent/agent_command.dart';
 import 'package:fabric_flutter/helper/agent/agent_element_index.dart';
 import 'package:fabric_flutter/helper/agent/agent_mcp_adapter.dart';
 import 'package:fabric_flutter/helper/agent/agent_navigator_observer.dart';
-import 'package:fabric_flutter/helper/agent/agent_transport.dart';
 import 'package:fabric_flutter/serialized/agent_route_info.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -69,7 +65,7 @@ void main() {
 
     setUp(() {
       bridge = _bridge();
-      adapter = AgentMcpAdapter(bridge: bridge);
+      adapter = AgentMcpAdapter.forBridge(bridge);
     });
 
     group('initialize', () {
@@ -105,8 +101,8 @@ void main() {
 
       test('should use adapter appName and appVersion when provided', () async {
         // Arrange
-        final customAdapter = AgentMcpAdapter(
-          bridge: bridge,
+        final customAdapter = AgentMcpAdapter.forBridge(
+          bridge,
           appName: 'CustomApp',
           appVersion: '2.0.0',
         );
@@ -351,7 +347,7 @@ void main() {
       test('should return JSON-RPC error for unauthorized', () async {
         // Arrange — prime the name map on a working bridge, then deny all.
         final denyBridge = _bridge();
-        final denyAdapter = AgentMcpAdapter(bridge: denyBridge);
+        final denyAdapter = AgentMcpAdapter.forBridge(denyBridge);
         await primeNameMap(denyAdapter);
         denyBridge.configure(authorizer: const _DenyAllAuthorizer());
         final request = _rpc(
@@ -376,7 +372,7 @@ void main() {
       test('should return JSON-RPC error for disabled bridge', () async {
         // Arrange — prime the name map on an enabled bridge, then disable.
         final disabledBridge = _bridge();
-        final disabledAdapter = AgentMcpAdapter(bridge: disabledBridge);
+        final disabledAdapter = AgentMcpAdapter.forBridge(disabledBridge);
         await primeNameMap(disabledAdapter);
         disabledBridge.configure(enabled: false);
         final request = _rpc(
@@ -631,106 +627,10 @@ void main() {
       });
     });
 
-    group('transport opt-in', () {
-      test('should route MCP frames through AgentMcpAdapter', () async {
-        // Arrange
-        final transport = AgentInProcessTransport(
-          dispatcher: AgentTransport.createDispatcher(
-            bridge: bridge,
-            options: const AgentBridgeServerOptions(requireAuth: false),
-            transportName: 'test',
-          ),
-        );
-
-        // Act — send an MCP JSON-RPC frame
-        final response = await transport.send(_rpc('ping'));
-
-        // Assert — MCP response shape
-        expect(response['jsonrpc'], '2.0');
-        expect(response['id'], '1');
-        expect(response['result'], <String, dynamic>{});
-
-        await transport.stop();
-      });
-
-      test('should route legacy bridge frames unchanged', () async {
-        // Arrange
-        final transport = AgentInProcessTransport(
-          dispatcher: AgentTransport.createDispatcher(
-            bridge: bridge,
-            options: const AgentBridgeServerOptions(requireAuth: false),
-            transportName: 'test',
-          ),
-        );
-
-        // Act — send a legacy bridge frame (no jsonrpc marker)
-        final response = await transport.send(<String, dynamic>{
-          'id': '1',
-          'method': 'describe',
-          'params': <String, dynamic>{},
-        });
-
-        // Assert — legacy bridge response shape
-        expect(response['ok'], isTrue);
-        expect(response['id'], '1');
-
-        await transport.stop();
-      });
-
-      test('should route MCP frames through sendJson', () async {
-        // Arrange
-        final transport = AgentInProcessTransport(
-          dispatcher: AgentTransport.createDispatcher(
-            bridge: bridge,
-            options: const AgentBridgeServerOptions(requireAuth: false),
-            transportName: 'test',
-          ),
-        );
-
-        // Act
-        final raw = await transport.sendJson(jsonEncode(_rpc('ping')));
-        final response = jsonDecode(raw) as Map<String, dynamic>;
-
-        // Assert
-        expect(response['jsonrpc'], '2.0');
-        expect(response['id'], '1');
-        expect(response['result'], <String, dynamic>{});
-
-        await transport.stop();
-      });
-
-      test('should route legacy frames through sendJson unchanged', () async {
-        // Arrange
-        final transport = AgentInProcessTransport(
-          dispatcher: AgentTransport.createDispatcher(
-            bridge: bridge,
-            options: const AgentBridgeServerOptions(requireAuth: false),
-            transportName: 'test',
-          ),
-        );
-
-        // Act
-        final raw = await transport.sendJson(
-          jsonEncode(<String, dynamic>{
-            'id': '1',
-            'method': 'describe',
-            'params': <String, dynamic>{},
-          }),
-        );
-        final response = jsonDecode(raw) as Map<String, dynamic>;
-
-        // Assert
-        expect(response['ok'], isTrue);
-        expect(response['id'], '1');
-
-        await transport.stop();
-      });
-    });
-
     test('should inject _meta.token into bridge auth field', () async {
       // Arrange — prime the name map on a working bridge, then deny all.
       final denyBridge = _bridge();
-      final denyAdapter = AgentMcpAdapter(bridge: denyBridge);
+      final denyAdapter = AgentMcpAdapter.forBridge(denyBridge);
       await denyAdapter.handle(_rpc('tools/list'));
       denyBridge.configure(authorizer: const _DenyAllAuthorizer());
       final request = _rpc(

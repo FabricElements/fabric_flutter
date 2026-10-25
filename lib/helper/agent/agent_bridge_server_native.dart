@@ -195,7 +195,9 @@ class AgentBridgeServer extends AgentTransport {
           connectionId: connectionId,
           token: token,
         );
-        if (socket.readyState == WebSocket.open) socket.add(response);
+        if (response != null && socket.readyState == WebSocket.open) {
+          socket.add(response);
+        }
       },
       onError: _reportError,
       onDone: () {
@@ -232,6 +234,11 @@ class AgentBridgeServer extends AgentTransport {
         connectionId: 'http-${_connectionSequence++}',
         token: _tokenFrom(request),
       );
+      if (response == null) {
+        request.response.statusCode = HttpStatus.accepted;
+        await request.response.close();
+        return;
+      }
       request.response.statusCode = HttpStatus.ok;
       request.response.headers.contentType = ContentType.json;
       request.response.write(response);

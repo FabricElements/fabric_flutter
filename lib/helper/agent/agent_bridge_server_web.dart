@@ -130,7 +130,8 @@ class AgentBridgeServer extends AgentTransport {
       payload,
       connectionId: transportName,
     );
-    return _parse(response);
+    // An MCP notification has no response frame.
+    return response == null ? null : _parse(response);
   }
 
   /// Returns [value] as JSON text, whether it arrived as a string or an object.

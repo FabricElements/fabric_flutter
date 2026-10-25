@@ -7,16 +7,33 @@ import '../../serialized/agent_param.dart';
 import 'agent_bridge.dart';
 import 'agent_principal_resolver.dart';
 
-/// Translates MCP JSON-RPC 2.0 requests onto [AgentBridge.handle].
+/// Sends one bridge [envelope] and returns its decoded response.
+///
+/// [connectionId] and [token] carry the transport context of the MCP frame
+/// that caused the call, so rate limiting and authentication stay uniform.
+typedef AgentMcpDispatch = Future<Map<String, dynamic>> Function(
+  Map<String, dynamic> envelope, {
+  String? connectionId,
+  String? token,
+});
+
+/// Sends a bridge envelope with the transport context of the current frame.
+typedef _Call = Future<Map<String, dynamic>> Function(Map<String, dynamic>);
+
+/// Translates MCP JSON-RPC 2.0 requests onto bridge envelopes.
 ///
 /// An MCP client speaks a standard protocol; the bridge speaks its own. This
 /// adapter sits between them so any MCP-compatible client can drive a
 /// fabric_flutter application through the transports that already exist —
 /// no new network server, no new authentication layer.
 ///
-/// The adapter reuses the bridge's configured [AgentAuthorizer] exactly as
-/// [AgentBridge.handle] does, so the same token, role, and discovery gates
-/// apply. A bearer token travels in the MCP `params._meta.token` field and is
+/// The adapter depends on an [AgentMcpDispatch] function, not on the bridge.
+/// `AgentDispatcher` owns one adapter and supplies its own normal path, so
+/// every MCP call is size-limited, rate-limited, audited and attributed to a
+/// principal like any legacy frame, and the bridge's authorizer gates it the
+/// same way. [AgentMcpAdapter.forBridge] wires a bridge directly for tests.
+///
+/// A bearer token travels in the MCP `params._meta.token` field and is
 /// injected into the reserved `auth` request parameter before the bridge sees
 /// it, matching the envelope described in `doc/agent-bridge-protocol.md`.
 ///
@@ -47,21 +64,37 @@ import 'agent_principal_resolver.dart';
 /// | Unknown method | JSON-RPC error -32601 |
 /// | Malformed request | JSON-RPC error -32600 |
 class AgentMcpAdapter {
-  /// Creates an adapter in front of [bridge].
+  /// Creates an adapter that sends bridge envelopes through [dispatch].
   ///
-  /// [appName] and [appVersion] are published in the `initialize` response.
-  /// When omitted they are read from the bridge's current configuration.
-  AgentMcpAdapter({AgentBridge? bridge, this.appName, this.appVersion})
-    : bridge = bridge ?? AgentBridge.instance;
+  /// [appName] and [appVersion] are read on every `initialize` and published
+  /// in its response.
+  AgentMcpAdapter({
+    required this.dispatch,
+    required this.appName,
+    required this.appVersion,
+  });
 
-  /// Dispatches authorized requests against the running application.
-  final AgentBridge bridge;
+  /// Creates an adapter that calls [bridge] directly, bypassing any dispatcher.
+  ///
+  /// [appName] and [appVersion] override the bridge's configuration.
+  factory AgentMcpAdapter.forBridge(
+    AgentBridge bridge, {
+    String? appName,
+    String? appVersion,
+  }) => AgentMcpAdapter(
+    dispatch: (envelope, {connectionId, token}) => bridge.handle(envelope),
+    appName: () => appName ?? bridge.appName,
+    appVersion: () => appVersion ?? bridge.appVersion,
+  );
+
+  /// Sends a bridge envelope and returns the bridge response.
+  final AgentMcpDispatch dispatch;
 
   /// Names the application published by `initialize`.
-  final String? appName;
+  final String Function() appName;
 
   /// Reports the application version published by `initialize`.
-  final String? appVersion;
+  final String Function() appVersion;
 
   /// MCP tool name → bridge command id, built from the last `tools/list`.
   final Map<String, String> _nameToId = <String, String>{};
@@ -80,8 +113,13 @@ class AgentMcpAdapter {
   ///
   /// Returns `null` for notifications (requests without an `id`), which carry
   /// no response per the JSON-RPC 2.0 specification. Every other outcome is a
-  /// decoded response map. This method never throws.
-  Future<Map<String, dynamic>?> handle(Map<String, dynamic> jsonRpc) async {
+  /// decoded response map. This method never throws. [connectionId] and
+  /// [token] are the transport context forwarded to every bridge call.
+  Future<Map<String, dynamic>?> handle(
+    Map<String, dynamic> jsonRpc, {
+    String? connectionId,
+    String? token,
+  }) async {
     try {
       // JSON-RPC 2.0 framing: require the version marker.
       if (jsonRpc['jsonrpc'] != '2.0') {
@@ -106,6 +144,8 @@ class AgentMcpAdapter {
       final paramsMap = params is Map<String, dynamic>
           ? params
           : <String, dynamic>{};
+      Future<Map<String, dynamic>> call(Map<String, dynamic> envelope) =>
+          dispatch(envelope, connectionId: connectionId, token: token);
 
       switch (method) {
         case 'initialize':
@@ -113,9 +153,9 @@ class AgentMcpAdapter {
         case 'ping':
           return _ping(id);
         case 'tools/list':
-          return await _toolsList(id, paramsMap);
+          return await _toolsList(id, paramsMap, call);
         case 'tools/call':
-          return await _toolsCall(id, paramsMap);
+          return await _toolsCall(id, paramsMap, call);
         default:
           return _error(id, -32601, 'Unknown method: $method');
       }
@@ -129,8 +169,8 @@ class AgentMcpAdapter {
 
   /// Returns the MCP server information and capabilities.
   Map<String, dynamic> _initialize(Object? id, Map<String, dynamic> params) {
-    final name = appName ?? bridge.appName;
-    final version = appVersion ?? bridge.appVersion;
+    final name = appName();
+    final version = appVersion();
     return <String, dynamic>{
       'jsonrpc': '2.0',
       'id': id,
@@ -158,9 +198,9 @@ class AgentMcpAdapter {
   Future<Map<String, dynamic>> _toolsList(
     Object? id,
     Map<String, dynamic> params,
+    _Call call,
   ) async {
-    final bridgeRequest = _bridgeEnvelope('describe', params, id: id);
-    final response = await bridge.handle(bridgeRequest);
+    final response = await _refreshTools(id, params, call);
     if (response['ok'] != true) {
       return _bridgeErrorToMcp(id, response);
     }
@@ -168,7 +208,6 @@ class AgentMcpAdapter {
         response['result'] as Map<String, dynamic>? ?? <String, dynamic>{};
     final commands = result['commands'] as List? ?? <dynamic>[];
     final tools = <Map<String, dynamic>>[];
-    _nameToId.clear();
     for (final command in commands) {
       if (command is! Map) continue;
       final info = AgentCommandInfo.fromJson(
@@ -184,7 +223,6 @@ class AgentMcpAdapter {
         }
         continue;
       }
-      _nameToId[mcpName] = info.id;
       tools.add(_commandToTool(info, mcpName));
     }
     return <String, dynamic>{
@@ -194,16 +232,49 @@ class AgentMcpAdapter {
     };
   }
 
+  /// Runs `describe` and rebuilds the tool-name map from its result.
+  ///
+  /// Returns the raw bridge response; the map is only replaced on success.
+  Future<Map<String, dynamic>> _refreshTools(
+    Object? id,
+    Map<String, dynamic> params,
+    _Call call,
+  ) async {
+    final response = await call(_bridgeEnvelope('describe', params, id: id));
+    if (response['ok'] != true) return response;
+    final result = response['result'];
+    final commands = result is Map ? result['commands'] : null;
+    final names = <String, String>{};
+    for (final command in commands is List ? commands : const <dynamic>[]) {
+      if (command is! Map) continue;
+      final bridgeId = command['id'];
+      if (bridgeId is! String) continue;
+      final mcpName = _bridgeIdToMcpName(bridgeId);
+      if (_mcpNamePattern.hasMatch(mcpName)) names[mcpName] = bridgeId;
+    }
+    _nameToId
+      ..clear()
+      ..addAll(names);
+    return response;
+  }
+
   /// Invokes a bridge command addressed by an MCP tool name.
   Future<Map<String, dynamic>> _toolsCall(
     Object? id,
     Map<String, dynamic> params,
+    _Call call,
   ) async {
     final toolName = params['name'];
     if (toolName is! String || toolName.isEmpty) {
       return _error(id, -32602, 'A tool "name" is required.');
     }
-    final commandId = _nameToId[toolName];
+    var commandId = _nameToId[toolName];
+    if (commandId == null) {
+      // The map is lazy: refresh once from describe before giving up.
+      final refreshed = await _refreshTools(id, params, call);
+      if (refreshed['ok'] != true) return _bridgeErrorToMcp(id, refreshed);
+      commandId = _nameToId[toolName];
+    }
     if (commandId == null) {
       return _error(id, -32602, 'Unknown tool: $toolName');
     }
@@ -219,7 +290,7 @@ class AgentMcpAdapter {
       commandId: commandId,
       commandParams: commandParams,
     );
-    final response = await bridge.handle(bridgeRequest);
+    final response = await call(bridgeRequest);
 
     if (response['ok'] == true) {
       final result = response['result'];
