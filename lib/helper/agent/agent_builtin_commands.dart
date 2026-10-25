@@ -156,9 +156,21 @@ class AgentBuiltInCommands {
       if (!handle.enabled) {
         throw AgentException.failed('Element "$id" is disabled.');
       }
+      final rawValue = context['value'];
+      // Reject a value not in the allowed options when the element is
+      // a choice input (dropdown, enum, radio).
+      final options = handle.options;
+      if (options != null) {
+        final validValues = options.map((o) => o.value).toSet();
+        if (!validValues.contains(rawValue)) {
+          throw AgentException.invalidParams(
+            'Value "$rawValue" is not a valid choice for element "$id". '
+            'Valid values: ${validValues.join(", ")}',
+          );
+        }
+      }
       await handle.reveal();
       handle.requestFocus();
-      final rawValue = context['value'];
       await setter(rawValue);
       // Run the element's own validator on the new value (F7a).
       final validator = handle.validatorFn;

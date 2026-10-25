@@ -7,6 +7,7 @@ import 'package:fabric_flutter/helper/agent/agent_navigator_observer.dart';
 import 'package:fabric_flutter/helper/agent/agent_transport.dart';
 import 'package:fabric_flutter/helper/app_global.dart';
 import 'package:fabric_flutter/serialized/agent_audit_record.dart';
+import 'package:fabric_flutter/serialized/agent_element_option.dart';
 import 'package:fabric_flutter/serialized/agent_element_snapshot.dart';
 import 'package:fabric_flutter/serialized/agent_principal.dart';
 import 'package:fabric_flutter/serialized/agent_route_info.dart';
@@ -295,6 +296,76 @@ void main() {
         expect(record.toJson().toString(), isNot(contains('member-token')));
         expect(record.toJson().toString(), isNot(contains('Ada')));
       }
+
+      await transport.stop();
+    });
+
+    testWidgets('should reject set_value with an invalid option', (
+      tester,
+    ) async {
+      // Arrange
+      final index = AgentElementIndex();
+      final observer = AgentNavigatorObserver();
+      final bridge = AgentBridge(elements: index, navigatorObserver: observer);
+      bridge.configure(
+        enabled: true,
+        appName: 'Sample',
+        appVersion: '1.0.0',
+        authorizer: const AgentAllowAllAuthorizer(),
+        routes: [AgentRouteInfo(name: '/', title: 'Home')],
+      );
+      final transport = await AgentInProcessTransport.start(
+        bridge: bridge,
+        verifier: _verify,
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: AgentElement(
+              index: index,
+              id: 'form_dropdown_plan',
+              type: AgentElementType.dropdown,
+              label: 'Plan',
+              valueGetter: () => 'a',
+              optionsGetter: () => [
+                AgentElementOption(value: 'a', label: 'Basic'),
+                AgentElementOption(value: 'b', label: 'Premium'),
+              ],
+              setter: (value) {},
+              child: const Text('Plan'),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      Future<Map<String, dynamic>> invoke(
+        String commandId, {
+        String? token,
+        Map<String, dynamic>? params,
+      }) async => (await transport.send(<String, dynamic>{
+        'id': '1',
+        'method': 'invoke',
+        'params': <String, dynamic>{
+          'commandId': commandId,
+          'params': ?params,
+          'auth': ?token,
+        },
+      }))!;
+
+      // Act
+      final result = await invoke(
+        'set_value',
+        token: 'member-token',
+        params: <String, dynamic>{
+          'elementId': 'form_dropdown_plan',
+          'value': 'invalid',
+        },
+      );
+
+      // Assert
+      expect(result['ok'], isFalse);
+      expect((result['error'] as Map)['code'], 'invalid_params');
 
       await transport.stop();
     });

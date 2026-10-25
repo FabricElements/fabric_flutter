@@ -218,5 +218,115 @@ void main() {
       // Assert
       expect(index.ids, isEmpty);
     });
+
+    testWidgets('should include options in snapshot for a dropdown', (
+      WidgetTester tester,
+    ) async {
+      // Arrange
+      await _pump(
+        tester,
+        InputData(
+          value: 'a',
+          type: InputDataType.dropdown,
+          label: 'Plan',
+          automationKey: 'billing_form_dropdown_plan',
+          options: [
+            ButtonOptions(value: 'a', label: 'Basic'),
+            ButtonOptions(value: 'b', label: 'Premium'),
+          ],
+          onChanged: (value) {},
+        ),
+      );
+
+      // Act
+      final snapshot = index.snapshotOf('billing_form_dropdown_plan')!;
+
+      // Assert
+      expect(snapshot.options, isNotNull);
+      expect(snapshot.options!.length, 2);
+      expect(snapshot.options![0].value, 'a');
+      expect(snapshot.options![0].label, 'Basic');
+      expect(snapshot.options![1].value, 'b');
+      expect(snapshot.options![1].label, 'Premium');
+    });
+
+    testWidgets('should include options in snapshot for an enum input', (
+      WidgetTester tester,
+    ) async {
+      // Arrange
+      await _pump(
+        tester,
+        InputData(
+          value: TestEnum.alpha,
+          type: InputDataType.enums,
+          label: 'Type',
+          automationKey: 'settings_form_enum_type',
+          enums: TestEnum.values,
+          onChanged: (value) {},
+        ),
+      );
+
+      // Act
+      final snapshot = index.snapshotOf('settings_form_enum_type')!;
+
+      // Assert
+      expect(snapshot.options, isNotNull);
+      expect(snapshot.options!.length, 2);
+      expect(snapshot.options![0].value, 'alpha');
+      expect(snapshot.options![1].value, 'beta');
+    });
+
+    testWidgets('should reject set_value with an invalid option', (
+      WidgetTester tester,
+    ) async {
+      // Arrange
+      Object? changed;
+      await _pump(
+        tester,
+        InputData(
+          value: 'a',
+          type: InputDataType.dropdown,
+          label: 'Plan',
+          automationKey: 'billing_form_dropdown_plan',
+          options: [
+            ButtonOptions(value: 'a', label: 'Basic'),
+            ButtonOptions(value: 'b', label: 'Premium'),
+          ],
+          onChanged: (value) => changed = value,
+        ),
+      );
+
+      // Act
+      final handle = index.handle('billing_form_dropdown_plan')!;
+      // The setter itself should reject invalid values.
+      await handle.setter!('invalid');
+
+      // Assert — the setter should not have changed the value.
+      expect(changed, isNull);
+    });
+
+    testWidgets('should report options as null for a free-text input', (
+      WidgetTester tester,
+    ) async {
+      // Arrange
+      await _pump(
+        tester,
+        InputData(
+          value: 'hello',
+          type: InputDataType.string,
+          label: 'Name',
+          automationKey: 'profile_form_input_name',
+          onChanged: (value) {},
+        ),
+      );
+
+      // Act
+      final snapshot = index.snapshotOf('profile_form_input_name')!;
+
+      // Assert
+      expect(snapshot.options, isNull);
+    });
   });
 }
+
+enum TestEnum { alpha, beta }

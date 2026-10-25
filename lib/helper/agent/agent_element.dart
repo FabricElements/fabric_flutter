@@ -2,11 +2,17 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../serialized/agent_element_option.dart';
 import '../../serialized/agent_element_snapshot.dart';
 import '../scroll_reveal.dart';
 
 /// Reads a live value from the widget that owns an [AgentElementHandle].
 typedef AgentValueGetter = Object? Function();
+
+/// Reports the choices available for a choice input, or `null` when
+/// unrestricted. Returned values must be JSON-safe and match exactly what
+/// `set_value` accepts.
+typedef AgentOptionsGetter = List<AgentElementOption>? Function();
 
 /// Reports a live boolean state, such as whether an element is enabled.
 typedef AgentStateGetter = bool Function();
@@ -48,6 +54,7 @@ class AgentElementHandle {
     this.errorGetter,
     this.validatorFn,
     this.semanticActions,
+    this.optionsGetter,
   });
 
   /// Identifies the element, mirroring the widget's `automationKey`.
@@ -109,6 +116,13 @@ class AgentElementHandle {
   /// actions are available.
   Map<String, VoidCallback>? semanticActions;
 
+  /// Reports the choices available for a choice input, or `null` when
+  /// unrestricted.
+  ///
+  /// Each returned [AgentElementOption] carries a JSON-safe value and a
+  /// human-readable label. Populated for dropdown, enum, and radio inputs.
+  AgentOptionsGetter? optionsGetter;
+
   /// Reports whether `set_value` can act on this element.
   bool get canSetValue => setter != null;
 
@@ -158,6 +172,7 @@ class AgentElementHandle {
     errorGetter = other.errorGetter;
     validatorFn = other.validatorFn;
     semanticActions = other.semanticActions;
+    optionsGetter = other.optionsGetter;
   }
 
   /// Returns the element's observable state as a serializable snapshot.
@@ -171,7 +186,15 @@ class AgentElementHandle {
     visible: visible,
     error: errorGetter?.call(),
     actions: semanticActions?.keys.toList(growable: false),
+    options: options,
   );
+
+  /// Returns the current list of available options, or `null` when
+  /// unrestricted.
+  ///
+  /// Each [AgentElementOption] carries a JSON-safe value and a human-readable
+  /// label. Populated for dropdown, enum, and radio inputs.
+  List<AgentElementOption>? get options => optionsGetter?.call();
 
   /// Converts [value] into a JSON-safe primitive.
   ///

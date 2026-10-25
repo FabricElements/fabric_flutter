@@ -118,6 +118,7 @@ export 'placeholder/loading_screen.dart';
 export 'serialized/agent_audit_record.dart';
 export 'serialized/agent_command_info.dart';
 export 'serialized/agent_describe_result.dart';
+export 'serialized/agent_element_option.dart';
 export 'serialized/agent_element_snapshot.dart';
 export 'serialized/agent_error.dart';
 export 'serialized/agent_param.dart';

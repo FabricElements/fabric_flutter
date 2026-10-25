@@ -62,6 +62,7 @@ class AgentElement extends StatefulWidget {
     this.container = true,
     this.explicitChildNodes = false,
     this.semanticActions,
+    this.optionsGetter,
   });
 
   /// Holds the widget subtree published to the index.
@@ -103,6 +104,10 @@ class AgentElement extends StatefulWidget {
   /// offers — do not invent new ones. When `null` or empty, no custom actions
   /// are added and the semantics tree is unchanged.
   final Map<String, VoidCallback>? semanticActions;
+
+  /// Reports the choices available for a choice input, or `null` when
+  /// unrestricted. See [AgentElementHandle.optionsGetter].
+  final AgentOptionsGetter? optionsGetter;
 
   /// Classifies how an agent can interact with the element.
   final AgentElementType type;
@@ -252,6 +257,7 @@ class _AgentElementState extends State<AgentElement> {
       validatorFn: widget.validatorFn,
       errorGetter: widget.errorGetter,
       semanticActions: widget.semanticActions,
+      optionsGetter: widget.optionsGetter,
       contextGetter: mounted
           ? () {
               // Walk past the Semantics wrapper so Actions and Form

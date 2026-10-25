@@ -1,5 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import 'agent_element_option.dart';
+
 part 'agent_element_snapshot.g.dart';
 
 /// Enumerates the interaction kinds an indexed element can expose.
@@ -65,6 +67,7 @@ class AgentElementSnapshot {
     this.visible = true,
     this.error,
     this.actions,
+    this.options,
   });
 
   /// Builds an [AgentElementSnapshot] from serialized JSON.
@@ -108,6 +111,14 @@ class AgentElementSnapshot {
   /// invoke through the `tap` command's `action` parameter. When `null` or
   /// empty, no custom actions are available.
   final List<String>? actions;
+
+  /// Lists the allowed values for choice inputs, or `null` when unrestricted.
+  ///
+  /// Populated for dropdown, enum, and radio inputs. Each option carries a
+  /// JSON-safe [AgentElementOption.value] and a human-readable
+  /// [AgentElementOption.label]. `set_value` rejects any value not present in
+  /// this list with an `invalid_params` error listing the valid values.
+  final List<AgentElementOption>? options;
 
   /// Converts this snapshot into JSON.
   Map<String, dynamic> toJson() => _$AgentElementSnapshotToJson(this);
