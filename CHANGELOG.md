@@ -2,6 +2,20 @@
 
 ### Added
 
+* **Agent interface documentation.** New [`doc/agent.md`](doc/agent.md) is the practical
+  reference for the agent bridge: how an app configures `AgentBridge`, how
+  `AgentElement` and `automationKey` form the single identity shared by
+  `Semantics.identifier`, the test finder, and the agent registry, the
+  `AgentElementType` values, and the exact parameters and result shape of every
+  built-in command (`navigate`, `set_value`, `tap`, `read_value`, `wait_for`,
+  `screen_state`, `list_commands`, `element.reveal`, `element.focus`,
+  `form.submit`). It also covers `ensureSemanticsOnWeb`, `semanticActions`,
+  `announce()`, `ScrollReveal`/`RevealController` for lazy and nested lists, and
+  testing with `find.bySemanticsIdentifier`. A new
+  [`.github/skills/fabric-agent/SKILL.md`](.github/skills/fabric-agent/SKILL.md)
+  skill tells coding agents how to make a widget agent-ready and how to add a
+  built-in command. Documentation only — no behaviour change.
+
 * **Agent `tap` activates through `ActivateIntent`.** The `tap` command now first
   tries the Flutter `Actions` system (`Actions.maybeInvoke(context, const
   ActivateIntent())`) on the element's context after revealing it. When an
