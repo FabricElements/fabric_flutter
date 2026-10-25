@@ -73,6 +73,20 @@
   `LiveAnnouncer` is included, so it stays silent where announcements are
   unsupported.
 
+### Fixed
+
+* **`LiveAnnouncer` now keeps a stable widget structure as its message toggles.**
+  It previously returned `child` bare when there was no message and wrapped it in
+  `Semantics` otherwise, so going from a message to no message (and back) changed
+  the widget type at that position and re-parented the child subtree — destroying
+  the child's `State`. A subtree that owned a `ScrollController` or a
+  `FocusNode` lost its scroll offset and focus, which callers could only work
+  around by hoisting a `GlobalKey`. The announcer now always builds the same
+  wrapper and varies only its `container` / `liveRegion` / `label` properties, so
+  the child's element is preserved. The announced output is unchanged: a
+  non-blank message still publishes a live region carrying it, and a `null`,
+  empty, or whitespace-only message still publishes no live region and no label.
+
 ### Notes for consumers embedding in generative UI surfaces
 
 `contact_table` maps onto `ExpansionTable` and `plan_stepper` onto

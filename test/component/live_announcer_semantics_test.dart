@@ -42,6 +42,41 @@ class _AnnouncementRecorder {
   }
 }
 
+/// A scrollable form whose [State] must survive a message toggle.
+///
+/// Stands in for the persistent content a caller wraps in a [LiveAnnouncer]:
+/// the [ScrollController] and [FocusNode] are owned by the caller so a test can
+/// observe them across rebuilds, and the [State] object identity is the signal
+/// that the subtree was not re-parented.
+class _ScrollableForm extends StatefulWidget {
+  /// Creates a scrollable form driven by an externally owned controller and
+  /// focus node.
+  const _ScrollableForm({required this.controller, required this.focusNode});
+
+  /// Stores the scroll position asserted to survive a message toggle.
+  final ScrollController controller;
+
+  /// Stores the focus node asserted to survive a message toggle.
+  final FocusNode focusNode;
+
+  @override
+  State<_ScrollableForm> createState() => _ScrollableFormState();
+}
+
+/// Holds the scroll view and text field that must not be rebuilt from scratch.
+class _ScrollableFormState extends State<_ScrollableForm> {
+  @override
+  Widget build(BuildContext context) => SingleChildScrollView(
+    controller: widget.controller,
+    child: Column(
+      children: <Widget>[
+        TextField(focusNode: widget.focusNode),
+        const SizedBox(height: 1000),
+      ],
+    ),
+  );
+}
+
 /// Removes [child] from the tree during the post-frame phase of its first frame.
 ///
 /// Registers its post-frame callback before any descendant does, then forces a
@@ -604,6 +639,110 @@ void main() {
         // Assert
         expect(find.text('Payload'), findsOneWidget);
       });
+    });
+
+    group('structural stability', () {
+      testWidgets(
+        'should preserve the child State, focus and scroll offset when the '
+        'message toggles null -> message -> null',
+        (WidgetTester tester) async {
+          // Arrange — persistent content holding scroll and focus state.
+          final controller = ScrollController();
+          addTearDown(controller.dispose);
+          final focusNode = FocusNode();
+          addTearDown(focusNode.dispose);
+
+          Widget build(String? message) => _app(
+            LiveAnnouncer(
+              message: message,
+              child: _ScrollableForm(
+                controller: controller,
+                focusNode: focusNode,
+              ),
+            ),
+          );
+
+          await tester.pumpWidget(build(null));
+          await tester.pumpAndSettle();
+          // Focus first: revealing the caret scrolls the field into view, so
+          // the offset is established after it to observe it across toggles.
+          focusNode.requestFocus();
+          await tester.pumpAndSettle();
+          controller.jumpTo(200);
+          await tester.pumpAndSettle();
+
+          final stateBefore = tester.state<_ScrollableFormState>(
+            find.byType(_ScrollableForm),
+          );
+          expect(controller.offset, 200);
+          expect(focusNode.hasFocus, isTrue);
+
+          // Act — the message appears, then disappears again.
+          await tester.pumpWidget(build('x'));
+          await tester.pumpAndSettle();
+
+          // Assert — the same State object survived, so the subtree was not
+          // re-parented, and the scroll position and focus were preserved.
+          expect(
+            tester.state<_ScrollableFormState>(find.byType(_ScrollableForm)),
+            same(stateBefore),
+          );
+          expect(focusNode.hasFocus, isTrue);
+          expect(controller.offset, 200);
+
+          // Act — toggle back to no message.
+          await tester.pumpWidget(build(null));
+          await tester.pumpAndSettle();
+
+          // Assert — still the original State object.
+          expect(
+            tester.state<_ScrollableFormState>(find.byType(_ScrollableForm)),
+            same(stateBefore),
+          );
+          expect(focusNode.hasFocus, isTrue);
+          expect(controller.offset, 200);
+        },
+      );
+
+      testWidgets(
+        'should keep the announced semantics identical when the message is set '
+        'and publish nothing when it is cleared',
+        (WidgetTester tester) async {
+          // Arrange
+          final handle = tester.ensureSemantics();
+          Widget build(String? message) => _app(
+            LiveAnnouncer(message: message, child: const Text('Results')),
+          );
+
+          await tester.pumpWidget(build(null));
+          await tester.pumpAndSettle();
+
+          // Assert — no live region, and only the child's own label: the
+          // announcer adds nothing while there is no message.
+          final cleared = tester.getSemantics(find.byType(LiveAnnouncer));
+          expect(cleared.flagsCollection.isLiveRegion, isFalse);
+          expect(cleared.label, 'Results');
+
+          // Act
+          await tester.pumpWidget(build('Five results found'));
+          await tester.pumpAndSettle();
+
+          // Assert — a live region carrying the message.
+          final announced = tester.getSemantics(find.byType(LiveAnnouncer));
+          expect(announced.flagsCollection.isLiveRegion, isTrue);
+          expect(announced.label, contains('Five results found'));
+
+          // Act — clear it again.
+          await tester.pumpWidget(build(null));
+          await tester.pumpAndSettle();
+
+          // Assert — back to nothing announced.
+          final reCleared = tester.getSemantics(find.byType(LiveAnnouncer));
+          expect(reCleared.flagsCollection.isLiveRegion, isFalse);
+          expect(reCleared.label, 'Results');
+          handle.dispose();
+        },
+      );
     });
   });
 }

@@ -76,6 +76,20 @@ import '../helper/announce.dart';
 /// Use [assertiveness] to interrupt the user for genuinely urgent messages, and
 /// [announce] / [liveRegion] to opt out of either mechanism when a host
 /// application only wants one of them.
+///
+/// ## The wrapper is structural, not conditional
+///
+/// [child] is always wrapped in the same [Semantics] widget; only that widget's
+/// semantics properties vary with [message]. An earlier revision returned
+/// [child] bare when there was nothing to announce and wrapped it otherwise,
+/// which changed the widget type at that position. Flutter cannot reconcile a
+/// different widget type in place, so the entire [child] subtree was unmounted
+/// and rebuilt on every toggle between `null` and a value: scroll positions
+/// reset, focus was dropped, and controllers were recreated. Consumers that
+/// toggle a loading or status message around persistent content hit this on
+/// every state change. Keeping the wrapper unconditional means the child's
+/// element — and therefore its [State] — survives the toggle, while a `null`
+/// message still publishes no live region and no label.
 class LiveAnnouncer extends StatefulWidget {
   /// Creates a [LiveAnnouncer] that speaks [message] whenever it changes.
   ///
@@ -122,7 +136,9 @@ class LiveAnnouncer extends StatefulWidget {
   /// Controls whether the rendered node is marked as a live region.
   ///
   /// Set to `false` to send a one-shot announcement without publishing a
-  /// permanent live region into the semantics tree.
+  /// permanent live region into the semantics tree. A `null`, empty, or
+  /// whitespace-only [message] likewise publishes no live region and no label,
+  /// whatever this is set to.
   final bool liveRegion;
 
   /// Controls whether the initial [message] is announced when the widget mounts.
@@ -244,15 +260,23 @@ class _LiveAnnouncerState extends State<LiveAnnouncer> {
   ///
   /// Publishes the message as the node label so platforms that support live
   /// regions can re-read it without a direct announcement.
+  ///
+  /// The [Semantics] wrapper is returned unconditionally — only its properties
+  /// vary — so toggling [LiveAnnouncer.message] never changes the widget
+  /// structure above [LiveAnnouncer.child]. Returning the child bare in one of
+  /// the two states would re-parent the whole subtree and destroy the [State]
+  /// held inside it. When there is nothing to publish the wrapper is not a
+  /// semantic boundary and carries no label, so it contributes exactly the
+  /// semantics the bare child would have.
   @override
   Widget build(BuildContext context) {
     final child = widget.child ?? const SizedBox.shrink();
     final message = _message;
-    if (!widget.liveRegion || message == null) return child;
+    final isLiveRegion = widget.liveRegion && message != null;
     return Semantics(
-      liveRegion: true,
-      label: message,
-      container: true,
+      container: isLiveRegion,
+      liveRegion: isLiveRegion,
+      label: isLiveRegion ? message : null,
       child: child,
     );
   }
