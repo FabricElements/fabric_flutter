@@ -712,6 +712,40 @@ getValue -------------------------------------
     widget.onSubmit?.call(null);
   }
 
+  /// Whether the visual clear button is currently shown.
+  ///
+  /// The clear button only appears for date/time/dropdown/enums types when the
+  /// input is not disabled and carries a non-empty value. This getter is the
+  /// single source of truth used by both the visual [IconButton] and the
+  /// semantic actions map so they cannot drift apart.
+  bool get _showClearButton {
+    if (widget.disabled) return false;
+    switch (widget.type) {
+      case InputDataType.date:
+      case InputDataType.dateTime:
+      case InputDataType.timestamp:
+      case InputDataType.time:
+      case InputDataType.dropdown:
+      case InputDataType.enums:
+        return value != null && value.toString().isNotEmpty;
+      default:
+        return false;
+    }
+  }
+
+  /// Builds the semantic actions map for the agent element.
+  ///
+  /// Exposes a localized "Clear" action when [_showClearButton] is true,
+  /// matching the visual clear button. Returns `null` when no actions apply.
+  /// The label comes from `AppLocalizations` key `label--clear` so the
+  /// snapshot `actions` list and the `tap(action:)` parameter always use the
+  /// same localized string.
+  Map<String, VoidCallback>? _buildSemanticActions() {
+    if (!_showClearButton) return null;
+    final locales = AppLocalizations.of(context);
+    return <String, VoidCallback>{locales.get('label--clear'): _clear};
+  }
+
   /// Reapplies the incoming value whenever the parent rebuilds with new field data.
   @override
   void didUpdateWidget(covariant InputData oldWidget) {
@@ -1054,7 +1088,7 @@ getValue -------------------------------------
       case InputDataType.time:
       case InputDataType.dropdown:
       case InputDataType.enums:
-        if (value != null && value.toString().isNotEmpty) {
+        if (_showClearButton) {
           inputSuffixIcon = clearWidget;
         }
         break;
@@ -1820,6 +1854,7 @@ getValue -------------------------------------
         return validator?.call(parsed?.toString() ?? '');
       },
       errorGetter: () => _formFieldKey.currentState?.errorText,
+      semanticActions: _buildSemanticActions(),
       child: Semantics(
         label: _resolveSemanticLabel(locales),
         hint: _resolveSemanticHint(),

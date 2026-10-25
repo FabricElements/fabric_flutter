@@ -1,7 +1,11 @@
+import 'package:fabric_flutter/component/input_data.dart';
 import 'package:fabric_flutter/helper/agent/agent_element_binding.dart';
 import 'package:fabric_flutter/helper/agent/agent_element_index.dart';
+import 'package:fabric_flutter/helper/app_localizations_delegate.dart';
 import 'package:fabric_flutter/serialized/agent_element_snapshot.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Drives [future] to completion by pumping real frames in [step] increments.
@@ -314,7 +318,9 @@ void main() {
         // Arrange
         final index = AgentElementIndex();
         await tester.pumpWidget(
-          MaterialApp(home: AgentElement(id: 'a', index: index, child: const SizedBox())),
+          MaterialApp(
+            home: AgentElement(id: 'a', index: index, child: const SizedBox()),
+          ),
         );
 
         // Assert
@@ -322,35 +328,297 @@ void main() {
       });
     });
 
-    group('focus', () {
-      testWidgets('should focus an InputData by id via the provided focusNode', (
+    group('semanticActions', () {
+      testWidgets('should expose custom actions in the semantics tree', (
         WidgetTester tester,
       ) async {
         // Arrange
         final index = AgentElementIndex();
-        final focusNode = FocusNode();
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Scaffold(
-              body: AgentElement(
-                id: 'field',
-                index: index,
-                focusNode: focusNode,
-                child: TextField(focusNode: focusNode),
-              ),
-            ),
-          ),
-        );
-        await tester.pumpAndSettle();
+        final handle = tester.ensureSemantics();
 
         // Act
-        final result = index.handle('field')!.requestFocus();
-        await tester.pump();
+        await tester.pumpWidget(
+          AgentElement(
+            id: 'a',
+            index: index,
+            semanticActions: {'Clear': () {}},
+            child: const Text('content', textDirection: TextDirection.ltr),
+          ),
+        );
+        final node = tester.getSemantics(find.text('content'));
 
         // Assert
-        expect(result, isTrue);
-        expect(focusNode.hasFocus, isTrue);
+        expect(node.identifier, 'a');
+        expect(node.label, 'content');
+        expect(node.childrenCount, 0);
+        expect(node.getSemanticsData().customSemanticsActionIds, hasLength(1));
+        // Resolve the action label from the id.
+        final actionLabel = CustomSemanticsAction.getAction(
+          node.getSemanticsData().customSemanticsActionIds!.first,
+        )!.label;
+        expect(actionLabel, 'Clear');
+        handle.dispose();
       });
+
+      testWidgets('should invoke the callback through the semantics action', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
+        final index = AgentElementIndex();
+        final handle = tester.ensureSemantics();
+        var cleared = false;
+
+        // Act
+        await tester.pumpWidget(
+          AgentElement(
+            id: 'a',
+            index: index,
+            semanticActions: {'Clear': () => cleared = true},
+            child: const Text('content', textDirection: TextDirection.ltr),
+          ),
+        );
+        final node = tester.getSemantics(find.text('content'));
+        final actionId = node
+            .getSemanticsData()
+            .customSemanticsActionIds!
+            .first;
+        // Invoke the custom action through the semantics owner.
+        node.owner!.performAction(
+          node.id,
+          SemanticsAction.customAction,
+          actionId,
+        );
+
+        // Assert
+        expect(cleared, isTrue);
+        handle.dispose();
+      });
+
+      testWidgets('should keep semantics node count unchanged', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
+        final index = AgentElementIndex();
+        final handle = tester.ensureSemantics();
+
+        // Act — with actions
+        await tester.pumpWidget(
+          AgentElement(
+            id: 'a',
+            index: index,
+            semanticActions: {'Clear': () {}},
+            child: const Text('content', textDirection: TextDirection.ltr),
+          ),
+        );
+        final nodeWithActions = tester.getSemantics(find.text('content'));
+        final childCountWith = nodeWithActions.childrenCount;
+
+        // Act — without actions
+        await tester.pumpWidget(
+          AgentElement(
+            id: 'a',
+            index: index,
+            child: const Text('content', textDirection: TextDirection.ltr),
+          ),
+        );
+        final nodeWithout = tester.getSemantics(find.text('content'));
+
+        // Assert — same single node, no extra boundary
+        expect(nodeWithout.childrenCount, childCountWith);
+        expect(nodeWithout.identifier, 'a');
+        expect(nodeWithout.label, 'content');
+        handle.dispose();
+      });
+
+      testWidgets('should add nothing when semanticActions is null', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
+        final index = AgentElementIndex();
+        final handle = tester.ensureSemantics();
+
+        // Act
+        await tester.pumpWidget(
+          AgentElement(
+            id: 'a',
+            index: index,
+            child: const Text('content', textDirection: TextDirection.ltr),
+          ),
+        );
+        final node = tester.getSemantics(find.text('content'));
+
+        // Assert
+        expect(node.getSemanticsData().customSemanticsActionIds, hasLength(0));
+        handle.dispose();
+      });
+
+      testWidgets('should add nothing when semanticActions is empty', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
+        final index = AgentElementIndex();
+        final handle = tester.ensureSemantics();
+
+        // Act
+        await tester.pumpWidget(
+          AgentElement(
+            id: 'a',
+            index: index,
+            semanticActions: <String, VoidCallback>{},
+            child: const Text('content', textDirection: TextDirection.ltr),
+          ),
+        );
+        final node = tester.getSemantics(find.text('content'));
+
+        // Assert
+        expect(node.getSemanticsData().customSemanticsActionIds, hasLength(0));
+        handle.dispose();
+      });
+
+      testWidgets('should list actions in the snapshot', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
+        final index = AgentElementIndex();
+
+        // Act
+        await tester.pumpWidget(
+          AgentElement(
+            id: 'a',
+            index: index,
+            semanticActions: {'Clear': () {}, 'Reset': () {}},
+            child: const Text('content', textDirection: TextDirection.ltr),
+          ),
+        );
+        final snapshot = index.handle('a')!.snapshot();
+
+        // Assert
+        expect(snapshot.actions, containsAll(['Clear', 'Reset']));
+        expect(snapshot.actions, hasLength(2));
+      });
+
+      testWidgets(
+        'should have null actions in snapshot when no actions exist',
+        (WidgetTester tester) async {
+          // Arrange
+          final index = AgentElementIndex();
+
+          // Act
+          await tester.pumpWidget(
+            AgentElement(
+              id: 'a',
+              index: index,
+              child: const Text('content', textDirection: TextDirection.ltr),
+            ),
+          );
+          final snapshot = index.handle('a')!.snapshot();
+
+          // Assert
+          expect(snapshot.actions, isNull);
+        },
+      );
+
+      testWidgets(
+        'should use localized label from AppLocalizations',
+        (WidgetTester tester) async {
+          // Arrange – Spanish locale so label--clear resolves to "Borrar"
+          // InputData registers on AgentElementIndex.instance, not a
+          // standalone index, because it doesn't accept an index parameter.
+          final index = AgentElementIndex.instance;
+          addTearDown(() => index.unregisterId('a'));
+          await tester.pumpWidget(
+            MaterialApp(
+              locale: const Locale('es'),
+              localizationsDelegates: const [
+                AppLocalizationsDelegate(locales: {}),
+                ...GlobalMaterialLocalizations.delegates,
+              ],
+              supportedLocales: const [Locale('es')],
+              home: Scaffold(
+                body: InputData(
+                  value: DateTime(2025, 1, 15),
+                  type: InputDataType.date,
+                  automationKey: 'a',
+                ),
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          // Act
+          final snapshot = index.handle('a')!.snapshot();
+
+          // Assert – Spanish locale resolves label--clear to "Borrar"
+          expect(snapshot.actions, isNotNull);
+          expect(snapshot.actions, contains('Borrar'));
+          expect(snapshot.actions, hasLength(1));
+        },
+      );
+
+      testWidgets(
+        'should expose no actions for text-type InputData with a value',
+        (WidgetTester tester) async {
+          // Arrange – text type never shows a clear button
+          // InputData registers on AgentElementIndex.instance, not a
+          // standalone index, because it doesn't accept an index parameter.
+          final index = AgentElementIndex.instance;
+          addTearDown(() => index.unregisterId('a'));
+          await tester.pumpWidget(
+            MaterialApp(
+              localizationsDelegates: const [
+                AppLocalizationsDelegate(locales: {}),
+              ],
+              supportedLocales: const [Locale('en', 'US')],
+              home: Scaffold(
+                body: InputData(
+                  value: 'some text',
+                  type: InputDataType.text,
+                  automationKey: 'a',
+                ),
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          // Act
+          final snapshot = index.handle('a')!.snapshot();
+
+          // Assert – text type never exposes a clear action
+          expect(snapshot.actions, isNull);
+        },
+      );
+    });
+
+    group('focus', () {
+      testWidgets(
+        'should focus an InputData by id via the provided focusNode',
+        (WidgetTester tester) async {
+          // Arrange
+          final index = AgentElementIndex();
+          final focusNode = FocusNode();
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: AgentElement(
+                  id: 'field',
+                  index: index,
+                  focusNode: focusNode,
+                  child: TextField(focusNode: focusNode),
+                ),
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          // Act
+          final result = index.handle('field')!.requestFocus();
+          await tester.pump();
+
+          // Assert
+          expect(result, isTrue);
+          expect(focusNode.hasFocus, isTrue);
+        },
+      );
 
       testWidgets('should return false when no focusable descendant exists', (
         WidgetTester tester,
