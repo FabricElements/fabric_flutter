@@ -2,6 +2,14 @@
 
 ### Added
 
+* **Agent focus & reveal** — `AgentElement` now accepts an optional `focusNode`
+  parameter. The registered handle exposes `reveal({alignment = 0.1})` which
+  calls `ScrollReveal.reveal` on the element's context (walking past the
+  `Semantics` wrapper to the content child), and `requestFocus()` which either
+  uses the provided `focusNode` or walks to the first focusable descendant in
+  the subtree. Two new built-in commands — `element.reveal` (elementId,
+  optional alignment) and `element.focus` (elementId) — let an agent scroll an
+  element into view and move input focus to it before typing or activating.
 * **Agent identity** — a single `automationKey` now drives one identity across
   four surfaces: the in-app agent registry id (`AgentElementIndex`), the
   `Semantics.identifier` (surfacing as the web `flt-semantics-identifier` DOM

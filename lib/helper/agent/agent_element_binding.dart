@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import '../../serialized/agent_element_snapshot.dart';
+import '../scroll_reveal.dart';
 import 'agent_element.dart';
 import 'agent_element_index.dart';
 
@@ -45,6 +46,7 @@ class AgentElement extends StatefulWidget {
     this.visibleGetter,
     this.setter,
     this.activator,
+    this.focusNode,
     this.index,
     this.applySemanticsIdentifier = true,
     this.container = true,
@@ -116,6 +118,13 @@ class AgentElement extends StatefulWidget {
   ///
   /// Leave `null` for elements that cannot be tapped.
   final AgentActivator? activator;
+
+  /// The [FocusNode] moved to by [AgentElementHandle.requestFocus].
+  ///
+  /// When `null`, `requestFocus` walks the element's subtree to find the first
+  /// focusable descendant instead. Pass the same node the component already
+  /// owns so no new [FocusNode] is created.
+  final FocusNode? focusNode;
 
   /// Overrides the index the element registers itself in.
   ///
@@ -201,6 +210,7 @@ class _AgentElementState extends State<AgentElement> {
   AgentElementHandle? _buildHandle() {
     final id = widget.id;
     if (id == null || id.isEmpty) return null;
+    final focusNode = widget.focusNode;
     return AgentElementHandle(
       id: id,
       type: widget.type,
@@ -211,6 +221,36 @@ class _AgentElementState extends State<AgentElement> {
       visibleGetter: widget.visibleGetter ?? _isVisible,
       setter: widget.setter,
       activator: widget.activator,
+      revealFn:
+          mounted
+              ? ({double alignment = 0.1}) {
+                  // Walk past the Semantics wrapper so ScrollReveal starts
+                  // from a render object that is inside the viewport. The
+                  // state's build context is the Semantics widget, whose
+                  // RenderSemanticsAnnotations is not a viewport descendant.
+                  BuildContext target = context;
+                  context.visitChildElements((semanticsElement) {
+                    semanticsElement.visitChildElements((contentElement) {
+                      target = contentElement;
+                    });
+                  });
+                  return ScrollReveal.reveal(target, alignment: alignment);
+                }
+              : null,
+      requestFocusFn: () {
+        final target = focusNode;
+        if (target != null) {
+          target.requestFocus();
+          return true;
+        }
+        // Walk the subtree for the first focusable descendant, but only
+        // when there is one — an empty scope claims focus itself, which is
+        // indistinguishable from a successful focus and would mislead an
+        // agent into thinking an inert element accepted focus.
+        final scope = FocusScope.of(context);
+        if (scope.traversalDescendants.isEmpty) return false;
+        return scope.focusInDirection(TraversalDirection.down);
+      },
     );
   }
 

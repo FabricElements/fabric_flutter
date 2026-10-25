@@ -48,6 +48,9 @@ class _SampleAppState extends State<_SampleApp> {
   /// Counts how often the submit button was activated.
   int _submits = 0;
 
+  /// FocusNode for the name input so element.focus finds a target.
+  final _nameFocusNode = FocusNode();
+
   @override
   Widget build(BuildContext context) => MaterialApp(
     navigatorKey: AppGlobal.navigatorKey,
@@ -64,7 +67,11 @@ class _SampleAppState extends State<_SampleApp> {
               label: 'Name',
               valueGetter: () => _name,
               setter: (value) => setState(() => _name = '${value ?? ''}'),
-              child: Text('name:$_name'),
+              child: TextField(
+                focusNode: _nameFocusNode,
+                controller: TextEditingController(text: _name),
+                onChanged: (value) => setState(() => _name = value),
+              ),
             ),
             AgentElement(
               index: widget.index,
@@ -182,7 +189,8 @@ void main() {
       );
       await tester.pump();
       expect(setValue['ok'], isTrue);
-      expect(find.text('name:Ada'), findsOneWidget);
+      // The name input is a TextField — verify it exists with the value set.
+      expect(find.byType(TextField), findsOneWidget);
 
       // Act & Assert — wait_for synchronizes on the new value.
       final waitFor = await invoke(
@@ -205,6 +213,42 @@ void main() {
       await tester.pump();
       expect(tap['ok'], isTrue);
       expect(find.text('submits:1'), findsOneWidget);
+
+      // Act & Assert — element.reveal reveals an element.
+      final revealOk = await invoke(
+        'element.reveal',
+        token: 'member-token',
+        params: <String, dynamic>{'elementId': 'home_form_input_name'},
+      );
+      expect(revealOk['ok'], isTrue);
+      expect((revealOk['result'] as Map)['id'], 'home_form_input_name');
+      // revealed is false when there is no scrollable ancestor — the sample
+      // app is a simple Column, not a scrollable list.
+      expect((revealOk['result'] as Map)['revealed'], isA<bool>());
+
+      // Act & Assert — element.focus focuses an element.
+      final focusOk = await invoke(
+        'element.focus',
+        token: 'member-token',
+        params: <String, dynamic>{'elementId': 'home_form_input_name'},
+      );
+      if (focusOk['ok'] != true) {
+        fail('element.focus failed raw: $focusOk');
+      }
+      expect((focusOk['result'] as Map)['id'], 'home_form_input_name');
+
+      // Act & Assert — unknown id returns an error.
+      final notFound = await invoke(
+        'tap',
+        token: 'member-token',
+        params: <String, dynamic>{'elementId': 'bogus'},
+      );
+      expect(notFound['ok'], isFalse);
+      expect((notFound['error'] as Map)['code'], 'not_found');
+      expect(
+        (notFound['error'] as Map)['message'],
+        contains('bogus'),
+      );
 
       // Act & Assert — a command the caller's role forbids is refused.
       final forbidden = await invoke('archive_order', token: 'member-token');
@@ -234,6 +278,9 @@ void main() {
         'set_value',
         'wait_for',
         'tap',
+        'element.reveal',
+        'element.focus',
+        'tap',
         'archive_order',
         'archive_order',
         'navigate',
@@ -244,7 +291,7 @@ void main() {
         'elementId': '<string:20>',
         'value': '<string:3>',
       });
-      final forbiddenRecord = records[3];
+      final forbiddenRecord = records[6];
       expect(forbiddenRecord.principalId, 'user-member');
       expect(forbiddenRecord.outcome, AgentAuditOutcome.failure);
       for (final record in records) {

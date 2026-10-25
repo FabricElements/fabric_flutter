@@ -387,7 +387,16 @@ AgentBridge.instance.registry.register(
 );
 ```
 
-Requests are `{ "id", "method": "describe" | "state" | "invoke" | "ping", "params": {...} }` and responses are `{ "id", "ok": true, "result": {...} }` or `{ "id", "ok": false, "error": { "code", "message" } }`, with the codes `unauthorized`, `not_found`, `invalid_params`, `disabled`, and `failed`. `describe` is shaped to map 1:1 onto MCP tool definitions. The built-in commands are `navigate`, `set_value`, `tap`, `read_value`, `wait_for`, `screen_state`, and `list_commands`.
+**Focus & reveal** — an agent navigating a screen needs to scroll the right element into view and move input focus to it before it can type or activate. `AgentElement` accepts an optional `focusNode` that `requestFocus()` uses directly (falling back to the first focusable descendant); `reveal()` calls `ScrollReveal.reveal` on the element's context. Two built-in commands give an external agent these same capabilities:
+
+| Command | Params | Result |
+|---------|--------|--------|
+| `element.reveal` | `elementId` (string), `alignment` (number, optional, default 0.1) | `{ id, revealed }` — `revealed` is `true` when the target ended in view |
+| `element.focus` | `elementId` (string) | `{ id, focused }` — `focused` is `false` when no `focusNode` and no focusable descendant exists |
+
+Commands that interact with an element (`tap`, `set_value`) reveal and focus the element before acting, so an agent never has to sequence those steps manually.
+
+Requests are `{ "id", "method": "describe" | "state" | "invoke" | "ping", "params": {...} }` and responses are `{ "id", "ok": true, "result": {...} }` or `{ "id", "ok": false, "error": { "code", "message" } }`, with the codes `unauthorized`, `not_found`, `invalid_params`, `disabled`, and `failed`. `describe` is shaped to map 1:1 onto MCP tool definitions. The built-in commands are `navigate`, `set_value`, `tap`, `read_value`, `wait_for`, `screen_state`, `list_commands`, `element.reveal`, and `element.focus`.
 
 For route reporting and `navigate` to work, wire the navigator:
 

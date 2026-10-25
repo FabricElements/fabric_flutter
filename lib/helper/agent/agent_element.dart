@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../serialized/agent_element_snapshot.dart';
+import '../scroll_reveal.dart';
 
 /// Reads a live value from the widget that owns an [AgentElementHandle].
 typedef AgentValueGetter = Object? Function();
@@ -37,6 +38,8 @@ class AgentElementHandle {
     this.visibleGetter,
     this.setter,
     this.activator,
+    this.revealFn,
+    this.requestFocusFn,
   });
 
   /// Identifies the element, mirroring the widget's `automationKey`.
@@ -66,11 +69,39 @@ class AgentElementHandle {
   /// Activates the element; `null` when it cannot be tapped.
   AgentActivator? activator;
 
+  /// Scrolls the element into view and keeps it there while the layout settles.
+  ///
+  /// Delegates to [ScrollReveal.reveal] on the element's build context, so this
+  /// only works while the element is mounted. Returns `false` when the element
+  /// is unmounted or has no enclosing scrollable.
+  Future<bool> Function({double alignment})? revealFn;
+
+  /// Moves focus to the element's [FocusNode], or the first focusable descendant.
+  ///
+  /// Returns `false` when no focus node is available and no descendant accepts
+  /// focus.
+  bool Function()? requestFocusFn;
+
   /// Reports whether `set_value` can act on this element.
   bool get canSetValue => setter != null;
 
   /// Reports whether `tap` can act on this element.
   bool get canActivate => activator != null;
+
+  /// Scrolls the element into view, matching [ScrollReveal.reveal].
+  ///
+  /// Returns `false` when the element is unmounted or has no enclosing
+  /// scrollable. Only works while the element is mounted and has a build
+  /// context, which is always true for elements registered through
+  /// [AgentElement].
+  Future<bool> reveal({double alignment = 0.1}) =>
+      revealFn?.call(alignment: alignment) ?? Future.value(false);
+
+  /// Moves focus to this element or its first focusable descendant.
+  ///
+  /// Returns `false` when no focus node is available and no descendant accepts
+  /// focus.
+  bool requestFocus() => requestFocusFn?.call() ?? false;
 
   /// Returns the element's current value normalized to a JSON-safe primitive.
   Object? get value => normalizeValue(valueGetter?.call());
@@ -94,6 +125,8 @@ class AgentElementHandle {
     visibleGetter = other.visibleGetter;
     setter = other.setter;
     activator = other.activator;
+    revealFn = other.revealFn;
+    requestFocusFn = other.requestFocusFn;
   }
 
   /// Returns the element's observable state as a serializable snapshot.
