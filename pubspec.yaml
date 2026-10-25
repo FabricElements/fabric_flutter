@@ -15,7 +15,6 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   devicelocale: ^0.9.1
-  meta: ^1.12.0
   provider: ^6.1.5+1
   firebase_core: ^5.1.0
   cloud_firestore: ^7.1.0

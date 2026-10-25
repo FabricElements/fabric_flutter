@@ -1,11 +1,9 @@
 import 'dart:async';
 
-// ignore_for_file: invalid_internal_annotation
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:meta/meta.dart';
 
 /// Scrolls a widget into view and keeps it there while the layout settles.
 ///
@@ -205,6 +203,7 @@ class ScrollReveal {
         position.jumpTo(desired);
       } else {
         await position.animateTo(desired, duration: duration, curve: curve);
+        if (!target.mounted) return;
       }
       targetObject ??= object;
       context = scrollable.context;
@@ -311,7 +310,6 @@ class RevealController {
   /// The slot is cleared as soon as the reveal ends, so the table never
   /// carries more than one keyed subtree. Shared across nested tables so a
   /// child row rendered by a nested [ExpansionTable] is still reachable.
-  @internal
   final GlobalKey revealKey = GlobalKey();
 
   /// The target currently addressed by [revealKey], or `null` when no reveal
@@ -350,19 +348,16 @@ class RevealController {
   /// Sets the single-slot reveal key to wrap [target] on the next build.
   ///
   /// Called by [ExpansionTable]. Not part of the public API.
-  @internal
   void setRevealSlot(Object target) => _revealTarget = target;
 
   /// Clears the single-slot reveal key so no row is wrapped.
   ///
   /// Called by [ExpansionTable]. Not part of the public API.
-  @internal
   void clearRevealSlot() => _revealTarget = null;
 
   /// Whether [target] is the row currently wrapped in [revealKey].
   ///
   /// Called by [ExpansionTable]. Not part of the public API.
-  @internal
   bool isRevealTarget(Object target) => identical(_revealTarget, target);
 }
 
