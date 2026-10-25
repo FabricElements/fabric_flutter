@@ -217,6 +217,14 @@ void main() {
       expect(revealResult['id'], 'flow_text_name');
       expect(revealResult['revealed'], isTrue);
 
+      // The revealed field must be on screen (within the viewport).
+      final fieldRect = tester.getRect(
+        find.bySemanticsIdentifier('flow_text_name'),
+      );
+      final viewSize = tester.view.physicalSize / tester.view.devicePixelRatio;
+      expect(fieldRect.top, greaterThanOrEqualTo(0));
+      expect(fieldRect.bottom, lessThanOrEqualTo(viewSize.height));
+
       // ---- element__focus ----
 
       final focus = await call(
@@ -230,6 +238,22 @@ void main() {
       final focusResult = (focus!['result'] as Map)['structuredContent'] as Map;
       expect(focusResult['id'], 'flow_text_name');
       expect(focusResult['focused'], isTrue);
+
+      // The primary focus must be inside the text field.
+      final primaryFocus = FocusManager.instance.primaryFocus;
+      expect(primaryFocus, isNotNull);
+      final fieldFinder = find.bySemanticsIdentifier('flow_text_name');
+      final fieldElement = tester.element(fieldFinder);
+      // The primary focus node's context must be a descendant of the field.
+      var found = false;
+      primaryFocus!.context?.visitAncestorElements((element) {
+        if (element == fieldElement) {
+          found = true;
+          return false;
+        }
+        return true;
+      });
+      expect(found, isTrue);
 
       // ---- form__submit (empty → invalid) ----
 
