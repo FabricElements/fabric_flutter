@@ -124,9 +124,31 @@ class AgentBridge {
   /// empty accessibility tree. The handle is acquired when the bridge is
   /// enabled and released when it is disabled or [reset].
   ///
-  /// Defaults to `false`. Set it before calling [configure] with
-  /// `enabled: true`.
-  bool ensureSemanticsOnWeb = false;
+  /// Defaults to `false`. Toggling it while the bridge is running takes
+  /// effect immediately.
+  bool get ensureSemanticsOnWeb => _ensureSemanticsOnWeb;
+  bool _ensureSemanticsOnWeb = false;
+  set ensureSemanticsOnWeb(bool value) {
+    _ensureSemanticsOnWeb = value;
+    _syncSemantics();
+  }
+
+  /// Override for [kIsWeb] in tests so the web-only semantics path can be
+  /// exercised under `flutter test`.
+  ///
+  /// When non-null, [debugIsWebOverride] replaces [kIsWeb] in
+  /// [_syncSemantics]. Tests should set it in `setUp` and reset it to `null`
+  /// in `tearDown`.
+  @visibleForTesting
+  static bool? debugIsWebOverride;
+
+  /// Whether the bridge currently holds a [SemanticsHandle].
+  ///
+  /// Exposed for tests so they can verify the handle lifecycle without
+  /// relying on [SemanticsBinding.semanticsEnabled], which may be `true`
+  /// for other reasons (e.g. the test framework itself).
+  @visibleForTesting
+  bool get hasSemanticsHandle => _semanticsHandle != null;
 
   /// Holds the semantics handle acquired when [ensureSemanticsOnWeb] is
   /// `true` and the bridge is enabled on the web.
@@ -134,15 +156,9 @@ class AgentBridge {
 
   /// Reports whether the platform semantics tree is currently enabled.
   ///
-  /// On the web this reflects whether [ensureSemanticsOnWeb] is active and
-  /// the handle has been acquired. On native platforms semantics are always
-  /// enabled and this returns `true`.
-  bool get semanticsEnabled {
-    if (kIsWeb) {
-      return _semanticsHandle != null;
-    }
-    return true;
-  }
+  /// Delegates to [SemanticsBinding.semanticsEnabled], which is `true`
+  /// whenever any handle or an assistive technology has enabled semantics.
+  bool get semanticsEnabled => SemanticsBinding.instance.semanticsEnabled;
 
   /// Applies host configuration and installs the built-in commands.
   ///
@@ -379,8 +395,9 @@ class AgentBridge {
   /// [ensureSemanticsOnWeb] is `true`; releases it otherwise. On native
   /// platforms this is a no-op because semantics are always enabled.
   void _syncSemantics() {
-    if (!kIsWeb) return;
-    if (_enabled && ensureSemanticsOnWeb) {
+    final isWeb = debugIsWebOverride ?? kIsWeb;
+    if (!isWeb) return;
+    if (_enabled && _ensureSemanticsOnWeb) {
       _semanticsHandle ??= SemanticsBinding.instance.ensureSemantics();
     } else {
       _releaseSemantics();
