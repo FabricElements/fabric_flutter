@@ -470,7 +470,10 @@ class _InputDataState extends State<InputData> {
   late SearchController searchController;
 
   /// Key for the internal FormField so the agent shell can reach [FormFieldState].
-  final GlobalKey<FormFieldState<String>> _formFieldKey =
+  ///
+  /// Recreated when [InputData.type] changes so the field starts from a fresh
+  /// state, as the previous per-type ValueKey did.
+  GlobalKey<FormFieldState<String>> _formFieldKey =
       GlobalKey<FormFieldState<String>>();
 
   /// Formats date-only values for display inside read-only picker fields.
@@ -712,6 +715,9 @@ getValue -------------------------------------
   /// Reapplies the incoming value whenever the parent rebuilds with new field data.
   @override
   void didUpdateWidget(covariant InputData oldWidget) {
+    if (oldWidget.type != widget.type) {
+      _formFieldKey = GlobalKey<FormFieldState<String>>();
+    }
     super.didUpdateWidget(oldWidget);
     getValue(notify: false, newValue: widget.value);
   }
