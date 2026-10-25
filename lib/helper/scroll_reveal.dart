@@ -88,9 +88,9 @@ class ScrollReveal {
       position.addListener(onScroll);
     }
     try {
-      await Scrollable.ensureVisible(
+      await _scrollTo(
         target,
-        alignment: alignment,
+        alignment,
         duration: reduceMotion ? Duration.zero : duration,
         curve: curve,
       );
@@ -142,12 +142,68 @@ class ScrollReveal {
     double alignment, {
     required bool reduceMotion,
   }) async {
-    await Scrollable.ensureVisible(
+    await _scrollTo(
       target,
-      alignment: alignment,
+      alignment,
       duration: reduceMotion ? Duration.zero : _realignDuration,
       curve: Curves.easeOut,
     );
+  }
+
+  /// Scrolls every enclosing [Scrollable] so [target] sits at [alignment].
+  ///
+  /// Walks from [target] outward through each ancestor [Scrollable] and
+  /// computes the correct offset using the target's own bounds transformed
+  /// into each intermediate object's coordinate space — the same math
+  /// [_isAligned] uses, so the two always agree.
+  static Future<void> _scrollTo(
+    BuildContext target,
+    double alignment, {
+    required Duration duration,
+    required Curve curve,
+  }) async {
+    var context = target;
+    var scrollable = Scrollable.maybeOf(context);
+    RenderObject? targetObject;
+    while (scrollable != null) {
+      final object = context.findRenderObject();
+      final position = scrollable.position;
+      if (object == null || !object.attached || !position.hasPixels) {
+        context = scrollable.context;
+        scrollable = Scrollable.maybeOf(context);
+        continue;
+      }
+      final viewport = RenderAbstractViewport.maybeOf(object);
+      if (viewport == null || !position.hasContentDimensions) {
+        context = scrollable.context;
+        scrollable = Scrollable.maybeOf(context);
+        continue;
+      }
+      final targetRect =
+          targetObject == null || identical(targetObject, object)
+              ? null
+              : MatrixUtils.transformRect(
+                  targetObject.getTransformTo(object),
+                  targetObject.paintBounds,
+                );
+      final desired = viewport
+          .getOffsetToReveal(
+            object,
+            alignment,
+            rect: targetRect,
+            axis: position.axis,
+          )
+          .offset
+          .clamp(position.minScrollExtent, position.maxScrollExtent);
+      if (duration == Duration.zero) {
+        position.jumpTo(desired);
+      } else {
+        await position.animateTo(desired, duration: duration, curve: curve);
+      }
+      targetObject ??= object;
+      context = scrollable.context;
+      scrollable = Scrollable.maybeOf(context);
+    }
   }
 
   /// Completes with the timestamp of the next rendered frame, or with `null`
@@ -185,16 +241,10 @@ class ScrollReveal {
 
   /// Whether every enclosing scrollable already shows [target] at [alignment].
   ///
-  /// Mirrors the walk performed by [Scrollable.ensureVisible] so both agree on
-  /// what "revealed" means, including positions clamped at a scroll extent.
-  /// For an enclosing scrollable the rect handed to
-  /// [RenderAbstractViewport.getOffsetToReveal] is [ScrollPosition.ensureVisible]'s
-  /// own expression — the target's bounds clipped to the intermediate object's
-  /// bounds, mapped into the intermediate's space. Clipping first matters: the
-  /// target is often larger than the scrollable it sits in, and the unclipped
-  /// bounds would ask for an offset the position cannot reach, so the loop
-  /// would never converge and the reveal would report failure for a target
-  /// that is in fact aligned.
+  /// Walks identically to [_scrollTo] so both agree on the desired offset for
+  /// every ancestor scrollable. The target's own bounds are transformed into
+  /// each intermediate object's coordinate space — the same rect [_scrollTo]
+  /// passes to [RenderAbstractViewport.getOffsetToReveal].
   static bool _isAligned(BuildContext target, double alignment) {
     var context = target;
     var scrollable = Scrollable.maybeOf(context);
@@ -207,12 +257,13 @@ class ScrollReveal {
       }
       final viewport = RenderAbstractViewport.maybeOf(object);
       if (viewport == null || !position.hasContentDimensions) return true;
-      final targetRect = targetObject == null || identical(targetObject, object)
-          ? null
-          : MatrixUtils.transformRect(
-              targetObject.getTransformTo(object),
-              object.paintBounds.intersect(targetObject.paintBounds),
-            );
+      final targetRect =
+          targetObject == null || identical(targetObject, object)
+              ? null
+              : MatrixUtils.transformRect(
+                  targetObject.getTransformTo(object),
+                  targetObject.paintBounds,
+                );
       final desired = viewport
           .getOffsetToReveal(
             object,
@@ -248,11 +299,17 @@ class RevealController {
   /// The widget currently driven by this controller.
   RevealHandler? _handler;
 
-  /// Keys that locate built targets, keyed by identity.
+  /// Single key that wraps the row currently being revealed.
   ///
-  /// Shared by a widget and every nested widget it builds, so a single
-  /// controller keeps exactly one key per revealed target.
-  final Map<Object, GlobalKey> _targetKeys = Map.identity();
+  /// Only one row is wrapped at a time — the one matching [_revealTarget].
+  /// The slot is cleared as soon as the reveal ends, so the table never
+  /// carries more than one keyed subtree. Shared across nested tables so a
+  /// child row rendered by a nested [ExpansionTable] is still reachable.
+  final GlobalKey revealKey = GlobalKey();
+
+  /// The target currently addressed by [revealKey], or `null` when no reveal
+  /// is in flight.
+  Object? _revealTarget;
 
   /// Reveals [target] inside the attached widget.
   ///
@@ -280,15 +337,23 @@ class RevealController {
   void detach(RevealHandler handler) {
     if (!identical(_handler, handler)) return;
     _handler = null;
-    _targetKeys.clear();
+    _revealTarget = null;
   }
 
-  /// Returns the stable key that locates [target] in the widget tree.
+  /// Sets the single-slot reveal key to wrap [target] on the next build.
   ///
-  /// Widgets that wrap their items in a keyed subtree use this to find the
-  /// target again on a later build. Not part of the public API.
-  GlobalKey keyFor(Object target) =>
-      _targetKeys.putIfAbsent(target, GlobalKey.new);
+  /// Called by [ExpansionTable]. Not part of the public API.
+  void setRevealSlot(Object target) => _revealTarget = target;
+
+  /// Clears the single-slot reveal key so no row is wrapped.
+  ///
+  /// Called by [ExpansionTable]. Not part of the public API.
+  void clearRevealSlot() => _revealTarget = null;
+
+  /// Whether [target] is the row currently wrapped in [revealKey].
+  ///
+  /// Called by [ExpansionTable]. Not part of the public API.
+  bool isRevealTarget(Object target) => identical(_revealTarget, target);
 }
 
 /// Contract implemented by widgets that accept a [RevealController].

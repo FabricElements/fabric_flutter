@@ -328,5 +328,82 @@ void main() {
       expect(viaFirst, isFalse);
       expect(viaSecond, isTrue);
     });
+
+    testWidgets(
+      'should wrap at most one row with a GlobalKey during and after reveal',
+      (tester) async {
+        // Arrange: a 200-row table so the target is far outside the viewport.
+        final controller = RevealController();
+        final data = _table(count: 200);
+        await tester.pumpWidget(
+          _scroller(
+            ExpansionTable(data: data, controller: controller, columnWidth: 300),
+            height: 400,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Act: reveal row 150.
+        final future = controller.reveal(150);
+        // Pump a few frames so the reveal loop starts and the slot is set.
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 50));
+
+        // Assert: at most one KeyedSubtree with the revealKey exists while the
+        // reveal is in flight.
+        final during = find.byKey(controller.revealKey);
+        expect(during.evaluate().length, lessThanOrEqualTo(1));
+
+        final revealed = await _driveFrames(tester, future);
+        expect(revealed, isTrue);
+
+        // After the reveal settles, the slot is cleared — no keyed subtree.
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
+        final after = find.byKey(controller.revealKey);
+        expect(after, findsNothing);
+      },
+    );
+
+    testWidgets('should reveal a row inside a nested child table', (
+      tester,
+    ) async {
+      // Arrange: a parent table whose second row has a nested child table.
+      // The child row sits far down a tall scroller so it needs revealing.
+      final controller = RevealController();
+      final childData = _table(count: 40, prefix: 'Kid', columns: 1);
+      final data = TableData(
+        header: [TableColumnData(value: 'Col 1')],
+        rows: [
+          TableRowData(cells: ['Root row']),
+          TableRowData(
+            cells: ['Parent row'],
+            child: childData,
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        _scroller(
+          ExpansionTable(data: data, controller: controller, columnWidth: 300),
+          height: 400,
+        ),
+      );
+      await tester.pumpAndSettle();
+      // Expand the parent so the child table renders.
+      data.rows[1].active = true;
+      await tester.pumpAndSettle();
+      final target = childData.rows[30];
+
+      // Act
+      final revealed = await _driveFrames(tester, controller.reveal(target));
+
+      // Assert
+      expect(revealed, isTrue);
+      expect(find.text('Kid 30 c0'), findsOneWidget);
+      // The slot is cleared after the reveal.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.byKey(controller.revealKey), findsNothing);
+    });
   });
 }

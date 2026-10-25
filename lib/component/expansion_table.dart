@@ -271,11 +271,28 @@ class _ExpansionTableState extends State<ExpansionTable> {
       if (mounted) setState(() {});
     }
     await WidgetsBinding.instance.endOfFrame;
-    final context = controller.keyFor(row).currentContext;
-    if (!mounted || context == null || !context.mounted) return false;
-    final revealed = await ScrollReveal.reveal(context, alignment: alignment);
-    if (column != null) await _revealColumn(column);
-    return revealed;
+    // Publish the single-slot key so the target row is wrapped in a keyed
+    // subtree on the next build, then reveal it.
+    controller.setRevealSlot(row);
+    if (mounted) setState(() {});
+    await WidgetsBinding.instance.endOfFrame;
+    final context = controller.revealKey.currentContext;
+    if (!mounted || context == null || !context.mounted) {
+      controller.clearRevealSlot();
+      if (mounted) setState(() {});
+      return false;
+    }
+    try {
+      final revealed = await ScrollReveal.reveal(
+        context,
+        alignment: alignment,
+      );
+      if (column != null) await _revealColumn(column);
+      return revealed;
+    } finally {
+      controller.clearRevealSlot();
+      if (mounted) setState(() {});
+    }
   }
 
   /// Reveals the root row at [index]. See [_revealRow].
@@ -575,10 +592,17 @@ class _ExpansionTableState extends State<ExpansionTable> {
             );
             content.add(SizedBox(height: density.gap(32)));
           }
-          return Container(
-            key: isFooter ? null : widget.controller?.keyFor(row),
+          final rowContainer = Container(
             decoration: BoxDecoration(border: border),
             child: Flex(direction: Axis.vertical, children: content),
+          );
+          final controller = widget.controller;
+          if (isFooter || controller == null || !controller.isRevealTarget(row)) {
+            return rowContainer;
+          }
+          return KeyedSubtree(
+            key: controller.revealKey,
+            child: rowContainer,
           );
         }
 

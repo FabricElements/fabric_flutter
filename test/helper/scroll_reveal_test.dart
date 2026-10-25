@@ -347,6 +347,157 @@ void main() {
         },
       );
 
+      testWidgets(
+        'should align a target near the bottom of a nested inner scrollable '
+        'inside an outer scrollable',
+        (tester) async {
+          // Arrange: an inner vertical list (fixed height 200) inside an outer
+          // vertical list. The target sits near the bottom of a tall inner
+          // list, and the inner viewport is near the bottom of the outer list.
+          // The old code intersected rects from two coordinate spaces, which
+          // produced a wrong offset and caused the reveal to fail.
+          final outer = ScrollController();
+          final inner = ScrollController();
+          addTearDown(outer.dispose);
+          addTearDown(inner.dispose);
+          final target = GlobalKey();
+          const alignment = 0.1;
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: SizedBox(
+                  height: 400,
+                  child: SingleChildScrollView(
+                    controller: outer,
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 800),
+                        SizedBox(
+                          height: 200,
+                          child: SingleChildScrollView(
+                            controller: inner,
+                            child: Column(
+                              children: [
+                                const SizedBox(height: 1200),
+                                SizedBox(
+                                  height: 100,
+                                  child: Text('nested target', key: target),
+                                ),
+                                const SizedBox(height: 200),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 600),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          // Act
+          final revealed = await _driveFrames(
+            tester,
+            ScrollReveal.reveal(
+              target.currentContext!,
+              alignment: alignment,
+            ),
+          );
+
+          // Assert: the reveal converges. Each scrollable level independently
+          // applies the alignment via getOffsetToReveal, which computes
+          //   offset = rectTop - alignment * (viewportExtent - rectHeight).
+          // For the inner viewport (200 px, target 100 px):
+          //   1200 - 0.1 * (200 - 100) = 1190.
+          // For the outer viewport (400 px, inner viewport 200 px):
+          //   800 - 0.1 * (400 - 200) = 780.
+          expect(revealed, isTrue);
+          expect((inner.offset - 1190).abs(), lessThanOrEqualTo(2),
+              reason: 'inner viewport alignment');
+          expect((outer.offset - 780).abs(), lessThanOrEqualTo(2),
+              reason: 'outer viewport alignment');
+        },
+      );
+
+      testWidgets(
+        'should align a target in a horizontal inner scrollable inside a '
+        'vertical outer scrollable',
+        (tester) async {
+          // Arrange: a horizontal inner list inside a vertical outer list.
+          // The target sits far to the right of the inner list, and the inner
+          // viewport is far down the outer list.
+          final outer = ScrollController();
+          final inner = ScrollController();
+          addTearDown(outer.dispose);
+          addTearDown(inner.dispose);
+          final target = GlobalKey();
+          const alignment = 0.1;
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: SizedBox(
+                  height: 400,
+                  child: SingleChildScrollView(
+                    controller: outer,
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 800),
+                        SizedBox(
+                          height: 100,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            controller: inner,
+                            child: Row(
+                              children: [
+                                const SizedBox(width: 1200),
+                                SizedBox(
+                                  width: 100,
+                                  child: Text('h-target', key: target),
+                                ),
+                                const SizedBox(width: 200),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 600),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          // Act
+          final revealed = await _driveFrames(
+            tester,
+            ScrollReveal.reveal(
+              target.currentContext!,
+              alignment: alignment,
+            ),
+          );
+
+          // Assert: the reveal converges. The inner horizontal scrollable
+          // cannot reach the requested 0.1 alignment because the target sits
+          // at x=1200 in 1500 px of content inside an 800 px viewport, so
+          // maxScrollExtent is 700 and the offset is clamped there. The outer
+          // vertical scrollable places the inner viewport so the target lands
+          // at alignment 0.1 within 2 px.
+          // Outer (vertical, 400 px viewport, target ~40 px tall):
+          //   targetTop ≈ 830 (800 + ~30), so
+          //   830 - 0.1 * (400 - 40) = 794.
+          expect(revealed, isTrue);
+          expect(inner.offset, greaterThanOrEqualTo(inner.position.maxScrollExtent - 2),
+              reason: 'inner horizontal at maxScrollExtent');
+          expect((outer.offset - 794).abs(), lessThanOrEqualTo(2),
+              reason: 'outer vertical alignment');
+        },
+      );
+
       testWidgets('should not keep scheduling frames on a settled page', (
         tester,
       ) async {
