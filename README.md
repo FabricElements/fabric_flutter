@@ -453,7 +453,7 @@ Every `invoke` emits one `AgentAuditRecord` (timestamp, request id, principal id
 
 The full wire protocol, envelope, error taxonomy, safety table, and audit shape are documented in [`doc/agent-bridge-protocol.md`](doc/agent-bridge-protocol.md).
 
-**Web semantics** — Flutter web only builds the semantics DOM after accessibility is explicitly enabled. External agents (MCP clients, browser automation) that read the UI through the accessibility tree need this. Set `AgentBridge.instance.ensureSemanticsOnWeb = true` before `configure()` to acquire and hold a `SemanticsHandle` while the bridge is enabled; it is released on `reset()` or when the bridge is disabled. The `screen_state` command and `state()` method report `semanticsEnabled` so an agent can verify the tree is populated.
+**Web semantics** — Flutter web only builds the semantics DOM after accessibility is explicitly enabled. External agents (MCP clients, browser automation) that read the UI through the accessibility tree need this. Set `AgentBridge.instance.ensureSemanticsOnWeb = true` before `configure()` to acquire a `SemanticsHandle` on the first authorized request; the handle is held only while an agent is active and released after `semanticsIdleTimeout` (default 5 minutes) of inactivity, on `reset()`, or when the bridge is disabled. The `screen_state` command and `state()` method report `semanticsEnabled` so an agent can verify the tree is populated.
 
 ### Voice dictation (`VoiceDictationButton`)
 
