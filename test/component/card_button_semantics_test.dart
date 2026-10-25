@@ -100,9 +100,8 @@ void main() {
 
         // Assert
         expect(
-          _semantics(
-            tester,
-          ).any((w) => w.properties.label == 'Fallback headline'),
+          _semantics(tester)
+              .any((w) => w.properties.label == 'Fallback headline'),
           isTrue,
         );
       });

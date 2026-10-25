@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/widgets.dart';
+
 import '../../serialized/agent_command_info.dart';
 import '../../serialized/agent_param.dart';
 import '../../serialized/agent_state_result.dart';
@@ -59,6 +61,7 @@ class AgentBuiltInCommands {
     _listCommands(),
     _elementReveal(),
     _elementFocus(),
+    _formSubmit(),
   ];
 
   /// Throws an [AgentException.notFound] when the element at [id] is absent.
@@ -126,7 +129,9 @@ class AgentBuiltInCommands {
     title: 'Set value',
     description:
         'Sets the value of an indexed input exactly as user input would, '
-        'including validation and listener notification.',
+        'including validation and listener notification. After the value '
+        'is applied the element\'s own validator is run (when available) '
+        'and the result reports whether the new value passes validation.',
     category: 'interaction',
     params: [
       AgentParam(
@@ -152,8 +157,17 @@ class AgentBuiltInCommands {
       }
       await handle.reveal();
       handle.requestFocus();
-      await setter(context['value']);
-      return <String, dynamic>{'id': id, 'value': handle.value};
+      final rawValue = context['value'];
+      await setter(rawValue);
+      // Run the element's own validator on the new value (F7a).
+      final validator = handle.validatorFn;
+      final error = validator?.call(rawValue);
+      return <String, dynamic>{
+        'id': id,
+        'value': handle.value,
+        'valid': error == null,
+        'error': error,
+      };
     },
   );
 
@@ -161,7 +175,11 @@ class AgentBuiltInCommands {
   AgentCommand _tap() => AgentCommand.define(
     id: 'tap',
     title: 'Tap',
-    description: 'Activates an indexed button or tappable element.',
+    description:
+        'Activates an indexed button or tappable element. Tries '
+        'ActivateIntent (Actions API) first so the standard enablement '
+        'and keyboard paths run; falls back to the element\'s own '
+        'activator when no ActivateIntent handler is registered.',
     category: 'interaction',
     params: [
       AgentParam(
@@ -173,16 +191,49 @@ class AgentBuiltInCommands {
     handler: (context) async {
       final id = context.require<String>('elementId');
       final handle = _requireElement(id);
-      final activator = handle.activator;
-      if (activator == null) {
-        throw AgentException.failed('Element "$id" cannot be tapped.');
-      }
       if (!handle.enabled) {
         throw AgentException.failed('Element "$id" is disabled.');
       }
       await handle.reveal();
+      // Try ActivateIntent through the Actions system first. This respects
+      // isEnabled checks configured by the widget tree and is the path
+      // keyboard activation follows (Enter / Space → ActivateIntent).
+      final elementContext = handle.contextGetter?.call();
+      final action = elementContext != null
+          ? Actions.maybeFind<ActivateIntent>(
+              elementContext,
+              intent: const ActivateIntent(),
+            )
+          : null;
+      if (action != null) {
+        if (!action.isEnabled(const ActivateIntent())) {
+          throw AgentException.failed(
+            'Element "$id" is disabled (ActivateIntent handler is not '
+            'enabled).',
+          );
+        }
+        final result = Actions.maybeInvoke(
+          elementContext!,
+          const ActivateIntent(),
+        );
+        if (result is Future) await result;
+        return <String, dynamic>{
+          'id': id,
+          'method': 'actions',
+          'activated': true,
+        };
+      }
+      // Fall back to the element's own activator callback (legacy path).
+      final activator = handle.activator;
+      if (activator == null) {
+        throw AgentException.failed('Element "$id" cannot be tapped.');
+      }
       await activator();
-      return <String, dynamic>{'id': id, 'tapped': true};
+      return <String, dynamic>{
+        'id': id,
+        'method': 'activator',
+        'activated': true,
+      };
     },
   );
 
@@ -410,4 +461,56 @@ class AgentBuiltInCommands {
         );
     }
   }
+
+  /// Builds the `form.submit` command.
+  ///
+  /// Validates the enclosing [Form] for the indexed element without actually
+  /// submitting it. When the form is invalid every per-field error is returned
+  /// keyed by the element's `automationKey`; when the form is valid the result
+  /// reports `{valid: true}` with no errors.
+  AgentCommand _formSubmit() => AgentCommand.define(
+    id: 'form.submit',
+    title: 'Form submit (validate)',
+    description:
+        'Validates the Form that contains the indexed element. Does NOT '
+        'submit; returns per-field errors when invalid.',
+    category: 'interaction',
+    params: [
+      AgentParam(
+        name: 'elementId',
+        required: true,
+        description:
+            'Identifier of any element inside the target Form, matching '
+            'its automationKey.',
+      ),
+    ],
+    handler: (context) {
+      final id = context.require<String>('elementId');
+      final handle = _requireElement(id);
+      final elementContext = handle.contextGetter?.call();
+      if (elementContext == null) {
+        throw AgentException.failed('Element "$id" has no widget context.');
+      }
+      final form = Form.maybeOf(elementContext);
+      if (form == null) {
+        throw AgentException.failed(
+          'Element "$id" is not inside a Form widget.',
+        );
+      }
+      final valid = form.validate();
+      // After validation each FormField has updated its errorText in state.
+      // Collect errors from every indexed element that carries a non-null error.
+      final Map<String, String?> errors = <String, String?>{};
+      for (final snapshot in elements.snapshot()) {
+        final error = snapshot.error;
+        if (error != null) {
+          errors[snapshot.id] = error;
+        }
+      }
+      return <String, dynamic>{
+        'valid': valid,
+        if (errors.isNotEmpty) 'errors': errors,
+      };
+    },
+  );
 }

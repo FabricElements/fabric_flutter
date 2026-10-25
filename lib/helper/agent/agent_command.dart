@@ -8,8 +8,9 @@ import 'agent_exception.dart';
 ///
 /// The returned value must be JSON-serializable because it is placed directly
 /// into the `result` field of the bridge response.
-typedef AgentCommandHandler =
-    FutureOr<Object?> Function(AgentCommandContext context);
+typedef AgentCommandHandler = FutureOr<Object?> Function(
+  AgentCommandContext context,
+);
 
 /// Carries everything a command handler needs to run a single invocation.
 ///

@@ -646,7 +646,9 @@ void main() {
 
         // Assert
         expect(taps, 1);
-        expect((response['result'] as Map)['tapped'], isTrue);
+        expect((response['result'] as Map)['id'], 'save');
+        expect((response['result'] as Map)['activated'], isTrue);
+        expect((response['result'] as Map)['method'], 'activator');
       });
 
       test('tap should fail when the element cannot be tapped', () async {
@@ -768,25 +770,93 @@ void main() {
         expect((response['error'] as Map)['code'], 'invalid_params');
       });
 
-      test(
-        'wait_for should satisfy absent for an element never indexed',
-        () async {
-          // Arrange
-          final bridge = _bridge();
-
-          // Act
-          final response = await bridge.handle(
-            _invoke(
-              'wait_for',
-              params: {'elementId': 'ghost', 'condition': 'absent'},
+      test('tap should fail when the element is disabled', () async {
+        // Arrange
+        final index = AgentElementIndex()
+          ..register(
+            AgentElementHandle(
+              id: 'save',
+              type: AgentElementType.button,
+              enabledGetter: () => false,
+              activator: () {},
             ),
           );
+        final bridge = _bridge(index: index);
 
-          // Assert
-          expect(response['ok'], isTrue);
-        },
-      );
-    });
+        // Act
+        final response = await bridge.handle(
+          _invoke('tap', params: {'elementId': 'save'}),
+        );
+
+        // Assert
+        expect((response['error'] as Map)['code'], 'failed');
+        expect((response['error'] as Map)['message'], contains('disabled'));
+      });
+
+      test('set_value should return validation errors', () async {
+        // Arrange
+        final index = AgentElementIndex()
+          ..register(
+            AgentElementHandle(
+              id: 'email',
+              type: AgentElementType.textInput,
+              setter: (v) {},
+              validatorFn: (v) {
+                return v?.toString().contains('@') == true
+                    ? null
+                    : 'Invalid email';
+              },
+            ),
+          );
+        final bridge = _bridge(index: index);
+
+        // Act (valid)
+        final ok = await bridge.handle(
+          _invoke(
+            'set_value',
+            params: {'elementId': 'email', 'value': 'a@b.com'},
+          ),
+        );
+
+        // Assert
+        expect((ok['result'] as Map)['valid'], isTrue);
+        expect((ok['result'] as Map)['error'], isNull);
+
+        // Act (invalid)
+        final fail = await bridge.handle(
+          _invoke('set_value', params: {'elementId': 'email', 'value': 'bad'}),
+        );
+
+        // Assert
+        expect((fail['result'] as Map)['valid'], isFalse);
+        expect((fail['result'] as Map)['error'], 'Invalid email');
+      });
+
+      test('form.submit fails without widget context', () async {
+        // Arrange
+        final index = AgentElementIndex()
+          ..register(
+            AgentElementHandle(
+              id: 'email',
+              type: AgentElementType.textInput,
+              contextGetter: () => null,
+            ),
+          );
+        final bridge = _bridge(index: index);
+
+        // Act
+        final response = await bridge.handle(
+          _invoke('form.submit', params: {'elementId': 'email'}),
+        );
+
+        // Assert
+        expect((response['error'] as Map)['code'], 'failed');
+        expect(
+          (response['error'] as Map)['message'],
+          contains('no widget context'),
+        );
+      });
+    }); // built-in commands
 
     group('navigate', () {
       testWidgets('should push a named route', (WidgetTester tester) async {

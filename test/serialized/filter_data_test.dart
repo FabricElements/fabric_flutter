@@ -103,30 +103,27 @@ void main() {
         expect((filter.value as DateTime).day, 10);
       });
 
-      test(
-        'should convert between date strings into DateTime list for date + between',
-        () {
-          // Arrange
-          final json = <String, dynamic>{
-            'id': 'range',
-            'type': 'date',
-            'operator': 'between',
-            'value': ['2023-01-01T00:00:00.000Z', '2023-12-31T00:00:00.000Z'],
-          };
+      test('should convert between date strings into DateTime list for date + between', () {
+        // Arrange
+        final json = <String, dynamic>{
+          'id': 'range',
+          'type': 'date',
+          'operator': 'between',
+          'value': ['2023-01-01T00:00:00.000Z', '2023-12-31T00:00:00.000Z'],
+        };
 
-          // Act
-          final filter = FilterData.fromJson(json);
+        // Act
+        final filter = FilterData.fromJson(json);
 
-          // Assert
-          expect(filter.value, isA<List>());
-          final list = filter.value as List;
-          expect(list[0], isA<DateTime>());
-          expect((list[0] as DateTime).year, 2023);
-          expect((list[0] as DateTime).month, 1);
-          expect(list[1], isA<DateTime>());
-          expect((list[1] as DateTime).month, 12);
-        },
-      );
+        // Assert
+        expect(filter.value, isA<List>());
+        final list = filter.value as List;
+        expect(list[0], isA<DateTime>());
+        expect((list[0] as DateTime).year, 2023);
+        expect((list[0] as DateTime).month, 1);
+        expect(list[1], isA<DateTime>());
+        expect((list[1] as DateTime).month, 12);
+      });
 
       test('should leave string value as-is for string type', () {
         // Arrange
@@ -160,24 +157,21 @@ void main() {
         expect(filter.value, isTrue);
       });
 
-      test(
-        'should exclude label, enums, options, and onChange from JSON deserialization',
-        () {
-          // Arrange
-          final json = <String, dynamic>{
-            'id': 'x',
-            'label': 'Ignored',
-            'enums': ['a', 'b'],
-          };
+      test('should exclude label, enums, options, and onChange from JSON deserialization', () {
+        // Arrange
+        final json = <String, dynamic>{
+          'id': 'x',
+          'label': 'Ignored',
+          'enums': ['a', 'b'],
+        };
 
-          // Act
-          final filter = FilterData.fromJson(json);
+        // Act
+        final filter = FilterData.fromJson(json);
 
-          // Assert — those fields are excluded from JSON
-          expect(filter.label, 'Unknown'); // default, not from JSON
-          expect(filter.enums, isEmpty);
-        },
-      );
+        // Assert — those fields are excluded from JSON
+        expect(filter.label, 'Unknown'); // default, not from JSON
+        expect(filter.enums, isEmpty);
+      });
     });
 
     group('toJson', () {

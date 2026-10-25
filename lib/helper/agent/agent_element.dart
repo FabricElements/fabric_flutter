@@ -20,6 +20,10 @@ typedef AgentValueSetter = FutureOr<void> Function(Object? value);
 /// Activates the widget that owns an [AgentElementHandle], as a tap would.
 typedef AgentActivator = FutureOr<void> Function();
 
+/// Runs the element's validator on [value] and returns the error message, or
+/// `null` when the value is valid.
+typedef AgentValidator = String? Function(Object? value);
+
 /// Represents one indexed widget an agent can read from or act on.
 ///
 /// Handles are created by `AgentElement` when a widget declares an
@@ -40,6 +44,9 @@ class AgentElementHandle {
     this.activator,
     this.revealFn,
     this.requestFocusFn,
+    this.contextGetter,
+    this.errorGetter,
+    this.validatorFn,
   });
 
   /// Identifies the element, mirroring the widget's `automationKey`.
@@ -81,6 +88,18 @@ class AgentElementHandle {
   /// Returns `false` when no focus node is available and no descendant accepts
   /// focus.
   bool Function()? requestFocusFn;
+
+  /// Returns the element's [BuildContext] for [Actions] and [Form] lookups.
+  ///
+  /// This is always the content child's context (past the [Semantics] wrapper)
+  /// so an [Actions.invoke] or [Form.maybeOf] starts from the right place.
+  BuildContext? Function()? contextGetter;
+
+  /// Returns the current validation error text, or `null` when valid.
+  String? Function()? errorGetter;
+
+  /// Runs the element's validator on a raw value and returns any error.
+  AgentValidator? validatorFn;
 
   /// Reports whether `set_value` can act on this element.
   bool get canSetValue => setter != null;
@@ -127,6 +146,9 @@ class AgentElementHandle {
     activator = other.activator;
     revealFn = other.revealFn;
     requestFocusFn = other.requestFocusFn;
+    contextGetter = other.contextGetter;
+    errorGetter = other.errorGetter;
+    validatorFn = other.validatorFn;
   }
 
   /// Returns the element's observable state as a serializable snapshot.
@@ -138,6 +160,7 @@ class AgentElementHandle {
     value: value,
     enabled: enabled,
     visible: visible,
+    error: errorGetter?.call(),
   );
 
   /// Converts [value] into a JSON-safe primitive.

@@ -337,7 +337,11 @@ void main() {
         final data = _table(count: 200);
         await tester.pumpWidget(
           _scroller(
-            ExpansionTable(data: data, controller: controller, columnWidth: 300),
+            ExpansionTable(
+              data: data,
+              controller: controller,
+              columnWidth: 300,
+            ),
             height: 400,
           ),
         );
@@ -376,10 +380,7 @@ void main() {
         header: [TableColumnData(value: 'Col 1')],
         rows: [
           TableRowData(cells: ['Root row']),
-          TableRowData(
-            cells: ['Parent row'],
-            child: childData,
-          ),
+          TableRowData(cells: ['Parent row'], child: childData),
         ],
       );
       await tester.pumpWidget(

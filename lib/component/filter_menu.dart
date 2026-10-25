@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import '../helper/web_pointer_interceptor.dart';
 
 import '../helper/app_localizations_delegate.dart';
@@ -728,11 +729,10 @@ class _FilterMenuOptionState extends State<FilterMenuOption> {
                   copy.operator = newValue.operator;
                   // Use 300 milliseconds to ensure the animation completes
                   // if (mounted) setState(() {});
-                  Future.delayed(const Duration(milliseconds: 300)).then((
-                    time,
-                  ) {
-                    widget.onChange(copy);
-                  });
+                  Future.delayed(const Duration(milliseconds: 300))
+                      .then((time) {
+                        widget.onChange(copy);
+                      });
                 },
               ),
             ),

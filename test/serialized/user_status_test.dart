@@ -84,19 +84,16 @@ void main() {
         },
       );
 
-      test(
-        'should fall back to CustomVisualDensity.adaptive for an unknown visualDensity value',
-        () {
-          // Arrange
-          final json = <String, dynamic>{'visualDensity': 'ultra'};
+      test('should fall back to CustomVisualDensity.adaptive for an unknown visualDensity value', () {
+        // Arrange
+        final json = <String, dynamic>{'visualDensity': 'ultra'};
 
-          // Act — unknownEnumValue: CustomVisualDensity.adaptive is configured
-          final data = UserStatus.fromJson(json);
+        // Act — unknownEnumValue: CustomVisualDensity.adaptive is configured
+        final data = UserStatus.fromJson(json);
 
-          // Assert
-          expect(data.visualDensity, CustomVisualDensity.adaptive);
-        },
-      );
+        // Assert
+        expect(data.visualDensity, CustomVisualDensity.adaptive);
+      });
 
       test('should deserialize ThemeMode.system from JSON', () {
         // Arrange

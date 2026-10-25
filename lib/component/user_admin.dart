@@ -2,7 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:fabric_flutter/component/users_dropdown.dart';
 import 'package:flutter/material.dart';
+
 import '../helper/web_pointer_interceptor.dart';
+
 import 'package:provider/provider.dart';
 
 import '../helper/app_localizations_delegate.dart';

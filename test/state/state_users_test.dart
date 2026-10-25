@@ -314,26 +314,23 @@ void main() {
         expect(notifications, 0); // No change notification for missing user
       });
 
-      test(
-        'returns cached Unknown placeholder on repeated getUser for missing user',
-        () async {
-          // Arrange
-          final state = FakeStateUsers({});
+      test('returns cached Unknown placeholder on repeated getUser for missing user', () async {
+        // Arrange
+        final state = FakeStateUsers({});
 
-          // Act - first call
-          final first = state.getUser('missing');
-          await state.flushPendingUsers();
+        // Act - first call
+        final first = state.getUser('missing');
+        await state.flushPendingUsers();
 
-          // Act - second call (should not re-fetch)
-          final second = state.getUser('missing');
-          await state.flushPendingUsers();
+        // Act - second call (should not re-fetch)
+        final second = state.getUser('missing');
+        await state.flushPendingUsers();
 
-          // Assert
-          expect(identical(first, second), isTrue);
-          expect(state.requests.length, 1); // Only one request total
-          expect(state.requests.single, ['missing']);
-        },
-      );
+        // Assert
+        expect(identical(first, second), isTrue);
+        expect(state.requests.length, 1); // Only one request total
+        expect(state.requests.single, ['missing']);
+      });
 
       test('retries a failed lookup on repeated getUser calls', () async {
         // Arrange - FailingStateUsers throws on first fetch attempt
@@ -351,8 +348,7 @@ void main() {
         expect(
           state.fetchAttempts,
           greaterThan(1),
-          reason:
-              'Failed lookup should be retryable, not cached as permanent placeholder',
+          reason: 'Failed lookup should be retryable, not cached as permanent placeholder',
         );
         expect(
           first.id,
@@ -419,8 +415,7 @@ void main() {
         expect(
           state.requests.length,
           4,
-          reason:
-              'Should have made only 1 additional request (chunk 2), not 3 (re-reading all chunks)',
+          reason: 'Should have made only 1 additional request (chunk 2), not 3 (re-reading all chunks)',
         );
         expect(
           state.requests.last.length,

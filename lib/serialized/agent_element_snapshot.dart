@@ -63,6 +63,7 @@ class AgentElementSnapshot {
     this.value,
     this.enabled = true,
     this.visible = true,
+    this.error,
   });
 
   /// Builds an [AgentElementSnapshot] from serialized JSON.
@@ -96,6 +97,9 @@ class AgentElementSnapshot {
   /// Reports whether the element is currently mounted and rendered.
   @JsonKey(defaultValue: true)
   final bool visible;
+
+  /// Carries the current validation error text, or `null` when valid.
+  final String? error;
 
   /// Converts this snapshot into JSON.
   Map<String, dynamic> toJson() => _$AgentElementSnapshotToJson(this);

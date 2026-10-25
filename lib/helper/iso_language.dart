@@ -588,8 +588,7 @@ class ISOLanguages {
       'alpha2': 'oj',
     },
     {
-      'name':
-          'Old Church Slavonic, Church Slavic, Church Slavonic, Old Bulgarian, Old Slavonic',
+      'name': 'Old Church Slavonic, Church Slavic, Church Slavonic, Old Bulgarian, Old Slavonic',
       'nativeName': 'ѩзыкъ словѣньскъ',
       'emoji': '🌐',
       'alpha2': 'cu',

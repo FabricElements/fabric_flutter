@@ -401,10 +401,7 @@ void main() {
           // Act
           final revealed = await _driveFrames(
             tester,
-            ScrollReveal.reveal(
-              target.currentContext!,
-              alignment: alignment,
-            ),
+            ScrollReveal.reveal(target.currentContext!, alignment: alignment),
           );
 
           // Assert: the reveal converges. Each scrollable level independently
@@ -415,10 +412,16 @@ void main() {
           // For the outer viewport (400 px, inner viewport 200 px):
           //   800 - 0.1 * (400 - 200) = 780.
           expect(revealed, isTrue);
-          expect((inner.offset - 1190).abs(), lessThanOrEqualTo(2),
-              reason: 'inner viewport alignment');
-          expect((outer.offset - 780).abs(), lessThanOrEqualTo(2),
-              reason: 'outer viewport alignment');
+          expect(
+            (inner.offset - 1190).abs(),
+            lessThanOrEqualTo(2),
+            reason: 'inner viewport alignment',
+          );
+          expect(
+            (outer.offset - 780).abs(),
+            lessThanOrEqualTo(2),
+            reason: 'outer viewport alignment',
+          );
         },
       );
 
@@ -475,10 +478,7 @@ void main() {
           // Act
           final revealed = await _driveFrames(
             tester,
-            ScrollReveal.reveal(
-              target.currentContext!,
-              alignment: alignment,
-            ),
+            ScrollReveal.reveal(target.currentContext!, alignment: alignment),
           );
 
           // Assert: the reveal converges. The inner horizontal scrollable
@@ -491,10 +491,16 @@ void main() {
           //   targetTop ≈ 830 (800 + ~30), so
           //   830 - 0.1 * (400 - 40) = 794.
           expect(revealed, isTrue);
-          expect(inner.offset, greaterThanOrEqualTo(inner.position.maxScrollExtent - 2),
-              reason: 'inner horizontal at maxScrollExtent');
-          expect((outer.offset - 794).abs(), lessThanOrEqualTo(2),
-              reason: 'outer vertical alignment');
+          expect(
+            inner.offset,
+            greaterThanOrEqualTo(inner.position.maxScrollExtent - 2),
+            reason: 'inner horizontal at maxScrollExtent',
+          );
+          expect(
+            (outer.offset - 794).abs(),
+            lessThanOrEqualTo(2),
+            reason: 'outer vertical alignment',
+          );
         },
       );
 

@@ -300,19 +300,16 @@ void main() {
         );
       });
 
-      test(
-        'should scale horizontal and vertical sides independently at compact density',
-        () {
-          // Arrange & Act
-          final result = compact.only(left: 8, top: 8, right: 8, bottom: 8);
+      test('should scale horizontal and vertical sides independently at compact density', () {
+        // Arrange & Act
+        final result = compact.only(left: 8, top: 8, right: 8, bottom: 8);
 
-          // Assert: horizontal sides lose 4, vertical sides lose 4.
-          expect(
-            result,
-            const EdgeInsets.only(left: 4, top: 4, right: 4, bottom: 4),
-          );
-        },
-      );
+        // Assert: horizontal sides lose 4, vertical sides lose 4.
+        expect(
+          result,
+          const EdgeInsets.only(left: 4, top: 4, right: 4, bottom: 4),
+        );
+      });
 
       test(
         'should apply independent min floors for horizontal and vertical sides',

@@ -46,6 +46,8 @@ class AgentElement extends StatefulWidget {
     this.visibleGetter,
     this.setter,
     this.activator,
+    this.validatorFn,
+    this.errorGetter,
     this.focusNode,
     this.index,
     this.applySemanticsIdentifier = true,
@@ -118,6 +120,14 @@ class AgentElement extends StatefulWidget {
   ///
   /// Leave `null` for elements that cannot be tapped.
   final AgentActivator? activator;
+
+  /// Runs the element's validator on a raw value and returns any error.
+  ///
+  /// Leave `null` for elements that carry no validation, such as buttons.
+  final AgentValidator? validatorFn;
+
+  /// Returns the current validation error text, or `null` when valid.
+  final String? Function()? errorGetter;
 
   /// The [FocusNode] moved to by [AgentElementHandle.requestFocus].
   ///
@@ -221,22 +231,37 @@ class _AgentElementState extends State<AgentElement> {
       visibleGetter: widget.visibleGetter ?? _isVisible,
       setter: widget.setter,
       activator: widget.activator,
-      revealFn:
-          mounted
-              ? ({double alignment = 0.1}) {
-                  // Walk past the Semantics wrapper so ScrollReveal starts
-                  // from a render object that is inside the viewport. The
-                  // state's build context is the Semantics widget, whose
-                  // RenderSemanticsAnnotations is not a viewport descendant.
-                  BuildContext target = context;
-                  context.visitChildElements((semanticsElement) {
-                    semanticsElement.visitChildElements((contentElement) {
-                      target = contentElement;
-                    });
-                  });
-                  return ScrollReveal.reveal(target, alignment: alignment);
-                }
-              : null,
+      validatorFn: widget.validatorFn,
+      errorGetter: widget.errorGetter,
+      contextGetter: mounted
+          ? () {
+              // Walk past the Semantics wrapper so Actions and Form
+              // lookups start from the content child, not the
+              // Semantics node that binds the identifier.
+              BuildContext? target;
+              context.visitChildElements((semanticsElement) {
+                semanticsElement.visitChildElements((contentElement) {
+                  target = contentElement;
+                });
+              });
+              return target ?? context;
+            }
+          : null,
+      revealFn: mounted
+          ? ({double alignment = 0.1}) {
+              // Walk past the Semantics wrapper so ScrollReveal starts
+              // from a render object that is inside the viewport. The
+              // state's build context is the Semantics widget, whose
+              // RenderSemanticsAnnotations is not a viewport descendant.
+              BuildContext target = context;
+              context.visitChildElements((semanticsElement) {
+                semanticsElement.visitChildElements((contentElement) {
+                  target = contentElement;
+                });
+              });
+              return ScrollReveal.reveal(target, alignment: alignment);
+            }
+          : null,
       requestFocusFn: () {
         final target = focusNode;
         if (target != null) {

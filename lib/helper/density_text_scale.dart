@@ -48,9 +48,8 @@ class DensityTextScaler extends StatelessWidget {
     final scale = system * densityTextScale(density);
     return Builder(
       builder: (context) => MediaQuery(
-        data: MediaQuery.of(
-          context,
-        ).copyWith(textScaler: TextScaler.linear(scale)),
+        data: MediaQuery.of(context)
+            .copyWith(textScaler: TextScaler.linear(scale)),
         child: child,
       ),
     );

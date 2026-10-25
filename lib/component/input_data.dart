@@ -469,6 +469,10 @@ class _InputDataState extends State<InputData> {
   /// Opens and closes the search view used by dropdown and enum pickers.
   late SearchController searchController;
 
+  /// Key for the internal FormField so the agent shell can reach [FormFieldState].
+  final GlobalKey<FormFieldState<String>> _formFieldKey =
+      GlobalKey<FormFieldState<String>>();
+
   /// Formats date-only values for display inside read-only picker fields.
   DateFormat formatDate = DateFormat.yMd('en_US');
 
@@ -1257,7 +1261,7 @@ getValue -------------------------------------
       case InputDataType.secret:
       case InputDataType.url:
         endWidget = TextFormField(
-          key: ValueKey('input-data-${widget.type}'),
+          key: _formFieldKey,
           initialValue: isDisabled ? value?.toString() : null,
           controller: !isDisabled ? textController : null,
           autofillHints: widget.autofillHints,
@@ -1310,7 +1314,7 @@ getValue -------------------------------------
       case InputDataType.dateTime:
       case InputDataType.timestamp:
         endWidget = TextFormField(
-          key: ValueKey('input-data-${widget.type}'),
+          key: _formFieldKey,
           obscureText: obscureText,
           autofillHints: widget.autofillHints,
           enableSuggestions: false,
@@ -1453,7 +1457,7 @@ getValue -------------------------------------
           });
         }
         final widgetInput = TextFormField(
-          key: ValueKey('input-data-${widget.type}'),
+          key: _formFieldKey,
           autofillHints: widget.autofillHints,
           enableSuggestions: false,
           keyboardType: keyboardType,
@@ -1805,6 +1809,11 @@ getValue -------------------------------------
       valueGetter: () => value,
       enabledGetter: () => !widget.disabled,
       setter: agentSetValue,
+      validatorFn: (rawValue) {
+        final parsed = _parseAgentValue(rawValue);
+        return validator?.call(parsed?.toString() ?? '');
+      },
+      errorGetter: () => _formFieldKey.currentState?.errorText,
       child: Semantics(
         label: _resolveSemanticLabel(locales),
         hint: _resolveSemanticHint(),
