@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
+import '../helper/announce.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/density_spacing.dart';
 import '../helper/log_color.dart';
@@ -575,11 +576,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
   void _announcePageChange() {
     if (!mounted) return;
     final locales = AppLocalizations.of(context);
-    SemanticsService.sendAnnouncement(
-      View.of(context),
-      '${locales.get('label--page')} $_pageNumber',
-      Directionality.of(context),
-    );
+    announce(context, '${locales.get('label--page')} $_pageNumber');
   }
 
   /// Reports an error through [PaginationContainer.onError], falling back to

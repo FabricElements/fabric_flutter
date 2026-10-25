@@ -1,7 +1,7 @@
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart';
 
+import '../helper/announce.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/density_spacing.dart';
 import '../helper/input_validation.dart';
@@ -362,11 +362,7 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       sending = false;
       if (mounted) setState(() {});
       if (error != null && context.mounted) {
-        SemanticsService.sendAnnouncement(
-          View.of(context),
-          locales.get(error!),
-          Directionality.of(context),
-        );
+        announce(context, locales.get(error!));
       }
     }
 

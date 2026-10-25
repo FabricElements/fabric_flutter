@@ -4,7 +4,6 @@ import 'dart:io' show Platform;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:provider/provider.dart';
@@ -14,6 +13,7 @@ import '../component/content_container.dart';
 import '../component/input_data.dart';
 import '../component/phone_input.dart';
 import '../component/smart_image.dart';
+import '../helper/announce.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/auth_service.dart';
 import '../helper/density_spacing.dart';
@@ -196,16 +196,11 @@ class ViewAuthPageState extends State<ViewAuthPage> {
     /// TalkBack/VoiceOver are notified even though those changes are only
     /// visual (an [AnimatedOpacity]/[IndexedStack] swap) by default.
     ///
-    /// Several callers run after an awaited Firebase call, so the guard is
-    /// centralized here: unlike [alertData], an announcement needs this
-    /// element's live [View] and cannot fall back to a root context.
-    void announce(String message) {
-      if (!context.mounted) return;
-      SemanticsService.sendAnnouncement(
-        View.of(context),
-        message,
-        TextDirection.ltr,
-      );
+    /// Several callers run after an awaited Firebase call, so the guard lives
+    /// in [announce]: unlike [alertData], an announcement needs this element's
+    /// live view and cannot fall back to a root context.
+    void announceMessage(String message) {
+      announce(context, message);
     }
 
     /// Reset view to initial state
@@ -220,7 +215,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       await Future.delayed(const Duration(seconds: 1));
       loading = false;
       if (mounted) setState(() {});
-      announce(widget.title ?? locales.get('page-auth--title'));
+      announceMessage(widget.title ?? locales.get('page-auth--title'));
     }
 
     /// Presents a localized sign-in failure alert.
@@ -237,7 +232,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
     void alertSignInFailed(String? body, {String? title}) {
       final heading = title ?? locales.get('alert--sign-in-failed');
       alertData(title: heading, body: body, type: AlertType.critical);
-      announce(heading);
+      announceMessage(heading);
     }
 
     /// Verification completed: Sign in with credentials
@@ -256,7 +251,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       final message =
           '${locales.get('alert--phone-number-verification-failed')}. ${error.message} -- Code: ${error.code}';
       alertData(context: context, body: message, type: AlertType.critical);
-      announce(message);
+      announceMessage(message);
     }
 
     /// SMS auth code sent
@@ -273,7 +268,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       state.section = 2;
       loading = false;
       if (mounted) setState(() {});
-      announce(locales.get('page-auth--input--verification-code'));
+      announceMessage(locales.get('page-auth--input--verification-code'));
     }
 
     /// SMS auth code retrieval timeout
@@ -422,7 +417,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
           error.toString(),
           title: locales.get('alert--sign-in-failed: '),
         );
-        announce(locales.get('alert--sign-in-failed'));
+        announceMessage(locales.get('alert--sign-in-failed'));
       } finally {
         resetView();
       }
@@ -470,7 +465,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
           action = () {
             state.section = 1;
             if (mounted) setState(() {});
-            announce(locales.get('label--phone-number'));
+            announceMessage(locales.get('label--phone-number'));
           };
           break;
         case 'google':
@@ -523,7 +518,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
             );
           } catch (error) {
             alertData(body: error.toString(), type: AlertType.critical);
-            announce(error.toString());
+            announceMessage(error.toString());
           }
         };
       }

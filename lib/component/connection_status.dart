@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart';
 import 'package:provider/provider.dart';
 
+import '../helper/announce.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/density_spacing.dart';
 import '../state/state_global.dart';
@@ -107,11 +107,7 @@ class _ConnectionStatusState extends State<ConnectionStatus> {
               : locales.get('notification--you-are--offline');
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
-              SemanticsService.sendAnnouncement(
-                View.of(context),
-                announcement,
-                Directionality.of(context),
-              );
+              announce(context, announcement);
             }
           });
         }

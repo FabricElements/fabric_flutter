@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import '../helper/web_pointer_interceptor.dart';
 
+import '../helper/announce.dart';
 import '../helper/app_global.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/density_spacing.dart';
@@ -600,11 +600,7 @@ void alertData<T>({
     body,
   ].where((value) => value != null && value.isNotEmpty).join('. ');
   if (announcement.isNotEmpty) {
-    SemanticsService.sendAnnouncement(
-      View.of(ctx),
-      announcement,
-      Directionality.of(ctx),
-    );
+    announce(ctx, announcement);
   }
   if (widget == AlertWidget.banner) {
     // A [MaterialBanner] persists on screen and can be replaced in place, so
