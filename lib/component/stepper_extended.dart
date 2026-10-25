@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/density_spacing.dart';
 import '../helper/log_color.dart';
+import '../helper/scroll_reveal.dart';
 import 'content_container.dart';
 
 /// Displays a vertically stacked stepper using [ContentContainer] sections.
@@ -24,7 +25,14 @@ class StepperExtended extends StatefulWidget {
     this.initialScrollOffset = 0.0,
     this.onScrollOffsetChanged,
     this.onError,
+    this.controller,
   });
+
+  /// Optional handle used to reveal a step or content inside a step.
+  ///
+  /// Works with [scrollable] on and off: when off, the reveal scrolls the
+  /// enclosing scrollable (for example a chat list).
+  final RevealController? controller;
 
   /// The ordered steps to render from top to bottom.
   final List<Step> steps;
@@ -69,15 +77,51 @@ class StepperExtended extends StatefulWidget {
   State<StepperExtended> createState() => _StepperExtendedState();
 }
 
+/// Reveals steps of a [StepperExtended] in the enclosing scrollables.
+///
+/// Pass one instance to [StepperExtended.controller] and call
+/// [RevealController.reveal] with the step index, or with a [RevealTarget]
+/// wrapping the index and a [RevealTarget.within] key. Calls return `false`
+/// while no stepper is attached.
+class _StepperRevealHandler implements RevealHandler {
+  _StepperRevealHandler(this._state);
+
+  final _StepperExtendedState _state;
+
+  @override
+  Future<bool> revealTarget(Object target, double alignment) {
+    final int index;
+    GlobalKey? within;
+    if (target is RevealTarget) {
+      final inner = target.target;
+      if (inner is! int) return Future.value(false);
+      index = inner;
+      within = target.within;
+    } else if (target is int) {
+      index = target;
+    } else {
+      return Future.value(false);
+    }
+    return _state._reveal(index, within, alignment);
+  }
+}
+
 /// Owns the scroll controller used to report position changes for [StepperExtended].
 class _StepperExtendedState extends State<StepperExtended> {
   /// Persists the configured initial offset and exposes scroll updates to the parent.
   late ScrollController _controller;
 
+  /// Bridges [StepperExtended.controller] to this state.
+  late final _StepperRevealHandler _revealHandler = _StepperRevealHandler(this);
+
+  /// Keys that locate each step body for [StepperExtended.controller].
+  final List<GlobalKey> _stepKeys = [];
+
   /// Initializes the controller before the first frame so scroll restoration is stable.
   @override
   void initState() {
     super.initState();
+    widget.controller?.attach(_revealHandler);
     _controller = ScrollController(
       initialScrollOffset: widget.initialScrollOffset,
     );
@@ -109,9 +153,30 @@ class _StepperExtendedState extends State<StepperExtended> {
     }
   }
 
+  @override
+  void didUpdateWidget(covariant StepperExtended oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller?.detach(_revealHandler);
+      widget.controller?.attach(_revealHandler);
+    }
+  }
+
+  /// Implements [RevealController.reveal] for a step index or [RevealTarget].
+  Future<bool> _reveal(int index, GlobalKey? within, double alignment) async {
+    if (index < 0 || index >= widget.steps.length) return false;
+    // Waits one frame so a step that was just added is laid out first.
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted) return false;
+    final context = within?.currentContext ?? _stepKeys[index].currentContext;
+    if (context == null || !context.mounted) return false;
+    return ScrollReveal.reveal(context, alignment: alignment);
+  }
+
   /// Disposes the owned controller to avoid leaking listeners after removal.
   @override
   void dispose() {
+    widget.controller?.detach(_revealHandler);
     _controller.dispose();
     super.dispose();
   }
@@ -123,6 +188,9 @@ class _StepperExtendedState extends State<StepperExtended> {
     final textTheme = theme.textTheme;
     final locales = AppLocalizations.of(context);
     final density = DensitySpacing.of(context);
+    while (_stepKeys.length < widget.steps.length) {
+      _stepKeys.add(GlobalKey());
+    }
     List<Widget> children = List.generate(widget.steps.length, (index) {
       Step step = widget.steps[index];
       TextStyle? leadingStyle = textTheme.titleMedium?.copyWith(
@@ -189,6 +257,7 @@ class _StepperExtendedState extends State<StepperExtended> {
         ),
         size: widget.size,
         child: Flex(
+          key: widget.controller == null ? null : _stepKeys[index],
           direction: Axis.vertical,
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: density.gap(16),

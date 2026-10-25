@@ -7,6 +7,7 @@ import 'package:flutter/rendering.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/density_spacing.dart';
 import '../helper/log_color.dart';
+import '../helper/scroll_reveal.dart';
 import 'content_container.dart';
 
 /// Renders an infinitely scrollable list that reacts to streamed page results.
@@ -21,10 +22,16 @@ class PaginationContainer extends StatefulWidget {
   ///
   /// The constructor accepts presentation overrides and delegates pagination to
   /// [paginate] so the widget remains focused on rendering streamed content.
+  ///
+  /// For a fixed, already-complete list that needs no pagination wiring, pass
+  /// [items] and omit [paginate] and [stream]. The list is then rendered as
+  /// [embedded]: it sizes itself to its content and lets the enclosing
+  /// scrollable own every drag, so it can sit directly inside a chat list.
   const PaginationContainer({
     super.key,
-    required this.paginate,
+    this.paginate,
     required this.itemBuilder,
+    this.items,
     this.primary = false,
     this.reverse = false,
     this.padding = EdgeInsets.zero,
@@ -33,7 +40,7 @@ class PaginationContainer extends StatefulWidget {
     this.empty,
     this.loading,
     this.end,
-    required this.stream,
+    this.stream,
     this.initialData,
     this.clipBehavior = Clip.hardEdge,
     this.shrinkWrap = false,
@@ -42,7 +49,32 @@ class PaginationContainer extends StatefulWidget {
     this.onError,
     this.top,
     this.bottom,
+    this.embedded = false,
+    this.controller,
   });
+
+  /// Fixed list of items to render without requesting any further page.
+  ///
+  /// When set, the container renders exactly this snapshot: [stream] publishes
+  /// nothing, [paginate] is never awaited, and the terminal footer appears as
+  /// soon as the last item is built. Defaults to `null`, which keeps the
+  /// paginated behavior.
+  final List<dynamic>? items;
+
+  /// Renders the list inside a parent scrollable instead of owning scrolling.
+  ///
+  /// When `true` the list sizes itself to its items ([shrinkWrap] behavior),
+  /// ignores [primary], never captures drag gestures, and replaces the
+  /// scroll-edge pagination trigger with the explicit "load more" button.
+  /// Use it inside chat lists or any other vertical scroll view. Defaults to
+  /// `false`, which keeps the existing behavior.
+  final bool embedded;
+
+  /// Optional handle used to reveal items by index or predicate.
+  ///
+  /// See [RevealController]. Only the item being revealed is wrapped in a keyed
+  /// subtree; without a controller the item tree is unchanged.
+  final RevealController? controller;
 
   /// Builds each visible item from its index and matching streamed data.
   ///
@@ -104,8 +136,9 @@ class PaginationContainer extends StatefulWidget {
   /// Emits the latest list snapshot that should replace the current items.
   ///
   /// Each event is treated as the authoritative collection, allowing external
-  /// state to reset or replace the rendered data at any time.
-  final Stream<dynamic> stream;
+  /// state to reset or replace the rendered data at any time. Optional when
+  /// [items] is given, in which case the list never changes.
+  final Stream<dynamic>? stream;
 
   /// Seeds the list before the first stream event arrives.
   ///
@@ -159,8 +192,8 @@ class PaginationContainer extends StatefulWidget {
   /// Requests the next page after the user reaches the trailing edge.
   ///
   /// Returning `null` or an empty result marks pagination as complete and shows
-  /// the terminal footer.
-  final Future<dynamic> Function() paginate;
+  /// the terminal footer. Optional when [items] is given.
+  final Future<dynamic> Function()? paginate;
 
   /// Creates the state that coordinates scroll events, stream updates, and
   /// footers.
@@ -169,6 +202,27 @@ class PaginationContainer extends StatefulWidget {
   /// transient pagination flags for this widget instance.
   @override
   State<PaginationContainer> createState() => _PaginationContainerState();
+}
+
+/// Reveals items of a [PaginationContainer] that may not be built yet.
+///
+/// Pass one instance to [PaginationContainer.controller] and call
+/// [RevealController.reveal] with an item index or a predicate
+/// `bool Function(dynamic item)`. Calls return `false` while no container is
+/// attached, or when the target cannot be built.
+class _PaginationRevealHandler implements RevealHandler {
+  _PaginationRevealHandler(this._state);
+
+  final _PaginationContainerState _state;
+
+  @override
+  Future<bool> revealTarget(Object target, double alignment) {
+    if (target is int) return _state._revealIndex(target, alignment, 5);
+    if (target is bool Function(dynamic)) {
+      return _state._revealWhere(target, alignment, 5);
+    }
+    return Future.value(false);
+  }
 }
 
 /// Stores pagination progress, transient errors, and scroll restoration state.
@@ -225,15 +279,42 @@ class _PaginationContainerState extends State<PaginationContainer> {
   /// cancelled when the widget is disposed.
   StreamSubscription<dynamic>? _streamSubscription;
 
+  /// The single key that locates the item currently being revealed.
+  ///
+  /// Only one item is ever wrapped in [_revealKey], so a long list never pays
+  /// for a key per built row. The slot is cleared as soon as the reveal ends.
+  final GlobalKey _revealKey = GlobalKey();
+
+  /// What [_revealKey] is currently addressing.
+  ///
+  /// Either an `int` index into [data] or a `bool Function(dynamic item)`
+  /// predicate. Both are re-resolved against the live [data] on every build, so
+  /// a list that is prepended to or reordered still reveals the same item.
+  Object? _revealTarget;
+
+  /// The index [_revealKey] is currently attached to, or `null` when the key is
+  /// not in the tree. Tracked separately from [_revealTarget] because a
+  /// predicate slot has no index of its own.
+  int? _revealKeyIndex;
+
+  /// Bridges [RevealController.reveal] calls onto this container's own logic.
+  late final _PaginationRevealHandler _revealHandler = _PaginationRevealHandler(
+    this,
+  );
+
   @override
   void initState() {
     super.initState();
+    widget.controller?.attach(_revealHandler);
 
-    end = false;
     error = null;
-    data = widget.initialData ?? [];
+    data = widget.items ?? widget.initialData ?? [];
     isBottom = false;
-    loading = widget.initialData == null;
+    // A fixed [PaginationContainer.items] snapshot is already complete, so the
+    // container reports the end immediately instead of showing a loading
+    // placeholder or awaiting a page that will never arrive.
+    end = widget.items != null;
+    loading = widget.items == null && widget.initialData == null;
     _controller = ScrollController(
       initialScrollOffset: widget.initialScrollOffset,
     );
@@ -250,7 +331,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
       await _requestNextPage();
     });
 
-    final subscription = widget.stream.listen((event) async {
+    final subscription = widget.stream?.listen((event) async {
       loading = true;
       if (mounted) setState(() {});
       final eventData = event != null ? event as List<dynamic> : null;
@@ -263,7 +344,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
       loading = false;
       if (mounted) setState(() {});
     });
-    subscription.onError((e) {
+    subscription?.onError((e) {
       error = e.toString();
       _reportError(error!);
       loading = false;
@@ -283,12 +364,17 @@ class _PaginationContainerState extends State<PaginationContainer> {
   Future<void> _requestNextPage() async {
     if (end) return;
     if (loading) return;
+    if (widget.paginate == null) {
+      end = true;
+      if (mounted) setState(() {});
+      return;
+    }
     loading = true;
     if (mounted) setState(() {});
     await Future.delayed(const Duration(milliseconds: 300));
     try {
       error = null;
-      final paginationData = await widget.paginate();
+      final paginationData = await widget.paginate!();
       end = paginationData == null || paginationData.isEmpty;
       if (!end) {
         _pageNumber++;
@@ -301,6 +387,184 @@ class _PaginationContainerState extends State<PaginationContainer> {
     await Future.delayed(const Duration(milliseconds: 300));
     loading = false;
     if (mounted) setState(() {});
+  }
+
+  /// Waits for [frames] rendered frames.
+  Future<void> _frames([int frames = 1]) async {
+    for (var i = 0; i < frames; i++) {
+      final completer = Completer<void>();
+      WidgetsBinding.instance.addPostFrameCallback((_) => completer.complete());
+      WidgetsBinding.instance.scheduleFrame();
+      await completer.future;
+    }
+  }
+
+  /// Requests pages until [done] holds, the list ends, or [maxPages] is hit.
+  Future<void> _loadUntil(bool Function() done, int maxPages) async {
+    var pages = 0;
+    while (mounted && !done() && !end && pages < maxPages) {
+      if (loading) {
+        await _frames(2);
+        continue;
+      }
+      pages++;
+      await _requestNextPage();
+      await _frames(2);
+    }
+  }
+
+  /// Implements [RevealController.reveal] for a predicate target.
+  Future<bool> _revealWhere(
+    bool Function(dynamic item) test,
+    double alignment,
+    int maxPages,
+  ) async {
+    int find() => data.indexWhere(test);
+    await _loadUntil(() => find() >= 0, maxPages);
+    final index = find();
+    if (index < 0) {
+      _clearRevealSlot();
+      return false;
+    }
+    // The predicate, not the resolved index, stays in the reveal slot so pages
+    // arriving mid-reveal (and any reorder they cause) keep addressing the same
+    // item.
+    return _revealIndex(index, alignment, 0, slot: test);
+  }
+
+  /// Implements [RevealController.reveal] for an index target.
+  Future<bool> _revealIndex(
+    int index,
+    double alignment,
+    int maxPages, {
+    Object? slot,
+  }) async {
+    if (index < 0) return false;
+    _revealTarget = slot ?? index;
+    await _loadUntil(() => index < data.length, maxPages);
+    // Positional targets are re-resolved on every pass: a page that prepends
+    // (the newest-first case) shifts the item down, so holding on to [index]
+    // would walk toward — and finally reveal — whatever now sits at it.
+    int? resolve() {
+      if (slot == null) return index < data.length ? index : null;
+      final found = data.indexWhere(slot as bool Function(dynamic));
+      return found < 0 ? null : found;
+    }
+
+    var resolved = resolve();
+    if (!mounted || resolved == null) {
+      _clearRevealSlot();
+      return false;
+    }
+    // Fragment the build: the slot may be addressing an item that is not the
+    // one currently wrapped in [_revealKey] (a reordered or prepended list), so
+    // the key is re-published and the walk re-run until the target itself is
+    // the wrapped item.
+    if (!_isTargetBuilt(resolved)) {
+      _setRevealSlot();
+      // Drives the lazy list toward the item until it is built. The estimate
+      // uses the scrollable extent, then walks by viewport pages toward the
+      // nearest built neighbour when the estimate undershoots.
+      for (
+        var attempt = 0;
+        attempt < 24 && !_isTargetBuilt(resolved!);
+        attempt++
+      ) {
+        if (!mounted) break;
+        resolved = resolve();
+        if (resolved == null) break;
+        if (_controller.hasClients &&
+            _controller.position.hasContentDimensions) {
+          final position = _controller.position;
+          final total = data.length;
+          final extent = position.maxScrollExtent + position.viewportDimension;
+          var target = attempt == 0
+              ? extent * resolved / total
+              : position.pixels +
+                    _directionToward(resolved) *
+                        position.viewportDimension *
+                        0.8;
+          target = target.clamp(
+            position.minScrollExtent,
+            position.maxScrollExtent,
+          );
+          if ((target - position.pixels).abs() > 1) _controller.jumpTo(target);
+        }
+        await _frames();
+      }
+      resolved = resolve();
+    }
+    final context = resolved != null && _isTargetBuilt(resolved)
+        ? _revealKey.currentContext
+        : null;
+    if (context == null || !context.mounted) {
+      _clearRevealSlot();
+      return false;
+    }
+    try {
+      return await ScrollReveal.reveal(context, alignment: alignment);
+    } finally {
+      _clearRevealSlot();
+    }
+  }
+
+  /// Whether [_revealKey] currently wraps the item at [index].
+  bool _isTargetBuilt(int index) => _revealKeyIndex == index;
+
+  /// Publishes the reveal slot so the item is wrapped in [_revealKey].
+  void _setRevealSlot() {
+    if (!mounted) return;
+    setState(() {});
+  }
+
+  /// Clears the reveal slot so the item stops being wrapped in a key.
+  void _clearRevealSlot() {
+    if (_revealTarget == null) return;
+    _revealTarget = null;
+    _revealKeyIndex = null;
+    _setRevealSlot();
+  }
+
+  /// Whether [_revealKey] should wrap the item at [index].
+  bool _isRevealTarget(int index) {
+    final target = _revealTarget;
+    if (target == null) return false;
+    if (target is int) return target == index;
+    if (target is bool Function(dynamic)) return target(data[index]);
+    return false;
+  }
+
+  /// The lowest and highest indices among the currently built list children.
+  ///
+  /// A lazily built [ListView] only holds the rows near the viewport, so the
+  /// range decides which way the reveal walk has to travel. Returns `null`
+  /// while the sliver has no children.
+  (int, int)? _builtIndexBounds() {
+    if (!_controller.hasClients) return null;
+    final object = _controller.position.context.storageContext
+        .findRenderObject();
+    if (object is! RenderSliverMultiBoxAdaptor) return null;
+    int? lowest;
+    int? highest;
+    for (RenderBox? child = object.firstChild; child != null;) {
+      final parentData = child.parentData;
+      if (parentData is! SliverMultiBoxAdaptorParentData) break;
+      final index = parentData.index;
+      if (index != null) {
+        if (lowest == null || index < lowest) lowest = index;
+        if (highest == null || index > highest) highest = index;
+      }
+      child = parentData.nextSibling;
+    }
+    if (lowest == null || highest == null) return null;
+    return (lowest, highest);
+  }
+
+  /// Returns `-1` when the built items sit before [index] and `1` when after.
+  double _directionToward(int index) {
+    final bounds = _builtIndexBounds();
+    if (bounds == null) return 1;
+    return index < bounds.$1 ? -1 : 1;
   }
 
   /// Announces the new page number to assistive technology.
@@ -341,6 +605,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
   /// been removed from the tree.
   @override
   void dispose() {
+    widget.controller?.detach(_revealHandler);
     _controller.dispose();
     // `drain()` attaches a *second* listener instead of releasing the first one,
     // so the original subscription kept firing after dispose. Cancel it.
@@ -354,6 +619,15 @@ class _PaginationContainerState extends State<PaginationContainer> {
   /// The returned widget switches between placeholder scroll views and a
   /// paginated [ListView] so the layout stays consistent across data states.
   @override
+  void didUpdateWidget(covariant PaginationContainer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller?.detach(_revealHandler);
+      widget.controller?.attach(_revealHandler);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final locales = AppLocalizations.of(context);
     final theme = Theme.of(context);
@@ -362,7 +636,11 @@ class _PaginationContainerState extends State<PaginationContainer> {
     // unreliable for screen-reader users, so an explicit "load more" control
     // is offered instead of relying on scroll position when a screen reader
     // is active.
-    final accessibleNavigation = MediaQuery.accessibleNavigationOf(context);
+    final accessibleNavigation =
+        MediaQuery.accessibleNavigationOf(context) || widget.embedded;
+    final lockedPhysics = widget.embedded
+        ? const NeverScrollableScrollPhysics()
+        : (widget.shrinkWrap ? null : const ClampingScrollPhysics());
     int total = data.length;
     final widgetEmpty =
         widget.empty ??
@@ -398,7 +676,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
         restorationId: 'pagination-container-loading',
         primary: false,
         padding: widget.padding,
-        physics: widget.shrinkWrap ? null : const ClampingScrollPhysics(),
+        physics: lockedPhysics,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           spacing: density.gap(16),
@@ -414,7 +692,7 @@ class _PaginationContainerState extends State<PaginationContainer> {
         restorationId: 'pagination-container-empty',
         primary: false,
         padding: widget.padding,
-        physics: widget.shrinkWrap ? null : const ClampingScrollPhysics(),
+        physics: lockedPhysics,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           spacing: density.gap(16),
@@ -434,98 +712,120 @@ class _PaginationContainerState extends State<PaginationContainer> {
           (accessibleNavigation && !end)) {
         totalCount++;
       }
-      content = Scrollbar(
-        thumbVisibility: true,
-        trackVisibility: true,
-        interactive: true,
+      // Reset the derived key-index cache; the item builder re-populates it only
+      // if the wrapped item is actually built this frame, so an off-screen
+      // target never reads as "built".
+      var revealed = false;
+      _revealKeyIndex = null;
+      final list = ListView.builder(
+        key: const PageStorageKey('pagination-container-scroll'),
+        restorationId: 'pagination-container',
+        physics: lockedPhysics,
+        clipBehavior: widget.clipBehavior,
+        primary: widget.embedded ? false : widget.primary,
+        scrollCacheExtent: ScrollCacheExtent.viewport(widget.cacheExtent),
         controller: _controller,
-        child: ListView.builder(
-          key: const PageStorageKey('pagination-container-scroll'),
-          restorationId: 'pagination-container',
-          physics: widget.shrinkWrap ? null : const ClampingScrollPhysics(),
-          clipBehavior: widget.clipBehavior,
-          primary: widget.primary,
-          scrollCacheExtent: ScrollCacheExtent.viewport(widget.cacheExtent),
-          controller: _controller,
-          itemCount: totalCount,
-          padding: widget.padding,
-          shrinkWrap: widget.shrinkWrap,
-          itemBuilder: (BuildContext context, int index) {
-            if (index < total) {
-              if (index == 0 && widget.top != null) {
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  spacing: density.gap(16),
-                  children: [
-                    widget.top!,
-                    widget.itemBuilder(context, index, data[index]),
-                  ],
-                );
-              } else if (index == (total - 1) && widget.bottom != null) {
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  spacing: density.gap(16),
-                  children: [
-                    widget.bottom!,
-                    widget.itemBuilder(context, index, data[index]),
-                  ],
-                );
-              }
-              return widget.itemBuilder(context, index, data[index]);
-            }
-            Widget footer = Semantics(
-              label: locales.get('label--nothing-here-yet'),
-              child: widgetEnd,
-            );
-            if (error != null) {
-              footer = Semantics(
-                liveRegion: true,
-                child: Card(
-                  margin: density.all(16, min: 8),
-                  color: theme.colorScheme.errorContainer,
-                  child: ListTile(
-                    contentPadding: density.all(16, min: 8),
-                    leading: Icon(Icons.error),
-                    title: Text(error!),
-                    textColor: theme.colorScheme.onErrorContainer,
-                    iconColor: theme.colorScheme.onErrorContainer,
-                  ),
+        itemCount: totalCount,
+        padding: widget.padding,
+        shrinkWrap: widget.shrinkWrap || widget.embedded,
+        itemBuilder: (BuildContext context, int index) {
+          if (index < total) {
+            final item = _buildItem(context, index, total, density);
+            if (widget.controller == null) return item;
+            // Exactly one item is wrapped in the reveal key at any time, so a
+            // long list never allocates a key per built row and a predicate
+            // target can never collide with a second match.
+            if (revealed || !_isRevealTarget(index)) return item;
+            revealed = true;
+            _revealKeyIndex = index;
+            return KeyedSubtree(key: _revealKey, child: item);
+          }
+          Widget footer = Semantics(
+            label: locales.get('label--nothing-here-yet'),
+            child: widgetEnd,
+          );
+          if (error != null) {
+            footer = Semantics(
+              liveRegion: true,
+              child: Card(
+                margin: density.all(16, min: 8),
+                color: theme.colorScheme.errorContainer,
+                child: ListTile(
+                  contentPadding: density.all(16, min: 8),
+                  leading: Icon(Icons.error),
+                  title: Text(error!),
+                  textColor: theme.colorScheme.onErrorContainer,
+                  iconColor: theme.colorScheme.onErrorContainer,
                 ),
-              );
-            } else if (loading) {
-              footer = Semantics(
-                liveRegion: true,
-                label: locales.get('label--loading'),
-                child: widgetLoading,
-              );
-            } else if (!end && accessibleNavigation) {
-              // Explicit, focusable alternative to the scroll-edge trigger so
-              // assistive-technology users can reliably load more results.
-              footer = Center(
-                child: Padding(
-                  padding: density.all(16, min: 8),
-                  child: OutlinedButton.icon(
-                    style: ButtonStyle(
-                      minimumSize: WidgetStateProperty.all(const Size(48, 48)),
-                    ),
-                    onPressed: _requestNextPage,
-                    icon: const Icon(Icons.expand_more),
-                    label: Text(locales.get('label--load-more').toUpperCase()),
-                  ),
-                ),
-              );
-            }
-            return ConstrainedBox(
-              constraints: BoxConstraints(minHeight: kToolbarHeight * 2),
-              child: ContentContainer(child: footer),
+              ),
             );
-          },
-          reverse: widget.reverse,
-          scrollDirection: widget.scrollDirection,
-        ),
+          } else if (loading) {
+            footer = Semantics(
+              liveRegion: true,
+              label: locales.get('label--loading'),
+              child: widgetLoading,
+            );
+          } else if (!end && accessibleNavigation) {
+            // Explicit, focusable alternative to the scroll-edge trigger so
+            // assistive-technology users can reliably load more results.
+            footer = Center(
+              child: Padding(
+                padding: density.all(16, min: 8),
+                child: OutlinedButton.icon(
+                  style: ButtonStyle(
+                    minimumSize: WidgetStateProperty.all(const Size(48, 48)),
+                  ),
+                  onPressed: _requestNextPage,
+                  icon: const Icon(Icons.expand_more),
+                  label: Text(locales.get('label--load-more').toUpperCase()),
+                ),
+              ),
+            );
+          }
+          return ConstrainedBox(
+            constraints: BoxConstraints(minHeight: kToolbarHeight * 2),
+            child: ContentContainer(child: footer),
+          );
+        },
+        reverse: widget.reverse,
+        scrollDirection: widget.scrollDirection,
       );
+      content = widget.embedded
+          ? list
+          : Scrollbar(
+              thumbVisibility: true,
+              trackVisibility: true,
+              interactive: true,
+              controller: _controller,
+              child: list,
+            );
     }
 
     return content;
+  }
+
+  /// Builds the item at [index], adding [PaginationContainer.top] before the
+  /// first and [PaginationContainer.bottom] before the last entry.
+  Widget _buildItem(
+    BuildContext context,
+    int index,
+    int total,
+    DensitySpacing density,
+  ) {
+    final child = widget.itemBuilder(context, index, data[index]);
+    if (index == 0 && widget.top != null) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        spacing: density.gap(16),
+        children: [widget.top!, child],
+      );
+    } else if (index == (total - 1) && widget.bottom != null) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        spacing: density.gap(16),
+        children: [widget.bottom!, child],
+      );
+    }
+    return child;
   }
 }

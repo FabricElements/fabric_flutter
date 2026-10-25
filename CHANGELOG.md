@@ -1,5 +1,60 @@
 ## [Unreleased]
 
+### Added
+
+* **`ScrollReveal`** (`lib/helper/scroll_reveal.dart`) scrolls a target into view
+  and keeps it there while the layout settles, so async content that grows above
+  the target — or an expanding tile that shifts it — no longer strands it
+  offscreen. `ScrollReveal.reveal(BuildContext target, {alignment = 0.1, settle =
+  1500ms, quiet = 500ms, duration = 250ms, curve = Curves.easeInOut})` walks
+  every enclosing `Scrollable`, re-checks the alignment until the layout holds
+  still, stops as soon as the user scrolls or the target unmounts, and jumps (no
+  animation) when the platform requests reduced motion. It returns `true` only
+  when the target ended in view, and `false` when it unmounted, has no enclosing
+  scrollable, or the user took over. The helper is stateless and does nothing
+  unless called.
+* **`RevealController`** (`lib/helper/scroll_reveal.dart`) is the single controller
+  a component opts into, exposing one method — `reveal(Object target, {alignment =
+  0.1})`. Each component maps `target` onto its own layout: `PaginationContainer`
+  takes an item index or a predicate `bool Function(dynamic item)` (loading
+  further pages, bounded, when the item is not loaded yet); `StepperExtended` takes
+  a step index, or a `RevealTarget(target: index, within: fieldKey)` to reveal a
+  widget inside a step; `ExpansionTable` takes a `TableRowData` or a row index,
+  with `RevealTarget(column: index)` for a specific column. Targets are
+  re-resolved against the live data on every rebuild, so a list that loads more
+  items or is prepended to still reveals the same item, and only one reveal runs
+  at a time — starting a new one cancels the one in flight, which then returns
+  `false`. Pass the controller to the existing `controller:` parameter of the
+  component. Item keys are only added while a reveal is in flight, so existing
+  trees are unchanged.
+* **`RevealTarget`** (`lib/helper/scroll_reveal.dart`) is the small value type used
+  when a reveal needs more than a plain target — `const RevealTarget({Object?
+  target, int? column, GlobalKey? within})`.
+* **`PaginationContainer.embedded`** renders the list inside a parent scrollable
+  instead of owning scrolling: it sizes to its content (`shrinkWrap`), ignores
+  `primary`, never captures drag gestures, and swaps the scroll-edge pagination
+  trigger for an explicit "load more" button. Combine it with the new optional
+  `items` argument to render a fixed JSON-friendly snapshot with no stream and no
+  further pages. `embedded` defaults to `false`, which keeps the previous
+  behavior.
+* **`StepperExtended.controller`** and **`ExpansionTable.controller`** accept a
+  `RevealController`. `StepperExtended` works with `scrollable` both on and off —
+  with it off, the enclosing scrollable moves. `ExpansionTable` inherits the root
+  controller in nested tables.
+* **`ExpansionTable.columnWidth`** overrides the fixed column width so a table can
+  be sized for a narrow generative surface. Defaults to the existing behavior
+  when `null`.
+
+### Notes for consumers embedding in generative UI surfaces
+
+`contact_table` maps onto `ExpansionTable` and `plan_stepper` onto
+`StepperExtended`; in a parent chat `ListView`, use
+`PaginationContainer(embedded: true)` (with `items:` for a fixed snapshot),
+`StepperExtended(scrollable: false)` (the default), `ExpansionTable(columnWidth:
+...)`, and `LogsList(scrollable: false)` (the default). All of these are opt-in: no
+existing signature, callback, or rendered behavior changes unless the new
+arguments are supplied.
+
 ## [3.3.0] - 2026-10-24
 
 ### Dependencies
