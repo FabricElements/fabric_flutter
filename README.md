@@ -362,6 +362,8 @@ Both are no-ops until the component is mounted, and both report `false` instead 
 
 The agent bridge lets an external agent — an MCP client, a cloud workflow, an automated test — drive the app the way a user can: read the current screen, set any input, tap any button, navigate, and run host-registered actions. It **reuses the accessibility metadata above as its contract**: `automationKey` is the element identifier, `semanticsLabel` the label, `semanticHint` the description. There is no parallel metadata to maintain, and the binding adds no `Semantics` node, so the accessibility tree is unchanged.
 
+> **Building against the bridge?** [`doc/agent.md`](doc/agent.md) is the practical reference: how to configure `AgentBridge`, how to make a widget agent-ready with `AgentElement`, and the exact parameters and result shape of every built-in command. This section is the summary; that document is the contract.
+
 The bridge is **transport agnostic** (`handle` takes a decoded request map and returns a decoded response map), **performs no access control of its own**, and is **disabled by default**:
 
 ```dart
@@ -404,7 +406,7 @@ Commands that interact with an element (`tap`, `set_value`) reveal and focus the
 |---------|--------|--------|
 | `set_value` | `elementId` (string), `value` (any) | `{ id, value, valid, error }` — runs the field validator after setting |
 | `read_value` | `elementId` (string) | Full snapshot including `error` (String?) from the last validation |
-| `form.submit` | `elementId` (string, any field in the form) | `{ valid: true }` when all pass, or `{ valid: false, errors: [{"elementId": "...", "error": "..."}, ...] }` — validates the enclosing `Form` but does **not** submit |
+| `form.submit` | `elementId` (string, any field in the form) | `{ valid: true }` when all pass, or `{ valid: false, errors: { "<elementId>": "<error>" } }` — validates the enclosing `Form` but does **not** submit |
 
 Requests are `{ "id", "method": "describe" | "state" | "invoke" | "ping", "params": {...} }` and responses are `{ "id", "ok": true, "result": {...} }` or `{ "id", "ok": false, "error": { "code", "message" } }`, with the codes `unauthorized`, `not_found`, `invalid_params`, `disabled`, and `failed`. `describe` is shaped to map 1:1 onto MCP tool definitions. The built-in commands are `navigate`, `set_value`, `tap`, `read_value`, `wait_for`, `screen_state`, `list_commands`, `element.reveal`, `element.focus`, and `form.submit`.
 
