@@ -341,8 +341,9 @@ class AgentBridge {
       params: commandParams,
       meta: Map<String, dynamic>.from(commandAuthorization.meta),
     );
-    return Future<Object?>.sync(() => command.handler(context))
-        .timeout(timeout);
+    return Future<Object?>.sync(
+      () => command.handler(context),
+    ).timeout(timeout);
   }
 
   /// Asks the configured authorizer whether [request] may proceed.
