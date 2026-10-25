@@ -2,6 +2,29 @@
 
 ### Added
 
+* **Agent `tap` activates through `ActivateIntent`.** The `tap` command now first
+  tries the Flutter `Actions` system (`Actions.maybeInvoke(context, const
+  ActivateIntent())`) on the element's context after revealing it. When an
+  `ActivateIntent` handler is registered and enabled the tap routes through
+  `Actions` — the same path keyboard activation (Enter / Space) takes — and the
+  result reports `{id, method: 'actions', activated: true}`. When no
+  `ActivateIntent` handler exists the command falls back to the element's own
+  `activator` callback (the legacy path), reporting `{id, method: 'activator',
+  activated: true}`. Disabled elements are rejected before either path is tried.
+* **Agent form validation commands.** Three changes extend the existing `set_value`,
+  `read_value`, and a new `form.submit` command so an agent can validate forms
+  through indexed `InputData` fields:
+  - `set_value` now runs the element's `FormField` validator (when one is
+    registered through `AgentElement.validatorFn`) after applying the value and
+    returns `{id, value, valid, error}`.
+  - `read_value` now includes the current validation `error` in the snapshot
+    (the `AgentElementSnapshot` model gained a nullable `error` field).
+  - `form.submit` validates the enclosing `Form` (`Form.of(context).validate()`)
+    for a given element id and returns `{valid: true}` when every field passes
+    or `{valid: false, errors: [{"elementId": "...", "error": "..."}, ...]}`
+    with one entry per failing field. It does **not** call `FormState.save` or
+    submit the form — it only validates.
+
 * **Agent focus & reveal** — `AgentElement` now accepts an optional `focusNode`
   parameter. The registered handle exposes `reveal({alignment = 0.1})` which
   calls `ScrollReveal.reveal` on the element's context (walking past the
