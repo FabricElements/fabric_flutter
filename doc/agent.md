@@ -93,14 +93,31 @@ AgentBridge.instance.ensureSemanticsOnWeb = true;
 AgentBridge.instance.configure(enabled: true, appName: 'My App');
 ```
 
-When `true` and the bridge is enabled on the web, the bridge acquires a `SemanticsHandle`
-and holds it; the handle is released when the bridge is disabled or `reset()`. Toggling the
-flag while the bridge is running takes effect immediately. On native platforms it is a
-no-op, because semantics are always enabled there.
+When `true`, the bridge acquires a `SemanticsHandle` on the **first authorized request**
+and holds it while an agent is active. The handle is released after
+[`semanticsIdleTimeout`](#semanticsidletimeout) of inactivity, when the bridge is disabled,
+or on `reset()`. This avoids forcing the semantics DOM on permanently for every user when
+the bridge is always enabled in production. Unauthorized or disabled-bridge requests never
+acquire the handle.
+
+Toggling the flag off while the bridge is running releases any held handle immediately. On
+native platforms this is a no-op, because semantics are always enabled there.
 
 `state` and `screen_state` report `semanticsEnabled` so an agent can verify the tree is
-populated before it starts reading. `AgentBridge.debugIsWebOverride` (test-only) overrides
-`kIsWeb` so the web path can be exercised under `flutter test`.
+populated before it starts reading. The first response after idle may see `false` until the
+next frame; agents should call `wait_for` or retry `screen_state` once.
+
+`AgentBridge.debugIsWebOverride` (test-only) overrides `kIsWeb` so the web path can be
+exercised under `flutter test`.
+
+### `semanticsIdleTimeout`
+
+How long the bridge holds the web `SemanticsHandle` after the last authorized request
+before releasing it. Defaults to 5 minutes. Each authorized request resets the timer.
+
+```dart
+AgentBridge.instance.configure(semanticsIdleTimeout: Duration(minutes: 2));
+```
 
 ---
 

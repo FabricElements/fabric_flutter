@@ -962,71 +962,152 @@ void main() {
         AgentBridge.debugIsWebOverride = null;
       });
 
-      test('should report semanticsEnabled in state', () async {
-        // Arrange
-        final bridge = _bridge();
-        bridge.ensureSemanticsOnWeb = true;
-        bridge.configure(enabled: true, registerBuiltInCommands: false);
-
-        // Act
-        final response = await bridge.handle(_request('state'));
-        final result = response['result'] as Map;
-
-        // Assert
-        expect(result['semanticsEnabled'], isTrue);
-      });
-
-      test('should report semanticsEnabled in screen_state command', () async {
-        // Arrange
-        final bridge = _bridge();
-        bridge.ensureSemanticsOnWeb = true;
-        bridge.configure(enabled: true, registerBuiltInCommands: false);
-
-        // Act
-        final response = await bridge.handle(_invoke('screen_state'));
-        final result = response['result'] as Map;
-
-        // Assert
-        expect(result['semanticsEnabled'], isTrue);
-      });
-
       test(
-        'should acquire a handle when ensureSemanticsOnWeb is true',
+        'should not acquire a handle until an authorized request arrives',
         () async {
           // Arrange
-          final bridge = _bridge();
+          final bridge = AgentBridge(
+            elements: AgentElementIndex(),
+            navigatorObserver: AgentNavigatorObserver(),
+          );
           bridge.ensureSemanticsOnWeb = true;
+          bridge.configure(
+            enabled: true,
+            authorizer: const AgentAllowAllAuthorizer(),
+            registerBuiltInCommands: false,
+          );
 
-          // Act
-          bridge.configure(enabled: true, registerBuiltInCommands: false);
-
-          // Assert
-          expect(bridge.hasSemanticsHandle, isTrue);
-          expect(bridge.semanticsEnabled, isTrue);
-        },
-      );
-
-      test(
-        'should not acquire a handle when ensureSemanticsOnWeb is false',
-        () async {
-          // Arrange
-          final bridge = _bridge();
-          bridge.ensureSemanticsOnWeb = false;
-
-          // Act
-          bridge.configure(enabled: true, registerBuiltInCommands: false);
-
-          // Assert
-          expect(bridge.ensureSemanticsOnWeb, isFalse);
+          // Assert — enabled + ensureSemanticsOnWeb but no request yet
           expect(bridge.hasSemanticsHandle, isFalse);
         },
       );
 
+      test('should acquire a handle on the first authorized request', () async {
+        // Arrange
+        final bridge = AgentBridge(
+          elements: AgentElementIndex(),
+          navigatorObserver: AgentNavigatorObserver(),
+        );
+        bridge.ensureSemanticsOnWeb = true;
+        bridge.configure(
+          enabled: true,
+          authorizer: const AgentAllowAllAuthorizer(),
+          registerBuiltInCommands: false,
+        );
+
+        // Act
+        await bridge.handle(_request('ping'));
+
+        // Assert
+        expect(bridge.hasSemanticsHandle, isTrue);
+        expect(bridge.semanticsEnabled, isTrue);
+      });
+
+      test('should not acquire a handle on an unauthorized request', () async {
+        // Arrange
+        final bridge = AgentBridge(
+          elements: AgentElementIndex(),
+          navigatorObserver: AgentNavigatorObserver(),
+        );
+        bridge.ensureSemanticsOnWeb = true;
+        bridge.configure(
+          enabled: true,
+          authorizer: const _DenyAllAuthorizer(),
+          registerBuiltInCommands: false,
+        );
+
+        // Act
+        final response = await bridge.handle(_request('ping'));
+
+        // Assert
+        expect(response['ok'], isFalse);
+        expect(bridge.hasSemanticsHandle, isFalse);
+      });
+
+      test(
+        'should not acquire a handle on a disabled-bridge request',
+        () async {
+          // Arrange
+          final bridge = AgentBridge(
+            elements: AgentElementIndex(),
+            navigatorObserver: AgentNavigatorObserver(),
+          );
+          bridge.ensureSemanticsOnWeb = true;
+          // Bridge is NOT enabled — never calls configure
+
+          // Act
+          final response = await bridge.handle(_request('ping'));
+
+          // Assert
+          expect(response['ok'], isFalse);
+          expect(bridge.hasSemanticsHandle, isFalse);
+        },
+      );
+
+      test('should release the handle after the idle timeout', () async {
+        // Arrange
+        final bridge = AgentBridge(
+          elements: AgentElementIndex(),
+          navigatorObserver: AgentNavigatorObserver(),
+        );
+        bridge.ensureSemanticsOnWeb = true;
+        bridge.configure(
+          enabled: true,
+          authorizer: const AgentAllowAllAuthorizer(),
+          semanticsIdleTimeout: Duration.zero,
+          registerBuiltInCommands: false,
+        );
+
+        // Act — let the zero-duration idle timer fire
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+
+        // Assert
+        expect(bridge.hasSemanticsHandle, isFalse);
+      });
+
+      test('should reset the idle timer on each authorized request', () async {
+        // Arrange
+        final bridge = AgentBridge(
+          elements: AgentElementIndex(),
+          navigatorObserver: AgentNavigatorObserver(),
+        );
+        bridge.ensureSemanticsOnWeb = true;
+        bridge.configure(
+          enabled: true,
+          authorizer: const AgentAllowAllAuthorizer(),
+          semanticsIdleTimeout: const Duration(milliseconds: 50),
+          registerBuiltInCommands: false,
+        );
+        await bridge.handle(_request('ping'));
+        expect(bridge.hasSemanticsHandle, isTrue);
+
+        // Act — make another request before the timer fires
+        await Future<void>.delayed(const Duration(milliseconds: 30));
+        await bridge.handle(_request('describe'));
+
+        // Assert — handle should still be held (timer reset)
+        await Future<void>.delayed(const Duration(milliseconds: 30));
+        expect(bridge.hasSemanticsHandle, isTrue);
+
+        // After full timeout without activity it should release
+        await Future<void>.delayed(const Duration(milliseconds: 60));
+        expect(bridge.hasSemanticsHandle, isFalse);
+      });
+
       test('should release semantics handle on reset', () async {
         // Arrange
-        final bridge = _bridge();
+        final bridge = AgentBridge(
+          elements: AgentElementIndex(),
+          navigatorObserver: AgentNavigatorObserver(),
+        );
         bridge.ensureSemanticsOnWeb = true;
-        bridge.configure(enabled: true, registerBuiltInCommands: false);
+        bridge.configure(
+          enabled: true,
+          authorizer: const AgentAllowAllAuthorizer(),
+          semanticsIdleTimeout: const Duration(minutes: 5),
+          registerBuiltInCommands: false,
+        );
+        await bridge.handle(_request('ping'));
         expect(bridge.hasSemanticsHandle, isTrue);
 
         // Act
@@ -1039,9 +1120,18 @@ void main() {
 
       test('should release semantics handle when disabled', () async {
         // Arrange
-        final bridge = _bridge();
+        final bridge = AgentBridge(
+          elements: AgentElementIndex(),
+          navigatorObserver: AgentNavigatorObserver(),
+        );
         bridge.ensureSemanticsOnWeb = true;
-        bridge.configure(enabled: true, registerBuiltInCommands: false);
+        bridge.configure(
+          enabled: true,
+          authorizer: const AgentAllowAllAuthorizer(),
+          semanticsIdleTimeout: const Duration(minutes: 5),
+          registerBuiltInCommands: false,
+        );
+        await bridge.handle(_request('ping'));
         expect(bridge.hasSemanticsHandle, isTrue);
 
         // Act
@@ -1052,32 +1142,91 @@ void main() {
         expect(bridge.hasSemanticsHandle, isFalse);
       });
 
-      test('should acquire handle when toggled on while running', () async {
+      test(
+        'should release handle when ensureSemanticsOnWeb toggled off',
+        () async {
+          // Arrange
+          final bridge = AgentBridge(
+            elements: AgentElementIndex(),
+            navigatorObserver: AgentNavigatorObserver(),
+          );
+          bridge.ensureSemanticsOnWeb = true;
+          bridge.configure(
+            enabled: true,
+            authorizer: const AgentAllowAllAuthorizer(),
+            semanticsIdleTimeout: const Duration(minutes: 5),
+            registerBuiltInCommands: false,
+          );
+          await bridge.handle(_request('ping'));
+          expect(bridge.hasSemanticsHandle, isTrue);
+
+          // Act
+          bridge.ensureSemanticsOnWeb = false;
+
+          // Assert
+          expect(bridge.hasSemanticsHandle, isFalse);
+        },
+      );
+
+      test('should report semanticsEnabled in state', () async {
         // Arrange
-        final bridge = _bridge();
-        bridge.ensureSemanticsOnWeb = false;
-        bridge.configure(enabled: true, registerBuiltInCommands: false);
-        expect(bridge.hasSemanticsHandle, isFalse);
+        final bridge = AgentBridge(
+          elements: AgentElementIndex(),
+          navigatorObserver: AgentNavigatorObserver(),
+        );
+        bridge.ensureSemanticsOnWeb = true;
+        bridge.configure(
+          enabled: true,
+          authorizer: const AgentAllowAllAuthorizer(),
+          registerBuiltInCommands: false,
+        );
 
         // Act
-        bridge.ensureSemanticsOnWeb = true;
+        await bridge.handle(_request('ping'));
+        final response = await bridge.handle(_request('state'));
+        final result = response['result'] as Map<dynamic, dynamic>;
 
         // Assert
-        expect(bridge.hasSemanticsHandle, isTrue);
+        expect(result['semanticsEnabled'], isTrue);
       });
 
-      test('should release handle when toggled off while running', () async {
+      test('should report semanticsEnabled in screen_state command', () async {
         // Arrange
-        final bridge = _bridge();
+        final bridge = AgentBridge(
+          elements: AgentElementIndex(),
+          navigatorObserver: AgentNavigatorObserver(),
+        );
         bridge.ensureSemanticsOnWeb = true;
-        bridge.configure(enabled: true, registerBuiltInCommands: false);
-        expect(bridge.hasSemanticsHandle, isTrue);
+        bridge.configure(
+          enabled: true,
+          authorizer: const AgentAllowAllAuthorizer(),
+        );
 
         // Act
-        bridge.ensureSemanticsOnWeb = false;
+        await bridge.handle(_request('ping'));
+        final response = await bridge.handle(_invoke('screen_state'));
+        final result = response['result'] as Map<dynamic, dynamic>;
 
         // Assert
-        expect(bridge.hasSemanticsHandle, isFalse);
+        expect(result['semanticsEnabled'], isTrue);
+      });
+
+      test('should accept semanticsIdleTimeout via configure', () async {
+        // Arrange
+        final bridge = AgentBridge(
+          elements: AgentElementIndex(),
+          navigatorObserver: AgentNavigatorObserver(),
+        );
+
+        // Act
+        bridge.configure(
+          enabled: true,
+          semanticsIdleTimeout: const Duration(seconds: 30),
+          registerBuiltInCommands: false,
+        );
+
+        // Assert
+        expect(bridge.semanticsIdleTimeout, const Duration(seconds: 30));
       });
     });
   });

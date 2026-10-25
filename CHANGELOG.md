@@ -132,6 +132,15 @@
 
 ### Changed
 
+* **Lazy web semantics in AgentBridge.** `ensureSemanticsOnWeb` now acquires the
+  `SemanticsHandle` on the first **authorized** request (instead of immediately
+  when the bridge is enabled), and releases it after `semanticsIdleTimeout`
+  (new, default 5 minutes) of inactivity. Unauthorized or disabled-bridge
+  requests never acquire the handle. This lets the bridge stay always-enabled
+  in production without imposing a permanent semantics-DOM cost for every user.
+  The handle is still released on `reset()` and when `ensureSemanticsOnWeb` is
+  toggled off. Configure via `AgentBridge.instance.configure(semanticsIdleTimeout: ...)`.
+
 * **Screen-reader announcements are now gated on the platform capability.**
   `SemanticsService.sendAnnouncement` is a no-op on platforms that do not
   implement announcements, so every announcement in the package now goes through

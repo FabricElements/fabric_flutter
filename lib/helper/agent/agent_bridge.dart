@@ -116,29 +116,48 @@ class AgentBridge {
   Duration _commandTimeout = const Duration(seconds: 30);
 
   /// When `true`, the bridge acquires a [SemanticsHandle] on the web while
-  /// enabled so external agents (MCP clients, browser automation) can read
-  /// the UI through the accessibility tree.
+  /// an agent is actively making authorized requests, so external agents
+  /// (MCP clients, browser automation) can read the UI through the
+  /// accessibility tree.
   ///
   /// On the web Flutter does not build the semantics DOM until accessibility
   /// is explicitly enabled. Without this an agent driving the page sees an
-  /// empty accessibility tree. The handle is acquired when the bridge is
-  /// enabled and released when it is disabled or [reset].
+  /// empty accessibility tree. The handle is acquired on the first authorized
+  /// request and released after [semanticsIdleTimeout] of inactivity so it
+  /// does not impose a permanent performance cost when no agent is connected.
   ///
-  /// Defaults to `false`. Toggling it while the bridge is running takes
-  /// effect immediately.
+  /// Defaults to `false`. Toggling it off while the bridge is running
+  /// releases any held handle immediately.
   bool get ensureSemanticsOnWeb => _ensureSemanticsOnWeb;
   bool _ensureSemanticsOnWeb = false;
   set ensureSemanticsOnWeb(bool value) {
+    if (_ensureSemanticsOnWeb == value) return;
     _ensureSemanticsOnWeb = value;
-    _syncSemantics();
+    if (!value) {
+      _cancelIdleTimer();
+      _releaseSemantics();
+    }
   }
+
+  /// How long the bridge holds the web [SemanticsHandle] after the last
+  /// authorized request before releasing it.
+  ///
+  /// Each authorized request resets this timer. Unauthorized or disabled
+  /// requests never start it. Set via [configure]; defaults to 5 minutes.
+  ///
+  /// On native platforms this is a no-op because semantics are always
+  /// enabled.
+  Duration get semanticsIdleTimeout => _semanticsIdleTimeout;
+  Duration _semanticsIdleTimeout = const Duration(minutes: 5);
+
+  Timer? _idleTimer;
 
   /// Override for [kIsWeb] in tests so the web-only semantics path can be
   /// exercised under `flutter test`.
   ///
   /// When non-null, [debugIsWebOverride] replaces [kIsWeb] in
-  /// [_syncSemantics]. Tests should set it in `setUp` and reset it to `null`
-  /// in `tearDown`.
+  /// [_afterAuthorizedRequest]. Tests should set it in `setUp` and reset it
+  /// to `null` in `tearDown`.
   @visibleForTesting
   static bool? debugIsWebOverride;
 
@@ -175,16 +194,25 @@ class AgentBridge {
     List<AgentRouteInfo>? routes,
     AgentAuthorizer? authorizer,
     Duration? commandTimeout,
+    Duration? semanticsIdleTimeout,
     bool registerBuiltInCommands = true,
   }) {
-    if (enabled != null) _enabled = enabled;
+    if (enabled != null) {
+      _enabled = enabled;
+      if (!_enabled) {
+        _cancelIdleTimer();
+        _releaseSemantics();
+      }
+    }
     if (appName != null) _appName = appName;
     if (appVersion != null) _appVersion = appVersion;
     if (routes != null) _routes = List<AgentRouteInfo>.from(routes);
     if (authorizer != null) _authorizer = authorizer;
     if (commandTimeout != null) _commandTimeout = commandTimeout;
+    if (semanticsIdleTimeout != null) {
+      _semanticsIdleTimeout = semanticsIdleTimeout;
+    }
     if (registerBuiltInCommands) _installBuiltInCommands();
-    _syncSemantics();
   }
 
   /// Restores the bridge to its unconfigured, disabled state.
@@ -200,6 +228,7 @@ class AgentBridge {
     _authorizer = const AgentDenyAllAuthorizer();
     _commandTimeout = const Duration(seconds: 30);
     registry.clear();
+    _cancelIdleTimer();
     _releaseSemantics();
   }
 
@@ -250,6 +279,7 @@ class AgentBridge {
       switch (request.method) {
         case methodPing:
           await _authorize(request);
+          _afterAuthorizedRequest();
           return AgentResponse.success(
             id: request.id,
             result: <String, dynamic>{
@@ -260,12 +290,14 @@ class AgentBridge {
           );
         case methodDescribe:
           await _authorize(request);
+          _afterAuthorizedRequest();
           return AgentResponse.success(
             id: request.id,
             result: describe().toJson(),
           );
         case methodState:
           await _authorize(request);
+          _afterAuthorizedRequest();
           return AgentResponse.success(
             id: request.id,
             result: state().toJson(),
@@ -331,6 +363,7 @@ class AgentBridge {
         : Map<String, dynamic>.from(rawParams as Map);
     command.validate(commandParams);
     final commandAuthorization = await _authorize(request, command: command);
+    _afterAuthorizedRequest();
     final timeoutMs = params['timeoutMs'];
     final timeout = timeoutMs is int
         ? Duration(milliseconds: timeoutMs)
@@ -341,9 +374,8 @@ class AgentBridge {
       params: commandParams,
       meta: Map<String, dynamic>.from(commandAuthorization.meta),
     );
-    return Future<Object?>.sync(
-      () => command.handler(context),
-    ).timeout(timeout);
+    return Future<Object?>.sync(() => command.handler(context))
+        .timeout(timeout);
   }
 
   /// Asks the configured authorizer whether [request] may proceed.
@@ -390,23 +422,29 @@ class AgentBridge {
     }
   }
 
-  /// Acquires or releases the semantics handle to match the current state.
-  ///
-  /// On the web, acquires a [SemanticsHandle] when the bridge is enabled and
-  /// [ensureSemanticsOnWeb] is `true`; releases it otherwise. On native
-  /// platforms this is a no-op because semantics are always enabled.
-  void _syncSemantics() {
+  /// Called after every authorized request to acquire or refresh the web
+  /// semantics handle. On the first call (or after the idle timer has fired)
+  /// acquires the handle; on subsequent calls only resets the idle timer.
+  void _afterAuthorizedRequest() {
     final isWeb = debugIsWebOverride ?? kIsWeb;
-    if (!isWeb) return;
-    if (_enabled && _ensureSemanticsOnWeb) {
-      _semanticsHandle ??= SemanticsBinding.instance.ensureSemantics();
-    } else {
+    if (!isWeb || !_ensureSemanticsOnWeb) return;
+
+    _cancelIdleTimer();
+    _semanticsHandle ??= SemanticsBinding.instance.ensureSemantics();
+    _idleTimer = Timer(_semanticsIdleTimeout, () {
       _releaseSemantics();
-    }
+    });
   }
 
-  /// Releases the semantics handle if one is held.
+  /// Cancels the idle timer without releasing the semantics handle.
+  void _cancelIdleTimer() {
+    _idleTimer?.cancel();
+    _idleTimer = null;
+  }
+
+  /// Releases the semantics handle and cancels the idle timer.
   void _releaseSemantics() {
+    _cancelIdleTimer();
     _semanticsHandle?.dispose();
     _semanticsHandle = null;
   }
