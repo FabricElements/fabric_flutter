@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 
+import '../helper/announce.dart';
+
 /// Announces transient state changes to assistive technology exactly once.
 ///
 /// Screen readers only speak content that is focused or that arrives inside a
@@ -234,12 +236,7 @@ class _LiveAnnouncerState extends State<LiveAnnouncer> {
     if (!widget.announce) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      SemanticsService.sendAnnouncement(
-        View.of(context),
-        message,
-        Directionality.of(context),
-        assertiveness: widget.assertiveness,
-      );
+      announce(context, message, assertiveness: widget.assertiveness);
     });
   }
 

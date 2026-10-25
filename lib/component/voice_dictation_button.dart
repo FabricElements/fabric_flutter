@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
+import '../helper/announce.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/log_color.dart';
 
@@ -216,11 +216,7 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton> {
     final message = listening
         ? locales.get('label--listening')
         : locales.get('label--hold-to-dictate');
-    SemanticsService.sendAnnouncement(
-      View.of(context),
-      message,
-      Directionality.of(context),
-    );
+    announce(context, message);
   }
 
   /// Fires a short haptic tap for a genuine listening start/stop transition

@@ -45,6 +45,22 @@
   be sized for a narrow generative surface. Defaults to the existing behavior
   when `null`.
 
+### Changed
+
+* **Screen-reader announcements are now gated on the platform capability.**
+  `SemanticsService.sendAnnouncement` is a no-op on platforms that do not
+  implement announcements, so every announcement in the package now goes through
+  the new `announce(BuildContext context, String message, {Assertiveness
+  assertiveness = Assertiveness.polite})` helper (`lib/helper/announce.dart`,
+  exported from `fabric_flutter.dart`). It returns early when the context is
+  unmounted, the message is empty, or the ambient `MediaQuery` reports
+  `supportsAnnounce: false`; a missing `MediaQuery` is treated as supported. The
+  message and assertiveness each call site already used are unchanged, so
+  behavior on platforms that support announcements is identical — the difference
+  is that unsupported platforms no longer receive a call that cannot be honored.
+  `LiveAnnouncer` is included, so it stays silent where announcements are
+  unsupported.
+
 ### Notes for consumers embedding in generative UI surfaces
 
 `contact_table` maps onto `ExpansionTable` and `plan_stepper` onto

@@ -82,6 +82,19 @@ class _DisposeDuringFrameState extends State<_DisposeDuringFrame> {
 
 void main() {
   group('LiveAnnouncer', () {
+    setUp(() {
+      TestWidgetsFlutterBinding.ensureInitialized()
+          .platformDispatcher
+          .accessibilityFeaturesTestValue =
+          const FakeAccessibilityFeatures(supportsAnnounce: true);
+    });
+
+    tearDown(() {
+      TestWidgetsFlutterBinding.ensureInitialized()
+          .platformDispatcher
+          .clearAccessibilityFeaturesTestValue();
+    });
+
     group('announcements', () {
       testWidgets('should announce the initial message once', (
         WidgetTester tester,

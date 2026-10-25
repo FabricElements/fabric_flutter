@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart';
 
+import '../helper/announce.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/density_spacing.dart';
 import '../helper/options.dart';
@@ -134,10 +134,9 @@ class _PaginationNavState extends State<PaginationNav> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.page == widget.page) return;
     final locales = AppLocalizations.of(context);
-    SemanticsService.sendAnnouncement(
-      View.of(context),
+    announce(
+      context,
       '${locales.get('label--page')} ${widget.page} / ${widget.totalPages}',
-      Directionality.of(context),
     );
   }
 

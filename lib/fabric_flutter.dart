@@ -72,6 +72,7 @@ export 'helper/agent/agent_rate_limiter.dart';
 export 'helper/agent/agent_registry.dart';
 export 'helper/agent/agent_token_authorizer.dart';
 export 'helper/agent/agent_transport.dart';
+export 'helper/announce.dart';
 export 'helper/app_global.dart';
 export 'helper/automation_key.dart';
 export 'helper/app_localizations_delegate.dart';

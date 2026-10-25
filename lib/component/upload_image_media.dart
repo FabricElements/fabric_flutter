@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart';
 
+import '../helper/announce.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/density_spacing.dart';
 import '../helper/firebase_storage_helper.dart';
@@ -103,11 +103,7 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
               // so only the success path needs an explicit announcement
               // here.
               if (mounted) {
-                SemanticsService.sendAnnouncement(
-                  View.of(context),
-                  locales.get('notification--upload-success'),
-                  Directionality.of(context),
-                );
+                announce(context, locales.get('notification--upload-success'));
               }
             },
             path: widget.path,
