@@ -5,6 +5,7 @@ import '../../serialized/agent_param.dart';
 import '../../serialized/agent_state_result.dart';
 import '../app_global.dart';
 import 'agent_command.dart';
+import 'agent_element.dart';
 import 'agent_element_index.dart';
 import 'agent_exception.dart';
 import 'agent_navigator_observer.dart';
@@ -56,7 +57,21 @@ class AgentBuiltInCommands {
     _waitFor(),
     _screenState(),
     _listCommands(),
+    _elementReveal(),
+    _elementFocus(),
   ];
+
+  /// Throws an [AgentException.notFound] when the element at [id] is absent.
+  ///
+  /// This is used by every interaction command so "not found" is reported
+  /// consistently and the guard is not repeated.
+  AgentElementHandle _requireElement(String id) {
+    final handle = elements.handle(id);
+    if (handle == null) {
+      throw AgentException.notFound('No element is indexed under "$id".');
+    }
+    return handle;
+  }
 
   /// Builds the `navigate` command.
   AgentCommand _navigate() => AgentCommand.define(
@@ -127,10 +142,7 @@ class AgentBuiltInCommands {
     ],
     handler: (context) async {
       final id = context.require<String>('elementId');
-      final handle = elements.handle(id);
-      if (handle == null) {
-        throw AgentException.notFound('No element is indexed under "$id".');
-      }
+      final handle = _requireElement(id);
       final setter = handle.setter;
       if (setter == null) {
         throw AgentException.failed('Element "$id" does not accept a value.');
@@ -138,6 +150,8 @@ class AgentBuiltInCommands {
       if (!handle.enabled) {
         throw AgentException.failed('Element "$id" is disabled.');
       }
+      await handle.reveal();
+      handle.requestFocus();
       await setter(context['value']);
       return <String, dynamic>{'id': id, 'value': handle.value};
     },
@@ -158,10 +172,7 @@ class AgentBuiltInCommands {
     ],
     handler: (context) async {
       final id = context.require<String>('elementId');
-      final handle = elements.handle(id);
-      if (handle == null) {
-        throw AgentException.notFound('No element is indexed under "$id".');
-      }
+      final handle = _requireElement(id);
       final activator = handle.activator;
       if (activator == null) {
         throw AgentException.failed('Element "$id" cannot be tapped.');
@@ -169,6 +180,7 @@ class AgentBuiltInCommands {
       if (!handle.enabled) {
         throw AgentException.failed('Element "$id" is disabled.');
       }
+      await handle.reveal();
       await activator();
       return <String, dynamic>{'id': id, 'tapped': true};
     },
@@ -310,6 +322,59 @@ class AgentBuiltInCommands {
                 .map((command) => command.info)
                 .toList(growable: false);
       return catalog.map((info) => info.toJson()).toList(growable: false);
+    },
+  );
+
+  /// Builds the `element.reveal` command.
+  AgentCommand _elementReveal() => AgentCommand.define(
+    id: 'element.reveal',
+    title: 'Reveal element',
+    description:
+        'Scrolls the indexed element into view, staying with it through '
+        'layout settles.',
+    category: 'interaction',
+    params: [
+      AgentParam(
+        name: 'elementId',
+        required: true,
+        description: 'Identifier of the element, matching its automationKey.',
+      ),
+      AgentParam(
+        name: 'alignment',
+        type: AgentParamType.number,
+        description:
+            'Where the element lands in the viewport: 0 at the leading edge, '
+            '1 at the trailing edge. Defaults to 0.1.',
+      ),
+    ],
+    handler: (context) async {
+      final id = context.require<String>('elementId');
+      final handle = _requireElement(id);
+      final alignment = context.optional<num>('alignment')?.toDouble() ?? 0.1;
+      final revealed = await handle.reveal(alignment: alignment);
+      return <String, dynamic>{'id': id, 'revealed': revealed};
+    },
+  );
+
+  /// Builds the `element.focus` command.
+  AgentCommand _elementFocus() => AgentCommand.define(
+    id: 'element.focus',
+    title: 'Focus element',
+    description:
+        'Moves input focus to the element, or its first focusable descendant.',
+    category: 'interaction',
+    params: [
+      AgentParam(
+        name: 'elementId',
+        required: true,
+        description: 'Identifier of the element, matching its automationKey.',
+      ),
+    ],
+    handler: (context) {
+      final id = context.require<String>('elementId');
+      final handle = _requireElement(id);
+      final focused = handle.requestFocus();
+      return <String, dynamic>{'id': id, 'focused': focused};
     },
   );
 

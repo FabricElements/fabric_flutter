@@ -4,6 +4,34 @@ import 'package:fabric_flutter/serialized/agent_element_snapshot.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+/// Drives [future] to completion by pumping real frames in [step] increments.
+///
+/// [ScrollReveal.reveal] advances one frame at a time from a post-frame
+/// callback, so a plain [WidgetTester.pumpAndSettle] cannot drive it — each
+/// pump only produces the single frame the loop is currently waiting for.
+Future<T?> _driveFrames<T>(
+  WidgetTester tester,
+  Future<T> future, {
+  Duration step = const Duration(milliseconds: 50),
+  int maxFrames = 300,
+}) async {
+  T? result;
+  var completed = false;
+  future.then(
+    (value) {
+      result = value;
+      completed = true;
+    },
+    onError: (_) {
+      completed = true;
+    },
+  );
+  for (var i = 0; i < maxFrames && !completed; i++) {
+    await tester.pump(step);
+  }
+  return result;
+}
+
 void main() {
   group('AgentElement', () {
     group('lifecycle', () {
@@ -214,6 +242,151 @@ void main() {
 
         // Assert
         expect(index.handle('a')?.visible, isTrue);
+      });
+    });
+
+    group('reveal', () {
+      testWidgets('should scroll an off-screen element into view', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
+        tester.view.physicalSize = const Size(400, 900);
+        tester.view.devicePixelRatio = 3.0;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+        final index = AgentElementIndex();
+        const viewportHeight = 300.0;
+        const itemHeight = 100.0;
+        final scrollController = ScrollController();
+        addTearDown(scrollController.dispose);
+        await tester.pumpWidget(
+          MaterialApp(
+            home: SizedBox(
+              height: viewportHeight,
+              child: SingleChildScrollView(
+                controller: scrollController,
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: itemHeight,
+                      child: AgentElement(
+                        id: 'top',
+                        index: index,
+                        child: const Text('Top'),
+                      ),
+                    ),
+                    SizedBox(height: viewportHeight * 2),
+                    SizedBox(
+                      height: itemHeight,
+                      child: AgentElement(
+                        id: 'bottom',
+                        index: index,
+                        child: const Text('Bottom'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(index.contains('bottom'), isTrue);
+        expect(scrollController.offset, lessThan(viewportHeight));
+
+        // Act — drive frames to let the reveal loop complete.
+        final revealed = await _driveFrames(
+          tester,
+          index.handle('bottom')!.reveal(),
+        );
+
+        // Assert — the bottom element was at ~700–800 px, so the scroll
+        // controller must have moved past the viewport height to show it.
+        expect(revealed, isTrue);
+        expect(scrollController.offset, greaterThan(viewportHeight));
+      });
+
+      testWidgets('should return false for an unknown id', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
+        final index = AgentElementIndex();
+        await tester.pumpWidget(
+          MaterialApp(home: AgentElement(id: 'a', index: index, child: const SizedBox())),
+        );
+
+        // Assert
+        expect(index.handle('bogus'), isNull);
+      });
+    });
+
+    group('focus', () {
+      testWidgets('should focus an InputData by id via the provided focusNode', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
+        final index = AgentElementIndex();
+        final focusNode = FocusNode();
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: AgentElement(
+                id: 'field',
+                index: index,
+                focusNode: focusNode,
+                child: TextField(focusNode: focusNode),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Act
+        final result = index.handle('field')!.requestFocus();
+        await tester.pump();
+
+        // Assert
+        expect(result, isTrue);
+        expect(focusNode.hasFocus, isTrue);
+      });
+
+      testWidgets('should return false when no focusable descendant exists', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
+        final index = AgentElementIndex();
+        // FocusScope.isFirstFocus is true when nothing has focus yet, so
+        // focusInDirection returns true (focusing the scope itself). To
+        // trigger a false return, we first request focus on a different scope
+        // so the empty scope is definitely not first and has no fallback.
+        final emptyScopeNode = FocusScopeNode();
+        final otherFocusNode = FocusNode();
+        await tester.pumpWidget(
+          Directionality(
+            textDirection: TextDirection.ltr,
+            child: FocusScope(
+              node: emptyScopeNode,
+              child: AgentElement(
+                id: 'plain',
+                index: index,
+                child: const SizedBox(),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Act — request focus on something outside the scope so the empty
+        // scope has no child to pass focus to.
+        otherFocusNode.requestFocus();
+        final result = index.handle('plain')!.requestFocus();
+        await tester.pump();
+
+        // Assert — a SizedBox has no focusable descendants.
+        expect(result, isFalse);
+        addTearDown(otherFocusNode.dispose);
       });
     });
 
