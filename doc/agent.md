@@ -207,7 +207,8 @@ The wire values are snake_case so the payload reads naturally from other languag
   "enabled": true,
   "visible": true,
   "error": null,
-  "actions": ["Clear"]
+  "actions": ["Clear"],
+  "options": null
 }
 ```
 
@@ -215,6 +216,11 @@ The wire values are snake_case so the payload reads naturally from other languag
 `TimeOfDay` becomes a zero-padded `HH:mm` string, an `Enum` becomes its name, and anything
 else falls back to `toString`. `actions` lists the labels of the custom semantics actions
 available on the element, or is `null` when there are none.
+
+`options` is `null` for free-text inputs. For choice inputs (dropdown, enum, radio) it
+lists the available choices as `[{"value": …, "label": "…"}, …]`. Each `value` is
+normalized the same way as the snapshot `value` — an enum name, a string, or a number —
+and matches what `set_value` accepts. `label` is the human-readable, localized label.
 
 ---
 
@@ -257,7 +263,9 @@ one is registered) and the result reports whether the new value passes.
 Result: `{ "id": "home_form_input_email", "value": "ada@example.com", "valid": true, "error": null }`
 
 The command reveals and focuses the element before setting it. It fails with `failed` when
-the element does not accept a value or is disabled.
+the element does not accept a value or is disabled. For choice inputs (dropdown, enum,
+radio) the value must be one of the `options` listed in the element snapshot; an unknown
+value is rejected with `invalid_params` and the error message lists the valid values.
 
 ### `tap`
 

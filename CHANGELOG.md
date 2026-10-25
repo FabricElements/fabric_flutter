@@ -2,6 +2,16 @@
 
 ### Added
 
+* **Agent element options for choice inputs.** `AgentElementSnapshot` now
+  carries an `options` field — `null` for free-text inputs, and a list of
+  `{"value": …, "label": "…"}` objects for dropdown, enum, and radio inputs.
+  Each value is JSON-safe and matches what `set_value` accepts. `InputData`
+  populates it automatically from its `options` / `enums` lists with localized
+  labels. `set_value` on an element with options rejects a value not in the
+  list with `invalid_params`. New `AgentElementOption` serialized model
+  (`lib/serialized/agent_element_option.dart`). New `optionsGetter` on
+  `AgentElement` and `AgentElementHandle`.
+
 * **MCP facade over the agent bridge.** New `AgentMcpAdapter`
   (`lib/helper/agent/agent_mcp_adapter.dart`) translates MCP JSON-RPC 2.0
   (protocol version `2025-06-18`) onto the existing `AgentBridge` so any MCP

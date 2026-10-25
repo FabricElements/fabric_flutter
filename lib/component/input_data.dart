@@ -8,6 +8,7 @@ import 'package:omni_datetime_picker/omni_datetime_picker.dart';
 import '../helper/web_pointer_interceptor.dart';
 
 import '../helper/agent/agent_element_binding.dart';
+import '../helper/agent/agent_element.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/density_spacing.dart';
 import '../helper/enum_data.dart';
@@ -17,6 +18,7 @@ import '../helper/log_color.dart';
 import '../helper/options.dart';
 import '../helper/regex_helper.dart';
 import '../helper/utils.dart';
+import '../serialized/agent_element_option.dart';
 import '../serialized/agent_element_snapshot.dart';
 import 'alert_data.dart';
 
@@ -746,6 +748,38 @@ getValue -------------------------------------
     if (!_showClearButton) return null;
     final locales = AppLocalizations.of(context);
     return <String, VoidCallback>{locales.get('label--clear'): _clear};
+  }
+
+  /// Returns the available choices for dropdown, enum, and radio inputs.
+  ///
+  /// Each [AgentElementOption] carries a JSON-safe value (matching what
+  /// [agentSetValue] accepts) and a human-readable label. Returns `null` for
+  /// free-text and other unrestricted input types.
+  List<AgentElementOption>? _agentOptions() {
+    switch (widget.type) {
+      case InputDataType.enums:
+        final enumData = EnumData(locales: AppLocalizations.of(context));
+        return widget.enums
+            .map((e) {
+              return AgentElementOption(
+                value: AgentElementHandle.normalizeValue(e),
+                label: enumData.localesFromEnum(e),
+              );
+            })
+            .toList(growable: false);
+      case InputDataType.dropdown:
+      case InputDataType.radio:
+        return widget.options
+            .map((o) {
+              return AgentElementOption(
+                value: AgentElementHandle.normalizeValue(o.value),
+                label: o.label,
+              );
+            })
+            .toList(growable: false);
+      default:
+        return null;
+    }
   }
 
   /// Reapplies the incoming value whenever the parent rebuilds with new field data.
@@ -1867,6 +1901,7 @@ getValue -------------------------------------
       },
       errorGetter: () => _formFieldKey.currentState?.errorText,
       semanticActions: _buildSemanticActions(),
+      optionsGetter: _agentOptions,
       child: Semantics(
         label: _resolveSemanticLabel(locales),
         hint: _resolveSemanticHint(),
