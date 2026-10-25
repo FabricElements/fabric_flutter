@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/rendering.dart';
 
 import '../../serialized/agent_describe_result.dart';
 import '../../serialized/agent_error.dart';
@@ -114,6 +115,51 @@ class AgentBridge {
   Duration get commandTimeout => _commandTimeout;
   Duration _commandTimeout = const Duration(seconds: 30);
 
+  /// When `true`, the bridge acquires a [SemanticsHandle] on the web while
+  /// enabled so external agents (MCP clients, browser automation) can read
+  /// the UI through the accessibility tree.
+  ///
+  /// On the web Flutter does not build the semantics DOM until accessibility
+  /// is explicitly enabled. Without this an agent driving the page sees an
+  /// empty accessibility tree. The handle is acquired when the bridge is
+  /// enabled and released when it is disabled or [reset].
+  ///
+  /// Defaults to `false`. Toggling it while the bridge is running takes
+  /// effect immediately.
+  bool get ensureSemanticsOnWeb => _ensureSemanticsOnWeb;
+  bool _ensureSemanticsOnWeb = false;
+  set ensureSemanticsOnWeb(bool value) {
+    _ensureSemanticsOnWeb = value;
+    _syncSemantics();
+  }
+
+  /// Override for [kIsWeb] in tests so the web-only semantics path can be
+  /// exercised under `flutter test`.
+  ///
+  /// When non-null, [debugIsWebOverride] replaces [kIsWeb] in
+  /// [_syncSemantics]. Tests should set it in `setUp` and reset it to `null`
+  /// in `tearDown`.
+  @visibleForTesting
+  static bool? debugIsWebOverride;
+
+  /// Whether the bridge currently holds a [SemanticsHandle].
+  ///
+  /// Exposed for tests so they can verify the handle lifecycle without
+  /// relying on [SemanticsBinding.semanticsEnabled], which may be `true`
+  /// for other reasons (e.g. the test framework itself).
+  @visibleForTesting
+  bool get hasSemanticsHandle => _semanticsHandle != null;
+
+  /// Holds the semantics handle acquired when [ensureSemanticsOnWeb] is
+  /// `true` and the bridge is enabled on the web.
+  SemanticsHandle? _semanticsHandle;
+
+  /// Reports whether the platform semantics tree is currently enabled.
+  ///
+  /// Delegates to [SemanticsBinding.semanticsEnabled], which is `true`
+  /// whenever any handle or an assistive technology has enabled semantics.
+  bool get semanticsEnabled => SemanticsBinding.instance.semanticsEnabled;
+
   /// Applies host configuration and installs the built-in commands.
   ///
   /// Every parameter is optional and only the supplied values change, so this
@@ -138,6 +184,7 @@ class AgentBridge {
     if (authorizer != null) _authorizer = authorizer;
     if (commandTimeout != null) _commandTimeout = commandTimeout;
     if (registerBuiltInCommands) _installBuiltInCommands();
+    _syncSemantics();
   }
 
   /// Restores the bridge to its unconfigured, disabled state.
@@ -153,6 +200,7 @@ class AgentBridge {
     _authorizer = const AgentDenyAllAuthorizer();
     _commandTimeout = const Duration(seconds: 30);
     registry.clear();
+    _releaseSemantics();
   }
 
   /// Returns the catalog published by the `describe` method.
@@ -171,6 +219,7 @@ class AgentBridge {
       path: route,
       params: navigatorObserver.routeParams,
       elements: elements.snapshot(),
+      semanticsEnabled: semanticsEnabled,
     );
   }
 
@@ -339,5 +388,26 @@ class AgentBridge {
       if (registry.contains(command.id)) continue;
       registry.register(command);
     }
+  }
+
+  /// Acquires or releases the semantics handle to match the current state.
+  ///
+  /// On the web, acquires a [SemanticsHandle] when the bridge is enabled and
+  /// [ensureSemanticsOnWeb] is `true`; releases it otherwise. On native
+  /// platforms this is a no-op because semantics are always enabled.
+  void _syncSemantics() {
+    final isWeb = debugIsWebOverride ?? kIsWeb;
+    if (!isWeb) return;
+    if (_enabled && _ensureSemanticsOnWeb) {
+      _semanticsHandle ??= SemanticsBinding.instance.ensureSemantics();
+    } else {
+      _releaseSemantics();
+    }
+  }
+
+  /// Releases the semantics handle if one is held.
+  void _releaseSemantics() {
+    _semanticsHandle?.dispose();
+    _semanticsHandle = null;
   }
 }

@@ -451,6 +451,8 @@ Every `invoke` emits one `AgentAuditRecord` (timestamp, request id, principal id
 
 The full wire protocol, envelope, error taxonomy, safety table, and audit shape are documented in [`doc/agent-bridge-protocol.md`](doc/agent-bridge-protocol.md).
 
+**Web semantics** — Flutter web only builds the semantics DOM after accessibility is explicitly enabled. External agents (MCP clients, browser automation) that read the UI through the accessibility tree need this. Set `AgentBridge.instance.ensureSemanticsOnWeb = true` before `configure()` to acquire and hold a `SemanticsHandle` while the bridge is enabled; it is released on `reset()` or when the bridge is disabled. The `screen_state` command and `state()` method report `semanticsEnabled` so an agent can verify the tree is populated.
+
 ### Voice dictation (`VoiceDictationButton`)
 
 `VoiceDictationButton` (`lib/component/voice_dictation_button.dart`) is a self-contained, press-and-hold microphone button built on `speech_to_text`. It never holds a `TextEditingController` or touches app-level state — it only reports transcripts and status through constructor callbacks, so the parent decides what to do with the text (including whether/when to submit it). It also fires a short haptic tap (`HapticFeedback.mediumImpact` on start, `HapticFeedback.lightImpact` on stop) so the user gets tactile confirmation without watching the icon; pass `enableHapticFeedback: false` to disable it:

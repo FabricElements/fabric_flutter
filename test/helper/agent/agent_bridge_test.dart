@@ -951,5 +951,134 @@ void main() {
         expect((response['error'] as Map)['code'], 'invalid_params');
       });
     });
+
+    group('semantics', () {
+      setUp(() {
+        TestWidgetsFlutterBinding.ensureInitialized();
+        AgentBridge.debugIsWebOverride = true;
+      });
+
+      tearDown(() {
+        AgentBridge.debugIsWebOverride = null;
+      });
+
+      test('should report semanticsEnabled in state', () async {
+        // Arrange
+        final bridge = _bridge();
+        bridge.ensureSemanticsOnWeb = true;
+        bridge.configure(enabled: true, registerBuiltInCommands: false);
+
+        // Act
+        final response = await bridge.handle(_request('state'));
+        final result = response['result'] as Map;
+
+        // Assert
+        expect(result['semanticsEnabled'], isTrue);
+      });
+
+      test('should report semanticsEnabled in screen_state command', () async {
+        // Arrange
+        final bridge = _bridge();
+        bridge.ensureSemanticsOnWeb = true;
+        bridge.configure(enabled: true, registerBuiltInCommands: false);
+
+        // Act
+        final response = await bridge.handle(_invoke('screen_state'));
+        final result = response['result'] as Map;
+
+        // Assert
+        expect(result['semanticsEnabled'], isTrue);
+      });
+
+      test(
+        'should acquire a handle when ensureSemanticsOnWeb is true',
+        () async {
+          // Arrange
+          final bridge = _bridge();
+          bridge.ensureSemanticsOnWeb = true;
+
+          // Act
+          bridge.configure(enabled: true, registerBuiltInCommands: false);
+
+          // Assert
+          expect(bridge.hasSemanticsHandle, isTrue);
+          expect(bridge.semanticsEnabled, isTrue);
+        },
+      );
+
+      test(
+        'should not acquire a handle when ensureSemanticsOnWeb is false',
+        () async {
+          // Arrange
+          final bridge = _bridge();
+          bridge.ensureSemanticsOnWeb = false;
+
+          // Act
+          bridge.configure(enabled: true, registerBuiltInCommands: false);
+
+          // Assert
+          expect(bridge.ensureSemanticsOnWeb, isFalse);
+          expect(bridge.hasSemanticsHandle, isFalse);
+        },
+      );
+
+      test('should release semantics handle on reset', () async {
+        // Arrange
+        final bridge = _bridge();
+        bridge.ensureSemanticsOnWeb = true;
+        bridge.configure(enabled: true, registerBuiltInCommands: false);
+        expect(bridge.hasSemanticsHandle, isTrue);
+
+        // Act
+        bridge.reset();
+
+        // Assert
+        expect(bridge.enabled, isFalse);
+        expect(bridge.hasSemanticsHandle, isFalse);
+      });
+
+      test('should release semantics handle when disabled', () async {
+        // Arrange
+        final bridge = _bridge();
+        bridge.ensureSemanticsOnWeb = true;
+        bridge.configure(enabled: true, registerBuiltInCommands: false);
+        expect(bridge.hasSemanticsHandle, isTrue);
+
+        // Act
+        bridge.configure(enabled: false, registerBuiltInCommands: false);
+
+        // Assert
+        expect(bridge.enabled, isFalse);
+        expect(bridge.hasSemanticsHandle, isFalse);
+      });
+
+      test('should acquire handle when toggled on while running', () async {
+        // Arrange
+        final bridge = _bridge();
+        bridge.ensureSemanticsOnWeb = false;
+        bridge.configure(enabled: true, registerBuiltInCommands: false);
+        expect(bridge.hasSemanticsHandle, isFalse);
+
+        // Act
+        bridge.ensureSemanticsOnWeb = true;
+
+        // Assert
+        expect(bridge.hasSemanticsHandle, isTrue);
+      });
+
+      test('should release handle when toggled off while running', () async {
+        // Arrange
+        final bridge = _bridge();
+        bridge.ensureSemanticsOnWeb = true;
+        bridge.configure(enabled: true, registerBuiltInCommands: false);
+        expect(bridge.hasSemanticsHandle, isTrue);
+
+        // Act
+        bridge.ensureSemanticsOnWeb = false;
+
+        // Assert
+        expect(bridge.hasSemanticsHandle, isFalse);
+      });
+    });
   });
 }
