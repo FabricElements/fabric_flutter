@@ -19,6 +19,7 @@ AgentStateResult _$AgentStateResultFromJson(Map<String, dynamic> json) =>
               )
               .toList() ??
           const [],
+      semanticsEnabled: json['semanticsEnabled'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$AgentStateResultToJson(AgentStateResult instance) =>
@@ -27,4 +28,5 @@ Map<String, dynamic> _$AgentStateResultToJson(AgentStateResult instance) =>
       'path': instance.path,
       'params': instance.params,
       'elements': instance.elements.map((e) => e.toJson()).toList(),
+      'semanticsEnabled': instance.semanticsEnabled,
     };

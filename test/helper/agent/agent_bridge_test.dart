@@ -951,5 +951,75 @@ void main() {
         expect((response['error'] as Map)['code'], 'invalid_params');
       });
     });
+
+    group('semantics', () {
+      test('should report semanticsEnabled in state', () async {
+        // Arrange
+        final bridge = _bridge();
+
+        // Act
+        final response = await bridge.handle(_request('state'));
+        final result = response['result'] as Map;
+
+        // Assert
+        expect(result['semanticsEnabled'], isTrue);
+      });
+
+      test('should report semanticsEnabled in screen_state command', () async {
+        // Arrange
+        final bridge = _bridge();
+
+        // Act
+        final response = await bridge.handle(_invoke('screen_state'));
+        final result = response['result'] as Map;
+
+        // Assert
+        expect(result['semanticsEnabled'], isTrue);
+      });
+
+      test(
+        'should not acquire a handle when ensureSemanticsOnWeb is false',
+        () async {
+          // Arrange
+          final bridge = _bridge();
+          bridge.ensureSemanticsOnWeb = false;
+
+          // Act
+          bridge.configure(enabled: true, registerBuiltInCommands: false);
+
+          // Assert
+          expect(bridge.semanticsEnabled, isTrue);
+          expect(bridge.ensureSemanticsOnWeb, isFalse);
+        },
+      );
+
+      test('should release semantics handle on reset', () async {
+        // Arrange
+        final bridge = _bridge();
+        bridge.ensureSemanticsOnWeb = true;
+        bridge.configure(enabled: true, registerBuiltInCommands: false);
+
+        // Act
+        bridge.reset();
+
+        // Assert
+        expect(bridge.enabled, isFalse);
+        expect(bridge.semanticsEnabled, isTrue);
+      });
+
+      test('should release semantics handle when disabled', () async {
+        // Arrange
+        final bridge = _bridge();
+        bridge.ensureSemanticsOnWeb = true;
+        bridge.configure(enabled: true, registerBuiltInCommands: false);
+
+        // Act
+        bridge.configure(enabled: false, registerBuiltInCommands: false);
+
+        // Assert
+        expect(bridge.enabled, isFalse);
+        expect(bridge.semanticsEnabled, isTrue);
+      });
+    });
   });
 }

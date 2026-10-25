@@ -17,6 +17,7 @@ class AgentStateResult {
     this.path,
     this.params = const {},
     this.elements = const [],
+    this.semanticsEnabled = false,
   });
 
   /// Builds an [AgentStateResult] from serialized JSON.
@@ -37,6 +38,15 @@ class AgentStateResult {
 
   /// Lists every element currently registered in the live index.
   final List<AgentElementSnapshot> elements;
+
+  /// Reports whether the platform semantics tree is enabled.
+  ///
+  /// On the web the semantics DOM is not built until accessibility is
+  /// explicitly enabled. When this is `false` an external agent (MCP client,
+  /// browser automation) cannot read the UI through the accessibility tree.
+  /// The bridge can keep semantics enabled while an agent is connected by
+  /// setting [AgentBridge.ensureSemanticsOnWeb] to `true`.
+  final bool semanticsEnabled;
 
   /// Converts this screen state into JSON.
   Map<String, dynamic> toJson() => _$AgentStateResultToJson(this);
