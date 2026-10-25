@@ -152,9 +152,9 @@ void main() {
         final scoped = UserQuery.byGroup(group: 'acme', query: base);
 
         // Assert: both the caller's filter and the group scope survive.
-        final fields = whereConditions(scoped)
-            .map((condition) => condition.first)
-            .toList();
+        final fields = whereConditions(
+          scoped,
+        ).map((condition) => condition.first).toList();
         expect(fields, containsAll(<Object?>['role', 'groups.acme']));
       });
 

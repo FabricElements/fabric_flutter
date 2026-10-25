@@ -44,8 +44,9 @@ class StateGlobal extends ChangeNotifier {
     PackageInfo.fromPlatform()
         .then((value) {
           _packageInfo = value;
-          Future.delayed(const Duration(seconds: 1))
-              .then((value) => notifyListeners());
+          Future.delayed(
+            const Duration(seconds: 1),
+          ).then((value) => notifyListeners());
         })
         .catchError((e) {
           // Ignore error, it's usually an issue with the test environment

@@ -338,24 +338,27 @@ void main() {
         expect(draft!.name, 'original');
       });
 
-      test('stale draft should be discarded when leaving and re-entering edit mode', () {
-        // Arrange
-        final state = _TestItemState();
-        state.data = {'name': 'original'};
+      test(
+        'stale draft should be discarded when leaving and re-entering edit mode',
+        () {
+          // Arrange
+          final state = _TestItemState();
+          state.data = {'name': 'original'};
 
-        // Enter edit mode and mutate the draft.
-        state.edit = true;
-        (state.copy as _Item).name = 'in-progress';
-        expect((state.copy as _Item).name, 'in-progress');
+          // Enter edit mode and mutate the draft.
+          state.edit = true;
+          (state.copy as _Item).name = 'in-progress';
+          expect((state.copy as _Item).name, 'in-progress');
 
-        // Act — leave edit mode (cancel without saving).
-        state.edit = false;
-        // Re-enter edit mode.
-        state.edit = true;
+          // Act — leave edit mode (cancel without saving).
+          state.edit = false;
+          // Re-enter edit mode.
+          state.edit = true;
 
-        // Assert — the draft is rebuilt from data, not kept from the abandoned session.
-        expect((state.copy as _Item).name, 'original');
-      });
+          // Assert — the draft is rebuilt from data, not kept from the abandoned session.
+          expect((state.copy as _Item).name, 'original');
+        },
+      );
 
       test('redundant edit assignment should not discard an active draft', () {
         // Arrange

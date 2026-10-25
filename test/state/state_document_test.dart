@@ -118,23 +118,26 @@ void main() {
     });
 
     group('copy draft invalidation', () {
-      test('setting edit = false should discard a stale draft and rebuild from data', () {
-        // Arrange — inject a stale copy to verify draft invalidation fires on
-        // edit-mode exit. Uses edit = false directly; same invalidation path
-        // as the removed lifecycle methods.
-        final state = _TestStateDocument();
-        state.data = {'id': 'doc-1', 'name': 'original'};
-        state.edit = true;
-        state.copy = {'stale': true}; // manually set to something wrong
-        expect(state.copy, {'stale': true});
+      test(
+        'setting edit = false should discard a stale draft and rebuild from data',
+        () {
+          // Arrange — inject a stale copy to verify draft invalidation fires on
+          // edit-mode exit. Uses edit = false directly; same invalidation path
+          // as the removed lifecycle methods.
+          final state = _TestStateDocument();
+          state.data = {'id': 'doc-1', 'name': 'original'};
+          state.edit = true;
+          state.copy = {'stale': true}; // manually set to something wrong
+          expect(state.copy, {'stale': true});
 
-        // Act
-        state.edit = false;
+          // Act
+          state.edit = false;
 
-        // Assert — draft is invalidated; next read rebuilds from unchanged data.
-        expect(state.copy, {'id': 'doc-1', 'name': 'original'});
-        expect(state.edit, isFalse);
-      });
+          // Assert — draft is invalidated; next read rebuilds from unchanged data.
+          expect(state.copy, {'id': 'doc-1', 'name': 'original'});
+          expect(state.edit, isFalse);
+        },
+      );
     });
   });
 }

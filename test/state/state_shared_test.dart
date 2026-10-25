@@ -62,24 +62,27 @@ class _ToggleDebounceState extends StateShared {
 
 void main() {
   group('StateShared', () {
-    test('should not throw and should still publish the update when callback throws', () async {
-      // Arrange
-      final state = _TestState();
-      state.callback = (data) => throw StateError('boom callback');
-      final streamed = <dynamic>[];
-      state.stream.listen(streamed.add);
+    test(
+      'should not throw and should still publish the update when callback throws',
+      () async {
+        // Arrange
+        final state = _TestState();
+        state.callback = (data) => throw StateError('boom callback');
+        final streamed = <dynamic>[];
+        state.stream.listen(streamed.add);
 
-      // Act
-      state.data = {'id': 1};
-      // The publish is debounced, so wait for the trailing-edge timer.
-      await settleDebounce();
+        // Act
+        state.data = {'id': 1};
+        // The publish is debounced, so wait for the trailing-edge timer.
+        await settleDebounce();
 
-      // Assert: the throwing callback never escapes the setter, and the
-      // debounced stream still receives the update.
-      expect(streamed, [
-        {'id': 1},
-      ]);
-    });
+        // Assert: the throwing callback never escapes the setter, and the
+        // debounced stream still receives the update.
+        expect(streamed, [
+          {'id': 1},
+        ]);
+      },
+    );
 
     test(
       'should not throw and should still publish the error when onError throws',

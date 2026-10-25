@@ -63,8 +63,9 @@ List<String> findLiteralSpacing(String source) {
     final line = '\n'.allMatches(source.substring(0, match.start)).length + 1;
     final String snippet;
     if (token.endsWith(':')) {
-      final value = RegExp(r'^\s*(-?\d+(?:\.\d+)?)')
-          .firstMatch(source.substring(match.end));
+      final value = RegExp(
+        r'^\s*(-?\d+(?:\.\d+)?)',
+      ).firstMatch(source.substring(match.end));
       if (value == null || double.parse(value.group(1)!) == 0) continue;
       snippet = '$token${value.group(1)}';
     } else {

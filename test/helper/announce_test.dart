@@ -78,9 +78,7 @@ void main() {
       final recorder = _AnnouncementRecorder()..start(tester);
       tester.platformDispatcher.accessibilityFeaturesTestValue =
           const FakeAccessibilityFeatures(supportsAnnounce: true);
-      addTearDown(
-        tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
-      );
+      addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
 
       // Act
       await _pumpAndAnnounce(tester, (BuildContext context) {
@@ -99,14 +97,16 @@ void main() {
       final recorder = _AnnouncementRecorder()..start(tester);
       tester.platformDispatcher.accessibilityFeaturesTestValue =
           const FakeAccessibilityFeatures(supportsAnnounce: true);
-      addTearDown(
-        tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
-      );
+      addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
 
       // Act
-      await _pumpAndAnnounce(tester, (BuildContext context) {
-        announce(context, 'Saved');
-      }, mediaQuery: const MediaQueryData(supportsAnnounce: false));
+      await _pumpAndAnnounce(
+        tester,
+        (BuildContext context) {
+          announce(context, 'Saved');
+        },
+        mediaQuery: const MediaQueryData(supportsAnnounce: false),
+      );
 
       // Assert
       expect(recorder.messages, isEmpty);
@@ -120,9 +120,7 @@ void main() {
       final recorder = _AnnouncementRecorder()..start(tester);
       tester.platformDispatcher.accessibilityFeaturesTestValue =
           const FakeAccessibilityFeatures(supportsAnnounce: true);
-      addTearDown(
-        tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
-      );
+      addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
 
       // Act
       await _pumpAndAnnounce(tester, (BuildContext context) {
@@ -141,9 +139,7 @@ void main() {
       final recorder = _AnnouncementRecorder()..start(tester);
       tester.platformDispatcher.accessibilityFeaturesTestValue =
           const FakeAccessibilityFeatures(supportsAnnounce: true);
-      addTearDown(
-        tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
-      );
+      addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
 
       // Act
       await _pumpAndAnnounce(tester, (BuildContext context) {
@@ -163,9 +159,7 @@ void main() {
       final recorder = _AnnouncementRecorder()..start(tester);
       tester.platformDispatcher.accessibilityFeaturesTestValue =
           const FakeAccessibilityFeatures(supportsAnnounce: true);
-      addTearDown(
-        tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
-      );
+      addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
 
       // Act
       await _pumpAndAnnounce(tester, (BuildContext context) {

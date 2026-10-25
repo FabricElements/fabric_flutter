@@ -283,7 +283,10 @@ class _ExpansionTableState extends State<ExpansionTable> {
       return false;
     }
     try {
-      final revealed = await ScrollReveal.reveal(context, alignment: alignment);
+      final revealed = await ScrollReveal.reveal(
+        context,
+        alignment: alignment,
+      );
       if (column != null) await _revealColumn(column);
       return revealed;
     } finally {
@@ -594,12 +597,13 @@ class _ExpansionTableState extends State<ExpansionTable> {
             child: Flex(direction: Axis.vertical, children: content),
           );
           final controller = widget.controller;
-          if (isFooter ||
-              controller == null ||
-              !controller.isRevealTarget(row)) {
+          if (isFooter || controller == null || !controller.isRevealTarget(row)) {
             return rowContainer;
           }
-          return KeyedSubtree(key: controller.revealKey, child: rowContainer);
+          return KeyedSubtree(
+            key: controller.revealKey,
+            child: rowContainer,
+          );
         }
 
         List<Widget> rowsList = List.generate(

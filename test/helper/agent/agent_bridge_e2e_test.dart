@@ -245,7 +245,10 @@ void main() {
       );
       expect(notFound['ok'], isFalse);
       expect((notFound['error'] as Map)['code'], 'not_found');
-      expect((notFound['error'] as Map)['message'], contains('bogus'));
+      expect(
+        (notFound['error'] as Map)['message'],
+        contains('bogus'),
+      );
 
       // Act & Assert — a command the caller's role forbids is refused.
       final forbidden = await invoke('archive_order', token: 'member-token');

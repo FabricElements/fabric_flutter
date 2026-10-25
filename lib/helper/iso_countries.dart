@@ -1709,7 +1709,8 @@ class ISOCountries {
       'currency': 'Hong Kong dollar',
       'currencyCode': 'HKD',
       'currencySubUnit': 'cent',
-      'fullName': 'Hong Kong Special Administrative Region of the People’s Republic of China (HK2)',
+      'fullName':
+          'Hong Kong Special Administrative Region of the People’s Republic of China (HK2)',
       'alpha2': 'HK',
       'alpha3': 'HKG',
       'name': 'Hong Kong',
@@ -2202,7 +2203,8 @@ class ISOCountries {
       'currency': 'pataca',
       'currencyCode': 'MOP',
       'currencySubUnit': 'avo',
-      'fullName': 'Macao Special Administrative Region of the People’s Republic of China (MO2)',
+      'fullName':
+          'Macao Special Administrative Region of the People’s Republic of China (MO2)',
       'alpha2': 'MO',
       'alpha3': 'MAC',
       'name': 'Macao',

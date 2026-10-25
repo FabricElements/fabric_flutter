@@ -120,13 +120,13 @@ void main() {
     setUp(() {
       TestWidgetsFlutterBinding.ensureInitialized()
           .platformDispatcher
-          .accessibilityFeaturesTestValue = const FakeAccessibilityFeatures(
-        supportsAnnounce: true,
-      );
+          .accessibilityFeaturesTestValue =
+          const FakeAccessibilityFeatures(supportsAnnounce: true);
     });
 
     tearDown(() {
-      TestWidgetsFlutterBinding.ensureInitialized().platformDispatcher
+      TestWidgetsFlutterBinding.ensureInitialized()
+          .platformDispatcher
           .clearAccessibilityFeaturesTestValue();
     });
 

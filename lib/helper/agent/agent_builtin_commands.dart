@@ -194,34 +194,36 @@ class AgentBuiltInCommands {
       if (!handle.enabled) {
         throw AgentException.failed('Element "$id" is disabled.');
       }
+      // Capture context before the async gap so it can be guarded with
+      // .mounted after reveal completes.
+      final elementContext = handle.contextGetter?.call();
       await handle.reveal();
       // Try ActivateIntent through the Actions system first. This respects
       // isEnabled checks configured by the widget tree and is the path
       // keyboard activation follows (Enter / Space → ActivateIntent).
-      final elementContext = handle.contextGetter?.call();
-      final action = elementContext != null
-          ? Actions.maybeFind<ActivateIntent>(
-              elementContext,
-              intent: const ActivateIntent(),
-            )
-          : null;
-      if (action != null) {
-        if (!action.isEnabled(const ActivateIntent())) {
-          throw AgentException.failed(
-            'Element "$id" is disabled (ActivateIntent handler is not '
-            'enabled).',
-          );
-        }
-        final result = Actions.maybeInvoke(
-          elementContext!,
-          const ActivateIntent(),
+      if (elementContext != null && elementContext.mounted) {
+        final action = Actions.maybeFind<ActivateIntent>(
+          elementContext,
+          intent: const ActivateIntent(),
         );
-        if (result is Future) await result;
-        return <String, dynamic>{
-          'id': id,
-          'method': 'actions',
-          'activated': true,
-        };
+        if (action != null) {
+          if (!action.isEnabled(const ActivateIntent())) {
+            throw AgentException.failed(
+              'Element "$id" is disabled (ActivateIntent handler is not '
+              'enabled).',
+            );
+          }
+          final result = Actions.maybeInvoke(
+            elementContext,
+            const ActivateIntent(),
+          );
+          if (result is Future) await result;
+          return <String, dynamic>{
+            'id': id,
+            'method': 'actions',
+            'activated': true,
+          };
+        }
       }
       // Fall back to the element's own activator callback (legacy path).
       final activator = handle.activator;

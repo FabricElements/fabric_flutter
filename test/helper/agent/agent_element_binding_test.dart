@@ -314,9 +314,7 @@ void main() {
         // Arrange
         final index = AgentElementIndex();
         await tester.pumpWidget(
-          MaterialApp(
-            home: AgentElement(id: 'a', index: index, child: const SizedBox()),
-          ),
+          MaterialApp(home: AgentElement(id: 'a', index: index, child: const SizedBox())),
         );
 
         // Assert
@@ -325,35 +323,34 @@ void main() {
     });
 
     group('focus', () {
-      testWidgets(
-        'should focus an InputData by id via the provided focusNode',
-        (WidgetTester tester) async {
-          // Arrange
-          final index = AgentElementIndex();
-          final focusNode = FocusNode();
-          await tester.pumpWidget(
-            MaterialApp(
-              home: Scaffold(
-                body: AgentElement(
-                  id: 'field',
-                  index: index,
-                  focusNode: focusNode,
-                  child: TextField(focusNode: focusNode),
-                ),
+      testWidgets('should focus an InputData by id via the provided focusNode', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
+        final index = AgentElementIndex();
+        final focusNode = FocusNode();
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: AgentElement(
+                id: 'field',
+                index: index,
+                focusNode: focusNode,
+                child: TextField(focusNode: focusNode),
               ),
             ),
-          );
-          await tester.pumpAndSettle();
+          ),
+        );
+        await tester.pumpAndSettle();
 
-          // Act
-          final result = index.handle('field')!.requestFocus();
-          await tester.pump();
+        // Act
+        final result = index.handle('field')!.requestFocus();
+        await tester.pump();
 
-          // Assert
-          expect(result, isTrue);
-          expect(focusNode.hasFocus, isTrue);
-        },
-      );
+        // Assert
+        expect(result, isTrue);
+        expect(focusNode.hasFocus, isTrue);
+      });
 
       testWidgets('should return false when no focusable descendant exists', (
         WidgetTester tester,

@@ -11,10 +11,8 @@ import 'agent_principal_resolver.dart';
 ///
 /// A host supplies this to replace the package default when its role model
 /// differs, for example when roles are hierarchical or namespaced.
-typedef AgentRoleCheck = bool Function(
-  AgentPrincipal principal,
-  String requiredRole,
-);
+typedef AgentRoleCheck =
+    bool Function(AgentPrincipal principal, String requiredRole);
 
 /// Authenticates agent requests with a bearer token and enforces command roles.
 ///

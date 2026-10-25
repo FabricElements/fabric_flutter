@@ -114,17 +114,20 @@ void main() {
         expect(json.containsKey('timestamp'), isFalse);
       });
 
-      test('should serialize timestamp as yyyy-MM-dd date string via Utils.dateToJson', () {
-        // Arrange
-        final dt = DateTime.utc(2024, 4, 22, 14, 0, 0);
-        final data = LogsData(timestamp: dt);
+      test(
+        'should serialize timestamp as yyyy-MM-dd date string via Utils.dateToJson',
+        () {
+          // Arrange
+          final dt = DateTime.utc(2024, 4, 22, 14, 0, 0);
+          final data = LogsData(timestamp: dt);
 
-        // Act
-        final json = data.toJson();
+          // Act
+          final json = data.toJson();
 
-        // Assert — Utils.dateToJson outputs yyyy-MM-dd only
-        expect(json['timestamp'], '2024-04-22');
-      });
+          // Assert — Utils.dateToJson outputs yyyy-MM-dd only
+          expect(json['timestamp'], '2024-04-22');
+        },
+      );
 
       test('should exclude child widget from JSON output', () {
         // Arrange

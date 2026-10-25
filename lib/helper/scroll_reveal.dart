@@ -1,5 +1,6 @@
 import 'dart:async';
 
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
@@ -182,12 +183,13 @@ class ScrollReveal {
         scrollable = Scrollable.maybeOf(context);
         continue;
       }
-      final targetRect = targetObject == null || identical(targetObject, object)
-          ? null
-          : MatrixUtils.transformRect(
-              targetObject.getTransformTo(object),
-              targetObject.paintBounds,
-            );
+      final targetRect =
+          targetObject == null || identical(targetObject, object)
+              ? null
+              : MatrixUtils.transformRect(
+                  targetObject.getTransformTo(object),
+                  targetObject.paintBounds,
+                );
       final desired = viewport
           .getOffsetToReveal(
             object,
@@ -260,12 +262,13 @@ class ScrollReveal {
       }
       final viewport = RenderAbstractViewport.maybeOf(object);
       if (viewport == null || !position.hasContentDimensions) return true;
-      final targetRect = targetObject == null || identical(targetObject, object)
-          ? null
-          : MatrixUtils.transformRect(
-              targetObject.getTransformTo(object),
-              targetObject.paintBounds,
-            );
+      final targetRect =
+          targetObject == null || identical(targetObject, object)
+              ? null
+              : MatrixUtils.transformRect(
+                  targetObject.getTransformTo(object),
+                  targetObject.paintBounds,
+                );
       final desired = viewport
           .getOffsetToReveal(
             object,

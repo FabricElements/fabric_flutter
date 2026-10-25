@@ -152,23 +152,26 @@ void main() {
         expect(() => state.notifyListeners(), returnsNormally);
       });
 
-      testWidgets('should not throw when notifyListeners is called after dispose and its '
-          'debounce timer fires', (tester) async {
-        // Arrange
-        final state = _DebouncedState();
+      testWidgets(
+        'should not throw when notifyListeners is called after dispose and its '
+        'debounce timer fires',
+        (tester) async {
+          // Arrange
+          final state = _DebouncedState();
 
-        // Act — dispose FIRST, then call notifyListeners.  dispose() cancels
-        // any timer already in flight, but a timer created AFTER dispose() has
-        // already run can never be cancelled.
-        state.dispose();
-        state.notifyListeners();
+          // Act — dispose FIRST, then call notifyListeners.  dispose() cancels
+          // any timer already in flight, but a timer created AFTER dispose() has
+          // already run can never be cancelled.
+          state.dispose();
+          state.notifyListeners();
 
-        // Assert — pump advances the fake clock past the 500 ms
-        // debounceTimeNotInitialized window.  Without the fix the timer
-        // callback calls super.notifyListeners() on a disposed ChangeNotifier
-        // and throws a FlutterError.
-        await tester.pump(const Duration(milliseconds: 600));
-      });
+          // Assert — pump advances the fake clock past the 500 ms
+          // debounceTimeNotInitialized window.  Without the fix the timer
+          // callback calls super.notifyListeners() on a disposed ChangeNotifier
+          // and throws a FlutterError.
+          await tester.pump(const Duration(milliseconds: 600));
+        },
+      );
     });
 
     // ── D-2: closed-sink throws after dispose ───────────────────────────────
@@ -333,35 +336,38 @@ void main() {
         },
       );
 
-      testWidgets('should settle after exactly one extra rebuild when a persistent error '
-          'is set during build (no infinite-notification loop)', (tester) async {
-        // Arrange — the error setter is change-guarded: the second build
-        // yields the same string, the setter returns early without notifying,
-        // and the loop terminates.
-        final state = _ImmediateBuildError();
+      testWidgets(
+        'should settle after exactly one extra rebuild when a persistent error '
+        'is set during build (no infinite-notification loop)',
+        (tester) async {
+          // Arrange — the error setter is change-guarded: the second build
+          // yields the same string, the setter returns early without notifying,
+          // and the loop terminates.
+          final state = _ImmediateBuildError();
 
-        await tester.pumpWidget(
-          ChangeNotifierProvider.value(
-            value: state,
-            child: Builder(
-              builder: (context) {
-                context.watch<_ImmediateBuildError>().serialized;
-                return const SizedBox.shrink();
-              },
+          await tester.pumpWidget(
+            ChangeNotifierProvider.value(
+              value: state,
+              child: Builder(
+                builder: (context) {
+                  context.watch<_ImmediateBuildError>().serialized;
+                  return const SizedBox.shrink();
+                },
+              ),
             ),
-          ),
-        );
+          );
 
-        // pumpAndSettle must complete rather than time out.  A loop would
-        // cause it to hit the default frame limit and throw.
-        await tester.pumpAndSettle();
+          // pumpAndSettle must complete rather than time out.  A loop would
+          // cause it to hit the default frame limit and throw.
+          await tester.pumpAndSettle();
 
-        // Rebuild 1 = initial build (error deferred via addPostFrameCallback)
-        // Rebuild 2 = triggered by the deferred notification; error is already
-        //             set, change-guard returns early, no further notification
-        expect(state.rebuildCount, 2);
-        state.dispose();
-      });
+          // Rebuild 1 = initial build (error deferred via addPostFrameCallback)
+          // Rebuild 2 = triggered by the deferred notification; error is already
+          //             set, change-guard returns early, no further notification
+          expect(state.rebuildCount, 2);
+          state.dispose();
+        },
+      );
     });
   });
 }

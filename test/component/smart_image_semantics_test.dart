@@ -27,8 +27,9 @@ void main() {
 
         // Assert
         expect(
-          _semantics(tester)
-              .any((widget) => widget.properties.label == semanticsLabel),
+          _semantics(
+            tester,
+          ).any((widget) => widget.properties.label == semanticsLabel),
           isTrue,
         );
       });
@@ -46,8 +47,9 @@ void main() {
 
         // Assert
         expect(
-          _semantics(tester)
-              .any((widget) => widget.properties.identifier == automationKey),
+          _semantics(
+            tester,
+          ).any((widget) => widget.properties.identifier == automationKey),
           isTrue,
         );
       });
@@ -65,8 +67,9 @@ void main() {
 
         // Assert
         expect(
-          _semantics(tester)
-              .any((widget) => widget.properties.hint == semanticHint),
+          _semantics(
+            tester,
+          ).any((widget) => widget.properties.hint == semanticHint),
           isTrue,
         );
       });
@@ -79,8 +82,9 @@ void main() {
 
         // Assert
         expect(
-          _semantics(tester)
-              .any((widget) => (widget.properties.label?.isNotEmpty ?? false)),
+          _semantics(
+            tester,
+          ).any((widget) => (widget.properties.label?.isNotEmpty ?? false)),
           isTrue,
         );
       });
@@ -105,8 +109,9 @@ void main() {
         // Assert
         expect(find.byType(ExcludeSemantics), findsWidgets);
         expect(
-          _semantics(tester)
-              .any((widget) => widget.properties.label == semanticsLabel),
+          _semantics(
+            tester,
+          ).any((widget) => widget.properties.label == semanticsLabel),
           isFalse,
         );
       });

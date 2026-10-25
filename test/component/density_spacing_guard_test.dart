@@ -30,8 +30,9 @@ bool _matchesLiteralSpacingPattern(String line) {
 }
 
 bool _hasNumericEdgeInsetsLiteral(String line) {
-  return RegExp(r'\bEdgeInsets\.(?:all|symmetric|only)\([^)]*\d+(?:\.\d+)?')
-      .hasMatch(line);
+  return RegExp(
+    r'\bEdgeInsets\.(?:all|symmetric|only)\([^)]*\d+(?:\.\d+)?',
+  ).hasMatch(line);
 }
 
 bool _isOrdinaryContentSpacingCandidate({
