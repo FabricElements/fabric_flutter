@@ -192,6 +192,8 @@ class AgentBuiltInCommands {
         name: 'action',
         description:
             'Label of a custom semantics action to invoke on the element. '
+            'Labels are localized (e.g. "Clear" / "Borrar") and match the '
+            '`actions` list in the element snapshot. '
             'When omitted, the default tap behavior runs.',
       ),
     ],

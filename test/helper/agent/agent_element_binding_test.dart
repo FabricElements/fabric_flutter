@@ -1,8 +1,11 @@
+import 'package:fabric_flutter/component/input_data.dart';
 import 'package:fabric_flutter/helper/agent/agent_element_binding.dart';
 import 'package:fabric_flutter/helper/agent/agent_element_index.dart';
+import 'package:fabric_flutter/helper/app_localizations_delegate.dart';
 import 'package:fabric_flutter/serialized/agent_element_snapshot.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Drives [future] to completion by pumping real frames in [step] increments.
@@ -511,6 +514,76 @@ void main() {
           final snapshot = index.handle('a')!.snapshot();
 
           // Assert
+          expect(snapshot.actions, isNull);
+        },
+      );
+
+      testWidgets(
+        'should use localized label from AppLocalizations',
+        (WidgetTester tester) async {
+          // Arrange – Spanish locale so label--clear resolves to "Borrar"
+          // InputData registers on AgentElementIndex.instance, not a
+          // standalone index, because it doesn't accept an index parameter.
+          final index = AgentElementIndex.instance;
+          addTearDown(() => index.unregisterId('a'));
+          await tester.pumpWidget(
+            MaterialApp(
+              locale: const Locale('es'),
+              localizationsDelegates: const [
+                AppLocalizationsDelegate(locales: {}),
+                ...GlobalMaterialLocalizations.delegates,
+              ],
+              supportedLocales: const [Locale('es')],
+              home: Scaffold(
+                body: InputData(
+                  value: DateTime(2025, 1, 15),
+                  type: InputDataType.date,
+                  automationKey: 'a',
+                ),
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          // Act
+          final snapshot = index.handle('a')!.snapshot();
+
+          // Assert – Spanish locale resolves label--clear to "Borrar"
+          expect(snapshot.actions, isNotNull);
+          expect(snapshot.actions, contains('Borrar'));
+          expect(snapshot.actions, hasLength(1));
+        },
+      );
+
+      testWidgets(
+        'should expose no actions for text-type InputData with a value',
+        (WidgetTester tester) async {
+          // Arrange – text type never shows a clear button
+          // InputData registers on AgentElementIndex.instance, not a
+          // standalone index, because it doesn't accept an index parameter.
+          final index = AgentElementIndex.instance;
+          addTearDown(() => index.unregisterId('a'));
+          await tester.pumpWidget(
+            MaterialApp(
+              localizationsDelegates: const [
+                AppLocalizationsDelegate(locales: {}),
+              ],
+              supportedLocales: const [Locale('en', 'US')],
+              home: Scaffold(
+                body: InputData(
+                  value: 'some text',
+                  type: InputDataType.text,
+                  automationKey: 'a',
+                ),
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          // Act
+          final snapshot = index.handle('a')!.snapshot();
+
+          // Assert – text type never exposes a clear action
           expect(snapshot.actions, isNull);
         },
       );
