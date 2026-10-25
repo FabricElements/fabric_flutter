@@ -76,17 +76,11 @@ class _PopupEntryState extends State<PopupEntry> {
   Widget build(BuildContext context) {
     return AgentElement(
       id: widget.automationKey,
-      type: AgentElementType.other,
+      type: AgentElementType.button,
       label: widget.semanticsLabel,
       hint: widget.semanticHint,
-      child: Semantics(
-        container: true,
-        explicitChildNodes: true,
-        label: widget.semanticsLabel,
-        identifier: widget.automationKey,
-        hint: widget.semanticHint,
-        child: child,
-      ),
+      explicitChildNodes: true,
+      child: child,
     );
   }
 }

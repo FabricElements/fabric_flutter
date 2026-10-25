@@ -159,8 +159,6 @@ class _ExpressiveSegmentState<T> extends State<_ExpressiveSegment<T>>
         selected: widget.selected,
         enabled: enabled,
         label: item.label,
-        identifier: item.automationKey,
-        container: true,
         excludeSemantics: true,
         onTap: activate,
         child: AnimatedBuilder(

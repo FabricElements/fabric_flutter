@@ -146,16 +146,13 @@ class UserAvatar extends StatelessWidget {
     if (presence == null) {
       return AgentElement(
         id: automationKey,
-        type: AgentElementType.other,
+        type: AgentElementType.image,
         label: accessibleName,
         hint: semanticHint,
-        child: MergeSemantics(
-          child: Semantics(
-            label: accessibleName,
-            identifier: automationKey,
-            hint: semanticHint,
-            child: Tooltip(message: accessibleName, child: avatarContainer),
-          ),
+        child: Semantics(
+          label: accessibleName,
+          hint: semanticHint,
+          child: Tooltip(message: accessibleName, child: avatarContainer),
         ),
       );
     }
@@ -192,23 +189,20 @@ class UserAvatar extends StatelessWidget {
         : accessibleName;
     return AgentElement(
       id: automationKey,
-      type: AgentElementType.other,
+      type: AgentElementType.image,
       label: combinedLabel,
       hint: semanticHint,
-      child: MergeSemantics(
-        child: Semantics(
-          label: combinedLabel,
-          identifier: automationKey,
-          hint: semanticHint,
-          child: AspectRatio(
-            aspectRatio: 1 / 1,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                Tooltip(message: accessibleName, child: avatarContainer),
-                Positioned(right: 0, top: 0, child: presenceWidget),
-              ],
-            ),
+      child: Semantics(
+        label: combinedLabel,
+        hint: semanticHint,
+        child: AspectRatio(
+          aspectRatio: 1 / 1,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Tooltip(message: accessibleName, child: avatarContainer),
+              Positioned(right: 0, top: 0, child: presenceWidget),
+            ],
           ),
         ),
       ),

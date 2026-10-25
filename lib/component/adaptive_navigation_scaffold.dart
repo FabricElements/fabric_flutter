@@ -111,17 +111,11 @@ class AdaptiveNavigationScaffold extends StatelessWidget {
   Widget _withSemantics(Widget navigation) {
     return AgentElement(
       id: automationKey,
-      type: AgentElementType.other,
+      type: AgentElementType.navigation,
       label: semanticsLabel,
       hint: semanticHint,
-      child: Semantics(
-        container: true,
-        explicitChildNodes: true,
-        label: semanticsLabel,
-        identifier: automationKey,
-        hint: semanticHint,
-        child: navigation,
-      ),
+      explicitChildNodes: true,
+      child: navigation,
     );
   }
 

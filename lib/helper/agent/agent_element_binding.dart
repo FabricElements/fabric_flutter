@@ -4,12 +4,18 @@ import '../../serialized/agent_element_snapshot.dart';
 import 'agent_element.dart';
 import 'agent_element_index.dart';
 
-/// Publishes its [child] to the live agent element index.
+/// Publishes its [child] to the live agent element index and, when [id] is
+/// non-empty, applies that same id as the [Semantics.identifier] on [child].
 ///
-/// [AgentElement] is intentionally invisible to both the render tree and the
-/// accessibility tree: it adds no [Semantics] node, applies no layout, and
-/// returns [child] unchanged. When [id] is `null` it registers nothing at all,
-/// so wrapping a widget that has no `automationKey` is free.
+/// The identifier is applied as a fold that merges into the child's existing
+/// semantics node rather than introducing a new one. [container] and
+/// [explicitChildNodes] are forwarded to that fold so the identifier can land
+/// on the same node as the child's own container or explicit-child boundary,
+/// which is what keeps the accessibility tree unchanged: an identifier alone
+/// (or a container alone) forces a semantics boundary, so they must live on
+/// one node together. When [id] is `null` or empty it registers nothing and
+/// returns [child] unchanged, so wrapping a widget that has no `automationKey`
+/// is free.
 ///
 /// The registered entry is created on mount, refreshed whenever the owning
 /// widget rebuilds or the enclosing route becomes current or covered, and
@@ -40,6 +46,9 @@ class AgentElement extends StatefulWidget {
     this.setter,
     this.activator,
     this.index,
+    this.applySemanticsIdentifier = true,
+    this.container = true,
+    this.explicitChildNodes = false,
   });
 
   /// Holds the widget subtree published to the index.
@@ -47,8 +56,31 @@ class AgentElement extends StatefulWidget {
 
   /// Identifies the element, normally the widget's `automationKey`.
   ///
-  /// When `null`, nothing is registered and this widget is a pass-through.
+  /// When `null` or empty, nothing is registered and no identifier is applied,
+  /// so this widget is a pass-through.
   final String? id;
+
+  /// Whether [id] is applied as a [Semantics.identifier] on [child].
+  ///
+  /// Defaults to `true`. Set it to `false` when the caller already places the
+  /// identifier on a different semantics node and this widget should only own
+  /// the agent index registration.
+  final bool applySemanticsIdentifier;
+
+  /// Whether the identifier fold is a semantics container.
+  ///
+  /// Defaults to `true` because a bare identifier is itself a boundary, and a
+  /// container keeps the merged node's role and children intact.
+  final bool container;
+
+  /// Whether the identifier fold declares explicit child nodes.
+  ///
+  /// Defaults to `false`. Pass `true` when the wrapped component already used
+  /// `explicitChildNodes: true`, in which case this fold also carries [label]
+  /// and [hint] directly so they stay on the same node as the identifier. When
+  /// `false` the label and hint are left to the child's own `Semantics` node,
+  /// which merges them up into this fold.
+  final bool explicitChildNodes;
 
   /// Classifies how an agent can interact with the element.
   final AgentElementType type;
@@ -202,13 +234,26 @@ class _AgentElementState extends State<AgentElement> {
     return TickerMode.valuesOf(context).enabled;
   }
 
-  /// Returns [AgentElement.child] unchanged.
+  /// Returns [AgentElement.child], wrapped in an identifier fold when one is
+  /// requested.
   ///
   /// The [TickerMode] lookup is what registers the dependency that refreshes
   /// the indexed visibility when another route covers this one.
   @override
   Widget build(BuildContext context) {
     TickerMode.valuesOf(context);
-    return widget.child;
+    final child = widget.child;
+    final id = widget.id;
+    if (!widget.applySemanticsIdentifier || id == null || id.isEmpty) {
+      return child;
+    }
+    return Semantics(
+      identifier: id,
+      container: widget.container,
+      explicitChildNodes: widget.explicitChildNodes,
+      label: widget.explicitChildNodes ? widget.label : null,
+      hint: widget.explicitChildNodes ? widget.hint : null,
+      child: child,
+    );
   }
 }

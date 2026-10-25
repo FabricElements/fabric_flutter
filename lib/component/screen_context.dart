@@ -51,13 +51,9 @@ class ScreenContext extends StatelessWidget {
     final id = route != null ? 'screen_$route' : null;
     return AgentElement(
       id: id,
-      type: AgentElementType.other,
-      child: Semantics(
-        container: true,
-        explicitChildNodes: true,
-        identifier: id,
-        child: child,
-      ),
+      type: AgentElementType.navigation,
+      explicitChildNodes: true,
+      child: child,
     );
   }
 }

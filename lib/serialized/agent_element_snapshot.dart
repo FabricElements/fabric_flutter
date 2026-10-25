@@ -35,6 +35,14 @@ enum AgentElementType {
   @JsonValue('text')
   text,
 
+  /// Presents an image or avatar.
+  @JsonValue('image')
+  image,
+
+  /// Provides navigation, such as a scaffold or menu entry.
+  @JsonValue('navigation')
+  navigation,
+
   /// Represents an element that does not fit any other category.
   @JsonValue('other')
   other,

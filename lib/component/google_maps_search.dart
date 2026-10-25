@@ -571,12 +571,6 @@ class _GoogleMapsSearchState extends State<GoogleMapsSearch> {
                     label: locales.get('label--search-by-label', {
                       'label': locales.get('label--location'),
                     }),
-                    identifier: _resolveAutomationKey(
-                      context,
-                      locales.get('label--search-by-label', {
-                        'label': locales.get('label--location'),
-                      }),
-                    ),
                     child: TextField(
                       controller: textController,
                       autofocus: widget.autofocus,

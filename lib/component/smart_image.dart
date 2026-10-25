@@ -576,12 +576,11 @@ class _SmartImageState extends State<SmartImage> {
     }
     return AgentElement(
       id: widget.automationKey,
-      type: AgentElementType.text,
+      type: AgentElementType.image,
       label: widget.semanticsLabel ?? locales.get('label--image'),
       hint: widget.semanticHint,
       child: Semantics(
         label: widget.semanticsLabel ?? locales.get('label--image'),
-        identifier: widget.automationKey,
         hint: widget.semanticHint,
         image: true,
         child: child,
