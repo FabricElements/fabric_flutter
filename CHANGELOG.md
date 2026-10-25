@@ -2,6 +2,18 @@
 
 ### Added
 
+* **Agent identity** — a single `automationKey` now drives one identity across
+  four surfaces: the in-app agent registry id (`AgentElementIndex`), the
+  `Semantics.identifier` (surfacing as the web `flt-semantics-identifier` DOM
+  attribute), the test finder (`find.bySemanticsIdentifier`), and the
+  accessibility/automation id. Components that previously carried an
+  `automationKey` only on `Semantics` — `AdaptiveNavigationScaffold`,
+  `PopupEntry`, `ScreenContext`, `SmartImage`, and `UserAvatar` — are now also
+  wrapped in `AgentElement` so the in-app agent can discover them, while the six
+  already dual-wired components (`CardButton`, `SmartButton`,
+  `ExpressiveButtonGroup`, `ExpressiveFab`, `GoogleMapsSearch`, `InputData`)
+  keep their single, shared key. A null or empty `automationKey` registers
+  nothing and adds no identifier.
 * **`ScrollReveal`** (`lib/helper/scroll_reveal.dart`) scrolls a target into view
   and keeps it there while the layout settles, so async content that grows above
   the target — or an expanding tile that shifts it — no longer strands it

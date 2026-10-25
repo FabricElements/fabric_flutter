@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../helper/agent/agent_element_binding.dart';
+import '../serialized/agent_element_snapshot.dart';
+
 /// PopupEntry used for popup options without value
 class PopupEntry extends PopupMenuEntry<Never> {
   /// Creates a popup menu entry that simply hosts arbitrary widget content.
@@ -65,18 +68,25 @@ class _PopupEntryState extends State<PopupEntry> {
 
   /// Returns the hosted popup content grouped as a distinct accessibility node.
   ///
-  /// Wraps [child] in a [Semantics] container so screen readers treat this
+  /// Wraps [child] in an [AgentElement] that publishes the entry to the agent
+  /// index, with an inner [Semantics] container so screen readers treat this
   /// entry as a boundary within the surrounding popup menu, without merging
   /// (and thereby hiding) any individually actionable descendants.
   @override
   Widget build(BuildContext context) {
-    return Semantics(
-      container: true,
-      explicitChildNodes: true,
+    return AgentElement(
+      id: widget.automationKey,
+      type: AgentElementType.other,
       label: widget.semanticsLabel,
-      identifier: widget.automationKey,
       hint: widget.semanticHint,
-      child: child,
+      child: Semantics(
+        container: true,
+        explicitChildNodes: true,
+        label: widget.semanticsLabel,
+        identifier: widget.automationKey,
+        hint: widget.semanticHint,
+        child: child,
+      ),
     );
   }
 }
