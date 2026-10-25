@@ -102,6 +102,7 @@ export 'helper/provider_helper.dart';
 export 'helper/redirect_app.dart';
 export 'helper/regex_helper.dart';
 export 'helper/route_helper.dart';
+export 'helper/scroll_reveal.dart';
 export 'helper/serialization_error.dart';
 export 'helper/url_safety.dart';
 export 'helper/user_query.dart';

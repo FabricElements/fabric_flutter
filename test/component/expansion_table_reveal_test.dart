@@ -1,4 +1,5 @@
 import 'package:fabric_flutter/component/expansion_table.dart';
+import 'package:fabric_flutter/helper/scroll_reveal.dart';
 import 'package:fabric_flutter/serialized/table_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -76,10 +77,10 @@ Widget _scroller(Widget child, {double height = 300}) => MaterialApp(
 );
 
 void main() {
-  group('ExpansionTableController', () {
+  group('ExpansionTable reveal', () {
     testWidgets('should scroll a distant root row into view', (tester) async {
       // Arrange
-      final controller = ExpansionTableController();
+      final controller = RevealController();
       final data = _table(count: 40);
       await tester.pumpWidget(
         _scroller(
@@ -90,7 +91,7 @@ void main() {
       final target = data.rows[25];
 
       // Act
-      final revealed = await _driveFrames(tester, controller.revealRow(target));
+      final revealed = await _driveFrames(tester, controller.reveal(target));
 
       // Assert
       expect(revealed, isTrue);
@@ -103,7 +104,7 @@ void main() {
       tester,
     ) async {
       // Arrange
-      final controller = ExpansionTableController();
+      final controller = RevealController();
       final data = _nestable();
       final childRow = data.rows[1].child!.rows.first;
       await tester.pumpWidget(
@@ -115,10 +116,7 @@ void main() {
       expect(find.text('Kid row'), findsNothing);
 
       // Act
-      final revealed = await _driveFrames(
-        tester,
-        controller.revealRow(childRow),
-      );
+      final revealed = await _driveFrames(tester, controller.reveal(childRow));
 
       // Assert
       expect(revealed, isTrue);
@@ -130,14 +128,14 @@ void main() {
       tester,
     ) async {
       // Arrange
-      final controller = ExpansionTableController();
+      final controller = RevealController();
       await tester.pumpWidget(
         _scroller(ExpansionTable(data: _table(), controller: controller)),
       );
       await tester.pumpAndSettle();
 
       // Act
-      final revealed = await controller.revealRow(TableRowData(cells: ['x']));
+      final revealed = await controller.reveal(TableRowData(cells: ['x']));
 
       // Assert
       expect(revealed, isFalse);
@@ -145,7 +143,7 @@ void main() {
 
     testWidgets('should reveal the root row at an index', (tester) async {
       // Arrange
-      final controller = ExpansionTableController();
+      final controller = RevealController();
       await tester.pumpWidget(
         _scroller(
           ExpansionTable(data: _table(count: 40), controller: controller),
@@ -154,7 +152,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Act
-      final revealed = await _driveFrames(tester, controller.revealRowAt(30));
+      final revealed = await _driveFrames(tester, controller.reveal(30));
 
       // Assert
       expect(revealed, isTrue);
@@ -165,15 +163,15 @@ void main() {
       tester,
     ) async {
       // Arrange
-      final controller = ExpansionTableController();
+      final controller = RevealController();
       await tester.pumpWidget(
         _scroller(ExpansionTable(data: _table(), controller: controller)),
       );
       await tester.pumpAndSettle();
 
       // Act
-      final negative = await controller.revealRowAt(-1);
-      final beyond = await controller.revealRowAt(999);
+      final negative = await controller.reveal(-1);
+      final beyond = await controller.reveal(999);
 
       // Assert
       expect(negative, isFalse);
@@ -188,7 +186,7 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
-      final controller = ExpansionTableController();
+      final controller = RevealController();
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -204,7 +202,10 @@ void main() {
       expect(tester.getRect(find.text('Col 3')).left, greaterThan(360));
 
       // Act
-      final revealed = await _driveFrames(tester, controller.revealColumn(2));
+      final revealed = await _driveFrames(
+        tester,
+        controller.reveal(RevealTarget(column: 2)),
+      );
 
       // Assert
       expect(revealed, isTrue);
@@ -219,7 +220,7 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
-      final controller = ExpansionTableController();
+      final controller = RevealController();
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -235,7 +236,10 @@ void main() {
       final before = tester.getRect(find.text('Col 1'));
 
       // Act
-      final revealed = await _driveFrames(tester, controller.revealColumn(0));
+      final revealed = await _driveFrames(
+        tester,
+        controller.reveal(RevealTarget(column: 0)),
+      );
 
       // Assert
       expect(revealed, isTrue);
@@ -246,15 +250,15 @@ void main() {
       tester,
     ) async {
       // Arrange
-      final controller = ExpansionTableController();
+      final controller = RevealController();
       await tester.pumpWidget(
         _scroller(ExpansionTable(data: _table(), controller: controller)),
       );
       await tester.pumpAndSettle();
 
       // Act
-      final negative = await controller.revealColumn(-1);
-      final beyond = await controller.revealColumn(99);
+      final negative = await controller.reveal(RevealTarget(column: -1));
+      final beyond = await controller.reveal(RevealTarget(column: 99));
 
       // Assert
       expect(negative, isFalse);
@@ -265,12 +269,12 @@ void main() {
       tester,
     ) async {
       // Arrange
-      final controller = ExpansionTableController();
+      final controller = RevealController();
 
       // Act
-      final byRow = await controller.revealRow(TableRowData(cells: ['x']));
-      final byIndex = await controller.revealRowAt(0);
-      final byColumn = await controller.revealColumn(0);
+      final byRow = await controller.reveal(TableRowData(cells: ['x']));
+      final byIndex = await controller.reveal(0);
+      final byColumn = await controller.reveal(RevealTarget(column: 0));
 
       // Assert
       expect(byRow, isFalse);
@@ -282,7 +286,7 @@ void main() {
       tester,
     ) async {
       // Arrange
-      final controller = ExpansionTableController();
+      final controller = RevealController();
       await tester.pumpWidget(
         _scroller(
           ExpansionTable(
@@ -294,7 +298,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Act
-      final revealed = await controller.revealRowAt(0);
+      final revealed = await controller.reveal(0);
 
       // Assert
       expect(revealed, isFalse);
@@ -304,8 +308,8 @@ void main() {
       tester,
     ) async {
       // Arrange
-      final first = ExpansionTableController();
-      final second = ExpansionTableController();
+      final first = RevealController();
+      final second = RevealController();
       final data = _table(count: 40);
       await tester.pumpWidget(
         _scroller(ExpansionTable(data: data, controller: first)),
@@ -317,8 +321,8 @@ void main() {
         _scroller(ExpansionTable(data: data, controller: second)),
       );
       await tester.pumpAndSettle();
-      final viaFirst = await first.revealRowAt(30);
-      final viaSecond = await _driveFrames(tester, second.revealRowAt(30));
+      final viaFirst = await first.reveal(30);
+      final viaSecond = await _driveFrames(tester, second.reveal(30));
 
       // Assert
       expect(viaFirst, isFalse);

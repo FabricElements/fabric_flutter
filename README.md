@@ -277,9 +277,9 @@ All accessibility strings are localized through `AppLocalizations`; add or overr
 
 ### Scroll reveal & embedding in parent surfaces
 
-An agent that works on a long page needs to bring the section it is editing into view — and keep it there. `Scrollable.ensureVisible` runs once, so it misses targets whose surroundings keep changing after the call: content that loads asynchronously above the target, images that finish decoding, expandable tiles that open. Reveal here means "scroll the target to an alignment, then re-check every frame until the layout stops moving".
+An agent that works on a long page needs to bring the section it is editing into view — and keep it there. `Scrollable.ensureVisible` runs once, so it misses targets whose surroundings keep changing after the call: content that loads asynchronously above the target, images that finish decoding, expandable tiles that open. Reveal here means "scroll the target to an alignment, then re-check until the layout stops moving".
 
-`ScrollReveal` (`lib/helper/scroll_reveal.dart`) is a stateless helper. It works through nested scrollables, stops as soon as the user scrolls or the target unmounts, and jumps instead of animating when the platform asks for reduced motion:
+`ScrollReveal` (`lib/helper/scroll_reveal.dart`) is a stateless helper. It works through nested scrollables, backs off as soon as the user scrolls or the target unmounts, and jumps instead of animating when the platform asks for reduced motion; it also re-checks the alignment only when the target is genuinely out of view, so a settled page costs no frames:
 
 ```dart
 final revealed = await ScrollReveal.reveal(
@@ -291,23 +291,20 @@ final revealed = await ScrollReveal.reveal(
 // `false` when the target unmounted, has no enclosing scrollable, or the user took over.
 ```
 
-Three components expose that helper through an opt-in controller, so a surface can name the row, step, or item it cares about without knowing the scroll geometry:
+The same helper is the single entry point for the components below. Pass a `RevealController` to a component's existing `controller:` parameter and call `RevealController.reveal`, mapping the target to that component's own layout:
 
-| Component | API | Reveals |
-|-----------|-----|---------|
-| `PaginationContainer` | `PaginationContainerController.revealIndex(int, {alignment, maxPages = 5})` | the item at an index, loading further pages as needed |
-| `PaginationContainer` | `PaginationContainerController.revealWhere(bool Function(dynamic), {alignment, maxPages = 5})` | the first loaded item matching a predicate |
-| `StepperExtended` | `StepperExtendedController.revealStep(int, {within, alignment})` | a step, or — when `within` is a mounted `GlobalKey` — a field inside it |
-| `ExpansionTable` | `ExpansionTableController.revealRow(row, {column, alignment})` | a row, and a column when `column` is given |
-| `ExpansionTable` | `ExpansionTableController.revealRowAt(int, {alignment})` / `revealColumn(int)` | by index |
-| `ExpansionTable` | `ExpansionTableController.revealRow(row, {column, alignment})` | the row, plus the column |
+| Component | `reveal` target | Reveals |
+|-----------|-----------------|---------|
+| `PaginationContainer` | an `int` index, or a predicate `bool Function(dynamic item)` | that item, loading further pages as needed |
+| `StepperExtended` | a step `int` index, or `RevealTarget(target: index, within: fieldKey)` | the step, or a field inside it when `within` is a mounted `GlobalKey` |
+| `ExpansionTable` | a `TableRowData` or a row `int` index | that row, and — with `RevealTarget(column: 1)` — a column of it |
 
-Each call returns `true` only when the target actually ended up in view, so a caller can branch on it rather than assume. A controller that is not attached to a mounted component — or an out-of-range index — returns `false` without side effects.
+Each call returns `true` only when the target actually ended up in view, so a caller can branch on it rather than assume. A controller attached to no mounted component — or an out-of-range index — returns `false` without side effects. Targets are re-resolved against the live data on every rebuild, so a list that loads more items or is prepended to still reveals the same item. Only one reveal runs at a time: starting a new one cancels the one in flight, which then returns `false`.
 
-**Embedding in a generative surface.** When a component renders inside a parent chat `ListView`, it must not fight the parent for gestures or claim its own scroll extent. Four opt-in entry points cover that:
+**Embedding in a generative surface.** When a component renders inside a parent chat `ListView`, it must not fight the parent for gestures or claim its own scroll extent. Three opt-in parameters cover that:
 
-- `PaginationContainer(embedded: true)` sizes itself to its items, never captures a drag, and replaces the scroll-edge pagination trigger with an explicit "load more" button. `PaginationContainer.items(items: ..., itemBuilder: ...)` is the const, data-only constructor that turns all of that on at once (`shrinkWrap`, `embedded`, no stream, no further pages).
-- `StepperExtended(scrollable: false)` (the default) renders a fixed column; `revealStep` then scrolls the *enclosing* scrollable.
+- `PaginationContainer(embedded: true)` sizes itself to its items, never captures a drag, and replaces the scroll-edge pagination trigger with an explicit "load more" button. Passing `items:` a fixed list together with `embedded: true` turns on that whole mode at once (shrinkWrap, no stream, no further pages).
+- `StepperExtended(scrollable: false)` (the default) renders a fixed column; a reveal then scrolls the *enclosing* scrollable.
 - `ExpansionTable(columnWidth: ...)` keeps its horizontal panning on the inner viewport, so vertical drags still reach the parent list.
 - `LogsList(scrollable: false)` (the default) is the fixed-column mode.
 
@@ -324,7 +321,8 @@ ListView(
         controller: contactTableController,
       ),
     ),
-    PaginationContainer.items(
+    PaginationContainer(
+      embedded: true,
       items: suggestions,
       itemBuilder: (context, index, item) => ListTile(title: Text('$item')),
     ),
@@ -335,8 +333,10 @@ ListView(
 To land on a specific row of a contact table, or a specific plan step:
 
 ```dart
-await contactTableController.revealRow(contactRow, column: 1);
-await planStepperController.revealStep(3, within: planTitleKey);
+await contactTableController.reveal(
+  RevealTarget(target: contactRow, column: 1),
+);
+await planStepperController.reveal(3, alignment: 0.1);
 ```
 
 Both are no-ops until the component is mounted, and both report `false` instead of throwing when it is not.

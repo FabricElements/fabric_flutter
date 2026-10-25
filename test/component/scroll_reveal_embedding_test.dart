@@ -3,6 +3,7 @@ import 'package:fabric_flutter/component/logs_list.dart';
 import 'package:fabric_flutter/component/pagination_container.dart';
 import 'package:fabric_flutter/component/stepper_extended.dart';
 import 'package:fabric_flutter/helper/app_localizations_delegate.dart';
+import 'package:fabric_flutter/helper/scroll_reveal.dart';
 import 'package:fabric_flutter/serialized/logs_data.dart';
 import 'package:fabric_flutter/serialized/table_data.dart';
 import 'package:flutter/material.dart';
@@ -168,7 +169,7 @@ void main() {
       ) async {
         // Arrange
         _useNarrowViewport(tester);
-        final controller = ExpansionTableController();
+        final controller = RevealController();
         final data = _table(count: 30);
         final parent = await _pumpInParentList(
           tester,
@@ -178,7 +179,7 @@ void main() {
         // Act
         final revealed = await _driveFrames(
           tester,
-          controller.revealRow(data.rows[28]),
+          controller.reveal(data.rows[28]),
         );
 
         // Assert
@@ -198,7 +199,8 @@ void main() {
         // Act
         await _pumpInParentList(
           tester,
-          PaginationContainer.items(
+          PaginationContainer(
+            embedded: true,
             items: List.generate(6, (index) => index),
             itemBuilder: (_, index, data) =>
                 ListTile(title: Text('Item $data')),
@@ -217,7 +219,8 @@ void main() {
         _useNarrowViewport(tester);
         final parent = await _pumpInParentList(
           tester,
-          PaginationContainer.items(
+          PaginationContainer(
+            embedded: true,
             items: List.generate(6, (index) => index),
             itemBuilder: (_, index, data) =>
                 ListTile(title: Text('Item $data')),
@@ -237,11 +240,12 @@ void main() {
       ) async {
         // Arrange
         _useNarrowViewport(tester);
-        final controller = PaginationContainerController();
+        final controller = RevealController();
         final items = List.generate(30, (index) => index);
         final parent = await _pumpInParentList(
           tester,
-          PaginationContainer.items(
+          PaginationContainer(
+            embedded: true,
             items: items,
             controller: controller,
             itemBuilder: (_, index, data) => SizedBox(
@@ -252,7 +256,7 @@ void main() {
         );
 
         // Act
-        final revealed = await _driveFrames(tester, controller.revealIndex(28));
+        final revealed = await _driveFrames(tester, controller.reveal(28));
 
         // Assert
         expect(revealed, isTrue);
@@ -281,14 +285,14 @@ void main() {
       ) async {
         // Arrange
         _useNarrowViewport(tester);
-        final controller = StepperExtendedController();
+        final controller = RevealController();
         final parent = await _pumpInParentList(
           tester,
           StepperExtended(steps: _steps(), controller: controller),
         );
 
         // Act
-        final revealed = await _driveFrames(tester, controller.revealStep(5));
+        final revealed = await _driveFrames(tester, controller.reveal(5));
 
         // Assert
         expect(revealed, isTrue);

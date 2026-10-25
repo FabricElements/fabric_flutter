@@ -1,5 +1,6 @@
 import 'package:fabric_flutter/helper/scroll_reveal.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Drives [future] to completion by pumping real frames in [step] increments.
@@ -223,6 +224,154 @@ void main() {
           expect(origin.dy + targetBox.size.height, lessThanOrEqualTo(300));
         },
       );
+
+      testWidgets('should cancel an in-flight reveal when a new one starts', (
+        tester,
+      ) async {
+        // Arrange
+        final controller = ScrollController();
+        addTearDown(controller.dispose);
+        final first = GlobalKey();
+        final second = GlobalKey();
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: SizedBox(
+                height: 300,
+                child: SingleChildScrollView(
+                  controller: controller,
+                  child: Column(
+                    children: [
+                      for (var index = 0; index < 40; index++)
+                        SizedBox(
+                          height: 100,
+                          child: Text(
+                            'item $index',
+                            key: index == 5
+                                ? first
+                                : index == 35
+                                ? second
+                                : null,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Act: the second reveal supersedes the first while it is still
+        // settling, so the first must give up.
+        final firstFuture = ScrollReveal.reveal(first.currentContext!);
+        await tester.pump();
+        final secondFuture = ScrollReveal.reveal(second.currentContext!);
+        final firstResult = await _driveFrames(tester, firstFuture);
+        final secondResult = await _driveFrames(tester, secondFuture);
+
+        // Assert
+        expect(firstResult, isFalse);
+        expect(secondResult, isTrue);
+        final box = tester.renderObject<RenderBox>(find.byKey(second));
+        final origin = box.localToGlobal(Offset.zero, ancestor: null);
+        expect(origin.dy, greaterThanOrEqualTo(0));
+        expect(origin.dy + box.size.height, lessThanOrEqualTo(300));
+      });
+
+      testWidgets(
+        'should reveal a target nested inside a vertical scroll view',
+        (tester) async {
+          // Arrange: a target taller than its enclosing inner list, itself
+          // inside an outer list. Both scrollables have to move, and the inner
+          // one cannot satisfy the alignment on its own — this is the shape
+          // that exposes a wrong rect projection in the alignment check.
+          final outer = ScrollController();
+          final inner = ScrollController();
+          addTearDown(outer.dispose);
+          addTearDown(inner.dispose);
+          final target = GlobalKey();
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: SizedBox(
+                  height: 300,
+                  child: SingleChildScrollView(
+                    controller: outer,
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 600),
+                        SizedBox(
+                          height: 300,
+                          child: SingleChildScrollView(
+                            controller: inner,
+                            child: Column(
+                              children: [
+                                const SizedBox(height: 800),
+                                SizedBox(
+                                  height: 2000,
+                                  child: Text('nested target', key: target),
+                                ),
+                                const SizedBox(height: 200),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 600),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          // Act
+          final revealed = await _driveFrames(
+            tester,
+            ScrollReveal.reveal(target.currentContext!),
+          );
+
+          // Assert: the reveal converges instead of reporting failure because
+          // an unreachable offset was demanded, and the target really is in
+          // the outer viewport.
+          expect(revealed, isTrue);
+          expect(outer.offset, greaterThan(0));
+          expect(inner.offset, greaterThan(0));
+          final box = tester.renderObject<RenderBox>(find.byKey(target));
+          final origin = box.localToGlobal(Offset.zero, ancestor: null);
+          expect(origin.dy, lessThanOrEqualTo(0));
+          expect(origin.dy + box.size.height, greaterThanOrEqualTo(300));
+        },
+      );
+
+      testWidgets('should not keep scheduling frames on a settled page', (
+        tester,
+      ) async {
+        // Arrange: a short page that already shows the target at the very top,
+        // so the reveal has nothing to do.
+        final controller = ScrollController();
+        addTearDown(controller.dispose);
+        final target = GlobalKey();
+        await tester.pumpWidget(
+          _list(controller: controller, count: 2, keyIndex: 0, key: target),
+        );
+        await tester.pumpAndSettle();
+        final offsetBefore = controller.offset;
+
+        // Act
+        final future = ScrollReveal.reveal(target.currentContext!);
+        final revealed = await _driveFrames(tester, future);
+        await tester.pump(const Duration(milliseconds: 600));
+
+        // Assert: the reveal resolved without moving the page, and nothing was
+        // left pending once it ended.
+        expect(revealed, isTrue);
+        expect(controller.offset, offsetBefore);
+        expect(SchedulerBinding.instance.hasScheduledFrame, isFalse);
+      });
     });
   });
 }

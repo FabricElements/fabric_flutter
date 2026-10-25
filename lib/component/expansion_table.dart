@@ -151,8 +151,8 @@ class ExpansionTable extends StatefulWidget {
 
   /// Optional handle used to reveal rows and columns.
   ///
-  /// See [ExpansionTableController]. Nested tables inherit it automatically.
-  final ExpansionTableController? controller;
+  /// See [RevealController]. Nested tables inherit it automatically.
+  final RevealController? controller;
 
   /// Creates the mutable state for [ExpansionTable].
   ///
@@ -164,42 +164,37 @@ class ExpansionTable extends StatefulWidget {
 
 /// Reveals rows and columns of an [ExpansionTable].
 ///
-/// Pass one instance to [ExpansionTable.controller]. Calls return `false`
-/// while no table is attached.
-class ExpansionTableController {
-  _ExpansionTableState? _root;
+/// Pass one instance to [ExpansionTable.controller] and call
+/// [RevealController.reveal] with a [TableRowData], a row index, or a
+/// [RevealTarget] wrapping one of those plus a [RevealTarget.column]. Calls
+/// return `false` while no table is attached.
+class _ExpansionTableRevealHandler implements RevealHandler {
+  _ExpansionTableRevealHandler(this._state);
 
-  /// Keys that locate built rows, by row identity.
-  final Map<TableRowData, GlobalKey> _rowKeys = Map.identity();
+  final _ExpansionTableState _state;
 
-  GlobalKey _keyFor(TableRowData row) =>
-      _rowKeys.putIfAbsent(row, GlobalKey.new);
-
-  /// Scrolls [row] into view, expanding its ancestors first.
-  ///
-  /// [row] must be one of the [TableRowData] objects of the table's data. When
-  /// [column] is given, the horizontal scroll also moves so that column is
-  /// visible. Returns `true` when the row ended in view.
-  Future<bool> revealRow(
-    TableRowData row, {
-    int? column,
-    double alignment = 0.1,
-  }) async => await _root?._revealRow(row, column, alignment) ?? false;
-
-  /// Scrolls the root row at [index] into view. See [revealRow].
-  Future<bool> revealRowAt(
-    int index, {
-    int? column,
-    double alignment = 0.1,
-  }) async {
-    final rows = _root?.widget.data?.rows;
-    if (rows == null || index < 0 || index >= rows.length) return false;
-    return revealRow(rows[index], column: column, alignment: alignment);
+  @override
+  Future<bool> revealTarget(Object target, double alignment) async {
+    if (target is RevealTarget) {
+      final inner = target.target;
+      if (inner == null) {
+        final column = target.column;
+        return column == null ? false : _state._revealColumn(column);
+      }
+      if (inner is TableRowData) {
+        return _state._revealRow(inner, target.column, alignment);
+      }
+      if (inner is int) {
+        return _state._revealRowAt(inner, target.column, alignment);
+      }
+      return false;
+    }
+    if (target is TableRowData) {
+      return _state._revealRow(target, null, alignment);
+    }
+    if (target is int) return _state._revealRowAt(target, null, alignment);
+    return false;
   }
-
-  /// Scrolls the horizontal axis so the column at [index] is visible.
-  Future<bool> revealColumn(int index) async =>
-      await _root?._revealColumn(index) ?? false;
 }
 
 /// Stores the fixed width assigned to each column.
@@ -219,21 +214,27 @@ class _ExpansionTableState extends State<ExpansionTable> {
   /// reallocated (and leaked) on every [build] pass.
   final ScrollController _controllerHorizontal = ScrollController();
 
+  /// Bridges [ExpansionTable.controller] to this state.
+  late final _ExpansionTableRevealHandler _revealHandler =
+      _ExpansionTableRevealHandler(this);
+
   /// Registers the root table with [ExpansionTable.controller].
   @override
   void initState() {
     super.initState();
-    if ((widget.data?.level ?? 0) == 0) widget.controller?._root = this;
+    if ((widget.data?.level ?? 0) == 0) {
+      widget.controller?.attach(_revealHandler);
+    }
   }
 
   @override
   void didUpdateWidget(covariant ExpansionTable oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.controller != widget.controller) {
-      if (oldWidget.controller?._root == this) {
-        oldWidget.controller?._root = null;
+      oldWidget.controller?.detach(_revealHandler);
+      if ((widget.data?.level ?? 0) == 0) {
+        widget.controller?.attach(_revealHandler);
       }
-      if ((widget.data?.level ?? 0) == 0) widget.controller?._root = this;
     }
   }
 
@@ -252,7 +253,7 @@ class _ExpansionTableState extends State<ExpansionTable> {
   /// Width of one column, shared with the layout code.
   double get _columnWidth => widget.columnWidth ?? 300;
 
-  /// Implements [ExpansionTableController.revealRow].
+  /// Implements [RevealController.reveal] for a [TableRowData] or row index.
   Future<bool> _revealRow(
     TableRowData row,
     int? column,
@@ -270,14 +271,21 @@ class _ExpansionTableState extends State<ExpansionTable> {
       if (mounted) setState(() {});
     }
     await WidgetsBinding.instance.endOfFrame;
-    final context = controller._rowKeys[row]?.currentContext;
+    final context = controller.keyFor(row).currentContext;
     if (!mounted || context == null || !context.mounted) return false;
     final revealed = await ScrollReveal.reveal(context, alignment: alignment);
     if (column != null) await _revealColumn(column);
     return revealed;
   }
 
-  /// Implements [ExpansionTableController.revealColumn].
+  /// Reveals the root row at [index]. See [_revealRow].
+  Future<bool> _revealRowAt(int index, int? column, double alignment) async {
+    final rows = widget.data?.rows;
+    if (rows == null || index < 0 || index >= rows.length) return false;
+    return _revealRow(rows[index], column, alignment);
+  }
+
+  /// Implements the column part of [RevealController.reveal].
   Future<bool> _revealColumn(int index) async {
     final count = widget.data?.header?.length ?? 0;
     if (index < 0 || index >= count || !_controllerHorizontal.hasClients) {
@@ -307,7 +315,7 @@ class _ExpansionTableState extends State<ExpansionTable> {
   /// Releases the horizontal scroll controller when the widget is removed.
   @override
   void dispose() {
-    if (widget.controller?._root == this) widget.controller?._root = null;
+    widget.controller?.detach(_revealHandler);
     _controllerHorizontal.dispose();
     super.dispose();
   }
@@ -568,7 +576,7 @@ class _ExpansionTableState extends State<ExpansionTable> {
             content.add(SizedBox(height: density.gap(32)));
           }
           return Container(
-            key: isFooter ? null : widget.controller?._keyFor(row),
+            key: isFooter ? null : widget.controller?.keyFor(row),
             decoration: BoxDecoration(border: border),
             child: Flex(direction: Axis.vertical, children: content),
           );

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:fabric_flutter/component/pagination_container.dart';
+import 'package:fabric_flutter/helper/scroll_reveal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -80,7 +81,7 @@ Future<bool?> _driveFrames(
 /// [height] sets the viewport so items of a known extent make scrolling
 /// predictable, and [embedded] exercises the parent-owned scroll variant.
 Widget _pagedList({
-  required PaginationContainerController controller,
+  required RevealController controller,
   required _PagedSource source,
   double height = 300,
   bool embedded = false,
@@ -106,8 +107,8 @@ Widget _pagedList({
 );
 
 void main() {
-  group('PaginationContainerController', () {
-    group('revealIndex', () {
+  group('PaginationContainer reveal', () {
+    group('reveal with an index', () {
       testWidgets('should load further pages until the index is loaded', (
         tester,
       ) async {
@@ -116,49 +117,47 @@ void main() {
           initialItems: List<int>.generate(10, (index) => index),
         );
         addTearDown(source.controller.close);
-        final controller = PaginationContainerController();
+        final controller = RevealController();
         await tester.pumpWidget(
           _pagedList(controller: controller, source: source),
         );
         await tester.pumpAndSettle();
 
         // Act
-        final revealed = await _driveFrames(tester, controller.revealIndex(35));
+        final revealed = await _driveFrames(tester, controller.reveal(35));
 
         // Assert
         expect(tester.takeException(), isNull);
         expect(revealed, isTrue);
         expect(source.requests, greaterThanOrEqualTo(3));
-        expect(controller.items.length, greaterThanOrEqualTo(40));
-        expect(find.text('item ${controller.items[35]}'), findsOneWidget);
+        expect(source.items.length, greaterThanOrEqualTo(40));
+        expect(find.text('item ${source.items[35]}'), findsOneWidget);
       });
 
-      testWidgets('should stop at maxPages when more pages are required', (
-        tester,
-      ) async {
-        // Arrange: the list grows by one page per request forever, so an index
-        // beyond the reachable range must give up after the page budget.
-        final source = _PagedSource(
-          initialItems: List<int>.generate(10, (index) => index),
-        );
-        addTearDown(source.controller.close);
-        final controller = PaginationContainerController();
-        await tester.pumpWidget(
-          _pagedList(controller: controller, source: source),
-        );
-        await tester.pumpAndSettle();
+      testWidgets(
+        'should give up after the page budget when the index is unreachable',
+        (tester) async {
+          // Arrange: the list grows by one page per request forever, so an index
+          // beyond the reachable range must give up after the page budget.
+          final source = _PagedSource(
+            initialItems: List<int>.generate(10, (index) => index),
+          );
+          addTearDown(source.controller.close);
+          final controller = RevealController();
+          await tester.pumpWidget(
+            _pagedList(controller: controller, source: source),
+          );
+          await tester.pumpAndSettle();
 
-        // Act
-        final revealed = await _driveFrames(
-          tester,
-          controller.revealIndex(9999, maxPages: 2),
-        );
+          // Act
+          final revealed = await _driveFrames(tester, controller.reveal(9999));
 
-        // Assert
-        expect(revealed, isFalse);
-        expect(source.requests, lessThanOrEqualTo(2));
-        expect(controller.items.length, lessThan(9999));
-      });
+          // Assert
+          expect(revealed, isFalse);
+          expect(source.requests, lessThanOrEqualTo(5));
+          expect(source.items.length, lessThan(9999));
+        },
+      );
 
       testWidgets('should return false for a negative index', (tester) async {
         // Arrange
@@ -166,14 +165,14 @@ void main() {
           initialItems: List<int>.generate(10, (index) => index),
         );
         addTearDown(source.controller.close);
-        final controller = PaginationContainerController();
+        final controller = RevealController();
         await tester.pumpWidget(
           _pagedList(controller: controller, source: source),
         );
         await tester.pumpAndSettle();
 
         // Act
-        final revealed = await controller.revealIndex(-1);
+        final revealed = await controller.reveal(-1);
 
         // Assert
         expect(revealed, isFalse);
@@ -185,15 +184,14 @@ void main() {
         tester,
       ) async {
         // Arrange
-        final controller = PaginationContainerController();
+        final controller = RevealController();
 
         // Act & Assert
-        expect(await controller.revealIndex(0), isFalse);
-        expect(controller.items, isEmpty);
+        expect(await controller.reveal(0), isFalse);
       });
     });
 
-    group('revealWhere', () {
+    group('reveal with a predicate', () {
       testWidgets('should load further pages until a later item matches', (
         tester,
       ) async {
@@ -202,7 +200,7 @@ void main() {
           initialItems: List<int>.generate(10, (index) => index),
         );
         addTearDown(source.controller.close);
-        final controller = PaginationContainerController();
+        final controller = RevealController();
         await tester.pumpWidget(
           _pagedList(controller: controller, source: source),
         );
@@ -211,18 +209,82 @@ void main() {
         // Act
         final revealed = await _driveFrames(
           tester,
-          controller.revealWhere((item) => item == 402),
+          controller.reveal((item) => item == 402),
         );
 
         // Assert
         expect(tester.takeException(), isNull);
         expect(revealed, isTrue);
         expect(source.requests, greaterThanOrEqualTo(4));
-        expect(controller.items, contains(402));
+        expect(source.items, contains(402));
         expect(find.text('item 402'), findsOneWidget);
       });
 
-      testWidgets('should return false when nothing matches in maxPages', (
+      testWidgets(
+        'should return false when nothing matches within the page budget',
+        (tester) async {
+          // Arrange
+          final source = _PagedSource(
+            initialItems: List<int>.generate(10, (index) => index),
+          );
+          addTearDown(source.controller.close);
+          final controller = RevealController();
+          await tester.pumpWidget(
+            _pagedList(controller: controller, source: source),
+          );
+          await tester.pumpAndSettle();
+
+          // Act
+          final revealed = await _driveFrames(
+            tester,
+            controller.reveal((item) => item == 99999),
+          );
+
+          // Assert
+          expect(revealed, isFalse);
+          expect(source.requests, lessThanOrEqualTo(5));
+        },
+      );
+
+      testWidgets(
+        'should reveal the right item in a list that is prepended to',
+        (tester) async {
+          // Arrange: the list is newest-first, so a new item lands at the front
+          // and every existing index shifts by one. The slot is a predicate, so
+          // it must follow the item rather than the index.
+          final source = _PagedSource(
+            initialItems: List<int>.generate(20, (index) => 20 - index),
+          );
+          addTearDown(source.controller.close);
+          final controller = RevealController();
+          await tester.pumpWidget(
+            _pagedList(controller: controller, source: source, height: 300),
+          );
+          await tester.pumpAndSettle();
+
+          // Act: reveal an existing item, then push a prepended snapshot while
+          // the list is being addressed.
+          final future = controller.reveal((item) => item == 5);
+          await tester.pump();
+          source.items.insert(0, 777);
+          source.controller.add(List<int>.of(source.items));
+          await tester.pump();
+          final revealed = await _driveFrames(tester, future);
+
+          // Assert: the item moved one slot down but is still the revealed one.
+          expect(tester.takeException(), isNull);
+          expect(revealed, isTrue);
+          expect(source.items[0], 777);
+          final box = tester.renderObject<RenderBox>(find.text('item 5'));
+          final origin = box.localToGlobal(Offset.zero, ancestor: null);
+          expect(origin.dy, greaterThanOrEqualTo(0));
+          expect(origin.dy + box.size.height, lessThanOrEqualTo(300));
+        },
+      );
+    });
+
+    group('reveal slot', () {
+      testWidgets('should wrap at most one item in a key during a reveal', (
         tester,
       ) async {
         // Arrange
@@ -230,21 +292,39 @@ void main() {
           initialItems: List<int>.generate(10, (index) => index),
         );
         addTearDown(source.controller.close);
-        final controller = PaginationContainerController();
+        final controller = RevealController();
         await tester.pumpWidget(
           _pagedList(controller: controller, source: source),
         );
         await tester.pumpAndSettle();
 
-        // Act
-        final revealed = await _driveFrames(
-          tester,
-          controller.revealWhere((item) => item == 99999, maxPages: 1),
-        );
+        // The container's own rows are the only [KeyedSubtree]s under its
+        // [ListView]; counting them keeps framework-internal subtrees out.
+        int keyedRows() => tester
+            .widgetList<KeyedSubtree>(
+              find.descendant(
+                of: find.byType(ListView),
+                matching: find.byType(KeyedSubtree),
+              ),
+            )
+            .where((widget) => widget.key is GlobalKey)
+            .length;
 
-        // Assert
-        expect(revealed, isFalse);
-        expect(source.requests, lessThanOrEqualTo(1));
+        // Act
+        final future = controller.reveal(35);
+        var maxKeyed = 0;
+        var completed = false;
+        future.then((_) => completed = true);
+        for (var i = 0; i < 200 && !completed; i++) {
+          await tester.pump(const Duration(milliseconds: 100));
+          final keyed = keyedRows();
+          if (keyed > maxKeyed) maxKeyed = keyed;
+        }
+        expect(await future, isTrue);
+
+        // Assert: never more than one keyed item, and none after the reveal.
+        expect(maxKeyed, 1);
+        expect(keyedRows(), 0);
       });
     });
   });

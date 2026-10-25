@@ -28,33 +28,11 @@ class StepperExtended extends StatefulWidget {
     this.controller,
   });
 
-  /// Converts JSON-like step maps into [Step]s, so a surface can render the
-  /// stepper from plain props without any stateful wiring.
-  ///
-  /// Each entry reads `title` (required), `subtitle`, `content` (all text) and
-  /// `state` (`indexed`, `editing`, `complete`, `disabled` or `error`).
-  /// Entries that are not maps are skipped; a `null` list yields no steps.
-  static List<Step> stepsFromJson(List<dynamic>? json) => [
-    for (final entry in json ?? const [])
-      if (entry is Map)
-        Step(
-          title: Text('${entry['title'] ?? ''}'),
-          subtitle: entry['subtitle'] != null
-              ? Text('${entry['subtitle']}')
-              : null,
-          content: Text('${entry['content'] ?? ''}'),
-          state: StepState.values.firstWhere(
-            (value) => value.name == entry['state'],
-            orElse: () => StepState.indexed,
-          ),
-        ),
-  ];
-
   /// Optional handle used to reveal a step or content inside a step.
   ///
   /// Works with [scrollable] on and off: when off, the reveal scrolls the
   /// enclosing scrollable (for example a chat list).
-  final StepperExtendedController? controller;
+  final RevealController? controller;
 
   /// The ordered steps to render from top to bottom.
   final List<Step> steps;
@@ -101,25 +79,30 @@ class StepperExtended extends StatefulWidget {
 
 /// Reveals steps of a [StepperExtended] in the enclosing scrollables.
 ///
-/// Pass one instance to [StepperExtended.controller]. Calls return `false`
+/// Pass one instance to [StepperExtended.controller] and call
+/// [RevealController.reveal] with the step index, or with a [RevealTarget]
+/// wrapping the index and a [RevealTarget.within] key. Calls return `false`
 /// while no stepper is attached.
-class StepperExtendedController {
-  _StepperExtendedState? _state;
+class _StepperRevealHandler implements RevealHandler {
+  _StepperRevealHandler(this._state);
 
-  /// Scrolls the step at [index] into view.
-  ///
-  /// When [within] is given and mounted (for example a [GlobalKey] on a field
-  /// inside the step's content), that widget is revealed instead, so an agent
-  /// can land on the exact control it is working on. Returns `true` when the
-  /// target ended in view.
-  Future<bool> revealStep(
-    int index, {
-    GlobalKey? within,
-    double alignment = 0.1,
-  }) async {
-    final state = _state;
-    if (state == null) return false;
-    return state._reveal(index, within, alignment);
+  final _StepperExtendedState _state;
+
+  @override
+  Future<bool> revealTarget(Object target, double alignment) {
+    final int index;
+    GlobalKey? within;
+    if (target is RevealTarget) {
+      final inner = target.target;
+      if (inner is! int) return Future.value(false);
+      index = inner;
+      within = target.within;
+    } else if (target is int) {
+      index = target;
+    } else {
+      return Future.value(false);
+    }
+    return _state._reveal(index, within, alignment);
   }
 }
 
@@ -128,14 +111,17 @@ class _StepperExtendedState extends State<StepperExtended> {
   /// Persists the configured initial offset and exposes scroll updates to the parent.
   late ScrollController _controller;
 
-  /// Keys that locate each step body for [StepperExtendedController].
+  /// Bridges [StepperExtended.controller] to this state.
+  late final _StepperRevealHandler _revealHandler = _StepperRevealHandler(this);
+
+  /// Keys that locate each step body for [StepperExtended.controller].
   final List<GlobalKey> _stepKeys = [];
 
   /// Initializes the controller before the first frame so scroll restoration is stable.
   @override
   void initState() {
     super.initState();
-    widget.controller?._state = this;
+    widget.controller?.attach(_revealHandler);
     _controller = ScrollController(
       initialScrollOffset: widget.initialScrollOffset,
     );
@@ -171,14 +157,12 @@ class _StepperExtendedState extends State<StepperExtended> {
   void didUpdateWidget(covariant StepperExtended oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.controller != widget.controller) {
-      if (oldWidget.controller?._state == this) {
-        oldWidget.controller?._state = null;
-      }
-      widget.controller?._state = this;
+      oldWidget.controller?.detach(_revealHandler);
+      widget.controller?.attach(_revealHandler);
     }
   }
 
-  /// Implements [StepperExtendedController.revealStep].
+  /// Implements [RevealController.reveal] for a step index or [RevealTarget].
   Future<bool> _reveal(int index, GlobalKey? within, double alignment) async {
     if (index < 0 || index >= widget.steps.length) return false;
     // Waits one frame so a step that was just added is laid out first.
@@ -192,7 +176,7 @@ class _StepperExtendedState extends State<StepperExtended> {
   /// Disposes the owned controller to avoid leaking listeners after removal.
   @override
   void dispose() {
-    if (widget.controller?._state == this) widget.controller?._state = null;
+    widget.controller?.detach(_revealHandler);
     _controller.dispose();
     super.dispose();
   }

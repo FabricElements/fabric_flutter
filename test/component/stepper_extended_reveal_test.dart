@@ -1,4 +1,5 @@
 import 'package:fabric_flutter/component/stepper_extended.dart';
+import 'package:fabric_flutter/helper/scroll_reveal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -45,14 +46,14 @@ Rect _stepRect(WidgetTester tester, int index) =>
     tester.getRect(find.text('Step $index'));
 
 void main() {
-  group('StepperExtendedController', () {
-    group('revealStep', () {
+  group('StepperExtended reveal', () {
+    group('reveal', () {
       testWidgets(
         'should scroll a far step into the viewport when scrollable',
         (tester) async {
           // Arrange: eight steps inside a 300 px tall scrollable viewport, so
           // the last steps start well outside the visible area.
-          final controller = StepperExtendedController();
+          final controller = RevealController();
           await tester.pumpWidget(
             MaterialApp(
               home: Scaffold(
@@ -71,7 +72,7 @@ void main() {
           expect(_stepRect(tester, 6).top, greaterThan(300));
 
           // Act
-          final revealed = await _driveFrames(tester, controller.revealStep(6));
+          final revealed = await _driveFrames(tester, controller.reveal(6));
 
           // Assert: the step is now fully inside the scrollable's viewport.
           expect(tester.takeException(), isNull);
@@ -88,7 +89,7 @@ void main() {
         // Arrange: the stepper owns no scrollable, so the reveal must move the
         // enclosing chat-like list instead. The list is non-lazy so every step
         // stays mounted and resolvable by key.
-        final controller = StepperExtendedController();
+        final controller = RevealController();
         final listController = ScrollController();
         addTearDown(listController.dispose);
         await tester.pumpWidget(
@@ -114,7 +115,7 @@ void main() {
         expect(_stepRect(tester, 5).top, greaterThan(300));
 
         // Act
-        final revealed = await _driveFrames(tester, controller.revealStep(5));
+        final revealed = await _driveFrames(tester, controller.reveal(5));
 
         // Assert
         expect(tester.takeException(), isNull);
@@ -129,7 +130,7 @@ void main() {
         'should reveal a control inside a step when within is given',
         (tester) async {
           // Arrange: the step body holds the keyed control the caller wants.
-          final controller = StepperExtendedController();
+          final controller = RevealController();
           final contentKey = GlobalKey();
           await tester.pumpWidget(
             MaterialApp(
@@ -150,7 +151,7 @@ void main() {
           // Act
           final revealed = await _driveFrames(
             tester,
-            controller.revealStep(7, within: contentKey),
+            controller.reveal(RevealTarget(target: 7, within: contentKey)),
           );
 
           // Assert: the keyed control, not merely the step, ended in view.
@@ -166,7 +167,7 @@ void main() {
         tester,
       ) async {
         // Arrange
-        final controller = StepperExtendedController();
+        final controller = RevealController();
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -181,50 +182,18 @@ void main() {
         await tester.pumpAndSettle();
 
         // Act & Assert
-        expect(await controller.revealStep(-1), isFalse);
-        expect(await controller.revealStep(3), isFalse);
+        expect(await controller.reveal(-1), isFalse);
+        expect(await controller.reveal(3), isFalse);
       });
 
       testWidgets('should return false when no stepper is attached', (
         tester,
       ) async {
         // Arrange
-        final controller = StepperExtendedController();
+        final controller = RevealController();
 
         // Act & Assert
-        expect(await controller.revealStep(0), isFalse);
-      });
-    });
-
-    group('stepsFromJson', () {
-      test('should map maps to steps and skip non-maps', () {
-        // Arrange
-        final json = <dynamic>[
-          {
-            'title': 'One',
-            'subtitle': 'Sub',
-            'content': 'Body',
-            'state': 'complete',
-          },
-          'not a map',
-          {'title': 'Two'},
-        ];
-
-        // Act
-        final steps = StepperExtended.stepsFromJson(json);
-
-        // Assert
-        expect(steps, hasLength(2));
-        expect((steps[0].title as Text).data, 'One');
-        expect((steps[0].content as Text).data, 'Body');
-        expect(steps[0].state, StepState.complete);
-        expect(steps[1].subtitle, isNull);
-        expect(steps[1].state, StepState.indexed);
-      });
-
-      test('should return no steps for a null list', () {
-        // Act & Assert
-        expect(StepperExtended.stepsFromJson(null), isEmpty);
+        expect(await controller.reveal(0), isFalse);
       });
     });
   });
