@@ -2,6 +2,20 @@
 
 ### Added
 
+* **MCP facade over the agent bridge.** New `AgentMcpAdapter`
+  (`lib/helper/agent/agent_mcp_adapter.dart`) translates MCP JSON-RPC 2.0
+  (protocol version `2025-06-18`) onto the existing `AgentBridge` so any MCP
+  client can drive a fabric_flutter application through the bridge transports
+  that already exist. No new network server, no new authentication layer — the
+  adapter reuses the bridge's configured `AgentAuthorizer` exactly as `handle`
+  does. Supports `initialize`, `ping`, `tools/list` (with JSON Schema built
+  from `AgentParam`), and `tools/call`. Bridge command ids with dots are mapped
+  to MCP-safe names (`element.reveal` → `element__reveal`). Bridge errors are
+  mapped to MCP tool results or JSON-RPC errors per the specification. Auth
+  tokens travel in `params._meta.token`. See the new "MCP" section in
+  [`doc/agent.md`](doc/agent.md) for the full mapping table, name mapping,
+  error mapping, and auth details.
+
 * **Agent interface documentation.** New [`doc/agent.md`](doc/agent.md) is the practical
   reference for the agent bridge: how an app configures `AgentBridge`, how
   `AgentElement` and `automationKey` form the single identity shared by
