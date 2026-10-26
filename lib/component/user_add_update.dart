@@ -1,6 +1,8 @@
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 
+import '../helper/agent/agent_element_binding.dart';
+import '../../serialized/agent_element_snapshot.dart';
 import '../helper/announce.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/density_spacing.dart';
@@ -22,6 +24,9 @@ import 'phone_input.dart';
 /// entered data survives rebuilds and can be safely cancelled before
 /// [onConfirm] persists anything.
 class UserAddUpdate extends StatefulWidget {
+  /// Final field holding the optional automation key for agent accessibility.
+  final String? automationKey;
+
   /// Creates a configurable user form with optional identity, password, and
   /// role fields.
   ///
@@ -30,6 +35,7 @@ class UserAddUpdate extends StatefulWidget {
   /// management flows.
   const UserAddUpdate({
     super.key,
+    required this.automationKey,
     this.roles = const ['user', 'admin'],
     required this.onConfirm,
     this.email = false,
@@ -670,46 +676,50 @@ class _UserAddUpdateState extends State<UserAddUpdate> {
       ),
     ]);
 
-    return Dialog.fullscreen(
-      backgroundColor:
-          (theme.dialogTheme.barrierColor ?? theme.colorScheme.scrim)
-              .withValues(alpha: 0.8),
-      child: Scrollbar(
-        thumbVisibility: true,
-        interactive: true,
-        trackVisibility: true,
-        controller: _controller,
-        child: SingleChildScrollView(
+    return AgentElement(
+      id: widget.automationKey,
+      type: AgentElementType.other,
+      child: Dialog.fullscreen(
+        backgroundColor:
+            (theme.dialogTheme.barrierColor ?? theme.colorScheme.scrim)
+                .withValues(alpha: 0.8),
+        child: Scrollbar(
+          thumbVisibility: true,
+          interactive: true,
+          trackVisibility: true,
           controller: _controller,
-          padding: density.only(
-            bottom: 64,
-            left: 16,
-            right: 16,
-            top: 16,
-            minHorizontal: 8,
-            minVertical: 8,
-          ),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: height - 80),
-            child: ContentContainer(
-              size: widget.size,
-              child: Center(
-                child: Card(
-                  clipBehavior: Clip.antiAlias,
-                  child: SafeArea(
-                    child: Column(
-                      children: [
-                        AppBar(
-                          title: Text(title),
-                          primary: false,
-                          automaticallyImplyLeading: false,
-                          automaticallyImplyActions: false,
-                        ),
-                        Padding(
-                          padding: density.all(16, min: 8),
-                          child: Column(children: inviteWidgets),
-                        ),
-                      ],
+          child: SingleChildScrollView(
+            controller: _controller,
+            padding: density.only(
+              bottom: 64,
+              left: 16,
+              right: 16,
+              top: 16,
+              minHorizontal: 8,
+              minVertical: 8,
+            ),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: height - 80),
+              child: ContentContainer(
+                size: widget.size,
+                child: Center(
+                  child: Card(
+                    clipBehavior: Clip.antiAlias,
+                    child: SafeArea(
+                      child: Column(
+                        children: [
+                          AppBar(
+                            title: Text(title),
+                            primary: false,
+                            automaticallyImplyLeading: false,
+                            automaticallyImplyActions: false,
+                          ),
+                          Padding(
+                            padding: density.all(16, min: 8),
+                            child: Column(children: inviteWidgets),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

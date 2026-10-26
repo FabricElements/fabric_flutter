@@ -90,7 +90,7 @@ final RegExp automationKeyParam = RegExp(r'\bautomationKey\b');
 /// user-facing control; adding a key would require deciding which inner control
 /// owns it. Tracked here rather than guessed at, so only NEW offenders fail.
 const List<String> automationKeyExceptions = <String>[
-  'lib/component/user_add_update.dart::UserAddUpdate',
+  // `UserAddUpdate` now accepts `automationKey` and wraps its content.
 ];
 
 void main() {
