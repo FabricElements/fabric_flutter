@@ -89,9 +89,7 @@ final RegExp automationKeyParam = RegExp(r'\bautomationKey\b');
 /// `SmartButton`) and its `onChanged` is an output notification rather than a
 /// user-facing control; adding a key would require deciding which inner control
 /// owns it. Tracked here rather than guessed at, so only NEW offenders fail.
-const List<String> automationKeyExceptions = <String>[
-  'lib/component/user_add_update.dart::UserAddUpdate',
-];
+const List<String> automationKeyExceptions = <String>[];
 
 void main() {
   group('automationKey coverage guard', () {
