@@ -5,21 +5,23 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart' show LaunchMode;
 
 import '../component/alert_data.dart';
 import '../component/content_container.dart';
 import '../component/input_data.dart';
 import '../component/phone_input.dart';
 import '../component/smart_image.dart';
+import '../helper/agent/agent_element_binding.dart';
 import '../helper/announce.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/auth_service.dart';
 import '../helper/density_spacing.dart';
 import '../helper/log_color.dart';
-import '../helper/options.dart';
+import '../helper/url_safety.dart';
 import '../placeholder/loading_screen.dart';
+import '../serialized/agent_element_snapshot.dart';
 import '../state/state_analytics.dart';
 import '../state/state_global.dart';
 import '../state/state_view_auth.dart';
@@ -29,12 +31,36 @@ import '../state/state_view_auth.dart';
 /// which used to be declared here.
 export '../helper/auth_service.dart';
 
+/// One legal document offered on the authentication page.
+///
+/// A consumer supplies these through [ViewAuthPage.legalLinks] so the page can
+/// render a consent sentence that links to the terms and privacy documents it
+/// hosts itself. The page never bundles or fetches the documents: it only opens
+/// [url] in the platform browser, so the text stays under the consumer's
+/// control and can be updated without shipping a new build.
+class ViewAuthLegalLink {
+  /// Creates a legal link labelled [label] that opens [url].
+  const ViewAuthLegalLink({required this.label, required this.url});
+
+  /// The visible, already-localized name of the document.
+  ///
+  /// Shown inside the consent sentence and used as the accessible name of the
+  /// link, so it should read as a noun phrase ("Terms of Service").
+  final String label;
+
+  /// The absolute address of the document.
+  ///
+  /// Only `http` and `https` URLs are launched; see [UrlSafety]. A link with
+  /// any other scheme renders but does nothing when tapped.
+  final Uri url;
+}
+
 /// Provides a full-screen authentication page with multiple sign-in options.
 ///
 /// [ViewAuthPage] supports phone number authentication, Google Sign-In, Apple
 /// Sign-In, and anonymous authentication. The page displays a configurable logo,
-/// title, description, and background image, along with policy links required
-/// for user consent flows.
+/// title, description, and background image, along with an optional consent
+/// sentence linking to the consumer's own legal documents.
 class ViewAuthPage extends StatefulWidget {
   const ViewAuthPage({
     super.key,
@@ -47,7 +73,7 @@ class ViewAuthPage extends StatefulWidget {
     this.googleClientId,
     this.androidPackageName,
     this.iOSBundleId,
-    this.policies,
+    this.legalLinks,
     required this.url,
     this.logo,
     this.logoHeight = 150,
@@ -105,7 +131,22 @@ class ViewAuthPage extends StatefulWidget {
 
   /// Sets the link continue/state URL
   final String url;
-  final String? policies;
+
+  /// Legal documents shown as a consent sentence below the sign-in options.
+  ///
+  /// When `null` or empty nothing is rendered, so a consumer that has no
+  /// published documents keeps the previous layout. When non-empty the page
+  /// renders a localized "By continuing, you agree to our …" line whose links
+  /// open [ViewAuthLegalLink.url] in the platform browser. Each link is
+  /// published to assistive technology and to the agent bridge as
+  /// `auth_legal_link_<index>`, in list order.
+  ///
+  /// This replaces the former `policies` asset path, which loaded a bundled
+  /// markdown file into an accept/reject dialog. The documents now live on the
+  /// consumer's own site, so they can change without a new build and the page
+  /// no longer gates sign-in on a dialog.
+  final List<ViewAuthLegalLink>? legalLinks;
+
   final String? logo;
   final double logoHeight;
   final double logoWidth;
@@ -153,7 +194,6 @@ class ViewAuthPageState extends State<ViewAuthPage> {
     'always null. It will be removed in a future release.',
   )
   ConfirmationResult? webConfirmationResult;
-  bool policiesAccepted = false;
   final List<String> googleScopes = <String>['openid', 'email'];
   bool initialized = false;
 
@@ -162,7 +202,6 @@ class ViewAuthPageState extends State<ViewAuthPage> {
     super.initState();
     loading = false;
     auth = widget.authService ?? FirebaseAuthService();
-    policiesAccepted = false;
   }
 
   @override
@@ -175,7 +214,6 @@ class ViewAuthPageState extends State<ViewAuthPage> {
     final locales = AppLocalizations.of(context);
     final textTheme = theme.textTheme;
     final density = DensitySpacing(theme.visualDensity);
-    final height = MediaQuery.of(context).size.height;
     stateAnalytics.screenName = 'auth';
     // Initialize after first build
     if (!initialized) {
@@ -474,54 +512,6 @@ class ViewAuthPageState extends State<ViewAuthPage> {
           action = signInGoogle;
           break;
       }
-      if (widget.policies != null && !policiesAccepted && !loading) {
-        final baseAction = action;
-        action = () async {
-          try {
-            String mdFromFile = await rootBundle.loadString(widget.policies!);
-            alertData(
-              type: AlertType.basic,
-              widget: AlertWidget.dialog,
-              child: SizedBox(
-                width: double.maxFinite,
-                height: height * 0.5,
-                child: Markdown(
-                  styleSheet: MarkdownStyleSheet.largeFromTheme(theme),
-                  selectable: true,
-                  // shrinkWrap: true,
-                  data: mdFromFile,
-                  padding: density.symmetric(
-                    vertical: 32,
-                    horizontal: 16,
-                    minHorizontal: 8,
-                    minVertical: 8,
-                  ),
-                ),
-              ),
-              action: ButtonOptions(
-                label: locales.get('label--accept'),
-                icon: Icons.check,
-                onTap: () {
-                  policiesAccepted = true;
-                  if (mounted) setState(() {});
-                  baseAction();
-                },
-              ),
-              dismiss: ButtonOptions(
-                label: locales.get('label--reject'),
-                icon: Icons.cancel,
-                onTap: () {
-                  policiesAccepted = false;
-                  if (mounted) setState(() {});
-                },
-              ),
-            );
-          } catch (error) {
-            alertData(body: error.toString(), type: AlertType.critical);
-            announceMessage(error.toString());
-          }
-        };
-      }
       return Padding(
         padding: density.only(top: 16, minVertical: 8),
         child: FilledButton.icon(
@@ -531,6 +521,87 @@ class ViewAuthPageState extends State<ViewAuthPage> {
         ),
       );
     }
+
+    /// Builds the consent sentence that links to the consumer's legal pages.
+    ///
+    /// Returns `null` when [ViewAuthPage.legalLinks] is null or empty so the
+    /// caller can omit the line entirely. The sentence is one [Text.rich] so it
+    /// wraps as a single paragraph, and each link is its own [AgentElement] and
+    /// [Semantics] node: an agent or screen reader reaches the documents
+    /// individually instead of hearing one undifferentiated sentence.
+    ///
+    /// Links are joined the way a person writes a list — `", "` between items
+    /// and a localized conjunction before the last one — so the sentence reads
+    /// naturally in both bundled languages.
+    Widget? legalConsentLine() {
+      final links = widget.legalLinks;
+      if (links == null || links.isEmpty) return null;
+      // The sentence is a localized template with a `{links}` placeholder, so
+      // the surrounding wording and word order stay in the locale file instead
+      // of being assembled from fragments here.
+      final template = locales.get('page-auth--legal-consent');
+      final placeholder = template.indexOf('{links}');
+      final prefix = placeholder < 0
+          ? template
+          : template.substring(0, placeholder);
+      final suffix = placeholder < 0
+          ? ''
+          : template.substring(placeholder + '{links}'.length);
+      final conjunction = locales.get('page-auth--legal-consent-and');
+      final linkStyle = textTheme.bodySmall?.copyWith(
+        color: colorScheme.primary,
+        decoration: TextDecoration.underline,
+        decorationColor: colorScheme.primary,
+      );
+      final spans = <InlineSpan>[];
+      for (var index = 0; index < links.length; index++) {
+        final link = links[index];
+        if (index > 0) {
+          final isLast = index == links.length - 1;
+          spans.add(TextSpan(text: isLast ? ' $conjunction ' : ', '));
+        }
+        Future<void> open() => UrlSafety.launch(
+          link.url.toString(),
+          mode: LaunchMode.externalApplication,
+        );
+        spans.add(
+          WidgetSpan(
+            alignment: PlaceholderAlignment.baseline,
+            baseline: TextBaseline.alphabetic,
+            child: AgentElement(
+              id: 'auth_legal_link_$index',
+              type: AgentElementType.navigation,
+              label: link.label,
+              activator: open,
+              child: Semantics(
+                link: true,
+                label: link.label,
+                onTap: open,
+                child: InkWell(
+                  onTap: open,
+                  child: Text(link.label, style: linkStyle),
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+      return Padding(
+        padding: density.only(top: 16, minVertical: 8),
+        child: Text.rich(
+          TextSpan(
+            text: prefix,
+            style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurface),
+            children: [
+              ...spans,
+              if (suffix.isNotEmpty) TextSpan(text: suffix),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final legalConsent = legalConsentLine();
 
     String backgroundImage =
         widget.image ??
@@ -652,6 +723,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
                                 ),
                                 SizedBox(height: density.gap(16)),
                                 ...homeButtonOptions,
+                                ?legalConsent,
                                 Padding(
                                   padding: density.only(
                                     top: 16,

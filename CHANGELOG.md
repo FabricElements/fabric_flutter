@@ -155,6 +155,20 @@
 
 ### Changed
 
+* **`ViewAuthPage` legal links replace the bundled policies dialog.**
+  **Breaking:** the `policies` parameter (a bundled markdown asset path) is
+  removed, along with the accept/reject dialog it opened and the
+  `policiesAccepted` gate that blocked sign-in until the user accepted. Pass
+  `legalLinks` instead — a `List<ViewAuthLegalLink>` of `{label, url}` pairs
+  pointing at the consumer's own hosted documents. When non-empty, the page
+  renders a short localized consent line below the sign-in options
+  (`By continuing, you agree to our {links}.` / `Al continuar, aceptas
+  nuestros {links}.`) with each link tappable and opened externally through
+  `UrlSafety` (http/https only). Each link is an `AgentElement` of type
+  `navigation` with automation key `auth_legal_link_<index>`. `null` or an
+  empty list renders nothing, so no consent line appears unless the consumer
+  supplies links. `flutter_markdown_plus` is no longer a dependency.
+
 * **Lazy web semantics in AgentBridge.** `ensureSemanticsOnWeb` now acquires the
   `SemanticsHandle` on the first **authorized** request (instead of immediately
   when the bridge is enabled), and releases it after `semanticsIdleTimeout`

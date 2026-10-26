@@ -42,7 +42,7 @@ Sourced directly from [`pubspec.yaml`](pubspec.yaml).
 | **Media** | `image_picker` ^1.2.4, `file_picker` ^13.2.0, `image` ^4.12.0, `video_player` ^2.14.1, `mime` ^2.1.0, `image_network` ^2.6.0 |
 | **Maps & web views** | `google_maps_flutter` ^2.19.0, `webview_flutter` ^4.14.1, `webview_flutter_android` ^4.14.1, `webview_flutter_wkwebview` ^3.27.2, `web` ^1.1.2, `pointer_interceptor` ^0.10.1+3 |
 | **Localization & i18n** | `flutter_localizations`, `devicelocale` ^0.9.1, `intl` ^0.20.3, `dlibphonenumber` ^1.1.74 |
-| **UI & content** | `google_fonts` ^9.0.0, `cupertino_icons` ^2.0.0, `omni_datetime_picker` ^2.3.3, `flutter_markdown_plus` ^1.0.12, `scrollable_positioned_list` ^0.3.8, `gap` ^3.0.1, `json_explorer` ^0.1.2 |
+| **UI & content** | `google_fonts` ^9.0.0, `cupertino_icons` ^2.0.0, `omni_datetime_picker` ^2.3.3, `scrollable_positioned_list` ^0.3.8, `gap` ^3.0.1, `json_explorer` ^0.1.2 |
 | **Utilities** | `package_info_plus` ^10.2.2, `url_launcher` ^6.3.3, `collection` ^1.19.1, `ansicolor` ^2.0.3 |
 | **Dev only** | `widgetbook` ^3.25.0 (catalog in `widgetbook/`, not exported from `lib/`) |
 | **Testing & linting** | `flutter_test`, `integration_test`, `flutter_lints` ^6.0.0 |
