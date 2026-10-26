@@ -2,6 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:google_sign_in/google_sign_in.dart';
 
+import 'email_link_storage.dart';
+
 /// Holds the [FirebaseAuth] singleton used by [FirebaseAuthService].
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -102,6 +104,58 @@ abstract class AuthService {
   /// Used by the auto-resolved phone flow, where Firebase hands back a
   /// credential instead of an SMS code.
   Future<void> signInWithCredential(AuthCredential credential);
+
+  /// Sends a passwordless sign-in link to [email].
+  ///
+  /// [url] is the continue URL the link redirects back to once it is opened,
+  /// which is what returns the user to the page they started from. It is
+  /// required because Firebase needs somewhere to send the browser, and it must
+  /// be under an authorized domain for the project.
+  ///
+  /// [iOSBundleId] and [androidPackageName] route an opened link to the native
+  /// app instead of the browser; [androidInstallApp] additionally lets Firebase
+  /// send users without the app to the Play Store. [linkDomain] is the custom
+  /// Firebase Hosting domain used for the link, required when the project does
+  /// not use a default `*.web.app` / `*.firebaseapp.com` domain.
+  ///
+  /// No password is created or reset: opening the link is the only way to
+  /// complete this flow. Throws a [FirebaseAuthException] with code
+  /// `invalid-email` when the address is rejected.
+  Future<void> sendSignInLinkToEmail({
+    required String email,
+    required String url,
+    String? iOSBundleId,
+    String? androidPackageName,
+    bool androidInstallApp = false,
+    String? linkDomain,
+  });
+
+  /// Returns whether [link] is a sign-in link this project issued.
+  ///
+  /// Callers should check this before [signInWithEmailLink] so an ordinary URL
+  /// opened through the same app-links mechanism is not mistaken for a
+  /// credential.
+  bool isSignInWithEmailLink(String link);
+
+  /// Completes a passwordless sign-in from the [link] sent to [email].
+  ///
+  /// [email] must be the address the link was sent to. Throws a
+  /// [FirebaseAuthException] with code `expired-action-code` for a link that is
+  /// no longer valid, `invalid-email` when the address does not match the link,
+  /// or `user-disabled` when the account has been disabled.
+  Future<void> signInWithEmailLink({
+    required String email,
+    required String link,
+  });
+
+  /// Completes a passwordless sign-in from an already-opened [link].
+  ///
+  /// A convenience entry point for hosts that receive the incoming link
+  /// themselves — on Android and iOS the app has to hand the link to the
+  /// package, because there is no ambient URL to read. Does nothing when [link]
+  /// is not a sign-in link, which makes it safe to call for every incoming app
+  /// link. Always clears the remembered address once it succeeds.
+  Future<void> completeEmailLinkSignIn(String link);
 }
 
 /// Performs authentication against Firebase and Google Sign-In.
@@ -238,5 +292,59 @@ class FirebaseAuthService extends AuthService {
   @override
   Future<void> signInWithCredential(AuthCredential credential) async {
     await _auth.signInWithCredential(credential);
+  }
+
+  @override
+  Future<void> sendSignInLinkToEmail({
+    required String email,
+    required String url,
+    String? iOSBundleId,
+    String? androidPackageName,
+    bool androidInstallApp = false,
+    String? linkDomain,
+  }) async {
+    await _auth.sendSignInLinkToEmail(
+      email: email,
+      actionCodeSettings: ActionCodeSettings(
+        url: url,
+        // Required by `sendSignInLinkToEmail`, which throws an `ArgumentError`
+        // without it: the link must be handled by the app so the signed-in
+        // session lands in this app rather than a browser tab.
+        handleCodeInApp: true,
+        iOSBundleId: iOSBundleId,
+        androidPackageName: androidPackageName,
+        androidInstallApp: androidInstallApp,
+        linkDomain: linkDomain,
+      ),
+    );
+  }
+
+  @override
+  bool isSignInWithEmailLink(String link) => _auth.isSignInWithEmailLink(link);
+
+  @override
+  Future<void> signInWithEmailLink({
+    required String email,
+    required String link,
+  }) async {
+    final userCredential = await _auth.signInWithEmailLink(
+      email: email,
+      emailLink: link,
+    );
+    _assertCurrentUser(userCredential.user);
+  }
+
+  @override
+  Future<void> completeEmailLinkSignIn(String link) async {
+    if (!isSignInWithEmailLink(link)) return;
+    final email = EmailLinkStorage.read();
+    if (email == null || email.isEmpty) {
+      throw StateError(
+        'No email address is stored for this sign-in link. The host app must '
+        'ask the user for the address the link was sent to.',
+      );
+    }
+    await signInWithEmailLink(email: email, link: link);
+    EmailLinkStorage.clear();
   }
 }
