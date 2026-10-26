@@ -197,6 +197,52 @@ const Map<String, Map<String, String>> defaultLocales = {
     'en': 'SIGN IN WITH PHONE',
     'es': 'INICIAR CON CELULAR',
   },
+  'page-auth--email--input': {
+    'en': 'Email address',
+    'es': 'Correo electrónico',
+  },
+  'label--email-me-a-sign-in-link': {
+    'en': 'Email me a sign-in link',
+    'es': 'Envíame un enlace de acceso',
+  },
+  'page-auth--email-link-sent': {
+    'en': 'Check your inbox',
+    'es': 'Revisa tu bandeja de entrada',
+  },
+  'page-auth--email-link-sent-body': {
+    'en': 'We sent a sign-in link to {email}. Open it on this device to finish signing in.',
+    'es': 'Enviamos un enlace de acceso a {email}. Ábrelo en este dispositivo para completar el inicio de sesión.',
+  },
+  'page-auth--email-link-missing-email': {
+    'en': 'Enter the email address this link was sent to.',
+    'es': 'Ingresa el correo al que se envió este enlace.',
+  },
+  'label--resend-link': {'en': 'Resend link', 'es': 'Reenviar enlace'},
+  'label--change-email': {'en': 'Change email', 'es': 'Cambiar correo'},
+  'label--email-link-cooldown': {
+    'en': 'You can resend in {seconds}s',
+    'es': 'Puedes reenviar en {seconds}s',
+  },
+  'alert--email-link-sent': {
+    'en': 'Sign-in link sent',
+    'es': 'Enlace de acceso enviado',
+  },
+  'alert--email-link-invalid': {
+    'en': 'This sign-in link is no longer valid. Request a new one.',
+    'es': 'Este enlace de acceso ya no es válido. Solicita uno nuevo.',
+  },
+  'alert--email-link-email-mismatch': {
+    'en': 'Use the email address the link was sent to.',
+    'es': 'Usa el correo al que se envió el enlace.',
+  },
+  'alert--email-link-missing': {
+    'en': 'This sign-in link is incomplete. Request a new one.',
+    'es': 'Este enlace de acceso está incompleto. Solicita uno nuevo.',
+  },
+  'alert--email-link-url-missing': {
+    'en': 'No continue URL is configured for the sign-in link.',
+    'es': 'No hay una URL de continuación configurada para el enlace.',
+  },
   'page-auth--input--verification-code': {
     'en': 'Verification code',
     'es': 'Código de verificación',

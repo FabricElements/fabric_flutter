@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:fabric_flutter/component/phone_input.dart';
 import 'package:fabric_flutter/helper/app_global.dart';
 import 'package:fabric_flutter/helper/app_localizations_delegate.dart';
+import 'package:fabric_flutter/helper/email_link_storage.dart';
 import 'package:fabric_flutter/state/state_analytics.dart';
 import 'package:fabric_flutter/state/state_global.dart';
 import 'package:fabric_flutter/state/state_view_auth.dart';
@@ -34,6 +35,18 @@ class _FakeAuthService implements AuthService {
 
   /// Records the name of every seam method that was invoked, in order.
   final List<String> calls = <String>[];
+
+  /// Records the argument map of every `sendSignInLinkToEmail` call.
+  final List<Map<String, String?>> sentLinks = <Map<String, String?>>[];
+
+  /// Records the `(email, link)` pair of every `signInWithEmailLink` call.
+  final List<(String, String)> completedLinks = <(String, String)>[];
+
+  /// The marker that makes [isSignInWithEmailLink] report a real link.
+  ///
+  /// The Firebase SDK recognises its own links by query parameters, so the
+  /// double keys off `oobCode` the same way.
+  static const String linkMarker = 'oobCode=';
 
   /// Applies the configured behavior for the seam method named [name].
   Future<void> _run(String name) async {
@@ -81,6 +94,45 @@ class _FakeAuthService implements AuthService {
   @override
   Future<void> signInWithCredential(AuthCredential credential) =>
       _run('signInWithCredential');
+
+  @override
+  Future<void> sendSignInLinkToEmail({
+    required String email,
+    required String url,
+    String? iOSBundleId,
+    String? androidPackageName,
+    bool androidInstallApp = false,
+    String? linkDomain,
+  }) async {
+    await _run('sendSignInLinkToEmail');
+    sentLinks.add(<String, String?>{
+      'email': email,
+      'url': url,
+      'iOSBundleId': iOSBundleId,
+      'androidPackageName': androidPackageName,
+      'androidInstallApp': '$androidInstallApp',
+      'linkDomain': linkDomain,
+    });
+  }
+
+  @override
+  bool isSignInWithEmailLink(String link) => link.contains(linkMarker);
+
+  @override
+  Future<void> signInWithEmailLink({
+    required String email,
+    required String link,
+  }) async {
+    await _run('signInWithEmailLink');
+    completedLinks.add((email, link));
+  }
+
+  @override
+  Future<void> completeEmailLinkSignIn(String link) async {
+    await _run('completeEmailLinkSignIn');
+    if (!isSignInWithEmailLink(link)) return;
+    completedLinks.add(('stored@example.com', link));
+  }
 }
 
 /// Mounts [ViewAuthPage] with the providers and localizations it reads.
@@ -101,6 +153,9 @@ Future<StateViewAuth> _pumpAuth(
   bool phone = false,
   bool google = false,
   bool anonymous = false,
+  bool email = false,
+  String? emailLinkDomain,
+  bool emailLinkAndroidInstallApp = false,
   String? title,
   bool settle = true,
   AuthService? authService,
@@ -125,6 +180,9 @@ Future<StateViewAuth> _pumpAuth(
           phone: phone,
           google: google,
           anonymous: anonymous,
+          email: email,
+          emailLinkDomain: emailLinkDomain,
+          emailLinkAndroidInstallApp: emailLinkAndroidInstallApp,
           title: title,
           authService: authService,
           legalLinks: legalLinks,
@@ -166,6 +224,9 @@ void main() {
     // A GlobalKey cannot be attached to two trees, and a key left over from a
     // torn-down pump would still resolve, so each test needs a pristine one.
     AppGlobal.navigatorKey = GlobalKey<NavigatorState>();
+    // The store is a process-wide static, so a leftover address would let one
+    // test complete a link another test requested.
+    EmailLinkStorage.clear();
   });
 
   group('ViewAuthPage', () {
@@ -592,6 +653,238 @@ void main() {
           find.textContaining('By continuing, you agree to our'),
           findsNothing,
         );
+      });
+    });
+
+    group('passwordless email-link sign-in', () {
+      /// Advances past the awaited send and its success alert.
+      Future<void> settleSend(WidgetTester tester) async {
+        await tester.tap(find.text('EMAIL ME A SIGN-IN LINK'));
+        await _settleAlert(tester);
+      }
+
+      testWidgets('should hide the email option when it is disabled', (
+        WidgetTester tester,
+      ) async {
+        // Arrange & Act
+        await _pumpAuth(tester, anonymous: true);
+
+        // Assert
+        expect(find.text('SIGN IN WITH EMAIL'), findsNothing);
+      });
+
+      testWidgets('should offer the email option when it is enabled', (
+        WidgetTester tester,
+      ) async {
+        // Arrange & Act
+        await _pumpAuth(tester, email: true);
+
+        // Assert
+        expect(find.text('SIGN IN WITH EMAIL'), findsOneWidget);
+      });
+
+      testWidgets('should reveal an email field with no password field', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
+        await _pumpAuth(tester, email: true);
+
+        // Act
+        await tester.tap(find.text('SIGN IN WITH EMAIL'));
+        await tester.pumpAndSettle();
+
+        // Assert – the email step exists and no password affordance does.
+        expect(find.text('Email address'), findsWidgets);
+        expect(find.textContaining('password'), findsNothing);
+        expect(find.textContaining('Password'), findsNothing);
+        expect(find.text('SIGN UP'), findsNothing);
+      });
+
+      testWidgets('should store the email and show the inbox state', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
+        final auth = _FakeAuthService();
+        final state = StateViewAuth()..email = 'user@example.com';
+        await _pumpAuth(
+          tester,
+          email: true,
+          state: state,
+          authService: auth,
+          emailLinkDomain: 'app.example.com',
+          emailLinkAndroidInstallApp: true,
+        );
+
+        // Act
+        await tester.tap(find.text('SIGN IN WITH EMAIL'));
+        await tester.pumpAndSettle();
+        await settleSend(tester);
+
+        // Assert
+        expect(auth.calls, ['sendSignInLinkToEmail']);
+        final sent = auth.sentLinks.single;
+        expect(sent['email'], 'user@example.com');
+        expect(sent['linkDomain'], 'app.example.com');
+        expect(sent['androidInstallApp'], 'true');
+        expect(state.emailLinkSent, isTrue);
+        expect(state.section, 4);
+        expect(find.text('Check your inbox'), findsOneWidget);
+        final stack = tester.widget<IndexedStack>(find.byType(IndexedStack));
+        expect(stack.index, 4);
+      });
+
+      testWidgets('should keep the path and query in the continue URL', (
+        WidgetTester tester,
+      ) async {
+        // Arrange – the page is mounted at a deep link the host owns.
+        final auth = _FakeAuthService();
+        final state = StateViewAuth()..email = 'user@example.com';
+        await tester.pumpWidget(
+          MultiProvider(
+            providers: [
+              ChangeNotifierProvider<StateGlobal>.value(
+                value: StateGlobal()..connected = true,
+              ),
+              ChangeNotifierProvider<StateAnalytics>.value(
+                value: StateAnalytics(),
+              ),
+              ChangeNotifierProvider<StateViewAuth>.value(value: state),
+            ],
+            child: MaterialApp(
+              navigatorKey: AppGlobal.navigatorKey,
+              scaffoldMessengerKey: AppGlobal.snackbarKey,
+              localizationsDelegates: const [
+                AppLocalizationsDelegate(locales: {}),
+              ],
+              supportedLocales: const [Locale('en', 'US')],
+              home: ViewAuthPage(
+                url: 'https://app.example.com/connect?request=rid-42',
+                email: true,
+                authService: auth,
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 600));
+        await tester.pumpAndSettle();
+
+        // Act
+        await tester.tap(find.text('SIGN IN WITH EMAIL'));
+        await tester.pumpAndSettle();
+        await settleSend(tester);
+
+        // Assert – both the path and the query survive into the link settings,
+        // so the host page resumes the flow it interrupted.
+        final continueUrl = Uri.parse(auth.sentLinks.single['url']!);
+        expect(continueUrl.path, '/connect');
+        expect(continueUrl.queryParameters['request'], 'rid-42');
+      });
+
+      testWidgets('should complete the sign-in from an incoming link', (
+        WidgetTester tester,
+      ) async {
+        // Arrange – a host forwards the link it received on a native platform.
+        const link =
+            'https://app.example.com/connect?request=rid-42&oobCode=abc123';
+        final auth = _FakeAuthService();
+        final state = StateViewAuth();
+        EmailLinkStorage.write('user@example.com');
+        await _pumpAuth(tester, email: true, state: state, authService: auth);
+        final page = tester.state<ViewAuthPageState>(find.byType(ViewAuthPage));
+
+        // Act
+        await page.completeEmailLinkSignIn(link);
+        await _settleAlert(tester);
+
+        // Assert – the remembered address is used, and forgotten afterwards so
+        // a later link cannot reuse it.
+        expect(auth.calls, ['signInWithEmailLink']);
+        expect(auth.completedLinks, [('user@example.com', link)]);
+        expect(EmailLinkStorage.read(), isNull);
+        expect(state.awaitingEmailForLink, isFalse);
+        expect(state.emailLinkSent, isFalse);
+      });
+
+      testWidgets('should prompt for the email when none was stored', (
+        WidgetTester tester,
+      ) async {
+        // Arrange – a link opened on a device that never requested it.
+        final auth = _FakeAuthService();
+        const link = 'https://app.example.com/connect?oobCode=abc123';
+        final state = StateViewAuth();
+        await _pumpAuth(tester, email: true, state: state, authService: auth);
+        final page = tester.state<ViewAuthPageState>(find.byType(ViewAuthPage));
+
+        // Act
+        await page.completeEmailLinkSignIn(link);
+        await tester.pumpAndSettle();
+
+        // Assert – no completion is attempted because there is nothing to match
+        // the link against, so the address is asked for instead.
+        expect(auth.calls, <String>[]);
+        expect(auth.completedLinks, isEmpty);
+        expect(state.awaitingEmailForLink, isTrue);
+        expect(state.section, 4);
+        expect(
+          find.text('Enter the email address this link was sent to.'),
+          findsWidgets,
+        );
+      });
+
+      testWidgets('should alert when the link is no longer valid', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
+        final auth = _FakeAuthService()
+          ..error = FirebaseAuthException(code: 'expired-action-code');
+        final state = StateViewAuth();
+        EmailLinkStorage.write('user@example.com');
+        await _pumpAuth(tester, email: true, state: state, authService: auth);
+        final page = tester.state<ViewAuthPageState>(find.byType(ViewAuthPage));
+
+        // Act – the failure is raised from the completion path, not the send.
+        await page.completeEmailLinkSignIn(
+          'https://app.example.com/connect?oobCode=abc123',
+        );
+        await _settleAlert(tester);
+
+        // Assert
+        expect(auth.calls, ['signInWithEmailLink']);
+        expect(
+          find.text('This sign-in link is no longer valid. Request a new one.'),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets('should expose automation keys on every email control', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
+        final state = StateViewAuth()..email = 'user@example.com';
+        final handle = tester.ensureSemantics();
+        await _pumpAuth(tester, email: true, state: state);
+
+        // Assert – the home option is agent-reachable.
+        expect(
+          find.bySemanticsIdentifier('auth_home_button_email'),
+          findsOneWidget,
+        );
+
+        // Act – move into the email step and settle on the inbox state.
+        await tester.tap(find.text('SIGN IN WITH EMAIL'));
+        await tester.pumpAndSettle();
+
+        // Assert
+        expect(
+          find.bySemanticsIdentifier('auth_email_input_email'),
+          findsOneWidget,
+        );
+        expect(
+          find.bySemanticsIdentifier('auth_email_button_send-link'),
+          findsOneWidget,
+        );
+        handle.dispose();
       });
     });
 

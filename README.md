@@ -206,6 +206,75 @@ const InitApp(
 );
 ```
 
+### Passwordless email-link sign-in (`ViewAuthPage.email`)
+
+`ViewAuthPage` can offer **passwordless** sign-in by emailed link, alongside
+Google, Apple, phone, and anonymous. It is opt-in — pass `email: true`:
+
+```dart
+ViewAuthPage(
+  url: 'https://app.example.com/connect?request=rid-42',
+  email: true,
+  emailLinkDomain: 'app.example.com',          // custom Firebase Hosting domain
+  iOSBundleId: 'com.example.app',
+  androidPackageName: 'com.example.app',
+  emailLinkAndroidInstallApp: true,
+)
+```
+
+There are **no password fields, no password reset, and no sign-up form**. The
+only email entry point sends a link; opening that link is the only way to
+complete the flow. The address is remembered locally so the same device finishes
+without retyping it, and a link opened on a device that never requested it
+prompts for the address instead.
+
+**Continue URL.** `ActionCodeSettings.url` (the continue URL the link returns
+the user to) defaults to the **current location** — `Uri.base` on web,
+including path and query — so a host page resumes exactly where it left off (for
+example `/connect?request=<rid>`). Pass `url` to override it, which is also what
+native hosts should do, since there is no ambient URL on a device. After a web
+completion the Firebase `oobCode`/`mode`/`apiKey` parameters are stripped from
+the address bar with `history.replaceState`, leaving the host's own path and
+query in place. The `oobCode` is redeemed **before** the URL is rewritten,
+because the code is single-use.
+
+**Project setup.**
+
+1. Firebase Console → Authentication → Sign-in method → enable **Email link
+   (passwordless sign-in)**.
+2. Add every domain the app is served from to Authentication → Settings →
+   **Authorized domains**, and add the custom **link domain** to the hosting
+   setup if you pass `emailLinkDomain`.
+3. iOS: add the link domain to **Associated Domains**
+   (`applinks:app.example.com`) and host an `apple-app-site-association` file
+   on the domain pointing at the app's team and bundle id.
+4. Android: declare an **App Links** intent filter for the link domain and host
+   an `assetlinks.json` on that domain listing the app's package name and signing
+   certificate fingerprints.
+5. On Android and iOS the link is delivered to the **app**, not to a page, so the
+   host must forward it to the page:
+
+   ```dart
+   // From your deep-link / app_links handler.
+   final page = AppGlobal.navigatorKey.currentState
+       ?.context
+       .findAncestorStateOfType<ViewAuthPageState>();
+   await page?.completeEmailLinkSignIn(link);
+   ```
+
+   `completeEmailLinkSignIn` is a no-op for a link Firebase did not issue, so it
+   is safe to forward every inbound link without filtering first. The package
+   deliberately does not depend on an app-links plugin.
+
+6. **Recommendation:** because a client cannot stop a determined caller from
+   also using the password provider, add a `beforeSignIn` **blocking Cloud
+   Function** that rejects non-email-link sign-ins for these users, so
+   passwordless is enforced where it can actually be enforced.
+
+`AuthService` exposes the same surface for custom UIs:
+`sendSignInLinkToEmail`, `isSignInWithEmailLink`, `signInWithEmailLink`, and
+`completeEmailLinkSignIn`.
+
 ### Adaptive navigation (`AdaptiveNavigationScaffold`)
 
 `AdaptiveNavigationScaffold` switches the top-level navigation by `WindowSizeClass`: a bottom `NavigationBar` below 600dp, a `NavigationRail` from 600dp, and an extended rail from 1200dp. The body gets the Material 3 window margin (16dp compact, 24dp medium and up) unless `applyMargin` is `false`.

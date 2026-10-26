@@ -2,6 +2,31 @@
 
 ### Added
 
+* **Passwordless email-link sign-in.** `ViewAuthPage` gains an opt-in
+  `email` mode (`email: true`) that offers sign-in by emailed link alongside
+  Google, Apple, phone, and anonymous. There are **no password fields, no
+  password reset, and no sign-up form** — the only email entry point sends a
+  link, and opening it is the only way to finish. New optional constructor
+  parameters: `email`, `emailLinkDomain`, `emailLinkAndroidInstallApp`,
+  `iOSBundleId`, and `androidPackageName`, mapped onto Firebase's
+  `ActionCodeSettings` with `handleCodeInApp: true`. `AuthService` (and
+  `FirebaseAuthService`) expose the matching seam — `sendSignInLinkToEmail`,
+  `isSignInWithEmailLink`, `signInWithEmailLink`, and `completeEmailLinkSignIn`.
+  The address is remembered across the round trip so the requesting device
+  finishes without retyping it, and a link opened on a device that never asked
+  for it prompts for the address instead. Every control carries an
+  `automationKey`, and the strings ship in `en` and `es`.
+
+* **Email-link continue URL keeps the host's path and query.** The
+  `ActionCodeSettings.url` the link returns to defaults to the **current
+  location** (`Uri.base` on web, including path and query) so a host page
+  resumes exactly where it left off — for example `/connect?request=<rid>` —
+  and stays there after sign-in; pass `url` to override it. On web the Firebase
+  `oobCode`/`mode`/`apiKey` parameters are stripped with `history.replaceState`
+  after the code is redeemed, leaving the host's own path and query intact. On
+  native, which has no ambient URL, the host forwards the incoming link to
+  `ViewAuthPageState.completeEmailLinkSignIn`.
+
 * **Agent element options for choice inputs.** `AgentElementSnapshot` now
   carries an `options` field — `null` for free-text inputs, and a list of
   `{"value": …, "label": "…"}` objects for dropdown, enum, and radio inputs.
