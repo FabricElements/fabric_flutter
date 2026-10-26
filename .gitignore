@@ -95,3 +95,7 @@ ignore-*.*
 
 # Test coverage output
 /coverage/
+
+# SQLite session files
+:memory:*
+*.ses
