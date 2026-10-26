@@ -2,7 +2,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 
 import '../helper/agent/agent_element_binding.dart';
-import '../../serialized/agent_element_snapshot.dart';
+import '../serialized/agent_element_snapshot.dart';
 import '../helper/announce.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/density_spacing.dart';
@@ -24,9 +24,6 @@ import 'phone_input.dart';
 /// entered data survives rebuilds and can be safely cancelled before
 /// [onConfirm] persists anything.
 class UserAddUpdate extends StatefulWidget {
-  /// Final field holding the optional automation key for agent accessibility.
-  final String? automationKey;
-
   /// Creates a configurable user form with optional identity, password, and
   /// role fields.
   ///
@@ -35,7 +32,7 @@ class UserAddUpdate extends StatefulWidget {
   /// management flows.
   const UserAddUpdate({
     super.key,
-    required this.automationKey,
+    this.automationKey,
     this.roles = const ['user', 'admin'],
     required this.onConfirm,
     this.email = false,
@@ -55,6 +52,9 @@ class UserAddUpdate extends StatefulWidget {
     this.passwordError,
     this.disabled = false,
   });
+
+  /// Identifies this form for agents, tests and accessibility; see AgentElement.
+  final String? automationKey;
 
   /// Lists the role values available when role selection is enabled.
   ///
