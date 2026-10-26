@@ -7,6 +7,7 @@ Trust these instructions. Only search the codebase if the information here is in
 | File | `applyTo` | Covers |
 | --- | --- | --- |
 | `.github/instructions/security.instructions.md` | `lib/**/*.dart` + platform dirs | Client trust boundary, query scoping, public-vs-secret keys, in-flight locks, URL validation, what consumers must enforce server-side. **Read before changing `lib/`.** |
+| `.github/instructions/agent-readiness.instructions.md` | `lib/**` | Agent-readiness checklist: `automationKey` + `AgentElement` on every interactive widget, correct `AgentElementType`, value/setter/enabled/error getters, `optionsGetter`, `semanticActions`, `announce()`, `RevealController` for lazy lists, documenting new built-in commands and their MCP names, platform import boundaries. Guarded by `test/guards/`. |
 | `.github/instructions/cross-repo.instructions.md` | `**` | Replicated FabricElements security & agent playbook: library-defaults-as-consumer-posture, evidence standards, breaking-change discipline, public-repo hygiene. Canonical elsewhere — do not edit locally. |
 | `.github/instructions/documentation.instructions.md` | `lib/**/*.dart` | Effective Dart doc comments for every public **and** private API element. |
 | `.github/instructions/serialized-models.instructions.md` | `lib/serialized/**/*.dart` | `@JsonSerializable` conventions, null-tolerant `fromJson`, regenerating `*.g.dart`. |
@@ -238,6 +239,11 @@ These are the invariants an audit checks. Breaking one is never a patch release.
 ---
 
 ## 7. Accessibility & Agent Directives
+
+> **Before adding or changing any interactive component, read
+> [`.github/instructions/agent-readiness.instructions.md`](instructions/agent-readiness.instructions.md).**
+> It is the checklist for the agent/MCP side of this surface (agent-ready widgets, built-in
+> commands, platform boundaries) and is enforced by the guard tests under `test/guards/`.
 
 Interactive components expose a consistent **accessibility + automation** surface that maps directly onto Flutter's `Semantics`. When you add or edit an interactive widget, wire these three optional parameters:
 

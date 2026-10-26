@@ -140,6 +140,19 @@
   be sized for a narrow generative surface. Defaults to the existing behavior
   when `null`.
 
+* **Agent-readiness checklist and guard tests.** New
+  [`.github/instructions/agent-readiness.instructions.md`](.github/instructions/agent-readiness.instructions.md)
+  collects the rules every new agent-, MCP-, API-, or scrolling-related feature
+  must follow — `automationKey` plus `AgentElement` on interactive components,
+  the correct `AgentElementType`, value/setter/enabled/error getters,
+  `optionsGetter` for choice inputs, `semanticActions` for existing visible
+  actions, `announce()` for non-visual changes, `RevealController` for lazy
+  lists, documenting new built-in commands and their MCP names, and platform
+  import boundaries. It is linked from
+  [`.github/copilot-instructions.md`](.github/copilot-instructions.md) and
+  enforced by five source-scan guards under `test/guards/`. No runtime behavior
+  changes.
+
 ### Changed
 
 * **Lazy web semantics in AgentBridge.** `ensureSemanticsOnWeb` now acquires the
