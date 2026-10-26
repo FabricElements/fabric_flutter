@@ -158,10 +158,8 @@ const Map<String, Map<String, String>> defaultLocales = {
     'es': 'La nueva contraseña debe ser diferente.',
   },
   'alert--invalid-password': {
-    'en':
-        'It must contain at least 8 characters, 1 uppercase, 1 lowercase, 1 symbol, and 1 number.',
-    'es':
-        'Debe contener al menos 8 caracteres, 1 mayúscula, 1 minúscula, 1 símbolo y 1 número.',
+    'en': 'It must contain at least 8 characters, 1 uppercase, 1 lowercase, 1 symbol, and 1 number.',
+    'es': 'Debe contener al menos 8 caracteres, 1 mayúscula, 1 minúscula, 1 símbolo y 1 número.',
   },
   'alert--invalid-value': {'en': 'Invalid value', 'es': 'Valor inválido'},
   'alert--password-do-not-match': {
@@ -169,6 +167,11 @@ const Map<String, Map<String, String>> defaultLocales = {
     'es': 'La contraseña no coincide',
   },
   'page-auth--title': {'en': 'Welcome', 'es': 'Bienvenido'},
+  'page-auth--legal-consent': {
+    'en': 'By continuing, you agree to our {links}.',
+    'es': 'Al continuar, aceptas nuestros {links}.',
+  },
+  'page-auth--legal-consent-and': {'en': 'and', 'es': 'y'},
   'label--sign-in': {'en': 'Sign In', 'es': 'Iniciar Sesión'},
   'label--sign-in-mobile': {
     'en': 'Sign in with mobile',
@@ -442,8 +445,7 @@ const Map<String, Map<String, String>> defaultLocales = {
   'validation--username': {
     'en':
         'It must be 3-30 characters using only lowercase letters and numbers.',
-    'es':
-        'Debe tener entre 3 y 30 caracteres usando solo letras minúsculas y números.',
+    'es': 'Debe tener entre 3 y 30 caracteres usando solo letras minúsculas y números.',
   },
   'validation--not-empty': {
     'en': 'This field can\'t be empty',
@@ -507,16 +509,13 @@ const Map<String, Map<String, String>> defaultLocales = {
   'label--audio': {'en': 'Audio', 'es': 'Audio'},
   'lorem--s': {'en': 'Aliquam tincidunt mauris eu risus.'},
   'lorem--m': {
-    'en':
-        'Donec nec justo eget felis facilisis fermentum. Aliquam porttitor mauris sit amet orci.',
+    'en': 'Donec nec justo eget felis facilisis fermentum. Aliquam porttitor mauris sit amet orci.',
   },
   'lorem--l': {
-    'en':
-        'Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec odio. Quisque volutpat mattis eros. Nullam malesuada erat ut turpis. Suspendisse urna nibh, viverra non, semper suscipit, posuere a, pede.',
+    'en': 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec odio. Quisque volutpat mattis eros. Nullam malesuada erat ut turpis. Suspendisse urna nibh, viverra non, semper suscipit, posuere a, pede.',
   },
   'lorem--block': {
-    'en':
-        'Praesent dapibus, neque id cursus faucibus, tortor neque egestas auguae, eu vulputate magna eros eu erat. Aliquam erat volutpat. Nam dui mi, tincidunt quis, accumsan porttitor, facilisis luctus, metus. \nPhasellus ultrices nulla quis nibh. Quisque a lectus. Donec consectetuer ligula vulputate sem tristique cursus. Nam nulla quam, gravida non, commodo a, sodales sit amet, nisi.',
+    'en': 'Praesent dapibus, neque id cursus faucibus, tortor neque egestas auguae, eu vulputate magna eros eu erat. Aliquam erat volutpat. Nam dui mi, tincidunt quis, accumsan porttitor, facilisis luctus, metus. \nPhasellus ultrices nulla quis nibh. Quisque a lectus. Donec consectetuer ligula vulputate sem tristique cursus. Nam nulla quam, gravida non, commodo a, sodales sit amet, nisi.',
   },
   'label--is': {'en': 'Is', 'es': 'Es'},
   'label--equal': {'en': 'Equal', 'es': 'Igual'},
@@ -561,8 +560,7 @@ const Map<String, Map<String, String>> defaultLocales = {
   'label--clear-all': {'en': 'Clear All', 'es': 'Borrar Todo'},
   'label--drop-files-here': {
     'en': 'Drop files here or click to choose files to upload.',
-    'es':
-        'Suelta los archivos aquí o haz clic para elegir los archivos que deseas subir.',
+    'es': 'Suelta los archivos aquí o haz clic para elegir los archivos que deseas subir.',
   },
   'label--drop-zone-hint': {
     'en': 'Drop files here or activate to browse for files',
@@ -571,10 +569,8 @@ const Map<String, Map<String, String>> defaultLocales = {
   'label--browse-files': {'en': 'Browse files', 'es': 'Buscar archivos'},
   'label--upload-complete': {'en': 'Upload complete', 'es': 'Carga completa'},
   'label--info-phone-number-format': {
-    'en':
-        'Please enter your phone number as: +[Country Code][Phone Number] (e.g., +14155552671, +34912345678, +573001234567).',
-    'es':
-        'Por favor, introduce tu número de teléfono como: +[Código de País][Número de Teléfono] (por ejemplo, +14155552671, +34912345678, +573001234567).',
+    'en': 'Please enter your phone number as: +[Country Code][Phone Number] (e.g., +14155552671, +34912345678, +573001234567).',
+    'es': 'Por favor, introduce tu número de teléfono como: +[Código de País][Número de Teléfono] (por ejemplo, +14155552671, +34912345678, +573001234567).',
   },
   'label--seconds': {'en': 'Seconds', 'es': 'Segundos'},
   'label--minutes': {'en': 'Minutes', 'es': 'Minutos'},
@@ -601,10 +597,8 @@ const Map<String, Map<String, String>> defaultLocales = {
     'es': 'No hay datos disponibles para el gráfico',
   },
   'label--chart-no-data-description': {
-    'en':
-        'There is no data available to display the chart. Please adjust your filters or add data to see the chart.',
-    'es':
-        'No hay datos disponibles para mostrar el gráfico. Ajusta tus filtros o agrega datos para ver el gráfico.',
+    'en': 'There is no data available to display the chart. Please adjust your filters or add data to see the chart.',
+    'es': 'No hay datos disponibles para mostrar el gráfico. Ajusta tus filtros o agrega datos para ver el gráfico.',
   },
   'label--area-chart': {'en': 'Area Chart', 'es': 'Gráfico de Área'},
   'label--bar-chart': {'en': 'Bar Chart', 'es': 'Gráfico de Barras'},

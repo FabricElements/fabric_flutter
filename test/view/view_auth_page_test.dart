@@ -9,6 +9,7 @@ import 'package:fabric_flutter/state/state_view_auth.dart';
 import 'package:fabric_flutter/view/view_auth_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
@@ -103,6 +104,7 @@ Future<StateViewAuth> _pumpAuth(
   String? title,
   bool settle = true,
   AuthService? authService,
+  List<ViewAuthLegalLink>? legalLinks,
 }) async {
   final global = StateGlobal()..connected = connected;
   final viewAuth = state ?? StateViewAuth();
@@ -125,6 +127,7 @@ Future<StateViewAuth> _pumpAuth(
           anonymous: anonymous,
           title: title,
           authService: authService,
+          legalLinks: legalLinks,
         ),
       ),
     ),
@@ -496,6 +499,99 @@ void main() {
         expect(auth.calls, ['signInAnonymously']);
         expect(tester.takeException(), isNull);
         expect(find.byType(SnackBar), findsNothing);
+      });
+    });
+
+    group('legal links consent line', () {
+      /// Records every URL handed to the platform launcher.
+      ///
+      /// `url_launcher` reaches the platform through a method channel, so the
+      /// test intercepts that channel instead of the plugin: the production
+      /// path (`UrlSafety.launch` -> `launchUrl`) stays exactly as shipped.
+      List<String> mockLauncher(WidgetTester tester) {
+        final launched = <String>[];
+        const channel = MethodChannel('plugins.flutter.io/url_launcher');
+        tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          channel,
+          (MethodCall call) async {
+            if (call.method == 'launch') {
+              launched.add((call.arguments as Map)['url'] as String);
+            }
+            return true;
+          },
+        );
+        addTearDown(
+          () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+            channel,
+            null,
+          ),
+        );
+        return launched;
+      }
+
+      testWidgets('should render the consent sentence with every label', (
+        WidgetTester tester,
+      ) async {
+        // Arrange & Act
+        await _pumpAuth(
+          tester,
+          anonymous: true,
+          legalLinks: [
+            ViewAuthLegalLink(
+              label: 'Terms',
+              url: Uri.parse('https://example.com/terms'),
+            ),
+            ViewAuthLegalLink(
+              label: 'Privacy',
+              url: Uri.parse('https://example.com/privacy'),
+            ),
+          ],
+        );
+
+        // Assert – the sentence and both link labels are on screen.
+        expect(
+          find.textContaining('By continuing, you agree to our'),
+          findsOneWidget,
+        );
+        expect(find.text('Terms'), findsOneWidget);
+        expect(find.text('Privacy'), findsOneWidget);
+      });
+
+      testWidgets('should open a link externally when it is tapped', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
+        final launched = mockLauncher(tester);
+        await _pumpAuth(
+          tester,
+          anonymous: true,
+          legalLinks: [
+            ViewAuthLegalLink(
+              label: 'Terms',
+              url: Uri.parse('https://example.com/terms'),
+            ),
+          ],
+        );
+
+        // Act
+        await tester.tap(find.text('Terms'));
+        await tester.pump();
+
+        // Assert
+        expect(launched, ['https://example.com/terms']);
+      });
+
+      testWidgets('should render no consent line when no links are given', (
+        WidgetTester tester,
+      ) async {
+        // Arrange & Act
+        await _pumpAuth(tester, anonymous: true);
+
+        // Assert
+        expect(
+          find.textContaining('By continuing, you agree to our'),
+          findsNothing,
+        );
       });
     });
 
