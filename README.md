@@ -275,6 +275,89 @@ because the code is single-use.
 `sendSignInLinkToEmail`, `isSignInWithEmailLink`, `signInWithEmailLink`, and
 `completeEmailLinkSignIn`.
 
+### Web sign-in mode: redirect by default (`ViewAuthPage.webSignInMode`)
+
+On web, `ViewAuthPage` signs in with Google and Apple through a **full-page
+redirect** rather than a popup. A popup is a separate browser window, and
+automated browsers, embedded webviews, and strict popup blockers routinely
+refuse to open one — the sign-in then fails with `auth/popup-blocked` and the
+user is left on the page with nothing to do. A redirect navigates the whole tab
+to the provider and back, which no blocker can prevent.
+
+```dart
+// Default: redirect. Nothing to configure.
+ViewAuthPage(url: 'https://app.example.com/connect')
+
+// Opt back into the popup flow.
+ViewAuthPage(
+  url: 'https://app.example.com/connect',
+  webSignInMode: AuthWebSignInMode.popup,
+)
+```
+
+`AuthWebSignInMode` has two values:
+
+| Value | Behaviour on web |
+| --- | --- |
+| `redirect` (**default**) | `signInWithRedirect` for Google and Apple. |
+| `popup` | `signInWithPopup`, with an automatic retry through the redirect flow when the popup is blocked or closed by a blocker. |
+
+Native platforms are unaffected: the mode is ignored on iOS and Android, where
+the provider SDKs use their own native flows.
+
+**Handling the return.** A redirect leaves the page and comes back, so the
+result has to be collected on the load that follows. `ViewAuthPage` does this
+itself: on web in `redirect` mode it calls `getRedirectResult()` once during
+initialization, shows its normal loading state while resolving, and on success
+continues down exactly the same post-sign-in path a popup would have taken — the
+host's `FirebaseAuth.authStateChanges()` listener navigates as usual. A failure
+is surfaced through the same localized alert the popup path shows and is
+announced to assistive technology; a user-cancelled redirect stays silent, and
+`account-exists-with-different-credential` and `network-request-failed` get
+their own messages.
+
+Nothing sensitive is ever put in the URL. The result is read from Firebase's own
+storage, so no token, code, or address is written to the address bar or to
+browser history.
+
+A host that starts the redirect from somewhere other than this page can collect
+the result itself at app start:
+
+```dart
+final page = AppGlobal.navigatorKey.currentState
+    ?.context
+    .findAncestorStateOfType<ViewAuthPageState>();
+await page?.resolveRedirectSignIn();
+```
+
+`resolveRedirectSignIn` is a no-op when no redirect is pending, so it is safe to
+call unconditionally. `AuthService` exposes the same seam for custom UIs.
+
+**Project setup — `authDomain` must be the app's own domain.** This is the part
+that most often breaks a redirect, and it is a Firebase project setting rather
+than a code change.
+
+1. Serve the app from a domain you control, and set that domain as the Firebase
+   project's **`authDomain`** (Firebase Console → Authentication → Settings →
+   Authorized domains, and the `authDomain` in your `firebaseConfig`). The
+   default `<project>.firebaseapp.com` works only while the app is served from
+   it.
+2. That domain must serve Firebase's auth helper at **`/__/auth`** — which
+   Firebase Hosting does automatically. If the app is served from a different
+   host, proxy `/__/auth/*` to the Firebase Hosting origin, or the redirect
+   cannot complete.
+3. Add the OAuth client's **authorized redirect URI**:
+   `https://<app domain>/__/auth/handler`. Google and Apple both reject a
+   redirect to a URI that is not registered on the client.
+
+The reason for step 1 is browser storage partitioning: the redirect result is
+handed back through storage scoped to the `authDomain` origin. When the app and
+`authDomain` are the same origin, that storage is first-party and always
+readable. When they differ, the helper page is a third-party frame, and browsers
+that partition or block third-party storage can drop the result — the user
+returns signed out with no error. Serving the app from its own `authDomain`
+avoids the problem entirely.
+
 ### Adaptive navigation (`AdaptiveNavigationScaffold`)
 
 `AdaptiveNavigationScaffold` switches the top-level navigation by `WindowSizeClass`: a bottom `NavigationBar` below 600dp, a `NavigationRail` from 600dp, and an extended rail from 1200dp. The body gets the Material 3 window margin (16dp compact, 24dp medium and up) unless `applyMargin` is `false`.

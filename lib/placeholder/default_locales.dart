@@ -149,6 +149,14 @@ const Map<String, Map<String, String>> defaultLocales = {
     'en': 'Sign in failed',
     'es': 'Fallo al iniciar sesión',
   },
+  'alert--account-exists-with-different-credential': {
+    'en': 'An account already exists with the same email address',
+    'es': 'Ya existe una cuenta con la misma dirección de correo',
+  },
+  'alert--network-request-failed': {
+    'en': 'Network error. Check your connection and try again',
+    'es': 'Error de red. Revisa tu conexión e inténtalo de nuevo',
+  },
   'alert--copy-clipboard': {
     'en': 'Copied to clipboard',
     'es': 'Copiado al portapapeles',

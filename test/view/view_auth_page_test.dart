@@ -61,11 +61,18 @@ class _FakeAuthService implements AuthService {
   Future<void> signInAnonymously() => _run('signInAnonymously');
 
   @override
-  Future<void> signInWithApple() => _run('signInWithApple');
+  Future<void> signInWithApple({
+    AuthWebSignInMode webSignInMode = AuthWebSignInMode.redirect,
+  }) => _run('signInWithApple');
 
   @override
-  Future<void> signInWithGoogle({required List<String> scopes}) =>
-      _run('signInWithGoogle');
+  Future<void> signInWithGoogle({
+    required List<String> scopes,
+    AuthWebSignInMode webSignInMode = AuthWebSignInMode.redirect,
+  }) => _run('signInWithGoogle');
+
+  @override
+  Future<void> resolveRedirectSignIn() => _run('resolveRedirectSignIn');
 
   @override
   Future<String> signInWithPhoneNumber(String phoneNumber) async {
@@ -160,6 +167,7 @@ Future<StateViewAuth> _pumpAuth(
   bool settle = true,
   AuthService? authService,
   List<ViewAuthLegalLink>? legalLinks,
+  AuthWebSignInMode webSignInMode = AuthWebSignInMode.redirect,
 }) async {
   final global = StateGlobal()..connected = connected;
   final viewAuth = state ?? StateViewAuth();
@@ -186,6 +194,7 @@ Future<StateViewAuth> _pumpAuth(
           title: title,
           authService: authService,
           legalLinks: legalLinks,
+          webSignInMode: webSignInMode,
         ),
       ),
     ),
@@ -885,6 +894,131 @@ void main() {
           findsOneWidget,
         );
         handle.dispose();
+      });
+    });
+
+    group('web sign-in mode', () {
+      testWidgets('should default to redirect mode', (
+        WidgetTester tester,
+      ) async {
+        // Arrange & Act – the historic constructor call, with no mode argument.
+        await _pumpAuth(tester, google: true);
+
+        // Assert – the page opts into the redirect flow without being asked.
+        final state = tester.state<ViewAuthPageState>(
+          find.byType(ViewAuthPage),
+        );
+        expect(state.widget.webSignInMode, AuthWebSignInMode.redirect);
+      });
+
+      testWidgets('should accept an explicit popup mode', (
+        WidgetTester tester,
+      ) async {
+        // Arrange & Act – the opt-out a host uses to keep the popup flow.
+        await _pumpAuth(
+          tester,
+          google: true,
+          webSignInMode: AuthWebSignInMode.popup,
+        );
+
+        // Assert
+        final state = tester.state<ViewAuthPageState>(
+          find.byType(ViewAuthPage),
+        );
+        expect(state.widget.webSignInMode, AuthWebSignInMode.popup);
+      });
+
+      testWidgets('should resolve a pending redirect result on request', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
+        final auth = _FakeAuthService();
+        await _pumpAuth(tester, authService: auth);
+        final state = tester.state<ViewAuthPageState>(
+          find.byType(ViewAuthPage),
+        );
+
+        // Act – the host entry point for a redirect that returned.
+        await state.resolveRedirectSignIn();
+        await _settleAlert(tester);
+
+        // Assert – the result is collected and no failure is reported.
+        expect(auth.calls, ['resolveRedirectSignIn']);
+        expect(find.text('Sign in failed'), findsNothing);
+        expect(tester.takeException(), isNull);
+      });
+
+      testWidgets(
+        'should render the failure alert when a redirect is refused',
+        (WidgetTester tester) async {
+          // Arrange
+          final auth = _FakeAuthService()
+            ..error = FirebaseAuthException(code: 'network-request-failed');
+          await _pumpAuth(tester, authService: auth);
+          final state = tester.state<ViewAuthPageState>(
+            find.byType(ViewAuthPage),
+          );
+
+          // Act
+          await state.resolveRedirectSignIn();
+          await _settleAlert(tester);
+
+          // Assert – the same localized alert the popup path shows.
+          expect(auth.calls, ['resolveRedirectSignIn']);
+          expect(find.text('Sign in failed'), findsOneWidget);
+          expect(
+            find.text('Network error. Check your connection and try again'),
+            findsOneWidget,
+          );
+          expect(tester.takeException(), isNull);
+        },
+      );
+
+      testWidgets('should stay silent when a redirect is cancelled', (
+        WidgetTester tester,
+      ) async {
+        // Arrange – a user-cancelled redirect is not worth an alert.
+        final auth = _FakeAuthService()
+          ..error = FirebaseAuthException(code: 'canceled');
+        await _pumpAuth(tester, authService: auth);
+        final state = tester.state<ViewAuthPageState>(
+          find.byType(ViewAuthPage),
+        );
+
+        // Act
+        await state.resolveRedirectSignIn();
+        await _settleAlert(tester);
+
+        // Assert
+        expect(auth.calls, ['resolveRedirectSignIn']);
+        expect(find.text('Sign in failed'), findsNothing);
+        expect(tester.takeException(), isNull);
+      });
+
+      testWidgets('should explain an account that already exists', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
+        final auth = _FakeAuthService()
+          ..error = FirebaseAuthException(
+            code: 'account-exists-with-different-credential',
+          );
+        await _pumpAuth(tester, authService: auth);
+        final state = tester.state<ViewAuthPageState>(
+          find.byType(ViewAuthPage),
+        );
+
+        // Act
+        await state.resolveRedirectSignIn();
+        await _settleAlert(tester);
+
+        // Assert
+        expect(find.text('Sign in failed'), findsOneWidget);
+        expect(
+          find.text('An account already exists with the same email address'),
+          findsOneWidget,
+        );
+        expect(tester.takeException(), isNull);
       });
     });
 

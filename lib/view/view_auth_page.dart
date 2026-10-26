@@ -88,6 +88,7 @@ class ViewAuthPage extends StatefulWidget {
     this.title,
     this.description,
     this.authService,
+    this.webSignInMode = AuthWebSignInMode.redirect,
   });
 
   final Widget? loader;
@@ -204,6 +205,22 @@ class ViewAuthPage extends StatefulWidget {
   /// unreachable because the mocked Firebase method channel never completes.
   final AuthService? authService;
 
+  /// Selects how the Google and Apple buttons sign in on web.
+  ///
+  /// Defaults to [AuthWebSignInMode.redirect], which navigates the whole page
+  /// to the provider instead of opening a popup. Popups are blocked by many
+  /// browsers and by agent-driven browsers, and storage partitioning can hide
+  /// the popup's session from the opener, so the redirect flow is the one that
+  /// works everywhere. Pass [AuthWebSignInMode.popup] to keep the classic
+  /// popup flow; a blocked popup then falls back to a redirect automatically.
+  ///
+  /// Native platforms have no popup/redirect distinction and ignore this.
+  ///
+  /// Redirect mode requires the Firebase `authDomain` to be the app's own
+  /// domain served through Firebase Hosting's `/__/auth` handler; see the
+  /// README for the full setup.
+  final AuthWebSignInMode webSignInMode;
+
   @override
   State<ViewAuthPage> createState() => ViewAuthPageState();
 }
@@ -251,6 +268,15 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       // incoming-link check has to wait for one.
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _handleIncomingEmailLink();
+      });
+    }
+    if (kIsWeb && widget.webSignInMode == AuthWebSignInMode.redirect) {
+      // A redirect sign-in sends the browser back to this page, so the result
+      // has to be collected on the load that follows. Deferred to the first
+      // frame for the same reason as the link check: the localizations and the
+      // provider tree are not readable before it.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        resolveRedirectSignIn();
       });
     }
   }
@@ -420,6 +446,66 @@ class ViewAuthPageState extends State<ViewAuthPage> {
     } finally {
       loading = false;
       if (mounted) setState(() {});
+    }
+  }
+
+  /// Completes a web sign-in that returned from a provider redirect.
+  ///
+  /// The web counterpart of the popup flow. After the provider sends the
+  /// browser back, Firebase has the result waiting, and this hands it to the
+  /// same post-sign-in path a successful popup would have taken: the page
+  /// clears its loading state and the host's auth-state listener navigates,
+  /// exactly as it does after a popup. Nothing is read from or written to the
+  /// URL — the result comes from Firebase's own storage, so no token or
+  /// address ever lands in the address bar or in browser history.
+  ///
+  /// Called once automatically on web in [AuthWebSignInMode.redirect]. A host
+  /// that starts the redirect from somewhere other than this page can call it
+  /// itself at app start; it is a no-op when no redirect is pending, so it is
+  /// safe to call unconditionally.
+  ///
+  /// A failure is surfaced through the same localized alert the popup path
+  /// shows, and announced, so a redirect that comes back rejected is as
+  /// visible as a popup that was refused.
+  Future<void> resolveRedirectSignIn() async {
+    // Resolved before the await: the element backing this view may be gone by
+    // the time the result arrives, and a lookup on a defunct element throws.
+    final locales = AppLocalizations.of(context);
+    loading = true;
+    if (mounted) setState(() {});
+    try {
+      await auth.resolveRedirectSignIn();
+    } on FirebaseAuthException catch (error) {
+      final message = _redirectFailureMessage(locales, error);
+      if (message != null) _alertEmailFailure(message);
+    } on FirebaseException catch (error) {
+      _alertEmailFailure(error.message);
+    } catch (error) {
+      _alertEmailFailure(error.toString());
+    } finally {
+      loading = false;
+      if (mounted) setState(() {});
+    }
+  }
+
+  /// Maps a redirect failure onto the message the popup path would have shown.
+  ///
+  /// Returns `null` when the failure should stay silent. A user-cancelled
+  /// sign-in is not an error worth interrupting anyone for, and the popup path
+  /// skips `canceled` for the same reason.
+  String? _redirectFailureMessage(
+    AppLocalizations locales,
+    FirebaseAuthException error,
+  ) {
+    switch (error.code) {
+      case 'canceled':
+        return null;
+      case 'account-exists-with-different-credential':
+        return locales.get('alert--account-exists-with-different-credential');
+      case 'network-request-failed':
+        return locales.get('alert--network-request-failed');
+      default:
+        return error.message ?? locales.get('alert--sign-in-failed');
     }
   }
 
@@ -649,7 +735,10 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       // loading = true;
       // if (mounted) setState(() {});
       try {
-        await auth.signInWithGoogle(scopes: googleScopes);
+        await auth.signInWithGoogle(
+          scopes: googleScopes,
+          webSignInMode: widget.webSignInMode,
+        );
       } on FirebaseAuthException catch (error) {
         bool authCanceled = error.code == 'canceled';
         if (!authCanceled) {
@@ -695,7 +784,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       try {
         loading = true;
         if (mounted) setState(() {});
-        await auth.signInWithApple();
+        await auth.signInWithApple(webSignInMode: widget.webSignInMode);
       } on FirebaseAuthException catch (error) {
         bool authCanceled = error.code == 'canceled';
         if (!authCanceled) {

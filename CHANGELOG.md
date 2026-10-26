@@ -1,5 +1,34 @@
 ## [Unreleased]
 
+### Changed
+
+* **Web sign-in now uses a redirect by default.** `ViewAuthPage` signs in with
+  Google and Apple on web through `signInWithRedirect` instead of
+  `signInWithPopup`. A popup is a separate browser window, and automated
+  browsers, embedded webviews, and strict popup blockers routinely refuse to
+  open one, which failed the sign-in with `auth/popup-blocked` and left the user
+  with nothing to do. A redirect navigates the whole tab and cannot be blocked.
+  The page collects the result itself with `getRedirectResult()` during
+  initialization, shows its normal loading state while resolving, and on success
+  continues down the same post-sign-in path a popup took; a failure is surfaced
+  through the same localized alert and announced. Nothing sensitive is written
+  to the URL. Native platforms are unaffected.
+
+  **This changes the default behaviour of an existing widget.** The popup flow
+  is still available — pass `webSignInMode: AuthWebSignInMode.popup` (new
+  `AuthWebSignInMode` enum, new optional `webSignInMode` parameter on
+  `ViewAuthPage`, `AuthService.signInWithGoogle`, and
+  `AuthService.signInWithApple`). In explicit popup mode a blocked or
+  closed-by-blocker popup is retried automatically through the redirect flow.
+  New `AuthService.resolveRedirectSignIn()` (and the matching
+  `ViewAuthPageState.resolveRedirectSignIn()`) lets a host collect a redirect
+  result at app start; it is a no-op when no redirect is pending.
+
+  **Project setup required:** the Firebase `authDomain` should be the app's own
+  domain, served via Firebase Hosting `/__/auth`, and the OAuth client needs
+  `https://<app domain>/__/auth/handler` as an authorized redirect URI. See the
+  README for why browser storage partitioning makes this necessary.
+
 ### Added
 
 * **Passwordless email-link sign-in.** `ViewAuthPage` gains an opt-in
