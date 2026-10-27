@@ -1,5 +1,15 @@
 ## [Unreleased]
 
+### Fixed
+
+* **Pin `omni_datetime_picker` to 2.3.2.** Version 2.3.3 switched from Flutter's
+  built-in `material.dart`/`cupertino.dart` to the `material_ui`/`cupertino_ui`
+  forks, which define their own `MaterialLocalizations` type. Because
+  `MaterialApp` registers Flutter's `MaterialLocalizations`, not the fork's,
+  `MaterialLocalizations.of(context)` returns `null` inside the picker, throwing
+  `No MaterialLocalizations found` and rendering a grey ErrorWidget in release
+  mode. Pinning to 2.3.2 restores the picker.
+
 ### Changed
 
 * **Web sign-in now uses a redirect by default.** `ViewAuthPage` signs in with
