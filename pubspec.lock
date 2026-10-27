@@ -333,10 +333,10 @@ packages:
     dependency: transitive
     description:
       name: equatable
-      sha256: ea36e500cbf0ec18361deabca755434f73e42fe53c5130021c7e2d6b5ebe1702
+      sha256: "3bce007a596ff8b3119c45d68aaef631272537c03d30e5d4534dd24bf4c5eaa2"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.0"
+    version: "2.1.0"
   fake_async:
     dependency: transitive
     description:
@@ -1080,10 +1080,10 @@ packages:
     dependency: "direct main"
     description:
       name: omni_datetime_picker
-      sha256: "98fbf1714f3f37e0a351f61c17081d358c02d07b0a04c3e8aa658a31652151f6"
+      sha256: "2b46032cf5b575ee99d4fdbf0f7f0549cd1f378f0b5effc03a1b69b241ae1401"
       url: "https://pub.dev"
     source: hosted
-    version: "2.3.3"
+    version: "2.3.2"
   package_config:
     dependency: transitive
     description:
