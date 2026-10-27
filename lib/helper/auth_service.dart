@@ -19,6 +19,61 @@ final GoogleSignIn googleSignIn = GoogleSignIn.instance;
 /// parameters or scopes before the first sign-in attempt.
 GoogleAuthProvider googleProvider = GoogleAuthProvider();
 
+/// Selects how a web sign-in reaches the identity provider.
+///
+/// Native platforms have no popup/redirect distinction and ignore this value.
+enum AuthWebSignInMode {
+  /// Opens the provider in a popup window and resolves the result in place.
+  ///
+  /// This is the classic Firebase web flow. It is blocked by browsers and
+  /// embedded webviews that refuse popups, and by storage partitioning that
+  /// hides the popup's session from the opener.
+  popup,
+
+  /// Navigates the whole page to the provider and resolves the result on the
+  /// next page load.
+  ///
+  /// This is the default because it survives popup blockers and agent-driven
+  /// browsers. It requires the Firebase `authDomain` to be the app's own
+  /// domain served through Firebase Hosting's `/__/auth` handler; see the
+  /// README for the full setup.
+  redirect,
+}
+
+/// Reports whether [code] means the browser refused to open the popup.
+///
+/// `popup-blocked` is the blocker itself; `popup-closed-by-user` is what a
+/// blocker that silently closes the window reports instead.
+bool isWebPopupBlockedCode(String code) =>
+    code == 'popup-blocked' || code == 'popup-closed-by-user';
+
+/// Runs a web sign-in, choosing between [popup] and [redirect].
+///
+/// In [AuthWebSignInMode.redirect] only [redirect] runs, and the page navigates
+/// away, so the returned future never resolves with a credential. In
+/// [AuthWebSignInMode.popup] a blocked or dismissed popup is retried through
+/// [redirect], because a popup blocker is exactly the condition redirect mode
+/// exists to survive.
+///
+/// Exposed as a top-level function so the decision can be exercised without a
+/// live [FirebaseAuth].
+Future<void> runWebSignIn({
+  required AuthWebSignInMode mode,
+  required Future<void> Function() popup,
+  required Future<void> Function() redirect,
+}) async {
+  if (mode == AuthWebSignInMode.redirect) {
+    await redirect();
+    return;
+  }
+  try {
+    await popup();
+  } on FirebaseAuthException catch (error) {
+    if (!isWebPopupBlockedCode(error.code)) rethrow;
+    await redirect();
+  }
+}
+
 /// Declares the authentication operations an auth view needs.
 ///
 /// Every method returns a plain `Future<void>` — or a `String` for the web
@@ -50,16 +105,31 @@ abstract class AuthService {
 
   /// Signs the user in with Apple.
   ///
-  /// Uses a popup on web and the native provider flow elsewhere, so callers do
-  /// not branch on the platform themselves.
-  Future<void> signInWithApple();
+  /// Uses [webSignInMode] on web and the native provider flow elsewhere, so
+  /// callers do not branch on the platform themselves.
+  Future<void> signInWithApple({
+    AuthWebSignInMode webSignInMode = AuthWebSignInMode.redirect,
+  });
 
   /// Signs the user in with Google, requesting [scopes].
   ///
   /// Any previous Google session is cleared first so the account chooser is
-  /// always shown. Uses a popup on web and the interactive `authenticate`
-  /// flow elsewhere.
-  Future<void> signInWithGoogle({required List<String> scopes});
+  /// always shown. Uses [webSignInMode] on web and the interactive
+  /// `authenticate` flow elsewhere.
+  Future<void> signInWithGoogle({
+    required List<String> scopes,
+    AuthWebSignInMode webSignInMode = AuthWebSignInMode.redirect,
+  });
+
+  /// Completes a web sign-in that was started with
+  /// [AuthWebSignInMode.redirect] on a previous page load.
+  ///
+  /// Completes without doing anything when no redirect is pending — the case
+  /// for every ordinary page load — and on platforms that have no redirect
+  /// flow, so it is safe to call once on every start. Throws whatever the
+  /// provider throws when the redirect came back with an error, so callers can
+  /// keep their existing `catch` handling unchanged.
+  Future<void> resolveRedirectSignIn();
 
   /// Starts the web/macOS phone flow for [phoneNumber] and returns its
   /// verification id.
@@ -191,19 +261,28 @@ class FirebaseAuthService extends AuthService {
   }
 
   @override
-  Future<void> signInWithApple() async {
+  Future<void> signInWithApple({
+    AuthWebSignInMode webSignInMode = AuthWebSignInMode.redirect,
+  }) async {
     final appleProvider = AppleAuthProvider();
     // This scope is required to receive the account email.
     appleProvider.addScope('email');
     if (kIsWeb) {
-      await _auth.signInWithPopup(appleProvider);
+      await runWebSignIn(
+        mode: webSignInMode,
+        popup: () => _auth.signInWithPopup(appleProvider),
+        redirect: () => _auth.signInWithRedirect(appleProvider),
+      );
     } else {
       await _auth.signInWithProvider(appleProvider);
     }
   }
 
   @override
-  Future<void> signInWithGoogle({required List<String> scopes}) async {
+  Future<void> signInWithGoogle({
+    required List<String> scopes,
+    AuthWebSignInMode webSignInMode = AuthWebSignInMode.redirect,
+  }) async {
     try {
       // The singleton API exposes no `currentUser` getter, so always attempt a
       // sign out first to guarantee a fresh interactive sign-in.
@@ -215,7 +294,11 @@ class FirebaseAuthService extends AuthService {
       for (final scope in scopes) {
         googleProvider.addScope(scope);
       }
-      await _auth.signInWithPopup(googleProvider);
+      await runWebSignIn(
+        mode: webSignInMode,
+        popup: () => _auth.signInWithPopup(googleProvider),
+        redirect: () => _auth.signInWithRedirect(googleProvider),
+      );
       return;
     }
     final authenticated = await googleSignIn.authenticate(scopeHint: scopes);
@@ -238,6 +321,19 @@ class FirebaseAuthService extends AuthService {
       idToken: idToken,
     );
     await _auth.signInWithCredential(credential);
+  }
+
+  @override
+  Future<void> resolveRedirectSignIn() async {
+    // `getRedirectResult` is web-only: the method-channel implementation
+    // throws `UnimplementedError` everywhere else.
+    if (!kIsWeb) return;
+    final userCredential = await _auth.getRedirectResult();
+    // Firebase returns a credential with a null user when the page load had no
+    // redirect to resolve, which is the ordinary case. Nothing to do.
+    final user = userCredential.user;
+    if (user == null) return;
+    _assertCurrentUser(user);
   }
 
   @override
