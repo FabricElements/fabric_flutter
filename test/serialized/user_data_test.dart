@@ -46,6 +46,33 @@ void main() {
         // Assert – value is available in memory after deserialization.
         expect(data.password, 's3cr3t!');
       });
+
+      test('should deserialize billing fields from a JSON map', () {
+        // Arrange – billing fields are read into memory for the app's UI.
+        final json = <String, dynamic>{
+          'bss': 'hold',
+          'bgu': '2026-11-15T12:00:00.000Z',
+        };
+
+        // Act
+        final data = UserData.fromJson(json);
+
+        // Assert – decoded status enum and grace timestamp.
+        expect(data.bss, UserBillingStatus.hold);
+        expect(data.bgu, DateTime.utc(2026, 11, 15, 12));
+      });
+
+      test('should default billing status to ok when missing', () {
+        // Arrange – a missing status means the account is not on hold.
+        final json = <String, dynamic>{'email': 'user@example.com'};
+
+        // Act
+        final data = UserData.fromJson(json);
+
+        // Assert
+        expect(data.bss, UserBillingStatus.ok);
+        expect(data.bgu, isNull);
+      });
     });
 
     group('toJson', () {
@@ -125,6 +152,21 @@ void main() {
 
         // Assert
         expect(restored.password, 'R0undTrip!');
+      });
+
+      test('should never serialize billing fields to JSON', () {
+        // Arrange – billing fields are read-only, populated server-side.
+        final data = UserData.fromJson({
+          'bss': 'hold',
+          'bgu': '2026-11-15T12:00:00.000Z',
+        });
+
+        // Act
+        final json = data.toJson();
+
+        // Assert – absent from outgoing payloads.
+        expect(json.containsKey('bss'), isFalse);
+        expect(json.containsKey('bgu'), isFalse);
       });
     });
   });

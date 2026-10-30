@@ -12,6 +12,22 @@ enum UserPresence { active, inactive, away }
 /// User Device OS
 enum UserOS { android, ios, macos, linux, web, fuchsia, windows, unknown }
 
+/// Billing Subscription Status for a user account.
+///
+/// Governs whether the account's subscription is active, within its grace
+/// period, or on hold. A missing status is treated as [ok] since an account
+/// without a hold marker is not on hold.
+enum UserBillingStatus {
+  /// Billing is current and the account is not on hold.
+  ok,
+
+  /// The subscription is within its grace period before being held.
+  grace,
+
+  /// Billing has lapsed and the account is on hold.
+  hold,
+}
+
 /// Stores the completion status of onboarding steps for a user.
 ///
 /// Onboarding flags track whether the user has completed critical setup tasks
@@ -203,6 +219,29 @@ class UserData {
   @JsonKey(includeToJson: false)
   final String? bsiId;
 
+  /// Billing Subscription Status
+  ///
+  /// Read from the billing provider only; a missing value means the account is
+  /// not on hold, so it defaults to [UserBillingStatus.ok].
+  @JsonKey(
+    includeToJson: false,
+    defaultValue: UserBillingStatus.ok,
+    unknownEnumValue: UserBillingStatus.ok,
+  )
+  final UserBillingStatus bss;
+
+  /// Billing Grace Until
+  ///
+  /// End of the grace period before a held subscription is enforced. Read from
+  /// the billing provider only.
+  @JsonKey(
+    fromJson: FirestoreHelper.timestampFromJson,
+    includeIfNull: true,
+    defaultValue: null,
+    includeToJson: false,
+  )
+  final DateTime? bgu;
+
   /// Theme Mode
   @JsonKey(
     includeIfNull: false,
@@ -238,6 +277,8 @@ class UserData {
     this.bcId,
     this.bsId,
     this.bsiId,
+    this.bss = UserBillingStatus.ok,
+    this.bgu,
     this.theme = ThemeMode.light,
     this.links,
     this.os = UserOS.unknown,
