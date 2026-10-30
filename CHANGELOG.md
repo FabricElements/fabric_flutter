@@ -1,5 +1,15 @@
 ## [Unreleased]
 
+### Added
+
+* **Billing fields on `UserData`.** Two read-only billing fields are now read
+  from the user document: `bss` (`UserBillingStatus` enum — `ok`, `grace`,
+  `hold`) tracks the Billing Subscription Status, defaulting to `ok` when
+  missing (a missing status means the account is not on hold); `bgu`
+  (Billing Grace Until, a `DateTime?`) carries the end of the subscription
+  grace period. Both use `includeToJson: false` so they are never written back
+  to Firestore; they are populated server-side by the billing provider.
+
 ### Fixed
 
 * **Pin `omni_datetime_picker` to 2.3.2.** Version 2.3.3 switched from Flutter's

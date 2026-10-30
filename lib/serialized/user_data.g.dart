@@ -92,6 +92,17 @@ UserData _$UserDataFromJson(
     bcId: $checkedConvert('bcId', (v) => v as String?),
     bsId: $checkedConvert('bsId', (v) => v as String?),
     bsiId: $checkedConvert('bsiId', (v) => v as String?),
+    bss: $checkedConvert(
+      'bss',
+      (v) =>
+          $enumDecodeNullable(
+            _$UserBillingStatusEnumMap,
+            v,
+            unknownValue: UserBillingStatus.ok,
+          ) ??
+          UserBillingStatus.ok,
+    ),
+    bgu: $checkedConvert('bgu', (v) => FirestoreHelper.timestampFromJson(v)),
     theme: $checkedConvert(
       'theme',
       (v) =>
@@ -146,6 +157,12 @@ Map<String, dynamic> _$UserDataToJson(UserData instance) => <String, dynamic>{
   'theme': _$ThemeModeEnumMap[instance.theme]!,
   'country': instance.country,
   'visualDensity': _$CustomVisualDensityEnumMap[instance.visualDensity]!,
+};
+
+const _$UserBillingStatusEnumMap = {
+  UserBillingStatus.ok: 'ok',
+  UserBillingStatus.grace: 'grace',
+  UserBillingStatus.hold: 'hold',
 };
 
 const _$ThemeModeEnumMap = {
