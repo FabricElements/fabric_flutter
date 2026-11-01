@@ -18,9 +18,6 @@ permissions:
   contents: 'read'
   id-token: 'write'
 
-env:
-  TEST_SHARDS: 4
-
 jobs:
   analyze:
     name: Analyze
@@ -53,13 +50,53 @@ jobs:
       - name: Analyze code
         run: flutter analyze
 
+  # Resolves the balanced, disjoint test plan into a matrix. It has no
+  # dependency on `analyze`, so it runs concurrently with it and adds no wall
+  # time to the run.
+  #
+  # `tool/test_shards.json` is the single source of truth for which test files
+  # run in which job. The previous scheme used `--total-shards/--shard-index`,
+  # which partitions by test CASE: every job still loaded and compiled nearly
+  # the whole suite and executed ~1/4 of the cases, duplicating the compile
+  # work across the run. Naming the files explicitly removes that duplication,
+  # and the groups are balanced by measured per-file cost so no job is the
+  # straggler.
+  #
+  # `test/guards/test_shard_plan_guard_test.dart` fails when a test file is
+  # missing from the plan, so a newly added test cannot silently stop running.
+  plan:
+    name: Plan
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      count: ${{ steps.plan.outputs.count }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Resolve the test shard plan
+        id: plan
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+
+          with open('tool/test_shards.json') as handle:
+              plan = json.load(handle)
+
+          matrix = json.dumps({'include': plan['include']}, separators=(',', ':'))
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
+              out.write('count=%d\n' % plan['count'])
+              out.write('matrix=%s\n' % matrix)
+          PY
+
   test:
-    name: Test (shard ${{ matrix.shard-index }})
+    name: Test (group ${{ matrix.index }} of ${{ needs.plan.outputs.count }})
+    needs: plan
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix:
-        shard-index: [0, 1, 2, 3]
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
@@ -85,8 +122,13 @@ jobs:
       - name: Rebuild Annotations
         run: dart run build_runner build --delete-conflicting-outputs
 
+      # --no-pub: dependencies were already resolved by the step above.
+      # The file list comes from tool/test_shards.json (balanced by measured
+      # per-file cost). Naming the files explicitly, rather than using
+      # --total-shards/--shard-index, is what removes the duplicated compile:
+      # case sharding made every job load the whole suite.
       - name: Run tests
-        run: flutter test --total-shards ${{ env.TEST_SHARDS }} --shard-index ${{ matrix.shard-index }}
+        run: flutter test --no-pub ${{ join(matrix.files, ' ') }}
 
   # Aggregating status check. Keeps the historical `Analyze & Test` check name so any branch
   # protection rule referencing it still resolves, and fails whenever a dependency did not succeed.
