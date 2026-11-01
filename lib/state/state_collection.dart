@@ -143,13 +143,15 @@ abstract class StateCollection extends StateShared {
           }
         },
         onError: (e) {
-          super.clear(notify: true);
+          // Keep the last good data: stream errors are surfaced through
+          // [error] without clearing previously loaded collection items.
           error = e?.toString();
           loading = false;
         },
       );
     } catch (e) {
-      super.clear(notify: true);
+      // Keep the last good data: subscription failures are surfaced through
+      // [error] without clearing previously loaded collection items.
       error = e.toString();
     } finally {
       loading = false;
@@ -196,8 +198,8 @@ abstract class StateCollection extends StateShared {
         data = [];
       }
     } catch (e) {
-      super.clear(notify: false);
-      data = null;
+      // Keep the last good data: fetch failures are surfaced through [error]
+      // without clearing previously loaded collection items.
       error = e.toString();
     } finally {
       loading = false;

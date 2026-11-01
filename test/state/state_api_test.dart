@@ -435,6 +435,62 @@ void main() {
       });
     });
 
+    group('error paths keep last good data', () {
+      test(
+        'should keep data and surface error when a call fails after load',
+        () async {
+          // Arrange
+          var fail = false;
+          final state = _TestStateAPI(
+            (_) async => fail
+                ? http.Response('boom', 500)
+                : jsonOk([
+                    {'id': '1'},
+                  ]),
+          );
+          state.baseEndpoint = 'https://example.com/items';
+          await state.call();
+          expect(state.data, isNotNull);
+
+          // Act - server error after data already loaded.
+          fail = true;
+          await state.call(ignoreDuplicatedCalls: false);
+
+          // Assert - last good data kept, error surfaced.
+          expect(state.data, isNotNull);
+          expect(state.error, isNotNull);
+        },
+      );
+
+      test('should stop paginating on the last page', () async {
+        // Arrange - 20 total, default limit 10: page 2 is the last page.
+        final state = _TestStateAPI((request) {
+          final page =
+              int.tryParse(request.url.queryParameters['page'] ?? '1') ?? 1;
+          return Future.value(
+            jsonOk(
+              List<Map<String, String>>.generate(
+                10,
+                (index) => {'id': '$page-$index'},
+              ),
+              headers: {'x-total-count': '20'},
+            ),
+          );
+        });
+        state.paginate = true;
+        state.baseEndpoint = 'https://example.com/items';
+        await state.call();
+        expect(state.canPaginate, isTrue);
+
+        // Act
+        await state.next();
+
+        // Assert - no further page beyond the last.
+        expect(state.page, 2);
+        expect(state.canPaginate, isFalse);
+      });
+    });
+
     group('clear', () {
       test('should reset the last endpoint and headers', () async {
         // Arrange

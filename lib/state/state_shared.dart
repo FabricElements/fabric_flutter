@@ -34,6 +34,15 @@ abstract class StateShared extends ChangeNotifier {
   /// configuration or unstable listeners.
   int errorCount = 0;
 
+  /// Monotonic token identifying the latest pagination request.
+  ///
+  /// Incremented whenever a pagination kickoff ([next], [previous], [first],
+  /// [last], or [limitChange]) starts a new load. Async completion handlers
+  /// capture the value before awaiting and discard results captured from an
+  /// older generation, so a stale response can never overwrite newer data.
+  @protected
+  int requestGeneration = 0;
+
   /// Caps streamed response sizes in bytes to avoid processing unexpectedly
   /// large payloads in subclasses that read chunked responses.
   int maxResponseBytes = 1 * 1024 * 1024; // 1 MiB
@@ -153,7 +162,7 @@ abstract class StateShared extends ChangeNotifier {
   /// default behavior or accept optimistic pagination.
   /// TODO: Verify pagination in case the 'x-total-count' is not present
   /// Old Version: bool get canPaginate => paginate && privateOldData != null && privateOldData.isNotEmpty && ((totalCount / page) >= 1);
-  bool get canPaginate => paginate && ((totalCount / (page * limit)) >= 1);
+  bool get canPaginate => paginate && (page * limit < totalCount);
 
   /// Stores the total item count reported by the backing data source.
   int totalCount = 0;
@@ -169,6 +178,7 @@ abstract class StateShared extends ChangeNotifier {
     if (loading) return;
     if (!canPaginate) return null;
     initialized = false;
+    requestGeneration++;
     page = page + 1;
     return call();
   }
@@ -181,6 +191,7 @@ abstract class StateShared extends ChangeNotifier {
     if (loading) return;
     if (page <= initialPage) return null;
     initialized = false;
+    requestGeneration++;
     page = page - 1;
     return call();
   }
@@ -189,6 +200,7 @@ abstract class StateShared extends ChangeNotifier {
   Future<dynamic> first() async {
     if (loading) return;
     initialized = false;
+    requestGeneration++;
     page = initialPage;
     return call();
   }
@@ -197,6 +209,7 @@ abstract class StateShared extends ChangeNotifier {
   Future<dynamic> last() async {
     if (loading) return;
     initialized = false;
+    requestGeneration++;
     page = totalPages;
     return call();
   }
