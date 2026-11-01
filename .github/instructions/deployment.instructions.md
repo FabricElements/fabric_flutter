@@ -17,19 +17,36 @@ The single workflow file is `.github/workflows/ci.yml`. It runs on:
 - **Push** to `main`.
 - **Pull requests** targeting `main` or any `ernysans-**` branch.
 
-### Steps (in order — do not reorder)
+A `concurrency` group (`ci-${{ github.workflow }}-${{ github.ref }}`) cancels superseded
+**pull-request** runs; pushes to `main` always run to completion.
+
+### Jobs
+
+| Job | Name | Purpose |
+|-----|------|---------|
+| `analyze` | `Analyze` | Runs `flutter analyze`; must exit 0 with zero issues. |
+| `test` | `Test (shard N)` | Matrix of 4 shards (`--total-shards 4 --shard-index 0..3`); the full suite must exit 0. |
+| `build` | `Analyze & Test` | Aggregating status check. `needs: [analyze, test]`, `if: always()`, and fails unless both succeeded. |
+
+`analyze` and the `test` shards run in parallel. The aggregating job keeps the historical
+`Analyze & Test` check name so any branch-protection rule referencing it still resolves — it must
+stay `if: always()` with an explicit `needs.*.result` check, because a *skipped* required check does
+not block a merge.
+
+### Steps within each worker job (in order — do not reorder)
 
 | Step | Command | Purpose |
 |------|---------|---------|
 | Checkout | `actions/checkout@v7` | Clean source snapshot. |
 | Setup Flutter | `subosito/flutter-action@v2`, channel `stable`, version `3.47.8`, cache enabled | Pins the exact toolchain so results are reproducible. |
+| Restore build cache | `actions/cache@v4` on `.dart_tool/build` | Makes the generated-code rebuild near-instant on a cache hit. |
 | Install dependencies | `flutter pub get` | Must always run first. |
 | Rebuild generated code | `dart run build_runner build --delete-conflicting-outputs` | Regenerates `*.g.dart` before analysis/tests; catches drift between models and generated files. |
-| Analyze | `flutter analyze` | Must exit 0; zero issues is the gate. |
-| Test | `flutter test` | Full suite; must exit 0. |
+| Analyze / Test | `flutter analyze` or `flutter test --total-shards 4 --shard-index N` | Must exit 0. |
 
 **Do not** reorder or skip steps. Analysis before generated-code rebuild will fail on missing
-symbols; tests before analysis may mask type errors.
+symbols; tests before analysis may mask type errors. Every shard runs the same setup, so a shard
+must never be given a different toolchain or a skipped rebuild.
 
 ### Updating the pinned Flutter version
 
@@ -155,6 +172,12 @@ injected via `${{ secrets.NAME }}`, never hardcoded.
 
 - **Pin action versions** by a major tag (`@v7`, `@v2`). Do not use `@main` or `@latest`.
 - **`permissions`** — keep the `contents: read` / `id-token: write` grant minimal; do not widen it.
+  Declare it once at workflow level rather than per job.
+- **Caching** — `subosito/flutter-action@v2` with `cache: true` already caches the Flutter SDK and
+  `~/.pub-cache`; do not add a second `actions/cache` step for either. The only extra cache is
+  `.dart_tool/build` (build_runner output), keyed on `pubspec.lock` + `lib/serialized/**`.
+- **Sharding** — the test matrix size lives in the workflow-level `TEST_SHARDS` env var; keep the
+  matrix list and that value in sync.
 - Add steps only when they are verifiably necessary. Each added step increases CI time for every
   contributor.
 - If a new workflow file is needed (e.g. `publish.yml`), keep its steps consistent with `ci.yml`

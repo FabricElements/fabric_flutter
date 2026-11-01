@@ -9,13 +9,22 @@ on:
       - main
       - 'ernysans-**'
 
+# Superseded pull-request runs are cancelled; pushes to `main` always run to completion.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: 'read'
+  id-token: 'write'
+
+env:
+  TEST_SHARDS: 4
+
 jobs:
-  build:
-    name: Analyze & Test
+  analyze:
+    name: Analyze
     runs-on: ubuntu-latest
-    permissions:
-      contents: 'read'
-      id-token: 'write'
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
@@ -27,6 +36,14 @@ jobs:
           flutter-version: 3.47.8
           cache: true
 
+      - name: Cache build_runner output
+        uses: actions/cache@v4
+        with:
+          path: .dart_tool/build
+          key: build-runner-${{ runner.os }}-${{ hashFiles('pubspec.lock', 'lib/serialized/**') }}
+          restore-keys: |
+            build-runner-${{ runner.os }}-
+
       - name: Install dependencies
         run: flutter pub get
 
@@ -36,5 +53,54 @@ jobs:
       - name: Analyze code
         run: flutter analyze
 
+  test:
+    name: Test (shard ${{ matrix.shard-index }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard-index: [0, 1, 2, 3]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.47.8
+          cache: true
+
+      - name: Cache build_runner output
+        uses: actions/cache@v4
+        with:
+          path: .dart_tool/build
+          key: build-runner-${{ runner.os }}-${{ hashFiles('pubspec.lock', 'lib/serialized/**') }}
+          restore-keys: |
+            build-runner-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Rebuild Annotations
+        run: dart run build_runner build --delete-conflicting-outputs
+
       - name: Run tests
-        run: flutter test
+        run: flutter test --total-shards ${{ env.TEST_SHARDS }} --shard-index ${{ matrix.shard-index }}
+
+  # Aggregating status check. Keeps the historical `Analyze & Test` check name so any branch
+  # protection rule referencing it still resolves, and fails whenever a dependency did not succeed.
+  build:
+    name: Analyze & Test
+    if: always()
+    needs: [analyze, test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify all jobs succeeded
+        run: |
+          echo "analyze: ${{ needs.analyze.result }}"
+          echo "test: ${{ needs.test.result }}"
+          if [ "${{ needs.analyze.result }}" != "success" ] || [ "${{ needs.test.result }}" != "success" ]; then
+            echo "::error::One or more required jobs did not succeed."
+            exit 1
+          fi
