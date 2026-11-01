@@ -282,10 +282,17 @@ abstract class StateAPI extends StateShared {
     }
     // Start loading
     loading = true;
+    // Capture the current pagination generation so a response completing
+    // after a newer kickoff (e.g. fast scrolling) can be discarded instead of
+    // overwriting fresher data.
+    final int generation = requestGeneration;
     dynamic newData;
     dynamic dataResponse;
     String? contentType;
     bool isJsonStream = false;
+    // Tracks whether the JSON stream reported an error so the tail of [call]
+    // can preserve the last good data instead of replacing it.
+    bool streamHadError = false;
     try {
       bool mustAuthenticate = false;
       bool canAuthenticate = false;
@@ -412,23 +419,31 @@ abstract class StateAPI extends StateShared {
                 streamResponseFull = [...originalData, chunk];
               }
               newData = streamResponse;
-              data = streamResponseFull;
+              if (generation == requestGeneration) {
+                data = streamResponseFull;
+              }
             },
             onError: (e) {
               // propagate to error handling below by setting error
               errorCount++;
+              streamHadError = true;
               error = e.toString();
             },
           );
 
           // Wait for the subscription to finish (stream done)
           await _streamSubscription!.asFuture();
-          newData ??= [];
+          // Keep `newData` null when the stream failed so the tail of [call]
+          // can preserve the last good data instead of replacing it with an
+          // empty list.
+          newData ??= streamHadError ? null : [];
         } else {
           final convertedResponse = await http.Response.fromStream(response);
           newData = HTTPRequest.response(convertedResponse);
         }
         error = null;
+        // A successful response ends any consecutive-error streak.
+        errorCount = 0;
       } catch (e) {
         final isAbort =
             (e is http.ClientException && e.message.contains('abortTrigger')) ||
@@ -458,7 +473,9 @@ abstract class StateAPI extends StateShared {
       }
 
       /// Set initialized only if no error
-      initialized = true;
+      if (error == null) {
+        initialized = true;
+      }
     } catch (e) {
       initialized = false;
       errorCount++;
@@ -474,7 +491,7 @@ abstract class StateAPI extends StateShared {
         final xTotalCountHeader =
             int.tryParse(headers['x-total-count'] ?? '0') ?? 0;
         totalCount = xTotalCountHeader;
-      } else if (paginate && !hasTotalHeader) {
+      } else if (paginate && !hasTotalHeader && newData != null) {
         /// Default totalCount depending on the page
         int newTotal = (newData as List<dynamic>).length;
         if (page > initialPage) {
@@ -500,6 +517,19 @@ Error: $error
 
       /// Reset HTTP client to prevent issues with persistent connections
       await _resetHttpClient();
+    }
+
+    // Discard a response that completed after a newer pagination kickoff
+    // (e.g. fast scrolling): a stale page must never overwrite fresher data.
+    if (generation != requestGeneration) {
+      loading = false;
+      return data;
+    }
+
+    /// Keep the last good data when the request failed without producing a
+    /// replacement payload: errors are surfaced through [error] separately.
+    if (error != null && newData == null) {
+      dataResponse = data;
     }
 
     /// Set data

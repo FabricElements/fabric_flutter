@@ -67,14 +67,12 @@ abstract class StateDocument extends StateShared {
     if (initialized) return data;
     loading = true;
     await streamSubscription?.cancel();
-    super.clear(notify: false);
     if (baseRef == null) {
       super.notifyListeners();
       return data;
     }
     initialized = true;
     loading = true;
-    data = null;
     try {
       streamSubscription = baseRef!.snapshots().listen(
         (snapshot) {
@@ -120,18 +118,25 @@ abstract class StateDocument extends StateShared {
             /// Assign new data
             data = newData;
           } else {
-            data = null;
+            // Keep the last good data when the snapshot reports the document
+            // as missing: a transient read or a delayed replication should not
+            // wipe the UI back to an empty state.
+            loading = false;
           }
         },
         onError: (e) {
           initialized = false;
           loading = false;
+          // Keep the last good data: stream errors are surfaced through
+          // [error] without clearing previously loaded document data.
           error = e?.toString();
         },
       );
     } catch (e) {
       initialized = false;
       loading = false;
+      // Keep the last good data: subscription failures are surfaced through
+      // [error] without clearing previously loaded document data.
       error = e.toString();
     }
     return data;
@@ -144,7 +149,6 @@ abstract class StateDocument extends StateShared {
     if (initialized) return data;
     loading = true;
     await streamSubscription?.cancel();
-    super.clear(notify: false);
     if (baseRef == null) {
       data = null;
       return data;
@@ -153,10 +157,15 @@ abstract class StateDocument extends StateShared {
     try {
       initialized = true;
       final snapshot = await baseRef!.get();
-      data = {...snapshot.data() as Map<String, dynamic>, 'id': snapshot.id};
+      if (snapshot.exists) {
+        data = {...snapshot.data() as Map<String, dynamic>, 'id': snapshot.id};
+      }
+      // A missing snapshot keeps the last good data instead of clearing it.
     } catch (e) {
       initialized = false;
       loading = false;
+      // Keep the last good data: fetch failures are surfaced through [error]
+      // without clearing previously loaded document data.
       error = e.toString();
     }
     loading = false;

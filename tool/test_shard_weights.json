@@ -159,7 +159,8 @@
     "test/guards/automation_key_coverage_test.dart": 502,
     "test/guards/platform_imports_test.dart": 450,
     "test/guards/agent_command_docs_test.dart": 393,
-    "test/guards/test_shard_plan_guard_test.dart": 373
+    "test/guards/test_shard_plan_guard_test.dart": 373,
+    "test/state/state_collection_test.dart": 963
   },
   "default_ms": 963,
   "measured": "2026-11-01"

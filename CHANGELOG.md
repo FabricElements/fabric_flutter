@@ -12,6 +12,22 @@
 
 ### Fixed
 
+* **State classes keep the last good data on errors.** `StateDocument`,
+  `StateCollection`, and `StateAPI` cleared their data when a read failed, a
+  Firestore snapshot reported `exists == false`, or a stream surfaced an
+  error — rendering the UI as if there were no data instead of showing the
+  last known good state. Error paths now set `error` and keep the existing
+  data; stream errors no longer replace data with an empty payload.
+* **Pagination races and last-page handling.** `StateAPI` pagination could
+  show partial results or wipe newer results under fast scrolling: a stale
+  response landing after a newer request overwrote fresh data, and
+  `canPaginate` used `totalCount / page >= 1`, which fetched one extra
+  (empty) page past the end and never stopped on the last page. Page loads
+  now carry a generation token so stale responses are discarded, and
+  `canPaginate` is `page * limit < totalCount`, so the last page stops
+  further fetches and short pages self-correct the total count.
+
+
 * **Pin `omni_datetime_picker` to 2.3.2.** Version 2.3.3 switched from Flutter's
   built-in `material.dart`/`cupertino.dart` to the `material_ui`/`cupertino_ui`
   forks, which define their own `MaterialLocalizations` type. Because
