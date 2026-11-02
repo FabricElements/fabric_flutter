@@ -149,6 +149,14 @@ const Map<String, Map<String, String>> defaultLocales = {
     'en': 'Sign in failed',
     'es': 'Fallo al iniciar sesión',
   },
+  'alert--signed-in-anonymously': {
+    'en': 'Signed in with temporary account.',
+    'es': 'Sesión iniciada con una cuenta temporal.',
+  },
+  'alert--anonymous-auth-disabled': {
+    'en': 'Anonymous auth hasn\'t been enabled for this project.',
+    'es': 'La autenticación anónima no está habilitada para este proyecto.',
+  },
   'alert--account-exists-with-different-credential': {
     'en': 'An account already exists with the same email address',
     'es': 'Ya existe una cuenta con la misma dirección de correo',
