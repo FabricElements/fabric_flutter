@@ -5,6 +5,7 @@ import '../helper/app_localizations_delegate.dart';
 import '../helper/density_spacing.dart';
 import '../helper/log_color.dart';
 import '../helper/scroll_reveal.dart';
+import '../helper/window_size.dart';
 import 'content_container.dart';
 
 /// Displays a vertically stacked stepper using [ContentContainer] sections.
@@ -182,6 +183,14 @@ class _StepperExtendedState extends State<StepperExtended> {
   }
 
   /// Builds the step list and optionally wraps it in scroll affordances.
+  ///
+  /// The step bodies are wrapped in a [LayoutBuilder] so their horizontal
+  /// indentation can adapt to the available width without depending on the
+  /// ambient [MediaQuery]: on compact widths the indent collapses to zero so
+  /// the content keeps its horizontal space, and on narrow widths it also
+  /// stays zero when steppers are nested so the indentation never compounds.
+  /// At [WindowSizeClass.medium] and above the desktop indentation (32) is
+  /// preserved.
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -245,6 +254,30 @@ class _StepperExtendedState extends State<StepperExtended> {
           child: Center(child: leadingContent),
         ),
       );
+      // Indents each step body under its leading circle. The indent is
+      // width-responsive (see [build]) and drops to zero on compact widths
+      // so nested steppers never compound horizontal indentation.
+      Widget stepBody(BuildContext bodyContext, BoxConstraints constraints) {
+        final indent =
+            WindowSizeClass.fromWidth(constraints.maxWidth)
+                .isAtLeast(WindowSizeClass.medium)
+            ? density.horizontal(32, min: 8)
+            : 0.0;
+        return Container(
+          padding: EdgeInsets.only(left: indent),
+          margin: EdgeInsets.only(left: indent),
+          decoration: BoxDecoration(
+            border: Border(
+              left: BorderSide(
+                color: Theme.of(bodyContext).colorScheme.surfaceContainerHigh,
+                width: 1,
+              ),
+            ),
+          ),
+          child: step.content,
+        );
+      }
+
       return ContentContainer(
         key: ValueKey('stepper_extended_step_$index'),
         margin: density.only(
@@ -289,19 +322,7 @@ class _StepperExtendedState extends State<StepperExtended> {
                 ),
               ),
             ),
-            Container(
-              padding: density.only(left: 32, minHorizontal: 8),
-              margin: density.only(left: 32, minHorizontal: 8),
-              decoration: BoxDecoration(
-                border: Border(
-                  left: BorderSide(
-                    color: theme.colorScheme.surfaceContainerHigh,
-                    width: 1,
-                  ),
-                ),
-              ),
-              child: step.content,
-            ),
+            LayoutBuilder(builder: stepBody),
           ],
         ),
       );
