@@ -4,6 +4,7 @@ import 'package:fabric_flutter/component/phone_input.dart';
 import 'package:fabric_flutter/helper/app_global.dart';
 import 'package:fabric_flutter/helper/app_localizations_delegate.dart';
 import 'package:fabric_flutter/helper/email_link_storage.dart';
+import 'package:fabric_flutter/placeholder/loading_screen.dart';
 import 'package:fabric_flutter/state/state_analytics.dart';
 import 'package:fabric_flutter/state/state_global.dart';
 import 'package:fabric_flutter/state/state_view_auth.dart';
@@ -447,6 +448,50 @@ void main() {
       });
     });
 
+    group('loading and error states on provider buttons', () {
+      testWidgets(
+        'should show the loading screen while an anonymous sign-in is pending',
+        (WidgetTester tester) async {
+          // Arrange – hold the sign-in open so the loading state is observable.
+          final blocker = Completer<void>();
+          final auth = _FakeAuthService()..pending = blocker;
+          await _pumpAuth(tester, anonymous: true, authService: auth);
+          expect(find.byType(LoadingScreen), findsNothing);
+
+          // Act
+          await tester.tap(find.text('SIGN IN ANONYMOUSLY'));
+          await tester.pump();
+
+          // Assert – the page-level loader replaces the form while pending.
+          expect(find.byType(LoadingScreen), findsOneWidget);
+          expect(find.text('SIGN IN ANONYMOUSLY'), findsNothing);
+
+          // Cleanup – release the pending call and settle the alert.
+          blocker.complete();
+          await _settleAlert(tester);
+          expect(tester.takeException(), isNull);
+        },
+      );
+
+      testWidgets(
+        'should not render a raw error string from a failed anonymous sign-in',
+        (WidgetTester tester) async {
+          // Arrange – a plain string error lands in the generic catch arm.
+          final auth = _FakeAuthService()..error = 'anonymous boom';
+          await _pumpAuth(tester, anonymous: true, authService: auth);
+
+          // Act
+          await tester.tap(find.text('SIGN IN ANONYMOUSLY'));
+          await _settleAlert(tester);
+
+          // Assert – the localized fallback renders, the raw value does not.
+          expect(find.text('Sign in failed'), findsNWidgets(2));
+          expect(find.text('anonymous boom'), findsNothing);
+          expect(tester.takeException(), isNull);
+        },
+      );
+    });
+
     group('phone sign-in through the injected service', () {
       testWidgets(
         'should render the failure alert when phone verification is rejected',
@@ -472,8 +517,8 @@ void main() {
             auth.calls.single,
             anyOf('signInWithPhoneNumber', 'verifyPhoneNumber'),
           );
-          expect(find.text('Sign in failed'), findsOneWidget);
-          expect(find.text('phone verification rejected'), findsOneWidget);
+          expect(find.text('Sign in failed'), findsNWidgets(2));
+          expect(find.text('phone verification rejected'), findsNothing);
           expect(state.section, 1);
           expect(tester.takeException(), isNull);
         },
@@ -518,8 +563,8 @@ void main() {
 
         // Assert
         expect(auth.calls, ['signInWithPhoneCredential']);
-        expect(find.text('Sign in failed'), findsOneWidget);
-        expect(find.text('invalid sms code'), findsOneWidget);
+        expect(find.text('Sign in failed'), findsNWidgets(2));
+        expect(find.text('invalid sms code'), findsNothing);
         expect(tester.takeException(), isNull);
       });
     });

@@ -12,6 +12,20 @@
 
 ### Fixed
 
+* **Auth page error handling, loading states, and accessibility.** The
+  sign-in page could render raw exception text to users, left the Google
+  button without a loading state (allowing double taps), and had no
+  in-flight guard on the phone verify action. Generic error catches now log
+  the raw error and surface a localized "Sign in failed" alert instead of
+  `error.toString()`; the Google and anonymous sign-in actions set the
+  page-level loading state while pending; the phone verify button disables
+  while a request is in flight; the anonymous sign-in success and
+  disabled-provider messages are now localized; a malformed Apple sign-in
+  locale key (trailing `": "`) was corrected; a screen-reader announcement
+  duplicated by the alert helper was removed; and the phone verification
+  failure alert no longer embeds the raw backend message and code.
+  Untyped button/container builder parameters were also given concrete
+  types, and a dead label assignment in the phone button case was removed.
 * **State classes keep the last good data on errors.** `StateDocument`,
   `StateCollection`, and `StateAPI` cleared their data when a read failed, a
   Firestore snapshot reported `exists == false`, or a stream surfaced an

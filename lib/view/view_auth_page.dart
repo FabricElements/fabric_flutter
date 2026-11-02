@@ -398,7 +398,8 @@ class ViewAuthPageState extends State<ViewAuthPage> {
     } on FirebaseException catch (error) {
       _alertEmailFailure(error.message);
     } catch (error) {
-      _alertEmailFailure(error.toString());
+      debugPrint(LogColor.error('Email sign-in link error: $error'));
+      _alertEmailFailure(locales.get('alert--sign-in-failed'));
     } finally {
       loading = false;
       if (mounted) setState(() {});
@@ -442,7 +443,8 @@ class ViewAuthPageState extends State<ViewAuthPage> {
     } on FirebaseException catch (error) {
       _alertEmailFailure(error.message);
     } catch (error) {
-      _alertEmailFailure(error.toString());
+      debugPrint(LogColor.error('Email link completion error: $error'));
+      _alertEmailFailure(locales.get('alert--sign-in-failed'));
     } finally {
       loading = false;
       if (mounted) setState(() {});
@@ -481,7 +483,8 @@ class ViewAuthPageState extends State<ViewAuthPage> {
     } on FirebaseException catch (error) {
       _alertEmailFailure(error.message);
     } catch (error) {
-      _alertEmailFailure(error.toString());
+      debugPrint(LogColor.error('Redirect sign-in error: $error'));
+      _alertEmailFailure(locales.get('alert--sign-in-failed'));
     } finally {
       loading = false;
       if (mounted) setState(() {});
@@ -625,8 +628,8 @@ class ViewAuthPageState extends State<ViewAuthPage> {
         debugPrint(LogColor.error(error.message ?? error.code));
         return;
       }
-      final message =
-          '${locales.get('alert--phone-number-verification-failed')}. ${error.message} -- Code: ${error.code}';
+      final message = locales.get('alert--phone-number-verification-failed');
+      debugPrint(LogColor.error('Phone verification failed: ${error.code}'));
       alertData(context: context, body: message, type: AlertType.critical);
       announceMessage(message);
     }
@@ -676,7 +679,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
         success = true;
       } catch (error) {
         debugPrint(LogColor.error('ConfirmationResult Error: $error'));
-        alertSignInFailed(error.toString());
+        alertSignInFailed(locales.get('alert--sign-in-failed'));
       }
       loading = false;
       if (success) {
@@ -698,7 +701,8 @@ class ViewAuthPageState extends State<ViewAuthPage> {
         await Future.delayed(const Duration(seconds: 3));
         resetView();
       } catch (error) {
-        alertSignInFailed(error.toString());
+        debugPrint(LogColor.error('Phone code confirmation error: $error'));
+        alertSignInFailed(locales.get('alert--sign-in-failed'));
       } finally {
         loading = false;
         if (mounted) setState(() {});
@@ -723,7 +727,8 @@ class ViewAuthPageState extends State<ViewAuthPage> {
         await Future.delayed(const Duration(seconds: 3));
         resetView();
       } catch (error) {
-        alertSignInFailed(error.toString());
+        debugPrint(LogColor.error('Phone credential sign-in error: $error'));
+        alertSignInFailed(locales.get('alert--sign-in-failed'));
       } finally {
         loading = false;
         if (mounted) setState(() {});
@@ -732,8 +737,8 @@ class ViewAuthPageState extends State<ViewAuthPage> {
 
     /// Sign in with google function
     signInGoogle() async {
-      // loading = true;
-      // if (mounted) setState(() {});
+      loading = true;
+      if (mounted) setState(() {});
       try {
         await auth.signInWithGoogle(
           scopes: googleScopes,
@@ -747,27 +752,30 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       } on FirebaseException catch (error) {
         alertSignInFailed(error.message);
       } catch (error) {
-        alertSignInFailed(error.toString());
+        debugPrint(LogColor.error('Google sign-in error: $error'));
+        alertSignInFailed(locales.get('alert--sign-in-failed'));
+      } finally {
+        loading = false;
+        if (mounted) setState(() {});
       }
-      loading = false;
-      if (mounted) setState(() {});
     }
 
     /// Sign in anonymously
     signInAnonymously() async {
+      loading = true;
+      if (mounted) setState(() {});
       try {
         await auth.signInAnonymously();
         alertData(
-          title: 'Signed in with temporary account.',
+          title: locales.get('alert--signed-in-anonymously'),
           type: AlertType.success,
         );
       } on FirebaseAuthException catch (e) {
-        debugPrint(LogColor.error(e));
+        debugPrint(LogColor.error('Anonymous sign-in error: ${e.code}'));
         String errorMessage = locales.get('alert--sign-in-failed');
         switch (e.code) {
           case 'operation-not-allowed':
-            errorMessage =
-                'Anonymous auth hasn\'t been enabled for this project.';
+            errorMessage = locales.get('alert--anonymous-auth-disabled');
             break;
         }
         bool authCanceled = e.code == 'canceled';
@@ -776,6 +784,12 @@ class ViewAuthPageState extends State<ViewAuthPage> {
         }
       } on FirebaseException catch (error) {
         alertSignInFailed(error.message);
+      } catch (error) {
+        debugPrint(LogColor.error('Anonymous sign-in error: $error'));
+        alertSignInFailed(locales.get('alert--sign-in-failed'));
+      } finally {
+        loading = false;
+        if (mounted) setState(() {});
       }
     }
 
@@ -793,11 +807,11 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       } on FirebaseException catch (error) {
         alertSignInFailed(error.message);
       } catch (error) {
+        debugPrint(LogColor.error('Apple sign-in error: $error'));
         alertSignInFailed(
-          error.toString(),
-          title: locales.get('alert--sign-in-failed: '),
+          locales.get('alert--sign-in-failed'),
+          title: locales.get('alert--sign-in-failed'),
         );
-        announceMessage(locales.get('alert--sign-in-failed'));
       } finally {
         resetView();
       }
@@ -863,9 +877,9 @@ class ViewAuthPageState extends State<ViewAuthPage> {
 
     /// Acton button for general use
     Widget actionButton({
-      label = String,
-      onPressed = VoidCallback,
-      icon = Icons.navigate_next,
+      required String label,
+      VoidCallback? onPressed,
+      IconData icon = Icons.navigate_next,
       String? automationKey,
       String? semanticHint,
     }) {
@@ -884,7 +898,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
         label: label,
         hint: semanticHint,
         enabledGetter: () => onPressed != null,
-        activator: () async => onPressed(),
+        activator: () async => onPressed?.call(),
         child: button,
       );
     }
@@ -910,7 +924,6 @@ class ViewAuthPageState extends State<ViewAuthPage> {
           break;
         case 'phone':
           icon = Icons.phone;
-          text = locales.get('label--not-supported');
           text = locales.get('label--sign-in-mobile');
           action = () {
             state.section = 1;
@@ -1180,7 +1193,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       ),
     );
 
-    Widget baseContainer({children = List}) {
+    Widget baseContainer({List<Widget> children = const []}) {
       return AnimatedOpacity(
         opacity: state.section == 0 ? 0 : 1,
         duration: const Duration(milliseconds: 300),
@@ -1228,7 +1241,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
         actionButton(
           icon: Icons.send_rounded,
           label: locales.get('label--verify').toUpperCase(),
-          onPressed: verifyPhoneNumber,
+          onPressed: loading ? null : verifyPhoneNumber,
         ),
       );
     }
