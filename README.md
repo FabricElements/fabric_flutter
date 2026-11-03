@@ -740,7 +740,7 @@ Run goldens in the same isolated, mock-only manner as the rest of the suite (no 
 
 ### Widgetbook catalog (development only)
 
-`widgetbook/` holds a dev-only [Widgetbook](https://www.widgetbook.io/) catalog for the shared widgets (`CardButton`, `SmartButton`, `StatusChip`, `SectionTitle`, `AdaptiveNavigationScaffold`). Every use case covers light and dark, the `VisualDensity` values used by `DensitySpacing`, and compact, medium, and expanded widths. Run it with:
+`widgetbook/` holds a dev-only [Widgetbook](https://www.widgetbook.io/) catalog for the shared widgets (`CardButton`, `SmartButton`, `StatusChip`, `SectionTitle`, `AdaptiveNavigationScaffold`, `StepperExtended`). Every use case covers light and dark, the `VisualDensity` values used by `DensitySpacing`, and compact, medium, and expanded widths. Run it with:
 
 ```bash
 flutter run -t widgetbook/main.dart

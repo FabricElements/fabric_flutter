@@ -7,13 +7,20 @@ import '../helper/log_color.dart';
 import '../helper/scroll_reveal.dart';
 import 'content_container.dart';
 
-/// Displays a vertically stacked stepper using [ContentContainer] sections.
+/// Displays a vertically stacked stepper with a continuous connector rail.
 ///
-/// This variant exists for flows that need richer layout control than Flutter's
-/// built-in [Stepper], while still exposing familiar [Step] data and scroll
-/// behavior for long forms and onboarding experiences.
+/// This variant exists for flows that need richer layout control than
+/// Flutter's built-in [Stepper], while still exposing familiar [Step] data
+/// and scroll behavior for long forms and onboarding experiences.
+///
+/// Every step renders a fixed leading indicator column — a circular state
+/// badge with a connector segment below it — beside a single text column
+/// holding the title, subtitle and content. The connector segments of all
+/// steps join into one continuous rail down the left side of the stepper,
+/// and all step text shares one left edge at every width, so compact
+/// screens and nested steppers keep a clear, aligned reading line.
 class StepperExtended extends StatefulWidget {
-  /// Creates a stepper that renders each [Step] inside a content container.
+  /// Creates a stepper that renders its steps around a connector rail.
   const StepperExtended({
     super.key,
     required this.steps,
@@ -37,7 +44,8 @@ class StepperExtended extends StatefulWidget {
   /// The ordered steps to render from top to bottom.
   final List<Step> steps;
 
-  /// Controls the width preset applied to each [ContentContainer].
+  /// Controls the width preset applied to the [ContentContainer] that wraps
+  /// the whole step list.
   final ContentContainerSize size;
 
   /// The text style for the step [Step.title].
@@ -114,7 +122,7 @@ class _StepperExtendedState extends State<StepperExtended> {
   /// Bridges [StepperExtended.controller] to this state.
   late final _StepperRevealHandler _revealHandler = _StepperRevealHandler(this);
 
-  /// Keys that locate each step body for [StepperExtended.controller].
+  /// Keys that locate each step for [StepperExtended.controller].
   final List<GlobalKey> _stepKeys = [];
 
   /// Initializes the controller before the first frame so scroll restoration is stable.
@@ -181,165 +189,200 @@ class _StepperExtendedState extends State<StepperExtended> {
     super.dispose();
   }
 
+  /// Builds the circular state badge shown at the top of the step's
+  /// indicator column.
+  ///
+  /// The badge colors come from the ambient [ColorScheme] so the stepper
+  /// follows the Material 3 theme instead of hardcoded greys: the step
+  /// being edited uses [ColorScheme.primary], completed steps use
+  /// [ColorScheme.primaryContainer], error steps use
+  /// [ColorScheme.errorContainer], and upcoming steps use
+  /// [ColorScheme.secondaryContainer].
+  Widget _buildBadge(Step step, int index, ColorScheme colorScheme) {
+    final theme = Theme.of(context);
+    final Color badgeColor;
+    final Color badgeContentColor;
+    switch (step.state) {
+      case StepState.editing:
+        badgeColor = colorScheme.primary;
+        badgeContentColor = colorScheme.onPrimary;
+        break;
+      case StepState.complete:
+        badgeColor = colorScheme.primaryContainer;
+        badgeContentColor = colorScheme.onPrimaryContainer;
+        break;
+      case StepState.error:
+        badgeColor = colorScheme.errorContainer;
+        badgeContentColor = colorScheme.onErrorContainer;
+        break;
+      default:
+        badgeColor = colorScheme.secondaryContainer;
+        badgeContentColor = colorScheme.onSecondaryContainer;
+        break;
+    }
+    final badgeStyle = theme.textTheme.titleMedium?.copyWith(
+      color: badgeContentColor,
+      fontWeight: FontWeight.w700,
+    );
+    final Widget badgeContent = switch (step.state) {
+      StepState.editing => Icon(Icons.edit, color: badgeContentColor, size: 18),
+      StepState.complete => Icon(
+        Icons.check,
+        color: badgeContentColor,
+        size: 18,
+      ),
+      StepState.error => Text('!', style: badgeStyle),
+      _ => Text('${index + 1}', style: badgeStyle),
+    };
+    return Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(color: badgeColor, shape: BoxShape.circle),
+      child: Center(child: badgeContent),
+    );
+  }
+
+  /// Builds one step: a fixed indicator column (badge plus the connector
+  /// segment that joins this step to the next one) beside an [Expanded]
+  /// text column holding the title, subtitle and content.
+  ///
+  /// The row stretches to the step's full height so the connector segment
+  /// fills the space below the badge and the rail reads as one continuous
+  /// line across steps. All vertical rhythm lives inside the text column
+  /// (as its bottom padding) so the outer step list carries no spacing that
+  /// would break the rail at step boundaries.
+  Widget _buildStep(
+    BuildContext context,
+    int index,
+    DensitySpacing density,
+    TextStyle? titleStyle,
+    TextStyle? subtitleStyle,
+  ) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final locales = AppLocalizations.of(context);
+    final step = widget.steps[index];
+    final isLast = index == widget.steps.length - 1;
+
+    // Builds the accessible label announced for this step, since the
+    // leading circle (number/icon) is decorative and excluded from
+    // semantics below.
+    String stepLabel = '${locales.get('label--step')} ${index + 1}';
+    switch (step.state) {
+      case StepState.complete:
+        stepLabel = '$stepLabel, ${locales.get('label--done')}';
+        break;
+      case StepState.error:
+        stepLabel = '$stepLabel, ${locales.get('label--step-error')}';
+        break;
+      default:
+        break;
+    }
+
+    final Widget indicatorColumn = ExcludeSemantics(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildBadge(step, index, colorScheme),
+          if (!isLast)
+            Expanded(
+              child: Container(width: 2, color: colorScheme.outlineVariant),
+            ),
+        ],
+      ),
+    );
+
+    final Widget textColumn = Expanded(
+      child: Padding(
+        // Bottom padding is the vertical rhythm between steps; it lives
+        // here rather than on the step list so the connector segment
+        // stretches across the full gap and the rail stays continuous.
+        padding: density.only(bottom: 24, minVertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // MergeSemantics combines the leading state, title, and
+            // subtitle into a single announcement per step; selected:true
+            // marks the step currently being edited as the current step,
+            // and inMutuallyExclusiveGroup:true (together with the outer
+            // group Semantics below) lets assistive technology announce
+            // "step N of M, selected" like a radio group.
+            MergeSemantics(
+              child: Semantics(
+                label: stepLabel,
+                selected: step.state == StepState.editing,
+                inMutuallyExclusiveGroup: true,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    DefaultTextStyle(
+                      style: titleStyle ?? const TextStyle(),
+                      child: step.title,
+                    ),
+                    if (step.subtitle != null)
+                      Padding(
+                        padding: density.only(top: 4, minVertical: 2),
+                        child: DefaultTextStyle(
+                          style: subtitleStyle ?? const TextStyle(),
+                          child: step.subtitle!,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: density.only(top: 12, minVertical: 8),
+              child: KeyedSubtree(
+                key: ValueKey('stepper_extended_step_body_$index'),
+                child: step.content,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    return IntrinsicHeight(
+      child: Row(
+        key: widget.controller == null ? null : _stepKeys[index],
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: density.gap(16, min: 8),
+        children: [indicatorColumn, textColumn],
+      ),
+    );
+  }
+
   /// Builds the step list and optionally wraps it in scroll affordances.
   ///
-  /// Each step lays out its leading circle beside a single column holding the
-  /// title, subtitle and content, so all step text shares one left edge at
-  /// every width — compact screens included — and nested steppers never
-  /// compound horizontal indentation because no width-responsive indent exists.
+  /// The whole list sits inside one [ContentContainer] so the connector
+  /// rail runs down a single continuous surface. Each step lays out its
+  /// leading circle beside a single column holding the title, subtitle and
+  /// content, so all step text shares one left edge at every width —
+  /// compact screens included — and nested steppers never compound
+  /// horizontal indentation because no width-responsive indent exists.
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final colorScheme = theme.colorScheme;
     final listTileTheme = ListTileTheme.of(context);
-    final locales = AppLocalizations.of(context);
     final density = DensitySpacing.of(context);
     while (_stepKeys.length < widget.steps.length) {
       _stepKeys.add(GlobalKey());
     }
-    List<Widget> children = List.generate(widget.steps.length, (index) {
-      Step step = widget.steps[index];
-      TextStyle? leadingStyle = textTheme.titleMedium?.copyWith(
-        color: Colors.white,
-        fontWeight: FontWeight.w700,
-      );
-      Widget leadingContent = const SizedBox();
-      const iconColor = Colors.white;
-      const iconSize = 18.0;
-      Color leadingColor = Colors.grey.shade800;
-      // Builds the accessible label announced for this step, since the
-      // leading circle (number/icon) is decorative and excluded from
-      // semantics below.
-      String stepLabel = '${locales.get('label--step')} ${index + 1}';
-      switch (step.state) {
-        // case StepState.indexed:
-        // case StepState.disabled:
-        case StepState.editing:
-          leadingContent = const Icon(
-            Icons.edit,
-            color: iconColor,
-            size: iconSize,
-          );
-          break;
-        case StepState.complete:
-          leadingContent = const Icon(
-            Icons.check,
-            color: iconColor,
-            size: iconSize,
-          );
-          leadingColor = Colors.teal;
-          stepLabel = '$stepLabel, ${locales.get('label--done')}';
-          break;
-        case StepState.error:
-          leadingContent = Text('!', style: leadingStyle);
-          leadingColor = Colors.red;
-          stepLabel = '$stepLabel, ${locales.get('label--step-error')}';
-          break;
-        default:
-          leadingContent = Text((index + 1).toString(), style: leadingStyle);
-          break;
-      }
 
-      Widget leading = ExcludeSemantics(
-        child: Container(
-          width: 32.0,
-          height: 32.0,
-          decoration: BoxDecoration(
-            color: leadingColor,
-            shape: BoxShape.circle,
-          ),
-          child: Center(child: leadingContent),
-        ),
-      );
-      // Wraps the step content so it stays aligned with the title and
-      // subtitle above it, keeping one shared left edge at every width. The
-      // vertical rule is painted behind the content so it does not inset it.
-      final Widget stepBody = Container(
-        foregroundDecoration: BoxDecoration(
-          border: Border(
-            left: BorderSide(color: colorScheme.surfaceContainerHigh, width: 1),
-          ),
-        ),
-        child: step.content,
-      );
+    final TextStyle? titleStyle =
+        widget.titleTextStyle ??
+        listTileTheme.titleTextStyle ??
+        textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface);
+    final TextStyle? subtitleStyle =
+        widget.subtitleTextStyle ??
+        listTileTheme.subtitleTextStyle ??
+        textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant);
 
-      final TextStyle? titleStyle =
-          widget.titleTextStyle ??
-          listTileTheme.titleTextStyle ??
-          textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface);
-      final TextStyle? subtitleStyle =
-          widget.subtitleTextStyle ??
-          listTileTheme.subtitleTextStyle ??
-          textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant);
-
-      return ContentContainer(
-        key: ValueKey('stepper_extended_step_$index'),
-        margin: density.only(
-          top: 16,
-          bottom: 32,
-          left: 0,
-          right: 16,
-          minVertical: 8,
-          minHorizontal: 8,
-        ),
-        size: widget.size,
-        child: Flex(
-          key: widget.controller == null ? null : _stepKeys[index],
-          direction: Axis.vertical,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              spacing: density.gap(16),
-              children: [
-                leading,
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: density.gap(16),
-                    children: [
-                      // MergeSemantics combines the leading state, title,
-                      // and subtitle into a single announcement per step;
-                      // selected:true marks the step currently being edited
-                      // as the current step, and
-                      // inMutuallyExclusiveGroup:true (together with the
-                      // outer group Semantics below) lets assistive
-                      // technology announce "step N of M, selected" like a
-                      // radio group.
-                      MergeSemantics(
-                        child: Semantics(
-                          label: stepLabel,
-                          selected: step.state == StepState.editing,
-                          inMutuallyExclusiveGroup: true,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              DefaultTextStyle(
-                                style: titleStyle ?? const TextStyle(),
-                                child: step.title,
-                              ),
-                              if (step.subtitle != null)
-                                Padding(
-                                  padding: density.only(top: 8, minVertical: 4),
-                                  child: DefaultTextStyle(
-                                    style: subtitleStyle ?? const TextStyle(),
-                                    child: step.subtitle!,
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      stepBody,
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      );
+    final List<Widget> children = List.generate(widget.steps.length, (index) {
+      return _buildStep(context, index, density, titleStyle, subtitleStyle);
     });
 
     // A group label lets assistive technology announce the whole step list
@@ -347,12 +390,15 @@ class _StepperExtendedState extends State<StepperExtended> {
     // "step N of M" pattern used by radio groups.
     final content = Semantics(
       container: true,
-      label: locales.get('label--steps'),
-      child: Flex(
-        direction: Axis.vertical,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: children,
+      label: AppLocalizations.of(context).get('label--steps'),
+      child: ContentContainer(
+        size: widget.size,
+        child: Flex(
+          direction: Axis.vertical,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: children,
+        ),
       ),
     );
 
