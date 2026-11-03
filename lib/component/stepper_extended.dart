@@ -5,7 +5,6 @@ import '../helper/app_localizations_delegate.dart';
 import '../helper/density_spacing.dart';
 import '../helper/log_color.dart';
 import '../helper/scroll_reveal.dart';
-import '../helper/window_size.dart';
 import 'content_container.dart';
 
 /// Displays a vertically stacked stepper using [ContentContainer] sections.
@@ -41,18 +40,18 @@ class StepperExtended extends StatefulWidget {
   /// Controls the width preset applied to each [ContentContainer].
   final ContentContainerSize size;
 
-  /// The text style for ListTile's [title].
+  /// The text style for the step [Step.title].
   ///
-  /// If this property is null, then [ListTileThemeData.titleTextStyle] is used.
-  /// If that is also null, [TextTheme.bodyLarge] with [ColorScheme.onSurface]
-  /// will be used.
+  /// If this property is null, then [ListTileThemeData.titleTextStyle] is
+  /// used for compatibility. If that is also null, [TextTheme.bodyLarge]
+  /// with [ColorScheme.onSurface] will be used.
   final TextStyle? titleTextStyle;
 
-  /// The text style for ListTile's [subtitle].
+  /// The text style for the step [Step.subtitle].
   ///
-  /// If this property is null, then [ListTileThemeData.subtitleTextStyle] is used.
-  /// If that is also null, [TextTheme.bodyMedium] with
-  /// [ColorScheme.onSurfaceVariant] will be used.
+  /// If this property is null, then [ListTileThemeData.subtitleTextStyle] is
+  /// used for compatibility. If that is also null, [TextTheme.bodyMedium]
+  /// with [ColorScheme.onSurfaceVariant] will be used.
   final TextStyle? subtitleTextStyle;
 
   /// If true, the stepper will be displayed on a [ListView].
@@ -184,17 +183,16 @@ class _StepperExtendedState extends State<StepperExtended> {
 
   /// Builds the step list and optionally wraps it in scroll affordances.
   ///
-  /// The step bodies are wrapped in a [LayoutBuilder] so their horizontal
-  /// indentation can adapt to the available width without depending on the
-  /// ambient [MediaQuery]: on compact widths the indent collapses to zero so
-  /// the content keeps its horizontal space, and on narrow widths it also
-  /// stays zero when steppers are nested so the indentation never compounds.
-  /// At [WindowSizeClass.medium] and above the desktop indentation (32) is
-  /// preserved.
+  /// Each step lays out its leading circle beside a single column holding the
+  /// title, subtitle and content, so all step text shares one left edge at
+  /// every width — compact screens included — and nested steppers never
+  /// compound horizontal indentation because no width-responsive indent exists.
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final colorScheme = theme.colorScheme;
+    final listTileTheme = ListTileTheme.of(context);
     final locales = AppLocalizations.of(context);
     final density = DensitySpacing.of(context);
     while (_stepKeys.length < widget.steps.length) {
@@ -254,29 +252,26 @@ class _StepperExtendedState extends State<StepperExtended> {
           child: Center(child: leadingContent),
         ),
       );
-      // Indents each step body under its leading circle. The indent is
-      // width-responsive (see [build]) and drops to zero on compact widths
-      // so nested steppers never compound horizontal indentation.
-      Widget stepBody(BuildContext bodyContext, BoxConstraints constraints) {
-        final indent =
-            WindowSizeClass.fromWidth(constraints.maxWidth)
-                .isAtLeast(WindowSizeClass.medium)
-            ? density.horizontal(32, min: 8)
-            : 0.0;
-        return Container(
-          padding: EdgeInsets.only(left: indent),
-          margin: EdgeInsets.only(left: indent),
-          decoration: BoxDecoration(
-            border: Border(
-              left: BorderSide(
-                color: Theme.of(bodyContext).colorScheme.surfaceContainerHigh,
-                width: 1,
-              ),
-            ),
+      // Wraps the step content so it stays aligned with the title and
+      // subtitle above it, keeping one shared left edge at every width. The
+      // vertical rule is painted behind the content so it does not inset it.
+      final Widget stepBody = Container(
+        foregroundDecoration: BoxDecoration(
+          border: Border(
+            left: BorderSide(color: colorScheme.surfaceContainerHigh, width: 1),
           ),
-          child: step.content,
-        );
-      }
+        ),
+        child: step.content,
+      );
+
+      final TextStyle? titleStyle =
+          widget.titleTextStyle ??
+          listTileTheme.titleTextStyle ??
+          textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface);
+      final TextStyle? subtitleStyle =
+          widget.subtitleTextStyle ??
+          listTileTheme.subtitleTextStyle ??
+          textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant);
 
       return ContentContainer(
         key: ValueKey('stepper_extended_step_$index'),
@@ -293,36 +288,55 @@ class _StepperExtendedState extends State<StepperExtended> {
           key: widget.controller == null ? null : _stepKeys[index],
           direction: Axis.vertical,
           crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: density.gap(16),
           children: [
-            // MergeSemantics combines the leading state, title, and subtitle
-            // into a single announcement per step; selected:true marks the
-            // step currently being edited as the current step, and
-            // inMutuallyExclusiveGroup:true (together with the outer group
-            // Semantics below) lets assistive technology announce
-            // "step N of M, selected" like a radio group.
-            MergeSemantics(
-              child: Semantics(
-                label: stepLabel,
-                selected: step.state == StepState.editing,
-                inMutuallyExclusiveGroup: true,
-                child: ListTile(
-                  leading: leading,
-                  title: step.title,
-                  titleTextStyle: widget.titleTextStyle,
-                  subtitle: step.subtitle != null
-                      ? Padding(
-                          padding: density.only(top: 8, minVertical: 4),
-                          child: step.subtitle,
-                        )
-                      : null,
-                  subtitleTextStyle: widget.subtitleTextStyle,
-                  minLeadingWidth: 32,
-                  isThreeLine: step.subtitle != null,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: density.gap(16),
+              children: [
+                leading,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: density.gap(16),
+                    children: [
+                      // MergeSemantics combines the leading state, title,
+                      // and subtitle into a single announcement per step;
+                      // selected:true marks the step currently being edited
+                      // as the current step, and
+                      // inMutuallyExclusiveGroup:true (together with the
+                      // outer group Semantics below) lets assistive
+                      // technology announce "step N of M, selected" like a
+                      // radio group.
+                      MergeSemantics(
+                        child: Semantics(
+                          label: stepLabel,
+                          selected: step.state == StepState.editing,
+                          inMutuallyExclusiveGroup: true,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              DefaultTextStyle(
+                                style: titleStyle ?? const TextStyle(),
+                                child: step.title,
+                              ),
+                              if (step.subtitle != null)
+                                Padding(
+                                  padding: density.only(top: 8, minVertical: 4),
+                                  child: DefaultTextStyle(
+                                    style: subtitleStyle ?? const TextStyle(),
+                                    child: step.subtitle!,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      stepBody,
+                    ],
+                  ),
                 ),
-              ),
+              ],
             ),
-            LayoutBuilder(builder: stepBody),
           ],
         ),
       );

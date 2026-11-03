@@ -297,7 +297,12 @@ void main() {
         // Assert
         expect(revealed, isTrue);
         expect(parent.offset, greaterThan(0));
-        expect(tester.getRect(find.text('Step 5')).top, closeTo(70.8, 12));
+        // The expected offset is the settled position of the revealed step
+        // title inside the 360 px viewport: the compact step header (a
+        // 32 px leading circle in a row with the title, replacing the old
+        // ListTile header) parks the title slightly higher than the
+        // ListTile-based layout this expectation was first measured from.
+        expect(tester.getRect(find.text('Step 5')).top, closeTo(58.0, 12));
       });
     });
 
