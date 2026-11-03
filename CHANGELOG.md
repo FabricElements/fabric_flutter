@@ -1,5 +1,21 @@
 ## [Unreleased]
 
+### Changed
+
+* **`StepperExtended` visual redesign.** Steps now render around a continuous
+  connector rail: a fixed leading indicator column (a circular state badge
+  plus a connector segment that joins each step to the next) sits beside a
+  single text column, so the title, subtitle and content of every step share
+  one left edge with a clear vertical rhythm at every width, including
+  360 px screens and large text scales. The whole step list sits inside one
+  `ContentContainer` so the rail runs down a single continuous surface.
+  Indicator colors now come from the Material 3 `ColorScheme` instead of
+  hardcoded values: the step being edited uses `primary`, completed steps
+  use `primaryContainer`, error steps use `errorContainer`, and upcoming
+  steps use `secondaryContainer` — an intentional, visible color change from
+  the previous grey/teal/red badges. The step body no longer paints a
+  left border, which was not RTL-safe. The public API is unchanged.
+
 ### Added
 
 * **Billing fields on `UserData`.** Two read-only billing fields are now read

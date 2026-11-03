@@ -2,17 +2,19 @@ import 'package:fabric_flutter/component/stepper_extended.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-/// Returns every step-body [Container] — the one whose foreground
-/// decoration carries a left border — currently mounted in the tree, in
+/// Returns every step-body wrapper — the [KeyedSubtree] keyed
+/// `stepper_extended_step_body_<index>` — currently mounted in the tree, in
 /// layout order.
-List<Container> stepBodyContainers(WidgetTester tester) {
+List<KeyedSubtree> stepBodyWrappers(WidgetTester tester) {
   return tester
-      .widgetList<Container>(
+      .widgetList<KeyedSubtree>(
         find.byWidgetPredicate(
           (widget) =>
-              widget is Container &&
-              widget.foregroundDecoration is BoxDecoration &&
-              ((widget.foregroundDecoration as BoxDecoration).border is Border),
+              widget is KeyedSubtree &&
+              widget.key is ValueKey<String> &&
+              (widget.key as ValueKey<String>).value.startsWith(
+                'stepper_extended_step_body_',
+              ),
         ),
       )
       .toList();
@@ -65,12 +67,8 @@ void _expectAligned(WidgetTester tester) {
     contentLeft,
     reason: 'the step subtitle must share the content left edge',
   );
-  final bodies = stepBodyContainers(tester);
+  final bodies = stepBodyWrappers(tester);
   expect(bodies, hasLength(1));
-  // The body wrapper must not add indentation of its own; unset padding and
-  // margin both mean zero.
-  expect(bodies.single.padding, isNull);
-  expect(bodies.single.margin, isNull);
 }
 
 void main() {
@@ -146,13 +144,70 @@ void main() {
         tester.getTopLeft(find.text('Inner subtitle')).dx,
         innerContentLeft,
       );
-      // One body wrapper per stepper: neither may add indentation.
-      final bodies = stepBodyContainers(tester);
+      // One body wrapper per stepper.
+      final bodies = stepBodyWrappers(tester);
       expect(bodies, hasLength(2));
-      for (final body in bodies) {
-        expect(body.padding, isNull);
-        expect(body.margin, isNull);
-      }
+    });
+
+    testWidgets('should draw a connector segment between steps', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(720, 1600);
+      tester.view.devicePixelRatio = 2;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 360,
+              child: StepperExtended(
+                steps: const [
+                  Step(title: Text('First'), content: Text('First body')),
+                  Step(title: Text('Last'), content: Text('Last body')),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Assert: the first step's badge and the second step's badge are
+      // joined by a connector segment whose vertical span starts at the
+      // first badge's bottom and reaches the second badge's top, so the
+      // rail reads as one continuous line.
+      final firstBadge = tester.getRect(
+        find
+            .byWidgetPredicate(
+              (widget) =>
+                  widget is Container &&
+                  widget.decoration is BoxDecoration &&
+                  (widget.decoration as BoxDecoration).shape == BoxShape.circle,
+            )
+            .first,
+      );
+      final secondBadge = tester.getRect(
+        find
+            .byWidgetPredicate(
+              (widget) =>
+                  widget is Container &&
+                  widget.decoration is BoxDecoration &&
+                  (widget.decoration as BoxDecoration).shape == BoxShape.circle,
+            )
+            .last,
+      );
+      final connector = tester.getRect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is Container &&
+              widget.decoration == null &&
+              widget.constraints?.minWidth == 2,
+        ),
+      );
+      expect(connector.top, firstBadge.bottom);
+      expect(connector.bottom, secondBadge.top);
+      expect(connector.left, firstBadge.center.dx - 1);
     });
   });
 }

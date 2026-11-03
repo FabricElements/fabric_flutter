@@ -5,6 +5,7 @@ import 'package:fabric_flutter/component/expressive_button_group.dart';
 import 'package:fabric_flutter/component/expressive_fab.dart';
 import 'package:fabric_flutter/component/section_title.dart';
 import 'package:fabric_flutter/component/smart_button.dart';
+import 'package:fabric_flutter/component/stepper_extended.dart';
 import 'package:fabric_flutter/component/status_chip.dart';
 import 'package:fabric_flutter/helper/density_spacing.dart';
 import 'package:fabric_flutter/helper/options.dart';
@@ -146,6 +147,40 @@ final List<CatalogEntry> catalogEntries = [
         ],
         selected: 'week',
         onChanged: (_) {},
+      ),
+    ),
+  ),
+  CatalogEntry(
+    name: 'stepper_extended',
+    content: (context) => Padding(
+      padding: DensitySpacing.of(context).all(8),
+      child: StepperExtended(
+        steps: const [
+          Step(
+            title: Text('Account'),
+            subtitle: Text('Create your login'),
+            content: Text('Step content'),
+            state: StepState.complete,
+          ),
+          Step(
+            title: Text('Profile'),
+            subtitle: Text('Tell us who you are'),
+            content: Text('Step content'),
+            state: StepState.editing,
+          ),
+          Step(
+            title: Text('Verify'),
+            subtitle: Text('Confirm your email'),
+            content: Text('Step content'),
+            state: StepState.indexed,
+          ),
+          Step(
+            title: Text('Billing'),
+            subtitle: Text('Add a payment method'),
+            content: Text('Step content'),
+            state: StepState.error,
+          ),
+        ],
       ),
     ),
   ),
