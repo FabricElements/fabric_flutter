@@ -537,5 +537,166 @@ void main() {
         expect(closeCalled, isTrue);
       });
     });
+
+    group('cursorPagination', () {
+      test(
+        'should unwrap the items envelope and record the next cursor',
+        () async {
+          // Arrange
+          final state = _TestStateAPI(
+            (_) async => jsonOk({
+              'items': [
+                {'id': '1'},
+                {'id': '2'},
+              ],
+              'nextCursor': 'abc',
+            }),
+          );
+          state.cursorPagination = true;
+          state.paginate = true;
+          state.incrementalPagination = true;
+          state.passParameters = true;
+          state.baseEndpoint = 'https://example.com/items';
+
+          // Act
+          await state.call();
+
+          // Assert — the envelope is unwrapped so data is the bare item list,
+          // and the cursor is recorded so canPaginate reports more pages.
+          expect(state.data, [
+            {'id': '1'},
+            {'id': '2'},
+          ]);
+          expect(state.nextCursor, 'abc');
+          expect(state.canPaginate, isTrue);
+        },
+      );
+
+      test('should stop paginating when no cursor is returned', () async {
+        // Arrange
+        final state = _TestStateAPI(
+          (_) async => jsonOk({
+            'items': [
+              {'id': '1'},
+            ],
+            'nextCursor': null,
+          }),
+        );
+        state.cursorPagination = true;
+        state.paginate = true;
+        state.passParameters = true;
+        state.baseEndpoint = 'https://example.com/items';
+
+        // Act
+        await state.call();
+
+        // Assert — a null cursor means the last page was reached.
+        expect(state.nextCursor, isNull);
+        expect(state.canPaginate, isFalse);
+      });
+
+      test('should request the next cursor page through next()', () async {
+        // Arrange
+        final state = _TestStateAPI((request) {
+          final cursor = request.url.queryParameters['cursor'];
+          if (cursor == null) {
+            return Future.value(
+              jsonOk({
+                'items': [
+                  {'id': '1'},
+                ],
+                'nextCursor': 'abc',
+              }),
+            );
+          }
+          if (cursor == 'abc') {
+            return Future.value(
+              jsonOk({
+                'items': [
+                  {'id': '2'},
+                ],
+                'nextCursor': null,
+              }),
+            );
+          }
+          return Future.value(jsonOk({'items': []}));
+        });
+        state.cursorPagination = true;
+        state.paginate = true;
+        state.incrementalPagination = true;
+        state.passParameters = true;
+        state.baseEndpoint = 'https://example.com/items';
+
+        // Act
+        await state.call();
+        final result = await state.next();
+
+        // Assert — the second request carries the cursor as a query
+        // parameter, and accumulated data holds both pages.
+        expect(
+          _TestStateAPI.requests.last.url.queryParameters['cursor'],
+          'abc',
+        );
+        expect(
+          _TestStateAPI.requests.last.url.queryParameters.containsKey('page'),
+          isFalse,
+        );
+        expect(result, isNotNull);
+        expect(state.data, [
+          {'id': '1'},
+          {'id': '2'},
+        ]);
+        expect(state.canPaginate, isFalse);
+      });
+
+      test(
+        'should keep page-based totalCount fallback inert on the cursor path',
+        () async {
+          // Arrange — the payload is a bare list of 2 items with no cursor
+          // envelope and no x-total-count; the totalCount fallback derived from
+          // (page - 1) * limit must not fire in cursor mode.
+          final state = _TestStateAPI(
+            (_) async => jsonOk([
+              {'id': '1'},
+              {'id': '2'},
+            ]),
+          );
+          state.cursorPagination = true;
+          state.paginate = true;
+          state.baseEndpoint = 'https://example.com/items';
+
+          // Act
+          await state.call();
+
+          // Assert — totalCount stays untouched by the page-based fallback.
+          expect(state.totalCount, 0);
+        },
+      );
+
+      test('should clear the cursor through clear()', () async {
+        // Arrange
+        final state = _TestStateAPI(
+          (_) async => jsonOk({
+            'items': [
+              {'id': '1'},
+            ],
+            'nextCursor': 'abc',
+          }),
+        );
+        state.cursorPagination = true;
+        state.paginate = true;
+        state.passParameters = true;
+        state.baseEndpoint = 'https://example.com/items';
+        await state.call();
+        expect(state.nextCursor, 'abc');
+
+        // Act
+        state.clear();
+
+        // Assert — a reset state restarts from the first cursor page.
+        expect(state.nextCursor, isNull);
+        expect(state.canPaginate, isFalse);
+      });
+    });
   });
 }

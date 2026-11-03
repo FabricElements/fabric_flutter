@@ -155,14 +155,49 @@ abstract class StateShared extends ChangeNotifier {
   /// Defines the first page used when pagination resets.
   final int initialPage = 1;
 
+  /// Enables opaque-cursor pagination instead of numbered pages.
+  ///
+  /// APIs that return a `nextCursor`-style token with each response page —
+  /// instead of a total count — cannot be driven by [page], [limit], and
+  /// [totalCount]. Enable this to have [canPaginate] report whether another
+  /// cursor is available and [next] request the page it points at.
+  ///
+  /// Requires [StateAPI], which parses the cursor envelope from responses.
+  bool cursorPagination = false;
+
+  /// Holds the opaque cursor for the next request, as returned by the API.
+  ///
+  /// Set by [StateAPI] after each response when [cursorPagination] is enabled.
+  /// A `null` value means no further pages are available.
+  String? nextCursor;
+
+  /// Names the query parameter that carries the opaque cursor on requests.
+  ///
+  /// Only used when [cursorPagination] is enabled.
+  String cursorParameter = 'cursor';
+
+  /// Names the response key that carries the next opaque cursor.
+  ///
+  /// Only used when [cursorPagination] is enabled.
+  String nextCursorKey = 'nextCursor';
+
+  /// Names the response key that carries the items of a cursor page.
+  ///
+  /// Only used when [cursorPagination] is enabled. When empty, the response
+  /// body is expected to be the bare list of items.
+  String cursorItemsKey = 'items';
+
   /// Reports whether another page is likely available.
   ///
-  /// This calculation depends on [totalCount], [page], and [limit]. If an API
-  /// does not return total-count metadata, subclasses may need to override the
-  /// default behavior or accept optimistic pagination.
+  /// With [cursorPagination] enabled, this reflects the presence of
+  /// [nextCursor]. Otherwise it is calculated from [totalCount], [page], and
+  /// [limit]. If an API does not return total-count metadata, subclasses may
+  /// need to override the default behavior or accept optimistic pagination.
   /// TODO: Verify pagination in case the 'x-total-count' is not present
   /// Old Version: bool get canPaginate => paginate && privateOldData != null && privateOldData.isNotEmpty && ((totalCount / page) >= 1);
-  bool get canPaginate => paginate && (page * limit < totalCount);
+  bool get canPaginate => cursorPagination
+      ? paginate && nextCursor != null
+      : paginate && (page * limit < totalCount);
 
   /// Stores the total item count reported by the backing data source.
   int totalCount = 0;
@@ -172,11 +207,17 @@ abstract class StateShared extends ChangeNotifier {
 
   /// Advances to the next page and triggers [call] when pagination allows it.
   ///
-  /// The method returns `null` when pagination is disabled, already exhausted,
-  /// or a request is still loading.
+  /// With [cursorPagination] enabled the opaque cursor stored in [nextCursor]
+  /// is requested instead of a numbered page. The method returns `null` when
+  /// pagination is disabled, already exhausted, or a request is still loading.
   Future<dynamic> next() async {
     if (loading) return;
     if (!canPaginate) return null;
+    if (cursorPagination) {
+      initialized = false;
+      requestGeneration++;
+      return call();
+    }
     initialized = false;
     requestGeneration++;
     page = page + 1;
@@ -462,12 +503,21 @@ abstract class StateShared extends ChangeNotifier {
       }
     }
     if (paginate) {
-      // Add default values for pagination
-      queryParametersBase = {
-        ...queryParametersBase,
-        'page': [page.toString()],
-        'limit': [limit.toString()],
-      };
+      if (cursorPagination) {
+        // Cursor APIs page by opaque token instead of page/limit numbers.
+        queryParametersBase = {
+          ...queryParametersBase,
+          'limit': [limit.toString()],
+          if (nextCursor != null) cursorParameter: [nextCursor!],
+        };
+      } else {
+        // Add default values for pagination
+        queryParametersBase = {
+          ...queryParametersBase,
+          'page': [page.toString()],
+          'limit': [limit.toString()],
+        };
+      }
     }
 
     return queryParametersBase;
@@ -641,6 +691,7 @@ abstract class StateShared extends ChangeNotifier {
     selectedItems = [];
     privateOldData = null;
     totalCount = 0;
+    nextCursor = null;
     _loading = false;
     scrollOffset = 0.0;
     _timerNotify?.cancel();

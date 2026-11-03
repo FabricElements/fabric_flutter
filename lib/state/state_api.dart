@@ -188,7 +188,13 @@ abstract class StateAPI extends StateShared {
     if (url == null) return null;
     return Utils.uriMergeQuery(
       uri: Uri.parse(url),
-      queryParameters: {'page': [], 'limit': [], 'sql': [], 'viewAs': []},
+      queryParameters: {
+        'page': [],
+        'limit': [],
+        'sql': [],
+        'viewAs': [],
+        if (cursorPagination) cursorParameter: [],
+      },
     ).toString();
   }
 
@@ -440,6 +446,17 @@ abstract class StateAPI extends StateShared {
         } else {
           final convertedResponse = await http.Response.fromStream(response);
           newData = HTTPRequest.response(convertedResponse);
+          // Cursor-paginated APIs wrap the page items with a next-cursor token.
+          // Unwrap the envelope here so the standard merge below accumulates
+          // bare item lists, and record the token for [canPaginate]/[next].
+          if (cursorPagination && newData is Map<String, dynamic>) {
+            final dynamic rawCursor = newData[nextCursorKey];
+            final dynamic cursorItems = newData[cursorItemsKey];
+            nextCursor = rawCursor is String && rawCursor.isNotEmpty
+                ? rawCursor
+                : null;
+            newData = cursorItems is List ? cursorItems : null;
+          }
         }
         error = null;
         // A successful response ends any consecutive-error streak.
@@ -491,7 +508,10 @@ abstract class StateAPI extends StateShared {
         final xTotalCountHeader =
             int.tryParse(headers['x-total-count'] ?? '0') ?? 0;
         totalCount = xTotalCountHeader;
-      } else if (paginate && !hasTotalHeader && newData != null) {
+      } else if (paginate &&
+          !cursorPagination &&
+          !hasTotalHeader &&
+          newData != null) {
         /// Default totalCount depending on the page
         int newTotal = (newData as List<dynamic>).length;
         if (page > initialPage) {
@@ -565,9 +585,8 @@ Error: $error
   void clear({bool notify = false}) {
     _lastEndpointCalled = null;
     headers = {};
-    _resetHttpClient().whenComplete(() {
-      super.clear(notify: notify);
-    });
+    super.clear(notify: notify);
+    _resetHttpClient();
   }
 
   /// Cancels any active JSON-stream subscription and closes the HTTP client.
