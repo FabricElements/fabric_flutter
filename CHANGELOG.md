@@ -16,6 +16,15 @@
   the previous grey/teal/red badges. The step body no longer paints a
   left border, which was not RTL-safe. The public API is unchanged.
 
+* **`StepperExtended` leading area on compact windows.** The leading badge is
+  decorative, so on compact windows (under 600 logical pixels) it now renders
+  at 28 px with a 16 px icon instead of 32 px with an 18 px icon, the gap
+  between the badge and the text column tightens from 16 px to 12 px, and the
+  gap above the step content tightens from 12 px to 8 px. The badge, the
+  leading gap and the content gap shrink together, so the title, subtitle and
+  content keep one shared left edge and the content stays aligned with the
+  header text. Wider windows are unchanged.
+
 ### Added
 
 * **Billing fields on `UserData`.** Two read-only billing fields are now read
@@ -27,6 +36,14 @@
   to Firestore; they are populated server-side by the billing provider.
 
 ### Fixed
+
+* **`StepperExtended` step content that measures itself.** Each step was
+  wrapped in an `IntrinsicHeight` to stretch the connector segment, which
+  fails during layout for any step content containing a `LayoutBuilder` or a
+  shrink-wrapping viewport — both refuse to report intrinsic dimensions. The
+  connector is now painted behind the step by a `Stack` that sizes to the
+  step's own row, so the rail still spans badge to badge and step content is
+  free to measure itself again.
 
 * **Auth page error handling, loading states, and accessibility.** The
   sign-in page could render raw exception text to users, left the Google

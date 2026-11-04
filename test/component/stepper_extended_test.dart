@@ -95,5 +95,48 @@ void main() {
         expect(tester.takeException(), isNull);
       },
     );
+
+    testWidgets(
+      'should render step content that measures itself without throwing',
+      (WidgetTester tester) async {
+        // Arrange: a LayoutBuilder and a shrink-wrapping viewport both refuse
+        // to report intrinsic dimensions, so any ancestor that measures its
+        // child intrinsically (an IntrinsicHeight, for example) fails during
+        // layout. Step content is free to use either.
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: StepperExtended(
+                steps: [
+                  Step(
+                    title: const Text('Measured'),
+                    content: LayoutBuilder(
+                      builder: (context, constraints) =>
+                          Text('Width ${constraints.maxWidth}'),
+                    ),
+                  ),
+                  Step(
+                    title: const Text('Shrink wrapped'),
+                    content: SizedBox(
+                      height: 120,
+                      child: ListView(
+                        shrinkWrap: true,
+                        children: const [Text('Listed content')],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Assert: the content laid out and nothing was thrown.
+        expect(tester.takeException(), isNull);
+        expect(find.text('Listed content'), findsOneWidget);
+        expect(find.textContaining('Width '), findsOneWidget);
+      },
+    );
   });
 }
