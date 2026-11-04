@@ -37,6 +37,20 @@
 
 ### Fixed
 
+* **`StepperExtended` mobile layout and leading alignment.** On narrow
+  screens the step content ran flush against the right screen edge while the
+  leading badge sat flush against the left one, and the badge did not align
+  with the step title. The step list is now inset symmetrically: the
+  `ContentContainer` that wraps it applies `DensitySpacing.symmetric`
+  horizontal padding (16 px, floored at 4 px) so the leading badge, the text
+  column and the content all keep a 4 px minimum inset from either screen
+  edge at every width and text scale. The text column also uses
+  `EdgeInsets.only` for its bottom padding instead of `DensitySpacing.only`,
+  which floors every unspecified side at `minVertical` and so added hidden top
+  padding that pushed the title below the badge; with it gone the title and
+  the leading badge center on the same line again. The public API is
+  unchanged.
+
 * **`StepperExtended` step content that measures itself.** Each step was
   wrapped in an `IntrinsicHeight` to stretch the connector segment, which
   fails during layout for any step content containing a `LayoutBuilder` or a

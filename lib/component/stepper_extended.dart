@@ -309,12 +309,18 @@ class _StepperExtendedState extends State<StepperExtended> {
       ),
     );
 
+    // Bottom padding is the vertical rhythm between steps; it lives
+    // here rather than on the step list so the connector segment
+    // stretches across the full gap and the rail stays continuous.
+    //
+    // EdgeInsets.only is used directly instead of density.only because
+    // density.only floors every unspecified side at minVertical too,
+    // which would add hidden top padding and push the title below the
+    // leading badge instead of keeping both centered on the same line.
+    final bottomPadding = density.vertical(24, min: 12);
     final Widget textColumn = Expanded(
       child: Padding(
-        // Bottom padding is the vertical rhythm between steps; it lives
-        // here rather than on the step list so the connector segment
-        // stretches across the full gap and the rail stays continuous.
-        padding: density.only(bottom: 24, minVertical: 12),
+        padding: EdgeInsets.only(bottom: bottomPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -440,6 +446,11 @@ class _StepperExtendedState extends State<StepperExtended> {
       label: AppLocalizations.of(context).get('label--steps'),
       child: ContentContainer(
         size: widget.size,
+        // Symmetric horizontal inset so step content never runs flush
+        // against the right screen edge and the leading badge never
+        // touches the left one; the 4px floor keeps a minimal gutter even
+        // at the most compact visual density.
+        padding: density.symmetric(horizontal: 16, minHorizontal: 4),
         child: Flex(
           direction: Axis.vertical,
           crossAxisAlignment: CrossAxisAlignment.start,
