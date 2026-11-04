@@ -1,5 +1,6 @@
 import 'package:fabric_flutter/component/stepper_extended.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Returns every step-body wrapper — the [KeyedSubtree] keyed
@@ -71,6 +72,68 @@ void _expectAligned(WidgetTester tester) {
   expect(bodies, hasLength(1));
 }
 
+/// Asserts the horizontal insets the stepper must keep at every width and
+/// text scale: the leading badge never touches the left viewport edge, and
+/// the step content keeps the same inset from the right viewport edge as
+/// the badge keeps from the left one.
+void _expectInset(WidgetTester tester, double logicalWidth) {
+  final badge = tester.getRect(
+    find
+        .byWidgetPredicate(
+          (widget) =>
+              widget is Container &&
+              widget.decoration is BoxDecoration &&
+              (widget.decoration as BoxDecoration).shape == BoxShape.circle,
+        )
+        .first,
+  );
+  final content = tester.renderObject<RenderParagraph>(
+    find.text('Step content'),
+  );
+  final contentLeft = tester.getTopLeft(find.text('Step content')).dx;
+
+  // Assert: the badge keeps at least a 4 logical pixel gutter from the
+  // left viewport edge so it never touches the border.
+  expect(
+    badge.left,
+    greaterThanOrEqualTo(4),
+    reason: 'the leading badge must never touch the left screen edge',
+  );
+  // Assert: the text column's available width ends exactly one badge-left
+  // inset from the right viewport edge, so step content keeps the same
+  // gutter as the badge does and nothing runs flush against the border.
+  expect(
+    logicalWidth - (contentLeft + content.constraints.maxWidth),
+    badge.left,
+    reason:
+        'the step content must keep the same inset from the right edge as '
+        'the badge keeps from the left edge',
+  );
+}
+
+/// Asserts the leading badge is vertically aligned with the step title: the
+/// badge's center must sit within half the badge's height of the title's
+/// center, so the two read as one row at every text scale.
+void _expectBadgeAlignedWithTitle(WidgetTester tester) {
+  final badge = tester.getRect(
+    find
+        .byWidgetPredicate(
+          (widget) =>
+              widget is Container &&
+              widget.decoration is BoxDecoration &&
+              (widget.decoration as BoxDecoration).shape == BoxShape.circle,
+        )
+        .first,
+  );
+  final title = tester.getRect(find.text('Step title'));
+
+  expect(
+    (badge.center.dy - title.center.dy).abs(),
+    lessThanOrEqualTo(badge.height / 2),
+    reason: 'the badge must be vertically aligned with the step title',
+  );
+}
+
 void main() {
   group('StepperExtended spacing', () {
     testWidgets('should align title, subtitle and content on compact width', (
@@ -82,6 +145,8 @@ void main() {
 
       await _pump(tester, 360);
       _expectAligned(tester);
+      _expectInset(tester, 360);
+      _expectBadgeAlignedWithTitle(tester);
     });
 
     testWidgets('should align title, subtitle and content at 600dp', (
@@ -93,6 +158,8 @@ void main() {
 
       await _pump(tester, 600);
       _expectAligned(tester);
+      _expectInset(tester, 600);
+      _expectBadgeAlignedWithTitle(tester);
     });
 
     testWidgets('should align title, subtitle and content at 1000dp', (
@@ -104,6 +171,8 @@ void main() {
 
       await _pump(tester, 1000);
       _expectAligned(tester);
+      _expectInset(tester, 1000);
+      _expectBadgeAlignedWithTitle(tester);
     });
 
     testWidgets('should align title, subtitle and content with large text', (
@@ -115,6 +184,8 @@ void main() {
 
       await _pump(tester, 360, textScale: 1.6);
       _expectAligned(tester);
+      _expectInset(tester, 360);
+      _expectBadgeAlignedWithTitle(tester);
     });
 
     testWidgets('should not compound indentation when steppers are nested on a '
