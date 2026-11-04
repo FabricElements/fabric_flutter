@@ -5,6 +5,7 @@ import '../helper/app_localizations_delegate.dart';
 import '../helper/density_spacing.dart';
 import '../helper/log_color.dart';
 import '../helper/scroll_reveal.dart';
+import '../helper/window_size.dart';
 import 'content_container.dart';
 
 /// Displays a vertically stacked stepper with a continuous connector rail.
@@ -13,12 +14,14 @@ import 'content_container.dart';
 /// Flutter's built-in [Stepper], while still exposing familiar [Step] data
 /// and scroll behavior for long forms and onboarding experiences.
 ///
-/// Every step renders a fixed leading indicator column — a circular state
-/// badge with a connector segment below it — beside a single text column
-/// holding the title, subtitle and content. The connector segments of all
-/// steps join into one continuous rail down the left side of the stepper,
-/// and all step text shares one left edge at every width, so compact
-/// screens and nested steppers keep a clear, aligned reading line.
+/// Every step renders a leading indicator column — a circular state badge —
+/// beside a single text column holding the title, subtitle and content. The
+/// connector rail is painted behind the steps, so the segments join into one
+/// continuous line down the left side of the stepper, and all step text
+/// shares one left edge at every width, so compact screens and nested
+/// steppers keep a clear, aligned reading line. On compact windows the badge
+/// and the leading gap shrink, since the badge is decorative and the text
+/// benefits from the extra room.
 class StepperExtended extends StatefulWidget {
   /// Creates a stepper that renders its steps around a connector rail.
   const StepperExtended({
@@ -198,7 +201,16 @@ class _StepperExtendedState extends State<StepperExtended> {
   /// [ColorScheme.primaryContainer], error steps use
   /// [ColorScheme.errorContainer], and upcoming steps use
   /// [ColorScheme.secondaryContainer].
-  Widget _buildBadge(Step step, int index, ColorScheme colorScheme) {
+  ///
+  /// The badge is decorative, so [badgeSize] and [iconSize] shrink on
+  /// compact windows where horizontal room is scarce.
+  Widget _buildBadge(
+    Step step,
+    int index,
+    ColorScheme colorScheme,
+    double badgeSize,
+    double iconSize,
+  ) {
     final theme = Theme.of(context);
     final Color badgeColor;
     final Color badgeContentColor;
@@ -225,32 +237,38 @@ class _StepperExtendedState extends State<StepperExtended> {
       fontWeight: FontWeight.w700,
     );
     final Widget badgeContent = switch (step.state) {
-      StepState.editing => Icon(Icons.edit, color: badgeContentColor, size: 18),
+      StepState.editing => Icon(
+        Icons.edit,
+        color: badgeContentColor,
+        size: iconSize,
+      ),
       StepState.complete => Icon(
         Icons.check,
         color: badgeContentColor,
-        size: 18,
+        size: iconSize,
       ),
       StepState.error => Text('!', style: badgeStyle),
       _ => Text('${index + 1}', style: badgeStyle),
     };
     return Container(
-      width: 32,
-      height: 32,
+      width: badgeSize,
+      height: badgeSize,
       decoration: BoxDecoration(color: badgeColor, shape: BoxShape.circle),
       child: Center(child: badgeContent),
     );
   }
 
-  /// Builds one step: a fixed indicator column (badge plus the connector
-  /// segment that joins this step to the next one) beside an [Expanded]
-  /// text column holding the title, subtitle and content.
+  /// Builds one step: a leading indicator column (the state badge) beside an
+  /// [Expanded] text column holding the title, subtitle and content, with the
+  /// connector segment that joins this step to the next one painted behind
+  /// both by a [Stack].
   ///
-  /// The row stretches to the step's full height so the connector segment
-  /// fills the space below the badge and the rail reads as one continuous
-  /// line across steps. All vertical rhythm lives inside the text column
-  /// (as its bottom padding) so the outer step list carries no spacing that
-  /// would break the rail at step boundaries.
+  /// The [Stack] sizes itself to the row, so the connector segment spans the
+  /// step from the badge's bottom edge to the next step's badge without
+  /// measuring the step's intrinsic height — step content stays free to use a
+  /// [LayoutBuilder] or a shrink-wrapping viewport. All vertical rhythm lives
+  /// inside the text column (as its bottom padding) so the outer step list
+  /// carries no spacing that would break the rail at step boundaries.
   Widget _buildStep(
     BuildContext context,
     int index,
@@ -279,16 +297,15 @@ class _StepperExtendedState extends State<StepperExtended> {
         break;
     }
 
-    final Widget indicatorColumn = ExcludeSemantics(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildBadge(step, index, colorScheme),
-          if (!isLast)
-            Expanded(
-              child: Container(width: 2, color: colorScheme.outlineVariant),
-            ),
-        ],
+    final metrics = _leadingMetrics(context, density);
+
+    final Widget indicator = ExcludeSemantics(
+      child: _buildBadge(
+        step,
+        index,
+        colorScheme,
+        metrics.badgeSize,
+        metrics.iconSize,
       ),
     );
 
@@ -332,7 +349,7 @@ class _StepperExtendedState extends State<StepperExtended> {
               ),
             ),
             Padding(
-              padding: density.only(top: 12, minVertical: 8),
+              padding: density.only(top: metrics.bodyTopGap, minVertical: 8),
               child: KeyedSubtree(
                 key: ValueKey('stepper_extended_step_body_$index'),
                 child: step.content,
@@ -343,13 +360,43 @@ class _StepperExtendedState extends State<StepperExtended> {
       ),
     );
 
-    return IntrinsicHeight(
-      child: Row(
-        key: widget.controller == null ? null : _stepKeys[index],
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: density.gap(16, min: 8),
-        children: [indicatorColumn, textColumn],
-      ),
+    return Stack(
+      children: [
+        Row(
+          key: widget.controller == null ? null : _stepKeys[index],
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: metrics.leadingGap,
+          children: [indicator, textColumn],
+        ),
+        if (!isLast)
+          Positioned(
+            // The rail is painted behind the step, from the badge's bottom
+            // edge down to the next step's badge, so the segments read as one
+            // continuous line without measuring the step's intrinsic height.
+            left: metrics.badgeSize / 2 - 1,
+            top: metrics.badgeSize,
+            bottom: 0,
+            child: Container(width: 2, color: colorScheme.outlineVariant),
+          ),
+      ],
+    );
+  }
+
+  /// Resolves the leading metrics for the step rendered in [context].
+  ///
+  /// The badge is decorative, so compact windows — where horizontal room is
+  /// scarce — use a smaller badge and a tighter leading gap. The badge, the
+  /// gap and the gap above the step content shrink together, so the text
+  /// column keeps the same left edge for the title, the subtitle and the step
+  /// content at every width.
+  ({double badgeSize, double iconSize, double leadingGap, double bodyTopGap})
+  _leadingMetrics(BuildContext context, DensitySpacing density) {
+    final isCompact = WindowSizeClass.of(context) == WindowSizeClass.compact;
+    return (
+      badgeSize: isCompact ? 28 : 32,
+      iconSize: isCompact ? 16 : 18,
+      leadingGap: density.gap(isCompact ? 12 : 16, min: 8),
+      bodyTopGap: isCompact ? 8 : 12,
     );
   }
 
