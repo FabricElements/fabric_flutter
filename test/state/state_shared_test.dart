@@ -62,27 +62,24 @@ class _ToggleDebounceState extends StateShared {
 
 void main() {
   group('StateShared', () {
-    test(
-      'should not throw and should still publish the update when callback throws',
-      () async {
-        // Arrange
-        final state = _TestState();
-        state.callback = (data) => throw StateError('boom callback');
-        final streamed = <dynamic>[];
-        state.stream.listen(streamed.add);
+    test('should not throw and should still publish the update when callback throws', () async {
+      // Arrange
+      final state = _TestState();
+      state.callback = (data) => throw StateError('boom callback');
+      final streamed = <dynamic>[];
+      state.stream.listen(streamed.add);
 
-        // Act
-        state.data = {'id': 1};
-        // The publish is debounced, so wait for the trailing-edge timer.
-        await settleDebounce();
+      // Act
+      state.data = {'id': 1};
+      // The publish is debounced, so wait for the trailing-edge timer.
+      await settleDebounce();
 
-        // Assert: the throwing callback never escapes the setter, and the
-        // debounced stream still receives the update.
-        expect(streamed, [
-          {'id': 1},
-        ]);
-      },
-    );
+      // Assert: the throwing callback never escapes the setter, and the
+      // debounced stream still receives the update.
+      expect(streamed, [
+        {'id': 1},
+      ]);
+    });
 
     test(
       'should not throw and should still publish the error when onError throws',
@@ -298,6 +295,57 @@ void main() {
         ]);
       });
 
+      test('should keep every keyless item instead of collapsing them', () {
+        // Arrange — objects without an id must never overwrite each other.
+        final state = _TestState();
+        final base = [
+          {'name': 'a'},
+          {'name': 'b'},
+          {'name': 'c'},
+        ];
+
+        // Act
+        final result = state.merge(
+          base: base,
+          toMerge: [
+            {'name': 'd'},
+            {'name': 'e'},
+          ],
+        );
+
+        // Assert
+        expect(result, [
+          {'name': 'a'},
+          {'name': 'b'},
+          {'name': 'c'},
+          {'name': 'd'},
+          {'name': 'e'},
+        ]);
+      });
+
+      test('should keep all earlier pages when a later page is shorter', () {
+        // Arrange — two keyed pages, the second smaller than the first.
+        final state = _TestState();
+        final page1 = [
+          for (int i = 1; i <= 5; i++) {'id': i},
+        ];
+
+        // Act
+        final afterPage1 = state.merge(base: [], toMerge: page1);
+        final afterPage2 = state.merge(
+          base: afterPage1,
+          toMerge: [
+            {'id': 6},
+            {'id': 7},
+          ],
+        );
+
+        // Assert
+        expect(afterPage2.length, 7);
+        expect(afterPage2.first, {'id': 1});
+        expect(afterPage2.last, {'id': 7});
+      });
+
       test('should let a later duplicate id replace an appended entry', () {
         // Arrange — mirrors the old indexWhere behavior where a second incoming
         // item with the same new id overwrites the first that was appended.
@@ -371,6 +419,51 @@ void main() {
         // would have made the merged result undetectable.
         expect(seed, [
           {'id': 1, 'name': 'a'},
+        ]);
+      });
+
+      test('should match on a custom key passed per call', () {
+        // Arrange
+        final state = _TestState();
+        final base = [
+          {'uid': 'a', 'name': 'a'},
+        ];
+
+        // Act
+        final result = state.merge(
+          base: base,
+          key: 'uid',
+          toMerge: [
+            {'uid': 'a', 'name': 'updated'},
+            {'uid': 'b', 'name': 'b'},
+          ],
+        );
+
+        // Assert
+        expect(result, [
+          {'uid': 'a', 'name': 'updated'},
+          {'uid': 'b', 'name': 'b'},
+        ]);
+      });
+
+      test('should match on the mergeKey configured on the state', () {
+        // Arrange
+        final state = _TestState()..mergeKey = 'uid';
+        final base = [
+          {'uid': 'a', 'name': 'a'},
+        ];
+
+        // Act
+        final result = state.merge(
+          base: base,
+          toMerge: [
+            {'uid': 'a', 'name': 'updated'},
+          ],
+        );
+
+        // Assert
+        expect(result, [
+          {'uid': 'a', 'name': 'updated'},
         ]);
       });
     });

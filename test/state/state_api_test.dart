@@ -17,6 +17,7 @@ class _TestStateAPI extends StateAPI {
   _TestStateAPI(
     Future<http.Response> Function(http.Request request) handler, {
     List<String> filterHeaders = const [],
+    this.pagingKeys = const [],
   }) : headersToFilter = filterHeaders,
        super(
          clientFactory: () =>
@@ -38,6 +39,16 @@ class _TestStateAPI extends StateAPI {
   /// Lists the response headers this state carries into the next request.
   @override
   final List<String> headersToFilter;
+
+  /// Extra paging parameters this state adds to every request.
+  final List<String> pagingKeys;
+
+  /// Adds the consumer-specific paging keys to the defaults.
+  @override
+  List<String> get paginationParameters => [
+    ...super.paginationParameters,
+    ...pagingKeys,
+  ];
 
   @override
   dynamic get serialized => data;
@@ -488,6 +499,117 @@ void main() {
         // Assert - no further page beyond the last.
         expect(state.page, 2);
         expect(state.canPaginate, isFalse);
+      });
+    });
+
+    group('incremental pagination', () {
+      test('should merge pages that also carry _start and _end', () async {
+        // Arrange - the consumer state adds _start/_end to every page.
+        final pages = <List<Map<String, dynamic>>>[
+          List.generate(10, (i) => {'id': 'a$i'}),
+          List.generate(10, (i) => {'id': 'b$i'}),
+          List.generate(2, (i) => {'id': 'c$i'}),
+        ];
+        final state = _TestStateAPI((request) async {
+          final page = int.parse(request.url.queryParameters['page'] ?? '1');
+          return jsonOk(pages[page - 1], headers: {'x-total-count': '22'});
+        }, pagingKeys: ['_start', '_end']);
+        state.paginate = true;
+        state.passParameters = true;
+        state.incrementalPagination = true;
+        state.baseEndpoint = 'https://example.com/items';
+        void setRange(int page) {
+          state.mergeQueryParameters = {
+            '_start': ['${(page - 1) * 10 + 1}'],
+            '_end': ['${page * 10}'],
+          };
+        }
+
+        setRange(1);
+        await state.call();
+
+        // Act
+        setRange(2);
+        await state.next();
+        setRange(3);
+        await state.next();
+
+        // Assert
+        expect(state.page, 3);
+        expect((state.data as List).length, 22);
+      });
+    });
+
+    group('incremental streams', () {
+      test('should merge streamed items by the configured mergeKey', () async {
+        // Arrange - page 2 streams an updated 'b' and a new 'c'. Items carry
+        // `uid` instead of `id`, so the merge must use mergeKey.
+        var page = 0;
+        final bodies = [
+          '{"uid":"a","v":1}\n{"uid":"b","v":1}',
+          '{"uid":"b","v":2}\n{"uid":"c","v":2}',
+        ];
+        final state = _TestStateAPI((request) async {
+          final body = bodies[page];
+          page++;
+          return http.Response(
+            body,
+            200,
+            headers: {'content-type': 'application/x-json-stream'},
+          );
+        });
+        state.mergeKey = 'uid';
+        state.incrementalPagination = true;
+        state.baseEndpoint = 'https://example.com/items';
+        await state.call();
+
+        // Act
+        await state.call(ignoreDuplicatedCalls: false);
+
+        // Assert
+        expect(state.data, [
+          {'uid': 'a', 'v': 1},
+          {'uid': 'b', 'v': 2},
+          {'uid': 'c', 'v': 2},
+        ]);
+      });
+    });
+
+    group('incremental headers', () {
+      test('should forward the page token header with the wildcard', () async {
+        // Arrange - each page returns a cursor token the next page must send.
+        final pages = <List<Map<String, dynamic>>>[
+          List.generate(10, (i) => {'id': 'a$i'}),
+          List.generate(10, (i) => {'id': 'b$i'}),
+          List.generate(2, (i) => {'id': 'c$i'}),
+        ];
+        final state = _TestStateAPI((request) async {
+          final page = int.parse(request.url.queryParameters['page'] ?? '1');
+          return jsonOk(
+            pages[page - 1],
+            headers: {
+              'x-total-count': '22',
+              'X-Kallisto-Page-Token': 'token-$page',
+            },
+          );
+        }, filterHeaders: ['X-Kallisto-*']);
+        state.paginate = true;
+        state.passParameters = true;
+        state.incrementalPagination = true;
+        state.baseEndpoint = 'https://example.com/items';
+        await state.call();
+
+        // Act
+        await state.next();
+        await state.next();
+
+        // Assert - the third request carried the token from page 2.
+        expect(state.page, 3);
+        expect(
+          _TestStateAPI.requests.last.headers['x-kallisto-page-token'],
+          'token-2',
+        );
+        expect((state.data as List).length, 22);
       });
     });
 
