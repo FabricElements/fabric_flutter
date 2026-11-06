@@ -1,5 +1,14 @@
 ## [Unreleased]
 
+## [3.4.0] - 2026-11-05
+
+### Dependencies
+
+* Upgraded direct dependencies to their latest compatible versions: `dlibphonenumber` 1.1.74 → 1.1.75, `file_picker` 13.2.0 → 13.3.2, `gap` 3.0.1 → 3.1.0.
+* Upgraded transitive dependencies within their existing constraints, including `analyzer` 14.6.0 → 14.7.0, `archive` 4.5.2 → 4.6.0, `crypto` 3.0.7 → 3.0.8, `google_sign_in_ios` 6.3.8 → 6.4.0, `image_picker_ios` 0.8.13+13 → 0.8.13+15, `material_ui` 1.8.0 → 1.10.0, `posix` 6.5.2 → 6.5.4 and `vector_math` 2.4.3 → 2.4.4.
+* `omni_datetime_picker` stays pinned at 2.3.2. Version 2.3.3 switches to the `material_ui`/`cupertino_ui` forks, whose `MaterialLocalizations` type differs from the Flutter SDK's, so the picker renders an `ErrorWidget` ("No MaterialLocalizations found"). The pin is deliberate and unchanged by this release.
+* No public API changes. Callers are unaffected.
+
 ### Changed
 
 * **`StepperExtended` visual redesign.** Steps now render around a continuous
