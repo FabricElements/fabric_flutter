@@ -180,6 +180,14 @@ abstract class StateAPI extends StateShared {
     ).toString();
   }
 
+  /// Query parameters that describe the page window rather than the resource.
+  ///
+  /// [urlClear] drops these before comparing endpoints, so a page change is not
+  /// treated as a different request and the accumulated data is kept. Override
+  /// it when a state adds its own paging parameters (for example `_start`
+  /// and `_end`).
+  List<String> paginationParameters = ['page', 'limit', 'sql'];
+
   /// Removes pagination-specific parameters from [url].
   ///
   /// This is used when comparing endpoints so a page change does not look like a
@@ -188,7 +196,7 @@ abstract class StateAPI extends StateShared {
     if (url == null) return null;
     return Utils.uriMergeQuery(
       uri: Uri.parse(url),
-      queryParameters: {'page': [], 'limit': [], 'sql': [], 'viewAs': []},
+      queryParameters: {for (final key in paginationParameters) key: []},
     ).toString();
   }
 
@@ -393,7 +401,7 @@ abstract class StateAPI extends StateShared {
               if (chunk.isEmpty) return;
               final originalData = data ?? [];
               // verify if item['id'] is present or add to data without merge method
-              if (chunk.containsKey('id')) {
+              if (chunk[mergeKey] != null) {
                 final baseNewData = [chunk];
                 try {
                   // Use isolate for merging data if possible

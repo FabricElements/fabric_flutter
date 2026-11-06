@@ -98,11 +98,16 @@ abstract class StateShared extends ChangeNotifier {
   /// Registers the function to invoke after each successful data update.
   set callback(Function(dynamic data) f) => _callback = f;
 
-  /// Merges [toMerge] into [base] by matching entries on their `id` values.
+  /// Key used by [merge] to match entries. Defaults to `id`.
   ///
-  /// Existing items are replaced at their current position, while new items are
-  /// appended. [base] is left untouched: the result is a new list, so callers do
-  /// not need to pass a defensive copy.
+  /// Override it for objects that identify themselves with another field.
+  String mergeKey = 'id';
+
+  /// Merges [toMerge] into [base] by matching entries on their [key] values.
+  ///
+  /// [key] defaults to [mergeKey]. Existing items are replaced at their current
+  /// position, while new items are appended. [base] is left untouched: the
+  /// result is a new list, so callers do not need to pass a defensive copy.
   ///
   /// The copy is what makes the merged result observable. Callers assign the
   /// result straight back through [data] — `data = merge(base: data, …)` — and
@@ -116,7 +121,9 @@ abstract class StateShared extends ChangeNotifier {
   List<dynamic> merge({
     required List<dynamic> base,
     required List<dynamic> toMerge,
+    String? key,
   }) {
+    final String idKey = key ?? mergeKey;
     // Copy before mutating: callers pass the state's own list as `base` and
     // assign the result straight back to `data`. Mutating in place would make
     // the "new" value and the comparison baseline the same object, so the
@@ -126,17 +133,22 @@ abstract class StateShared extends ChangeNotifier {
     // constant time instead of rescanning the whole list, turning the merge
     // from O(base * toMerge) into O(base + toMerge). First occurrences win, to
     // mirror the previous indexWhere lookup.
+    // Entries without a key value cannot be matched, so they are never indexed.
+    // Indexing them under `null` would make every keyless item overwrite the
+    // same slot and silently drop the rest of the page.
     final Map<dynamic, int> indexById = {};
     for (int i = 0; i < newData.length; i++) {
-      indexById.putIfAbsent(newData[i]['id'], () => i);
+      final dynamic existingKey = newData[i][idKey];
+      if (existingKey == null) continue;
+      indexById.putIfAbsent(existingKey, () => i);
     }
     for (final item in toMerge) {
-      dynamic itemID = item['id'];
-      final int? itemIndex = indexById[itemID];
+      final dynamic itemID = item[idKey];
+      final int? itemIndex = itemID == null ? null : indexById[itemID];
       if (itemIndex != null) {
         newData[itemIndex] = item;
       } else {
-        indexById[itemID] = newData.length;
+        if (itemID != null) indexById[itemID] = newData.length;
         newData.add(item);
       }
     }
