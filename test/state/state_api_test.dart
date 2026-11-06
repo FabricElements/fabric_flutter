@@ -540,6 +540,41 @@ void main() {
       });
     });
 
+    group('incremental streams', () {
+      test('should merge streamed items by the configured mergeKey', () async {
+        // Arrange - page 2 streams an updated 'b' and a new 'c'. Items carry
+        // `uid` instead of `id`, so the merge must use mergeKey.
+        var page = 0;
+        final bodies = [
+          '{"uid":"a","v":1}\n{"uid":"b","v":1}',
+          '{"uid":"b","v":2}\n{"uid":"c","v":2}',
+        ];
+        final state = _TestStateAPI((request) async {
+          final body = bodies[page];
+          page++;
+          return http.Response(
+            body,
+            200,
+            headers: {'content-type': 'application/x-json-stream'},
+          );
+        });
+        state.mergeKey = 'uid';
+        state.incrementalPagination = true;
+        state.baseEndpoint = 'https://example.com/items';
+        await state.call();
+
+        // Act
+        await state.call(ignoreDuplicatedCalls: false);
+
+        // Assert
+        expect(state.data, [
+          {'uid': 'a', 'v': 1},
+          {'uid': 'b', 'v': 2},
+          {'uid': 'c', 'v': 2},
+        ]);
+      });
+    });
+
     group('incremental headers', () {
       test('should forward the page token header with the wildcard', () async {
         // Arrange - each page returns a cursor token the next page must send.
