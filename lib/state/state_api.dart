@@ -411,6 +411,7 @@ abstract class StateAPI extends StateShared {
       final originalData = data;
       List<dynamic> streamResponse = [];
       List<dynamic> streamResponseFull = [];
+      dynamic streamResponseObject;
       try {
         final request = http.Request(method.name, url);
         // Add headers to request
@@ -436,14 +437,22 @@ abstract class StateAPI extends StateShared {
 
         /// Handle json streaming data
         if (isJsonStream || isEventStream) {
+          // A streaming response delivers many incremental updates; enable
+          // immediate publishing so each frame renders as it arrives instead of
+          // being coalesced by the debounce window. Restored to `false` once the
+          // stream completes or is torn down.
+          liveUpdates = true;
           // Reject non-2xx stream responses before consuming the body so the
           // failure surfaces through `error` instead of an empty stream read.
           if (response.statusCode < 200 || response.statusCode > 299) {
             throw 'error--${response.statusCode}';
           }
           if (!incrementalPagination) {
-            newData = [];
-            data = [];
+            // Event-stream responses accumulate into a single object, so start
+            // from `null` instead of an empty list to keep [data] a clean
+            // value until the first event arrives.
+            newData = isEventStream ? null : [];
+            data = isEventStream ? null : [];
             // Wait for animation to complete
             await Future.delayed(const Duration(milliseconds: 500));
           }
@@ -492,6 +501,21 @@ abstract class StateAPI extends StateShared {
           _streamSubscription = stream.listen(
             (chunk) async {
               if (chunk.isEmpty) return;
+              // Event-stream responses fold each event into a single
+              // accumulated object through [combineStream], so [data] exposes
+              // one deserializable value instead of a list of raw events.
+              // Events with no usable payload are skipped by the guard above.
+              if (isEventStream) {
+                streamResponseObject = combineStream(
+                  streamResponseObject,
+                  chunk,
+                );
+                newData = streamResponseObject;
+                if (generation == requestGeneration) {
+                  data = streamResponseObject;
+                }
+                return;
+              }
               final originalData = data ?? [];
               // verify if item['id'] is present or add to data without merge method
               if (chunk[mergeKey] != null) {
@@ -582,6 +606,9 @@ abstract class StateAPI extends StateShared {
       errorCount++;
       error = e.toString();
     } finally {
+      // Stream (if any) has ended or failed: restore debounced publishing so
+      // ordinary updates resume their configured cadence.
+      liveUpdates = false;
       // Finalize data response depending on pagination
       dataResponse = paginate
           ? (dataResponse ?? []) as List<dynamic>

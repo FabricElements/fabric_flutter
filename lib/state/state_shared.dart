@@ -155,6 +155,94 @@ abstract class StateShared extends ChangeNotifier {
     return newData;
   }
 
+  /// Folds a server-sent [event] into the running stream value.
+  ///
+  /// Called once per event while consuming a `text/event-stream` response so
+  /// [data] can expose a single accumulated object instead of a list of raw
+  /// events. [previous] is the value returned by the preceding call, or `null`
+  /// for the first event.
+  ///
+  /// The default implementation handles two common shapes so consumers can
+  /// deserialize [data] directly, without overriding this method:
+  ///
+  /// * OpenAI-compatible chat completion chunks — when [event] carries
+  ///   `choices` with `delta` fragments, their `content` is concatenated into
+  ///   `choices[].message.content`, the latest `finish_reason` and the
+  ///   constant top-level fields are carried forward, and partial events with
+  ///   no new content leave the accumulated value unchanged.
+  /// * Interleaved side-channel events — an [event] that carries no `choices`
+  ///   at all (for example a `{"message": "Calling tool..."}` status frame
+  ///   streamed alongside the completion) must not discard an in-progress
+  ///   accumulation: its extra keys are merged onto the running value while the
+  ///   accumulated `choices` are preserved.
+  /// * Snapshot events — any other [event] (including a complete, non-delta
+  ///   `choices` payload) replaces the running value, which suits streams whose
+  ///   events are already complete objects.
+  ///
+  /// Override only to implement a different accumulation strategy.
+  dynamic combineStream(dynamic previous, Map<String, dynamic> event) {
+    final eventChoices = event['choices'];
+    final bool isDelta =
+        eventChoices is List &&
+        eventChoices.any((c) => c is Map && c['delta'] is Map);
+    if (!isDelta) {
+      // A side-channel event with no `choices` (e.g. a status frame emitted
+      // between completion chunks) must not wipe the accumulated completion.
+      // Preserve the running object's `choices` and merge the event's other
+      // keys onto it. Events that carry their own `choices` are treated as
+      // complete snapshots and replace the running value as before.
+      if (eventChoices == null && previous is Map && previous['choices'] is List) {
+        final merged = Map<String, dynamic>.from(previous);
+        for (final entry in event.entries) {
+          if (entry.key != 'choices') merged[entry.key] = entry.value;
+        }
+        return merged;
+      }
+      return event;
+    }
+    final Map<String, dynamic> acc = previous is Map<String, dynamic>
+        ? Map<String, dynamic>.from(previous)
+        : <String, dynamic>{};
+    for (final entry in event.entries) {
+      if (entry.key != 'choices') acc[entry.key] = entry.value;
+    }
+    final List<Map<String, dynamic>> choices =
+        (acc['choices'] as List?)
+            ?.map((c) => Map<String, dynamic>.from(c as Map))
+            .toList() ??
+        <Map<String, dynamic>>[];
+    for (var i = 0; i < eventChoices.length; i++) {
+      final raw = eventChoices[i];
+      if (raw is! Map) continue;
+      final choice = Map<String, dynamic>.from(raw);
+      final index = choice['index'] is int ? choice['index'] as int : i;
+      while (choices.length <= index) {
+        choices.add(<String, dynamic>{'index': choices.length});
+      }
+      final target = choices[index];
+      final message = target['message'] is Map
+          ? Map<String, dynamic>.from(target['message'] as Map)
+          : <String, dynamic>{'role': 'assistant'};
+      final delta = choice['delta'];
+      final piece = delta is Map ? delta['content'] : null;
+      if (piece is String && piece.isNotEmpty) {
+        final existing = message['content'];
+        message['content'] = (existing is String ? existing : '') + piece;
+      }
+      if (delta is Map && delta['role'] is String) {
+        message['role'] = delta['role'];
+      }
+      target['message'] = message;
+      if (choice['finish_reason'] != null) {
+        target['finish_reason'] = choice['finish_reason'];
+      }
+      target['index'] = index;
+      choices[index] = target;
+    }
+    acc['choices'] = choices;
+    return acc;
+  }
+
   /// Appends paginated results instead of replacing earlier pages.
   ///
   /// Enable this when the UI should accumulate previous page results, such as an
@@ -1067,6 +1155,28 @@ abstract class StateShared extends ChangeNotifier {
   /// inside a `build` method when `debounceTime <= 0`.
   int debounceTime = 10;
 
+  /// Bypasses [debounceTime] while a live-update source is active.
+  ///
+  /// When `true`, [data] assignments and [notifyListeners] publish
+  /// immediately — exactly as if [debounceTime] were `0` — without mutating the
+  /// consumer's configured [debounceTime]. This lets a burst of incremental
+  /// updates (an active `text/event-stream` / `x-json-stream` response, a
+  /// realtime socket, a Firestore snapshot burst) render frame by frame instead
+  /// of being coalesced into a single trailing emission by the debounce window.
+  ///
+  /// Live-update sources toggle this for the duration of the stream and restore
+  /// it to `false` when it ends, so ordinary updates resume their debounced
+  /// cadence. Consumers may also set it directly to force immediate delivery.
+  bool liveUpdates = false;
+
+  /// Whether updates currently bypass the debounce window.
+  ///
+  /// True when the consumer disabled debouncing via [debounceTime] `<= 0`, or
+  /// while a live-update source has enabled [liveUpdates]. Routing both reasons
+  /// through one getter keeps the immediate-publish behaviour identical however
+  /// it is triggered.
+  bool get publishImmediately => debounceTime <= 0 || liveUpdates;
+
   /// Defines the longer debounce interval used before the first successful load.
   int get debounceTimeNotInitialized => 500;
 
@@ -1125,9 +1235,10 @@ abstract class StateShared extends ChangeNotifier {
   /// *what* they deliver.
   void _notifyData() {
     if (_disposed) return;
-    // Publish immediately when debouncing is disabled. Any timer already in
-    // flight is dropped so a stale deferred delivery cannot arrive afterwards.
-    if (debounceTime <= 0) {
+    // Publish immediately when debouncing is disabled or a live-update source
+    // is active. Any timer already in flight is dropped so a stale deferred
+    // delivery cannot arrive afterwards.
+    if (publishImmediately) {
       _timerData?.cancel();
       _timerData = null;
       debounceCountData = 0;
@@ -1184,9 +1295,10 @@ abstract class StateShared extends ChangeNotifier {
       }
       return;
     }
-    // Notify immediately when debouncing is disabled. Any timer already in
-    // flight is dropped so a stale deferred notification cannot arrive after.
-    if (debounceTime <= 0) {
+    // Notify immediately when debouncing is disabled or a live-update source is
+    // active. Any timer already in flight is dropped so a stale deferred
+    // notification cannot arrive after.
+    if (publishImmediately) {
       _timerNotify?.cancel();
       _timerNotify = null;
       debounceCountNotify = 0;
