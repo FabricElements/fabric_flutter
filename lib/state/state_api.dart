@@ -411,6 +411,7 @@ abstract class StateAPI extends StateShared {
       final originalData = data;
       List<dynamic> streamResponse = [];
       List<dynamic> streamResponseFull = [];
+      dynamic streamResponseObject;
       try {
         final request = http.Request(method.name, url);
         // Add headers to request
@@ -442,8 +443,11 @@ abstract class StateAPI extends StateShared {
             throw 'error--${response.statusCode}';
           }
           if (!incrementalPagination) {
-            newData = [];
-            data = [];
+            // Event-stream responses accumulate into a single object, so start
+            // from `null` instead of an empty list to keep [data] a clean
+            // value until the first event arrives.
+            newData = isEventStream ? null : [];
+            data = isEventStream ? null : [];
             // Wait for animation to complete
             await Future.delayed(const Duration(milliseconds: 500));
           }
@@ -492,6 +496,21 @@ abstract class StateAPI extends StateShared {
           _streamSubscription = stream.listen(
             (chunk) async {
               if (chunk.isEmpty) return;
+              // Event-stream responses fold each event into a single
+              // accumulated object through [combineStream], so [data] exposes
+              // one deserializable value instead of a list of raw events.
+              // Events with no usable payload are skipped by the guard above.
+              if (isEventStream) {
+                streamResponseObject = combineStream(
+                  streamResponseObject,
+                  chunk,
+                );
+                newData = streamResponseObject;
+                if (generation == requestGeneration) {
+                  data = streamResponseObject;
+                }
+                return;
+              }
               final originalData = data ?? [];
               // verify if item['id'] is present or add to data without merge method
               if (chunk[mergeKey] != null) {

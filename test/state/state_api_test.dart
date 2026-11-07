@@ -54,6 +54,33 @@ class _TestStateAPI extends StateAPI {
   dynamic get serialized => data;
 }
 
+/// [StateAPI] that folds streamed events by concatenating their `content`.
+///
+/// Demonstrates [StateShared.combineStream] accumulating partial events into a
+/// single object, as a token-delta consumer would.
+class _AccumulatingStateAPI extends _TestStateAPI {
+  /// Creates an accumulating test state backed by [handler].
+  _AccumulatingStateAPI(super.handler);
+
+  /// Concatenates the `content` field across events and keeps the latest value
+  /// for every other field.
+  @override
+  dynamic combineStream(dynamic previous, Map<String, dynamic> event) {
+    final Map<String, dynamic> acc = previous is Map<String, dynamic>
+        ? Map<String, dynamic>.from(previous)
+        : <String, dynamic>{};
+    event.forEach((key, value) {
+      if (key == 'content' && value is String) {
+        final existing = acc['content'];
+        acc['content'] = (existing is String ? existing : '') + value;
+      } else {
+        acc[key] = value;
+      }
+    });
+    return acc;
+  }
+}
+
 /// Builds a JSON response for the mock transport.
 http.Response jsonOk(Object body, {Map<String, String> headers = const {}}) =>
     http.Response(
@@ -673,7 +700,7 @@ void main() {
     });
 
     group('call with text/event-stream', () {
-      test('should accumulate parsed SSE events into data in order', () async {
+      test('should expose the latest SSE event as data by default', () async {
         // Arrange
         final client = _SseStubClient([
           utf8.encode(
@@ -691,12 +718,32 @@ void main() {
         // Act
         await state.call();
 
-        // Assert
+        // Assert — the default combineStream keeps the most recent event.
         expect(state.error, isNull);
-        expect(state.data, [
-          {'id': '1', 'content': 'Hello'},
-          {'id': '2', 'content': ' world'},
+        expect(state.data, {'id': '2', 'content': ' world'});
+      });
+
+      test('should fold events into one object via combineStream', () async {
+        // Arrange — a token-delta style stream that concatenates `content`.
+        final client = _SseStubClient([
+          utf8.encode(
+            'data: {"id":"1","content":"Hello"}\n\n'
+            'data: {"id":"1","content":" world"}\n\n'
+            'data: [DONE]\n\n',
+          ),
         ]);
+        final state = _AccumulatingStateAPI((_) async => jsonOk({'id': '1'}));
+        state.httpClient = client;
+        state.baseEndpoint = 'https://example.com/events';
+        state.method = HTTPMethod.POST;
+        state.body = {'stream': true};
+
+        // Act
+        await state.call();
+
+        // Assert — a single accumulated object, not a list of raw events.
+        expect(state.error, isNull);
+        expect(state.data, {'id': '1', 'content': 'Hello world'});
       });
 
       test(
@@ -718,12 +765,9 @@ void main() {
           // Act
           await state.call();
 
-          // Assert
+          // Assert — the final reassembled event is exposed as data.
           expect(state.error, isNull);
-          expect(state.data, [
-            {'id': '1', 'content': 'Hello'},
-            {'id': '2', 'content': ' world'},
-          ]);
+          expect(state.data, {'id': '2', 'content': ' world'});
         },
       );
 
@@ -749,9 +793,7 @@ void main() {
 
           // Assert
           expect(state.error, isNull);
-          expect(state.data, [
-            {'id': '1'},
-          ]);
+          expect(state.data, {'id': '1'});
         },
       );
 
@@ -783,9 +825,7 @@ void main() {
 
           // Assert
           expect(state.error, isNull);
-          expect(state.data, [
-            {'id': 'a'},
-          ]);
+          expect(state.data, {'id': 'a'});
         },
       );
 

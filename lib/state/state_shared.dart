@@ -155,6 +155,19 @@ abstract class StateShared extends ChangeNotifier {
     return newData;
   }
 
+  /// Folds a server-sent [event] into the running stream value.
+  ///
+  /// Called once per event while consuming a `text/event-stream` response so
+  /// [data] can expose a single accumulated object instead of a list of raw
+  /// events. [previous] is the value returned by the preceding call, or `null`
+  /// for the first event.
+  ///
+  /// The default implementation replaces the running value with the latest
+  /// [event], which suits streams whose events are complete snapshots.
+  /// Subclasses that receive partial events, such as token deltas, can override
+  /// this to combine fields so [data] always holds the full response so far.
+  dynamic combineStream(dynamic previous, Map<String, dynamic> event) => event;
+
   /// Appends paginated results instead of replacing earlier pages.
   ///
   /// Enable this when the UI should accumulate previous page results, such as an
