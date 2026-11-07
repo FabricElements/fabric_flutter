@@ -54,6 +54,33 @@ class _TestStateAPI extends StateAPI {
   dynamic get serialized => data;
 }
 
+/// [StateAPI] that folds streamed events by concatenating their `content`.
+///
+/// Demonstrates [StateShared.combineStream] accumulating partial events into a
+/// single object, as a token-delta consumer would.
+class _AccumulatingStateAPI extends _TestStateAPI {
+  /// Creates an accumulating test state backed by [handler].
+  _AccumulatingStateAPI(super.handler);
+
+  /// Concatenates the `content` field across events and keeps the latest value
+  /// for every other field.
+  @override
+  dynamic combineStream(dynamic previous, Map<String, dynamic> event) {
+    final Map<String, dynamic> acc = previous is Map<String, dynamic>
+        ? Map<String, dynamic>.from(previous)
+        : <String, dynamic>{};
+    event.forEach((key, value) {
+      if (key == 'content' && value is String) {
+        final existing = acc['content'];
+        acc['content'] = (existing is String ? existing : '') + value;
+      } else {
+        acc[key] = value;
+      }
+    });
+    return acc;
+  }
+}
+
 /// Builds a JSON response for the mock transport.
 http.Response jsonOk(Object body, {Map<String, String> headers = const {}}) =>
     http.Response(
@@ -673,7 +700,7 @@ void main() {
     });
 
     group('call with text/event-stream', () {
-      test('should accumulate parsed SSE events into data in order', () async {
+      test('should expose the latest SSE event as data by default', () async {
         // Arrange
         final client = _SseStubClient([
           utf8.encode(
@@ -691,12 +718,167 @@ void main() {
         // Act
         await state.call();
 
-        // Assert
+        // Assert — the default combineStream keeps the most recent event.
         expect(state.error, isNull);
-        expect(state.data, [
-          {'id': '1', 'content': 'Hello'},
-          {'id': '2', 'content': ' world'},
+        expect(state.data, {'id': '2', 'content': ' world'});
+      });
+
+      test(
+        'should publish each SSE frame immediately without debounce coalescing',
+        () async {
+          // Arrange — three complete events, one per network chunk, so each
+          // fold produces a distinct accumulated value. The default
+          // debounceTime (10ms) would coalesce these into a single trailing
+          // emission; an active stream enables [liveUpdates] so every frame
+          // publishes immediately.
+          final client = _SseStubClient([
+            utf8.encode(
+              'data: {"id":"c1","choices":[{"index":0,"delta":{"role":"assistant","content":"Hel"}}]}\n\n',
+            ),
+            utf8.encode(
+              'data: {"id":"c1","choices":[{"index":0,"delta":{"content":"lo"}}]}\n\n',
+            ),
+            utf8.encode(
+              'data: {"id":"c1","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\n\n'
+              'data: [DONE]\n\n',
+            ),
+          ]);
+          final state = _TestStateAPI((_) async => jsonOk({'id': '1'}));
+          state.httpClient = client;
+          state.baseEndpoint = 'https://example.com/events';
+          state.method = HTTPMethod.POST;
+          state.body = {'stream': true};
+
+          // Record the accumulated reply content on every stream emission.
+          final List<String> snapshots = [];
+          final sub = state.stream.listen((data) {
+            if (data is Map && data['choices'] is List) {
+              final choices = data['choices'] as List;
+              if (choices.isNotEmpty && choices.first is Map) {
+                final message = (choices.first as Map)['message'];
+                final content = message is Map ? message['content'] : null;
+                if (content is String) snapshots.add(content);
+              }
+            }
+          });
+
+          // Act
+          await state.call();
+          await sub.cancel();
+
+          // Assert — intermediate frames reached listeners, not just the final
+          // value, and [liveUpdates] was restored once the stream ended.
+          expect(snapshots, contains('Hel'));
+          expect(snapshots.length, greaterThan(1));
+          expect(state.liveUpdates, isFalse);
+          expect(state.data, {
+            'id': 'c1',
+            'choices': [
+              {
+                'index': 0,
+                'message': {'role': 'assistant', 'content': 'Hello'},
+                'finish_reason': 'stop',
+              },
+            ],
+          });
+        },
+      );
+
+      test('should fold OpenAI delta chunks into one object by default', () async {
+        // Arrange — token-delta chat completion chunks sharing one id.
+        final client = _SseStubClient([
+          utf8.encode(
+            'data: {"id":"c1","choices":[{"index":0,"delta":{"role":"assistant","content":"Hello"}}]}\n\n'
+            'data: {"id":"c1","choices":[{"index":0,"delta":{"content":" world"}}]}\n\n'
+            'data: {"id":"c1","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\n\n'
+            'data: [DONE]\n\n',
+          ),
         ]);
+        final state = _TestStateAPI((_) async => jsonOk({'id': '1'}));
+        state.httpClient = client;
+        state.baseEndpoint = 'https://example.com/events';
+        state.method = HTTPMethod.POST;
+        state.body = {'stream': true};
+
+        // Act
+        await state.call();
+
+        // Assert — the default folds deltas into one deserializable completion.
+        expect(state.error, isNull);
+        expect(state.data, {
+          'id': 'c1',
+          'choices': [
+            {
+              'index': 0,
+              'message': {'role': 'assistant', 'content': 'Hello world'},
+              'finish_reason': 'stop',
+            },
+          ],
+        });
+      });
+
+      test(
+        'should keep the accumulated completion when a status frame is '
+        'interleaved between delta chunks',
+        () async {
+          // Arrange — a tool-calling stream emits status frames (no `choices`)
+          // between the role frame and the final content delta, mirroring the
+          // agent pod's `event: status` side-channel.
+          final client = _SseStubClient([
+            utf8.encode(
+              'data: {"id":"c1","choices":[{"index":0,"delta":{"role":"assistant"}}]}\n\n'
+              'data: {"message":"Calling tool..."}\n\n'
+              'data: {"message":"completed"}\n\n'
+              'data: {"id":"c1","choices":[{"index":0,"delta":{"content":"All done"}}]}\n\n'
+              'data: {"id":"c1","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\n\n'
+              'data: [DONE]\n\n',
+            ),
+          ]);
+          final state = _TestStateAPI((_) async => jsonOk({'id': '1'}));
+          state.httpClient = client;
+          state.baseEndpoint = 'https://example.com/events';
+          state.method = HTTPMethod.POST;
+          state.body = {'stream': true};
+
+          // Act
+          await state.call();
+
+          // Assert — the status frames do not wipe the accumulated choices; the
+          // reply content survives and the latest status is merged on top.
+          expect(state.error, isNull);
+          final data = state.data as Map<String, dynamic>;
+          expect(data['message'], 'completed');
+          expect(data['choices'], [
+            {
+              'index': 0,
+              'message': {'role': 'assistant', 'content': 'All done'},
+              'finish_reason': 'stop',
+            },
+          ]);
+        },
+      );
+
+      test('should fold events into one object via combineStream', () async {
+        // Arrange — a token-delta style stream that concatenates `content`.
+        final client = _SseStubClient([
+          utf8.encode(
+            'data: {"id":"1","content":"Hello"}\n\n'
+            'data: {"id":"1","content":" world"}\n\n'
+            'data: [DONE]\n\n',
+          ),
+        ]);
+        final state = _AccumulatingStateAPI((_) async => jsonOk({'id': '1'}));
+        state.httpClient = client;
+        state.baseEndpoint = 'https://example.com/events';
+        state.method = HTTPMethod.POST;
+        state.body = {'stream': true};
+
+        // Act
+        await state.call();
+
+        // Assert — a single accumulated object, not a list of raw events.
+        expect(state.error, isNull);
+        expect(state.data, {'id': '1', 'content': 'Hello world'});
       });
 
       test(
@@ -718,12 +900,9 @@ void main() {
           // Act
           await state.call();
 
-          // Assert
+          // Assert — the final reassembled event is exposed as data.
           expect(state.error, isNull);
-          expect(state.data, [
-            {'id': '1', 'content': 'Hello'},
-            {'id': '2', 'content': ' world'},
-          ]);
+          expect(state.data, {'id': '2', 'content': ' world'});
         },
       );
 
@@ -749,9 +928,7 @@ void main() {
 
           // Assert
           expect(state.error, isNull);
-          expect(state.data, [
-            {'id': '1'},
-          ]);
+          expect(state.data, {'id': '1'});
         },
       );
 
@@ -783,9 +960,7 @@ void main() {
 
           // Assert
           expect(state.error, isNull);
-          expect(state.data, [
-            {'id': 'a'},
-          ]);
+          expect(state.data, {'id': 'a'});
         },
       );
 
