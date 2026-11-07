@@ -723,6 +723,39 @@ void main() {
         expect(state.data, {'id': '2', 'content': ' world'});
       });
 
+      test('should fold OpenAI delta chunks into one object by default', () async {
+        // Arrange — token-delta chat completion chunks sharing one id.
+        final client = _SseStubClient([
+          utf8.encode(
+            'data: {"id":"c1","choices":[{"index":0,"delta":{"role":"assistant","content":"Hello"}}]}\n\n'
+            'data: {"id":"c1","choices":[{"index":0,"delta":{"content":" world"}}]}\n\n'
+            'data: {"id":"c1","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\n\n'
+            'data: [DONE]\n\n',
+          ),
+        ]);
+        final state = _TestStateAPI((_) async => jsonOk({'id': '1'}));
+        state.httpClient = client;
+        state.baseEndpoint = 'https://example.com/events';
+        state.method = HTTPMethod.POST;
+        state.body = {'stream': true};
+
+        // Act
+        await state.call();
+
+        // Assert — the default folds deltas into one deserializable completion.
+        expect(state.error, isNull);
+        expect(state.data, {
+          'id': 'c1',
+          'choices': [
+            {
+              'index': 0,
+              'message': {'role': 'assistant', 'content': 'Hello world'},
+              'finish_reason': 'stop',
+            },
+          ],
+        });
+      });
+
       test('should fold events into one object via combineStream', () async {
         // Arrange — a token-delta style stream that concatenates `content`.
         final client = _SseStubClient([

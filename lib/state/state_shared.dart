@@ -162,11 +162,66 @@ abstract class StateShared extends ChangeNotifier {
   /// events. [previous] is the value returned by the preceding call, or `null`
   /// for the first event.
   ///
-  /// The default implementation replaces the running value with the latest
-  /// [event], which suits streams whose events are complete snapshots.
-  /// Subclasses that receive partial events, such as token deltas, can override
-  /// this to combine fields so [data] always holds the full response so far.
-  dynamic combineStream(dynamic previous, Map<String, dynamic> event) => event;
+  /// The default implementation handles two common shapes so consumers can
+  /// deserialize [data] directly, without overriding this method:
+  ///
+  /// * OpenAI-compatible chat completion chunks — when [event] carries
+  ///   `choices` with `delta` fragments, their `content` is concatenated into
+  ///   `choices[].message.content`, the latest `finish_reason` and the
+  ///   constant top-level fields are carried forward, and partial events with
+  ///   no new content leave the accumulated value unchanged.
+  /// * Snapshot events — any other [event] replaces the running value, which
+  ///   suits streams whose events are already complete objects.
+  ///
+  /// Override only to implement a different accumulation strategy.
+  dynamic combineStream(dynamic previous, Map<String, dynamic> event) {
+    final eventChoices = event['choices'];
+    final bool isDelta =
+        eventChoices is List &&
+        eventChoices.any((c) => c is Map && c['delta'] is Map);
+    if (!isDelta) return event;
+    final Map<String, dynamic> acc = previous is Map<String, dynamic>
+        ? Map<String, dynamic>.from(previous)
+        : <String, dynamic>{};
+    for (final entry in event.entries) {
+      if (entry.key != 'choices') acc[entry.key] = entry.value;
+    }
+    final List<Map<String, dynamic>> choices =
+        (acc['choices'] as List?)
+            ?.map((c) => Map<String, dynamic>.from(c as Map))
+            .toList() ??
+        <Map<String, dynamic>>[];
+    for (var i = 0; i < eventChoices.length; i++) {
+      final raw = eventChoices[i];
+      if (raw is! Map) continue;
+      final choice = Map<String, dynamic>.from(raw);
+      final index = choice['index'] is int ? choice['index'] as int : i;
+      while (choices.length <= index) {
+        choices.add(<String, dynamic>{'index': choices.length});
+      }
+      final target = choices[index];
+      final message = target['message'] is Map
+          ? Map<String, dynamic>.from(target['message'] as Map)
+          : <String, dynamic>{'role': 'assistant'};
+      final delta = choice['delta'];
+      final piece = delta is Map ? delta['content'] : null;
+      if (piece is String && piece.isNotEmpty) {
+        final existing = message['content'];
+        message['content'] = (existing is String ? existing : '') + piece;
+      }
+      if (delta is Map && delta['role'] is String) {
+        message['role'] = delta['role'];
+      }
+      target['message'] = message;
+      if (choice['finish_reason'] != null) {
+        target['finish_reason'] = choice['finish_reason'];
+      }
+      target['index'] = index;
+      choices[index] = target;
+    }
+    acc['choices'] = choices;
+    return acc;
+  }
 
   /// Appends paginated results instead of replacing earlier pages.
   ///
