@@ -631,12 +631,9 @@ void main() {
           final page = int.parse(request.url.queryParameters['page'] ?? '1');
           return jsonOk(
             pages[page - 1],
-            headers: {
-              'x-total-count': '22',
-              'X-Kallisto-Page-Token': 'token-$page',
-            },
+            headers: {'x-total-count': '22', 'X-App-Page-Token': 'token-$page'},
           );
-        }, filterHeaders: ['X-Kallisto-*']);
+        }, filterHeaders: ['X-App-*']);
         state.paginate = true;
         state.passParameters = true;
         state.incrementalPagination = true;
@@ -650,7 +647,7 @@ void main() {
         // Assert - the third request carried the token from page 2.
         expect(state.page, 3);
         expect(
-          _TestStateAPI.requests.last.headers['x-kallisto-page-token'],
+          _TestStateAPI.requests.last.headers['x-app-page-token'],
           'token-2',
         );
         expect((state.data as List).length, 22);
