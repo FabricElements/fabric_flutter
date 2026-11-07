@@ -80,6 +80,50 @@ class _CloseTrackingClient extends http.BaseClient {
   }
 }
 
+/// [http.Client] stub that replies with a streamed SSE response.
+///
+/// The client records every request it receives and answers with
+/// [responseChunks] delivered one per `send()` as a `text/event-stream`.
+class _SseStubClient extends http.BaseClient {
+  _SseStubClient(this.responseChunks);
+
+  /// The raw SSE body split into network-sized chunks.
+  final List<List<int>> responseChunks;
+
+  /// Stores every request observed by the stub transport.
+  final List<http.BaseRequest> requests = [];
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    requests.add(request);
+    final Stream<List<int>> stream = Stream.fromIterable(responseChunks);
+    return http.StreamedResponse(
+      stream,
+      200,
+      headers: {'content-type': 'text/event-stream; charset=utf-8'},
+    );
+  }
+}
+
+/// [http.Client] stub that always replies with a non-200 SSE status.
+///
+/// The stub records each request and answers with an empty stream carrying
+/// [statusCode], to exercise the error path of the SSE transport.
+class _FailingSseClient extends http.BaseClient {
+  _FailingSseClient(this.statusCode);
+
+  /// The HTTP status returned by the stub.
+  final int statusCode;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async =>
+      http.StreamedResponse(
+        const Stream<List<int>>.empty(),
+        statusCode,
+        headers: {'content-type': 'text/event-stream; charset=utf-8'},
+      );
+}
+
 void main() {
   setUp(_TestStateAPI.requests.clear);
 
@@ -628,6 +672,164 @@ void main() {
         // Assert: clearing the cached endpoint allows a fresh request.
         expect(state.headers, isNotEmpty);
         expect(_TestStateAPI.requests, hasLength(2));
+      });
+    });
+
+    group('call with text/event-stream', () {
+      test('should accumulate parsed SSE events into data in order', () async {
+        // Arrange
+        final client = _SseStubClient([
+          utf8.encode(
+            'data: {"id":"1","content":"Hello"}\n\n'
+            'data: {"id":"2","content":" world"}\n\n'
+            'data: [DONE]\n\n',
+          ),
+        ]);
+        final state = _TestStateAPI((_) async => jsonOk({'id': '1'}));
+        state.httpClient = client;
+        state.baseEndpoint = 'https://example.com/events';
+        state.method = HTTPMethod.POST;
+        state.body = {'stream': true};
+
+        // Act
+        await state.call();
+
+        // Assert
+        expect(state.error, isNull);
+        expect(state.data, [
+          {'id': '1', 'content': 'Hello'},
+          {'id': '2', 'content': ' world'},
+        ]);
+      });
+
+      test(
+        'should reassemble a data payload split across chunk boundaries',
+        () async {
+          // Arrange — one SSE body split mid-JSON across network chunks.
+          final client = _SseStubClient([
+            utf8.encode('data: {"id":"1","content":"He'),
+            utf8.encode('llo"}\n\ndata: {"id":"2","cont'),
+            utf8.encode('ent":" world"}\n\ndata: [DONE]\n'),
+            utf8.encode('\n'),
+          ]);
+          final state = _TestStateAPI((_) async => jsonOk({'id': '1'}));
+          state.httpClient = client;
+          state.baseEndpoint = 'https://example.com/events';
+          state.method = HTTPMethod.POST;
+          state.body = {'stream': true};
+
+          // Act
+          await state.call();
+
+          // Assert
+          expect(state.error, isNull);
+          expect(state.data, [
+            {'id': '1', 'content': 'Hello'},
+            {'id': '2', 'content': ' world'},
+          ]);
+        },
+      );
+
+      test(
+        'should stop at data: [DONE] and ignore anything after it',
+        () async {
+          // Arrange — a trailing data line follows the completion marker.
+          final client = _SseStubClient([
+            utf8.encode(
+              'data: {"id":"1"}\n\n'
+              'data: [DONE]\n\n'
+              'data: {"id":"ignored"}\n\n',
+            ),
+          ]);
+          final state = _TestStateAPI((_) async => jsonOk({'id': '1'}));
+          state.httpClient = client;
+          state.baseEndpoint = 'https://example.com/events';
+          state.method = HTTPMethod.POST;
+          state.body = {'stream': true};
+
+          // Act
+          await state.call();
+
+          // Assert
+          expect(state.error, isNull);
+          expect(state.data, [
+            {'id': '1'},
+          ]);
+        },
+      );
+
+      test(
+        'should skip comment, blank, non-data lines and malformed payloads',
+        () async {
+          // Arrange — comments, blank lines, ignored SSE fields, a scalar
+          // payload, and a malformed JSON payload are all skipped gracefully.
+          final client = _SseStubClient([
+            utf8.encode(
+              ': heartbeat\n\n'
+              'event: message\n'
+              'id: 42\n'
+              'retry: 1000\n'
+              'data: {"id":"a"}\n\n'
+              'data: not-json\n\n'
+              'data: [DONE]\n\n'
+              'data: {"id":"ignored"}\n\n',
+            ),
+          ]);
+          final state = _TestStateAPI((_) async => jsonOk({'id': '1'}));
+          state.httpClient = client;
+          state.baseEndpoint = 'https://example.com/events';
+          state.method = HTTPMethod.POST;
+          state.body = {'stream': true};
+
+          // Act
+          await state.call();
+
+          // Assert
+          expect(state.error, isNull);
+          expect(state.data, [
+            {'id': 'a'},
+          ]);
+        },
+      );
+
+      test('should send the Authorization header when configured', () async {
+        // Arrange
+        final client = _SseStubClient([utf8.encode('data: [DONE]\n\n')]);
+        final state = _TestStateAPI((_) async => jsonOk({'id': '1'}));
+        state.httpClient = client;
+        state.baseEndpoint = 'https://example.com/events';
+        state.method = HTTPMethod.POST;
+        state.body = {'stream': true};
+        state.authScheme = AuthScheme.Bearer;
+        state.credentials = 'token-123';
+
+        // Act
+        await state.call();
+
+        // Assert
+        final request = client.requests.single as http.Request;
+        expect(request.method, 'POST');
+        expect(request.headers['Authorization'], 'Bearer token-123');
+        expect(request.headers['Content-Type'], contains('application/json'));
+        final Map<String, dynamic> sent =
+            jsonDecode(request.body) as Map<String, dynamic>;
+        expect(sent['stream'], isTrue);
+      });
+
+      test('should surface an error when the status is not 200', () async {
+        // Arrange — a failing status must surface through `error`.
+        final state = _TestStateAPI((_) async => jsonOk({'id': '1'}));
+        state.httpClient = _FailingSseClient(403);
+        state.baseEndpoint = 'https://example.com/events';
+        state.method = HTTPMethod.POST;
+        state.body = {'stream': true};
+
+        // Act
+        await state.call();
+
+        // Assert
+        expect(state.error, isNotNull);
+        expect(state.error.toString(), contains('403'));
       });
     });
 
