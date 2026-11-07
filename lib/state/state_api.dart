@@ -437,6 +437,11 @@ abstract class StateAPI extends StateShared {
 
         /// Handle json streaming data
         if (isJsonStream || isEventStream) {
+          // A streaming response delivers many incremental updates; enable
+          // immediate publishing so each frame renders as it arrives instead of
+          // being coalesced by the debounce window. Restored to `false` once the
+          // stream completes or is torn down.
+          liveUpdates = true;
           // Reject non-2xx stream responses before consuming the body so the
           // failure surfaces through `error` instead of an empty stream read.
           if (response.statusCode < 200 || response.statusCode > 299) {
@@ -601,6 +606,9 @@ abstract class StateAPI extends StateShared {
       errorCount++;
       error = e.toString();
     } finally {
+      // Stream (if any) has ended or failed: restore debounced publishing so
+      // ordinary updates resume their configured cadence.
+      liveUpdates = false;
       // Finalize data response depending on pagination
       dataResponse = paginate
           ? (dataResponse ?? []) as List<dynamic>

@@ -723,6 +723,67 @@ void main() {
         expect(state.data, {'id': '2', 'content': ' world'});
       });
 
+      test(
+        'should publish each SSE frame immediately without debounce coalescing',
+        () async {
+          // Arrange — three complete events, one per network chunk, so each
+          // fold produces a distinct accumulated value. The default
+          // debounceTime (10ms) would coalesce these into a single trailing
+          // emission; an active stream enables [liveUpdates] so every frame
+          // publishes immediately.
+          final client = _SseStubClient([
+            utf8.encode(
+              'data: {"id":"c1","choices":[{"index":0,"delta":{"role":"assistant","content":"Hel"}}]}\n\n',
+            ),
+            utf8.encode(
+              'data: {"id":"c1","choices":[{"index":0,"delta":{"content":"lo"}}]}\n\n',
+            ),
+            utf8.encode(
+              'data: {"id":"c1","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\n\n'
+              'data: [DONE]\n\n',
+            ),
+          ]);
+          final state = _TestStateAPI((_) async => jsonOk({'id': '1'}));
+          state.httpClient = client;
+          state.baseEndpoint = 'https://example.com/events';
+          state.method = HTTPMethod.POST;
+          state.body = {'stream': true};
+
+          // Record the accumulated reply content on every stream emission.
+          final List<String> snapshots = [];
+          final sub = state.stream.listen((data) {
+            if (data is Map && data['choices'] is List) {
+              final choices = data['choices'] as List;
+              if (choices.isNotEmpty && choices.first is Map) {
+                final message = (choices.first as Map)['message'];
+                final content = message is Map ? message['content'] : null;
+                if (content is String) snapshots.add(content);
+              }
+            }
+          });
+
+          // Act
+          await state.call();
+          await sub.cancel();
+
+          // Assert — intermediate frames reached listeners, not just the final
+          // value, and [liveUpdates] was restored once the stream ended.
+          expect(snapshots, contains('Hel'));
+          expect(snapshots.length, greaterThan(1));
+          expect(state.liveUpdates, isFalse);
+          expect(state.data, {
+            'id': 'c1',
+            'choices': [
+              {
+                'index': 0,
+                'message': {'role': 'assistant', 'content': 'Hello'},
+                'finish_reason': 'stop',
+              },
+            ],
+          });
+        },
+      );
+
       test('should fold OpenAI delta chunks into one object by default', () async {
         // Arrange — token-delta chat completion chunks sharing one id.
         final client = _SseStubClient([

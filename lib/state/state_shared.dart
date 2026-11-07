@@ -1135,6 +1135,28 @@ abstract class StateShared extends ChangeNotifier {
   /// inside a `build` method when `debounceTime <= 0`.
   int debounceTime = 10;
 
+  /// Bypasses [debounceTime] while a live-update source is active.
+  ///
+  /// When `true`, [data] assignments and [notifyListeners] publish
+  /// immediately — exactly as if [debounceTime] were `0` — without mutating the
+  /// consumer's configured [debounceTime]. This lets a burst of incremental
+  /// updates (an active `text/event-stream` / `x-json-stream` response, a
+  /// realtime socket, a Firestore snapshot burst) render frame by frame instead
+  /// of being coalesced into a single trailing emission by the debounce window.
+  ///
+  /// Live-update sources toggle this for the duration of the stream and restore
+  /// it to `false` when it ends, so ordinary updates resume their debounced
+  /// cadence. Consumers may also set it directly to force immediate delivery.
+  bool liveUpdates = false;
+
+  /// Whether updates currently bypass the debounce window.
+  ///
+  /// True when the consumer disabled debouncing via [debounceTime] `<= 0`, or
+  /// while a live-update source has enabled [liveUpdates]. Routing both reasons
+  /// through one getter keeps the immediate-publish behaviour identical however
+  /// it is triggered.
+  bool get publishImmediately => debounceTime <= 0 || liveUpdates;
+
   /// Defines the longer debounce interval used before the first successful load.
   int get debounceTimeNotInitialized => 500;
 
@@ -1193,9 +1215,10 @@ abstract class StateShared extends ChangeNotifier {
   /// *what* they deliver.
   void _notifyData() {
     if (_disposed) return;
-    // Publish immediately when debouncing is disabled. Any timer already in
-    // flight is dropped so a stale deferred delivery cannot arrive afterwards.
-    if (debounceTime <= 0) {
+    // Publish immediately when debouncing is disabled or a live-update source
+    // is active. Any timer already in flight is dropped so a stale deferred
+    // delivery cannot arrive afterwards.
+    if (publishImmediately) {
       _timerData?.cancel();
       _timerData = null;
       debounceCountData = 0;
@@ -1252,9 +1275,10 @@ abstract class StateShared extends ChangeNotifier {
       }
       return;
     }
-    // Notify immediately when debouncing is disabled. Any timer already in
-    // flight is dropped so a stale deferred notification cannot arrive after.
-    if (debounceTime <= 0) {
+    // Notify immediately when debouncing is disabled or a live-update source is
+    // active. Any timer already in flight is dropped so a stale deferred
+    // notification cannot arrive after.
+    if (publishImmediately) {
       _timerNotify?.cancel();
       _timerNotify = null;
       debounceCountNotify = 0;
