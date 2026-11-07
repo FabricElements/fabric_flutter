@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:convert' show LineSplitter, Utf8Codec, jsonDecode, jsonEncode;
+import 'dart:convert' show Utf8Codec, jsonDecode, jsonEncode;
 
 import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth;
 import 'package:flutter/foundation.dart';
@@ -76,6 +76,90 @@ Map<String, dynamic> _parseJsonBuffer(Map<String, dynamic> args) {
   }
 
   final String buffer = startIndex < s.length ? s.substring(startIndex) : '';
+  return {'items': items, 'buffer': buffer};
+}
+
+/// Parses a possibly partial `text/event-stream` (SSE) buffer into event data.
+///
+/// The function runs inside `compute()` when isolates are available so large
+/// streaming API responses do not block the main isolate. It accepts `args`
+/// containing the incoming chunk under `s` and any leftover partial line from
+/// the previous pass under `staticBuffer`, then returns parsed `items` plus the
+/// new trailing `buffer`.
+///
+/// Lines are normalized with a single `\n` first, so both `\n` and `\r\n`
+/// terminators are handled; a partial trailing line (split across network
+/// chunks) is preserved in the returned `buffer` for the next pass. Blank
+/// lines, comment lines starting with `:`, and non-`data:` fields (`event:`,
+/// `id:`, `retry:`) are skipped. A single leading space after `data:` is
+/// trimmed. The terminal `data: [DONE]` marker stops parsing, and anything after
+/// it is ignored. Each remaining `data:` payload is JSON-decoded into a
+/// `Map<String, dynamic>` and yielded as a stream item.
+///
+/// A `data:` payload that fails to decode is skipped rather than thrown so one
+/// malformed event cannot abort an otherwise healthy stream.
+Map<String, dynamic> _parseSseBuffer(Map<String, dynamic> args) {
+  final String chunk = (args['s'] as String?) ?? '';
+  final String prevBuffer = (args['staticBuffer'] as String?) ?? '';
+  final String s = '$prevBuffer$chunk';
+
+  final List<Map<String, dynamic>> items = [];
+  // Normalize line endings so `\r\n` becomes `\n` and a lone `\r` inside a
+  // chunk boundary cannot split a payload in two.
+  final List<String> lines = s.replaceAll('\r\n', '\n').split('\n');
+
+  // The last element is the trailing partial line: it is only complete when
+  // it was terminated by a newline, otherwise it stays buffered for the next
+  // chunk.
+  final String trailing = lines.isNotEmpty ? lines.removeLast() : '';
+  final String buffer = trailing;
+
+  for (final String rawLine in lines) {
+    final String line = rawLine.trimRight();
+    if (line.isEmpty) {
+      // Blank lines are SSE event separators.
+      continue;
+    }
+    if (line.startsWith(':')) {
+      // SSE comment line (e.g. a heartbeat).
+      continue;
+    }
+    if (!line.startsWith('data:')) {
+      // Ignore non-`data:` fields such as `event:`, `id:`, and `retry:`.
+      continue;
+    }
+    String payload = line.substring(5);
+    if (payload.startsWith(' ')) {
+      // Trim a single leading space after `data:`.
+      payload = payload.substring(1);
+    }
+    if (payload == '[DONE]') {
+      // Terminal marker: stop and ignore the rest of the stream.
+      return {'items': items, 'buffer': ''};
+    }
+    if (payload.isEmpty) {
+      // An empty data field carries no event object.
+      continue;
+    }
+    try {
+      final dynamic decoded = jsonDecode(payload);
+      if (decoded is Map<String, dynamic>) {
+        // Remove keys with null values, matching the x-json-stream parser.
+        decoded.removeWhere(
+          (String key, dynamic value) =>
+              value == null || (value is String && value.isEmpty),
+        );
+        items.add(decoded);
+      }
+      // Non-object payloads (e.g. a bare JSON scalar) are skipped.
+    } catch (_) {
+      // A malformed payload is skipped instead of aborting the stream.
+      if (kDebugMode) {
+        debugPrint(LogColor.warning('Invalid SSE data payload: $payload'));
+      }
+    }
+  }
+
   return {'items': items, 'buffer': buffer};
 }
 
@@ -298,6 +382,7 @@ abstract class StateAPI extends StateShared {
     dynamic dataResponse;
     String? contentType;
     bool isJsonStream = false;
+    bool isEventStream = false;
     // Tracks whether the JSON stream reported an error so the tail of [call]
     // can preserve the last good data instead of replacing it.
     bool streamHadError = false;
@@ -347,9 +432,15 @@ abstract class StateAPI extends StateShared {
           throw 'No content type found for endpoint: $endpoint';
         }
         isJsonStream = contentType.contains('application/x-json-stream');
+        isEventStream = contentType.contains('text/event-stream');
 
         /// Handle json streaming data
-        if (isJsonStream) {
+        if (isJsonStream || isEventStream) {
+          // Reject non-2xx stream responses before consuming the body so the
+          // failure surfaces through `error` instead of an empty stream read.
+          if (response.statusCode < 200 || response.statusCode > 299) {
+            throw 'error--${response.statusCode}';
+          }
           if (!incrementalPagination) {
             newData = [];
             data = [];
@@ -359,6 +450,10 @@ abstract class StateAPI extends StateShared {
 
           // We'll keep a staticBuffer in this scope and parse chunks on a background isolate
           String staticBuffer = '';
+
+          // The SSE parser buffers partial lines across chunk boundaries,
+          // while the x-json-stream parser buffers partial JSON documents.
+          final parser = isEventStream ? _parseSseBuffer : _parseJsonBuffer;
 
           // Build the transformed stream (maps chunks into Map<String,dynamic>)
           Stream<Map<String, dynamic>> stream = response.stream
@@ -375,15 +470,13 @@ abstract class StateAPI extends StateShared {
                 try {
                   if (kIsWeb) {
                     // On web, compute() is not supported; fallback to main-isolate parse
-                    result = await Future.microtask(
-                      () => _parseJsonBuffer(args),
-                    );
+                    result = await Future.microtask(() => parser(args));
                   } else {
-                    result = await compute(_parseJsonBuffer, args);
+                    result = await compute(parser, args);
                   }
                 } catch (e) {
                   // On isolate failure, fallback to main-isolate parse (best-effort)
-                  result = _parseJsonBuffer(args);
+                  result = parser(args);
                 }
                 staticBuffer = result['buffer'] as String? ?? '';
                 final List items = result['items'] as List? ?? [];
@@ -546,146 +639,6 @@ Error: $error
     /// Reset loading state
     loading = false;
     return dataResponse;
-  }
-
-  /// Streams an OpenAI-compatible SSE chat completion from [url].
-  ///
-  /// POSTs [messages] with `stream: true`, parses `text/event-stream` data
-  /// lines, accumulates `choices[0].delta.content` tokens, and stops on
-  /// `data: [DONE]`. [onDelta] is invoked for every token with the new
-  /// fragment and the full accumulated text. Returns the final text.
-  ///
-  /// This is additive to the [call] lifecycle and does not touch the
-  /// list-shaped [data] used by the pagination path: the accumulated text is
-  /// only delivered through the returned [String] and [onDelta].
-  Future<String> streamChatCompletion({
-    required String url,
-    required List<Map<String, dynamic>> messages,
-    Map<String, dynamic>? extraBody,
-    void Function(String delta, String accumulated)? onDelta,
-  }) async {
-    /// Check for empty url
-    if (url.isEmpty) {
-      error = 'Chat stream url is empty';
-      return '';
-    }
-
-    bool mustAuthenticate = false;
-    bool canAuthenticate = false;
-    if (token) {
-      authScheme = AuthScheme.Bearer;
-      credentials = await FirebaseAuth.instance.currentUser!.getIdToken();
-    }
-    if (authScheme != null || credentials != null) {
-      mustAuthenticate = true;
-      canAuthenticate = authScheme != null && credentials != null;
-    }
-    if (mustAuthenticate && !canAuthenticate) {
-      debugPrint(LogColor.error('Must Authenticate on chat stream: $url'));
-      error = 'Must Authenticate on chat stream';
-      return '';
-    }
-
-    /// The accumulated assistant text.
-    final StringBuffer accumulated = StringBuffer();
-
-    try {
-      /// Build the OpenAI-compatible chat-completions body.
-      final Map<String, dynamic> chatBody = <String, dynamic>{
-        'stream': true,
-        'messages': messages,
-        ...?extraBody,
-      };
-      final http.Request request = http.Request('POST', Uri.parse(url));
-      if (mustAuthenticate && canAuthenticate) {
-        request.headers['Authorization'] = '${authScheme!.name} $credentials';
-      }
-      request.body = jsonEncode(chatBody);
-      request.headers['Content-Type'] = 'application/json; charset=utf-8';
-      final http.StreamedResponse response = await httpClient.send(request);
-      final String contentType = (response.headers['content-type'] ?? '')
-          .toLowerCase();
-      if (response.statusCode != 200) {
-        throw 'Chat stream failed with status ${response.statusCode}';
-      }
-      if (!contentType.contains('text/event-stream')) {
-        throw 'Chat stream returned unsupported content type: $contentType';
-      }
-
-      /// Buffer partial lines across network chunk boundaries, then split.
-      final Stream<String> lines = response.stream
-          .transform(Utf8Codec(allowMalformed: true).decoder)
-          .transform(const LineSplitter());
-
-      /// Whether the terminal `data: [DONE]` line was reached.
-      bool done = false;
-      await for (final String rawLine in lines) {
-        if (done) {
-          /// Ignore anything after the completion marker.
-          continue;
-        }
-        final String line = rawLine.trimRight();
-        if (line.isEmpty) {
-          /// Blank lines are SSE event separators.
-          continue;
-        }
-        if (line.startsWith(':')) {
-          /// SSE comment line (heartbeat).
-          continue;
-        }
-        if (!line.startsWith('data:')) {
-          /// Ignore non-`data:` fields such as `event:`, `id:`, and `retry:`.
-          continue;
-        }
-        String payload = line.substring(5);
-        if (payload.startsWith(' ')) {
-          /// Trim a single leading space after `data:`.
-          payload = payload.substring(1);
-        }
-        if (payload == '[DONE]') {
-          done = true;
-          continue;
-        }
-        try {
-          final Map<String, dynamic>? chunk =
-              jsonDecode(payload) as Map<String, dynamic>?;
-          if (chunk == null) continue;
-          final List<dynamic>? choices = chunk['choices'] as List<dynamic>?;
-          if (choices == null || choices.isEmpty) continue;
-          final Map<String, dynamic>? choice =
-              choices[0] as Map<String, dynamic>?;
-          final Map<String, dynamic>? delta =
-              choice?['delta'] as Map<String, dynamic>?;
-          final String? content = delta?['content'] as String?;
-          if (content == null || content.isEmpty) {
-            /// Chunks without incremental content are skipped.
-            continue;
-          }
-          accumulated.write(content);
-          onDelta?.call(content, accumulated.toString());
-        } catch (e) {
-          /// A malformed JSON line is surfaced like any other failure.
-          errorCount++;
-          error = e.toString();
-          rethrow;
-        }
-      }
-      error = null;
-    } catch (e) {
-      final bool isAbort =
-          (e is http.ClientException && e.message.contains('abortTrigger')) ||
-          e.toString().contains('abortTrigger');
-      if (isAbort) {
-        debugPrint(LogColor.warning('Chat stream aborted: $url'));
-        return accumulated.toString();
-      }
-      errorCount++;
-      error = e.toString();
-    } finally {
-      /// Reset HTTP client to prevent issues with persistent connections.
-      await _resetHttpClient();
-    }
-    return accumulated.toString();
   }
 
   /// Recreates the HTTP client and cancels any active JSON-stream subscription.
