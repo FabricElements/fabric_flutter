@@ -80,6 +80,50 @@ class _CloseTrackingClient extends http.BaseClient {
   }
 }
 
+/// [http.Client] stub that replies with a streamed SSE response.
+///
+/// The client records every request it receives and answers with
+/// [responseChunks] delivered one per `send()` as a `text/event-stream`.
+class _SseStubClient extends http.BaseClient {
+  _SseStubClient(this.responseChunks);
+
+  /// The raw SSE body split into network-sized chunks.
+  final List<List<int>> responseChunks;
+
+  /// Stores every request observed by the stub transport.
+  final List<http.BaseRequest> requests = [];
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    requests.add(request);
+    final Stream<List<int>> stream = Stream.fromIterable(responseChunks);
+    return http.StreamedResponse(
+      stream,
+      200,
+      headers: {'content-type': 'text/event-stream; charset=utf-8'},
+    );
+  }
+}
+
+/// [http.Client] stub that always replies with a non-200 SSE status.
+///
+/// The stub records each request and answers with an empty stream carrying
+/// [statusCode], to exercise the error path of the SSE transport.
+class _FailingSseClient extends http.BaseClient {
+  _FailingSseClient(this.statusCode);
+
+  /// The HTTP status returned by the stub.
+  final int statusCode;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async =>
+      http.StreamedResponse(
+        const Stream<List<int>>.empty(),
+        statusCode,
+        headers: {'content-type': 'text/event-stream; charset=utf-8'},
+      );
+}
+
 void main() {
   setUp(_TestStateAPI.requests.clear);
 
@@ -628,6 +672,230 @@ void main() {
         // Assert: clearing the cached endpoint allows a fresh request.
         expect(state.headers, isNotEmpty);
         expect(_TestStateAPI.requests, hasLength(2));
+      });
+    });
+
+    group('streamChatCompletion', () {
+      test(
+        'should accumulate tokens in order and return the final text',
+        () async {
+          // Arrange
+          final client = _SseStubClient([
+            utf8.encode(
+              'data: {"choices":[{"delta":{"content":"Hello"}}]}\n\n'
+              'data: {"choices":[{"delta":{"content":" world"}}]}\n\n'
+              'data: [DONE]\n\n',
+            ),
+          ]);
+          final state = _TestStateAPI((_) async => jsonOk({'id': '1'}));
+          state.httpClient = client;
+
+          // Act
+          final result = await state.streamChatCompletion(
+            url: 'https://example.com/agents/1/chat',
+            messages: [
+              {'role': 'user', 'content': 'hi'},
+            ],
+          );
+
+          // Assert
+          expect(result, 'Hello world');
+          expect(state.error, isNull);
+        },
+      );
+
+      test(
+        'should call onDelta once per token with delta and accumulated',
+        () async {
+          // Arrange
+          final client = _SseStubClient([
+            utf8.encode(
+              'data: {"choices":[{"delta":{"content":"Hel"}}]}\n\n'
+              'data: {"choices":[{"delta":{"content":"lo"}}]}\n\n'
+              'data: [DONE]\n\n',
+            ),
+          ]);
+          final state = _TestStateAPI((_) async => jsonOk({'id': '1'}));
+          state.httpClient = client;
+          final deltas = <(String, String)>[];
+
+          // Act
+          final result = await state.streamChatCompletion(
+            url: 'https://example.com/agents/1/chat',
+            messages: [
+              {'role': 'user', 'content': 'hi'},
+            ],
+            onDelta: (delta, accumulated) => deltas.add((delta, accumulated)),
+          );
+
+          // Assert
+          expect(result, 'Hello');
+          expect(deltas, [('Hel', 'Hel'), ('lo', 'Hello')]);
+        },
+      );
+
+      test(
+        'should reassemble a data payload split across chunk boundaries',
+        () async {
+          // Arrange — one SSE body split mid-JSON across network chunks.
+          final client = _SseStubClient([
+            utf8.encode('data: {"choices":[{"delta":{"con'),
+            utf8.encode('tent":"Hel"}}]}\n\ndata: {"choices":[{"d'),
+            utf8.encode('elta":{"content":"lo"}}]}\n'),
+            utf8.encode('\ndata: [DONE]\n\n'),
+          ]);
+          final state = _TestStateAPI((_) async => jsonOk({'id': '1'}));
+          state.httpClient = client;
+          final deltas = <String>[];
+
+          // Act
+          final result = await state.streamChatCompletion(
+            url: 'https://example.com/agents/1/chat',
+            messages: [
+              {'role': 'user', 'content': 'hi'},
+            ],
+            onDelta: (delta, _) => deltas.add(delta),
+          );
+
+          // Assert
+          expect(result, 'Hello');
+          expect(deltas, ['Hel', 'lo']);
+        },
+      );
+
+      test(
+        'should stop at data: [DONE] and ignore anything after it',
+        () async {
+          // Arrange — a trailing data line follows the completion marker.
+          final client = _SseStubClient([
+            utf8.encode(
+              'data: {"choices":[{"delta":{"content":"Hi"}}]}\n\n'
+              'data: [DONE]\n\n'
+              'data: {"choices":[{"delta":{"content":"ignored"}}]}\n\n',
+            ),
+          ]);
+          final state = _TestStateAPI((_) async => jsonOk({'id': '1'}));
+          state.httpClient = client;
+          final deltas = <String>[];
+
+          // Act
+          final result = await state.streamChatCompletion(
+            url: 'https://example.com/agents/1/chat',
+            messages: [
+              {'role': 'user', 'content': 'hi'},
+            ],
+            onDelta: (delta, _) => deltas.add(delta),
+          );
+
+          // Assert
+          expect(result, 'Hi');
+          expect(deltas, ['Hi']);
+        },
+      );
+
+      test('should skip chunks with missing or empty delta content', () async {
+        // Arrange — role-only chunk, empty content chunk, empty choices, and
+        // SSE comment/ignored fields in between.
+        final client = _SseStubClient([
+          utf8.encode(
+            ': heartbeat\n\n'
+            'event: message\n'
+            'id: 1\n'
+            'retry: 1000\n'
+            'data: {"choices":[{"delta":{"role":"assistant"}}]}\n\n'
+            'data: {"choices":[{"delta":{"content":""}}]}\n\n'
+            'data: {"choices":[]}\n\n'
+            'data: {"choices":[{"delta":{"content":"Ok"}}]}\n\n'
+            'data: [DONE]\n\n',
+          ),
+        ]);
+        final state = _TestStateAPI((_) async => jsonOk({'id': '1'}));
+        state.httpClient = client;
+        final deltas = <String>[];
+
+        // Act
+        final result = await state.streamChatCompletion(
+          url: 'https://example.com/agents/1/chat',
+          messages: [
+            {'role': 'user', 'content': 'hi'},
+          ],
+          onDelta: (delta, _) => deltas.add(delta),
+        );
+
+        // Assert
+        expect(result, 'Ok');
+        expect(deltas, ['Ok']);
+      });
+
+      test('should send the Bearer Authorization header and stream body '
+          'when configured', () async {
+        // Arrange
+        final client = _SseStubClient([utf8.encode('data: [DONE]\n\n')]);
+        final state = _TestStateAPI((_) async => jsonOk({'id': '1'}));
+        state.httpClient = client;
+        state.authScheme = AuthScheme.Bearer;
+        state.credentials = 'token-123';
+
+        // Act
+        await state.streamChatCompletion(
+          url: 'https://example.com/agents/1/chat',
+          messages: [
+            {'role': 'user', 'content': 'hi'},
+          ],
+        );
+
+        // Assert
+        final request = client.requests.single as http.Request;
+        expect(request.method, 'POST');
+        expect(request.headers['Authorization'], 'Bearer token-123');
+        expect(request.headers['Content-Type'], contains('application/json'));
+        final Map<String, dynamic> sent =
+            jsonDecode(request.body) as Map<String, dynamic>;
+        expect(sent['stream'], isTrue);
+        expect(sent['messages'], [
+          {'role': 'user', 'content': 'hi'},
+        ]);
+      });
+
+      test('should merge extraBody into the request body', () async {
+        // Arrange
+        final client = _SseStubClient([utf8.encode('data: [DONE]\n\n')]);
+        final state = _TestStateAPI((_) async => jsonOk({'id': '1'}));
+        state.httpClient = client;
+
+        // Act
+        await state.streamChatCompletion(
+          url: 'https://example.com/agents/1/chat',
+          messages: [
+            {'role': 'user', 'content': 'hi'},
+          ],
+          extraBody: {'temperature': 0.2},
+        );
+
+        // Assert
+        final request = client.requests.single as http.Request;
+        final Map<String, dynamic> sent =
+            jsonDecode(request.body) as Map<String, dynamic>;
+        expect(sent['temperature'], 0.2);
+        expect(sent['stream'], isTrue);
+      });
+
+      test('should surface an error when the status is not 200', () async {
+        // Arrange — a failing status must surface through `error`.
+        final state = _TestStateAPI((_) async => jsonOk({'id': '1'}));
+        state.httpClient = _FailingSseClient(403);
+
+        // Act
+        final result = await state.streamChatCompletion(
+          url: 'https://example.com/agents/1/chat',
+          messages: [
+            {'role': 'user', 'content': 'hi'},
+          ],
+        );
+
+        // Assert
+        expect(result, '');
+        expect(state.error, contains('403'));
       });
     });
 

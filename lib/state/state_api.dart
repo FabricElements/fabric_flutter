@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:convert' show Utf8Codec, jsonEncode;
+import 'dart:convert' show LineSplitter, Utf8Codec, jsonDecode, jsonEncode;
 
 import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth;
 import 'package:flutter/foundation.dart';
@@ -546,6 +546,146 @@ Error: $error
     /// Reset loading state
     loading = false;
     return dataResponse;
+  }
+
+  /// Streams an OpenAI-compatible SSE chat completion from [url].
+  ///
+  /// POSTs [messages] with `stream: true`, parses `text/event-stream` data
+  /// lines, accumulates `choices[0].delta.content` tokens, and stops on
+  /// `data: [DONE]`. [onDelta] is invoked for every token with the new
+  /// fragment and the full accumulated text. Returns the final text.
+  ///
+  /// This is additive to the [call] lifecycle and does not touch the
+  /// list-shaped [data] used by the pagination path: the accumulated text is
+  /// only delivered through the returned [String] and [onDelta].
+  Future<String> streamChatCompletion({
+    required String url,
+    required List<Map<String, dynamic>> messages,
+    Map<String, dynamic>? extraBody,
+    void Function(String delta, String accumulated)? onDelta,
+  }) async {
+    /// Check for empty url
+    if (url.isEmpty) {
+      error = 'Chat stream url is empty';
+      return '';
+    }
+
+    bool mustAuthenticate = false;
+    bool canAuthenticate = false;
+    if (token) {
+      authScheme = AuthScheme.Bearer;
+      credentials = await FirebaseAuth.instance.currentUser!.getIdToken();
+    }
+    if (authScheme != null || credentials != null) {
+      mustAuthenticate = true;
+      canAuthenticate = authScheme != null && credentials != null;
+    }
+    if (mustAuthenticate && !canAuthenticate) {
+      debugPrint(LogColor.error('Must Authenticate on chat stream: $url'));
+      error = 'Must Authenticate on chat stream';
+      return '';
+    }
+
+    /// The accumulated assistant text.
+    final StringBuffer accumulated = StringBuffer();
+
+    try {
+      /// Build the OpenAI-compatible chat-completions body.
+      final Map<String, dynamic> chatBody = <String, dynamic>{
+        'stream': true,
+        'messages': messages,
+        ...?extraBody,
+      };
+      final http.Request request = http.Request('POST', Uri.parse(url));
+      if (mustAuthenticate && canAuthenticate) {
+        request.headers['Authorization'] = '${authScheme!.name} $credentials';
+      }
+      request.body = jsonEncode(chatBody);
+      request.headers['Content-Type'] = 'application/json; charset=utf-8';
+      final http.StreamedResponse response = await httpClient.send(request);
+      final String contentType = (response.headers['content-type'] ?? '')
+          .toLowerCase();
+      if (response.statusCode != 200) {
+        throw 'Chat stream failed with status ${response.statusCode}';
+      }
+      if (!contentType.contains('text/event-stream')) {
+        throw 'Chat stream returned unsupported content type: $contentType';
+      }
+
+      /// Buffer partial lines across network chunk boundaries, then split.
+      final Stream<String> lines = response.stream
+          .transform(Utf8Codec(allowMalformed: true).decoder)
+          .transform(const LineSplitter());
+
+      /// Whether the terminal `data: [DONE]` line was reached.
+      bool done = false;
+      await for (final String rawLine in lines) {
+        if (done) {
+          /// Ignore anything after the completion marker.
+          continue;
+        }
+        final String line = rawLine.trimRight();
+        if (line.isEmpty) {
+          /// Blank lines are SSE event separators.
+          continue;
+        }
+        if (line.startsWith(':')) {
+          /// SSE comment line (heartbeat).
+          continue;
+        }
+        if (!line.startsWith('data:')) {
+          /// Ignore non-`data:` fields such as `event:`, `id:`, and `retry:`.
+          continue;
+        }
+        String payload = line.substring(5);
+        if (payload.startsWith(' ')) {
+          /// Trim a single leading space after `data:`.
+          payload = payload.substring(1);
+        }
+        if (payload == '[DONE]') {
+          done = true;
+          continue;
+        }
+        try {
+          final Map<String, dynamic>? chunk =
+              jsonDecode(payload) as Map<String, dynamic>?;
+          if (chunk == null) continue;
+          final List<dynamic>? choices = chunk['choices'] as List<dynamic>?;
+          if (choices == null || choices.isEmpty) continue;
+          final Map<String, dynamic>? choice =
+              choices[0] as Map<String, dynamic>?;
+          final Map<String, dynamic>? delta =
+              choice?['delta'] as Map<String, dynamic>?;
+          final String? content = delta?['content'] as String?;
+          if (content == null || content.isEmpty) {
+            /// Chunks without incremental content are skipped.
+            continue;
+          }
+          accumulated.write(content);
+          onDelta?.call(content, accumulated.toString());
+        } catch (e) {
+          /// A malformed JSON line is surfaced like any other failure.
+          errorCount++;
+          error = e.toString();
+          rethrow;
+        }
+      }
+      error = null;
+    } catch (e) {
+      final bool isAbort =
+          (e is http.ClientException && e.message.contains('abortTrigger')) ||
+          e.toString().contains('abortTrigger');
+      if (isAbort) {
+        debugPrint(LogColor.warning('Chat stream aborted: $url'));
+        return accumulated.toString();
+      }
+      errorCount++;
+      error = e.toString();
+    } finally {
+      /// Reset HTTP client to prevent issues with persistent connections.
+      await _resetHttpClient();
+    }
+    return accumulated.toString();
   }
 
   /// Recreates the HTTP client and cancels any active JSON-stream subscription.
