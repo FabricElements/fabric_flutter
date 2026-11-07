@@ -170,8 +170,14 @@ abstract class StateShared extends ChangeNotifier {
   ///   `choices[].message.content`, the latest `finish_reason` and the
   ///   constant top-level fields are carried forward, and partial events with
   ///   no new content leave the accumulated value unchanged.
-  /// * Snapshot events — any other [event] replaces the running value, which
-  ///   suits streams whose events are already complete objects.
+  /// * Interleaved side-channel events — an [event] that carries no `choices`
+  ///   at all (for example a `{"message": "Calling tool..."}` status frame
+  ///   streamed alongside the completion) must not discard an in-progress
+  ///   accumulation: its extra keys are merged onto the running value while the
+  ///   accumulated `choices` are preserved.
+  /// * Snapshot events — any other [event] (including a complete, non-delta
+  ///   `choices` payload) replaces the running value, which suits streams whose
+  ///   events are already complete objects.
   ///
   /// Override only to implement a different accumulation strategy.
   dynamic combineStream(dynamic previous, Map<String, dynamic> event) {
@@ -179,7 +185,21 @@ abstract class StateShared extends ChangeNotifier {
     final bool isDelta =
         eventChoices is List &&
         eventChoices.any((c) => c is Map && c['delta'] is Map);
-    if (!isDelta) return event;
+    if (!isDelta) {
+      // A side-channel event with no `choices` (e.g. a status frame emitted
+      // between completion chunks) must not wipe the accumulated completion.
+      // Preserve the running object's `choices` and merge the event's other
+      // keys onto it. Events that carry their own `choices` are treated as
+      // complete snapshots and replace the running value as before.
+      if (eventChoices == null && previous is Map && previous['choices'] is List) {
+        final merged = Map<String, dynamic>.from(previous);
+        for (final entry in event.entries) {
+          if (entry.key != 'choices') merged[entry.key] = entry.value;
+        }
+        return merged;
+      }
+      return event;
+    }
     final Map<String, dynamic> acc = previous is Map<String, dynamic>
         ? Map<String, dynamic>.from(previous)
         : <String, dynamic>{};

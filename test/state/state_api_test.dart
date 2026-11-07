@@ -817,6 +817,47 @@ void main() {
         });
       });
 
+      test(
+        'should keep the accumulated completion when a status frame is '
+        'interleaved between delta chunks',
+        () async {
+          // Arrange — a tool-calling stream emits status frames (no `choices`)
+          // between the role frame and the final content delta, mirroring the
+          // agent pod's `event: status` side-channel.
+          final client = _SseStubClient([
+            utf8.encode(
+              'data: {"id":"c1","choices":[{"index":0,"delta":{"role":"assistant"}}]}\n\n'
+              'data: {"message":"Calling tool..."}\n\n'
+              'data: {"message":"completed"}\n\n'
+              'data: {"id":"c1","choices":[{"index":0,"delta":{"content":"All done"}}]}\n\n'
+              'data: {"id":"c1","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\n\n'
+              'data: [DONE]\n\n',
+            ),
+          ]);
+          final state = _TestStateAPI((_) async => jsonOk({'id': '1'}));
+          state.httpClient = client;
+          state.baseEndpoint = 'https://example.com/events';
+          state.method = HTTPMethod.POST;
+          state.body = {'stream': true};
+
+          // Act
+          await state.call();
+
+          // Assert — the status frames do not wipe the accumulated choices; the
+          // reply content survives and the latest status is merged on top.
+          expect(state.error, isNull);
+          final data = state.data as Map<String, dynamic>;
+          expect(data['message'], 'completed');
+          expect(data['choices'], [
+            {
+              'index': 0,
+              'message': {'role': 'assistant', 'content': 'All done'},
+              'finish_reason': 'stop',
+            },
+          ]);
+        },
+      );
+
       test('should fold events into one object via combineStream', () async {
         // Arrange — a token-delta style stream that concatenates `content`.
         final client = _SseStubClient([
