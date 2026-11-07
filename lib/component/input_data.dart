@@ -690,6 +690,14 @@ getValue -------------------------------------
     textController = widget.textController ?? TextEditingController();
     searchController = widget.searchController ?? SearchController();
 
+    // When the host supplies its own controller it may mutate it directly (for
+    // example `controller.clear()` after submitting a message). Keep the
+    // internal [value] in sync for text-based inputs so a stale value does not
+    // linger as the field hint.
+    if (widget.textController != null) {
+      textController.addListener(_syncValueFromController);
+    }
+
     // Configure obscured text state and related controls.
     obscureText = widget.obscureText;
     if (widget.type == InputDataType.secret) obscureText = true;
@@ -697,6 +705,29 @@ getValue -------------------------------------
 
     // Seed local state from the incoming widget value.
     getValue(newValue: widget.value);
+  }
+
+  /// Keeps [value] aligned with an externally supplied [InputData.textController]
+  /// for text-based inputs. Direct controller mutations (such as `clear()`) do
+  /// not fire the field's `onChanged`, so without this the stale [value] would
+  /// still be rendered as the input hint while the field is visually empty.
+  void _syncValueFromController() {
+    switch (widget.type) {
+      case InputDataType.string:
+      case InputDataType.text:
+      case InputDataType.email:
+      case InputDataType.url:
+      case InputDataType.secret:
+        break;
+      default:
+        return;
+    }
+    final text = textController.text;
+    if ((value?.toString() ?? '') == text) return;
+    value = text;
+    // The stale value only surfaces (as the hint) while the field is empty, so
+    // only rebuild in that case to avoid churn on every keystroke.
+    if (text.isEmpty && mounted) setState(() {});
   }
 
   /// Closes the dropdown search view and clears any transient query text.
@@ -795,6 +826,13 @@ getValue -------------------------------------
       _formFieldKey = GlobalKey<FormFieldState<String>>();
     }
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.textController != widget.textController) {
+      oldWidget.textController?.removeListener(_syncValueFromController);
+      if (widget.textController != null) {
+        textController = widget.textController!;
+        textController.addListener(_syncValueFromController);
+      }
+    }
     if (typeChanged || oldWidget.value != widget.value) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) getValue(notify: false, newValue: widget.value);
@@ -812,7 +850,11 @@ getValue -------------------------------------
     _closeSearch();
     try {
       // Only dispose the text controller when it was created internally.
-      if (widget.textController == null) textController.dispose();
+      if (widget.textController == null) {
+        textController.dispose();
+      } else {
+        textController.removeListener(_syncValueFromController);
+      }
       // Dispose the search controller if it's not attached to the widget
       if (widget.searchController == null && searchController.isAttached) {
         searchController.dispose();
