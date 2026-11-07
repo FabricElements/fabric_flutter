@@ -207,6 +207,41 @@ void main() {
         expect(find.text('Type a message'), findsOneWidget);
       },
     );
+
+    testWidgets('should notify onChanged when the user types into a supplied '
+        'text controller', (tester) async {
+      // Arrange — mirrors a chat composer: the parent owns the controller
+      // and mirrors every reported change back through `value`, gating the
+      // send action on the mirrored value.
+      final controller = TextEditingController();
+      addTearDown(controller.dispose);
+      final received = <String>[];
+      String hostValue = '';
+      await tester.pumpWidget(
+        _wrap(
+          StatefulBuilder(
+            builder: (context, setState) => InputData(
+              value: hostValue,
+              type: InputDataType.string,
+              textController: controller,
+              onChanged: (newValue) {
+                received.add(newValue?.toString() ?? '');
+                setState(() => hostValue = newValue?.toString() ?? '');
+              },
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Act — type as a user would.
+      await tester.enterText(find.byType(TextFormField), 'hello');
+      await tester.pumpAndSettle();
+
+      // Assert — the host was notified, so send-style gating works.
+      expect(received, contains('hello'));
+      expect(hostValue, 'hello');
+    });
   });
 
   group('InputData didUpdateWidget', () {

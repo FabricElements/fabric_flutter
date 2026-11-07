@@ -1,5 +1,16 @@
 ## [Unreleased]
 
+### Fixed
+
+* **`InputData` notifies `onChanged` when the user types into a supplied
+  `textController`.** The value-sync listener added for stale hints ran before
+  the field's own change handler, so on every keystroke it adopted the typed
+  text first and the field then reported the change as a no-op — swallowing
+  the host `onChanged` notification. Hosts that mirror the reported value
+  (for example a chat composer gating its send action on it) never saw typed
+  text. The listener now syncs only when an externally supplied controller is
+  cleared, which is the only case where the stale value surfaces as the hint.
+
 ## [3.5.0] - 2026-11-07
 
 ### Added

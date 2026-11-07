@@ -711,6 +711,14 @@ getValue -------------------------------------
   /// for text-based inputs. Direct controller mutations (such as `clear()`) do
   /// not fire the field's `onChanged`, so without this the stale [value] would
   /// still be rendered as the input hint while the field is visually empty.
+  ///
+  /// Only external *clearing* is synced. Typing is excluded because this
+  /// listener is notified before the field's own change handler runs, so
+  /// adopting typed text here would make the field's report look like a
+  /// no-op and silently swallow the host [InputData.onChanged] notification.
+  /// A non-empty programmatic assignment never surfaces the stale value as
+  /// the hint (the hint only renders while the field is empty), so nothing
+  /// else needs the fallback.
   void _syncValueFromController() {
     switch (widget.type) {
       case InputDataType.string:
@@ -723,11 +731,10 @@ getValue -------------------------------------
         return;
     }
     final text = textController.text;
-    if ((value?.toString() ?? '') == text) return;
-    value = text;
-    // The stale value only surfaces (as the hint) while the field is empty, so
-    // only rebuild in that case to avoid churn on every keystroke.
-    if (text.isEmpty && mounted) setState(() {});
+    if (text.isNotEmpty) return;
+    if ((value?.toString() ?? '').isEmpty) return;
+    value = '';
+    if (mounted) setState(() {});
   }
 
   /// Closes the dropdown search view and clears any transient query text.
