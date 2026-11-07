@@ -174,6 +174,39 @@ void main() {
       // Assert — no leak is reported for the controller InputData owns.
       expect(tester.takeException(), isNull);
     });
+
+    testWidgets(
+      'should not keep the previous value as the hint after the caller clears '
+      'a supplied text controller',
+      (tester) async {
+        // Arrange — the parent owns the controller and clears it directly
+        // (for example after submitting a chat message), which does not fire
+        // the field's onChanged.
+        final controller = TextEditingController();
+        addTearDown(controller.dispose);
+        await tester.pumpWidget(
+          _wrap(
+            InputData(
+              value: '',
+              type: InputDataType.string,
+              hintText: 'Type a message',
+              textController: controller,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Act — type (fires onChanged) then clear programmatically.
+        await tester.enterText(find.byType(TextFormField), 'hello world');
+        await tester.pumpAndSettle();
+        controller.clear();
+        await tester.pumpAndSettle();
+
+        // Assert — the hint falls back to the default, not the stale value.
+        expect(find.text('hello world'), findsNothing);
+        expect(find.text('Type a message'), findsOneWidget);
+      },
+    );
   });
 
   group('InputData didUpdateWidget', () {
