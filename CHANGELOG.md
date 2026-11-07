@@ -1,5 +1,36 @@
 ## [Unreleased]
 
+## [3.5.0] - 2026-11-07
+
+### Added
+
+* **`StateShared.combineStream` for `text/event-stream` accumulation.** When a
+  `StateAPI` request consumes a server-sent event stream, each event is now
+  folded into a single accumulated object exposed through `data`, instead of a
+  list of raw events. The default implementation understands OpenAI-compatible
+  chat-completion chunks (concatenating `delta.content` into
+  `choices[].message.content`, carrying the latest `finish_reason` forward) and
+  preserves an in-progress accumulation when interleaved side-channel events
+  (for example `{"message": "Calling tool..."}` status frames) arrive with no
+  `choices`. Override `combineStream` to implement a different strategy.
+
+### Changed
+
+* **`liveUpdates` flag bypasses the debounce window for live sources.** While an
+  active `text/event-stream` / `x-json-stream` response is streaming,
+  `data` assignments and `notifyListeners` publish immediately so incremental
+  updates render frame by frame, then debounced publishing is restored when the
+  stream ends. A new `publishImmediately` getter routes both the
+  `debounceTime <= 0` and `liveUpdates` cases through one path.
+
+### Fixed
+
+* **`InputData` no longer shows a stale value as the hint after the caller
+  clears a supplied text controller.** When the host owns the
+  `textController` and mutates it directly (for example `controller.clear()`
+  after submitting a message), the field now syncs its internal value so the
+  previous text does not linger as the hint while the field is visually empty.
+
 ## [3.4.0] - 2026-11-05
 
 ### Dependencies
