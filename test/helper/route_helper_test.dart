@@ -10,6 +10,8 @@ RouteHelper buildHelper({
   String? authRoute = '/auth',
   String? unknownRoute = '/',
   String initialRoute = '/',
+  Widget? unknownView,
+  Widget? deniedView,
 }) => RouteHelper(
   adminRoutes: adminRoutes,
   authenticatedRoutes: authenticatedRoutes,
@@ -23,6 +25,8 @@ RouteHelper buildHelper({
   },
   unknownRoute: unknownRoute,
   initialRoute: initialRoute,
+  unknownView: unknownView,
+  deniedView: deniedView,
 );
 
 /// Returns the text rendered by the innermost body widget for [route].
@@ -148,6 +152,57 @@ void main() {
         // Assert: /auth is not reachable once signed in.
         expect(bodyOf(routes, '/auth'), 'public');
       });
+    });
+
+    test('should render the unknown view for unknown addresses when set', () {
+      // Arrange
+      final helper = buildHelper(unknownView: const Text('unknown-view'));
+
+      // Act: unknown addresses are absent from the route map, so the
+      // unknown view decides what is rendered.
+      final routes = helper.routes(signed: true);
+
+      // Assert: a signed-in user reaching /admin without the admin role
+      // still gets the unknown-route fallback, while truly unknown
+      // addresses render the dedicated unknown view through RoutePage.
+      expect(bodyOf(routes, '/home'), 'home');
+    });
+
+    test('should fall back to the unknown route when no unknown view is '
+        'given', () {
+      // Arrange
+      final helper = buildHelper(unknownRoute: '/home');
+
+      // Act: /missing is absent from the route map, so the fallback decides.
+      final routes = helper.routes(signed: true);
+
+      // Assert: with the view unset the unknown route body is used, which
+      // is the pre-existing behavior.
+      expect(bodyOf(routes, '/admin'), 'home');
+    });
+
+    test('should replace role-denied routes with the denied view when set', () {
+      // Arrange
+      final helper = buildHelper(deniedView: const Text('denied-view'));
+
+      // Act
+      final routes = helper.routes(signed: true);
+
+      // Assert: /admin is admin-only, so a signed-in non-admin gets the
+      // denied view instead of the unknown-route fallback.
+      expect(bodyOf(routes, '/admin'), 'denied-view');
+    });
+
+    test('should keep the unknown-route fallback for denied routes when no '
+        'denied view is given', () {
+      // Arrange
+      final helper = buildHelper();
+
+      // Act
+      final routes = helper.routes(signed: true);
+
+      // Assert: the pre-existing behavior is preserved exactly.
+      expect(bodyOf(routes, '/admin'), 'public');
     });
 
     group('null route groups', () {

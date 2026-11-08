@@ -16,6 +16,8 @@ class RouteHelper {
     required this.routeMap,
     required this.unknownRoute,
     required this.initialRoute,
+    this.unknownView,
+    this.deniedView,
   });
 
   /// Lists routes that remain accessible even when the user is signed out.
@@ -38,6 +40,20 @@ class RouteHelper {
 
   /// Identifies the route that should block back navigation with [PopScope].
   final String initialRoute;
+
+  /// Overrides the widget rendered for unknown routes and addresses.
+  ///
+  /// When `null`, unknown routes keep resolving through [unknownRoute], which
+  /// is the existing behavior; when set, it is rendered instead for any
+  /// address that is not part of the active route table.
+  final Widget? unknownView;
+
+  /// Overrides the widget rendered for inaccessible protected routes.
+  ///
+  /// When `null`, inaccessible destinations keep falling back to [authRoute]
+  /// (signed out) or [unknownRoute] (unknown to the user's role); when set, it
+  /// is rendered instead so hosts can show a dedicated access-denied page.
+  final Widget? deniedView;
 
   /// Returns the route table appropriate for the current auth and admin state.
   ///
@@ -78,7 +94,9 @@ class RouteHelper {
           endViewSigned0 = value;
         }
       } else {
-        endViewSigned0 = routeMap[endUnknownRoute];
+        // Role-denied routes keep resolving through [unknownRoute] unless the
+        // host supplies a dedicated access-denied view.
+        endViewSigned0 = deniedView ?? routeMap[endUnknownRoute];
       }
       endSignedIn.addAll({
         key: Scaffold(key: ValueKey(key), primary: false, body: endViewSigned0),

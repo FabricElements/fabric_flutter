@@ -270,6 +270,74 @@ void main() {
           reason: 'LoadingScreen must appear when userStatus is null.',
         );
       });
+
+      testWidgets('RoutePage renders unknown view for unmapped addresses', (
+        tester,
+      ) async {
+        // Arrange
+        final readyStatus = UserStatus(signedIn: true, ready: true);
+        final helper = buildTestRouteHelper();
+        final page = RoutePage(
+          routeHelper: helper,
+          uri: Uri.parse('/unmapped'),
+          status: readyStatus,
+          onInit: () async {},
+          onContextReady: (_) {},
+        );
+
+        // Act
+        await tester.pumpWidget(
+          wrapWithProviders(MaterialApp(home: Scaffold(body: page))),
+        );
+        await tester.pump(const Duration(milliseconds: 400));
+
+        // Assert: without an unknown view, the unknown-route fallback body
+        // is rendered for the unmapped address.
+        expect(find.text('public'), findsOneWidget);
+        expect(
+          find.byKey(const ValueKey('route-page-gesture-detector')),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets('RoutePage prefers unknownView over the fallback route', (
+        tester,
+      ) async {
+        // Arrange
+        final readyStatus = UserStatus(signedIn: true, ready: true);
+        final helper = RouteHelper(
+          publicRoutes: const ['/'],
+          authenticatedRoutes: const ['/home'],
+          adminRoutes: const ['/admin'],
+          authRoute: '/auth',
+          unknownRoute: '/',
+          initialRoute: '/',
+          routeMap: const {
+            '/': Scaffold(body: Text('public')),
+            '/auth': Scaffold(body: Text('auth')),
+            '/home': Scaffold(body: Text('home')),
+            '/admin': Scaffold(body: Text('admin')),
+          },
+          unknownView: const Text('unknown-view'),
+        );
+        final page = RoutePage(
+          routeHelper: helper,
+          uri: Uri.parse('/unmapped'),
+          status: readyStatus,
+          onInit: () async {},
+          onContextReady: (_) {},
+        );
+
+        // Act
+        await tester.pumpWidget(
+          wrapWithProviders(MaterialApp(home: Scaffold(body: page))),
+        );
+        await tester.pump(const Duration(milliseconds: 400));
+
+        // Assert: the dedicated unknown view wins over the fallback route.
+        expect(find.text('unknown-view'), findsOneWidget);
+        expect(find.text('public'), findsNothing);
+      });
     });
   });
 }

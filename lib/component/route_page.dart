@@ -214,6 +214,8 @@ class _RoutePageState extends State<RoutePage> {
         late Widget routeWidget;
         if (routes.containsKey(widget.uri.path)) {
           routeWidget = routes[widget.uri.path]!;
+        } else if (widget.routeHelper.unknownView != null) {
+          routeWidget = widget.routeHelper.unknownView!;
         } else {
           routeWidget = routes[widget.routeHelper.unknownRoute]!;
         }

@@ -2,6 +2,29 @@
 
 ### Added
 
+* **`StatusPage` and `StatusVariant` for full-page status, error and empty
+  states.** One widget renders not-found, forbidden, resource-not-found,
+  unauthenticated, unavailable, archived and unexpected states with a
+  Material 3 layout: an icon, a localized title and description, and an
+  actions row with Back, Retry and Home plus any caller-supplied extra
+  actions. Back pops the current route when there is history and otherwise
+  opens `homeRoute`, so deep links still land somewhere useful. Retry is
+  offered only for transient variants and only while the device is online,
+  reusing `StateGlobal`'s connection stream. The title and description are
+  announced to assistive technology through `LiveAnnouncer`, and `parent`
+  wraps the page in its own `Scaffold` for hosts that render it outside an
+  existing route shell. `StatusVariant.fromErrorCode` maps `error--###`
+  locale keys and plain HTTP status codes to variants, keeping the widget
+  backend-agnostic. New default locale keys: `label--retry`,
+  `label--go-back`, `label--go-home` and the `status--*` title/description
+  pairs.
+* **`RouteHelper.unknownView` and `RouteHelper.deniedView` fallback
+  overrides.** Hosts can now supply a widget rendered for addresses that do
+  not exist in the active route table (`unknownView`) and for protected
+  destinations the current role cannot reach (`deniedView`). Both default to
+  `null` and preserve the existing resolution — unknown routes keep falling
+  back to `unknownRoute`, and denied routes keep falling back to `authRoute`
+  (signed out) or `unknownRoute` — so existing consumers are unchanged.
 * **`ButtonOptions.back` for drill-down ancestor links.** Set `back: true` on a
   crumb, menu entry or `SmartButton` that points at a screen the user came from
   and the control pops back to it instead of replacing the current route. This
