@@ -468,6 +468,62 @@ const Map<String, Map<String, String>> defaultLocales = {
   'error--404': {'en': 'Not Found', 'es': 'No se encuentra'},
   'error--403': {'en': 'Forbidden', 'es': 'Prohibido'},
   'error--504': {'en': 'Gateway Timeout', 'es': 'Tiempo de espera agotado'},
+  'label--retry': {'en': 'Retry', 'es': 'Reintentar'},
+  'label--go-back': {'en': 'Go back', 'es': 'Volver'},
+  'label--go-home': {'en': 'Go home', 'es': 'Ir al inicio'},
+  'status--not-found-title': {
+    'en': 'Page not found',
+    'es': 'Página no encontrada',
+  },
+  'status--not-found-description': {
+    'en': "The address you followed doesn't exist.",
+    'es': 'La dirección que seguiste no existe.',
+  },
+  'status--forbidden-title': {
+    'en': "You don't have access",
+    'es': 'No tienes acceso',
+  },
+  'status--forbidden-description': {
+    'en': "You don't have permission to view this page.",
+    'es': 'No tienes permiso para ver esta página.',
+  },
+  'status--resource-not-found-title': {
+    'en': "Can't be found",
+    'es': 'No se puede encontrar',
+  },
+  'status--resource-not-found-description': {
+    'en': "This item doesn't exist or was removed.",
+    'es': 'Este elemento no existe o fue eliminado.',
+  },
+  'status--unauthenticated-title': {
+    'en': 'Sign in required',
+    'es': 'Se requiere iniciar sesión',
+  },
+  'status--unauthenticated-description': {
+    'en': 'Sign in to view this content.',
+    'es': 'Inicia sesión para ver este contenido.',
+  },
+  'status--unavailable-title': {
+    'en': "Can't reach the service",
+    'es': 'No se puede conectar al servicio',
+  },
+  'status--unavailable-description': {
+    'en': 'The service is temporarily unavailable. Try again later.',
+    'es': 'El servicio no está disponible temporalmente. Inténtalo más tarde.',
+  },
+  'status--archived-title': {'en': 'Archived', 'es': 'Archivado'},
+  'status--archived-description': {
+    'en': 'This item was archived and is read-only.',
+    'es': 'Este elemento fue archivado y es de solo lectura.',
+  },
+  'status--unexpected-title': {
+    'en': 'Something went wrong',
+    'es': 'Algo salió mal',
+  },
+  'status--unexpected-description': {
+    'en': 'An unexpected error occurred. Try again or go back.',
+    'es': 'Ocurrió un error inesperado. Inténtalo de nuevo o vuelve.',
+  },
   'error--500': {
     'en': 'Internal Server Error',
     'es': 'Error Interno del Servidor',
