@@ -1,5 +1,18 @@
 ## [Unreleased]
 
+### Added
+
+* **`ButtonOptions.back` for drill-down ancestor links.** Set `back: true` on a
+  crumb, menu entry or `SmartButton` that points at a screen the user came from
+  and the control pops back to it instead of replacing the current route. This
+  keeps the browser and system back button working, because replacing a route
+  drops the entry the user expects to return to. The control falls back to
+  opening its `path` when there is nothing to pop — a deep link can surface a
+  detail screen with no history beneath it. `ButtonOptions.pop` still selects
+  redirect-style replacement and takes precedence; the default stays `false`, so
+  existing call sites are unchanged. `Utils.popOrPushNamed` exposes the same
+  primitive for custom navigation controls.
+
 ### Fixed
 
 * **`InputData` notifies `onChanged` when the user types into a supplied

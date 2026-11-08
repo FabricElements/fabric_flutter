@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/density_spacing.dart';
 import '../helper/options.dart';
+import '../helper/utils.dart';
 import 'smart_image.dart';
 
 /// Displays a horizontal breadcrumb navigation trail.
@@ -16,6 +17,12 @@ import 'smart_image.dart';
 /// The component integrates with [AppLocalizations] for internationalized labels
 /// and supports both programmatic navigation (via [ButtonOptions.path]) and
 /// custom actions (via [ButtonOptions.onTap]).
+///
+/// By default an ancestor crumb replaces the current route, which is the
+/// redirect behaviour breadcrumbs have always had. Set [ButtonOptions.back] on
+/// a crumb whose destination is an ancestor in the current drill-down flow to go
+/// back one step instead, so the browser and system back button return to the
+/// screen the user came from.
 class Breadcrumbs extends StatelessWidget {
   /// Creates a breadcrumb navigation component.
   ///
@@ -85,9 +92,13 @@ class Breadcrumbs extends StatelessWidget {
       if (clickable) {
         onPressed = () {
           if (button.onTap != null) button.onTap!();
-          if (button.path != null) {
-            Navigator.of(context).popAndPushNamed(button.path!);
+          final path = button.path;
+          if (path == null) return;
+          if (!button.pop && button.back) {
+            Utils.popOrPushNamed(context: context, path: path);
+            return;
           }
+          Navigator.of(context).popAndPushNamed(path);
         };
       }
       Widget? iconButton;

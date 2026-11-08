@@ -161,8 +161,10 @@
     "test/guards/agent_command_docs_test.dart": 393,
     "test/guards/test_shard_plan_guard_test.dart": 373,
     "test/state/state_collection_test.dart": 963,
-    "test/component/stepper_extended_spacing_test.dart": 963
+    "test/component/stepper_extended_spacing_test.dart": 963,
+    "test/component/breadcrumbs_navigation_test.dart": 963,
+    "test/component/smart_button_back_navigation_test.dart": 963
   },
   "default_ms": 963,
-  "measured": "2026-11-02"
+  "measured": "2026-11-08"
 }

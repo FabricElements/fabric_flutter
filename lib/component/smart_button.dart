@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import '../helper/agent/agent_element_binding.dart';
 import '../helper/density_spacing.dart';
 import '../helper/options.dart';
+import '../helper/utils.dart';
 import '../serialized/agent_element_snapshot.dart';
 
 /// Builds a text button that can also expose a popup menu of related actions.
@@ -90,6 +91,9 @@ class _SmartButtonState extends State<SmartButton> {
         widget.brightness ?? theme.colorScheme.brightness;
     final bool isDark = brightness == Brightness.dark;
     List<PopupMenuEntry<String>> buttons = [];
+    // Menu entries report their selected value, so map each value back to the
+    // [ButtonOptions] it came from to read per-option navigation intent.
+    final Map<String, ButtonOptions> menuOptions = {};
     Color colorBase = theme.colorScheme.primary;
     Color colorIcon = theme.colorScheme.secondary;
     Color colorBaseImportant = theme.colorScheme.secondaryContainer;
@@ -119,11 +123,15 @@ class _SmartButtonState extends State<SmartButton> {
             );
           }
           Widget content = Text(item.label, style: textStyle0);
+          final String itemValue = item.path ?? item.label;
+          // The menu reports the selected value, not the entry it came from, so
+          // keep the originating option addressable to read its navigation mode.
+          menuOptions[itemValue] = item;
           buttons.add(
             PopupMenuItem<String>(
               height: height,
               enabled: enabled,
-              value: item.path ?? item.label,
+              value: itemValue,
               textStyle: textStyle,
               onTap: () {
                 if (item.onTap != null) item.onTap!();
@@ -181,7 +189,10 @@ class _SmartButtonState extends State<SmartButton> {
         initialValue: '/',
         onSelected: (value) {
           if (value.startsWith('/')) {
-            if (widget.pop) {
+            final ButtonOptions? option = menuOptions[value];
+            if (!widget.pop && (option?.back ?? false)) {
+              Utils.popOrPushNamed(context: context, path: value);
+            } else if (widget.pop) {
               Navigator.popAndPushNamed(context, value);
             } else {
               Navigator.pushNamed(context, value);
@@ -204,15 +215,20 @@ class _SmartButtonState extends State<SmartButton> {
   /// Runs the primary button action.
   ///
   /// Invokes [ButtonOptions.onTap] and then navigates to [ButtonOptions.path],
-  /// replacing the current route when [SmartButton.pop] is `true`. This is the
-  /// single activation path shared by the rendered button and by autonomous
-  /// agents driving the widget through its `automationKey`.
+  /// replacing the current route when [SmartButton.pop] is `true`. When
+  /// [ButtonOptions.back] is set the current route is popped instead, so the
+  /// browser and system back button return to the previous screen; the path is
+  /// opened only when there is no history to return to. This is the single
+  /// activation path shared by the rendered button and by autonomous agents
+  /// driving the widget through its `automationKey`.
   void _activate() {
     widget.button.onTap?.call();
     final path = widget.button.path;
     if (path == null) return;
     if (widget.pop) {
       Navigator.popAndPushNamed(context, path);
+    } else if (widget.button.back) {
+      Utils.popOrPushNamed(context: context, path: path);
     } else {
       Navigator.pushNamed(context, path);
     }

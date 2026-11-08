@@ -207,6 +207,29 @@ class Utils {
     }
   }
 
+  /// Goes back one route when there is history, otherwise opens [path].
+  ///
+  /// Pops the current route when the navigator has a route to return to, so the
+  /// browser and system back button return to the screen the user came from
+  /// instead of skipping it. When there is no history (a deep link or a
+  /// cold-start entry point), it opens [path] with `Navigator.pushNamed` so the
+  /// destination is still reachable.
+  ///
+  /// This is the primitive for drill-down ancestor links, where the expected
+  /// behaviour is "go back one step". Redirect-style replacement stays
+  /// `Navigator.popAndPushNamed`, which is what `ButtonOptions.pop` selects.
+  static void popOrPushNamed({
+    required BuildContext context,
+    required String path,
+  }) {
+    final navigator = Navigator.of(context);
+    if (navigator.canPop()) {
+      navigator.pop();
+      return;
+    }
+    navigator.pushNamed(path);
+  }
+
   // Get the value using the time zone offset in minutes
   /// Adjusts a [DateTime] by applying a timezone offset in minutes.
   ///
