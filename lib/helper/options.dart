@@ -45,6 +45,19 @@ class ButtonOptions {
   /// This replaces the current route instead of stacking it, useful for redirect scenarios.
   bool pop;
 
+  /// When true, goes back to the previous route instead of replacing it.
+  ///
+  /// Tapping the button pops the current route when there is history to return
+  /// to, and falls back to opening [path] only when there is not, through
+  /// `Utils.popOrPushNamed`. Defaults to false, which keeps replacing the
+  /// current route with `Navigator.popAndPushNamed`.
+  ///
+  /// Use this for drill-down ancestor links, where the expected behaviour is
+  /// "go back one step" and the browser and system back button should return to
+  /// the screen the user came from. Ignored when [pop] is true, which owns
+  /// redirect-style replacement.
+  bool back;
+
   /// When true, indicates this button should be styled or treated as important or primary.
   ///
   /// Components may apply special styling like elevated appearance or accent colors.
@@ -95,6 +108,7 @@ class ButtonOptions {
     this.onTap,
     this.path,
     this.pop = false,
+    this.back = false,
     this.queryParameters,
     this.selected = false,
     this.value,
