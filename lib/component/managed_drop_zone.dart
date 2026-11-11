@@ -29,6 +29,7 @@ class ManagedDropZone extends StatefulWidget {
     required this.expiry,
     required this.callback,
     required this.formats,
+    this.customMetadata,
   });
 
   /// Storage path where uploaded files are written.
@@ -42,6 +43,13 @@ class ManagedDropZone extends StatefulWidget {
 
   /// Accepted file formats for both drag-and-drop and the file picker.
   final List<DropFileFormat> formats;
+
+  /// Tags every uploaded object for server-side handling of this selection.
+  ///
+  /// The pairs are stored as custom metadata on each Storage object, where a
+  /// backend trigger can read them to choose per-upload processing. Omitting
+  /// them leaves uploads with the default handling.
+  final Map<String, String>? customMetadata;
 
   /// Creates the state that tracks staged media and upload progress.
   @override
@@ -330,6 +338,7 @@ class _ManagedDropZoneState extends State<ManagedDropZone> {
                       path: widget.path,
                       expiry: widget.expiry,
                       callback: widget.callback,
+                      customMetadata: widget.customMetadata,
                     );
                   },
                   label: Text(locales.get('label--upload')),

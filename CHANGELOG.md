@@ -2,6 +2,16 @@
 
 ### Added
 
+* **Custom upload metadata on media helpers and upload widgets.**
+  `FirebaseStorageHelper.saveFile`, `saveFileData`, `uploadImageMedia` and
+  `uploadMedia`, plus `ManagedDropZone`, `UploadImageMedia` and
+  `StateDropZone.upload`, accept an optional `customMetadata` map that is
+  stored as custom metadata on the resulting Storage object, so a backend
+  trigger can read a caller-supplied tag and choose per-upload processing.
+  The content type and inline content disposition are still set by the helper
+  itself and are never overridden by the caller's pairs. Omitting the map
+  leaves every existing upload byte-for-byte unchanged.
+
 * **`StatusPage` and `StatusVariant` for full-page status, error and empty
   states.** One widget renders not-found, forbidden, resource-not-found,
   unauthenticated, unavailable, archived and unexpected states with a

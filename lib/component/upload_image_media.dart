@@ -23,6 +23,7 @@ class UploadImageMedia extends StatefulWidget {
     this.maxDimensions = 1200,
     this.autoId = false,
     this.expiry = false,
+    this.customMetadata,
   });
 
   /// Receives the uploaded storage path together with the saved [MediaData].
@@ -39,6 +40,13 @@ class UploadImageMedia extends StatefulWidget {
 
   /// Marks uploaded media as expiring when the storage layer supports it.
   final bool expiry;
+
+  /// Tags the stored object for server-side handling of this upload.
+  ///
+  /// The pairs are stored as custom metadata on the Storage object, where a
+  /// backend trigger can read them to choose per-upload processing. Omitting
+  /// them leaves the upload with the default handling.
+  final Map<String, String>? customMetadata;
 
   /// Creates the mutable state that tracks whether an upload is in progress.
   @override
@@ -96,6 +104,7 @@ class _UploadImageMediaState extends State<UploadImageMedia> {
         await Future.microtask(
           () => firebaseStorageHelper.uploadImageMedia(
             origin: origin,
+            customMetadata: widget.customMetadata,
             callback: (path, data) {
               widget.callback(path, data);
               // Upload failures are already surfaced through a visible,

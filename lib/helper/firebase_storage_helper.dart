@@ -21,6 +21,28 @@ class FirebaseStorageHelper {
   /// Creates a storage helper bound to [context].
   FirebaseStorageHelper(this.context);
 
+  /// Builds the storage metadata for an upload.
+  ///
+  /// [contentType] and [fileName] always determine the download behaviour, so
+  /// objects written with and without [customMetadata] stay byte-identical in
+  /// how they are served. [customMetadata] is merged on top as key/value pairs
+  /// that downstream storage triggers can read to pick per-upload handling,
+  /// which is why callers only pass it when they need a non-default profile.
+  @visibleForTesting
+  static SettableMetadata uploadMetadata({
+    required String contentType,
+    String? fileName,
+    Map<String, String>? customMetadata,
+  }) {
+    return SettableMetadata(
+      contentType: contentType,
+      contentDisposition: fileName != null
+          ? 'inline; filename="$fileName"'
+          : null,
+      customMetadata: customMetadata,
+    );
+  }
+
   /// Saves raw string [data] to Firebase Storage at [path].
   ///
   /// The helper can append a timestamp when [autoId] is `true` and mark the path
@@ -53,7 +75,8 @@ class FirebaseStorageHelper {
   /// This wraps [save] with [PutStringFormat.base64] so media selected by the
   /// package can be uploaded without first writing a temporary file. When
   /// provided, [fileName] is exposed through the content disposition metadata so
-  /// downstream downloads can preserve a friendly name.
+  /// downstream downloads can preserve a friendly name. [customMetadata] is
+  /// forwarded as-is so callers can tag an upload for server-side handling.
   Future<String> saveFile({
     required String file,
     required String contentType,
@@ -61,17 +84,17 @@ class FirebaseStorageHelper {
     String? fileName,
     bool autoId = false,
     bool expiry = false,
+    Map<String, String>? customMetadata,
   }) async {
     final fileSaved = await save(
       data: file,
       path: path,
       autoId: autoId,
       format: PutStringFormat.base64,
-      metadata: SettableMetadata(
+      metadata: uploadMetadata(
         contentType: contentType,
-        contentDisposition: fileName != null
-            ? 'inline; filename="$fileName"'
-            : null,
+        fileName: fileName,
+        customMetadata: customMetadata,
       ),
       expiry: expiry,
     );
@@ -112,7 +135,8 @@ class FirebaseStorageHelper {
   /// the base64 round-trip. The applied metadata is identical to [saveFile]: the
   /// [contentType] and, when [fileName] is provided, a content disposition that
   /// preserves a friendly download name, so objects written through either path
-  /// are indistinguishable.
+  /// are indistinguishable. [customMetadata] is forwarded as-is so callers can
+  /// tag an upload for server-side handling.
   Future<String> saveFileData({
     required Uint8List bytes,
     required String contentType,
@@ -120,16 +144,16 @@ class FirebaseStorageHelper {
     String? fileName,
     bool autoId = false,
     bool expiry = false,
+    Map<String, String>? customMetadata,
   }) async {
     final fileSaved = await saveBytes(
       data: bytes,
       path: path,
       autoId: autoId,
-      metadata: SettableMetadata(
+      metadata: uploadMetadata(
         contentType: contentType,
-        contentDisposition: fileName != null
-            ? 'inline; filename="$fileName"'
-            : null,
+        fileName: fileName,
+        customMetadata: customMetadata,
       ),
       expiry: expiry,
     );
@@ -162,6 +186,8 @@ class FirebaseStorageHelper {
   /// Images are obtained through [MediaHelper.getImage], optionally resized with
   /// [maxDimensions], and then stored under [path]. Failures trigger a localized
   /// alert instead of throwing so UI flows can remain straightforward.
+  /// [customMetadata] is attached to the stored object, letting a caller tag the
+  /// upload for server-side handling without changing how it is displayed.
   Future uploadImageMedia({
     required MediaOrigin origin,
     required Function(String, MediaData) callback,
@@ -169,6 +195,7 @@ class FirebaseStorageHelper {
     required int maxDimensions,
     bool autoId = false,
     bool expiry = false,
+    Map<String, String>? customMetadata,
   }) async {
     try {
       final selectedFile = await MediaHelper.getImage(
@@ -181,6 +208,7 @@ class FirebaseStorageHelper {
         path: path,
         autoId: autoId,
         expiry: expiry,
+        customMetadata: customMetadata,
       );
       return callback(finalPath, selectedFile);
     } catch (error) {
@@ -202,6 +230,9 @@ class FirebaseStorageHelper {
 
     /// Optional maximum file size in bytes
     int? maxFileSize,
+
+    /// Optional metadata attached to the stored object
+    Map<String, String>? customMetadata,
   }) async {
     try {
       final selectedFile = await MediaHelper.getFile(
@@ -214,6 +245,7 @@ class FirebaseStorageHelper {
         path: path,
         autoId: autoId,
         expiry: expiry,
+        customMetadata: customMetadata,
       );
       return callback(finalPath, selectedFile);
     } catch (error) {
