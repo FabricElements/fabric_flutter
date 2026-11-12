@@ -46,7 +46,25 @@
   existing call sites are unchanged. `Utils.popOrPushNamed` exposes the same
   primitive for custom navigation controls.
 
+### Changed
+
+* **`ViewAuthPage` sign-in buttons sit 16px apart.** The stacked provider
+  buttons used a vertical rhythm that read as far too much whitespace at
+  standard density. The painted gap between two adjacent buttons is now 16px.
+  Only the spacing changed — button size, tap targets, order and behaviour are
+  untouched.
+
 ### Fixed
+
+* **`ViewAuthPage` keeps its header logo clear of the iOS status bar.** The
+  header is bottom-anchored in a `Stack`, so the logo slid upward as the
+  column grew and could paint beneath the clock and Dynamic Island once the
+  content was taller than the space below the top inset. On iOS, when a
+  non-zero top inset is present, the header is now pinned below that inset and
+  its column lives inside a scroll viewport clipped at the inset, so the logo
+  can never rise above it at any content height or text scale. When the
+  content already fits, the layout is pixel-identical to before. Android and
+  web keep the previous un-pinned layout untouched.
 
 * **`InputData` notifies `onChanged` when the user types into a supplied
   `textController`.** The value-sync listener added for stale hints ran before

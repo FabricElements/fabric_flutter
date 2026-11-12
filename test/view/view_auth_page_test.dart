@@ -154,6 +154,12 @@ class _FakeAuthService implements AuthService {
 /// future settles the 500ms post-frame delay the page uses to flip its private
 /// `initialized` flag, so callers land on the fully rendered page rather than
 /// the loading screen.
+///
+/// [size] pins the logical viewport, and [padding] installs a synthetic
+/// [MediaQuery] inset, so a test can reproduce a device whose content does not
+/// fit below the status bar. [textScaler] enlarges text the same way. All three
+/// default to the ambient values, so a test that does not ask for them renders
+/// exactly what it did before.
 Future<StateViewAuth> _pumpAuth(
   WidgetTester tester, {
   bool connected = true,
@@ -165,6 +171,13 @@ Future<StateViewAuth> _pumpAuth(
   String? emailLinkDomain,
   bool emailLinkAndroidInstallApp = false,
   String? title,
+  String? description,
+  String? logo,
+  bool logoCircle = false,
+  Size? size,
+  EdgeInsets? padding,
+  TextScaler? textScaler,
+  TargetPlatform? platform,
   bool settle = true,
   AuthService? authService,
   List<ViewAuthLegalLink>? legalLinks,
@@ -172,6 +185,12 @@ Future<StateViewAuth> _pumpAuth(
 }) async {
   final global = StateGlobal()..connected = connected;
   final viewAuth = state ?? StateViewAuth();
+  if (size != null) {
+    // A logical pixel ratio of 1 makes `size` the exact logical viewport.
+    tester.view.physicalSize = size;
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+  }
   await tester.pumpWidget(
     MultiProvider(
       providers: [
@@ -184,6 +203,21 @@ Future<StateViewAuth> _pumpAuth(
         scaffoldMessengerKey: AppGlobal.snackbarKey,
         localizationsDelegates: const [AppLocalizationsDelegate(locales: {})],
         supportedLocales: const [Locale('en', 'US')],
+        theme: platform == null ? null : ThemeData(platform: platform),
+        builder: (BuildContext context, Widget? child) {
+          // The page reads both values from the root MediaQuery, so overriding
+          // them here is equivalent to running on the device being simulated.
+          final Widget wrapped = child ?? const SizedBox.shrink();
+          if (textScaler == null && padding == null) return wrapped;
+          return MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              textScaler: textScaler,
+              padding: padding,
+              viewPadding: padding,
+            ),
+            child: wrapped,
+          );
+        },
         home: ViewAuthPage(
           url: 'https://example.com/auth',
           phone: phone,
@@ -193,6 +227,9 @@ Future<StateViewAuth> _pumpAuth(
           emailLinkDomain: emailLinkDomain,
           emailLinkAndroidInstallApp: emailLinkAndroidInstallApp,
           title: title,
+          description: description,
+          logo: logo,
+          logoCircle: logoCircle,
           authService: authService,
           legalLinks: legalLinks,
           webSignInMode: webSignInMode,
@@ -1064,6 +1101,155 @@ void main() {
           findsOneWidget,
         );
         expect(tester.takeException(), isNull);
+      });
+    });
+
+    group('header safe area', () {
+      const String logoUrl = 'https://example.com/logo.png';
+      const ValueKey<String> logoKey = ValueKey<String>(
+        'auth-page-logo-circle-$logoUrl',
+      );
+      // A realistic iPhone inset; the bug is that content taller than the
+      // space below it slides the logo up under the clock.
+      const EdgeInsets iosInset = EdgeInsets.only(top: 59, bottom: 34);
+
+      /// Mounts the page on iOS with [description] sized to overflow the
+      /// viewport, and asserts the logo stayed inside the safe area.
+      Future<void> expectLogoBelowInset(
+        WidgetTester tester, {
+        required Size size,
+        required String description,
+        TextScaler? textScaler,
+      }) async {
+        // Arrange & Act – a long description (and optionally enlarged text)
+        // makes the column taller than the space below the inset, which is
+        // the condition that used to push the logo over the status bar.
+        await _pumpAuth(
+          tester,
+          platform: TargetPlatform.iOS,
+          logo: logoUrl,
+          logoCircle: true,
+          title: 'Sign in',
+          description: description,
+          size: size,
+          padding: iosInset,
+          textScaler: textScaler,
+        );
+
+        // Assert – the logo is whole and starts below the inset.
+        final Rect logo = tester.getRect(find.byKey(logoKey));
+        expect(logo.top, greaterThanOrEqualTo(iosInset.top));
+        expect(logo.height, greaterThan(0.0));
+        expect(tester.takeException(), isNull);
+      }
+
+      testWidgets('should keep the logo below the iOS status bar inset', (
+        WidgetTester tester,
+      ) async {
+        await expectLogoBelowInset(
+          tester,
+          size: const Size(390, 600),
+          description: 'd' * 200,
+        );
+      });
+
+      testWidgets('should keep the logo below the inset on a short viewport', (
+        WidgetTester tester,
+      ) async {
+        await expectLogoBelowInset(
+          tester,
+          size: const Size(390, 520),
+          description: 'd' * 200,
+        );
+      });
+
+      testWidgets('should keep the logo below the inset with enlarged text', (
+        WidgetTester tester,
+      ) async {
+        // Arrange & Act – a large text scale defeats any fix that only shrinks
+        // the logo, because the text itself is not shrinkable.
+        await expectLogoBelowInset(
+          tester,
+          size: const Size(320, 568),
+          description: 'd' * 200,
+          textScaler: const TextScaler.linear(1.3),
+        );
+      });
+
+      testWidgets('should not move the logo when the content already fits', (
+        WidgetTester tester,
+      ) async {
+        // Arrange & Act – short content that fits below the inset.
+        await _pumpAuth(
+          tester,
+          platform: TargetPlatform.iOS,
+          logo: logoUrl,
+          logoCircle: true,
+          title: 'Sign in',
+          size: const Size(390, 600),
+          padding: iosInset,
+        );
+
+        // Assert – the logo sits exactly where it always has on iOS, so the
+        // fix only ever intervenes when the content overflows.
+        final Rect logo = tester.getRect(find.byKey(logoKey));
+        expect(logo.top, 145.0);
+        expect(logo.height, 150.0);
+        expect(tester.takeException(), isNull);
+      });
+
+      testWidgets('should leave the Android header on the un-pinned path', (
+        WidgetTester tester,
+      ) async {
+        // Arrange & Act – a tall page on Android, where nothing may change.
+        await _pumpAuth(
+          tester,
+          logo: logoUrl,
+          logoCircle: true,
+          title: 'Sign in',
+          description: 'd' * 200,
+          size: const Size(390, 600),
+          padding: const EdgeInsets.only(top: 24, bottom: 0),
+        );
+
+        // Assert – the logo keeps its natural size, the iOS-only scroll
+        // viewport is absent, and the header still overflows the top exactly
+        // as it did before the fix (the pinned iOS path is deliberately not
+        // taken here).
+        final Rect logo = tester.getRect(find.byKey(logoKey));
+        expect(logo.height, 150.0);
+        expect(find.byType(SingleChildScrollView), findsNothing);
+        expect(logo.top, -2.0);
+      });
+    });
+
+    group('sign-in button spacing', () {
+      testWidgets('should paint a 16px gap between stacked sign-in buttons', (
+        WidgetTester tester,
+      ) async {
+        // Arrange & Act – two providers that render on every host platform.
+        await _pumpAuth(tester, anonymous: true, email: true);
+
+        // Assert – measure the painted button surfaces, not the padded tap
+        // targets the finder resolves to.
+        final Rect first = tester.getRect(
+          find
+              .descendant(
+                of: find.byType(FilledButton).at(0),
+                matching: find.byType(Material),
+              )
+              .first,
+        );
+        final Rect second = tester.getRect(
+          find
+              .descendant(
+                of: find.byType(FilledButton).at(1),
+                matching: find.byType(Material),
+              )
+              .first,
+        );
+
+        expect(second.top - first.bottom, 16.0);
       });
     });
 

@@ -546,6 +546,55 @@ class ViewAuthPageState extends State<ViewAuthPage> {
     }
   }
 
+  /// Builds the auth page header so it can never paint above [MediaQuery]'s top
+  /// padding on iOS.
+  ///
+  /// The header is bottom-anchored inside a [Stack], so it is measured against
+  /// the full screen height and simply grows past the top edge once the content
+  /// is taller than the space below the status bar — a [SafeArea] around the
+  /// column cannot help, because adding height to a bottom-anchored column
+  /// moves the whole column up by that same amount. Only shrinking the column
+  /// below the status bar can, and the content is not shrinkable.
+  ///
+  /// The caller therefore pins this to the inset ([Positioned.top]), and the
+  /// column is placed inside a scroll viewport so a column that is taller than
+  /// the space below the inset scrolls instead of overflowing upwards. The
+  /// scroll viewport clips at the inset, so the logo can never paint over the
+  /// clock no matter how tall the text becomes.
+  ///
+  /// When the column already fits below the inset, `minHeight` makes the
+  /// viewport exactly the available height and [MainAxisAlignment.end] pins the
+  /// column to its bottom edge. Both the column's own height and its bottom
+  /// edge are unchanged from the un-pinned layout ([contentBlock]'s [SafeArea]
+  /// still supplies the inset once, as before), so the result is pixel-
+  /// identical to the header on every other platform.
+  ///
+  /// [logoBlock] is `null` when the page has no logo.
+  Widget _safeAreaHeader({
+    required Widget? logoBlock,
+    required Widget contentBlock,
+  }) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            // Fills the viewport when the column is shorter, so the column
+            // stays bottom-anchored; otherwise the column is its natural
+            // height and simply scrolls.
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Flex(
+              direction: Axis.vertical,
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[?logoBlock, contentBlock],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final stateGlobal = Provider.of<StateGlobal>(context);
@@ -556,6 +605,9 @@ class ViewAuthPageState extends State<ViewAuthPage> {
     final locales = AppLocalizations.of(context);
     final textTheme = theme.textTheme;
     final density = DensitySpacing(theme.visualDensity);
+    final double topInset = MediaQuery.paddingOf(context).top;
+    final bool respectTopInset =
+        !kIsWeb && theme.platform == TargetPlatform.iOS && topInset > 0;
     stateAnalytics.screenName = 'auth';
     // Initialize after first build
     if (!initialized) {
@@ -947,7 +999,9 @@ class ViewAuthPageState extends State<ViewAuthPage> {
           break;
       }
       return Padding(
-        padding: density.only(top: 16, minVertical: 8),
+        // Material's padded tap target adds 4px above and below each painted
+        // button, so 4px here reads as a 16px gap between two stacked buttons.
+        padding: density.symmetric(vertical: 4, minVertical: 4),
         child: AgentElement(
           id: 'auth_home_button_$provider',
           type: AgentElementType.button,
@@ -1073,6 +1127,82 @@ class ViewAuthPageState extends State<ViewAuthPage> {
             semanticsLabel: widget.logoSemanticLabel,
           )
         : null;
+    final Widget? logoBlock = widget.logo == null
+        ? null
+        : ContentContainer(
+            padding: density.symmetric(
+              vertical: 32,
+              horizontal: 16,
+              minHorizontal: 8,
+              minVertical: 16,
+            ),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                height: widget.logoHeight,
+                width: widget.logoWidth,
+                constraints: BoxConstraints(
+                  maxHeight: widget.logoHeight,
+                  maxWidth: widget.logoWidth,
+                ),
+                child: widget.logoCircle
+                    ? CircleAvatar(
+                        child: AspectRatio(
+                          aspectRatio: 1 / 1,
+                          child: ClipOval(child: logoImage),
+                        ),
+                      )
+                    : logoImage,
+              ),
+            ),
+          );
+    final Widget contentBlock = Container(
+      color: theme.colorScheme.surface,
+      child: SafeArea(
+        child: ContentContainer(
+          padding: density.all(16, min: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              SizedBox(
+                width: double.infinity,
+                child: Semantics(
+                  header: true,
+                  child: Text(
+                    widget.title ?? locales.get('page-auth--title'),
+                    style: textTheme.displayMedium?.copyWith(
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: density.gap(16)),
+              SizedBox(
+                width: double.infinity,
+                child: Text(
+                  widget.description ?? locales.get('page-auth--description'),
+                  style: textTheme.titleMedium?.copyWith(
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+              ),
+              SizedBox(height: density.gap(16)),
+              ...homeButtonOptions,
+              ?legalConsent,
+              Padding(
+                padding: density.only(top: 16, minVertical: 8),
+                child: Text(
+                  stateGlobal.appVersion ?? '',
+                  style: textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
     Widget home = AnimatedOpacity(
       opacity: state.section == 0 ? 1 : 0,
       duration: const Duration(milliseconds: 300),
@@ -1095,96 +1225,23 @@ class ViewAuthPageState extends State<ViewAuthPage> {
                   ),
                 ),
                 Positioned(
+                  top: respectTopInset ? topInset : null,
                   bottom: 0,
                   left: 0,
                   right: 0,
-                  child: Flex(
-                    direction: Axis.vertical,
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      widget.logo != null
-                          ? ContentContainer(
-                              padding: density.symmetric(
-                                vertical: 32,
-                                horizontal: 16,
-                                minHorizontal: 8,
-                                minVertical: 16,
-                              ),
-                              child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: Container(
-                                  height: widget.logoHeight,
-                                  width: widget.logoWidth,
-                                  constraints: BoxConstraints(
-                                    maxHeight: widget.logoHeight,
-                                    maxWidth: widget.logoWidth,
-                                  ),
-                                  child: widget.logoCircle
-                                      ? CircleAvatar(
-                                          child: AspectRatio(
-                                            aspectRatio: 1 / 1,
-                                            child: ClipOval(child: logoImage),
-                                          ),
-                                        )
-                                      : logoImage,
-                                ),
-                              ),
-                            )
-                          : const SizedBox(),
-                      Container(
-                        color: theme.colorScheme.surface,
-                        child: SafeArea(
-                          child: ContentContainer(
-                            padding: density.all(16, min: 8),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: Semantics(
-                                    header: true,
-                                    child: Text(
-                                      widget.title ??
-                                          locales.get('page-auth--title'),
-                                      style: textTheme.displayMedium?.copyWith(
-                                        color: theme.colorScheme.onSurface,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(height: density.gap(16)),
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: Text(
-                                    widget.description ??
-                                        locales.get('page-auth--description'),
-                                    style: textTheme.titleMedium?.copyWith(
-                                      color: theme.colorScheme.onSurface,
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(height: density.gap(16)),
-                                ...homeButtonOptions,
-                                ?legalConsent,
-                                Padding(
-                                  padding: density.only(
-                                    top: 16,
-                                    minVertical: 8,
-                                  ),
-                                  child: Text(
-                                    stateGlobal.appVersion ?? '',
-                                    style: textTheme.bodySmall?.copyWith(
-                                      color: theme.colorScheme.onSurface,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                  child: respectTopInset
+                      ? _safeAreaHeader(
+                          logoBlock: logoBlock,
+                          contentBlock: contentBlock,
+                        )
+                      : Flex(
+                          direction: Axis.vertical,
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            logoBlock ?? const SizedBox(),
+                            contentBlock,
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
                 ),
               ],
             ),
