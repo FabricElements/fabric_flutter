@@ -1,5 +1,15 @@
 ## [Unreleased]
 
+### Fixed
+
+* **The email-link sign-in view no longer shows the "check your inbox" step
+  after the flow is over.** Completing a sign-in from an emailed link resets
+  the view to its first section, and mounting the page while signed out now
+  clears any link-flow state left behind by a previous session, so signing
+  out right after signing in no longer resurrects the "link was sent" step.
+  Opening the link also no longer shows the "sign-in link sent" alert: the
+  visitor already received the link, so the confirmation is redundant.
+
 ### Added
 
 * **Custom upload metadata on media helpers and upload widgets.**
