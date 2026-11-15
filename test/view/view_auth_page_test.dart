@@ -944,6 +944,32 @@ void main() {
         expect(state.emailLinkSent, isFalse);
       });
 
+      testWidgets('should not alert or park on the inbox step when opened', (
+        WidgetTester tester,
+      ) async {
+        // Arrange – the visitor already opened the link, which is itself the
+        // confirmation that they received it.
+        const link =
+            'https://app.example.com/connect?request=rid-42&oobCode=abc123';
+        final auth = _FakeAuthService();
+        final state = StateViewAuth()..section = 4;
+        EmailLinkStorage.write('user@example.com');
+        await _pumpAuth(tester, email: true, state: state, authService: auth);
+        final page = tester.state<ViewAuthPageState>(find.byType(ViewAuthPage));
+
+        // Act
+        await page.completeEmailLinkSignIn(link);
+        await _settleAlert(tester);
+
+        // Assert – no "link sent" message is shown, and the view is not left
+        // parked on the inbox step of the completed flow.
+        expect(find.text('Sign-in link sent'), findsNothing);
+        expect(find.byType(SnackBar), findsNothing);
+        expect(state.section, 0);
+        expect(state.emailLinkSent, isFalse);
+        expect(state.awaitingEmailForLink, isFalse);
+      });
+
       testWidgets('should prompt for the email when none was stored', (
         WidgetTester tester,
       ) async {
@@ -1352,6 +1378,53 @@ void main() {
 
           // Assert
           expect(state.section, 0);
+        },
+      );
+
+      testWidgets(
+        'should clear a finished link flow when remounted while signed out',
+        (WidgetTester tester) async {
+          // Arrange – the email-link flow parked the page on the "check your
+          // inbox" step, the visitor signed in from the link itself, and the
+          // page was unmounted before the sign-in event could reach it. The
+          // view state outlives the page, so signing out and returning shows
+          // the stale step.
+          final stateUser = _FakeStateUser();
+          addTearDown(stateUser.destroy);
+          final state = StateViewAuth()
+            ..section = 4
+            ..emailLinkSent = true
+            ..email = 'visitor@example.com';
+
+          // Act – the page mounts again while the visitor is signed out, the
+          // sequence a sign-out right after sign-in produces on mobile.
+          await _pumpAuth(tester, state: state, stateUser: stateUser);
+
+          // Assert – the visitor starts on the first section, not the inbox
+          // step of a flow that already completed.
+          expect(state.section, 0);
+          expect(state.emailLinkSent, isFalse);
+          expect(state.email, isNull);
+        },
+      );
+
+      testWidgets(
+        'should keep a mid-flow state when remounted while signed out',
+        (WidgetTester tester) async {
+          // Arrange – the visitor was typing their details on the second
+          // section and has not asked for a link yet.
+          final stateUser = _FakeStateUser();
+          addTearDown(stateUser.destroy);
+          final state = StateViewAuth()
+            ..section = 2
+            ..email = 'visitor@example.com';
+
+          // Act
+          await _pumpAuth(tester, state: state, stateUser: stateUser);
+
+          // Assert – the in-progress form survives the remount.
+          expect(state.section, 2);
+          expect(state.email, 'visitor@example.com');
         },
       );
 

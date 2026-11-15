@@ -331,11 +331,33 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       // Deferred because clearing notifies the view state's listeners, and
       // this runs while the page is still building.
       WidgetsBinding.instance.addPostFrameCallback((_) => _clearViewAuth());
+    } else if (_hasStaleLinkFlowState()) {
+      // A page mounted while signed out never sees the sign-in transition:
+      // mobile routes tear the page down the moment the user signs in, so the
+      // stream event that should have cleared the view is delivered to an
+      // unmounted element. What survives is a view parked on a finished
+      // flow's step, so the stale step is dropped here instead.
+      WidgetsBinding.instance.addPostFrameCallback((_) => _clearViewAuth());
     }
     _statusSubscription = stateUser.streamStatus.listen((status) {
       if (status.signedIn && !_wasSignedIn) _clearViewAuth();
       _wasSignedIn = status.signedIn;
     });
+  }
+
+  /// Whether the view state still holds a step from a completed link flow.
+  ///
+  /// A visitor who is signing in has no reason to be parked on the inbox step
+  /// while signed out: the step means "a link was sent and is being waited
+  /// on", but the page is only mounted fresh, and a fresh mount starts on the
+  /// first section. A mid-flow section that is still being filled in must be
+  /// left alone.
+  bool _hasStaleLinkFlowState() {
+    if (!ProviderHelper.isProviderDefined<StateViewAuth>(context)) {
+      return false;
+    }
+    final viewAuth = Provider.of<StateViewAuth>(context, listen: false);
+    return viewAuth.emailLinkSent || viewAuth.awaitingEmailForLink;
   }
 
   /// Resets the per-visitor view state without touching the sign-in flow.
@@ -480,12 +502,12 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       if (mounted) setState(() {});
       await auth.signInWithEmailLink(email: email, link: link);
       EmailLinkStorage.clear();
-      state.emailLinkSent = false;
-      state.awaitingEmailForLink = false;
-      alertData(
-        title: locales.get('alert--email-link-sent'),
-        type: AlertType.success,
-      );
+      // The flow is finished: waiting for the inbox would be stale, and the
+      // visitor just opened the link, so telling them a link was sent is a
+      // message about the past they no longer need. The view resets to its
+      // first section so a later sign-out does not resurrect the inbox step.
+      state.clear();
+      state.section = 0;
     } on FirebaseAuthException catch (error) {
       String message;
       switch (error.code) {
