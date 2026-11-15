@@ -21,11 +21,14 @@ import '../helper/density_spacing.dart';
 import '../helper/email_link_storage.dart';
 import '../helper/input_validation.dart';
 import '../helper/log_color.dart';
+import '../helper/provider_helper.dart';
 import '../helper/url_safety.dart';
 import '../placeholder/loading_screen.dart';
 import '../serialized/agent_element_snapshot.dart';
+import '../serialized/user_status.dart';
 import '../state/state_analytics.dart';
 import '../state/state_global.dart';
+import '../state/state_user.dart';
 import '../state/state_view_auth.dart';
 
 /// Re-exports the authentication seam so importers of this view keep access to
@@ -238,6 +241,24 @@ class ViewAuthPageState extends State<ViewAuthPage> {
   /// Whether this element has been disposed.
   bool _disposed = false;
 
+  /// Tracks the [StateUser.streamStatus] subscription so it can be cancelled.
+  ///
+  /// The page is meant to be reachable while signed out, so it resets its own
+  /// view state when the visitor signs in elsewhere: the email-link flow leaves
+  /// [StateViewAuth.section] on the "check your inbox" step, and without this
+  /// reset a later sign-out would re-render that stale step instead of the
+  /// sign-in options. Registering the listener in [initState] rather than
+  /// `build` keeps it to a single subscription for the lifetime of the page.
+  StreamSubscription<UserStatus>? _statusSubscription;
+
+  /// The signed-in flag observed by the previous [StateUser.streamStatus] event.
+  ///
+  /// Seeds from the mounted [StateUser] (see [_subscribeToAuthStatus]) and
+  /// latches on every event afterwards, so the view is cleared on the sign-in
+  /// *transition* only — an event that merely repeats the current state must
+  /// not wipe a section the visitor is still filling in.
+  bool _wasSignedIn = false;
+
   /// Performs the actual sign-in calls for this page.
   ///
   /// Resolved once so a page-scoped [FirebaseAuthService] can retain the
@@ -263,6 +284,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
     super.initState();
     loading = false;
     auth = widget.authService ?? FirebaseAuthService();
+    _subscribeToAuthStatus();
     if (widget.email) {
       // The provider tree is not readable until the first build, so the
       // incoming-link check has to wait for one.
@@ -285,7 +307,45 @@ class ViewAuthPageState extends State<ViewAuthPage> {
   void dispose() {
     _disposed = true;
     _linkCheckToken++;
+    _statusSubscription?.cancel();
+    _statusSubscription = null;
     super.dispose();
+  }
+
+  /// Clears the view state whenever the visitor becomes authenticated.
+  ///
+  /// [StateUser] is optional: the page is usable on its own, so a tree that
+  /// does not register it simply keeps no subscription. The listener runs in
+  /// [initState] with `listen: false`, so it never creates a provider
+  /// dependency, and it is cancelled in [dispose] to avoid leaking it.
+  void _subscribeToAuthStatus() {
+    if (!ProviderHelper.isProviderDefined<StateUser>(context)) return;
+    final stateUser = Provider.of<StateUser>(context, listen: false);
+    // A page mounted after the sign-in it should forget about never sees a
+    // transition, so the starting point is read from the state itself. This
+    // cannot come from the stream: `StateUser` de-duplicates its own status
+    // events and only publishes a ready state, so an already-signed-in user
+    // produces no event at all.
+    _wasSignedIn = stateUser.signedIn;
+    if (_wasSignedIn) {
+      // Deferred because clearing notifies the view state's listeners, and
+      // this runs while the page is still building.
+      WidgetsBinding.instance.addPostFrameCallback((_) => _clearViewAuth());
+    }
+    _statusSubscription = stateUser.streamStatus.listen((status) {
+      if (status.signedIn && !_wasSignedIn) _clearViewAuth();
+      _wasSignedIn = status.signedIn;
+    });
+  }
+
+  /// Resets the per-visitor view state without touching the sign-in flow.
+  ///
+  /// Deliberately not `resetView`: this is not a visitor-initiated cancel, so
+  /// it must not raise the loading screen, steal focus, or announce anything.
+  void _clearViewAuth() {
+    if (!mounted) return;
+    if (!ProviderHelper.isProviderDefined<StateViewAuth>(context)) return;
+    Provider.of<StateViewAuth>(context, listen: false).clear();
   }
 
   /// Resolves the continue URL the sign-in link should return to.

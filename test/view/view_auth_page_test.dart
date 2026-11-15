@@ -7,7 +7,9 @@ import 'package:fabric_flutter/helper/email_link_storage.dart';
 import 'package:fabric_flutter/placeholder/loading_screen.dart';
 import 'package:fabric_flutter/state/state_analytics.dart';
 import 'package:fabric_flutter/state/state_global.dart';
+import 'package:fabric_flutter/state/state_user.dart';
 import 'package:fabric_flutter/state/state_view_auth.dart';
+import 'package:fabric_flutter/serialized/user_status.dart';
 import 'package:fabric_flutter/view/view_auth_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -160,10 +162,14 @@ class _FakeAuthService implements AuthService {
 /// fit below the status bar. [textScaler] enlarges text the same way. All three
 /// default to the ambient values, so a test that does not ask for them renders
 /// exactly what it did before.
+///
+/// [stateUser] is registered only when supplied, which keeps every existing
+/// test on the no-`StateUser` tree the page has to tolerate.
 Future<StateViewAuth> _pumpAuth(
   WidgetTester tester, {
   bool connected = true,
   StateViewAuth? state,
+  StateUser? stateUser,
   bool phone = false,
   bool google = false,
   bool anonymous = false,
@@ -197,6 +203,8 @@ Future<StateViewAuth> _pumpAuth(
         ChangeNotifierProvider<StateGlobal>.value(value: global),
         ChangeNotifierProvider<StateAnalytics>.value(value: StateAnalytics()),
         ChangeNotifierProvider<StateViewAuth>.value(value: viewAuth),
+        if (stateUser != null)
+          ChangeNotifierProvider<StateUser>.value(value: stateUser),
       ],
       child: MaterialApp(
         navigatorKey: AppGlobal.navigatorKey,
@@ -260,6 +268,45 @@ Future<void> _settleAlert(WidgetTester tester) async {
   await tester.pump();
   await tester.pump();
   await tester.pump(const Duration(milliseconds: 750));
+}
+
+/// Fakes the three [StateUser] members the page reads for its sign-in reset.
+///
+/// The real container derives `signedIn` and `streamStatus` from the Firebase
+/// singletons and only publishes a *ready* status, which a widget test cannot
+/// drive. This double owns the stream, so a test can emit the exact sequence of
+/// status events it wants the page to observe.
+class _FakeStateUser extends StateUser {
+  /// Whether [signedIn] reports an authenticated visitor.
+  bool signedInValue = false;
+
+  /// Streams the status events a test emits through [emit].
+  final StreamController<UserStatus> _controller =
+      StreamController<UserStatus>.broadcast();
+
+  /// Whether [_controller] has been closed by [destroy].
+  bool destroyed = false;
+
+  /// Publishes [signedIn] as the next status event.
+  void emit({required bool signedIn}) {
+    signedInValue = signedIn;
+    _controller.add(UserStatus(signedIn: signedIn, ready: true));
+  }
+
+  /// Closes the stream, standing in for the end of a test's lifetime.
+  void destroy() {
+    destroyed = true;
+    _controller.close();
+  }
+
+  @override
+  bool get signedIn => signedInValue;
+
+  @override
+  UserStatus get userStatus => UserStatus(signedIn: signedInValue, ready: true);
+
+  @override
+  Stream<UserStatus> get streamStatus => _controller.stream;
 }
 
 void main() {
@@ -1265,6 +1312,115 @@ void main() {
         );
         expect(state.widget.authService, isNull);
         expect(state.auth, isA<FirebaseAuthService>());
+      });
+    });
+
+    group('sign-in reset', () {
+      testWidgets('should clear the view state when the visitor signs in', (
+        WidgetTester tester,
+      ) async {
+        // Arrange – the email-link flow left the page on the "check your
+        // inbox" step, and nobody is signed in yet.
+        final stateUser = _FakeStateUser();
+        addTearDown(stateUser.destroy);
+        final state = StateViewAuth()
+          ..section = 4
+          ..email = 'visitor@example.com';
+        await _pumpAuth(tester, state: state, stateUser: stateUser);
+        expect(state.section, 4);
+
+        // Act – the visitor authenticates somewhere else in the app.
+        stateUser.emit(signedIn: true);
+        await tester.pump();
+
+        // Assert – the page forgets the parked step.
+        expect(state.section, 0);
+        expect(state.email, isNull);
+      });
+
+      testWidgets(
+        'should clear the view state when mounted already signed in',
+        (WidgetTester tester) async {
+          // Arrange – the visitor signed in while the page was unmounted, so no
+          // transition event will ever arrive for it.
+          final stateUser = _FakeStateUser()..signedInValue = true;
+          addTearDown(stateUser.destroy);
+          final state = StateViewAuth()..section = 4;
+
+          // Act
+          await _pumpAuth(tester, state: state, stateUser: stateUser);
+
+          // Assert
+          expect(state.section, 0);
+        },
+      );
+
+      testWidgets(
+        'should keep the view state while the visitor is signed out',
+        (WidgetTester tester) async {
+          // Arrange
+          final stateUser = _FakeStateUser();
+          addTearDown(stateUser.destroy);
+          final state = StateViewAuth()..section = 2;
+          await _pumpAuth(tester, state: state, stateUser: stateUser);
+
+          // Act – a status event that does not change the signed-in flag.
+          stateUser.emit(signedIn: false);
+          await tester.pump();
+
+          // Assert – a section being filled in survives.
+          expect(state.section, 2);
+        },
+      );
+
+      testWidgets('should only clear on the sign-in transition', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
+        final stateUser = _FakeStateUser();
+        addTearDown(stateUser.destroy);
+        final state = StateViewAuth()..section = 2;
+        await _pumpAuth(tester, state: state, stateUser: stateUser);
+        stateUser.emit(signedIn: true);
+        await tester.pump();
+
+        // Act – the visitor starts a new flow, then the status repeats itself.
+        state.section = 3;
+        stateUser.emit(signedIn: true);
+        await tester.pump();
+
+        // Assert – a repeated event is not a second transition.
+        expect(state.section, 3);
+      });
+
+      testWidgets('should stop observing the status stream once disposed', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
+        final stateUser = _FakeStateUser();
+        addTearDown(stateUser.destroy);
+        final state = StateViewAuth();
+        await _pumpAuth(tester, state: state, stateUser: stateUser);
+
+        // Act – tear the page down, then let the stream emit again.
+        await tester.pumpWidget(const SizedBox.shrink());
+        state.section = 4;
+        stateUser.emit(signedIn: true);
+        await tester.pump();
+
+        // Assert – the cancelled subscription left nothing behind.
+        expect(state.section, 4);
+      });
+
+      testWidgets('should render without a StateUser provider', (
+        WidgetTester tester,
+      ) async {
+        // Arrange & Act – the page is usable in a tree that never registers
+        // the auth state container.
+        await _pumpAuth(tester, anonymous: true);
+
+        // Assert – it still reaches its sign-in options.
+        expect(find.byType(FilledButton), findsOneWidget);
       });
     });
   });
