@@ -33,6 +33,7 @@ class PhoneInput extends StatefulWidget {
     this.disabled = false,
     this.required = false,
     this.country,
+    this.validator,
     this.suffix,
     this.suffixIcon,
     this.suffixText,
@@ -115,6 +116,16 @@ class PhoneInput extends StatefulWidget {
 
   /// Provides a preferred ISO country code used for parsing and defaults.
   final String? country;
+
+  /// Runs an additional validation pass on the national number.
+  ///
+  /// The built-in phone validation runs first: when it rejects the value its
+  /// error message wins and this validator is not consulted. When the
+  /// built-in validation accepts the value, this callback runs with the same
+  /// raw field text so callers can layer extra rules (for example rejecting
+  /// numbers from a specific area code) on top of format correctness. Pass
+  /// `null` to keep the widget's validation unchanged.
+  final FormFieldValidator<String>? validator;
 
   /// Overrides the accessibility label exposed on the national number field.
   ///
@@ -381,6 +392,14 @@ class _PhoneInputState extends State<PhoneInput> {
       locales: locales,
       defaultCountry: selectedAlpha2.isEmpty ? 'US' : selectedAlpha2,
     );
+    String? validateWithCustom(String? value) {
+      final builtInError = inputValidation.validatePhone(value);
+      if (builtInError != null) {
+        return builtInError;
+      }
+      return widget.validator?.call(value);
+    }
+
     final countryPicker = InputData(
       key: const Key('country-picker'),
       required: widget.required,
@@ -450,7 +469,7 @@ class _PhoneInputState extends State<PhoneInput> {
         _updatePhoneNumber(value);
         if (isValidMatch) widget.onSubmit?.call(formattedNumber);
       },
-      validator: inputValidation.validatePhone,
+      validator: validateWithCustom,
       inputFormatters: [
         FilteringTextInputFormatter.deny(RegexHelper.phoneDeniedInput),
         FilteringTextInputFormatter.allow(RegexHelper.phoneAllowedInput),

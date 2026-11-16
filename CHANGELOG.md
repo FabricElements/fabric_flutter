@@ -1,5 +1,17 @@
 ## [Unreleased]
 
+### Added
+
+* **Custom validator for `PhoneInput`.** `PhoneInput` now accepts an optional
+  `FormFieldValidator<String>? validator` parameter. The built-in phone
+  validation runs first and its error message wins when it rejects the value;
+  otherwise the custom validator runs with the same raw field text so callers
+  can layer additional rules (for example rejecting a specific area code) on
+  top of format correctness. Omitting the parameter leaves validation
+  behaviour unchanged.
+
+## [3.6.0] - 2026-11-16
+
 ### Fixed
 
 * **The email-link sign-in view no longer shows the "check your inbox" step
