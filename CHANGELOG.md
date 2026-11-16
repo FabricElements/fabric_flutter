@@ -10,6 +10,18 @@
   Opening the link also no longer shows the "sign-in link sent" alert: the
   visitor already received the link, so the confirmation is redundant.
 
+* **A dropdown or enum field now shows the new selection as soon as the parent
+  rebuilds with a different `value`.** Previously the field compared the
+  incoming value against itself, so the comparison always reported "no
+  change" and the displayed label was never refreshed — the label stayed on
+  the previous selection until the user tapped the field again, and a value
+  that no longer matched any option kept its stale label. `InputData` now
+  resolves the incoming value before comparing, so the label and the field's
+  own value follow the parent on the very next frame for
+  `InputDataType.dropdown` and `InputDataType.enums`, and the label is cleared
+  when the value becomes empty. Text-like fields keep writing through their
+  text controller after the frame, so their behaviour is unchanged.
+
 ### Added
 
 * **Custom upload metadata on media helpers and upload widgets.**

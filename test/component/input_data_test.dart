@@ -1,9 +1,13 @@
 import 'package:fabric_flutter/component/input_data.dart';
+import 'package:fabric_flutter/helper/options.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 
 Widget _wrap(Widget child) => MaterialApp(home: Scaffold(body: child));
+
+/// A minimal enum used to exercise [InputDataType.enums] value syncing.
+enum _TestEnum { alpha, beta }
 
 void main() {
   group('parseValueByInputDataType', () {
@@ -306,11 +310,135 @@ void main() {
             ),
           ),
         );
-        // The value sync is deferred one frame; pump once to apply it.
+        // The text controller is written after the frame so the enclosing form
+        // is never notified mid-build; pump once to apply it.
         await tester.pump();
 
         // Assert — the field now shows the new value.
         expect(find.text('Lovelace'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      'should show the new dropdown label on the first frame after the parent '
+      'rebuilds with a new value',
+      (tester) async {
+        // Arrange
+        final options = [
+          ButtonOptions(value: 'us', label: 'United States'),
+          ButtonOptions(value: 'es', label: 'Spain'),
+        ];
+        await tester.pumpWidget(
+          _wrap(
+            InputData(
+              value: 'us',
+              type: InputDataType.dropdown,
+              automationKey: 'field',
+              options: options,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('United States'), findsOneWidget);
+
+        // Act — rebuild with a different selected option.
+        await tester.pumpWidget(
+          _wrap(
+            InputData(
+              value: 'es',
+              type: InputDataType.dropdown,
+              automationKey: 'field',
+              options: options,
+            ),
+          ),
+        );
+        await tester.pump();
+
+        // Assert — no extra tap is needed for the label to catch up.
+        expect(find.text('Spain'), findsOneWidget);
+        expect(find.text('United States'), findsNothing);
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      'should clear the dropdown label when the parent clears the value',
+      (tester) async {
+        // Arrange
+        await tester.pumpWidget(
+          _wrap(
+            InputData(
+              value: 'us',
+              type: InputDataType.dropdown,
+              automationKey: 'field',
+              options: [
+                ButtonOptions(value: 'us', label: 'United States'),
+                ButtonOptions(value: 'es', label: 'Spain'),
+              ],
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('United States'), findsOneWidget);
+
+        // Act — the parent rebuilds with no selection.
+        await tester.pumpWidget(
+          _wrap(
+            InputData(
+              value: null,
+              type: InputDataType.dropdown,
+              automationKey: 'field',
+              options: [
+                ButtonOptions(value: 'us', label: 'United States'),
+                ButtonOptions(value: 'es', label: 'Spain'),
+              ],
+            ),
+          ),
+        );
+        await tester.pump();
+
+        // Assert — the stale label is cleared instead of lingering.
+        expect(find.text('United States'), findsNothing);
+        expect(find.text('Spain'), findsNothing);
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      'should show the new enum label on the first frame after the parent '
+      'rebuilds with a new value',
+      (tester) async {
+        // Arrange
+        await tester.pumpWidget(
+          _wrap(
+            const InputData(
+              value: _TestEnum.alpha,
+              type: InputDataType.enums,
+              automationKey: 'field',
+              enums: _TestEnum.values,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('label--alpha'), findsOneWidget);
+
+        // Act — rebuild with a different enum.
+        await tester.pumpWidget(
+          _wrap(
+            const InputData(
+              value: _TestEnum.beta,
+              type: InputDataType.enums,
+              automationKey: 'field',
+              enums: _TestEnum.values,
+            ),
+          ),
+        );
+        await tester.pump();
+
+        // Assert — no extra tap is needed for the label to catch up.
+        expect(find.text('label--beta'), findsOneWidget);
+        expect(find.text('label--alpha'), findsNothing);
         expect(tester.takeException(), isNull);
       },
     );
