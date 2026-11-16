@@ -753,9 +753,11 @@ getValue -------------------------------------
     if (textController.text == text) return;
     // The form state is looked up instead of subclassed: the field build below
     // is what needs the value aligned before the controller notifies.
-    _formFieldKey.currentState?.setValue(
-      text,
-    ); // ignore: invalid_use_of_protected_member
+    final formField = _formFieldKey.currentState;
+    if (formField != null) {
+      // ignore: invalid_use_of_protected_member
+      formField.setValue(text);
+    }
     textController.text = text;
   }
 
