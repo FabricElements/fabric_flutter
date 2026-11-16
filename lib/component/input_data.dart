@@ -606,33 +606,28 @@ class _InputDataState extends State<InputData> {
           if (notify && mounted) setState(() {});
           break;
         case InputDataType.enums:
-          value = EnumData.find(enums: widget.enums, value: newValue);
-          dynamic newFormattedValue = valueChanged(newValue)?.toString() ?? '';
-          bool sameValue = value == newFormattedValue;
-          if (!sameValue) {
-            value = newFormattedValue;
-            if (notify && mounted) setState(() {});
-          }
+          // Keep the matched enum instance as the value: the label lookup and
+          // the agent snapshot both derive from it. Only the state is updated
+          // here — the label is written by `build`, which is the only place
+          // with locale access, because this method also runs from `initState`.
+          final dynamic enumValue = EnumData.find(
+            enums: widget.enums,
+            value: newValue,
+          );
+          value = enumValue;
+          if (notify && mounted) setState(() {});
           break;
         case InputDataType.dropdown:
           final optionMatch = widget.options.where((item) {
             return item.value == newValue;
           });
-          bool valueInOptions = optionMatch.isNotEmpty;
-          if (valueInOptions) {
-            value = newValue;
-          } else {
-            value = null;
-          }
-          dynamic newFormattedValue = newValue == null
-              ? null
-              : (valueChanged(newValue)?.toString() ?? '');
-          bool sameValue = value == newFormattedValue;
-          if (!sameValue) {
-            value = newFormattedValue;
-            textController.text = valueInOptions ? optionMatch.first.label : '';
-            if (notify && mounted) setState(() {});
-          }
+          // A value that matches an option adopts the option's own value, so an
+          // equal-but-not-identical value still resolves. A value with no
+          // matching option is kept as-is instead of being dropped, and a null
+          // value stays null. As with the enum branch, only the state is
+          // updated here and the label is written by `build`.
+          value = optionMatch.isEmpty ? newValue : optionMatch.first.value;
+          if (notify && mounted) setState(() {});
           break;
         case InputDataType.bool:
           bool baseValue = false;
@@ -735,6 +730,33 @@ getValue -------------------------------------
     if ((value?.toString() ?? '').isEmpty) return;
     value = '';
     if (mounted) setState(() {});
+  }
+
+  /// Displays [text] in the field without notifying an enclosing [Form].
+  ///
+  /// [TextFormField] listens to its controller and forwards any text that
+  /// differs from its own form-field value to `FormFieldState.didChange`, which
+  /// rebuilds the enclosing [Form]. That rebuild is illegal during the build
+  /// phase, because the form is an ancestor rather than a descendant of the
+  /// current build target, and this widget writes its label from [build] so the
+  /// frame the parent triggers already shows the new selection.
+  ///
+  /// Aligning the form field's value first leaves the controller notification
+  /// with nothing to report — the same suppression the framework documents for
+  /// `FormFieldState.setValue` and relies on in `FormFieldState.reset`.
+  ///
+  /// `setValue` is annotated `@protected` because it expects a `FormFieldState`
+  /// subclass to call it, but it is the framework's documented entry point for
+  /// exactly this case and mutates nothing beyond the field's own value, so the
+  /// annotation is suppressed rather than worked around.
+  void _setControllerText(String text) {
+    if (textController.text == text) return;
+    // The form state is looked up instead of subclassed: the field build below
+    // is what needs the value aligned before the controller notifies.
+    _formFieldKey.currentState?.setValue(
+      text,
+    ); // ignore: invalid_use_of_protected_member
+    textController.text = text;
   }
 
   /// Closes the dropdown search view and clears any transient query text.
@@ -841,9 +863,22 @@ getValue -------------------------------------
       }
     }
     if (typeChanged || oldWidget.value != widget.value) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) getValue(notify: false, newValue: widget.value);
-      });
+      if (widget.type == InputDataType.dropdown ||
+          widget.type == InputDataType.enums) {
+        // Adopt the new selection synchronously so the frame the parent
+        // triggers already renders the new label instead of the previous one.
+        // Only the state is touched: writing to [textController] while the
+        // parent builds would notify the enclosing `Form` mid-build, which is
+        // illegal. `build` owns the controller text for these two types.
+        getValue(newValue: widget.value);
+      } else {
+        // Deferred: applying the new value writes to [textController], and a
+        // controller notification rebuilds the enclosing `Form`, which is
+        // illegal while this widget is being rebuilt by its parent.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) getValue(notify: false, newValue: widget.value);
+        });
+      }
     }
   }
 
@@ -1574,13 +1609,22 @@ getValue -------------------------------------
           final match = dropdownOptions.where((element) {
             return element.value == value;
           });
-          if (value != null && match.isNotEmpty) {
-            textController.text = match.first.label;
+          if (match.isNotEmpty) {
+            _setControllerText(match.first.label);
+          } else if (value == null || (value is String && value.isEmpty)) {
+            // A cleared selection must drop the stale label. A non-empty
+            // value with no matching option is deliberately left alone so a
+            // host that resolves its own label (e.g. a dropdown keyed by id)
+            // keeps it.
+            _setControllerText('');
           }
         }
         if (widget.type == InputDataType.enums) {
           if (value != null && value != '') {
-            textController.text = enumData.localesFromEnum(value);
+            _setControllerText(enumData.localesFromEnum(value));
+          } else {
+            // A cleared selection must drop the stale label.
+            _setControllerText('');
           }
           dropdownOptions = List.generate(widget.enums.length, (index) {
             final e = widget.enums[index];
