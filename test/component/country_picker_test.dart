@@ -42,5 +42,30 @@ void main() {
       expect(find.byType(InputData), findsOneWidget);
       expect(find.textContaining('(US)'), findsOneWidget);
     });
+
+    testWidgets('shows the new country label when the value changes', (
+      tester,
+    ) async {
+      // Arrange
+      await _pump(tester, CountryPicker(value: 'US', onChange: (_) {}));
+      expect(find.textContaining('(US)'), findsOneWidget);
+
+      // Act – the parent rebuilds with a different country.
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: const [AppLocalizationsDelegate(locales: {})],
+          supportedLocales: const [Locale('en', 'US')],
+          home: Scaffold(
+            body: CountryPicker(value: 'ES', onChange: (_) {}),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      // Assert – the label catches up without an extra tap.
+      expect(find.textContaining('(ES)'), findsOneWidget);
+      expect(find.textContaining('(US)'), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
   });
 }

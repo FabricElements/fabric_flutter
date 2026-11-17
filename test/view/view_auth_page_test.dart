@@ -7,7 +7,9 @@ import 'package:fabric_flutter/helper/email_link_storage.dart';
 import 'package:fabric_flutter/placeholder/loading_screen.dart';
 import 'package:fabric_flutter/state/state_analytics.dart';
 import 'package:fabric_flutter/state/state_global.dart';
+import 'package:fabric_flutter/state/state_user.dart';
 import 'package:fabric_flutter/state/state_view_auth.dart';
+import 'package:fabric_flutter/serialized/user_status.dart';
 import 'package:fabric_flutter/view/view_auth_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -154,10 +156,20 @@ class _FakeAuthService implements AuthService {
 /// future settles the 500ms post-frame delay the page uses to flip its private
 /// `initialized` flag, so callers land on the fully rendered page rather than
 /// the loading screen.
+///
+/// [size] pins the logical viewport, and [padding] installs a synthetic
+/// [MediaQuery] inset, so a test can reproduce a device whose content does not
+/// fit below the status bar. [textScaler] enlarges text the same way. All three
+/// default to the ambient values, so a test that does not ask for them renders
+/// exactly what it did before.
+///
+/// [stateUser] is registered only when supplied, which keeps every existing
+/// test on the no-`StateUser` tree the page has to tolerate.
 Future<StateViewAuth> _pumpAuth(
   WidgetTester tester, {
   bool connected = true,
   StateViewAuth? state,
+  StateUser? stateUser,
   bool phone = false,
   bool google = false,
   bool anonymous = false,
@@ -165,6 +177,13 @@ Future<StateViewAuth> _pumpAuth(
   String? emailLinkDomain,
   bool emailLinkAndroidInstallApp = false,
   String? title,
+  String? description,
+  String? logo,
+  bool logoCircle = false,
+  Size? size,
+  EdgeInsets? padding,
+  TextScaler? textScaler,
+  TargetPlatform? platform,
   bool settle = true,
   AuthService? authService,
   List<ViewAuthLegalLink>? legalLinks,
@@ -172,18 +191,41 @@ Future<StateViewAuth> _pumpAuth(
 }) async {
   final global = StateGlobal()..connected = connected;
   final viewAuth = state ?? StateViewAuth();
+  if (size != null) {
+    // A logical pixel ratio of 1 makes `size` the exact logical viewport.
+    tester.view.physicalSize = size;
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+  }
   await tester.pumpWidget(
     MultiProvider(
       providers: [
         ChangeNotifierProvider<StateGlobal>.value(value: global),
         ChangeNotifierProvider<StateAnalytics>.value(value: StateAnalytics()),
         ChangeNotifierProvider<StateViewAuth>.value(value: viewAuth),
+        if (stateUser != null)
+          ChangeNotifierProvider<StateUser>.value(value: stateUser),
       ],
       child: MaterialApp(
         navigatorKey: AppGlobal.navigatorKey,
         scaffoldMessengerKey: AppGlobal.snackbarKey,
         localizationsDelegates: const [AppLocalizationsDelegate(locales: {})],
         supportedLocales: const [Locale('en', 'US')],
+        theme: platform == null ? null : ThemeData(platform: platform),
+        builder: (BuildContext context, Widget? child) {
+          // The page reads both values from the root MediaQuery, so overriding
+          // them here is equivalent to running on the device being simulated.
+          final Widget wrapped = child ?? const SizedBox.shrink();
+          if (textScaler == null && padding == null) return wrapped;
+          return MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              textScaler: textScaler,
+              padding: padding,
+              viewPadding: padding,
+            ),
+            child: wrapped,
+          );
+        },
         home: ViewAuthPage(
           url: 'https://example.com/auth',
           phone: phone,
@@ -193,6 +235,9 @@ Future<StateViewAuth> _pumpAuth(
           emailLinkDomain: emailLinkDomain,
           emailLinkAndroidInstallApp: emailLinkAndroidInstallApp,
           title: title,
+          description: description,
+          logo: logo,
+          logoCircle: logoCircle,
           authService: authService,
           legalLinks: legalLinks,
           webSignInMode: webSignInMode,
@@ -223,6 +268,45 @@ Future<void> _settleAlert(WidgetTester tester) async {
   await tester.pump();
   await tester.pump();
   await tester.pump(const Duration(milliseconds: 750));
+}
+
+/// Fakes the three [StateUser] members the page reads for its sign-in reset.
+///
+/// The real container derives `signedIn` and `streamStatus` from the Firebase
+/// singletons and only publishes a *ready* status, which a widget test cannot
+/// drive. This double owns the stream, so a test can emit the exact sequence of
+/// status events it wants the page to observe.
+class _FakeStateUser extends StateUser {
+  /// Whether [signedIn] reports an authenticated visitor.
+  bool signedInValue = false;
+
+  /// Streams the status events a test emits through [emit].
+  final StreamController<UserStatus> _controller =
+      StreamController<UserStatus>.broadcast();
+
+  /// Whether [_controller] has been closed by [destroy].
+  bool destroyed = false;
+
+  /// Publishes [signedIn] as the next status event.
+  void emit({required bool signedIn}) {
+    signedInValue = signedIn;
+    _controller.add(UserStatus(signedIn: signedIn, ready: true));
+  }
+
+  /// Closes the stream, standing in for the end of a test's lifetime.
+  void destroy() {
+    destroyed = true;
+    _controller.close();
+  }
+
+  @override
+  bool get signedIn => signedInValue;
+
+  @override
+  UserStatus get userStatus => UserStatus(signedIn: signedInValue, ready: true);
+
+  @override
+  Stream<UserStatus> get streamStatus => _controller.stream;
 }
 
 void main() {
@@ -895,6 +979,32 @@ void main() {
         },
       );
 
+      testWidgets('should not alert or park on the inbox step when opened', (
+        WidgetTester tester,
+      ) async {
+        // Arrange – the visitor already opened the link, which is itself the
+        // confirmation that they received it.
+        const link =
+            'https://app.example.com/connect?request=rid-42&oobCode=abc123';
+        final auth = _FakeAuthService();
+        final state = StateViewAuth()..section = 4;
+        EmailLinkStorage.write('user@example.com');
+        await _pumpAuth(tester, email: true, state: state, authService: auth);
+        final page = tester.state<ViewAuthPageState>(find.byType(ViewAuthPage));
+
+        // Act
+        await page.completeEmailLinkSignIn(link);
+        await _settleAlert(tester);
+
+        // Assert – no "link sent" message is shown, and the view is not left
+        // parked on the inbox step of the completed flow.
+        expect(find.text('Sign-in link sent'), findsNothing);
+        expect(find.byType(SnackBar), findsNothing);
+        expect(state.section, 0);
+        expect(state.emailLinkSent, isFalse);
+        expect(state.awaitingEmailForLink, isFalse);
+      });
+
       testWidgets('should prompt for the email when none was stored', (
         WidgetTester tester,
       ) async {
@@ -1102,6 +1212,155 @@ void main() {
       });
     });
 
+    group('header safe area', () {
+      const String logoUrl = 'https://example.com/logo.png';
+      const ValueKey<String> logoKey = ValueKey<String>(
+        'auth-page-logo-circle-$logoUrl',
+      );
+      // A realistic iPhone inset; the bug is that content taller than the
+      // space below it slides the logo up under the clock.
+      const EdgeInsets iosInset = EdgeInsets.only(top: 59, bottom: 34);
+
+      /// Mounts the page on iOS with [description] sized to overflow the
+      /// viewport, and asserts the logo stayed inside the safe area.
+      Future<void> expectLogoBelowInset(
+        WidgetTester tester, {
+        required Size size,
+        required String description,
+        TextScaler? textScaler,
+      }) async {
+        // Arrange & Act – a long description (and optionally enlarged text)
+        // makes the column taller than the space below the inset, which is
+        // the condition that used to push the logo over the status bar.
+        await _pumpAuth(
+          tester,
+          platform: TargetPlatform.iOS,
+          logo: logoUrl,
+          logoCircle: true,
+          title: 'Sign in',
+          description: description,
+          size: size,
+          padding: iosInset,
+          textScaler: textScaler,
+        );
+
+        // Assert – the logo is whole and starts below the inset.
+        final Rect logo = tester.getRect(find.byKey(logoKey));
+        expect(logo.top, greaterThanOrEqualTo(iosInset.top));
+        expect(logo.height, greaterThan(0.0));
+        expect(tester.takeException(), isNull);
+      }
+
+      testWidgets('should keep the logo below the iOS status bar inset', (
+        WidgetTester tester,
+      ) async {
+        await expectLogoBelowInset(
+          tester,
+          size: const Size(390, 600),
+          description: 'd' * 200,
+        );
+      });
+
+      testWidgets('should keep the logo below the inset on a short viewport', (
+        WidgetTester tester,
+      ) async {
+        await expectLogoBelowInset(
+          tester,
+          size: const Size(390, 520),
+          description: 'd' * 200,
+        );
+      });
+
+      testWidgets('should keep the logo below the inset with enlarged text', (
+        WidgetTester tester,
+      ) async {
+        // Arrange & Act – a large text scale defeats any fix that only shrinks
+        // the logo, because the text itself is not shrinkable.
+        await expectLogoBelowInset(
+          tester,
+          size: const Size(320, 568),
+          description: 'd' * 200,
+          textScaler: const TextScaler.linear(1.3),
+        );
+      });
+
+      testWidgets('should not move the logo when the content already fits', (
+        WidgetTester tester,
+      ) async {
+        // Arrange & Act – short content that fits below the inset.
+        await _pumpAuth(
+          tester,
+          platform: TargetPlatform.iOS,
+          logo: logoUrl,
+          logoCircle: true,
+          title: 'Sign in',
+          size: const Size(390, 600),
+          padding: iosInset,
+        );
+
+        // Assert – the logo sits exactly where it always has on iOS, so the
+        // fix only ever intervenes when the content overflows.
+        final Rect logo = tester.getRect(find.byKey(logoKey));
+        expect(logo.top, 145.0);
+        expect(logo.height, 150.0);
+        expect(tester.takeException(), isNull);
+      });
+
+      testWidgets('should leave the Android header on the un-pinned path', (
+        WidgetTester tester,
+      ) async {
+        // Arrange & Act – a tall page on Android, where nothing may change.
+        await _pumpAuth(
+          tester,
+          logo: logoUrl,
+          logoCircle: true,
+          title: 'Sign in',
+          description: 'd' * 200,
+          size: const Size(390, 600),
+          padding: const EdgeInsets.only(top: 24, bottom: 0),
+        );
+
+        // Assert – the logo keeps its natural size, the iOS-only scroll
+        // viewport is absent, and the header still overflows the top exactly
+        // as it did before the fix (the pinned iOS path is deliberately not
+        // taken here).
+        final Rect logo = tester.getRect(find.byKey(logoKey));
+        expect(logo.height, 150.0);
+        expect(find.byType(SingleChildScrollView), findsNothing);
+        expect(logo.top, -2.0);
+      });
+    });
+
+    group('sign-in button spacing', () {
+      testWidgets('should paint a 16px gap between stacked sign-in buttons', (
+        WidgetTester tester,
+      ) async {
+        // Arrange & Act – two providers that render on every host platform.
+        await _pumpAuth(tester, anonymous: true, email: true);
+
+        // Assert – measure the painted button surfaces, not the padded tap
+        // targets the finder resolves to.
+        final Rect first = tester.getRect(
+          find
+              .descendant(
+                of: find.byType(FilledButton).at(0),
+                matching: find.byType(Material),
+              )
+              .first,
+        );
+        final Rect second = tester.getRect(
+          find
+              .descendant(
+                of: find.byType(FilledButton).at(1),
+                matching: find.byType(Material),
+              )
+              .first,
+        );
+
+        expect(second.top - first.bottom, 16.0);
+      });
+    });
+
     group('backward compatibility', () {
       testWidgets('should default to the Firebase implementation when no '
           'service is injected', (WidgetTester tester) async {
@@ -1114,6 +1373,162 @@ void main() {
         );
         expect(state.widget.authService, isNull);
         expect(state.auth, isA<FirebaseAuthService>());
+      });
+    });
+
+    group('sign-in reset', () {
+      testWidgets('should clear the view state when the visitor signs in', (
+        WidgetTester tester,
+      ) async {
+        // Arrange – the email-link flow left the page on the "check your
+        // inbox" step, and nobody is signed in yet.
+        final stateUser = _FakeStateUser();
+        addTearDown(stateUser.destroy);
+        final state = StateViewAuth()
+          ..section = 4
+          ..email = 'visitor@example.com';
+        await _pumpAuth(tester, state: state, stateUser: stateUser);
+        expect(state.section, 4);
+
+        // Act – the visitor authenticates somewhere else in the app.
+        stateUser.emit(signedIn: true);
+        await tester.pump();
+
+        // Assert – the page forgets the parked step.
+        expect(state.section, 0);
+        expect(state.email, isNull);
+      });
+
+      testWidgets(
+        'should clear the view state when mounted already signed in',
+        (WidgetTester tester) async {
+          // Arrange – the visitor signed in while the page was unmounted, so no
+          // transition event will ever arrive for it.
+          final stateUser = _FakeStateUser()..signedInValue = true;
+          addTearDown(stateUser.destroy);
+          final state = StateViewAuth()..section = 4;
+
+          // Act
+          await _pumpAuth(tester, state: state, stateUser: stateUser);
+
+          // Assert
+          expect(state.section, 0);
+        },
+      );
+
+      testWidgets(
+        'should clear a finished link flow when remounted while signed out',
+        (WidgetTester tester) async {
+          // Arrange – the email-link flow parked the page on the "check your
+          // inbox" step, the visitor signed in from the link itself, and the
+          // page was unmounted before the sign-in event could reach it. The
+          // view state outlives the page, so signing out and returning shows
+          // the stale step.
+          final stateUser = _FakeStateUser();
+          addTearDown(stateUser.destroy);
+          final state = StateViewAuth()
+            ..section = 4
+            ..emailLinkSent = true
+            ..email = 'visitor@example.com';
+
+          // Act – the page mounts again while the visitor is signed out, the
+          // sequence a sign-out right after sign-in produces on mobile.
+          await _pumpAuth(tester, state: state, stateUser: stateUser);
+
+          // Assert – the visitor starts on the first section, not the inbox
+          // step of a flow that already completed.
+          expect(state.section, 0);
+          expect(state.emailLinkSent, isFalse);
+          expect(state.email, isNull);
+        },
+      );
+
+      testWidgets(
+        'should keep a mid-flow state when remounted while signed out',
+        (WidgetTester tester) async {
+          // Arrange – the visitor was typing their details on the second
+          // section and has not asked for a link yet.
+          final stateUser = _FakeStateUser();
+          addTearDown(stateUser.destroy);
+          final state = StateViewAuth()
+            ..section = 2
+            ..email = 'visitor@example.com';
+
+          // Act
+          await _pumpAuth(tester, state: state, stateUser: stateUser);
+
+          // Assert – the in-progress form survives the remount.
+          expect(state.section, 2);
+          expect(state.email, 'visitor@example.com');
+        },
+      );
+
+      testWidgets(
+        'should keep the view state while the visitor is signed out',
+        (WidgetTester tester) async {
+          // Arrange
+          final stateUser = _FakeStateUser();
+          addTearDown(stateUser.destroy);
+          final state = StateViewAuth()..section = 2;
+          await _pumpAuth(tester, state: state, stateUser: stateUser);
+
+          // Act – a status event that does not change the signed-in flag.
+          stateUser.emit(signedIn: false);
+          await tester.pump();
+
+          // Assert – a section being filled in survives.
+          expect(state.section, 2);
+        },
+      );
+
+      testWidgets('should only clear on the sign-in transition', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
+        final stateUser = _FakeStateUser();
+        addTearDown(stateUser.destroy);
+        final state = StateViewAuth()..section = 2;
+        await _pumpAuth(tester, state: state, stateUser: stateUser);
+        stateUser.emit(signedIn: true);
+        await tester.pump();
+
+        // Act – the visitor starts a new flow, then the status repeats itself.
+        state.section = 3;
+        stateUser.emit(signedIn: true);
+        await tester.pump();
+
+        // Assert – a repeated event is not a second transition.
+        expect(state.section, 3);
+      });
+
+      testWidgets('should stop observing the status stream once disposed', (
+        WidgetTester tester,
+      ) async {
+        // Arrange
+        final stateUser = _FakeStateUser();
+        addTearDown(stateUser.destroy);
+        final state = StateViewAuth();
+        await _pumpAuth(tester, state: state, stateUser: stateUser);
+
+        // Act – tear the page down, then let the stream emit again.
+        await tester.pumpWidget(const SizedBox.shrink());
+        state.section = 4;
+        stateUser.emit(signedIn: true);
+        await tester.pump();
+
+        // Assert – the cancelled subscription left nothing behind.
+        expect(state.section, 4);
+      });
+
+      testWidgets('should render without a StateUser provider', (
+        WidgetTester tester,
+      ) async {
+        // Arrange & Act – the page is usable in a tree that never registers
+        // the auth state container.
+        await _pumpAuth(tester, anonymous: true);
+
+        // Assert – it still reaches its sign-in options.
+        expect(find.byType(FilledButton), findsOneWidget);
       });
     });
   });

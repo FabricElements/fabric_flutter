@@ -316,11 +316,18 @@ class StateDropZone extends ChangeNotifier {
   /// [FirebaseStorageHelper.saveFileData], and the transfers run concurrently up
   /// to [uploadConcurrency] so a large selection cannot open an unbounded number
   /// of simultaneous Storage connections.
+  /// Uploads every staged item to [path] and reports the results through
+  /// [callback].
+  ///
+  /// [customMetadata] is attached to each stored object so a caller can tag a
+  /// whole selection for server-side handling. It is optional and defaults to
+  /// no metadata, which keeps existing uploads unchanged.
   Future<void> upload({
     required BuildContext context,
     required String path,
     required Function(List<MediaDataUpload> media) callback,
     required bool expiry,
+    Map<String, String>? customMetadata,
   }) async {
     if (_disposed || loading || mediaList.isEmpty) return;
     final firebaseStorageHelper = FirebaseStorageHelper(context);
@@ -349,6 +356,7 @@ class StateDropZone extends ChangeNotifier {
             path: path,
             autoId: true,
             expiry: expiry,
+            customMetadata: customMetadata,
           );
           m.path = finalPath;
           m.status = MediaDataUploadStatus.uploaded;

@@ -21,11 +21,14 @@ import '../helper/density_spacing.dart';
 import '../helper/email_link_storage.dart';
 import '../helper/input_validation.dart';
 import '../helper/log_color.dart';
+import '../helper/provider_helper.dart';
 import '../helper/url_safety.dart';
 import '../placeholder/loading_screen.dart';
 import '../serialized/agent_element_snapshot.dart';
+import '../serialized/user_status.dart';
 import '../state/state_analytics.dart';
 import '../state/state_global.dart';
+import '../state/state_user.dart';
 import '../state/state_view_auth.dart';
 
 /// Re-exports the authentication seam so importers of this view keep access to
@@ -238,6 +241,24 @@ class ViewAuthPageState extends State<ViewAuthPage> {
   /// Whether this element has been disposed.
   bool _disposed = false;
 
+  /// Tracks the [StateUser.streamStatus] subscription so it can be cancelled.
+  ///
+  /// The page is meant to be reachable while signed out, so it resets its own
+  /// view state when the visitor signs in elsewhere: the email-link flow leaves
+  /// [StateViewAuth.section] on the "check your inbox" step, and without this
+  /// reset a later sign-out would re-render that stale step instead of the
+  /// sign-in options. Registering the listener in [initState] rather than
+  /// `build` keeps it to a single subscription for the lifetime of the page.
+  StreamSubscription<UserStatus>? _statusSubscription;
+
+  /// The signed-in flag observed by the previous [StateUser.streamStatus] event.
+  ///
+  /// Seeds from the mounted [StateUser] (see [_subscribeToAuthStatus]) and
+  /// latches on every event afterwards, so the view is cleared on the sign-in
+  /// *transition* only — an event that merely repeats the current state must
+  /// not wipe a section the visitor is still filling in.
+  bool _wasSignedIn = false;
+
   /// Performs the actual sign-in calls for this page.
   ///
   /// Resolved once so a page-scoped [FirebaseAuthService] can retain the
@@ -263,6 +284,7 @@ class ViewAuthPageState extends State<ViewAuthPage> {
     super.initState();
     loading = false;
     auth = widget.authService ?? FirebaseAuthService();
+    _subscribeToAuthStatus();
     if (widget.email) {
       // The provider tree is not readable until the first build, so the
       // incoming-link check has to wait for one.
@@ -285,7 +307,67 @@ class ViewAuthPageState extends State<ViewAuthPage> {
   void dispose() {
     _disposed = true;
     _linkCheckToken++;
+    _statusSubscription?.cancel();
+    _statusSubscription = null;
     super.dispose();
+  }
+
+  /// Clears the view state whenever the visitor becomes authenticated.
+  ///
+  /// [StateUser] is optional: the page is usable on its own, so a tree that
+  /// does not register it simply keeps no subscription. The listener runs in
+  /// [initState] with `listen: false`, so it never creates a provider
+  /// dependency, and it is cancelled in [dispose] to avoid leaking it.
+  void _subscribeToAuthStatus() {
+    if (!ProviderHelper.isProviderDefined<StateUser>(context)) return;
+    final stateUser = Provider.of<StateUser>(context, listen: false);
+    // A page mounted after the sign-in it should forget about never sees a
+    // transition, so the starting point is read from the state itself. This
+    // cannot come from the stream: `StateUser` de-duplicates its own status
+    // events and only publishes a ready state, so an already-signed-in user
+    // produces no event at all.
+    _wasSignedIn = stateUser.signedIn;
+    if (_wasSignedIn) {
+      // Deferred because clearing notifies the view state's listeners, and
+      // this runs while the page is still building.
+      WidgetsBinding.instance.addPostFrameCallback((_) => _clearViewAuth());
+    } else if (_hasStaleLinkFlowState()) {
+      // A page mounted while signed out never sees the sign-in transition:
+      // mobile routes tear the page down the moment the user signs in, so the
+      // stream event that should have cleared the view is delivered to an
+      // unmounted element. What survives is a view parked on a finished
+      // flow's step, so the stale step is dropped here instead.
+      WidgetsBinding.instance.addPostFrameCallback((_) => _clearViewAuth());
+    }
+    _statusSubscription = stateUser.streamStatus.listen((status) {
+      if (status.signedIn && !_wasSignedIn) _clearViewAuth();
+      _wasSignedIn = status.signedIn;
+    });
+  }
+
+  /// Whether the view state still holds a step from a completed link flow.
+  ///
+  /// A visitor who is signing in has no reason to be parked on the inbox step
+  /// while signed out: the step means "a link was sent and is being waited
+  /// on", but the page is only mounted fresh, and a fresh mount starts on the
+  /// first section. A mid-flow section that is still being filled in must be
+  /// left alone.
+  bool _hasStaleLinkFlowState() {
+    if (!ProviderHelper.isProviderDefined<StateViewAuth>(context)) {
+      return false;
+    }
+    final viewAuth = Provider.of<StateViewAuth>(context, listen: false);
+    return viewAuth.emailLinkSent || viewAuth.awaitingEmailForLink;
+  }
+
+  /// Resets the per-visitor view state without touching the sign-in flow.
+  ///
+  /// Deliberately not `resetView`: this is not a visitor-initiated cancel, so
+  /// it must not raise the loading screen, steal focus, or announce anything.
+  void _clearViewAuth() {
+    if (!mounted) return;
+    if (!ProviderHelper.isProviderDefined<StateViewAuth>(context)) return;
+    Provider.of<StateViewAuth>(context, listen: false).clear();
   }
 
   /// Resolves the continue URL the sign-in link should return to.
@@ -425,12 +507,12 @@ class ViewAuthPageState extends State<ViewAuthPage> {
       if (mounted) setState(() {});
       await auth.signInWithEmailLink(email: email, link: link);
       EmailLinkStorage.clear();
-      state.emailLinkSent = false;
-      state.awaitingEmailForLink = false;
-      alertData(
-        title: locales.get('alert--email-link-sent'),
-        type: AlertType.success,
-      );
+      // The flow is finished: waiting for the inbox would be stale, and the
+      // visitor just opened the link, so telling them a link was sent is a
+      // message about the past they no longer need. The view resets to its
+      // first section so a later sign-out does not resurrect the inbox step.
+      state.clear();
+      state.section = 0;
     } on FirebaseAuthException catch (error) {
       String message;
       switch (error.code) {
@@ -554,6 +636,55 @@ class ViewAuthPageState extends State<ViewAuthPage> {
     }
   }
 
+  /// Builds the auth page header so it can never paint above [MediaQuery]'s top
+  /// padding on iOS.
+  ///
+  /// The header is bottom-anchored inside a [Stack], so it is measured against
+  /// the full screen height and simply grows past the top edge once the content
+  /// is taller than the space below the status bar — a [SafeArea] around the
+  /// column cannot help, because adding height to a bottom-anchored column
+  /// moves the whole column up by that same amount. Only shrinking the column
+  /// below the status bar can, and the content is not shrinkable.
+  ///
+  /// The caller therefore pins this to the inset ([Positioned.top]), and the
+  /// column is placed inside a scroll viewport so a column that is taller than
+  /// the space below the inset scrolls instead of overflowing upwards. The
+  /// scroll viewport clips at the inset, so the logo can never paint over the
+  /// clock no matter how tall the text becomes.
+  ///
+  /// When the column already fits below the inset, `minHeight` makes the
+  /// viewport exactly the available height and [MainAxisAlignment.end] pins the
+  /// column to its bottom edge. Both the column's own height and its bottom
+  /// edge are unchanged from the un-pinned layout ([contentBlock]'s [SafeArea]
+  /// still supplies the inset once, as before), so the result is pixel-
+  /// identical to the header on every other platform.
+  ///
+  /// [logoBlock] is `null` when the page has no logo.
+  Widget _safeAreaHeader({
+    required Widget? logoBlock,
+    required Widget contentBlock,
+  }) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            // Fills the viewport when the column is shorter, so the column
+            // stays bottom-anchored; otherwise the column is its natural
+            // height and simply scrolls.
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Flex(
+              direction: Axis.vertical,
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[?logoBlock, contentBlock],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final stateGlobal = Provider.of<StateGlobal>(context);
@@ -564,6 +695,9 @@ class ViewAuthPageState extends State<ViewAuthPage> {
     final locales = AppLocalizations.of(context);
     final textTheme = theme.textTheme;
     final density = DensitySpacing(theme.visualDensity);
+    final double topInset = MediaQuery.paddingOf(context).top;
+    final bool respectTopInset =
+        !kIsWeb && theme.platform == TargetPlatform.iOS && topInset > 0;
     stateAnalytics.screenName = 'auth';
     // Initialize after first build
     if (!initialized) {
@@ -955,7 +1089,9 @@ class ViewAuthPageState extends State<ViewAuthPage> {
           break;
       }
       return Padding(
-        padding: density.only(top: 16, minVertical: 8),
+        // Material's padded tap target adds 4px above and below each painted
+        // button, so 4px here reads as a 16px gap between two stacked buttons.
+        padding: density.symmetric(vertical: 4, minVertical: 4),
         child: AgentElement(
           id: 'auth_home_button_$provider',
           type: AgentElementType.button,
@@ -1081,6 +1217,82 @@ class ViewAuthPageState extends State<ViewAuthPage> {
             semanticsLabel: widget.logoSemanticLabel,
           )
         : null;
+    final Widget? logoBlock = widget.logo == null
+        ? null
+        : ContentContainer(
+            padding: density.symmetric(
+              vertical: 32,
+              horizontal: 16,
+              minHorizontal: 8,
+              minVertical: 16,
+            ),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                height: widget.logoHeight,
+                width: widget.logoWidth,
+                constraints: BoxConstraints(
+                  maxHeight: widget.logoHeight,
+                  maxWidth: widget.logoWidth,
+                ),
+                child: widget.logoCircle
+                    ? CircleAvatar(
+                        child: AspectRatio(
+                          aspectRatio: 1 / 1,
+                          child: ClipOval(child: logoImage),
+                        ),
+                      )
+                    : logoImage,
+              ),
+            ),
+          );
+    final Widget contentBlock = Container(
+      color: theme.colorScheme.surface,
+      child: SafeArea(
+        child: ContentContainer(
+          padding: density.all(16, min: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              SizedBox(
+                width: double.infinity,
+                child: Semantics(
+                  header: true,
+                  child: Text(
+                    widget.title ?? locales.get('page-auth--title'),
+                    style: textTheme.displayMedium?.copyWith(
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: density.gap(16)),
+              SizedBox(
+                width: double.infinity,
+                child: Text(
+                  widget.description ?? locales.get('page-auth--description'),
+                  style: textTheme.titleMedium?.copyWith(
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+              ),
+              SizedBox(height: density.gap(16)),
+              ...homeButtonOptions,
+              ?legalConsent,
+              Padding(
+                padding: density.only(top: 16, minVertical: 8),
+                child: Text(
+                  stateGlobal.appVersion ?? '',
+                  style: textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
     Widget home = AnimatedOpacity(
       opacity: state.section == 0 ? 1 : 0,
       duration: const Duration(milliseconds: 300),
@@ -1103,96 +1315,23 @@ class ViewAuthPageState extends State<ViewAuthPage> {
                   ),
                 ),
                 Positioned(
+                  top: respectTopInset ? topInset : null,
                   bottom: 0,
                   left: 0,
                   right: 0,
-                  child: Flex(
-                    direction: Axis.vertical,
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      widget.logo != null
-                          ? ContentContainer(
-                              padding: density.symmetric(
-                                vertical: 32,
-                                horizontal: 16,
-                                minHorizontal: 8,
-                                minVertical: 16,
-                              ),
-                              child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: Container(
-                                  height: widget.logoHeight,
-                                  width: widget.logoWidth,
-                                  constraints: BoxConstraints(
-                                    maxHeight: widget.logoHeight,
-                                    maxWidth: widget.logoWidth,
-                                  ),
-                                  child: widget.logoCircle
-                                      ? CircleAvatar(
-                                          child: AspectRatio(
-                                            aspectRatio: 1 / 1,
-                                            child: ClipOval(child: logoImage),
-                                          ),
-                                        )
-                                      : logoImage,
-                                ),
-                              ),
-                            )
-                          : const SizedBox(),
-                      Container(
-                        color: theme.colorScheme.surface,
-                        child: SafeArea(
-                          child: ContentContainer(
-                            padding: density.all(16, min: 8),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: Semantics(
-                                    header: true,
-                                    child: Text(
-                                      widget.title ??
-                                          locales.get('page-auth--title'),
-                                      style: textTheme.displayMedium?.copyWith(
-                                        color: theme.colorScheme.onSurface,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(height: density.gap(16)),
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: Text(
-                                    widget.description ??
-                                        locales.get('page-auth--description'),
-                                    style: textTheme.titleMedium?.copyWith(
-                                      color: theme.colorScheme.onSurface,
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(height: density.gap(16)),
-                                ...homeButtonOptions,
-                                ?legalConsent,
-                                Padding(
-                                  padding: density.only(
-                                    top: 16,
-                                    minVertical: 8,
-                                  ),
-                                  child: Text(
-                                    stateGlobal.appVersion ?? '',
-                                    style: textTheme.bodySmall?.copyWith(
-                                      color: theme.colorScheme.onSurface,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                  child: respectTopInset
+                      ? _safeAreaHeader(
+                          logoBlock: logoBlock,
+                          contentBlock: contentBlock,
+                        )
+                      : Flex(
+                          direction: Axis.vertical,
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            logoBlock ?? const SizedBox(),
+                            contentBlock,
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
                 ),
               ],
             ),

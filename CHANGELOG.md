@@ -2,6 +2,73 @@
 
 ### Added
 
+* **Custom validator for `PhoneInput`.** `PhoneInput` now accepts an optional
+  `FormFieldValidator<String>? validator` parameter. The built-in phone
+  validation runs first and its error message wins when it rejects the value;
+  otherwise the custom validator runs with the same raw field text so callers
+  can layer additional rules (for example rejecting a specific area code) on
+  top of format correctness. Omitting the parameter leaves validation
+  behaviour unchanged.
+
+## [3.6.0] - 2026-11-16
+
+### Fixed
+
+* **The email-link sign-in view no longer shows the "check your inbox" step
+  after the flow is over.** Completing a sign-in from an emailed link resets
+  the view to its first section, and mounting the page while signed out now
+  clears any link-flow state left behind by a previous session, so signing
+  out right after signing in no longer resurrects the "link was sent" step.
+  Opening the link also no longer shows the "sign-in link sent" alert: the
+  visitor already received the link, so the confirmation is redundant.
+
+* **A dropdown or enum field now shows the new selection as soon as the parent
+  rebuilds with a different `value`.** Previously the field compared the
+  incoming value against itself, so the comparison always reported "no
+  change" and the displayed label was never refreshed — the label stayed on
+  the previous selection until the user tapped the field again, and a value
+  that no longer matched any option kept its stale label. `InputData` now
+  resolves the incoming value before comparing, so the label and the field's
+  own value follow the parent on the very next frame for
+  `InputDataType.dropdown` and `InputDataType.enums`, and the label is cleared
+  when the value becomes empty. Text-like fields keep writing through their
+  text controller after the frame, so their behaviour is unchanged.
+
+### Added
+
+* **Custom upload metadata on media helpers and upload widgets.**
+  `FirebaseStorageHelper.saveFile`, `saveFileData`, `uploadImageMedia` and
+  `uploadMedia`, plus `ManagedDropZone`, `UploadImageMedia` and
+  `StateDropZone.upload`, accept an optional `customMetadata` map that is
+  stored as custom metadata on the resulting Storage object, so a backend
+  trigger can read a caller-supplied tag and choose per-upload processing.
+  The content type and inline content disposition are still set by the helper
+  itself and are never overridden by the caller's pairs. Omitting the map
+  leaves every existing upload byte-for-byte unchanged.
+
+* **`StatusPage` and `StatusVariant` for full-page status, error and empty
+  states.** One widget renders not-found, forbidden, resource-not-found,
+  unauthenticated, unavailable, archived and unexpected states with a
+  Material 3 layout: an icon, a localized title and description, and an
+  actions row with Back, Retry and Home plus any caller-supplied extra
+  actions. Back pops the current route when there is history and otherwise
+  opens `homeRoute`, so deep links still land somewhere useful. Retry is
+  offered only for transient variants and only while the device is online,
+  reusing `StateGlobal`'s connection stream. The title and description are
+  announced to assistive technology through `LiveAnnouncer`, and `parent`
+  wraps the page in its own `Scaffold` for hosts that render it outside an
+  existing route shell. `StatusVariant.fromErrorCode` maps `error--###`
+  locale keys and plain HTTP status codes to variants, keeping the widget
+  backend-agnostic. New default locale keys: `label--retry`,
+  `label--go-back`, `label--go-home` and the `status--*` title/description
+  pairs.
+* **`RouteHelper.unknownView` and `RouteHelper.deniedView` fallback
+  overrides.** Hosts can now supply a widget rendered for addresses that do
+  not exist in the active route table (`unknownView`) and for protected
+  destinations the current role cannot reach (`deniedView`). Both default to
+  `null` and preserve the existing resolution — unknown routes keep falling
+  back to `unknownRoute`, and denied routes keep falling back to `authRoute`
+  (signed out) or `unknownRoute` — so existing consumers are unchanged.
 * **`ButtonOptions.back` for drill-down ancestor links.** Set `back: true` on a
   crumb, menu entry or `SmartButton` that points at a screen the user came from
   and the control pops back to it instead of replacing the current route. This
@@ -13,7 +80,25 @@
   existing call sites are unchanged. `Utils.popOrPushNamed` exposes the same
   primitive for custom navigation controls.
 
+### Changed
+
+* **`ViewAuthPage` sign-in buttons sit 16px apart.** The stacked provider
+  buttons used a vertical rhythm that read as far too much whitespace at
+  standard density. The painted gap between two adjacent buttons is now 16px.
+  Only the spacing changed — button size, tap targets, order and behaviour are
+  untouched.
+
 ### Fixed
+
+* **`ViewAuthPage` keeps its header logo clear of the iOS status bar.** The
+  header is bottom-anchored in a `Stack`, so the logo slid upward as the
+  column grew and could paint beneath the clock and Dynamic Island once the
+  content was taller than the space below the top inset. On iOS, when a
+  non-zero top inset is present, the header is now pinned below that inset and
+  its column lives inside a scroll viewport clipped at the inset, so the logo
+  can never rise above it at any content height or text scale. When the
+  content already fits, the layout is pixel-identical to before. Android and
+  web keep the previous un-pinned layout untouched.
 
 * **`InputData` notifies `onChanged` when the user types into a supplied
   `textController`.** The value-sync listener added for stale hints ran before
