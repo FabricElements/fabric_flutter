@@ -433,6 +433,11 @@ class FirebaseAuthService extends AuthService {
   @override
   Future<void> completeEmailLinkSignIn(String link) async {
     if (!isSignInWithEmailLink(link)) return;
+    // A link-tagged entry belongs to a host app's account-linking flow, which
+    // redeems the same single-use `oobCode` itself. Completing a sign-in here
+    // would spend that code and strand the linking flow, so the entry — and
+    // the URL it came from — are left untouched.
+    if (EmailLinkStorage.readPurpose() == EmailLinkPurpose.link) return;
     final email = EmailLinkStorage.read();
     if (email == null || email.isEmpty) {
       throw StateError(

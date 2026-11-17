@@ -9,5 +9,7 @@
 /// the platform themselves.
 library;
 
+export 'email_link_purpose.dart';
+
 export 'email_link_storage_native.dart'
     if (dart.library.js_interop) 'email_link_storage_web.dart';
