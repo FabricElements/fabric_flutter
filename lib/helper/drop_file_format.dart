@@ -202,7 +202,7 @@ List<String> extensionsForFormats(List<DropFileFormat> formats) {
 
 /// Carries the raw bytes and metadata of a file delivered by a drop region.
 ///
-/// A [DropZoneFile] is the platform-neutral payload the web drop region hands to
+/// A [DropZoneFile] is the platform-neutral payload a drop region hands to
 /// [StateDropZone]. It lives in the helper layer so state code can consume it
 /// without importing UI widgets, and it keeps bytes raw so no base64 round-trip
 /// is required before upload.
@@ -216,18 +216,18 @@ class DropZoneFile {
     this.mimeType,
   });
 
-  /// The raw file contents as reported by the browser.
+  /// The raw file contents.
   final Uint8List bytes;
 
-  /// The file name, including its extension when the browser provides one.
+  /// The file name, including its extension when the source provides one.
   final String name;
 
-  /// The file size in bytes as reported by the browser.
+  /// The file size in bytes.
   final int size;
 
-  /// The MIME type the browser attached to the file, when available.
+  /// The MIME type the drop source reported, when available.
   ///
-  /// A `null` value means the browser did not classify the file, in which case
+  /// A `null` value means the source did not classify the file, in which case
   /// the consuming state resolves the type from the bytes and file name.
   final String? mimeType;
 }

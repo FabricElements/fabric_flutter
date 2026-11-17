@@ -14,9 +14,12 @@ import 'live_announcer.dart';
 ///
 /// The widget renders a dashed drop target with a keyboard-reachable browse
 /// button, lists the staged files with per-file status, and uploads them to the
-/// configured [path]. Real drag-and-drop is web-only; on other platforms the
-/// target still stages files through the file picker. Accepted [formats] drive
-/// both drag acceptance and the picker's allowed extensions.
+/// configured [path]. Files can arrive by drag-and-drop or through the browse
+/// button; drag-and-drop needs the operating system to route an external drag to
+/// the app's window, so it is available on the web and in windowed or
+/// multi-window contexts on mobile rather than in a full-screen phone app.
+/// Accepted [formats] drive both drag acceptance and the picker's allowed
+/// extensions.
 class ManagedDropZone extends StatefulWidget {
   /// Creates a managed drop zone for file uploads.
   ///
