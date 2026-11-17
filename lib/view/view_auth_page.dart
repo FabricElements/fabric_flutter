@@ -400,6 +400,11 @@ class ViewAuthPageState extends State<ViewAuthPage> {
     final location = EmailLinkStorage.currentLocation();
     if (location == null || location.isEmpty) return;
     if (!auth.isSignInWithEmailLink(location)) return;
+    // A link-tagged entry belongs to the host app's account-linking flow, which
+    // redeems the same single-use `oobCode` itself. Consuming it here would
+    // strand that flow with an already-spent code, so the entry, the address,
+    // and the URL are all left untouched for it.
+    if (EmailLinkStorage.readPurpose() == EmailLinkPurpose.link) return;
     state.returnUrl = location;
     final stored = EmailLinkStorage.read();
     if (stored == null || stored.isEmpty) {
@@ -606,6 +611,9 @@ class ViewAuthPageState extends State<ViewAuthPage> {
   /// may forward every inbound link without filtering first.
   Future<void> completeEmailLinkSignIn(String link) async {
     if (!auth.isSignInWithEmailLink(link)) return;
+    // A link-tagged entry belongs to the host app's account-linking flow, not
+    // this page's sign-in, so a link-purposed entry is left for it untouched.
+    if (EmailLinkStorage.readPurpose() == EmailLinkPurpose.link) return;
     final state = Provider.of<StateViewAuth>(context, listen: false);
     state.returnUrl ??= link;
     final stored = EmailLinkStorage.read();

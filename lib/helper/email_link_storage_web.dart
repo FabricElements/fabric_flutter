@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:web/web.dart' as web;
 
+import 'email_link_purpose.dart';
+
 /// Email-link storage backed by the browser's `localStorage` on web.
 ///
 /// Opening the link reloads the page, so the address has to survive a full
@@ -19,6 +21,9 @@ class EmailLinkStorage {
   /// with it.
   static const String _key = 'fabric_flutter.email_link';
 
+  /// Identifies the `localStorage` entry holding the purpose tag.
+  static const String _purposeKey = 'fabric_flutter.email_link_purpose';
+
   /// Returns the address the last sign-in link was sent to, or `null`.
   ///
   /// `null` means either that no link was requested in this browser or that the
@@ -32,10 +37,36 @@ class EmailLinkStorage {
     }
   }
 
+  /// Returns the purpose of the last stored link, or `null`.
+  ///
+  /// `null` means no purpose was recorded, which happens for entries written by
+  /// an older version of this class. Callers treat an untagged entry as a
+  /// sign-in link, preserving the behaviour of that older version.
+  static EmailLinkPurpose? readPurpose() {
+    try {
+      final raw = web.window.localStorage.getItem(_purposeKey);
+      return raw == 'link' ? EmailLinkPurpose.link : EmailLinkPurpose.signIn;
+    } catch (error) {
+      debugPrint('EmailLinkStorage: unable to read local storage: $error');
+      return null;
+    }
+  }
+
   /// Remembers [email] as the address the next sign-in link was sent to.
-  static void write(String email) {
+  ///
+  /// The [purpose] records which flow will redeem the link, so consumers that
+  /// complete a different flow can leave the entry — and the single-use action
+  /// code it pairs with — untouched.
+  static void write(
+    String email, {
+    EmailLinkPurpose purpose = EmailLinkPurpose.signIn,
+  }) {
     try {
       web.window.localStorage.setItem(_key, email);
+      web.window.localStorage.setItem(
+        _purposeKey,
+        purpose == EmailLinkPurpose.link ? 'link' : 'sign-in',
+      );
     } catch (error) {
       debugPrint('EmailLinkStorage: unable to write local storage: $error');
     }
@@ -48,6 +79,7 @@ class EmailLinkStorage {
   static void clear() {
     try {
       web.window.localStorage.removeItem(_key);
+      web.window.localStorage.removeItem(_purposeKey);
     } catch (error) {
       debugPrint('EmailLinkStorage: unable to clear local storage: $error');
     }

@@ -944,6 +944,41 @@ void main() {
         expect(state.emailLinkSent, isFalse);
       });
 
+      testWidgets(
+        'should leave a link-purposed entry for the host linking flow',
+        (WidgetTester tester) async {
+          // Arrange – the host app asked for the link to link an email address
+          // to the signed-in account, so it tagged the stored entry `link` and
+          // will redeem the single-use `oobCode` itself.
+          const link =
+              'https://app.example.com/connect?request=rid-42&oobCode=abc123';
+          final auth = _FakeAuthService();
+          final state = StateViewAuth();
+          EmailLinkStorage.write(
+            'user@example.com',
+            purpose: EmailLinkPurpose.link,
+          );
+          await _pumpAuth(tester, email: true, state: state, authService: auth);
+          final page = tester.state<ViewAuthPageState>(
+            find.byType(ViewAuthPage),
+          );
+
+          // Act – the host forwards the link to the page.
+          await page.completeEmailLinkSignIn(link);
+          await tester.pumpAndSettle();
+
+          // Assert – no completion is attempted and nothing is consumed: the
+          // entry, the address, and the single-use code are all left for the
+          // host's linking flow.
+          expect(auth.calls, <String>[]);
+          expect(auth.completedLinks, isEmpty);
+          expect(EmailLinkStorage.read(), 'user@example.com');
+          expect(EmailLinkStorage.readPurpose(), EmailLinkPurpose.link);
+          expect(state.awaitingEmailForLink, isFalse);
+          expect(state.returnUrl, isNot(link));
+        },
+      );
+
       testWidgets('should not alert or park on the inbox step when opened', (
         WidgetTester tester,
       ) async {

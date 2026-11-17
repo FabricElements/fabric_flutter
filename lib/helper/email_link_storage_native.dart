@@ -6,6 +6,8 @@
 /// on disk.
 library;
 
+import 'email_link_purpose.dart';
+
 /// Remembers the email address a passwordless sign-in link was sent to.
 ///
 /// The stored value is a single address, not a list: a new link replaces any
@@ -14,15 +16,33 @@ class EmailLinkStorage {
   /// Holds the address the most recent sign-in link was sent to.
   static String? _email;
 
+  /// Holds the purpose of the most recent stored link.
+  static EmailLinkPurpose? _purpose;
+
   /// Returns the address the last sign-in link was sent to, or `null`.
   ///
   /// `null` means the link was requested on another device, which is the signal
   /// the UI turns into a prompt for the address.
   static String? read() => _email;
 
+  /// Returns the purpose of the last stored link, or `null`.
+  ///
+  /// `null` means no purpose was recorded, which happens for entries written by
+  /// an older version of this class. Callers treat an untagged entry as a
+  /// sign-in link, preserving the behaviour of that older version.
+  static EmailLinkPurpose? readPurpose() => _purpose;
+
   /// Remembers [email] as the address the next sign-in link was sent to.
-  static void write(String email) {
+  ///
+  /// The [purpose] records which flow will redeem the link, so consumers that
+  /// complete a different flow can leave the entry — and the single-use action
+  /// code it pairs with — untouched.
+  static void write(
+    String email, {
+    EmailLinkPurpose purpose = EmailLinkPurpose.signIn,
+  }) {
     _email = email;
+    _purpose = purpose;
   }
 
   /// Forgets the stored address.
@@ -31,6 +51,7 @@ class EmailLinkStorage {
   /// to a later, unrelated sign-in.
   static void clear() {
     _email = null;
+    _purpose = null;
   }
 
   /// Returns the location the app is currently showing.
