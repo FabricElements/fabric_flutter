@@ -369,6 +369,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.0.1"
+  file_drop:
+    dependency: "direct main"
+    description:
+      name: file_drop
+      sha256: "168b4b019cf1544db7302db5effb28ebc6b46ca0944c1c264758a906ddb69ebb"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.1"
   file_picker:
     dependency: "direct main"
     description:

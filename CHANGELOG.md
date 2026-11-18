@@ -2,6 +2,29 @@
 
 ### Added
 
+* **Native drag-and-drop for `DropRegion` on iOS, Android, macOS, Windows and
+  Linux.** `DropRegion` was previously a no-op passthrough outside the browser,
+  so a `ManagedDropZone` rendered on a native platform showed no hover
+  feedback and silently discarded anything dropped on it. The conditional
+  export now selects a real native implementation built on `file_drop`
+  (`DropTarget`), which restores the hover animation through
+  `onDraggingChanged` and converts dropped items into the same
+  `List<DropZoneFile>` the web path produces. The `DropRegion` contract
+  (`child`, `onDrop`, `onDraggingChanged`) and the file-picker flow are
+  unchanged, so no caller has to adapt — `drop_region_web.dart` is untouched
+  and remains the implementation used by the web build.
+
+  What an external drag can reach is a windowing property, not a platform one:
+  desktop and web always qualify, and on mobile only an iPad or an Android
+  device in split-screen, freeform, or desktop windowing has a window to drop
+  onto. iOS offers a copy operation only, and a dropped **directory** is
+  skipped unless the app has been granted access to it on Android.
+
+  `file_drop` requires iOS 14.0 and Android `minSdkVersion 24` (both at or
+  below Flutter's defaults) and ships no NDK/CMake native code, so it adds no
+  shared library to the APK and no 16 KB page-size exposure. It is a young
+  package — validate drops on real hardware.
+
 * **Custom validator for `PhoneInput`.** `PhoneInput` now accepts an optional
   `FormFieldValidator<String>? validator` parameter. The built-in phone
   validation runs first and its error message wins when it rejects the value;

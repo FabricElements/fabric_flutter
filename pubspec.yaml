@@ -58,6 +58,10 @@ dependencies:
   image_network: ^2.6.0
   webview_flutter: ^4.14.1
   speech_to_text: ^7.5.0
+  # Native (Android/iOS/desktop) OS-level drag-and-drop for drop_region_native.
+  # Dependency-free: its Android/iOS implementations are pure Kotlin/Swift with
+  # no native binaries, so it adds no Android page-size or NDK surface.
+  file_drop: ^1.0.1
 dev_dependencies:
   integration_test:
     sdk: flutter

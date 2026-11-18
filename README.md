@@ -40,6 +40,7 @@ Sourced directly from [`pubspec.yaml`](pubspec.yaml).
 | **Networking** | `http` ^1.6.0, `connectivity_plus` ^7.3.2 |
 | **Voice & speech** | `speech_to_text` ^7.5.0 (push-to-talk dictation, `VoiceDictationButton`) |
 | **Media** | `image_picker` ^1.2.4, `file_picker` ^13.2.0, `image` ^4.12.0, `video_player` ^2.14.1, `mime` ^2.1.0, `image_network` ^2.6.0 |
+| **Drag & drop** | `file_drop` ^1.0.1 (native drop events for `DropRegion`; the web build uses the browser drag-and-drop API instead) |
 | **Maps & web views** | `google_maps_flutter` ^2.19.0, `webview_flutter` ^4.14.1, `webview_flutter_android` ^4.14.1, `webview_flutter_wkwebview` ^3.27.2, `web` ^1.1.2, `pointer_interceptor` ^0.10.1+3 |
 | **Localization & i18n** | `flutter_localizations`, `devicelocale` ^0.9.1, `intl` ^0.20.3, `dlibphonenumber` ^1.1.74 |
 | **UI & content** | `google_fonts` ^9.0.0, `cupertino_icons` ^2.0.0, `omni_datetime_picker` ^2.3.3, `scrollable_positioned_list` ^0.3.8, `gap` ^3.0.1, `json_explorer` ^0.1.2 |
@@ -642,6 +643,15 @@ Host apps must add the platform permissions below; the package itself ships no `
 
 > [!WARNING]
 > **Test on a physical iOS device, not the Simulator.** The iOS Simulator's microphone input is well known to be unreliable for `SFSpeechRecognizer` — sessions can start and stop cleanly, with no error ever reported, yet `onPartialTranscript`/`onFinalTranscript` never fire because no real audio ever reaches the recognizer. This is a Simulator/OS limitation, not something `VoiceDictationButton` (or `speech_to_text`) can detect or work around from Dart.
+
+### Drag-and-drop uploads (`ManagedDropZone`)
+
+`ManagedDropZone` (`lib/component/managed_drop_zone.dart`) stages dropped or picked media and uploads it through `StateDropZone`. Dropping is handled by `DropRegion` (`lib/component/drop_region.dart`), which is a conditional export: the browser drag-and-drop API on web (`drop_region_web.dart`), and `file_drop`'s `DropTarget` on every native platform (`drop_region_native.dart`). Both implementations expose the identical `DropRegion` contract — `child`, `onDrop`, and `onDraggingChanged` for the hover animation — so the two paths produce the same `List<DropZoneFile>` and the file-picker flow is untouched. To host a drop target yourself, wrap any subtree in `DropRegion` and let the surrounding state decide what to do with the files.
+
+> [!IMPORTANT]
+> **An external drag has to be routed to the app's window by the operating system, so what matters is the window, not the platform.** Desktop and web always qualify; on mobile it is an iPad or an Android device in split-screen, freeform, or desktop windowing. A full-screen phone app in portrait has nothing to receive the drag, which is a windowing limitation rather than a gap in this package. On iOS the system offers a copy operation only, and reading a dropped **directory** on Android requires the app to have been granted access to it — a directory that was not granted is skipped instead of failing the drop.
+
+Platform floors: `file_drop` requires iOS 14.0 and Android `minSdkVersion 24`, both at or below Flutter's own defaults, so adopting it raises neither. It ships pure Kotlin and Swift with no NDK/CMake native code, so it adds no shared library to the APK and carries no 16 KB page-size exposure. It is, however, a young package — verify drops on real hardware before relying on them in production.
 
 ---
 

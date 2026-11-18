@@ -1,9 +1,10 @@
 /// Exports the platform-specific drop region implementation.
 ///
-/// External file drag-and-drop is only meaningful on the web, so this conditional
-/// export selects the web implementation when `dart:js_interop` is available and
-/// falls back to a no-op region on Android and iOS. Consumers import this file
-/// and use [DropRegion] without branching on the platform themselves.
+/// The two implementations wire different drag-and-drop sources — browser events
+/// on the web, the platform drag interaction elsewhere — behind one API, so this
+/// conditional export selects the web implementation when `dart:js_interop` is
+/// available and the native one otherwise. Consumers import this file and use
+/// [DropRegion] without branching on the platform themselves.
 library;
 
 export 'drop_region_native.dart'
