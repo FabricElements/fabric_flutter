@@ -1,4 +1,5 @@
 import 'package:fabric_flutter/helper/drop_file_format.dart';
+import 'package:fabric_flutter/helper/media_file_converter.dart';
 import 'package:fabric_flutter/state/state_drop_zone.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -29,7 +30,42 @@ DropZoneFile dropped({
   mimeType: mimeType,
 );
 
+/// A converter double that stages a fixed replacement for converted files.
+class _FakeConverter extends MediaFileConverter {
+  /// Creates a double that either converts everything or converts nothing.
+  const _FakeConverter({required this.supported});
+
+  /// Whether the double reports conversions as supported.
+  final bool supported;
+
+  @override
+  Future<MediaConversionResult> convert(DropZoneFile file) async {
+    if (!MediaFileConverter.needsConversion(
+      mimeType: file.mimeType,
+      fileName: file.name,
+    )) {
+      return MediaConversionResult(file: file);
+    }
+    if (!supported) {
+      return const MediaConversionResult.unsupported('conversion-unsupported');
+    }
+    final bytes = Uint8List.fromList(const [1, 2, 3, 4]);
+    return MediaConversionResult(
+      file: DropZoneFile(
+        bytes: bytes,
+        name: 'IMG_0001.jpg',
+        size: bytes.lengthInBytes,
+        mimeType: 'image/jpeg',
+      ),
+    );
+  }
+}
+
 void main() {
+  // Conversion rejections resolve an alert context through the global
+  // navigator key, which reads the widget binding even outside a widget tree.
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('StateDropZone.addMediaIfNew', () {
     test('should add a new media item and notify listeners', () {
       // Arrange
@@ -116,7 +152,7 @@ void main() {
       expect(state.mediaList, isEmpty);
     });
 
-    test('should stage a HEIC photo dragged from a platform gallery', () {
+    test('should classify a HEIC photo by name when MIME is missing', () {
       // Arrange
       final state = StateDropZone(formats: dropZoneFormatsGeneral);
       const heicBytes = [0, 0, 0, 24, 102, 116, 121, 112, 104, 101, 105, 99];
@@ -269,6 +305,107 @@ void main() {
       // Assert
       expect(state.mediaList.length, 1);
       expect(state.mediaList.single.fileName, 'clip.mp3');
+      expect(state.loading, isFalse);
+    });
+  });
+
+  group('StateDropZone conversion pipeline', () {
+    test(
+      'should stage a HEIC file as JPEG when the converter converts it',
+      () async {
+        // Arrange
+        final state = StateDropZone(
+          formats: dropZoneFormatsGeneral,
+          converter: const _FakeConverter(supported: true),
+        );
+        const heicBytes = [0, 0, 0, 24, 102, 116, 121, 112, 104, 101, 105, 99];
+
+        // Act
+        await state.onDroppedFiles([
+          dropped(name: 'IMG_0001.heic', bytes: heicBytes, mimeType: null),
+        ]);
+
+        // Assert
+        expect(state.mediaList.single.fileName, 'IMG_0001.jpg');
+        expect(state.mediaList.single.contentType, 'image/jpeg');
+        expect(state.loading, isFalse);
+      },
+    );
+
+    test(
+      'should not stage a HEIC file when the converter cannot convert it',
+      () async {
+        // Arrange
+        final state = StateDropZone(
+          formats: dropZoneFormatsGeneral,
+          converter: const _FakeConverter(supported: false),
+        );
+        const heicBytes = [0, 0, 0, 24, 102, 116, 121, 112, 104, 101, 105, 99];
+
+        // Act
+        await state.onDroppedFiles([
+          dropped(name: 'IMG_0001.heic', bytes: heicBytes, mimeType: null),
+        ]);
+
+        // Assert
+        expect(state.mediaList, isEmpty);
+        expect(state.loading, isFalse);
+      },
+    );
+
+    test(
+      'should pass files that need no conversion through unchanged',
+      () async {
+        // Arrange
+        final state = StateDropZone(
+          formats: dropZoneFormatsGeneral,
+          converter: const _FakeConverter(supported: true),
+        );
+        const pngBytes = [65, 65, 65, 65];
+
+        // Act
+        await state.onDroppedFiles([
+          dropped(name: 'photo.png', bytes: pngBytes, mimeType: 'image/png'),
+        ]);
+
+        // Assert
+        expect(state.mediaList.single.fileName, 'photo.png');
+        expect(state.mediaList.single.contentType, 'image/png');
+        expect(state.mediaList.single.size, pngBytes.length);
+      },
+    );
+
+    test('should reject a HEIC drop on the default native converter', () async {
+      // Arrange
+      final state = StateDropZone(formats: dropZoneFormatsGeneral);
+      const heicBytes = [0, 0, 0, 24, 102, 116, 121, 112, 104, 101, 105, 99];
+
+      // Act
+      await state.onDroppedFiles([
+        dropped(name: 'IMG_0001.heic', bytes: heicBytes, mimeType: null),
+      ]);
+
+      // Assert
+      expect(state.mediaList, isEmpty);
+      expect(state.loading, isFalse);
+    });
+
+    test('should keep staging later files after one is rejected', () async {
+      // Arrange
+      final state = StateDropZone(
+        formats: dropZoneFormatsGeneral,
+        converter: const _FakeConverter(supported: false),
+      );
+      const heicBytes = [0, 0, 0, 24, 102, 116, 121, 112, 104, 101, 105, 99];
+
+      // Act
+      await state.onDroppedFiles([
+        dropped(name: 'IMG_0001.heic', bytes: heicBytes, mimeType: null),
+        dropped(name: 'photo.png', mimeType: 'image/png'),
+      ]);
+
+      // Assert
+      expect(state.mediaList.single.fileName, 'photo.png');
       expect(state.loading, isFalse);
     });
   });

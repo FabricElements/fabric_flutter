@@ -9,6 +9,7 @@ import '../component/alert_data.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/drop_file_format.dart';
 import '../helper/firebase_storage_helper.dart';
+import '../helper/media_file_converter.dart';
 
 /// Represents the upload lifecycle for a dropped or selected media item.
 enum MediaDataUploadStatus {
@@ -85,11 +86,21 @@ class MediaDataUpload {
 /// acceptance paths.
 class StateDropZone extends ChangeNotifier {
   /// Creates a drop-zone state that accepts the given [formats].
-  StateDropZone({required this.formats})
-    : extensions = extensionsForFormats(formats);
+  ///
+  /// The [converter] re-encodes files whose containers are accepted by the
+  /// platform gallery but rejected downstream — most notably HEIC/HEIF photos —
+  /// before they are staged, so only upload-safe bytes reach [mediaList]. It
+  /// defaults to the platform converter and only needs to be provided in tests.
+  StateDropZone({
+    required this.formats,
+    this.converter = const MediaFileConverterImpl(),
+  }) : extensions = extensionsForFormats(formats);
 
   /// The file formats accepted by both drag-and-drop and the file picker.
   final List<DropFileFormat> formats;
+
+  /// Re-encodes containers that downstream storage rejects before staging.
+  final MediaFileConverter converter;
 
   /// The file extensions passed to the picker, derived from [formats].
   final List<String> extensions;
@@ -208,19 +219,51 @@ class StateDropZone extends ChangeNotifier {
 
   /// Processes files delivered by a drop event and stages the supported ones.
   ///
-  /// This resets the drag state, marks the drop zone as loading, and appends each
-  /// accepted file to [mediaList] through [handleDroppedFile]. Reading has already
-  /// happened in the drop region, so this only classifies and filters the bytes.
+  /// This resets the drag state, marks the drop zone as loading, and appends
+  /// each accepted file to [mediaList] through [_convertAndStage]. Reading has
+  /// already happened in the drop region, so this only converts, classifies,
+  /// and filters the bytes.
   Future<void> onDroppedFiles(List<DropZoneFile> files) async {
     updateDragging(false);
     loading = true;
     try {
       for (final file in files) {
-        handleDroppedFile(file);
+        await _convertAndStage(file);
       }
     } finally {
       if (!_disposed) loading = false;
     }
+  }
+
+  /// Converts [file] through [converter] and stages the result.
+  ///
+  /// Every drop and pick goes through this pipeline so both entry points stage
+  /// exactly the same bytes. When the conversion is required but cannot be
+  /// performed, the file is not staged and the user is told through a localized
+  /// alert; without a usable context the failure only reaches the debug log.
+  Future<void> _convertAndStage(DropZoneFile file) async {
+    final result = await converter.convert(file);
+    final converted = result.file;
+    if (converted == null) {
+      final context = alertContext(null);
+      if (context == null || !context.mounted) {
+        // The reason is a short internal identifier; the file name is
+        // deliberately left out so nothing user-identifying reaches the log.
+        debugPrint(
+          '[StateDropZone._convertAndStage] conversion failed '
+          '(${result.reason})',
+        );
+        return;
+      }
+      alertData(
+        context: context,
+        body: AppLocalizations.of(context)
+            .get('label--media-conversion-failed'),
+        type: AlertType.critical,
+      );
+      return;
+    }
+    handleDroppedFile(converted);
   }
 
   /// Classifies a single dropped [file] and stages it when it is supported.
@@ -297,7 +340,10 @@ class StateDropZone extends ChangeNotifier {
   ///
   /// Duplicate files are ignored. If no files are selected, the loading state is
   /// reset and no items are added. Bytes are kept raw, so no base64 encoding is
-  /// performed on the picked files.
+  /// performed on the picked files. Picked files pass through the same
+  /// conversion pipeline as dropped ones, so a picked file whose container needs
+  /// re-encoding is staged in the converted form — or rejected with the same
+  /// localized message when the platform cannot convert it.
   Future<void> pickFiles() async {
     loading = true;
     final files = await FilePicker.pickFiles(
@@ -310,17 +356,8 @@ class StateDropZone extends ChangeNotifier {
     }
     for (final file in files) {
       final bytes = await file.readAsBytes();
-      final name = file.name;
-      final mime = lookupMimeType(name, headerBytes: bytes);
-      final ext = name.contains('.') ? name.split('.').last : '';
-      addMediaIfNew(
-        MediaDataUpload(
-          bytes: bytes,
-          fileName: name,
-          extension: ext,
-          contentType: mime ?? 'application/octet-stream',
-          size: bytes.lengthInBytes,
-        ),
+      await _convertAndStage(
+        DropZoneFile(bytes: bytes, name: file.name, size: bytes.lengthInBytes),
       );
     }
     if (!kIsWeb) await FilePicker.clearTemporaryFiles();
