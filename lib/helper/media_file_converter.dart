@@ -13,4 +13,7 @@
 library;
 
 export 'media_file_converter_native.dart'
-    if (dart.library.js_interop) 'media_file_converter_web.dart';
+    show MediaConversionResult, MediaFileConverter;
+export 'media_file_converter_native.dart'
+    if (dart.library.js_interop) 'media_file_converter_web.dart'
+    show MediaFileConverterImpl;
