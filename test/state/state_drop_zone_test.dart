@@ -1,7 +1,10 @@
 import 'package:fabric_flutter/helper/drop_file_format.dart';
 import 'package:fabric_flutter/helper/media_file_converter.dart';
 import 'package:fabric_flutter/state/state_drop_zone.dart';
+import 'package:fabric_flutter/helper/app_global.dart';
+import 'package:fabric_flutter/helper/app_localizations_delegate.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Builds a [MediaDataUpload] with sensible defaults for testing dedup logic.
@@ -198,7 +201,7 @@ void main() {
       // Assert
       expect(staged, isTrue);
       expect(state.mediaList.single.fileName, 'contacts.vcf');
-      expect(state.mediaList.single.contentType, 'text/x-vcard');
+      expect(state.mediaList.single.contentType, 'text/vcard');
     });
 
     test('should append a resolved extension to an extension-less name', () {
@@ -550,6 +553,148 @@ void main() {
       // Assert
       expect(staged, isFalse);
       expect(state.mediaList, isEmpty);
+    });
+  });
+
+  group('StateDropZone drop classification', () {
+    final cases = <String, List<String?>>{
+      'png with a type': ['a.png', 'image/png', 'image/png'],
+      'jpeg with the image/jpg alias': ['a.jpeg', 'image/jpg', 'image/jpeg'],
+      'png with a generic type': [
+        'a.png',
+        'application/octet-stream',
+        'image/png',
+      ],
+      'wav with the x-wav alias': ['a.wav', 'audio/x-wav', 'audio/wav'],
+      'mp4 video': ['a.mp4', 'video/mp4', 'video/mp4'],
+      'mov video': ['a.mov', 'video/quicktime', 'video/quicktime'],
+      'pdf document': ['a.pdf', 'application/pdf', 'application/pdf'],
+      'mp3 with a typeless drop': ['a.mp3', null, 'audio/mpeg'],
+    };
+    for (final entry in cases.entries) {
+      test('should stage ${entry.key} with its canonical type', () {
+        // Arrange
+        final state = StateDropZone(formats: dropZoneFormatsMessageTemplate);
+        final c = entry.value;
+
+        // Act
+        final staged = state.handleDroppedFile(
+          dropped(name: c[0]!, mimeType: c[1]),
+        );
+
+        // Assert
+        expect(staged, isTrue);
+        expect(state.mediaList.single.contentType, c[2]);
+      });
+    }
+  });
+
+  group('StateDropZone rejection reporting', () {
+    test(
+      'should record an unsupported file instead of dropping it silently',
+      () {
+        // Arrange
+        final state = StateDropZone(formats: dropZoneFormatsMessageTemplate);
+
+        // Act
+        final staged = state.handleDroppedFile(
+          dropped(name: 'a.webp', mimeType: 'image/webp'),
+        );
+
+        // Assert
+        expect(staged, isFalse);
+        expect(state.rejections.single.fileName, 'a.webp');
+        expect(
+          state.rejections.single.reason,
+          DropRejectionReason.unsupportedType,
+        );
+      },
+    );
+
+    test(
+      'should record unreadable and empty files and an empty drop',
+      () async {
+        // Arrange
+        final state = StateDropZone(formats: dropZoneFormatsMessageTemplate);
+
+        // Act
+        await state.onDroppedFiles([
+          DropZoneFile.unreadable('broken.png'),
+          dropped(name: 'empty.png', bytes: const []),
+        ]);
+        await state.onDroppedFiles(const []);
+
+        // Assert
+        expect(state.mediaList, isEmpty);
+        expect(state.rejections.map((r) => r.reason), [
+          DropRejectionReason.unreadable,
+          DropRejectionReason.empty,
+          DropRejectionReason.unreadable,
+        ]);
+        expect(state.loading, isFalse);
+      },
+    );
+
+    test('should record a duplicate drop', () {
+      // Arrange
+      final state = StateDropZone(formats: dropZoneFormatsMessageTemplate);
+      state.handleDroppedFile(dropped());
+
+      // Act
+      final staged = state.handleDroppedFile(dropped());
+
+      // Assert
+      expect(staged, isFalse);
+      expect(state.rejections.single.reason, DropRejectionReason.duplicate);
+    });
+
+    test('should record a failed conversion', () async {
+      // Arrange
+      final state = StateDropZone(
+        formats: dropZoneFormatsMessageTemplate,
+        converter: const _FakeConverter(supported: false),
+      );
+
+      // Act
+      await state.onDroppedFiles([
+        dropped(name: 'IMG.heic', mimeType: 'image/heic'),
+      ]);
+
+      // Assert
+      expect(
+        state.rejections.single.reason,
+        DropRejectionReason.conversionFailed,
+      );
+    });
+  });
+
+  group('StateDropZone rejection warning', () {
+    testWidgets('should show a localized warning naming the file', (
+      tester,
+    ) async {
+      // Arrange
+      final key = GlobalKey<NavigatorState>();
+      AppGlobal.navigatorKey = key;
+      final state = StateDropZone(formats: dropZoneFormatsMessageTemplate);
+      await tester.pumpWidget(
+        MaterialApp(
+          navigatorKey: key,
+          scaffoldMessengerKey: AppGlobal.snackbarKey,
+          localizationsDelegates: const [AppLocalizationsDelegate(locales: {})],
+          home: const Scaffold(body: SizedBox()),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Act
+      state.handleDroppedFile(dropped(name: 'a.webp', mimeType: 'image/webp'));
+      await tester.pump(const Duration(milliseconds: 500));
+
+      // Assert
+      expect(find.textContaining('a.webp was not added'), findsOneWidget);
+      expect(find.textContaining('Exception'), findsNothing);
+      await tester.pumpAndSettle(const Duration(seconds: 10));
     });
   });
 }

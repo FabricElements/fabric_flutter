@@ -83,24 +83,29 @@ class _DropRegionState extends State<DropRegion> {
   /// platform hands over every kind of item the drag source offered, and a
   /// string would otherwise be read as if it were a file.
   Future<void> _deliver(List<DropItem> items) async {
-    final futures = <Future<DropZoneFile?>>[];
+    final futures = <Future<DropZoneFile>>[];
     for (final item in items) {
       if (item is DropStringItem) continue;
-      if (item is DropItemDirectory || item.isDirectory) continue;
+      if (item is DropItemDirectory || item.isDirectory) {
+        futures.add(Future.value(DropZoneFile.unreadable(item.name)));
+        continue;
+      }
       futures.add(_readFile(item));
     }
-    final results = await Future.wait(futures);
-    final dropped = results.whereType<DropZoneFile>().toList();
-    if (dropped.isNotEmpty) await widget.onDrop(dropped);
+    if (futures.isEmpty) {
+      await widget.onDrop([DropZoneFile.unreadable('')]);
+      return;
+    }
+    await widget.onDrop(await Future.wait(futures));
   }
 
-  /// Reads a single [item] into a [DropZoneFile], or `null` when it fails.
+  /// Reads a single [item] into a [DropZoneFile], or an unreadable placeholder when it fails.
   ///
   /// The bytes are read through the item, which serves in-memory bytes directly
   /// and otherwise asks the platform for the file contents. The size is taken
   /// from those same bytes rather than from a separate length query, so the two
   /// cannot disagree and only one read is needed.
-  Future<DropZoneFile?> _readFile(DropItem item) async {
+  Future<DropZoneFile> _readFile(DropItem item) async {
     try {
       final bytes = await item.readAsBytes();
       return DropZoneFile(
@@ -111,7 +116,7 @@ class _DropRegionState extends State<DropRegion> {
       );
     } catch (e) {
       debugPrint('Error reading dropped file: $e');
-      return null;
+      return DropZoneFile.unreadable(item.name);
     }
   }
 

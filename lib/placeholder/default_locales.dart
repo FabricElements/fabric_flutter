@@ -690,6 +690,34 @@ const Map<String, Map<String, String>> defaultLocales = {
     'en': 'This photo format could not be converted for upload. Please use a JPG or PNG file instead.',
     'es': 'No se pudo convertir el formato de esta foto para subirla. Por favor, usa un archivo JPG o PNG.',
   },
+  'label--drop-file-rejected': {
+    'en': '{file} was not added: {reason}',
+    'es': '{file} no se agregó: {reason}',
+  },
+  'label--drop-nothing-readable': {
+    'en': 'Nothing in this drop could be read. Drop files from your computer or use Browse files.',
+    'es': 'No se pudo leer nada de lo que soltaste. Suelta archivos desde tu computadora o usa Buscar archivos.',
+  },
+  'label--drop-reason-unsupported': {
+    'en': 'this file type is not supported here.',
+    'es': 'este tipo de archivo no es compatible aquí.',
+  },
+  'label--drop-reason-unreadable': {
+    'en': 'the file could not be read.',
+    'es': 'no se pudo leer el archivo.',
+  },
+  'label--drop-reason-empty': {
+    'en': 'the file is empty.',
+    'es': 'el archivo está vacío.',
+  },
+  'label--drop-reason-conversion': {
+    'en': 'the file could not be converted for upload.',
+    'es': 'no se pudo convertir el archivo para subirlo.',
+  },
+  'label--drop-reason-duplicate': {
+    'en': 'this file was already added.',
+    'es': 'este archivo ya se agregó.',
+  },
   'label--info-phone-number-format': {
     'en': 'Please enter your phone number as: +[Country Code][Phone Number] (e.g., +14155552671, +34912345678, +573001234567).',
     'es': 'Por favor, introduce tu número de teléfono como: +[Código de País][Número de Teléfono] (por ejemplo, +14155552671, +34912345678, +573001234567).',

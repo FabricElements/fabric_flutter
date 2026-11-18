@@ -248,7 +248,19 @@ class DropZoneFile {
     required this.name,
     required this.size,
     this.mimeType,
+    this.unreadable = false,
   });
+
+  /// Creates a placeholder for a dropped item whose contents could not be read.
+  ///
+  /// Drop regions deliver this instead of silently skipping the item so the
+  /// consuming state can warn the user. An empty [name] means the drop carried
+  /// nothing readable at all, such as a dragged web link or a folder.
+  DropZoneFile.unreadable(this.name)
+    : bytes = Uint8List(0),
+      size = 0,
+      mimeType = null,
+      unreadable = true;
 
   /// The raw file contents.
   final Uint8List bytes;
@@ -264,4 +276,41 @@ class DropZoneFile {
   /// A `null` value means the source did not classify the file, in which case
   /// the consuming state resolves the type from the bytes and file name.
   final String? mimeType;
+
+  /// Whether the drop source failed to read this item.
+  ///
+  /// Unreadable items are never staged; the consuming state reports them to the
+  /// user as [DropRejectionReason.unreadable].
+  final bool unreadable;
+}
+
+/// Why a dropped or picked file was not staged.
+enum DropRejectionReason {
+  /// The file type is not among the accepted formats.
+  unsupportedType,
+
+  /// The drop source could not read the file or the drop carried no files.
+  unreadable,
+
+  /// The file has no content.
+  empty,
+
+  /// The file needs a conversion the platform cannot perform.
+  conversionFailed,
+
+  /// The same file is already staged.
+  duplicate,
+}
+
+/// A file that was dropped or picked but not staged, with the reason why.
+@immutable
+class DropRejection {
+  /// Creates a rejection of [fileName] for [reason].
+  const DropRejection({required this.fileName, required this.reason});
+
+  /// The display name of the rejected file; empty when the drop had no files.
+  final String fileName;
+
+  /// Why the file was rejected.
+  final DropRejectionReason reason;
 }
