@@ -87,6 +87,25 @@ enum MediaOrigin {
   files,
 }
 
+/// Maps an image MIME type resolved from file bytes to a supported extension.
+///
+/// Returns `null` for anything that is not a supported image type, so callers
+/// can reject it. `extensionFromMime` is deliberately avoided because its
+/// default pick for `image/jpeg` is `jpg` while the resize worker expects the
+/// canonical forms used here.
+String? _extensionForImageContentType(String? contentType) {
+  switch (contentType) {
+    case 'image/jpeg':
+      return 'jpeg';
+    case 'image/png':
+      return 'png';
+    case 'image/gif':
+      return 'gif';
+    default:
+      return null;
+  }
+}
+
 /// Loads and normalizes media selected by the user.
 ///
 /// This helper wraps platform-specific picker behavior, common validation, and
@@ -125,7 +144,7 @@ class MediaHelper {
           fileData = bytes;
           extension = file.extension;
           fileName = file.name;
-          contentType = lookupMimeType(file.name);
+          contentType = lookupMimeType(file.name, headerBytes: bytes);
           break;
         case MediaOrigin.camera:
           if (kIsWeb) throw 'alert--not-implemented';
@@ -147,6 +166,7 @@ class MediaHelper {
         case MediaOrigin.files:
           final dataFromFiles = await getFile(
             allowedExtensions: supportedExtensions,
+            type: kIsWeb ? FileType.image : null,
           );
           fileData = base64Decode(dataFromFiles.data);
           extension = dataFromFiles.extension;
@@ -161,8 +181,15 @@ class MediaHelper {
     }
     extension = extension?.toLowerCase();
     if (extension == null || !supportedExtensions.contains(extension)) {
-      debugPrint(LogColor.error('Unsupported image format: $extension'));
-      throw 'alert--unsupported-image-format';
+      // Some browsers hand back a photo that was transcoded on selection but
+      // keeps its original, unsupported file name. Accept it when the bytes
+      // themselves resolve to a supported image type.
+      final derivedExtension = _extensionForImageContentType(contentType);
+      if (derivedExtension == null) {
+        debugPrint(LogColor.error('Unsupported image format: $extension'));
+        throw 'alert--unsupported-image-format';
+      }
+      extension = derivedExtension;
     }
     try {
       if (maxDimensions != null) {
@@ -246,8 +273,15 @@ class MediaHelper {
   /// dimensions for images and videos when possible. Files larger than
   /// [maxFileSize] are rejected after selection.
   static Future<MediaData> getFile({
-    /// Optional allowed extensions.
+    /// Optional allowed extensions for the picker's custom file type.
     List<String>? allowedExtensions,
+
+    /// Optional picker file type that replaces extension filtering.
+    ///
+    /// When provided it takes precedence over [allowedExtensions], which is
+    /// ignored; when omitted the picker uses `FileType.custom` with
+    /// [allowedExtensions].
+    FileType? type,
 
     /// Optional maximum file size in bytes.
     int? maxFileSize,
@@ -256,9 +290,11 @@ class MediaHelper {
     String? extension;
     String? contentType;
     String? fileName;
+    final effectiveType = type ?? FileType.custom;
+    final effectiveExtensions = type == null ? allowedExtensions : null;
     final files = await FilePicker.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: allowedExtensions,
+      type: effectiveType,
+      allowedExtensions: effectiveExtensions,
     );
     if (files.isEmpty) throw 'alert--no-chosen-files';
     final file = files.first;
@@ -268,13 +304,23 @@ class MediaHelper {
     fileName = file.name;
     int width = 0;
     int height = 0;
-    contentType = lookupMimeType(fileName);
+    contentType =
+        lookupMimeType(fileName, headerBytes: fileData) ??
+        'application/octet-stream';
     final encodeData = base64Encode(fileData);
     // if image, get the width and height
-    if (contentType!.contains('image')) {
-      final decodedImage = await decodeImageFromList(fileData);
-      width = decodedImage.width;
-      height = decodedImage.height;
+    if (contentType.contains('image')) {
+      // The content type now comes from the file bytes, so it can name an
+      // image codec the engine cannot decode (for example a high-efficiency
+      // photo container). Dimensions are best-effort metadata, not a reason
+      // to fail the pick.
+      try {
+        final decodedImage = await decodeImageFromList(fileData);
+        width = decodedImage.width;
+        height = decodedImage.height;
+      } catch (e) {
+        debugPrint(LogColor.warning('Decoding image to get dimensions: $e'));
+      }
     }
     // wrap with try catch
     // if video, get width and height
