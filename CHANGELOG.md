@@ -23,6 +23,23 @@
 
 ### Fixed
 
+* **Rejected or failed drops are no longer silent.** `StateDropZone` now
+  records every rejected file in `rejections` (`DropRejection` with a
+  `DropRejectionReason`: unsupported type, unreadable, empty, conversion
+  failed, duplicate) and shows a localized warning naming the file and the
+  reason through `reportRejection`. New `label--drop-*` locale keys (en/es).
+  `DropRegion` now delivers `DropZoneFile.unreadable(name)` placeholders for
+  directories, string-only drops, read failures and drops with no files (a
+  single empty-name placeholder), so consumers can surface them too.
+* **Dropped files stage their canonical content type.** Browser aliases and
+  `application/octet-stream` (for example `image/jpg`, `audio/x-wav`) are
+  replaced by the matched format's MIME type, so strict downstream checks
+  accept png/jpeg/mp4/pdf/mp3 drops. Behaviour change: a vCard now stages as
+  `text/vcard` instead of `text/x-vcard`.
+* **Web drop listeners run in the capture phase** and fall back to
+  `DataTransfer.items` when `files` is empty, so a descendant that stops
+  propagation or a browser that only fills `items` no longer swallows drops.
+
 * **Photo-library images rejected on mobile browsers.** `MediaHelper
   .getImage` with `MediaOrigin.files` now requests `FileType.image` on the
   web, so the file input advertises `accept="image/*"` instead of a hard-coded

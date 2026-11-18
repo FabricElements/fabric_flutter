@@ -187,6 +187,68 @@ class StateDropZone extends ChangeNotifier {
     return null;
   }
 
+  /// Returns the accepted format matching [contentType] or [fileName].
+  DropFileFormat? _matchFormat(String? contentType, String fileName) {
+    for (final format in formats) {
+      if (format.matches(contentType: contentType, fileName: fileName)) {
+        return format;
+      }
+    }
+    return null;
+  }
+
+  /// Files rejected since the last [clearRejections], newest last.
+  final List<DropRejection> _rejections = [];
+
+  /// Returns an immutable view of the files rejected by drops and picks.
+  List<DropRejection> get rejections => List.unmodifiable(_rejections);
+
+  /// Forgets the recorded [rejections].
+  void clearRejections() => _rejections.clear();
+
+  /// Records that [fileName] was not staged and warns the user.
+  ///
+  /// The warning is a localized alert naming the file and the reason, never a
+  /// raw error string. Without a usable context the rejection is still recorded
+  /// and only reaches the debug log, with the file name left out so nothing
+  /// user-identifying is logged.
+  void reportRejection(String fileName, DropRejectionReason reason) {
+    if (_disposed) return;
+    _rejections.add(DropRejection(fileName: fileName, reason: reason));
+    final context = alertContext(null);
+    if (context == null || !context.mounted) {
+      debugPrint('[StateDropZone] file rejected (${reason.name})');
+      return;
+    }
+    final locales = AppLocalizations.of(context);
+    final String body;
+    if (reason == DropRejectionReason.unreadable && fileName.isEmpty) {
+      body = locales.get('label--drop-nothing-readable');
+    } else {
+      body = locales.get('label--drop-file-rejected', {
+        'file': fileName,
+        'reason': locales.get(_reasonKey(reason)),
+      });
+    }
+    alertData(context: context, body: body, type: AlertType.warning);
+  }
+
+  /// Returns the localization key describing [reason].
+  static String _reasonKey(DropRejectionReason reason) {
+    switch (reason) {
+      case DropRejectionReason.unsupportedType:
+        return 'label--drop-reason-unsupported';
+      case DropRejectionReason.unreadable:
+        return 'label--drop-reason-unreadable';
+      case DropRejectionReason.empty:
+        return 'label--drop-reason-empty';
+      case DropRejectionReason.conversionFailed:
+        return 'label--drop-reason-conversion';
+      case DropRejectionReason.duplicate:
+        return 'label--drop-reason-duplicate';
+    }
+  }
+
   /// Updates the drag-hover state and notifies listeners when it changes.
   void updateDragging(bool dragging) {
     if (_isDragging == dragging) return;
@@ -225,6 +287,10 @@ class StateDropZone extends ChangeNotifier {
   /// and filters the bytes.
   Future<void> onDroppedFiles(List<DropZoneFile> files) async {
     updateDragging(false);
+    if (files.isEmpty) {
+      reportRejection('', DropRejectionReason.unreadable);
+      return;
+    }
     loading = true;
     try {
       for (final file in files) {
@@ -242,9 +308,23 @@ class StateDropZone extends ChangeNotifier {
   /// performed, the file is not staged and the user is told through a localized
   /// alert; without a usable context the failure only reaches the debug log.
   Future<void> _convertAndStage(DropZoneFile file) async {
+    if (file.unreadable) {
+      reportRejection(file.name, DropRejectionReason.unreadable);
+      return;
+    }
+    if (file.bytes.isEmpty) {
+      reportRejection(file.name, DropRejectionReason.empty);
+      return;
+    }
     final result = await converter.convert(file);
     final converted = result.file;
     if (converted == null) {
+      _rejections.add(
+        DropRejection(
+          fileName: file.name,
+          reason: DropRejectionReason.conversionFailed,
+        ),
+      );
       final context = alertContext(null);
       if (context == null || !context.mounted) {
         // The reason is a short internal identifier; the file name is
@@ -287,15 +367,20 @@ class StateDropZone extends ChangeNotifier {
     if (contentType == null) {
       final matchedFormat = _matchFormatByFileName(name);
       if (matchedFormat == null) {
-        debugPrint('Could not determine MIME type for file: $name');
+        reportRejection(file.name, DropRejectionReason.unsupportedType);
         return false;
       }
       contentType = matchedFormat.mimeType;
     }
-    final accepted = formats.any(
-      (format) => format.matches(contentType: contentType, fileName: name),
-    );
-    if (!accepted) return false;
+    final matched = _matchFormat(contentType, name);
+    if (matched == null) {
+      reportRejection(file.name, DropRejectionReason.unsupportedType);
+      return false;
+    }
+    // Browsers report aliases (`image/jpg`, `audio/x-wav`) or a generic
+    // `application/octet-stream` for files the extension already identifies, so
+    // the accepted format's canonical type is staged instead.
+    contentType = matched.mimeType;
     String? extension = extensionFromName ?? extensionFromMime(contentType);
     extension ??= contentType.contains('/')
         ? contentType.split('/').lastOrNull
@@ -303,7 +388,7 @@ class StateDropZone extends ChangeNotifier {
     if (extensionFromName == null && extension != null) {
       name += '.$extension';
     }
-    return addMediaIfNew(
+    final added = addMediaIfNew(
       MediaDataUpload(
         bytes: file.bytes,
         fileName: name,
@@ -312,6 +397,8 @@ class StateDropZone extends ChangeNotifier {
         size: file.size,
       ),
     );
+    if (!added) reportRejection(name, DropRejectionReason.duplicate);
+    return added;
   }
 
   /// Removes the media item at [index] and clears the loading flag.

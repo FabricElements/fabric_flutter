@@ -40,11 +40,7 @@ Future<void> _emitDrop(
 
 /// A payload entry describing a dropped file at [path].
 Map<String, Object?> _fileEntry(String path, {String? name, String? mimeType}) {
-  return <String, Object?>{
-    'path': path,
-    'name': ?name,
-    'mimeType': ?mimeType,
-  };
+  return <String, Object?>{'path': path, 'name': ?name, 'mimeType': ?mimeType};
 }
 
 /// The centre of the drop region, in global coordinates.
@@ -334,7 +330,9 @@ void main() {
         expect(dropped.single.name, 'photo.png');
       });
 
-      testWidgets('should skip a dropped directory', (tester) async {
+      testWidgets('should deliver a dropped directory as unreadable', (
+        tester,
+      ) async {
         // Arrange
         await pumpRegion(tester);
         final centre = _regionCentre(tester);
@@ -352,11 +350,13 @@ void main() {
         });
 
         // Assert
-        expect(dropped, hasLength(1));
-        expect(dropped.single.name, 'photo.png');
+        expect(dropped, hasLength(2));
+        expect(dropped.first.unreadable, isTrue);
+        expect(dropped.last.name, 'photo.png');
+        expect(dropped.last.unreadable, isFalse);
       });
 
-      testWidgets('should not deliver when the drop has no readable file', (
+      testWidgets('should flag a drop with no file as unreadable', (
         tester,
       ) async {
         // Arrange
@@ -373,10 +373,11 @@ void main() {
         });
 
         // Assert
-        expect(dropped, isEmpty);
+        expect(dropped.single.unreadable, isTrue);
+        expect(dropped.single.name, isEmpty);
       });
 
-      testWidgets('should not deliver a file that cannot be read', (
+      testWidgets('should flag a file that cannot be read as unreadable', (
         tester,
       ) async {
         // Arrange
@@ -392,7 +393,8 @@ void main() {
         });
 
         // Assert
-        expect(dropped, isEmpty);
+        expect(dropped.single.unreadable, isTrue);
+        expect(dropped.single.name, 'missing.png');
       });
 
       testWidgets('should not deliver a drop outside the region', (

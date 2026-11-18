@@ -31,7 +31,8 @@ class DropRegion extends StatefulWidget {
   /// Receives the files read from a drop that lands inside the region.
   ///
   /// Filtering by accepted format is intentionally left to the consuming state so
-  /// the region stays generic; every readable dropped file is delivered here.
+  /// the region stays generic; every dropped file is delivered here, with
+  /// [DropZoneFile.unreadable] standing in for any that could not be read.
   final Future<void> Function(List<DropZoneFile> files) onDrop;
 
   /// Reports when a drag starts or stops hovering the region.
@@ -62,23 +63,27 @@ class _DropRegionState extends State<DropRegion> {
   /// Retained `drop` listener so it can be removed on dispose.
   late final JSFunction _dropJs = _onDrop.toJS;
 
+  /// Listens in the capture phase so a descendant that stops propagation, such
+  /// as an embedded view, cannot swallow a drop before it reaches the region.
+  static final JSBoolean _capture = true.toJS;
+
   /// Registers the document drag listeners once the widget mounts.
   @override
   void initState() {
     super.initState();
-    web.document.addEventListener('dragenter', _moveJs);
-    web.document.addEventListener('dragover', _moveJs);
-    web.document.addEventListener('dragleave', _leaveJs);
-    web.document.addEventListener('drop', _dropJs);
+    web.document.addEventListener('dragenter', _moveJs, _capture);
+    web.document.addEventListener('dragover', _moveJs, _capture);
+    web.document.addEventListener('dragleave', _leaveJs, _capture);
+    web.document.addEventListener('drop', _dropJs, _capture);
   }
 
   /// Removes the document drag listeners when the widget is disposed.
   @override
   void dispose() {
-    web.document.removeEventListener('dragenter', _moveJs);
-    web.document.removeEventListener('dragover', _moveJs);
-    web.document.removeEventListener('dragleave', _leaveJs);
-    web.document.removeEventListener('drop', _dropJs);
+    web.document.removeEventListener('dragenter', _moveJs, _capture);
+    web.document.removeEventListener('dragover', _moveJs, _capture);
+    web.document.removeEventListener('dragleave', _leaveJs, _capture);
+    web.document.removeEventListener('drop', _dropJs, _capture);
     super.dispose();
   }
 
@@ -138,27 +143,47 @@ class _DropRegionState extends State<DropRegion> {
     _setHovering(false);
     final transfer = drag.dataTransfer;
     if (!inside || transfer == null) return;
-    unawaited(_deliver(transfer.files));
+    unawaited(_deliver(transfer));
   }
 
-  /// Reads every file in [files] and delivers the readable ones.
-  Future<void> _deliver(web.FileList files) async {
-    final futures = <Future<DropZoneFile?>>[];
-    for (var i = 0; i < files.length; i++) {
-      final file = files.item(i);
-      if (file != null) futures.add(_readFile(file));
+  /// Collects the files of [transfer] synchronously, then reads and delivers them.
+  ///
+  /// The collection must finish before the first `await` because the browser
+  /// empties the transfer once the event handler returns. `files` is preferred;
+  /// `items` is the fallback for sources that only populate the item list.
+  /// Unreadable files, and drops that carry no file at all (a dragged link or
+  /// image from another page), are delivered as [DropZoneFile.unreadable]
+  /// placeholders so the consuming state can warn instead of failing silently.
+  Future<void> _deliver(web.DataTransfer transfer) async {
+    final files = <web.File>[];
+    final fileList = transfer.files;
+    for (var i = 0; i < fileList.length; i++) {
+      final file = fileList.item(i);
+      if (file != null) files.add(file);
     }
-    final results = await Future.wait(futures);
-    final dropped = results.whereType<DropZoneFile>().toList();
-    if (dropped.isNotEmpty) await widget.onDrop(dropped);
+    if (files.isEmpty) {
+      final items = transfer.items;
+      for (var i = 0; i < items.length; i++) {
+        final item = items[i];
+        if (item.kind != 'file') continue;
+        final file = item.getAsFile();
+        if (file != null) files.add(file);
+      }
+    }
+    if (files.isEmpty) {
+      await widget.onDrop([DropZoneFile.unreadable('')]);
+      return;
+    }
+    final results = await Future.wait(files.map(_readFile));
+    await widget.onDrop(results);
   }
 
-  /// Reads a single [file] into a [DropZoneFile], or `null` when it fails.
+  /// Reads a single [file] into a [DropZoneFile], or an unreadable placeholder when it fails.
   ///
   /// The bytes are read through `File.arrayBuffer`, which resolves to raw binary
   /// data without the base64 detour and without the fragile completer-and-timeout
   /// pattern the previous reader API required.
-  Future<DropZoneFile?> _readFile(web.File file) async {
+  Future<DropZoneFile> _readFile(web.File file) async {
     try {
       final buffer = await file.arrayBuffer().toDart;
       final bytes = buffer.toDart.asUint8List();
@@ -171,7 +196,7 @@ class _DropRegionState extends State<DropRegion> {
       );
     } catch (e) {
       debugPrint('Error reading dropped file: $e');
-      return null;
+      return DropZoneFile.unreadable(file.name);
     }
   }
 
