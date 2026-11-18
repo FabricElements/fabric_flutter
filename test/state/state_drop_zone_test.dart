@@ -134,6 +134,21 @@ void main() {
       expect(state.mediaList.single.contentType, 'image/png');
     });
 
+    test('should stage a vCard file dropped on the contact-list preset', () {
+      // Arrange
+      final state = StateDropZone(formats: dropZoneFormatsContactList);
+
+      // Act
+      final staged = state.handleDroppedFile(
+        dropped(name: 'contacts.vcf', mimeType: null),
+      );
+
+      // Assert
+      expect(staged, isTrue);
+      expect(state.mediaList.single.fileName, 'contacts.vcf');
+      expect(state.mediaList.single.contentType, 'text/x-vcard');
+    });
+
     test('should append a resolved extension to an extension-less name', () {
       // Arrange
       final state = StateDropZone(formats: dropZoneFormatsGeneral);

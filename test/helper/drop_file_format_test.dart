@@ -65,6 +65,59 @@ void main() {
         // Assert
         expect(result, isFalse);
       });
+
+      test('should match vCard on its declared content type', () {
+        // Arrange
+        const format = DropFileFormats.vcard;
+
+        // Act
+        final result = format.matches(
+          contentType: 'text/vcard',
+          fileName: 'contacts',
+        );
+
+        // Assert
+        expect(result, isTrue);
+      });
+
+      test('should match vCard through its file extensions', () {
+        // Arrange
+        const format = DropFileFormats.vcard;
+
+        // Act & Assert
+        expect(format.matches(fileName: 'card.vcf'), isTrue);
+        expect(format.matches(fileName: 'card.VCARD'), isTrue);
+      });
+
+      test('should match a vCard resolved as the x-variant content type', () {
+        // Arrange
+        // `lookupMimeType` maps the `vcf` extension to `text/x-vcard`, so the
+        // equality check misses and the extension fallback must accept it.
+        const format = DropFileFormats.vcard;
+
+        // Act
+        final result = format.matches(
+          contentType: 'text/x-vcard',
+          fileName: 'contacts.vcf',
+        );
+
+        // Assert
+        expect(result, isTrue);
+      });
+
+      test('should reject vCard with an unrelated content type and name', () {
+        // Arrange
+        const format = DropFileFormats.vcard;
+
+        // Act
+        final result = format.matches(
+          contentType: 'text/csv',
+          fileName: 'contacts.csv',
+        );
+
+        // Assert
+        expect(result, isFalse);
+      });
     });
   });
 
@@ -89,7 +142,7 @@ void main() {
       final extensions = extensionsForFormats(dropZoneFormatsContactList);
 
       // Assert
-      expect(extensions, ['csv', 'xls', 'xlsx']);
+      expect(extensions, ['csv', 'xls', 'xlsx', 'vcf', 'vcard']);
     });
   });
 
@@ -108,6 +161,22 @@ void main() {
 
       // Assert
       expect(extensions, ['mp3', 'wav']);
+    });
+
+    test('should include vCard only in the contact-list preset', () {
+      // Arrange & Act
+      final inContacts = dropZoneFormatsContactList.contains(
+        DropFileFormats.vcard,
+      );
+      final inGeneral = dropZoneFormatsGeneral.contains(DropFileFormats.vcard);
+      final inMessageTemplate = dropZoneFormatsMessageTemplate.contains(
+        DropFileFormats.vcard,
+      );
+
+      // Assert
+      expect(inContacts, isTrue);
+      expect(inGeneral, isFalse);
+      expect(inMessageTemplate, isFalse);
     });
   });
 
