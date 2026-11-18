@@ -116,6 +116,22 @@ void main() {
       expect(state.mediaList, isEmpty);
     });
 
+    test('should stage a HEIC photo dragged from a platform gallery', () {
+      // Arrange
+      final state = StateDropZone(formats: dropZoneFormatsGeneral);
+      const heicBytes = [0, 0, 0, 24, 102, 116, 121, 112, 104, 101, 105, 99];
+
+      // Act
+      final staged = state.handleDroppedFile(
+        dropped(name: 'IMG_0001.heic', bytes: heicBytes, mimeType: null),
+      );
+
+      // Assert
+      expect(staged, isTrue);
+      expect(state.mediaList.single.fileName, 'IMG_0001.heic');
+      expect(state.mediaList.single.contentType, 'image/heic');
+    });
+
     test('should resolve the content type from bytes when MIME is missing', () {
       // Arrange
       final state = StateDropZone(formats: dropZoneFormatsGeneral);
@@ -158,6 +174,84 @@ void main() {
 
       // Assert
       expect(state.mediaList.single.fileName, 'photo.png');
+    });
+
+    test(
+      'should stage an unresolved-MIME file whose extension is accepted',
+      () {
+        // Arrange
+        final state = StateDropZone(formats: dropZoneFormatsGeneral);
+
+        // Act
+        final staged = state.handleDroppedFile(
+          dropped(name: 'photo.png', mimeType: null),
+        );
+
+        // Assert
+        expect(staged, isTrue);
+        expect(state.mediaList.single.fileName, 'photo.png');
+        expect(state.mediaList.single.contentType, 'image/png');
+      },
+    );
+
+    test('should borrow the accepted format MIME when sniffing fails', () {
+      // Arrange
+      final state = StateDropZone(formats: dropZoneFormatsGeneral);
+
+      // Act
+      final staged = state.handleDroppedFile(
+        dropped(name: 'clip.mov', mimeType: null),
+      );
+
+      // Assert
+      expect(staged, isTrue);
+      expect(state.mediaList.single.contentType, 'video/quicktime');
+    });
+
+    test('should still stage a CSV file that carries no MIME type', () {
+      // Arrange
+      final state = StateDropZone(formats: dropZoneFormatsContactList);
+
+      // Act
+      final staged = state.handleDroppedFile(
+        dropped(name: 'contacts.csv', mimeType: null),
+      );
+
+      // Assert
+      expect(staged, isTrue);
+      expect(state.mediaList.single.fileName, 'contacts.csv');
+      expect(state.mediaList.single.contentType, 'text/csv');
+    });
+
+    test(
+      'should reject an unresolved-MIME file whose extension is not accepted',
+      () {
+        // Arrange
+        final state = StateDropZone(formats: dropZoneFormatsCallRecording);
+
+        // Act
+        final staged = state.handleDroppedFile(
+          dropped(name: 'photo.png', mimeType: null),
+        );
+
+        // Assert
+        expect(staged, isFalse);
+        expect(state.mediaList, isEmpty);
+      },
+    );
+
+    test('should reject an unresolved-MIME file with an unknown extension', () {
+      // Arrange
+      final state = StateDropZone(formats: dropZoneFormatsGeneral);
+
+      // Act
+      final staged = state.handleDroppedFile(
+        dropped(name: 'weird.zyx', mimeType: null),
+      );
+
+      // Assert
+      expect(staged, isFalse);
+      expect(state.mediaList, isEmpty);
     });
   });
 

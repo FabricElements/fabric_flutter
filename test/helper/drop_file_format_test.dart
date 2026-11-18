@@ -178,6 +178,32 @@ void main() {
       expect(inGeneral, isFalse);
       expect(inMessageTemplate, isFalse);
     });
+
+    test('should accept HEIC and HEIF photos in the media presets', () {
+      // Arrange & Act
+      final general = dropZoneFormatsGeneral;
+      final messageTemplate = dropZoneFormatsMessageTemplate;
+      final byNameHeic = general
+          .where((f) => f.matches(fileName: 'IMG_0001.heic'))
+          .toList();
+      final byTypeHeif = general
+          .where((f) => f.matches(contentType: 'image/heif', fileName: 'x'))
+          .toList();
+
+      // Assert
+      expect(
+        general.contains(DropFileFormats.heic) &&
+            general.contains(DropFileFormats.heif),
+        isTrue,
+      );
+      expect(
+        messageTemplate.contains(DropFileFormats.heic) &&
+            messageTemplate.contains(DropFileFormats.heif),
+        isTrue,
+      );
+      expect(byNameHeic, isNotEmpty);
+      expect(byTypeHeif, isNotEmpty);
+    });
   });
 
   group('DropZoneFile', () {

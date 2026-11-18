@@ -160,6 +160,22 @@ class StateDropZone extends ChangeNotifier {
   /// Returns an immutable view of the selected media items.
   List<MediaDataUpload> get mediaList => List.unmodifiable(_mediaList);
 
+  /// Returns the first accepted format matching [fileName] by extension alone.
+  ///
+  /// Used when a dropped file carries no MIME type and its bytes cannot be
+  /// sniffed, mirroring the extension fallback in [DropFileFormat.matches] so
+  /// the same files are accepted either way. Returns `null` when no accepted
+  /// format covers the file's extension.
+  DropFileFormat? _matchFormatByFileName(String fileName) {
+    final dot = fileName.lastIndexOf('.');
+    if (dot < 0 || dot == fileName.length - 1) return null;
+    final extension = fileName.substring(dot + 1).toLowerCase();
+    for (final format in formats) {
+      if (format.extensions.contains(extension)) return format;
+    }
+    return null;
+  }
+
   /// Updates the drag-hover state and notifies listeners when it changes.
   void updateDragging(bool dragging) {
     if (_isDragging == dragging) return;
@@ -210,10 +226,12 @@ class StateDropZone extends ChangeNotifier {
   /// Classifies a single dropped [file] and stages it when it is supported.
   ///
   /// The content type is taken from the browser, falling back to sniffing the
-  /// bytes and finally to a `text/csv` guess for comma-separated data. Files that
-  /// do not match any accepted [formats] are ignored, and the resolved extension
-  /// is appended to the name when the original name lacked one. Returns whether
-  /// the file was staged.
+  /// bytes. When neither yields a type, the accepted [formats] decide by file
+  /// name alone and the first matching format lends its canonical MIME type, so
+  /// files dropped without a reported content type are still staged when their
+  /// extension is accepted. Files that match no accepted format are ignored, and
+  /// the resolved extension is appended to the name when the original name
+  /// lacked one. Returns whether the file was staged.
   @visibleForTesting
   bool handleDroppedFile(DropZoneFile file) {
     if (_disposed) return false;
@@ -223,12 +241,13 @@ class StateDropZone extends ChangeNotifier {
     final extensionFromName = name.contains('.')
         ? name.split('.').lastOrNull?.toLowerCase()
         : null;
-    if (contentType == null && extensionFromName == 'csv') {
-      contentType = 'text/csv';
-    }
     if (contentType == null) {
-      debugPrint('Could not determine MIME type for file: $name');
-      return false;
+      final matchedFormat = _matchFormatByFileName(name);
+      if (matchedFormat == null) {
+        debugPrint('Could not determine MIME type for file: $name');
+        return false;
+      }
+      contentType = matchedFormat.mimeType;
     }
     final accepted = formats.any(
       (format) => format.matches(contentType: contentType, fileName: name),
