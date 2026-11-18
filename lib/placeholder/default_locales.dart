@@ -686,6 +686,10 @@ const Map<String, Map<String, String>> defaultLocales = {
   },
   'label--browse-files': {'en': 'Browse files', 'es': 'Buscar archivos'},
   'label--upload-complete': {'en': 'Upload complete', 'es': 'Carga completa'},
+  'label--media-conversion-failed': {
+    'en': 'This photo format could not be converted for upload. Please use a JPG or PNG file instead.',
+    'es': 'No se pudo convertir el formato de esta foto para subirla. Por favor, usa un archivo JPG o PNG.',
+  },
   'label--info-phone-number-format': {
     'en': 'Please enter your phone number as: +[Country Code][Phone Number] (e.g., +14155552671, +34912345678, +573001234567).',
     'es': 'Por favor, introduce tu número de teléfono como: +[Código de País][Número de Teléfono] (por ejemplo, +14155552671, +34912345678, +573001234567).',

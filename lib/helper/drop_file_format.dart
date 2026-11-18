@@ -67,6 +67,22 @@ abstract final class DropFileFormats {
     extensions: ['gif'],
   );
 
+  /// HEIC image format, Apple's default camera-photo container.
+  ///
+  /// Gallery and file-manager drags on Apple platforms overwhelmingly carry
+  /// `heic` files, so image drop zones that accept the platform gallery's other
+  /// types need this entry to accept them.
+  static const DropFileFormat heic = DropFileFormat(
+    mimeType: 'image/heic',
+    extensions: ['heic'],
+  );
+
+  /// HEIF image format, the sibling container of [heic].
+  static const DropFileFormat heif = DropFileFormat(
+    mimeType: 'image/heif',
+    extensions: ['heif'],
+  );
+
   /// MP3 audio format.
   static const DropFileFormat mp3 = DropFileFormat(
     mimeType: 'audio/mpeg',
@@ -151,6 +167,8 @@ const List<DropFileFormat> dropZoneFormatsGeneral = [
   DropFileFormats.png,
   DropFileFormats.jpeg,
   DropFileFormats.gif,
+  DropFileFormats.heic,
+  DropFileFormats.heif,
   DropFileFormats.mp3,
   DropFileFormats.mpeg,
   DropFileFormats.ogg,
@@ -171,6 +189,8 @@ const List<DropFileFormat> dropZoneFormatsMessageTemplate = [
   DropFileFormats.png,
   DropFileFormats.jpeg,
   DropFileFormats.gif,
+  DropFileFormats.heic,
+  DropFileFormats.heif,
   DropFileFormats.mp3,
   DropFileFormats.mpeg,
   DropFileFormats.ogg,

@@ -9,6 +9,7 @@ import '../component/alert_data.dart';
 import '../helper/app_localizations_delegate.dart';
 import '../helper/drop_file_format.dart';
 import '../helper/firebase_storage_helper.dart';
+import '../helper/media_file_converter.dart';
 
 /// Represents the upload lifecycle for a dropped or selected media item.
 enum MediaDataUploadStatus {
@@ -85,11 +86,21 @@ class MediaDataUpload {
 /// acceptance paths.
 class StateDropZone extends ChangeNotifier {
   /// Creates a drop-zone state that accepts the given [formats].
-  StateDropZone({required this.formats})
-    : extensions = extensionsForFormats(formats);
+  ///
+  /// The [converter] re-encodes files whose containers are accepted by the
+  /// platform gallery but rejected downstream — most notably HEIC/HEIF photos —
+  /// before they are staged, so only upload-safe bytes reach [mediaList]. It
+  /// defaults to the platform converter and only needs to be provided in tests.
+  StateDropZone({
+    required this.formats,
+    this.converter = const MediaFileConverterImpl(),
+  }) : extensions = extensionsForFormats(formats);
 
   /// The file formats accepted by both drag-and-drop and the file picker.
   final List<DropFileFormat> formats;
+
+  /// Re-encodes containers that downstream storage rejects before staging.
+  final MediaFileConverter converter;
 
   /// The file extensions passed to the picker, derived from [formats].
   final List<String> extensions;
@@ -160,6 +171,22 @@ class StateDropZone extends ChangeNotifier {
   /// Returns an immutable view of the selected media items.
   List<MediaDataUpload> get mediaList => List.unmodifiable(_mediaList);
 
+  /// Returns the first accepted format matching [fileName] by extension alone.
+  ///
+  /// Used when a dropped file carries no MIME type and its bytes cannot be
+  /// sniffed, mirroring the extension fallback in [DropFileFormat.matches] so
+  /// the same files are accepted either way. Returns `null` when no accepted
+  /// format covers the file's extension.
+  DropFileFormat? _matchFormatByFileName(String fileName) {
+    final dot = fileName.lastIndexOf('.');
+    if (dot < 0 || dot == fileName.length - 1) return null;
+    final extension = fileName.substring(dot + 1).toLowerCase();
+    for (final format in formats) {
+      if (format.extensions.contains(extension)) return format;
+    }
+    return null;
+  }
+
   /// Updates the drag-hover state and notifies listeners when it changes.
   void updateDragging(bool dragging) {
     if (_isDragging == dragging) return;
@@ -192,28 +219,62 @@ class StateDropZone extends ChangeNotifier {
 
   /// Processes files delivered by a drop event and stages the supported ones.
   ///
-  /// This resets the drag state, marks the drop zone as loading, and appends each
-  /// accepted file to [mediaList] through [handleDroppedFile]. Reading has already
-  /// happened in the drop region, so this only classifies and filters the bytes.
+  /// This resets the drag state, marks the drop zone as loading, and appends
+  /// each accepted file to [mediaList] through [_convertAndStage]. Reading has
+  /// already happened in the drop region, so this only converts, classifies,
+  /// and filters the bytes.
   Future<void> onDroppedFiles(List<DropZoneFile> files) async {
     updateDragging(false);
     loading = true;
     try {
       for (final file in files) {
-        handleDroppedFile(file);
+        await _convertAndStage(file);
       }
     } finally {
       if (!_disposed) loading = false;
     }
   }
 
+  /// Converts [file] through [converter] and stages the result.
+  ///
+  /// Every drop and pick goes through this pipeline so both entry points stage
+  /// exactly the same bytes. When the conversion is required but cannot be
+  /// performed, the file is not staged and the user is told through a localized
+  /// alert; without a usable context the failure only reaches the debug log.
+  Future<void> _convertAndStage(DropZoneFile file) async {
+    final result = await converter.convert(file);
+    final converted = result.file;
+    if (converted == null) {
+      final context = alertContext(null);
+      if (context == null || !context.mounted) {
+        // The reason is a short internal identifier; the file name is
+        // deliberately left out so nothing user-identifying reaches the log.
+        debugPrint(
+          '[StateDropZone._convertAndStage] conversion failed '
+          '(${result.reason})',
+        );
+        return;
+      }
+      alertData(
+        context: context,
+        body: AppLocalizations.of(context)
+            .get('label--media-conversion-failed'),
+        type: AlertType.critical,
+      );
+      return;
+    }
+    handleDroppedFile(converted);
+  }
+
   /// Classifies a single dropped [file] and stages it when it is supported.
   ///
   /// The content type is taken from the browser, falling back to sniffing the
-  /// bytes and finally to a `text/csv` guess for comma-separated data. Files that
-  /// do not match any accepted [formats] are ignored, and the resolved extension
-  /// is appended to the name when the original name lacked one. Returns whether
-  /// the file was staged.
+  /// bytes. When neither yields a type, the accepted [formats] decide by file
+  /// name alone and the first matching format lends its canonical MIME type, so
+  /// files dropped without a reported content type are still staged when their
+  /// extension is accepted. Files that match no accepted format are ignored, and
+  /// the resolved extension is appended to the name when the original name
+  /// lacked one. Returns whether the file was staged.
   @visibleForTesting
   bool handleDroppedFile(DropZoneFile file) {
     if (_disposed) return false;
@@ -223,12 +284,13 @@ class StateDropZone extends ChangeNotifier {
     final extensionFromName = name.contains('.')
         ? name.split('.').lastOrNull?.toLowerCase()
         : null;
-    if (contentType == null && extensionFromName == 'csv') {
-      contentType = 'text/csv';
-    }
     if (contentType == null) {
-      debugPrint('Could not determine MIME type for file: $name');
-      return false;
+      final matchedFormat = _matchFormatByFileName(name);
+      if (matchedFormat == null) {
+        debugPrint('Could not determine MIME type for file: $name');
+        return false;
+      }
+      contentType = matchedFormat.mimeType;
     }
     final accepted = formats.any(
       (format) => format.matches(contentType: contentType, fileName: name),
@@ -278,7 +340,10 @@ class StateDropZone extends ChangeNotifier {
   ///
   /// Duplicate files are ignored. If no files are selected, the loading state is
   /// reset and no items are added. Bytes are kept raw, so no base64 encoding is
-  /// performed on the picked files.
+  /// performed on the picked files. Picked files pass through the same
+  /// conversion pipeline as dropped ones, so a picked file whose container needs
+  /// re-encoding is staged in the converted form — or rejected with the same
+  /// localized message when the platform cannot convert it.
   Future<void> pickFiles() async {
     loading = true;
     final files = await FilePicker.pickFiles(
@@ -291,17 +356,8 @@ class StateDropZone extends ChangeNotifier {
     }
     for (final file in files) {
       final bytes = await file.readAsBytes();
-      final name = file.name;
-      final mime = lookupMimeType(name, headerBytes: bytes);
-      final ext = name.contains('.') ? name.split('.').last : '';
-      addMediaIfNew(
-        MediaDataUpload(
-          bytes: bytes,
-          fileName: name,
-          extension: ext,
-          contentType: mime ?? 'application/octet-stream',
-          size: bytes.lengthInBytes,
-        ),
+      await _convertAndStage(
+        DropZoneFile(bytes: bytes, name: file.name, size: bytes.lengthInBytes),
       );
     }
     if (!kIsWeb) await FilePicker.clearTemporaryFiles();
