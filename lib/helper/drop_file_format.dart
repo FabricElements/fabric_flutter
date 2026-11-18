@@ -112,6 +112,16 @@ abstract final class DropFileFormats {
     extensions: ['csv'],
   );
 
+  /// vCard electronic business card format used for contact imports.
+  ///
+  /// Contact apps commonly export cards as `text/vcard` or `text/x-vcard`, so
+  /// the extension fallback in [DropFileFormat.matches] accepts either variant
+  /// through the `vcf` and `vcard` file extensions.
+  static const DropFileFormat vcard = DropFileFormat(
+    mimeType: 'text/vcard',
+    extensions: ['vcf', 'vcard'],
+  );
+
   /// Legacy Excel spreadsheet format.
   static const DropFileFormat xls = DropFileFormat(
     mimeType: 'application/vnd.ms-excel',
@@ -177,11 +187,15 @@ const List<DropFileFormat> dropZoneFormatsCallRecording = [
   DropFileFormats.wav,
 ];
 
-/// Spreadsheet and CSV formats accepted for contact-list imports.
+/// Spreadsheet, CSV, and vCard formats accepted for contact-list imports.
+///
+/// Contact apps on some platforms only export vCard files, so the vCard
+/// format sits alongside the spreadsheet formats to cover every export path.
 const List<DropFileFormat> dropZoneFormatsContactList = [
   DropFileFormats.csv,
   DropFileFormats.xls,
   DropFileFormats.xlsx,
+  DropFileFormats.vcard,
 ];
 
 /// Returns the deduplicated file extensions covered by [formats].

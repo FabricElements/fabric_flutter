@@ -2,6 +2,46 @@
 
 ### Added
 
+* **vCard format in the drop-zone catalog.** `DropFileFormats.vcard` declares
+  the `text/vcard` MIME type with `vcf` and `vcard` file extensions, and the
+  `dropZoneFormatsContactList` preset now includes it. Contact apps on several
+  platforms only export cards as vCard files, so a contact-import drop zone
+  driven by that preset previously offered no file type those exports could
+  match, leaving the picker with nothing to show. Both MIME variants in the
+  wild (`text/vcard` and `text/x-vcard`) resolve through the catalog entry:
+  the former matches the declared type directly and the latter falls back to
+  the file-extension check in `DropFileFormat.matches`.
+
+* **Optional picker file type for `MediaHelper.getFile`.** `getFile` accepts a
+  `FileType? type` parameter that, when provided, replaces the default
+  `FileType.custom` + extension filtering. Passing a broad picker category is
+  how platform photo pickers are reached on the web: `FileType.image` maps to
+  `accept="image/*"`, which every mobile browser honors and, on selection,
+  transparently converts photos that the page could not otherwise read into a
+  web-safe encoding. The parameter is generic plumbing — callers decide which
+  category (if any) fits their surface.
+
+### Fixed
+
+* **Photo-library images rejected on mobile browsers.** `MediaHelper
+  .getImage` with `MediaOrigin.files` now requests `FileType.image` on the
+  web, so the file input advertises `accept="image/*"` instead of a hard-coded
+  extension list. Mobile browsers that default to high-efficiency photo
+  encodings could not satisfy that list, making library photos impossible to
+  pick; the broad accept lets the browser hand the page a converted file
+  instead. Native platforms keep the previous extension-based flow unchanged.
+  The gallery branch benefits from the same repair: browsers may convert the
+  picked photo yet keep the original file name, so the MIME type is now
+  resolved from the file bytes, and a name that no longer matches the actual
+  content no longer mislabels the upload or fails validation.
+
+* **`MediaHelper.getFile` resolved MIME types from the file name alone.** A
+  renamed or mislabeled file produced a wrong content type (or a null one that
+  crashed the dimension probe). The MIME type is now derived from the file
+  bytes with the name as fallback, matching the behavior already used by
+  `StateDropZone`, and an unresolvable type degrades to
+  `application/octet-stream` instead of throwing.
+
 * **Native drag-and-drop for `DropRegion` on iOS, Android, macOS, Windows and
   Linux.** `DropRegion` was previously a no-op passthrough outside the browser,
   so a `ManagedDropZone` rendered on a native platform showed no hover
