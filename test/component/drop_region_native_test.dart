@@ -330,6 +330,97 @@ void main() {
         expect(dropped.single.name, 'photo.png');
       });
 
+      testWidgets('should deliver a csv string item as a csv file', (
+        tester,
+      ) async {
+        // Arrange
+        await pumpRegion(tester);
+        final centre = _regionCentre(tester);
+        const contents = 'name,email\nAda,ada@example.com\n';
+
+        // Act
+        await _emitDrop(tester, 'onDragDone', <String, Object?>{
+          'x': centre.dx,
+          'y': centre.dy,
+          'items': <Object?>[
+            <String, Object?>{
+              'kind': 'string',
+              'mimeType': 'text/plain',
+              'value': contents,
+            },
+          ],
+        });
+
+        // Assert
+        expect(dropped, hasLength(1));
+        expect(dropped.single.unreadable, isFalse);
+        expect(dropped.single.name, 'contacts.csv');
+        expect(dropped.single.mimeType, 'text/csv');
+        expect(dropped.single.size, contents.length);
+        expect(utf8.decode(dropped.single.bytes), contents);
+      });
+
+      testWidgets('should deliver a vcard string item as a vcf file', (
+        tester,
+      ) async {
+        // Arrange
+        await pumpRegion(tester);
+        final centre = _regionCentre(tester);
+        const contents = 'BEGIN:VCARD\nEND:VCARD\n';
+
+        // Act
+        await _emitDrop(tester, 'onDragDone', <String, Object?>{
+          'x': centre.dx,
+          'y': centre.dy,
+          'items': <Object?>[
+            <String, Object?>{
+              'kind': 'string',
+              'mimeType': 'text/vcard',
+              'value': contents,
+            },
+          ],
+        });
+
+        // Assert
+        expect(dropped, hasLength(1));
+        expect(dropped.single.name, 'contact.vcf');
+        expect(dropped.single.size, contents.length);
+        expect(utf8.decode(dropped.single.bytes), contents);
+      });
+
+      testWidgets('should keep csv string file names unique in one drop', (
+        tester,
+      ) async {
+        // Arrange
+        await pumpRegion(tester);
+        final centre = _regionCentre(tester);
+        String stringItem(String value) => value;
+
+        // Act
+        await _emitDrop(tester, 'onDragDone', <String, Object?>{
+          'x': centre.dx,
+          'y': centre.dy,
+          'items': <Object?>[
+            <String, Object?>{
+              'kind': 'string',
+              'mimeType': 'text/csv',
+              'value': stringItem('a,b\n1,2\n'),
+            },
+            <String, Object?>{
+              'kind': 'string',
+              'mimeType': 'text/csv',
+              'value': stringItem('c,d\n3,4\n'),
+            },
+          ],
+        });
+
+        // Assert
+        expect(dropped.map((file) => file.name), <String>[
+          'contacts.csv',
+          'contacts-2.csv',
+        ]);
+      });
+
       testWidgets('should deliver a dropped directory as unreadable', (
         tester,
       ) async {

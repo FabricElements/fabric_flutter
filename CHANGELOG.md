@@ -23,6 +23,17 @@
 
 ### Fixed
 
+* **iOS csv and vCard drops are no longer rejected as unreadable.** On iOS a
+  dragged file whose UTI conforms to `public.text` (a `.csv` or `.vcf` contact
+  export) is classified as a string by the drop plugin and delivered as text
+  with no file identity, which the native drop region skipped and surfaced as
+  "Nothing in this drop could be read". `DropRegion` now recognizes string
+  items that carry file content — by a file-like MIME type (`text/csv`,
+  `text/vcard`, and variants) or, for the untyped iOS form, by sniffing the
+  content for vCard or csv structure — and rebuilds them into a `DropZoneFile`
+  with a derived name (`contacts.csv`, `contact.vcf`), the canonical MIME type,
+  and the UTF-8 bytes of the text. Genuine plain-text drops are still skipped
+  and still warn, as before.
 * **Rejected or failed drops are no longer silent.** `StateDropZone` now
   records every rejected file in `rejections` (`DropRejection` with a
   `DropRejectionReason`: unsupported type, unreadable, empty, conversion
