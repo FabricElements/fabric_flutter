@@ -11,6 +11,7 @@
 /// clear message instead of staging bytes a later upload would refuse.
 library;
 
+import 'dart:async' show TimeoutException;
 import 'dart:convert' show base64Decode;
 import 'dart:js_interop';
 
@@ -18,13 +19,14 @@ import 'package:web/web.dart' as web;
 
 import 'drop_file_format.dart';
 import 'media_file_converter_native.dart'
-    show MediaConversionResult, MediaFileConverter;
+    show
+        MediaConversionResult,
+        MediaFileConverter,
+        mediaConversionTimeout,
+        withJpegExtension;
 
 /// The MIME type the converter re-encodes converted images to.
 const String _jpegMimeType = 'image/jpeg';
-
-/// The file extension matching [_jpegMimeType].
-const String _jpegExtension = 'jpg';
 
 /// Converts HEIC/HEIF photo files to JPEG through the browser's image decoder.
 ///
@@ -53,7 +55,12 @@ class MediaFileConverterImpl extends MediaFileConverter {
     final blob = web.Blob([file.bytes.toJS].toJS);
     web.ImageBitmap bitmap;
     try {
-      bitmap = await web.window.createImageBitmap(blob).toDart;
+      bitmap = await web.window
+          .createImageBitmap(blob)
+          .toDart
+          .timeout(mediaConversionTimeout);
+    } on TimeoutException {
+      return const MediaConversionResult.unsupported('conversion-timeout');
     } catch (_) {
       return const MediaConversionResult.unsupported('decode-failed');
     }
@@ -76,7 +83,7 @@ class MediaFileConverterImpl extends MediaFileConverter {
       return MediaConversionResult(
         file: DropZoneFile(
           bytes: bytes,
-          name: _withJpegExtension(file.name),
+          name: withJpegExtension(file.name),
           size: bytes.lengthInBytes,
           mimeType: _jpegMimeType,
         ),
@@ -84,15 +91,5 @@ class MediaFileConverterImpl extends MediaFileConverter {
     } finally {
       bitmap.close();
     }
-  }
-
-  /// Replaces [name]'s extension with the JPEG extension.
-  ///
-  /// An extension-less name gains one, so every converted file carries the
-  /// extension matching its new contents.
-  static String _withJpegExtension(String name) {
-    final dot = name.lastIndexOf('.');
-    final base = dot > 0 ? name.substring(0, dot) : name;
-    return '$base.$_jpegExtension';
   }
 }

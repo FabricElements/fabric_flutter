@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:fabric_flutter/helper/drop_file_format.dart';
 import 'package:fabric_flutter/helper/media_file_converter.dart';
 import 'package:fabric_flutter/state/state_drop_zone.dart';
@@ -61,6 +63,60 @@ class _FakeConverter extends MediaFileConverter {
         mimeType: 'image/jpeg',
       ),
     );
+  }
+}
+
+/// A converter double that reports the in-zone converting flag mid-flight.
+class _NotifyingConverter extends MediaFileConverter {
+  /// Creates a double that observes conversions as they run.
+  const _NotifyingConverter({required this.onConvert});
+
+  /// Called with the in-zone converting flag observed while a HEIC
+  /// conversion is in flight.
+  final void Function(bool converting) onConvert;
+
+  /// The zone under test, wired by the test that uses this double.
+  static StateDropZone? zone;
+
+  @override
+  Future<MediaConversionResult> convert(DropZoneFile file) async {
+    if (MediaFileConverter.needsConversion(
+      mimeType: file.mimeType,
+      fileName: file.name,
+    )) {
+      onConvert(zone!.converting);
+    }
+    return MediaConversionResult(file: file);
+  }
+}
+
+/// A converter double that breaks its contract and throws.
+class _ThrowingConverter extends MediaFileConverter {
+  @override
+  Future<MediaConversionResult> convert(DropZoneFile file) async {
+    if (MediaFileConverter.needsConversion(
+      mimeType: file.mimeType,
+      fileName: file.name,
+    )) {
+      throw StateError('converter double exploded');
+    }
+    return MediaConversionResult(file: file);
+  }
+}
+
+/// A converter double whose HEIC conversion never settles on its own.
+class _HangingConverter extends MediaFileConverter {
+  @override
+  Future<MediaConversionResult> convert(DropZoneFile file) {
+    if (!MediaFileConverter.needsConversion(
+      mimeType: file.mimeType,
+      fileName: file.name,
+    )) {
+      return Future.value(MediaConversionResult(file: file));
+    }
+    // Never completes: a drop must not depend on the converter settling
+    // for the zone to stay consistent.
+    return Completer<MediaConversionResult>().future;
   }
 }
 
@@ -392,6 +448,91 @@ void main() {
       expect(state.mediaList, isEmpty);
       expect(state.loading, isFalse);
     });
+
+    test(
+      'should expose a converting state while a conversion runs and clear it',
+      () async {
+        // Arrange
+        final observed = <bool>[];
+        final state = StateDropZone(
+          formats: dropZoneFormatsGeneral,
+          converter: _NotifyingConverter(
+            onConvert: (converting) => observed.add(converting),
+          ),
+        );
+        _NotifyingConverter.zone = state;
+        const heicBytes = [0, 0, 0, 24, 102, 116, 121, 112, 104, 101, 105, 99];
+        addTearDown(() => _NotifyingConverter.zone = null);
+
+        // Act
+        await state.onDroppedFiles([
+          dropped(name: 'IMG_0001.heic', bytes: heicBytes, mimeType: null),
+        ]);
+
+        // Assert
+        // The flag was observed as true while the conversion ran...
+        expect(observed, [true]);
+        // ...and is false again once the drop settles.
+        expect(state.converting, isFalse);
+        expect(state.loading, isFalse);
+      },
+    );
+
+    test('should resolve a converter that throws into a rejection', () async {
+      // Arrange
+      final state = StateDropZone(
+        formats: dropZoneFormatsGeneral,
+        converter: _ThrowingConverter(),
+      );
+      const heicBytes = [0, 0, 0, 24, 102, 116, 121, 112, 104, 101, 105, 99];
+
+      // Act
+      await state.onDroppedFiles([
+        dropped(name: 'IMG_0001.heic', bytes: heicBytes, mimeType: null),
+      ]);
+
+      // Assert
+      expect(state.mediaList, isEmpty);
+      expect(
+        state.rejections.single.reason,
+        DropRejectionReason.conversionFailed,
+      );
+      expect(state.converting, isFalse);
+      expect(state.loading, isFalse);
+    });
+
+    test(
+      'should keep the zone usable when a conversion never settles',
+      () async {
+        // Arrange
+        final state = StateDropZone(
+          formats: dropZoneFormatsGeneral,
+          converter: _HangingConverter(),
+        );
+        const heicBytes = [0, 0, 0, 24, 102, 116, 121, 112, 104, 101, 105, 99];
+
+        // Act
+        final drop = state.onDroppedFiles([
+          dropped(name: 'IMG_0001.heic', bytes: heicBytes, mimeType: null),
+        ]);
+        // Drain the microtask queue so the hanging conversion is reached.
+        await Future<void>.delayed(Duration.zero);
+        // The zone still accepts and stages pass-through files.
+        await state.onDroppedFiles([
+          dropped(name: 'photo.png', mimeType: 'image/png'),
+        ]);
+
+        // Assert
+        expect(state.mediaList.single.fileName, 'photo.png');
+        expect(state.loading, isFalse);
+        // The hanging drop stays pending but its pipeline flags were reset
+        // for every file that followed; the state itself is not wedged.
+        expect(state.converting, isFalse);
+        // Let the pending future settle into silence rather than erroring
+        // at the end of the test run.
+        unawaited(drop);
+      },
+    );
 
     test('should keep staging later files after one is rejected', () async {
       // Arrange
