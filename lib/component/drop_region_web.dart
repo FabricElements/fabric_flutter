@@ -23,10 +23,18 @@ class DropRegion extends StatefulWidget {
     required this.child,
     required this.onDrop,
     this.onDraggingChanged,
+    this.fallbackName = 'file',
   });
 
   /// The content displayed inside, and hit-tested as, the drop region.
   final Widget child;
+
+  /// Base name given to a dropped item that carries no file name.
+  ///
+  /// Accepted so the web and native implementations share one API. It is unused
+  /// here: the browser always reports a real `File.name`, so the web region never
+  /// has to invent one.
+  final String fallbackName;
 
   /// Receives the files read from a drop that lands inside the region.
   ///

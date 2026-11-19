@@ -55,6 +55,14 @@ Offset _regionCentre(WidgetTester tester) {
 /// Identifies the region's child so its bounds can be measured.
 const Key _childKey = Key('drop-region-child');
 
+/// Today's date as `yyyy-MM-dd`, matching the region's rebuilt file names.
+String todayStamp() {
+  final now = DateTime.now();
+  final month = now.month.toString().padLeft(2, '0');
+  final day = now.day.toString().padLeft(2, '0');
+  return '${now.year}-$month-$day';
+}
+
 void main() {
   group('DropRegion', () {
     late List<DropZoneFile> dropped;
@@ -76,7 +84,10 @@ void main() {
     });
 
     /// Pumps a [DropRegion] wrapping an opaque, sized child.
-    Future<void> pumpRegion(WidgetTester tester) async {
+    Future<void> pumpRegion(
+      WidgetTester tester, {
+      String fallbackName = 'file',
+    }) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -84,6 +95,7 @@ void main() {
               child: DropRegion(
                 onDrop: (files) async => dropped.addAll(files),
                 onDraggingChanged: dragging.add,
+                fallbackName: fallbackName,
                 child: Container(
                   key: _childKey,
                   width: 200,
@@ -354,7 +366,7 @@ void main() {
         // Assert
         expect(dropped, hasLength(1));
         expect(dropped.single.unreadable, isFalse);
-        expect(dropped.single.name, 'contacts.csv');
+        expect(dropped.single.name, 'file-${todayStamp()}.csv');
         expect(dropped.single.mimeType, 'text/csv');
         expect(dropped.single.size, contents.length);
         expect(utf8.decode(dropped.single.bytes), contents);
@@ -383,9 +395,35 @@ void main() {
 
         // Assert
         expect(dropped, hasLength(1));
-        expect(dropped.single.name, 'contact.vcf');
+        expect(dropped.single.name, 'file-${todayStamp()}.vcf');
         expect(dropped.single.size, contents.length);
         expect(utf8.decode(dropped.single.bytes), contents);
+      });
+
+      testWidgets('should use the configured fallback name for rebuilt files', (
+        tester,
+      ) async {
+        // Arrange
+        await pumpRegion(tester, fallbackName: 'contacts');
+        final centre = _regionCentre(tester);
+        const contents = 'name,email\nAda,ada@example.com\n';
+
+        // Act
+        await _emitDrop(tester, 'onDragDone', <String, Object?>{
+          'x': centre.dx,
+          'y': centre.dy,
+          'items': <Object?>[
+            <String, Object?>{
+              'kind': 'string',
+              'mimeType': 'text/plain',
+              'value': contents,
+            },
+          ],
+        });
+
+        // Assert
+        expect(dropped, hasLength(1));
+        expect(dropped.single.name, 'contacts-${todayStamp()}.csv');
       });
 
       testWidgets('should keep csv string file names unique in one drop', (
@@ -416,8 +454,8 @@ void main() {
 
         // Assert
         expect(dropped.map((file) => file.name), <String>[
-          'contacts.csv',
-          'contacts-2.csv',
+          'file-${todayStamp()}.csv',
+          'file-${todayStamp()}-2.csv',
         ]);
       });
 
