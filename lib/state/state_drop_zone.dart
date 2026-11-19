@@ -139,6 +139,9 @@ class StateDropZone extends ChangeNotifier {
   /// Tracks whether the drop zone is currently processing or uploading files.
   bool _isLoading = false;
 
+  /// Tracks whether a file conversion is currently running.
+  bool _isConverting = false;
+
   /// Tracks whether a draggable item is currently hovering over the drop zone.
   bool _isDragging = false;
 
@@ -155,6 +158,20 @@ class StateDropZone extends ChangeNotifier {
   set loading(bool value) {
     if (_isLoading == value) return;
     _isLoading = value;
+    notifyListeners();
+  }
+
+  /// Returns whether a file conversion is currently running.
+  ///
+  /// The drop zone stays interactive while a conversion runs — the heavy work
+  /// happens off the UI thread — so the UI uses this flag to render a
+  /// non-blocking progress affordance instead of freezing.
+  bool get converting => _isConverting;
+
+  /// Updates the converting flag and notifies listeners when it changes.
+  set converting(bool value) {
+    if (_isConverting == value) return;
+    _isConverting = value;
     notifyListeners();
   }
 
@@ -293,11 +310,16 @@ class StateDropZone extends ChangeNotifier {
     }
     loading = true;
     try {
+      // Files convert one at a time so one heavy conversion cannot starve
+      // the zone or interleave rejections out of order.
       for (final file in files) {
         await _convertAndStage(file);
       }
     } finally {
-      if (!_disposed) loading = false;
+      if (!_disposed) {
+        converting = false;
+        loading = false;
+      }
     }
   }
 
@@ -316,7 +338,19 @@ class StateDropZone extends ChangeNotifier {
       reportRejection(file.name, DropRejectionReason.empty);
       return;
     }
-    final result = await converter.convert(file);
+    MediaConversionResult result;
+    converting = true;
+    try {
+      result = await converter.convert(file);
+    } catch (error) {
+      // The converter contract says it never throws, but a broken double or
+      // an engine edge case must still resolve — the file is rejected with
+      // the same warning instead of surfacing an unhandled exception.
+      debugPrint('[StateDropZone._convertAndStage] conversion error: $error');
+      result = const MediaConversionResult.unsupported('converter-error');
+    } finally {
+      if (!_disposed) converting = false;
+    }
     final converted = result.file;
     if (converted == null) {
       _rejections.add(

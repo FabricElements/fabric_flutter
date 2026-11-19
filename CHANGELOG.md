@@ -2,6 +2,22 @@
 
 ### Added
 
+* **Client-side HEIC/HEIF photo conversion in the drop zone.** Dropped or
+  picked HEIC/HEIF photos are now converted to JPEG before upload instead of
+  being rejected. On native platforms the conversion decodes the container
+  through the Flutter engine's platform image codec — ImageIO on iOS, the
+  platform bitmap decoder on Android where available — and re-encodes the
+  decoded pixels as JPEG off the UI thread, so the conversion cannot block
+  rendering. On the web the existing browser-decoder conversion continues to
+  run and now carries the same deadline. Every conversion path resolves: a
+  platform that cannot decode the container, a decode that fails, or a
+  conversion that exceeds its deadline is reported as a conversion failure
+  and the drop zone shows its localized warning — the pipeline never throws
+  to the caller and never leaves a drop unresolved. `StateDropZone` exposes
+  a `converting` flag so UIs can render a non-blocking progress affordance
+  while the work runs, and files are converted one at a time with a
+  decoded-pixel cap so a large or hostile image cannot exhaust memory.
+
 * **vCard format in the drop-zone catalog.** `DropFileFormats.vcard` declares
   the `text/vcard` MIME type with `vcf` and `vcard` file extensions, and the
   `dropZoneFormatsContactList` preset now includes it. Contact apps on several
