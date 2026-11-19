@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:file_drop/file_drop.dart';
 import 'package:flutter/widgets.dart';
 
@@ -73,19 +76,34 @@ class _DropRegionState extends State<DropRegion> {
   /// the files have already landed.
   Future<void> _onDrop(DropDetails details) async {
     _setHovering(false);
+    _stringFileNames.clear();
     await _deliver(details.items);
   }
 
   /// Reads every file in [items] and delivers the readable ones.
   ///
-  /// Dropped strings and directories are skipped up front. The web
-  /// implementation gets a file list that cannot contain them, whereas the
-  /// platform hands over every kind of item the drag source offered, and a
+  /// Dropped plain strings and directories are skipped or marked unreadable.
+  /// The web implementation gets a file list that cannot contain them, whereas
+  /// the platform hands over every kind of item the drag source offered, and a
   /// string would otherwise be read as if it were a file.
+  ///
+  /// A string item can nevertheless carry a real file: on iOS a dragged file
+  /// whose UTI conforms to `public.text` (a `.csv` or `.vcf`) is classified as a
+  /// string by the platform plugin, which delivers the file's contents as text
+  /// under a `text/plain` MIME type, with no name. Such an item is recognized
+  /// through its MIME type — `text/csv`, `text/vcard`, and variants are
+  /// file-like by declaration — or, for the iOS `text/plain` case, by sniffing
+  /// the content, and rebuilt into a [DropZoneFile] from the UTF-8 bytes so it
+  /// is not lost as an unreadable drop. Genuine text snippets are still
+  /// skipped.
   Future<void> _deliver(List<DropItem> items) async {
     final futures = <Future<DropZoneFile>>[];
     for (final item in items) {
-      if (item is DropStringItem) continue;
+      if (item is DropStringItem) {
+        final stringFile = _stringItemAsFile(item);
+        if (stringFile != null) futures.add(Future.value(stringFile));
+        continue;
+      }
       if (item is DropItemDirectory || item.isDirectory) {
         futures.add(Future.value(DropZoneFile.unreadable(item.name)));
         continue;
@@ -97,6 +115,96 @@ class _DropRegionState extends State<DropRegion> {
       return;
     }
     await widget.onDrop(await Future.wait(futures));
+  }
+
+  /// Rebuilds a string item that actually carries a file into a
+  /// [DropZoneFile], or returns `null` for a genuine plain-text drop.
+  ///
+  /// The name and canonical MIME type are derived from the recognized format
+  /// because the iOS drop path delivers the text without a name and reports
+  /// only `text/plain`. A counter keeps names unique when a single drop
+  /// carries several such files.
+  DropZoneFile? _stringItemAsFile(DropStringItem item) {
+    final (fileName, mimeType) = _classifyStringItem(item.mimeType, item.value);
+    if (fileName == null) return null;
+    final bytes = Uint8List.fromList(utf8.encode(item.value));
+    return DropZoneFile(
+      bytes: bytes,
+      name:
+          _stringFileNames.update(
+                fileName,
+                (count) => count + 1,
+                ifAbsent: () => 1,
+              ) ==
+              1
+          ? fileName
+          : '${_stripExtension(fileName)}-${_stringFileNames[fileName]}.${_extensionOf(fileName)}',
+      size: bytes.length,
+      mimeType: mimeType,
+    );
+  }
+
+  /// Names assigned to files rebuilt from string items during the current
+  /// drop, used to keep multi-file drops unique.
+  final Map<String, int> _stringFileNames = <String, int>{};
+
+  /// Maps a string item to its file name and canonical MIME type, or `null`
+  /// when the item is a plain text snippet rather than a file.
+  ///
+  /// File-like MIME types are recognized by declaration. A `text/plain` or
+  /// untyped item is sniffed instead: on iOS that is the only form in which a
+  /// dragged `.csv` or `.vcf` arrives. A value beginning with `BEGIN:VCARD` is
+  /// a vCard, and a value whose records are two or more non-empty lines that
+  /// each carry the same positive number of commas is a csv. Anything else —
+  /// including single-line notes and prose — is treated as plain text.
+  static (String?, String?) _classifyStringItem(String mimeType, String value) {
+    switch (mimeType.toLowerCase()) {
+      case 'text/csv':
+      case 'text/comma-separated-values':
+      case 'application/csv':
+        return ('contacts.csv', 'text/csv');
+      case 'text/vcard':
+      case 'text/x-vcard':
+        return ('contact.vcf', 'text/vcard');
+      case 'text/plain':
+      case '':
+        break;
+      default:
+        return (null, null);
+    }
+    if (value.trimLeft().toUpperCase().startsWith('BEGIN:VCARD')) {
+      return ('contact.vcf', 'text/vcard');
+    }
+    if (_looksLikeCsv(value)) return ('contacts.csv', 'text/csv');
+    return (null, null);
+  }
+
+  /// Whether [value] is shaped like a csv document.
+  ///
+  /// Every non-empty line must contain the same positive number of commas and
+  /// there must be at least two records, so single-line prose or notes that
+  /// merely contain commas do not qualify.
+  static bool _looksLikeCsv(String value) {
+    final lines = value
+        .split(RegExp(r'\r?\n'))
+        .where((line) => line.trim().isNotEmpty)
+        .toList();
+    if (lines.length < 2) return false;
+    final fieldCount = ','.allMatches(lines.first).length + 1;
+    if (fieldCount < 2) return false;
+    return lines.every((line) => ','.allMatches(line).length + 1 == fieldCount);
+  }
+
+  /// Removes the extension from [fileName], leaving the base name.
+  static String _stripExtension(String fileName) {
+    final dot = fileName.lastIndexOf('.');
+    return dot < 0 ? fileName : fileName.substring(0, dot);
+  }
+
+  /// Returns the extension of [fileName], or an empty string when it has none.
+  static String _extensionOf(String fileName) {
+    final dot = fileName.lastIndexOf('.');
+    return dot < 0 ? '' : fileName.substring(dot + 1);
   }
 
   /// Reads a single [item] into a [DropZoneFile], or an unreadable placeholder when it fails.
