@@ -392,7 +392,7 @@ void main() {
     );
 
     test(
-      'should not stage a HEIC file when the converter cannot convert it',
+      'should stage the original HEIC when the converter cannot convert it',
       () async {
         // Arrange
         final state = StateDropZone(
@@ -407,7 +407,9 @@ void main() {
         ]);
 
         // Assert
-        expect(state.mediaList, isEmpty);
+        expect(state.mediaList.single.fileName, 'IMG_0001.heic');
+        expect(state.mediaList.single.contentType, 'image/heic');
+        expect(state.rejections, isEmpty);
         expect(state.loading, isFalse);
       },
     );
@@ -434,20 +436,24 @@ void main() {
       },
     );
 
-    test('should reject a HEIC drop on the default native converter', () async {
-      // Arrange
-      final state = StateDropZone(formats: dropZoneFormatsGeneral);
-      const heicBytes = [0, 0, 0, 24, 102, 116, 121, 112, 104, 101, 105, 99];
+    test(
+      'should stage the original HEIC on the default native converter',
+      () async {
+        // Arrange
+        final state = StateDropZone(formats: dropZoneFormatsGeneral);
+        const heicBytes = [0, 0, 0, 24, 102, 116, 121, 112, 104, 101, 105, 99];
 
-      // Act
-      await state.onDroppedFiles([
-        dropped(name: 'IMG_0001.heic', bytes: heicBytes, mimeType: null),
-      ]);
+        // Act
+        await state.onDroppedFiles([
+          dropped(name: 'IMG_0001.heic', bytes: heicBytes, mimeType: null),
+        ]);
 
-      // Assert
-      expect(state.mediaList, isEmpty);
-      expect(state.loading, isFalse);
-    });
+        // Assert
+        expect(state.mediaList.single.fileName, 'IMG_0001.heic');
+        expect(state.rejections, isEmpty);
+        expect(state.loading, isFalse);
+      },
+    );
 
     test(
       'should expose a converting state while a conversion runs and clear it',
@@ -478,11 +484,55 @@ void main() {
       },
     );
 
-    test('should resolve a converter that throws into a rejection', () async {
+    test('should stage the original when the converter throws', () async {
       // Arrange
       final state = StateDropZone(
         formats: dropZoneFormatsGeneral,
         converter: _ThrowingConverter(),
+      );
+      const heicBytes = [0, 0, 0, 24, 102, 116, 121, 112, 104, 101, 105, 99];
+
+      // Act
+      await state.onDroppedFiles([
+        dropped(name: 'IMG_0001.heic', bytes: heicBytes, mimeType: null),
+      ]);
+
+      // Assert
+      expect(state.mediaList.single.fileName, 'IMG_0001.heic');
+      expect(state.rejections, isEmpty);
+      expect(state.converting, isFalse);
+      expect(state.loading, isFalse);
+    });
+
+    test(
+      'should stage the original when the conversion exceeds the deadline',
+      () async {
+        // Arrange
+        final state = StateDropZone(
+          formats: dropZoneFormatsGeneral,
+          converter: _HangingConverter(),
+          conversionTimeout: const Duration(milliseconds: 20),
+        );
+        const heicBytes = [0, 0, 0, 24, 102, 116, 121, 112, 104, 101, 105, 99];
+
+        // Act
+        await state.onDroppedFiles([
+          dropped(name: 'IMG_0001.heic', bytes: heicBytes, mimeType: null),
+        ]);
+
+        // Assert
+        expect(state.mediaList.single.fileName, 'IMG_0001.heic');
+        expect(state.rejections, isEmpty);
+        expect(state.converting, isFalse);
+        expect(state.loading, isFalse);
+      },
+    );
+
+    test('should reject a file that needs conversion when its type is not accepted', () async {
+      // Arrange
+      final state = StateDropZone(
+        formats: const [DropFileFormats.png],
+        converter: const _FakeConverter(supported: false),
       );
       const heicBytes = [0, 0, 0, 24, 102, 116, 121, 112, 104, 101, 105, 99];
 
@@ -497,8 +547,6 @@ void main() {
         state.rejections.single.reason,
         DropRejectionReason.conversionFailed,
       );
-      expect(state.converting, isFalse);
-      expect(state.loading, isFalse);
     });
 
     test(
@@ -534,24 +582,30 @@ void main() {
       },
     );
 
-    test('should keep staging later files after one is rejected', () async {
-      // Arrange
-      final state = StateDropZone(
-        formats: dropZoneFormatsGeneral,
-        converter: const _FakeConverter(supported: false),
-      );
-      const heicBytes = [0, 0, 0, 24, 102, 116, 121, 112, 104, 101, 105, 99];
+    test(
+      'should stage the original and later files when conversion fails',
+      () async {
+        // Arrange
+        final state = StateDropZone(
+          formats: dropZoneFormatsGeneral,
+          converter: const _FakeConverter(supported: false),
+        );
+        const heicBytes = [0, 0, 0, 24, 102, 116, 121, 112, 104, 101, 105, 99];
 
-      // Act
-      await state.onDroppedFiles([
-        dropped(name: 'IMG_0001.heic', bytes: heicBytes, mimeType: null),
-        dropped(name: 'photo.png', mimeType: 'image/png'),
-      ]);
+        // Act
+        await state.onDroppedFiles([
+          dropped(name: 'IMG_0001.heic', bytes: heicBytes, mimeType: null),
+          dropped(name: 'photo.png', mimeType: 'image/png'),
+        ]);
 
-      // Assert
-      expect(state.mediaList.single.fileName, 'photo.png');
-      expect(state.loading, isFalse);
-    });
+        // Assert
+        expect(state.mediaList.map((m) => m.fileName), [
+          'IMG_0001.heic',
+          'photo.png',
+        ]);
+        expect(state.loading, isFalse);
+      },
+    );
   });
 
   group('StateDropZone.updateDragging', () {
@@ -792,7 +846,7 @@ void main() {
     test('should record a failed conversion', () async {
       // Arrange
       final state = StateDropZone(
-        formats: dropZoneFormatsMessageTemplate,
+        formats: const [DropFileFormats.png],
         converter: const _FakeConverter(supported: false),
       );
 

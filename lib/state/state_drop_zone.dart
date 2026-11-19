@@ -94,6 +94,7 @@ class StateDropZone extends ChangeNotifier {
   StateDropZone({
     required this.formats,
     this.converter = const MediaFileConverterImpl(),
+    this.conversionTimeout = mediaConversionTimeout,
   }) : extensions = extensionsForFormats(formats);
 
   /// The file formats accepted by both drag-and-drop and the file picker.
@@ -101,6 +102,13 @@ class StateDropZone extends ChangeNotifier {
 
   /// Re-encodes containers that downstream storage rejects before staging.
   final MediaFileConverter converter;
+
+  /// The longest a single [converter] call may take before the original file
+  /// is staged unchanged instead.
+  ///
+  /// This bounds the whole drop even when a converter never settles. It is
+  /// injectable so tests can exercise the deadline without waiting.
+  final Duration conversionTimeout;
 
   /// The file extensions passed to the picker, derived from [formats].
   final List<String> extensions;
@@ -341,43 +349,59 @@ class StateDropZone extends ChangeNotifier {
     MediaConversionResult result;
     converting = true;
     try {
-      result = await converter.convert(file);
+      result = await converter.convert(file).timeout(conversionTimeout);
+    } on TimeoutException {
+      result = const MediaConversionResult.unsupported('conversion-timeout');
     } catch (error) {
       // The converter contract says it never throws, but a broken double or
-      // an engine edge case must still resolve — the file is rejected with
-      // the same warning instead of surfacing an unhandled exception.
+      // an engine edge case must still resolve instead of surfacing an
+      // unhandled exception.
       debugPrint('[StateDropZone._convertAndStage] conversion error: $error');
       result = const MediaConversionResult.unsupported('converter-error');
     } finally {
       if (!_disposed) converting = false;
     }
     final converted = result.file;
-    if (converted == null) {
-      _rejections.add(
-        DropRejection(
-          fileName: file.name,
-          reason: DropRejectionReason.conversionFailed,
-        ),
+    if (converted != null) {
+      handleDroppedFile(converted);
+      return;
+    }
+    // The conversion failed, is unsupported on this platform, or timed out.
+    // The original file is staged unchanged whenever the accepted formats
+    // already allow its type, so a platform that cannot convert never blocks a
+    // drop the zone would otherwise take. Only a file whose original type is
+    // not accepted is rejected, and the user is told why.
+    final originalType =
+        file.mimeType ?? lookupMimeType(file.name, headerBytes: file.bytes);
+    if (_matchFormat(originalType, file.name) != null) {
+      // The reason is a short internal identifier; the file name is
+      // deliberately left out so nothing user-identifying reaches the log.
+      debugPrint(
+        '[StateDropZone._convertAndStage] conversion skipped, staging the '
+        'original (${result.reason})',
       );
-      final context = alertContext(null);
-      if (context == null || !context.mounted) {
-        // The reason is a short internal identifier; the file name is
-        // deliberately left out so nothing user-identifying reaches the log.
-        debugPrint(
-          '[StateDropZone._convertAndStage] conversion failed '
-          '(${result.reason})',
-        );
-        return;
-      }
-      alertData(
-        context: context,
-        body: AppLocalizations.of(context)
-            .get('label--media-conversion-failed'),
-        type: AlertType.critical,
+      handleDroppedFile(file);
+      return;
+    }
+    _rejections.add(
+      DropRejection(
+        fileName: file.name,
+        reason: DropRejectionReason.conversionFailed,
+      ),
+    );
+    final context = alertContext(null);
+    if (context == null || !context.mounted) {
+      debugPrint(
+        '[StateDropZone._convertAndStage] conversion failed '
+        '(${result.reason})',
       );
       return;
     }
-    handleDroppedFile(converted);
+    alertData(
+      context: context,
+      body: AppLocalizations.of(context).get('label--media-conversion-failed'),
+      type: AlertType.critical,
+    );
   }
 
   /// Classifies a single dropped [file] and stages it when it is supported.
