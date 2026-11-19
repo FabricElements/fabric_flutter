@@ -119,7 +119,13 @@ class _DropRegionState extends State<DropRegion> {
   void _onDragMove(web.Event event) {
     final drag = event as web.DragEvent;
     _allowDrag(drag);
-    _setHovering(_isInside(drag.clientX.toDouble(), drag.clientY.toDouble()));
+    final inside = _isInside(drag.clientX.toDouble(), drag.clientY.toDouble());
+    // Other drag-and-drop plugins listen on the window in the bubble phase and
+    // reset the drop effect to `none` for any drag outside their own targets,
+    // which makes the browser cancel the drop. Stopping propagation inside the
+    // region keeps the `copy` effect set above in force.
+    if (inside) drag.stopPropagation();
+    _setHovering(inside);
   }
 
   /// Clears the hover state only when the drag leaves the window entirely.

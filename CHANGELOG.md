@@ -39,6 +39,23 @@
 
 ### Fixed
 
+* **A failed, unsupported or timed-out conversion no longer blocks a drop.**
+  When the converter cannot re-encode a file — the platform decoder is
+  missing, the decode fails, or the conversion exceeds its deadline — the
+  drop zone now stages the original file unchanged whenever the accepted
+  formats already allow its type, instead of discarding it. Only a file whose
+  original type is not accepted is rejected with the localized conversion
+  warning. `StateDropZone` also enforces its own `conversionTimeout`
+  (defaulting to `mediaConversionTimeout`) around every converter call, so a
+  converter that never settles cannot stall a drop.
+
+* **Web drops over the region are no longer cancelled by other window-level
+  drag listeners.** The web `DropRegion` sets the `copy` drop effect in the
+  capture phase, but plugins that listen on the window in the bubble phase
+  reset it to `none` for drags outside their own targets, which made the
+  browser cancel the drop before it was delivered. The region now stops
+  propagation of `dragenter` and `dragover` while the pointer is inside it.
+
 * **iOS csv and vCard drops are no longer rejected as unreadable.** On iOS a
   dragged file whose UTI conforms to `public.text` (a `.csv` or `.vcf` contact
   export) is classified as a string by the drop plugin and delivered as text
