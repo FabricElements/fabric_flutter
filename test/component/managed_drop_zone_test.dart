@@ -1,3 +1,4 @@
+import 'package:fabric_flutter/component/drop_region.dart';
 import 'package:fabric_flutter/component/managed_drop_zone.dart';
 import 'package:fabric_flutter/helper/app_localizations_delegate.dart';
 import 'package:fabric_flutter/helper/drop_file_format.dart';
@@ -14,6 +15,7 @@ Future<void> pumpDropZone(
     DropFileFormats.jpeg,
   ],
   bool expiry = false,
+  String fallbackName = 'file',
 }) async {
   await tester.pumpWidget(
     MaterialApp(
@@ -24,6 +26,7 @@ Future<void> pumpDropZone(
           path: 'account/account-1/media',
           expiry: expiry,
           formats: formats,
+          fallbackName: fallbackName,
           callback: (media) => uploaded?.addAll(media),
         ),
       ),
@@ -103,6 +106,30 @@ void main() {
 
         // Assert
         expect(widget.formats, hasLength(2));
+      });
+
+      test('should default the fallback name to the generic label', () {
+        // Arrange & Act
+        final widget = ManagedDropZone(
+          path: 'account/account-1/media',
+          expiry: false,
+          formats: const [DropFileFormats.png],
+          callback: (media) {},
+        );
+
+        // Assert
+        expect(widget.fallbackName, 'file');
+      });
+
+      testWidgets('should forward the fallback name to the drop region', (
+        tester,
+      ) async {
+        // Arrange & Act
+        await pumpDropZone(tester, fallbackName: 'contacts');
+        final region = tester.widget<DropRegion>(find.byType(DropRegion));
+
+        // Assert
+        expect(region.fallbackName, 'contacts');
       });
     });
 

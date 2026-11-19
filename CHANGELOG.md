@@ -2,6 +2,16 @@
 
 ### Added
 
+* **Configurable fallback file name for name-less drops.** `DropRegion` and
+  `ManagedDropZone` accept a `fallbackName` (default `file`) that names a file
+  rebuilt from a nameless string item — on iOS a dragged `.csv` or `.vcf`
+  arrives as text with no name. Rebuilt names are now
+  `<fallbackName>-<yyyy-MM-dd>.<ext>` instead of the fixed `contacts.csv` /
+  `contact.vcf`, so a surface can label them by what it accepts (`contacts`,
+  `media`) and repeated imports stay distinguishable by date. Real file names
+  are unaffected, and the web implementation accepts the parameter for API
+  parity while continuing to use the browser's `File.name`.
+
 * **Client-side HEIC/HEIF photo conversion in the drop zone.** Dropped or
   picked HEIC/HEIF photos are now converted to JPEG before upload instead of
   being rejected. On native platforms the conversion decodes the container

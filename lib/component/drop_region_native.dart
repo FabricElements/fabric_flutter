@@ -28,10 +28,21 @@ class DropRegion extends StatefulWidget {
     required this.child,
     required this.onDrop,
     this.onDraggingChanged,
+    this.fallbackName = 'file',
   });
 
   /// The content displayed inside, and hit-tested as, the drop region.
   final Widget child;
+
+  /// Base name given to a file rebuilt from a string item that carries no name.
+  ///
+  /// The iOS drop path delivers a dragged `.csv` or `.vcf` as text with no file
+  /// name, so the region has to invent one. Set this to the noun that describes
+  /// what the surrounding surface accepts — `contacts`, `media` — so the staged
+  /// file reads meaningfully in the UI; the default is the generic `file`. The
+  /// name is combined with the drop date and the detected extension, and real
+  /// file names are never touched.
+  final String fallbackName;
 
   /// Receives the files read from a drop that lands inside the region.
   ///
@@ -122,11 +133,16 @@ class _DropRegionState extends State<DropRegion> {
   ///
   /// The name and canonical MIME type are derived from the recognized format
   /// because the iOS drop path delivers the text without a name and reports
-  /// only `text/plain`. A counter keeps names unique when a single drop
-  /// carries several such files.
+  /// only `text/plain`. The name is built from [DropRegion.fallbackName], the
+  /// drop date and the detected extension; a counter keeps names unique when a
+  /// single drop carries several such files.
   DropZoneFile? _stringItemAsFile(DropStringItem item) {
-    final (fileName, mimeType) = _classifyStringItem(item.mimeType, item.value);
-    if (fileName == null) return null;
+    final (extension, mimeType) = _classifyStringItem(
+      item.mimeType,
+      item.value,
+    );
+    if (extension == null) return null;
+    final fileName = '${widget.fallbackName}-${_today()}.$extension';
     final bytes = Uint8List.fromList(utf8.encode(item.value));
     return DropZoneFile(
       bytes: bytes,
@@ -148,8 +164,8 @@ class _DropRegionState extends State<DropRegion> {
   /// drop, used to keep multi-file drops unique.
   final Map<String, int> _stringFileNames = <String, int>{};
 
-  /// Maps a string item to its file name and canonical MIME type, or `null`
-  /// when the item is a plain text snippet rather than a file.
+  /// Maps a string item to its file extension and canonical MIME type, or
+  /// `null` when the item is a plain text snippet rather than a file.
   ///
   /// File-like MIME types are recognized by declaration. A `text/plain` or
   /// untyped item is sniffed instead: on iOS that is the only form in which a
@@ -157,15 +173,18 @@ class _DropRegionState extends State<DropRegion> {
   /// a vCard, and a value whose records are two or more non-empty lines that
   /// each carry the same positive number of commas is a csv. Anything else —
   /// including single-line notes and prose — is treated as plain text.
+  ///
+  /// Only the extension is returned; the name is built by the caller so it can
+  /// carry the caller's own fallback noun.
   static (String?, String?) _classifyStringItem(String mimeType, String value) {
     switch (mimeType.toLowerCase()) {
       case 'text/csv':
       case 'text/comma-separated-values':
       case 'application/csv':
-        return ('contacts.csv', 'text/csv');
+        return ('csv', 'text/csv');
       case 'text/vcard':
       case 'text/x-vcard':
-        return ('contact.vcf', 'text/vcard');
+        return ('vcf', 'text/vcard');
       case 'text/plain':
       case '':
         break;
@@ -173,10 +192,21 @@ class _DropRegionState extends State<DropRegion> {
         return (null, null);
     }
     if (value.trimLeft().toUpperCase().startsWith('BEGIN:VCARD')) {
-      return ('contact.vcf', 'text/vcard');
+      return ('vcf', 'text/vcard');
     }
-    if (_looksLikeCsv(value)) return ('contacts.csv', 'text/csv');
+    if (_looksLikeCsv(value)) return ('csv', 'text/csv');
     return (null, null);
+  }
+
+  /// The current local date as `yyyy-MM-dd`.
+  ///
+  /// A rebuilt file name carries the drop date so repeated imports of the same
+  /// kind of content do not collapse onto one indistinguishable name.
+  static String _today() {
+    final now = DateTime.now();
+    final month = now.month.toString().padLeft(2, '0');
+    final day = now.day.toString().padLeft(2, '0');
+    return '${now.year}-$month-$day';
   }
 
   /// Whether [value] is shaped like a csv document.

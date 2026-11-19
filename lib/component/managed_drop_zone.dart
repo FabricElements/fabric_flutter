@@ -33,6 +33,7 @@ class ManagedDropZone extends StatefulWidget {
     required this.callback,
     required this.formats,
     this.customMetadata,
+    this.fallbackName = 'file',
   });
 
   /// Storage path where uploaded files are written.
@@ -53,6 +54,15 @@ class ManagedDropZone extends StatefulWidget {
   /// backend trigger can read them to choose per-upload processing. Omitting
   /// them leaves uploads with the default handling.
   final Map<String, String>? customMetadata;
+
+  /// Base name given to a dropped item that carries no file name.
+  ///
+  /// Forwarded to the underlying drop region, which needs it when a platform
+  /// hands over a file as nameless text — on iOS a dragged `.csv` or `.vcf`
+  /// arrives that way. Set it to the noun that describes what this drop zone
+  /// accepts (`contacts`, `media`) so the staged file reads meaningfully; the
+  /// default is the generic `file`. Real file names are never affected.
+  final String fallbackName;
 
   /// Creates the state that tracks staged media and upload progress.
   @override
@@ -200,6 +210,7 @@ class _ManagedDropZoneState extends State<ManagedDropZone> {
         DropRegion(
           onDraggingChanged: _dropState.updateDragging,
           onDrop: _dropState.onDroppedFiles,
+          fallbackName: widget.fallbackName,
           child: Material(
             type: MaterialType.transparency,
             child: MergeSemantics(
