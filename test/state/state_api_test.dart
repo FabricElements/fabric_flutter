@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:fabric_flutter/helper/http_request.dart';
@@ -696,6 +697,160 @@ void main() {
         // Assert: clearing the cached endpoint allows a fresh request.
         expect(state.headers, isNotEmpty);
         expect(_TestStateAPI.requests, hasLength(2));
+      });
+    });
+
+    group('intentionally abandoned requests', () {
+      test(
+        'should not report through onError when cleared while in flight',
+        () async {
+          // Arrange - the response arrives only after `clear()` runs, which is
+          // what happens when a view is left before its request completes.
+          final errors = <String?>[];
+          final state = _TestStateAPI(
+            (_) async => throw http.ClientException(
+              'Connection closed before full header was received',
+            ),
+          );
+          state.onError = errors.add;
+          state.baseEndpoint = 'https://example.com/items';
+
+          // Act - start the call, abandon it, then let it complete.
+          final Future<dynamic> inFlight = state.call();
+          state.clear();
+          await inFlight;
+
+          // Assert - the abandoned request is silent and leaves no stale state.
+          expect(errors, isEmpty);
+          expect(state.error, isNull);
+          expect(state.loading, isFalse);
+          expect(state.initialized, isFalse);
+        },
+      );
+
+      test('should still report a failure while the view stays open', () async {
+        // Arrange - same failing request, but nobody abandons it: this is the
+        // positive control proving the silence above comes from intent, not
+        // from the failure being suppressed wholesale.
+        final errors = <String?>[];
+        final state = _TestStateAPI(
+          (_) async => throw http.ClientException(
+            'Connection closed before full header was received',
+          ),
+        );
+        state.onError = errors.add;
+        state.baseEndpoint = 'https://example.com/items';
+
+        // Act
+        await state.call();
+
+        // Assert
+        expect(errors, hasLength(1));
+        expect(errors.single, contains('Connection closed'));
+        expect(state.error, isNotNull);
+        expect(state.loading, isFalse);
+      });
+
+      test(
+        'should not report through onError when disposed while in flight',
+        () async {
+          // Arrange
+          final errors = <String?>[];
+          final state = _TestStateAPI(
+            (_) async => throw http.ClientException('Connection closed'),
+          );
+          state.onError = errors.add;
+          state.baseEndpoint = 'https://example.com/items';
+
+          // Act
+          final Future<dynamic> inFlight = state.call();
+          state.dispose();
+          await inFlight;
+
+          // Assert
+          expect(errors, isEmpty);
+        },
+      );
+
+      test(
+        'should not overwrite newer data with a superseded response',
+        () async {
+          // Arrange - the first request resolves after the second one so the
+          // completion order is inverted relative to the kickoff order.
+          final completers = <Completer<http.Response>>[];
+          final state = _TestStateAPI((request) {
+            final completer = Completer<http.Response>();
+            completers.add(completer);
+            return completer.future;
+          });
+          state.baseEndpoint = 'https://example.com/items';
+
+          // Act - supersede the first call by resetting the state, then fetch.
+          final Future<dynamic> first = state.call();
+          expect(state.loading, isTrue);
+          state.clear();
+          final Future<dynamic> second = state.call(
+            ignoreDuplicatedCalls: false,
+          );
+          // Let both requests reach the transport before either resolves.
+          await Future<void>.delayed(Duration.zero);
+          expect(completers, hasLength(2));
+          completers.last.complete(jsonOk({'id': 'new'}));
+          await second;
+          await settleDebounce();
+          completers.first.complete(jsonOk({'id': 'stale'}));
+          await first;
+
+          // Assert - the late response never lands.
+          expect(state.data, {'id': 'new'});
+          expect(state.error, isNull);
+          expect(state.loading, isFalse);
+        },
+      );
+
+      test('should not let a stale page overwrite a reset state', () async {
+        // Arrange - page 2 stays in flight until after the state is cleared.
+        final pageTwo = Completer<http.Response>();
+        final state = _TestStateAPI((request) {
+          final page =
+              int.tryParse(request.url.queryParameters['page'] ?? '1') ?? 1;
+          if (page == 2) return pageTwo.future;
+          return Future.value(
+            jsonOk(
+              List<Map<String, String>>.generate(
+                10,
+                (index) => {'id': '1-$index'},
+              ),
+              headers: {'x-total-count': '20'},
+            ),
+          );
+        });
+        state.paginate = true;
+        state.baseEndpoint = 'https://example.com/items';
+        await state.call();
+        expect(state.canPaginate, isTrue);
+
+        // Act
+        final Future<dynamic> nextPage = state.next();
+        state.clear();
+        // Let the reset fully settle before the abandoned page resolves, so the
+        // stale response cannot be masked by a reset that happens to land last.
+        await Future<void>.delayed(Duration.zero);
+        expect(state.data, isNull);
+        pageTwo.complete(
+          jsonOk(
+            List<Map<String, String>>.generate(10, (i) => {'id': '2-$i'}),
+            headers: {'x-total-count': '20'},
+          ),
+        );
+        await nextPage;
+
+        // Assert - the abandoned page never repopulates the reset state.
+        expect(state.data, isNull);
+        expect(state.error, isNull);
+        expect(state.loading, isFalse);
+        expect(state.totalCount, 0);
+        expect(state.initialized, isFalse);
       });
     });
 

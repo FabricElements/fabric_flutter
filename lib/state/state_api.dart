@@ -340,6 +340,13 @@ abstract class StateAPI extends StateShared {
   /// treat it as the authoritative refresh entry point for API-backed state.
   @override
   Future<dynamic> call({bool ignoreDuplicatedCalls = true}) async {
+    // Capture the current request generation before the first suspension point
+    // so a response completing after the request was superseded — a newer
+    // kickoff (e.g. fast scrolling), a reset, or disposal — can be discarded
+    // instead of overwriting fresher data or reporting a failure the user is no
+    // longer waiting on.
+    final int generation = requestGeneration;
+
     /// Prevents duplicate calls with a delay and check for loading call again
     if (loading) return;
 
@@ -374,10 +381,6 @@ abstract class StateAPI extends StateShared {
     }
     // Start loading
     loading = true;
-    // Capture the current pagination generation so a response completing
-    // after a newer kickoff (e.g. fast scrolling) can be discarded instead of
-    // overwriting fresher data.
-    final int generation = requestGeneration;
     dynamic newData;
     dynamic dataResponse;
     String? contentType;
@@ -427,6 +430,12 @@ abstract class StateAPI extends StateShared {
           }
         }
         final response = await httpClient.send(request);
+        // A response that lands after the request was abandoned on purpose
+        // (state reset, disposal, or a newer kickoff) must not seed headers,
+        // data, or pagination metadata that now belong to its successor. The
+        // transport reset in `finally` closes the client, which cancels the
+        // still-unread body instead of letting it report a spurious failure.
+        if (!isCurrentGeneration(generation)) return data;
         headers = response.headers;
         contentType = headers['content-type'];
         if (contentType == null) {
@@ -452,7 +461,11 @@ abstract class StateAPI extends StateShared {
             // from `null` instead of an empty list to keep [data] a clean
             // value until the first event arrives.
             newData = isEventStream ? null : [];
-            data = isEventStream ? null : [];
+            // Only a request that still owns the state may seed [data]; an
+            // abandoned one must not overwrite whatever replaced it.
+            if (isCurrentGeneration(generation)) {
+              data = isEventStream ? null : [];
+            }
             // Wait for animation to complete
             await Future.delayed(const Duration(milliseconds: 500));
           }
@@ -511,7 +524,7 @@ abstract class StateAPI extends StateShared {
                   chunk,
                 );
                 newData = streamResponseObject;
-                if (generation == requestGeneration) {
+                if (isCurrentGeneration(generation)) {
                   data = streamResponseObject;
                 }
                 return;
@@ -544,11 +557,14 @@ abstract class StateAPI extends StateShared {
                 streamResponseFull = [...originalData, chunk];
               }
               newData = streamResponse;
-              if (generation == requestGeneration) {
+              if (isCurrentGeneration(generation)) {
                 data = streamResponseFull;
               }
             },
             onError: (e) {
+              // A superseded request (reset, disposal, or a newer call) is
+              // abandoned on purpose: drop the failure instead of publishing it.
+              if (!isCurrentGeneration(generation)) return;
               // propagate to error handling below by setting error
               errorCount++;
               streamHadError = true;
@@ -570,13 +586,13 @@ abstract class StateAPI extends StateShared {
         // A successful response ends any consecutive-error streak.
         errorCount = 0;
       } catch (e) {
-        final isAbort =
-            (e is http.ClientException && e.message.contains('abortTrigger')) ||
-            e.toString().contains('abortTrigger');
-        if (isAbort) {
-          debugPrint(LogColor.warning('API call aborted: $endpoint'));
-          return data;
-        }
+        // A request the state abandoned on purpose — reset, disposal, or a
+        // newer kickoff taking over — must not surface through [error]/[onError].
+        // Intent is tracked by [requestGeneration]; a genuine connection drop
+        // while the user stays on the view keeps its generation and still
+        // reports below. The reset path already cleared [loading] for us, so
+        // this must not touch it: a newer request may own it by now.
+        if (!isCurrentGeneration(generation)) return data;
         errorCount++;
         error = e.toString();
       }
@@ -602,24 +618,33 @@ abstract class StateAPI extends StateShared {
         initialized = true;
       }
     } catch (e) {
+      // Same intent check as the inner catch: an abandoned request must not
+      // reset [initialized], publish an error, or touch [loading], which may
+      // already belong to a newer request.
+      if (!isCurrentGeneration(generation)) return data;
       initialized = false;
       errorCount++;
       error = e.toString();
     } finally {
+      final bool isAbandoned = !isCurrentGeneration(generation);
       // Stream (if any) has ended or failed: restore debounced publishing so
-      // ordinary updates resume their configured cadence.
-      liveUpdates = false;
+      // ordinary updates resume their configured cadence. An abandoned request
+      // leaves it alone — a newer streaming call may have just enabled it.
+      if (!isAbandoned) liveUpdates = false;
       // Finalize data response depending on pagination
       dataResponse = paginate
           ? (dataResponse ?? []) as List<dynamic>
           : dataResponse as dynamic;
-      // Set totalCount from headers if present or from data length
+      // Set totalCount from headers if present or from data length. Metadata
+      // from an abandoned request describes a page the user has already left,
+      // so it is skipped; [data], [error] and [loading] belong to whoever
+      // superseded this request.
       final hasTotalHeader = headers.containsKey('x-total-count');
-      if (hasTotalHeader) {
+      if (!isAbandoned && hasTotalHeader) {
         final xTotalCountHeader =
             int.tryParse(headers['x-total-count'] ?? '0') ?? 0;
         totalCount = xTotalCountHeader;
-      } else if (paginate && !hasTotalHeader && newData != null) {
+      } else if (!isAbandoned && paginate && newData != null) {
         /// Default totalCount depending on the page
         int newTotal = (newData as List<dynamic>).length;
         if (page > initialPage) {
@@ -630,7 +655,9 @@ abstract class StateAPI extends StateShared {
           totalCount = newTotal;
         }
       }
-      if (error == null) {
+      if (isAbandoned) {
+        debugPrint(LogColor.info('⏹️ Endpoint abandoned: $endpoint'));
+      } else if (error == null) {
         debugPrint(LogColor.info('✅ Endpoint: $endpoint'));
       } else {
         debugPrint(
@@ -647,10 +674,10 @@ Error: $error
       await _resetHttpClient();
     }
 
-    // Discard a response that completed after a newer pagination kickoff
-    // (e.g. fast scrolling): a stale page must never overwrite fresher data.
-    if (generation != requestGeneration) {
-      loading = false;
+    // Discard a response that completed after a newer kickoff or a reset
+    // (e.g. fast scrolling, leaving the view): a stale page must never
+    // overwrite fresher data or the state that replaced it.
+    if (!isCurrentGeneration(generation)) {
       return data;
     }
 
@@ -689,13 +716,16 @@ Error: $error
   }
 
   /// Clears request-specific state and resets the HTTP transport.
+  ///
+  /// The state reset runs first so it can abandon any in-flight request
+  /// synchronously: waiting for the transport reset would leave a window in
+  /// which the request being stopped still reports through [error]/[onError].
   @override
   void clear({bool notify = false}) {
     _lastEndpointCalled = null;
     headers = {};
-    _resetHttpClient().whenComplete(() {
-      super.clear(notify: notify);
-    });
+    super.clear(notify: notify);
+    unawaited(_resetHttpClient());
   }
 
   /// Cancels any active JSON-stream subscription and closes the HTTP client.

@@ -1,5 +1,7 @@
 // ignore_for_file: subtype_of_sealed_class, must_be_immutable
 
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fabric_flutter/state/state_document.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -211,6 +213,137 @@ void main() {
         expect(state.error, isNotNull);
       });
     });
+
+    group('intentionally abandoned requests', () {
+      test('should not report through onError when cleared while a fetch is in flight', () async {
+        // Arrange - the read fails if it ever resolves, so an error reaching
+        // onError would prove the abandonment guard is missing.
+        final fakeRef = _FakeDocumentReference()..failGet = true;
+        final state = _TestStateDocument();
+        state.ref = fakeRef;
+        final errors = <String?>[];
+        state.onError = errors.add;
+        final gate = Completer<void>();
+        fakeRef.getGate = gate;
+
+        // Act - the view is left while the fetch is still pending.
+        final inFlight = state();
+        await Future<void>.delayed(Duration.zero);
+        expect(state.loading, isTrue);
+        state.clear();
+        gate.complete();
+        await inFlight;
+
+        // Assert - the abandoned fetch reports nothing and leaves no stale
+        // loading or error state behind.
+        expect(errors, isEmpty);
+        expect(state.error, isNull);
+        expect(state.loading, isFalse);
+        expect(state.data, isNull);
+      });
+
+      test('should still report a fetch failure while the view stays open', () async {
+        // Arrange - positive control for the test above: nothing abandons this
+        // read, so its failure must still reach onError.
+        final fakeRef = _FakeDocumentReference()..failGet = true;
+        final state = _TestStateDocument();
+        state.ref = fakeRef;
+        final errors = <String?>[];
+        state.onError = errors.add;
+
+        // Act
+        await state();
+
+        // Assert
+        expect(errors, hasLength(1));
+        expect(errors.single, contains('permission denied'));
+        expect(state.loading, isFalse);
+      });
+
+      test('should not overwrite newer data with a superseded fetch', () async {
+        // Arrange - hold the first read in flight, then replace the reference
+        // so it is abandoned before it can publish anything.
+        final fakeRef = _FakeDocumentReference();
+        final state = _TestStateDocument();
+        state.ref = fakeRef;
+        final gate = Completer<void>();
+        fakeRef.getGate = gate;
+
+        final inFlight = state();
+        await Future<void>.delayed(Duration.zero);
+        expect(state.loading, isTrue);
+        state.clear();
+        expect(state.data, isNull);
+
+        // Act - a newer read wins, then the abandoned one finally resolves
+        // with stale data.
+        fakeRef.getGate = null;
+        fakeRef.snapshot = _FakeDocumentSnapshot(<String, dynamic>{
+          'id': 'new',
+        }, id: 'new');
+        state.ref = fakeRef;
+        await state();
+        expect(state.data, containsPair('id', 'new'));
+        gate.complete();
+        await inFlight;
+
+        // Assert - the stale payload never lands, even though it resolves last.
+        expect(state.data, containsPair('id', 'new'));
+      });
+
+      test(
+        'should not report through onError when disposed in flight',
+        () async {
+          // Arrange
+          final fakeRef = _FakeDocumentReference()..failGet = true;
+          final state = _TestStateDocument();
+          state.ref = fakeRef;
+          final errors = <String?>[];
+          state.onError = errors.add;
+          final gate = Completer<void>();
+          fakeRef.getGate = gate;
+
+          // Act - the view is disposed while the fetch is still pending.
+          final inFlight = state();
+          await Future<void>.delayed(Duration.zero);
+          expect(state.loading, isTrue);
+          state.dispose();
+          gate.complete();
+          await inFlight;
+
+          // Assert
+          expect(errors, isEmpty);
+          expect(state.error, isNull);
+        },
+      );
+
+      test(
+        'should not report a stream error after the listener is reset',
+        () async {
+          // Arrange - the stream's error is held behind a gate so the listener
+          // can be abandoned before it ever arrives.
+          final fakeRef = _FakeDocumentReference()
+            ..failStream = true
+            ..streamGate = Completer<void>();
+          final state = _TestStateDocument();
+          state.ref = fakeRef;
+          final errors = <String?>[];
+          state.onError = errors.add;
+
+          // Act - the listener starts, then the view resets and the error that
+          // belonged to it finally arrives.
+          state.listen();
+          await Future<void>.delayed(Duration.zero);
+          state.clear();
+          fakeRef.streamGate!.complete();
+          await settleDebounce();
+
+          // Assert
+          expect(errors, isEmpty);
+          expect(state.error, isNull);
+        },
+      );
+    });
   });
 }
 
@@ -220,16 +353,22 @@ void main() {
 /// for testing only and never escape this file.
 class _FakeDocumentSnapshot implements DocumentSnapshot<dynamic> {
   /// Creates a fake snapshot carrying [value], reporting [exists].
-  _FakeDocumentSnapshot(this._value, {bool exists = true})
-    : _exists = exists; // ignore: prefer_initializing_formals
+  _FakeDocumentSnapshot(this._value, {bool exists = true, String id = 'doc-1'})
+    // Named parameters cannot be private, so the fields cannot be
+    // initializing formals here.
+    : _exists = exists, // ignore: prefer_initializing_formals
+      _id = id; // ignore: prefer_initializing_formals
 
   final dynamic _value;
 
   /// Whether the snapshot reports the document as existing.
   final bool _exists;
 
+  /// The document id reported by [id].
+  final String _id;
+
   @override
-  String get id => 'doc-1';
+  String get id => _id;
 
   @override
   bool get exists => _exists; // ignore: prefer_initializing_formals
@@ -254,6 +393,17 @@ class _FakeDocumentReference implements DocumentReference<dynamic> {
   /// Whether [snapshots] should surface an error after the first event.
   bool failStream = false;
 
+  /// When set, [get] waits for this before resolving.
+  ///
+  /// Lets a test hold a read genuinely in flight so a reset, disposal, or a
+  /// superseding read can happen while it is still pending.
+  Completer<void>? getGate;
+
+  /// When set, [snapshots] waits for this after its first event.
+  ///
+  /// Lets a test abandon a live listener before the stream reports its failure.
+  Completer<void>? streamGate;
+
   @override
   String get path => 'example/doc-1';
 
@@ -262,13 +412,17 @@ class _FakeDocumentReference implements DocumentReference<dynamic> {
 
   @override
   Future<DocumentSnapshot<dynamic>> get([GetOptions? options]) async {
+    // Capture the payload before waiting so a read that is held in flight
+    // resolves with the value it was started against, not a later one.
+    final captured = snapshot;
+    if (getGate != null) await getGate!.future;
     if (failGet) {
       throw FirebaseException(
         plugin: 'cloud_firestore',
         message: 'permission denied',
       );
     }
-    return snapshot;
+    return captured;
   }
 
   @override
@@ -277,6 +431,7 @@ class _FakeDocumentReference implements DocumentReference<dynamic> {
     ListenSource source = ListenSource.defaultSource,
   }) async* {
     yield snapshot;
+    if (streamGate != null) await streamGate!.future;
     if (failStream) {
       throw FirebaseException(
         plugin: 'cloud_firestore',
