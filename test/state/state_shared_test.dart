@@ -12,6 +12,12 @@ import '../support/debounce.dart';
 class _TestState extends StateShared {
   @override
   dynamic get serialized => data;
+
+  /// Public view of [StateShared.requestGeneration] for tests.
+  int get generation => requestGeneration;
+
+  /// Public view of [StateShared.isCurrentGeneration] for tests.
+  bool isCurrent(int captured) => isCurrentGeneration(captured);
 }
 
 /// Concrete [StateShared] that memoizes through [StateShared.cachedSerialize].
@@ -917,6 +923,86 @@ void main() {
         expect(parameters.keys, contains('filters'));
         expect(parameters['filters']!.single, state.filtersEncoded);
       });
+    });
+
+    group('requestGeneration', () {
+      test('should start at zero and treat that generation as current', () {
+        // Arrange & Act
+        final state = _TestState();
+
+        // Assert
+        expect(state.generation, 0);
+        expect(state.isCurrent(0), isTrue);
+        expect(state.isCurrent(1), isFalse);
+      });
+
+      test('should abandon the in-flight generation when cleared', () {
+        // Arrange — a request captures the generation before awaiting.
+        final state = _TestState();
+        final captured = state.generation;
+
+        // Act
+        state.clear();
+
+        // Assert — the reset moved the token on, so the captured generation is
+        // no longer current and its completion is treated as abandoned.
+        expect(state.isCurrent(captured), isFalse);
+        expect(state.generation, greaterThan(captured));
+      });
+
+      test('should abandon the in-flight generation when disposed', () {
+        // Arrange
+        final state = _TestState();
+        final captured = state.generation;
+
+        // Act
+        state.dispose();
+
+        // Assert
+        expect(state.isCurrent(captured), isFalse);
+      });
+
+      test('should abandon the in-flight generation on pagination', () {
+        // Arrange — a page load in progress must not survive a jump to another
+        // page, so every pagination entry point moves the token on.
+        final state = _TestState();
+        state.totalCount = 100;
+        state.paginate = true;
+
+        // Act & Assert
+        for (final void Function() move in <void Function()>[
+          state.next,
+          state.previous,
+          state.first,
+          state.last,
+          () => state.limitChange(25),
+        ]) {
+          final captured = state.generation;
+          move();
+          expect(
+            state.isCurrent(captured),
+            isFalse,
+            reason: 'pagination must abandon the in-flight generation',
+          );
+        }
+      });
+
+      test(
+        'should report a stale generation once a reset happens mid-flight',
+        () {
+          // Arrange — mirrors the real ordering: capture, await, reset, resume.
+          final state = _TestState();
+          final captured = state.generation;
+          final resumed = Future<void>.delayed(Duration.zero)
+              .then((_) => state.isCurrent(captured));
+
+          // Act
+          state.clear();
+
+          // Assert — the request that resumed after the reset is not current.
+          return expectLater(resumed, completion(isFalse));
+        },
+      );
     });
   });
 }

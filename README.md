@@ -120,6 +120,8 @@ test/                   # Mirrors lib/ structure, files suffixed _test.dart
 
 **Layer rules:** `component/` and `view/` depend on `state/` and `helper/`; `state/` depends on `helper/` and `serialized/`; `serialized/` depends only on `json_annotation` (and Firestore types where needed); `helper/` holds stateless logic. **Never call Firebase SDKs directly from widgets** — route through `state/` classes or `helper/` utilities.
 
+**Requests abandoned on purpose are silent.** `StateShared.requestGeneration` identifies the latest request for a state. It moves on whenever in-flight work is deliberately abandoned — `clear()`, `dispose()` — or a newer load starts (pagination). `StateAPI`, `StateCollection`, and `StateDocument` capture it before awaiting and drop any completion from an older generation, so a request cancelled by leaving a view never reaches `error` / `onError` and a stale response never overwrites newer data. A genuine failure while the view stays open keeps its generation and still reports normally.
+
 ### 🔴 Code Generation Notice
 
 > [!CAUTION]

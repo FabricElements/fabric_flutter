@@ -10,6 +10,8 @@
 /// this file.
 library;
 
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fabric_flutter/state/state_collection.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -73,6 +75,12 @@ class _FakeQuery implements Query<dynamic> {
   /// Whether [snapshots] should surface an error after the first event.
   bool failStream = false;
 
+  /// When set, [get] waits on it before returning.
+  ///
+  /// Lets a test hold a read in flight so a reset or a superseding read can
+  /// happen while the first one is still outstanding.
+  Completer<void>? getGate;
+
   @override
   Map<String, dynamic> get parameters => _parameters;
 
@@ -81,6 +89,10 @@ class _FakeQuery implements Query<dynamic> {
 
   @override
   Future<QuerySnapshot<dynamic>> get([GetOptions? options]) async {
+    final gate = getGate;
+    if (gate != null) {
+      await gate.future;
+    }
     if (failGet) {
       throw FirebaseException(
         plugin: 'cloud_firestore',
@@ -124,6 +136,129 @@ class _TestStateCollection extends StateCollection {
 
 void main() {
   group('StateCollection', () {
+    group('intentionally abandoned requests', () {
+      test('should not report through onError when cleared while a fetch is in flight', () async {
+        // Arrange
+        final fakeQuery = _FakeQuery()..failGet = true;
+        final state = _TestStateCollection(fakeQuery);
+        final errors = <String?>[];
+        state.onError = errors.add;
+        final gate = Completer<void>();
+        fakeQuery.getGate = gate;
+
+        // Act - the view is left while the read is still in flight, so the
+        // fetch is abandoned on purpose before it can resolve. It fails if it
+        // were still current, which is what makes the assertion meaningful.
+        final inFlight = state();
+        await Future<void>.delayed(Duration.zero);
+        expect(state.loading, isTrue);
+        state.clear();
+        gate.complete();
+        await inFlight;
+
+        // Assert
+        expect(errors, isEmpty);
+        expect(state.error, isNull);
+        expect(state.loading, isFalse);
+        expect(state.data, isNull);
+      });
+
+      test(
+        'should still report a fetch failure while the view stays open',
+        () async {
+          // Arrange
+          final fakeQuery = _FakeQuery()..failGet = true;
+          final state = _TestStateCollection(fakeQuery);
+          final errors = <String?>[];
+          state.onError = errors.add;
+
+          // Act
+          await state();
+
+          // Assert
+          expect(errors, hasLength(1));
+          expect(errors.single, contains('permission denied'));
+          expect(state.error, isNotNull);
+          expect(state.loading, isFalse);
+        },
+      );
+
+      test('should not overwrite newer data with a superseded fetch', () async {
+        // Arrange
+        final fakeQuery = _FakeQuery();
+        final state = _TestStateCollection(fakeQuery);
+        final errors = <String?>[];
+        state.onError = errors.add;
+        final gate = Completer<void>();
+        fakeQuery
+          ..getGate = gate
+          ..failGet = true
+          ..snapshot = _FakeQuerySnapshot(<_FakeQueryDocumentSnapshot>[
+            _FakeQueryDocumentSnapshot('doc-old', <String, dynamic>{
+              'id': 'old',
+            }),
+          ], 1);
+
+        // Act - the read is still in flight when the view is left, so it is
+        // abandoned mid-request and would fail if it were still current.
+        final abandoned = state();
+        await Future<void>.delayed(Duration.zero);
+        expect(state.loading, isTrue);
+        state.clear();
+        state.baseQuery = fakeQuery;
+        gate.complete();
+        await abandoned;
+
+        // Assert - the abandoned read publishes neither data nor an error.
+        expect(errors, isEmpty);
+        expect(state.error, isNull);
+        expect(state.data, isNull);
+        expect(state.loading, isFalse);
+
+        // Act - a fresh read takes over the state.
+        fakeQuery
+          ..getGate = null
+          ..failGet = false
+          ..snapshot = _FakeQuerySnapshot(<_FakeQueryDocumentSnapshot>[
+            _FakeQueryDocumentSnapshot('new', <String, dynamic>{'id': 'stale'}),
+          ], 1);
+        await state();
+
+        // Assert - only the surviving request's payload is published. The
+        // published id comes from the surviving document, not the abandoned
+        // one.
+        expect(errors, isEmpty);
+        expect(state.data, hasLength(1));
+        expect((state.data as List).single, containsPair('id', 'new'));
+        expect(state.error, isNull);
+        expect(state.loading, isFalse);
+      });
+
+      test(
+        'should not report through onError when disposed in flight',
+        () async {
+          // Arrange
+          final fakeQuery = _FakeQuery()..failGet = true;
+          final state = _TestStateCollection(fakeQuery);
+          final errors = <String?>[];
+          state.onError = errors.add;
+          final gate = Completer<void>();
+          fakeQuery.getGate = gate;
+
+          // Act - the state is disposed while the read is still outstanding.
+          final inFlight = state();
+          await Future<void>.delayed(Duration.zero);
+          expect(state.loading, isTrue);
+          state.dispose();
+          gate.complete();
+          await inFlight;
+
+          // Assert
+          expect(errors, isEmpty);
+        },
+      );
+    });
+
     test(
       'should keep last good data when snapshots stream reports an error',
       () async {

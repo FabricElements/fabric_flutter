@@ -121,9 +121,15 @@ abstract class StateCollection extends StateShared {
       return data;
     }
     initialized = true;
+    // Capture the request generation so a snapshot or failure arriving after
+    // this listener was abandoned on purpose — reset, disposal, or a new query
+    // taking over — is dropped instead of publishing stale data or an error
+    // the user is no longer waiting on.
+    final int generation = requestGeneration;
     try {
       streamSubscription = query!.snapshots().listen(
         (snapshot) {
+          if (!isCurrentGeneration(generation)) return;
           loading = false;
 
           /// Default totalCount depending on the page
@@ -143,6 +149,9 @@ abstract class StateCollection extends StateShared {
           }
         },
         onError: (e) {
+          // An abandoned listener reports nothing: the state was reset on
+          // purpose, and a newer request may already own [error] and [loading].
+          if (!isCurrentGeneration(generation)) return;
           // Keep the last good data: stream errors are surfaced through
           // [error] without clearing previously loaded collection items.
           error = e?.toString();
@@ -150,11 +159,12 @@ abstract class StateCollection extends StateShared {
         },
       );
     } catch (e) {
+      if (!isCurrentGeneration(generation)) return data;
       // Keep the last good data: subscription failures are surfaced through
       // [error] without clearing previously loaded collection items.
       error = e.toString();
     } finally {
-      loading = false;
+      if (isCurrentGeneration(generation)) loading = false;
     }
     return data;
   }
@@ -171,6 +181,12 @@ abstract class StateCollection extends StateShared {
   /// Fetches the current query once without keeping a live listener attached.
   @override
   Future<dynamic> call({bool ignoreDuplicatedCalls = true}) async {
+    // Capture the request generation before the first suspension point so a
+    // snapshot or failure arriving after this fetch was abandoned on purpose —
+    // reset, disposal, or a new query taking over — is dropped instead of
+    // publishing stale data or an error the user is no longer waiting on.
+    final int generation = requestGeneration;
+
     /// Check if the query is the same as the previous one to avoid unnecessary calls
     isSameBaseQuery(baseQuery);
     if (loading) return data;
@@ -185,6 +201,7 @@ abstract class StateCollection extends StateShared {
     loading = true;
     try {
       final snapshot = await query!.get();
+      if (!isCurrentGeneration(generation)) return data;
       // Default totalCount depending on the page
       totalCount = snapshot.size;
       if (totalCount > 0) {
@@ -198,11 +215,14 @@ abstract class StateCollection extends StateShared {
         data = [];
       }
     } catch (e) {
+      // An abandoned fetch reports nothing: the state was reset on purpose,
+      // and a newer request may already own [error] and [loading].
+      if (!isCurrentGeneration(generation)) return data;
       // Keep the last good data: fetch failures are surfaced through [error]
       // without clearing previously loaded collection items.
       error = e.toString();
     } finally {
-      loading = false;
+      if (isCurrentGeneration(generation)) loading = false;
     }
     return data;
   }

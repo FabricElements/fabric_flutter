@@ -34,14 +34,25 @@ abstract class StateShared extends ChangeNotifier {
   /// configuration or unstable listeners.
   int errorCount = 0;
 
-  /// Monotonic token identifying the latest pagination request.
+  /// Monotonic token identifying the latest request for this state.
   ///
-  /// Incremented whenever a pagination kickoff ([next], [previous], [first],
-  /// [last], or [limitChange]) starts a new load. Async completion handlers
-  /// capture the value before awaiting and discard results captured from an
-  /// older generation, so a stale response can never overwrite newer data.
+  /// Incremented whenever a load starts ([next], [previous], [first], [last],
+  /// or [limitChange]) and whenever in-flight work is abandoned on purpose
+  /// ([clear] or [dispose]). Async completion handlers capture the value before
+  /// awaiting and discard results captured from an older generation, so a stale
+  /// response can never overwrite newer data and a request that was abandoned on
+  /// purpose never surfaces through [error] or [onError].
   @protected
   int requestGeneration = 0;
+
+  /// Returns whether [generation] still identifies the state's latest request.
+  ///
+  /// Capture [requestGeneration] before awaiting and test it afterwards to tell
+  /// an abandoned request (state reset, dispose, or a newer request taking over)
+  /// from a failure the user is actually waiting on: only the latter should be
+  /// published through [error], [onError], or a result assignment.
+  @protected
+  bool isCurrentGeneration(int generation) => generation == requestGeneration;
 
   /// Caps streamed response sizes in bytes to avoid processing unexpectedly
   /// large payloads in subclasses that read chunked responses.
@@ -321,6 +332,7 @@ abstract class StateShared extends ChangeNotifier {
   Future<dynamic> limitChange(int? value) async {
     if (loading) return;
     initialized = false;
+    requestGeneration++;
     limit = value;
     data = null;
     page = initialPage;
@@ -733,7 +745,14 @@ abstract class StateShared extends ChangeNotifier {
   /// data streams and listeners observe the cleared value. When `false`, the raw
   /// backing field is reset quietly, which is useful while reconfiguring a state
   /// before a follow-up fetch.
+  ///
+  /// The reset also abandons any in-flight request: it bumps [requestGeneration]
+  /// so a response that arrives afterwards is recognised as intentionally
+  /// dropped and neither publishes its data nor reports through [error] or
+  /// [onError]. Callers that deliberately stop a request this way get a clean
+  /// slate instead of a spurious failure for work they no longer want.
   void clear({bool notify = false}) {
+    requestGeneration++;
     _error = null;
     errorCount = 0;
     initialized = false;
@@ -1359,10 +1378,13 @@ abstract class StateShared extends ChangeNotifier {
   ///
   /// Sets [_disposed] before tearing down resources so every guarded path
   /// can exit early rather than operating on closed controllers or a disposed
-  /// [ChangeNotifier].
+  /// [ChangeNotifier]. It also bumps [requestGeneration] so an in-flight request
+  /// completing after disposal is treated as intentionally abandoned and never
+  /// reports through [error] or [onError].
   @override
   void dispose() {
     _disposed = true;
+    requestGeneration++;
     _controllerStream.close();
     _controllerStreamError.close();
     _timerNotify?.cancel();

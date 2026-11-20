@@ -73,9 +73,15 @@ abstract class StateDocument extends StateShared {
     }
     initialized = true;
     loading = true;
+    // Capture the request generation so a snapshot or failure arriving after
+    // this listener was abandoned on purpose — reset, disposal, or a new
+    // reference taking over — is dropped instead of publishing stale data or an
+    // error the user is no longer waiting on.
+    final int generation = requestGeneration;
     try {
       streamSubscription = baseRef!.snapshots().listen(
         (snapshot) {
+          if (!isCurrentGeneration(generation)) return;
           loading = false;
           if (snapshot.exists) {
             /// Compare data
@@ -125,6 +131,9 @@ abstract class StateDocument extends StateShared {
           }
         },
         onError: (e) {
+          // An abandoned listener reports nothing: the state was reset on
+          // purpose, and a newer request may already own [error] and [loading].
+          if (!isCurrentGeneration(generation)) return;
           initialized = false;
           loading = false;
           // Keep the last good data: stream errors are surfaced through
@@ -133,6 +142,7 @@ abstract class StateDocument extends StateShared {
         },
       );
     } catch (e) {
+      if (!isCurrentGeneration(generation)) return data;
       initialized = false;
       loading = false;
       // Keep the last good data: subscription failures are surfaced through
@@ -145,6 +155,11 @@ abstract class StateDocument extends StateShared {
   /// Fetches the current document once without maintaining a live subscription.
   @override
   Future<dynamic> call({bool ignoreDuplicatedCalls = true}) async {
+    // Capture the request generation before the first suspension point so a
+    // response or failure arriving after this fetch was abandoned on purpose —
+    // reset, disposal, or a new reference taking over — is dropped instead of
+    // publishing stale data or an error the user is no longer waiting on.
+    final int generation = requestGeneration;
     if (loading) return data;
     if (initialized) return data;
     loading = true;
@@ -157,18 +172,22 @@ abstract class StateDocument extends StateShared {
     try {
       initialized = true;
       final snapshot = await baseRef!.get();
+      if (!isCurrentGeneration(generation)) return data;
       if (snapshot.exists) {
         data = {...snapshot.data() as Map<String, dynamic>, 'id': snapshot.id};
       }
       // A missing snapshot keeps the last good data instead of clearing it.
     } catch (e) {
+      // An abandoned fetch reports nothing: the state was reset on purpose, and
+      // a newer request may already own [error] and [loading].
+      if (!isCurrentGeneration(generation)) return data;
       initialized = false;
       loading = false;
       // Keep the last good data: fetch failures are surfaced through [error]
       // without clearing previously loaded document data.
       error = e.toString();
     }
-    loading = false;
+    if (isCurrentGeneration(generation)) loading = false;
     return data;
   }
 

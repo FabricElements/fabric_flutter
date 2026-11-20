@@ -49,6 +49,21 @@
 
 ### Fixed
 
+* **Requests abandoned on purpose no longer surface as errors.** Leaving a view
+  resets, disposes, or supersedes the state that owns an in-flight
+  `StateAPI` / `StateCollection` / `StateDocument` request, and the resulting
+  transport failure (`ClientException: Connection closed before full header was
+  received`, an aborted Firestore read, a cancelled snapshot listener) used to
+  reach the consumer's `onError` callback and raise an alert for something the
+  user never needed. Those requests are now recognised by intent rather than by
+  message text: `StateShared.requestGeneration` moves on whenever in-flight work
+  is abandoned (`clear()`, `dispose()`) or a newer load starts (pagination), and
+  a completion whose captured generation is no longer current is dropped
+  silently. A genuine connection drop while the user stays on the view keeps its
+  generation and still reports through `error` / `onError`, and a stale response
+  can no longer overwrite newer data or leave stale `loading` / `error` state
+  behind.
+
 * **A failed, unsupported or timed-out conversion no longer blocks a drop.**
   When the converter cannot re-encode a file — the platform decoder is
   missing, the decode fails, or the conversion exceeds its deadline — the
